@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,24 +15,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which defines the template for tasks performed at the end of timesteps.
 
 module Merger_Trees_Evolve_Timesteps_Template
   !% Defines the template for tasks performed at the end of timesteps.
   use Merger_Trees
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   public
 
-  interface End_Of_Timestep_Task_Interface
-     subroutine End_Of_Timestep_Task_Template(thisTree,thisNode)
+  abstract interface
+     subroutine End_Of_Timestep_Task_Template(thisTree,thisNode,deadlockStatus)
        import mergerTree, treeNode
        type(mergerTree), intent(in)             :: thisTree
        type(treeNode),   intent(inout), pointer :: thisNode
+       integer,          intent(inout)          :: deadlockStatus
      end subroutine End_Of_Timestep_Task_Template
   end interface
 

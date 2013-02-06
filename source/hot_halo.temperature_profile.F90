@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module that implements calculations of the hot halo gas temperature profile.
 
 module Hot_Halo_Temperature_Profile
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="hotHaloTemperatureMethod" type="moduleUse">
   include 'hot_halo.temperature_profile.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Hot_Halo_Temperature, Hot_Halo_Temperature_Logarithmic_Slope
 
@@ -56,29 +52,33 @@ contains
     use Input_Parameters
     implicit none
 
-    !$omp critical(Hot_Halo_Temperature_Initialization) 
     ! Initialize if necessary.
     if (.not.hotHaloTemperatureInitialized) then
-       ! Get the cooling time available method parameter.
-       !@ <inputParameter>
-       !@   <name>hotHaloTemperatureMethod</name>
-       !@   <defaultValue>virial</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for computing hot halo temperature profiles.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloTemperatureMethod',hotHaloTemperatureMethod,defaultValue='virial')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="hotHaloTemperatureMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get</subroutineArgs>
-       include 'hot_halo.temperature_profile.inc'
-       !# </include>
-       if (.not.associated(Hot_Halo_Temperature_Get)) call Galacticus_Error_Report('Hot_Halo_Temperature','method '&
-         &//char(hotHaloTemperatureMethod)//' is unrecognized')
-       hotHaloTemperatureInitialized=.true.
+       !$omp critical(Hot_Halo_Temperature_Initialization) 
+       if (.not.hotHaloTemperatureInitialized) then
+          ! Get the cooling time available method parameter.
+          !@ <inputParameter>
+          !@   <name>hotHaloTemperatureMethod</name>
+          !@   <defaultValue>virial</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for computing hot halo temperature profiles.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloTemperatureMethod',hotHaloTemperatureMethod,defaultValue='virial')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="hotHaloTemperatureMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloTemperatureMethod,Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get</functionArgs>
+          include 'hot_halo.temperature_profile.inc'
+          !# </include>
+          if (.not.associated(Hot_Halo_Temperature_Get)) call Galacticus_Error_Report('Hot_Halo_Temperature','method '&
+               &//char(hotHaloTemperatureMethod)//' is unrecognized')
+          hotHaloTemperatureInitialized=.true.
+       end if
+       !$omp end critical(Hot_Halo_Temperature_Initialization) 
     end if
-    !$omp end critical(Hot_Halo_Temperature_Initialization) 
     return
   end subroutine Hot_Halo_Temperature_Initialize
 

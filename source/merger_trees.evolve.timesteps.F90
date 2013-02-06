@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,42 +15,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of timesteps for merger tree evolution.
 
 module Merger_Tree_Timesteps
   !% Implements calculations of timesteps for merger tree evolution.
+  implicit none
   private
   public :: Time_Step_Get
 
 contains
 
-  double precision function Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task)
+  double precision function Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Computes a suitable timestep over which to evolve a node in a tree.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Merger_Trees
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Node_Methods
     use Merger_Trees_Evolve_Timesteps_Template
+    use ISO_Varying_String
     !# <include directive="timeStepsTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode),                           intent(inout), pointer :: thisNode
-    double precision,                         intent(in)             :: evolveToTime
-    procedure(),                              intent(out),   pointer :: End_Of_Timestep_Task
-    procedure(End_Of_Timestep_Task_Template),                pointer :: End_Of_Timestep_Task_Internal
+    type(treeNode),                           intent(inout),   pointer           :: thisNode
+    double precision,                         intent(in)                         :: evolveToTime
+    procedure(),                              intent(out),     pointer           :: End_Of_Timestep_Task
+    logical,                                  intent(in)                         :: report
+    type(treeNode),                           intent(inout),   pointer, optional :: lockNode
+    type(varying_string),                     intent(inout),            optional :: lockType  
+    procedure(End_Of_Timestep_Task_Template),                  pointer           :: End_Of_Timestep_Task_Internal
+    class(nodeComponentBasic),                                 pointer           :: thisBasicComponent
 
     ! Call the function to get the timestep.
-    Time_Step_Get=evolveToTime-Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    Time_Step_Get=evolveToTime-thisBasicComponent%time()
     End_Of_Timestep_Task_Internal => null()
-    !# <include directive="timeStepsTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,Time_Step_Get,End_Of_Timestep_Task_Internal</subroutineArgs>
+    !# <include directive="timeStepsTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,Time_Step_Get,End_Of_Timestep_Task_Internal,report,lockNode,lockType</functionArgs>
     include 'merger_trees.evolve.timesteps.inc'
     !# </include>
     End_Of_Timestep_Task => End_Of_Timestep_Task_Internal

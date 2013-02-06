@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculation of stellar astrophysics.
 
 module Stellar_Astrophysics
   !% Implements calculation of stellar astrophysics.
   use ISO_Varying_String
+  implicit none
   private
   public :: Star_Ejected_Mass, Star_Initial_Mass, Star_Metal_Yield_Mass, Star_Lifetime
   
@@ -35,15 +31,22 @@ module Stellar_Astrophysics
   type(varying_string) :: stellarAstrophysicsMethod
 
   ! Pointer to the functions that actually do the calculations.
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Ejected_Mass_Get     => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Initial_Mass_Get     => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Metal_Yield_Mass_Get => null()
-  procedure(Stellar_Astrophysics_Template), pointer :: Star_Lifetime_Get         => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Ejected_Mass_Get     => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Initial_Mass_Get     => null()
+  procedure(Stellar_Astrophysics_Yield_Template), pointer :: Star_Metal_Yield_Mass_Get => null()
+  procedure(Stellar_Astrophysics_Template),       pointer :: Star_Lifetime_Get         => null()
 
   abstract interface
      double precision function Stellar_Astrophysics_Template(inputParameter1,inputParameter2)
        double precision, intent(in) :: inputParameter1,inputParameter2
      end function Stellar_Astrophysics_Template
+  end interface
+
+  abstract interface
+     double precision function Stellar_Astrophysics_Yield_Template(inputParameter1,inputParameter2,atomIndex)
+       double precision, intent(in)           :: inputParameter1,inputParameter2
+       integer,          intent(in), optional :: atomIndex
+     end function Stellar_Astrophysics_Yield_Template
   end interface
 
 contains
@@ -57,30 +60,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Stellar_Astrophysics_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarAstrophysicsInitialized) then
-       ! Get the stellar tracks method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarAstrophysicsMethod</name>
-       !@   <defaultValue>file</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for stellar astrophysics calculations.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarAstrophysicsMethod',stellarAstrophysicsMethod,defaultValue='file')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarAstrophysicsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get</subroutineArgs>
-       include 'stellar_astrophysics.inc'
-       !# </include>
-       if (.not.(associated(Star_Ejected_Mass_Get).and.associated(Star_Initial_Mass_Get).and.associated(Star_Metal_Yield_Mass_Get).and.associated(Star_Lifetime_Get))) &
-            & call Galacticus_Error_Report('Stellar_Astrophysics','method '//char(stellarAstrophysicsMethod)//' is unrecognized')
-       stellarAstrophysicsInitialized=.true.
+       !$omp critical(Stellar_Astrophysics_Initialization) 
+       if (.not.stellarAstrophysicsInitialized) then
+          ! Get the stellar tracks method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarAstrophysicsMethod</name>
+          !@   <defaultValue>file</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for stellar astrophysics calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarAstrophysicsMethod',stellarAstrophysicsMethod,defaultValue='file')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarAstrophysicsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get</functionArgs>
+          include 'stellar_astrophysics.inc'
+          !# </include>
+          if (.not.(associated(Star_Ejected_Mass_Get).and.associated(Star_Initial_Mass_Get).and.associated(Star_Metal_Yield_Mass_Get).and.associated(Star_Lifetime_Get))) &
+               & call Galacticus_Error_Report('Stellar_Astrophysics','method '//char(stellarAstrophysicsMethod)//' is unrecognized')
+          stellarAstrophysicsInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Astrophysics_Initialization) 
     end if
-    !$omp end critical(Stellar_Astrophysics_Initialization) 
-
     return
   end subroutine Stellar_Astrophysics_Initialize
 
@@ -112,16 +118,17 @@ contains
     return
   end function Star_Ejected_Mass
   
-  double precision function Star_Metal_Yield_Mass(initialMass,metallicity)
+  double precision function Star_Metal_Yield_Mass(initialMass,metallicity,atomIndex)
     !% Returns the metal mass yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity
+    double precision, intent(in)           :: initialMass,metallicity
+    integer,          intent(in), optional :: atomIndex
     
     ! Initialize the module.
     call Stellar_Astrophysics_Initialize
     
     ! Get the answer using the selected method.
-    Star_Metal_Yield_Mass=Star_Metal_Yield_Mass_Get(initialMass,metallicity)
+    Star_Metal_Yield_Mass=Star_Metal_Yield_Mass_Get(initialMass,metallicity,atomIndex)
     
     return
   end function Star_Metal_Yield_Mass

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module that implements calculations of the time available for cooling.
 
 module Cooling_Times_Available
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="coolingTimeAvailableMethod" type="moduleUse">
   include 'cooling.time_available.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Cooling_Time_Available, Cooling_Time_Available_Increase_Rate
 
@@ -54,30 +50,34 @@ contains
     use Galacticus_Error
     use Input_Parameters
     implicit none
-
-    !$omp critical(Cooling_Time_Available_Initialization) 
+    
     ! Initialize if necessary.
     if (.not.coolingTimeAvailableInitialized) then
-       ! Get the cooling time available method parameter.
-       !@ <inputParameter>
-       !@   <name>coolingTimeAvailableMethod</name>
-       !@   <defaultValue>White-Frenk</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used when computing the time available for cooling.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="coolingTimeAvailableMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>coolingTimeAvailableMethod,Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get</subroutineArgs>
-       include 'cooling.time_available.inc'
-       !# </include>
-       if (.not.(associated(Cooling_Time_Available_Get).and.associated(Cooling_Time_Available_Increase_Rate_Get))) call&
-            & Galacticus_Error_Report('Cooling_Time_Available','method ' //char(coolingTimeAvailableMethod)//' is unrecognized')
-       coolingTimeAvailableInitialized=.true.
+       !$omp critical(Cooling_Time_Available_Initialization) 
+       if (.not.coolingTimeAvailableInitialized) then
+          ! Get the cooling time available method parameter.
+          !@ <inputParameter>
+          !@   <name>coolingTimeAvailableMethod</name>
+          !@   <defaultValue>White-Frenk1991</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used when computing the time available for cooling.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('coolingTimeAvailableMethod',coolingTimeAvailableMethod,defaultValue='White-Frenk1991')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="coolingTimeAvailableMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>coolingTimeAvailableMethod,Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get</functionArgs>
+          include 'cooling.time_available.inc'
+          !# </include>
+          if (.not.(associated(Cooling_Time_Available_Get).and.associated(Cooling_Time_Available_Increase_Rate_Get))) call&
+               & Galacticus_Error_Report('Cooling_Time_Available','method ' //char(coolingTimeAvailableMethod)//' is unrecognized')
+          coolingTimeAvailableInitialized=.true.
+       end if
+       !$omp end critical(Cooling_Time_Available_Initialization) 
     end if
-    !$omp end critical(Cooling_Time_Available_Initialization) 
     return
   end subroutine Cooling_Time_Available_Initialize
 

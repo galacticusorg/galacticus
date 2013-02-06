@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations related to Type Ia supernovae.
 
 module Supernovae_Type_Ia_Nagashima
   !% Implements calculations related to Type Ia supernovae.
+  implicit none
   private
   public :: Supernovae_Type_Ia_Nagashima_Initialize
   
@@ -32,7 +28,8 @@ module Supernovae_Type_Ia_Nagashima
   double precision :: typeIaNormalization=0.07d0, gamma            = 2.0d0
 
   ! Total yield of metals from Type Ia supernova.
-  double precision :: totalYield
+  double precision                            :: totalYield
+  double precision, allocatable, dimension(:) :: elementYield
 
 contains
 
@@ -47,22 +44,30 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     use FoX_dom
+    use Atomic_Data
+    use Memory_Management
+    use Galacticus_Input_Paths
     implicit none
-    type(varying_string), intent(in) :: supernovaeIaMethod
-    procedure(),          pointer    :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
-    type(Node),           pointer    :: doc,thisIsotope,thisYield
-    type(NodeList),       pointer    :: isotopesList,propertyList
-    integer                          :: iIsotope,ioErr
-    double precision                 :: isotopeYield
+    type(varying_string),                 intent(in)    :: supernovaeIaMethod
+    procedure(double precision), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
+    type(Node),                  pointer                :: doc,thisIsotope,thisYield,thisAtom
+    type(NodeList),              pointer                :: isotopesList,propertyList
+    integer                                             :: iIsotope,ioErr,atomicNumber,atomicIndex
+    double precision                                    :: isotopeYield
 
     if (supernovaeIaMethod == 'Nagashima') then
        ! Set up pointers to our procedures.
        SNeIa_Cumulative_Number_Get => SNeIa_Cumulative_Number_Nagashima
        SNeIa_Cumulative_Yield_Get  => SNeIa_Cumulative_Yield_Nagashima
+
+       ! Allocate an array to store individual element yields.
+       call Alloc_Array(elementYield,[Atomic_Data_Atoms_Count()])
+       elementYield=0.0d0
+
        ! Read in Type Ia yields.
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
-       doc => parseFile('data/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
+       doc => parseFile(char(Galacticus_Input_Path())//'data/stellarAstrophysics/Supernovae_Type_Ia_Yields.xml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize','Unable to parse yields file')
 
        ! Get a list of all isotopes.
@@ -72,10 +77,18 @@ contains
        do iIsotope=0,getLength(isotopesList)-1
           thisIsotope  => item(isotopesList,iIsotope)
           propertyList => getElementsByTagname(thisIsotope,"yield")
-          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize','isotope must have precisely one yield')
+          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
+               & ,'isotope must have precisely one yield')
           thisYield => item(propertyList,0)
           call extractDataContent(thisYield,isotopeYield)
           totalYield=totalYield+isotopeYield
+          propertyList => getElementsByTagname(thisIsotope,"atomicNumber")
+          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
+               & ,'isotope must have precisely one atomic number')
+          thisAtom => item(propertyList,0)
+          call extractDataContent(thisAtom,atomicNumber)
+          atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)
+          elementYield(atomicIndex)=elementYield(atomicIndex)+isotopeYield
        end do
 
        ! Destroy the document.
@@ -117,16 +130,25 @@ contains
     return
   end function SNeIa_Cumulative_Number_Nagashima
 
-  double precision function SNeIa_Cumulative_Yield_Nagashima(initialMass,age,metallicity)
+  double precision function SNeIa_Cumulative_Yield_Nagashima(initialMass,age,metallicity,atomIndex)
     !% Compute the cumulative yield from Type Ia supernovae originating per unit mass of stars that form with given {\tt
     !% initialMass} and {\tt metallicity} after a time {\tt age}. The calculation is based on the Type Ia rate calculation of
     !% \cite{nagashima_metal_2005} and the Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The number returned here
     !% assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
+    double precision, intent(in)           :: initialMass,age,metallicity
+    integer,          intent(in), optional :: atomIndex
+    double precision                       :: yield
 
-    SNeIa_Cumulative_Yield_Nagashima=SNeIa_Cumulative_Number_Nagashima(initialMass,age,metallicity)*totalYield
+    if (present(atomIndex)) then
+       ! Return yield for requested atomic index.
+       yield=elementYield(atomIndex)
+    else
+       ! No atomic index given, therefore return total metal yield.
+       yield=totalYield
+    end if
+    SNeIa_Cumulative_Yield_Nagashima=SNeIa_Cumulative_Number_Nagashima(initialMass,age,metallicity)*yield
     return
   end function SNeIa_Cumulative_Yield_Nagashima
 

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,22 +15,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module of useful astronomical constants.
 
 module Numerical_Constants_Astronomical
   !% Contains various useful astronomical constants.
-  use FGSL
-  use Numerical_Constants_Prefixes
   use Numerical_Constants_Atomic
+  use Numerical_Constants_Math
+  use Numerical_Constants_Units
+  implicit none
   public
   
   ! Solar mass (in kg).
   double precision, parameter :: massSolar=FGSL_CONST_MKSA_SOLAR_MASS
+
+  ! Solar radius (in m; Allen's Astrophysical Quantities, page 340).
+  double precision, parameter :: radiusSolar=6.95508d8
 
   ! Solar luminosity (in W; Allen's Astrophysical Quantities, page 340).
   double precision, parameter :: luminositySolar=3.845d26
@@ -54,5 +53,15 @@ module Numerical_Constants_Astronomical
   ! Years and related quantities (in s).
   double precision, parameter :: year=31558149.8d0 ! Sidereal year.
   double precision, parameter :: gigaYear=giga*year
+
+  ! Conversion from Mpc/(km/s) to Gyr.
+  double precision, parameter :: Mpc_per_km_per_s_To_Gyr=megaParsec/kilo/gigaYear
+
+  ! AB magnitude system:
+  ! The AB magnitude system is defined such that:
+  !   m = -2.5log10(F_nu/[ergs/s/cm^2/Hz])-48.57
+  ! Computing the flux at 10pc gives us the zero point for the absolute magnitude scale (units of W/Hz).
+  double precision, parameter :: offsetAB=48.57d0
+  double precision, parameter :: luminosityZeroPointAB=(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs
 
 end module Numerical_Constants_Astronomical

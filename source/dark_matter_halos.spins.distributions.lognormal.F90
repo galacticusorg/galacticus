@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a lognormal halo spin distribution.
 
 module Halo_Spin_Distributions_Lognormal
   !% Implements a lognormal halo spin distribution.
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
        & Halo_Spin_Distribution_Lognormal_State_Store, Halo_Spin_Distribution_Lognormal_State_Retrieve
@@ -36,7 +32,7 @@ module Halo_Spin_Distributions_Lognormal
   ! Random number objects
   type(fgsl_rng) :: randomSequenceObject,clonedPseudoSequenceObject
   logical        :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
 
 contains
 
@@ -48,8 +44,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: haloSpinDistributionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
+    procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
     
     if (haloSpinDistributionMethod == 'lognormal') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal
@@ -60,6 +56,8 @@ contains
        !@   <description>
        !@     The median in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('lognormalSpinDistributionMedian',lognormalSpinDistributionMedian,defaultValue=0.03687d0)
        !@ <inputParameter>
@@ -69,6 +67,8 @@ contains
        !@   <description>
        !@     The dispersion in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('lognormalSpinDistributionSigma' ,lognormalSpinDistributionSigma ,defaultValue=0.51025d0)
        lognormalSpinDistributionMedian=dlog(lognormalSpinDistributionMedian)
@@ -78,7 +78,7 @@ contains
 
   double precision function Halo_Spin_Distribution_Lognormal(thisNode)
     !% Return a halo spin from a lognormal distribution.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Gaussian_Random
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode

@@ -1,15 +1,28 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Histograms;
 use Data::Dumper;
+use LaTeX::Encode;
+require Stats::Histograms;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
+require System::Redirect;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Disk_Scalelengths.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -21,32 +34,32 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputDir;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
+    $outputDir = ".";
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Disk_Scalelengths.pdf";
+    $outputDir = $outputTo;
 }
+($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.0);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight','diskScaleLength','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega']);
-$dataSets = \%{$dataSet{'dataSets'}};
-$scaleLength = ${$dataSets->{'diskScaleLength'}};
-$magnitude = ${$dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'}};
-$weight = ${$dataSets->{'volumeWeight'}};
-delete($dataSet{'dataSets'});
-
-# Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
-print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
-print gnuPlot "set output \"tmp.ps\"\n";
-
+$dataBlock->{'file'} = $galacticusFile;
+$dataBlock->{'store'} = 0;
+&HDF5::Get_Parameters($dataBlock);
+&HDF5::Count_Trees($dataBlock);
+&HDF5::Select_Output($dataBlock,0.0);
+$dataBlock->{'tree'} = "all";
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
+$dataSets = $dataBlock->{'dataSets'};
+$scaleLength = $dataSets->{'diskRadius'};
+$magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
+$morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
+$weight = $dataSets->{'mergerTreeWeight'};
+delete($dataBlock->{'dataSets'});
+  
 # Initialize chi^2 accumulator.
 $chiSquared = 0.0;
 $degreesOfFreedom = 0;
@@ -54,7 +67,10 @@ $degreesOfFreedom = 0;
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/Disk_Sizes_Dejong_2000.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
+my $i = -1;
+my @leafFiles;
+my @plotFiles;
 foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $columns = $dataSet->{'columns'};
     $x = pdl @{$columns->{'scaleLength'}->{'data'}};
@@ -62,16 +78,25 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yUpperLimit = pdl @{$columns->{'distributionUpperLimit'}->{'data'}};
     $yUpperError = pdl @{$columns->{'distributionErrorUp'}->{'data'}};
     $yLowerError = pdl @{$columns->{'distributionErrorDown'}->{'data'}};
-    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
-    $yUpperError = $y*(10.0**$yUpperError);
-    $yLowerError = $y/(10.0**$yLowerError);
-    $yUpperLimitArrow = pdl -0.3*$yUpperLimit;
-    $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});;
-    $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});;
+    $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    $yUpperError = +$y*(10.0**$yUpperError)-$y;
+    $yLowerError = -$y/(10.0**$yLowerError)+$y;
+
+    my $zeroPoints = which($y <= 0.0);
+    my $yP           = $y          ->copy();
+    my $yUpperErrorP = $yUpperError->copy();
+    my $yLowerErrorP = $yLowerError->copy();
+    $yP          ->index($zeroPoints) .=      $yUpperLimit->index($zeroPoints);
+    $yUpperErrorP->index($zeroPoints) .=  0.0                                 ;
+    $yLowerErrorP->index($zeroPoints) .= -0.7*$yUpperLimit->index($zeroPoints);
+    $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
+    $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
+    $morphologyMinimum = 0.05; # Morpology constraints are approximate, based on De Jong & Lacey's T-type selection of 3 < T < 8.
+    $morphologyMaximum = 0.30;
 
     # Select Galacticus galaxies.
-    $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum);
-    $weightSelected         = where($weight                ,$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum);
+    $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
+    $weightSelected         = where($weight                ,$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
     $xBins = log10($x);
     ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
 							     ,differential => 1);
@@ -87,57 +112,77 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $chiSquared += $chiSquaredRange;
     $degreesOfFreedom += $degreesOfFreedomRange;
 
-    # Make the plot.
-    print gnuPlot "set xlabel \"r_{disk} [kpc]\"\n";
-    print gnuPlot "set ylabel \"d^2n/dlog_{10}r_{disk}/dM_{I,0} [Mpc^{-3} mag^{-1}]\"\n";
-    print gnuPlot "set title \"".$dataSet->{'description'}."\"\n";
-    print gnuPlot "set logscale xy\n";
-    print gnuPlot "set xrange [0.1:20]\n";
-    print gnuPlot "set mxtics 2\n";
-    print gnuPlot "set mytics 2\n";
-    print gnuPlot "set pointsize 1.0\n";
-    print gnuPlot "unset label\n";
-    print gnuPlot "set label \"{/Symbol c}^2=".FormatSigFigs($chiSquaredRange,4)." [".$degreesOfFreedomRange."]\" at screen 0.6, screen 0.2\n";
-    $plotCommand = "plot ";
-    $join = "";
-    if ( any($y > 0.0) ) {$plotCommand .= "'-' with errorbars lt 1 pt 6 title\"".$data->{'label'}."\""; $join = ", "};
-    if ( any($y <= 0.0) ) {$plotCommand .= $join."'-' with vectors lt 1 title \"".$data->{'label'}." upper limit\""; $join = ", "};
-    if ( any($yGalacticus > 0.0) ) {$plotCommand .= $join."'-' with errorbars lt 2 pt 6 title 'Galacticus'"};
-    print gnuPlot $plotCommand."\n";
-    if ( any($y > 0.0) ) {
-	for($i=0;$i<nelem($x);++$i) {
-	    if ( $y->index($i) > 0.0 ) {print gnuPlot $x->index($i)." ".$y->index($i)." ".$yLowerError->index($i)." ".$yUpperError->index($i)."\n"};
-	}
-	print gnuPlot "e\n";
-    }
-    if ( any($y <= 0.0) ) {
-	for($i=0;$i<nelem($x);++$i) {
-	    if ( $y->index($i) <= 0.0 ) {print gnuPlot $x->index($i)." ".$yUpperLimit->index($i)." 0.0 ".$yUpperLimitArrow->index($i)."\n"};
-	}
-	print gnuPlot "e\n";
-    }
-    if ( any($yGalacticus > 0.0) ) {
-	for($i=0;$i<nelem($x);++$i) {
-	    print gnuPlot $x->index($i)." ".$yGalacticus->index($i)." ".$errorDownGalacticus->index($i)." ".$errorUpGalacticus->index($i)."\n";
-	}
-	print gnuPlot "e\n";
-    }
+    # Make plot of disk size distribution.
+    ++$i;
+    my $plot;
+    my $gnuPlot;
+    (my $plotFile = $outputFile) =~ s/\.pdf/_$i.pdf/;
+    (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+    open($gnuPlot,"|gnuplot > /dev/null 2>&1");
+    print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+    print $gnuPlot "set output '".$plotFileEPS."'\n";
+    my $title = $dataSet->{'description'};
+    $title =~ s/([\-\d]+\s*<\s*)M(\s*<\s*[\-\d]+)/\$$1M_{\\rm I,0}$2\$/;
+    print $gnuPlot "set title '".$title."'\n";
+    print $gnuPlot "set xlabel 'Disk scale length; \$r_{\\rm disk}\$ [kpc]'\n";
+    print $gnuPlot "set ylabel 'Comoving number density; \${\\rm d}^2n/{\\rm d}\\log_{10}r_{\\rm disk}/{\\rm d}M_{\\rm I,0} [\\hbox{Mpc}^{-3} \\hbox{mag}^{-1}]\$'\n";
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.15\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set key spacing 1.2\n";
+    print $gnuPlot "set key at screen 0.275,0.16\n";
+    print $gnuPlot "set key left\n";
+    print $gnuPlot "set key bottom\n";
+    print $gnuPlot "set logscale xy\n";
+    print $gnuPlot "set mxtics 10\n";
+    print $gnuPlot "set mytics 10\n";
+    print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+    print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+    print $gnuPlot "set xrange [0.2:30]\n";
+    print $gnuPlot "set yrange [1.0e-5:1.0e0]\n";
+    print $gnuPlot "set pointsize 2.0\n";
+    my $label = latex_encode($data->{'label'});
+    $label =~ s/\\/\\\\/g;
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$yP,
+	errorDown  => $yLowerErrorP,
+	errorUp    => $yUpperErrorP,
+	style      => "point",
+	symbol     => [6,7],
+	weight     => [5,3],
+	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
+	title      => $label.' [observed]'
+	);
+    &PrettyPlots::Prepare_Dataset(
+	\$plot,
+	$x,$yGalacticus,
+	errorDown  => $errorDownGalacticus,
+	errorUp    => $errorUpGalacticus,
+	style      => "point",
+	symbol     => [6,7],
+	weight     => [5,3],
+	color      => $PrettyPlots::colorPairs{'redYellow'},
+	title      => 'Galacticus'
+	);
+    &PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    close($gnuPlot);
+    &LaTeX::GnuPlot2PDF($plotFileEPS);
+    (my $leafName = $plotFile) =~ s/^.*\/([^\/]+)$/$1/;
+    push(@leafFiles,$leafName);
+    push(@plotFiles,$plotFile);
 }
-
-# Close the pipe to GnuPlot.
-close(gnuPlot);
-
-# Convert to PDF.
-system("ps2pdf tmp.ps ".$outputFile);
-
-# Clean up files.
-unlink("tmp.ps",@tmpFiles);
+&SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
+unlink(@plotFiles);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {
     $fitData{'name'} = "Dejong & Lacey (2000) disk scale length distributions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
+    $fitData{'fileName'} = $fileName;
     $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }

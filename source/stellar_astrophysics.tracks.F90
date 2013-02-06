@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculation of stellar tracks.
 
 module Stellar_Astrophysics_Tracks
   !% Implements stellar tracks.
   use ISO_Varying_String
+  implicit none
   private
   public :: Stellar_Luminosity, Stellar_Effective_Temperature
   
@@ -55,30 +51,33 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Stellar_Tracks_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarTracksInitialized) then
-       ! Get the stellar tracks method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarTracksMethod</name>
-       !@   <defaultValue>file</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for stellar tracks calculations.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarTracksMethod',stellarTracksMethod,defaultValue='file')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarTracksMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</subroutineArgs>
-       include 'stellar_astrophysics.tracks.inc'
-       !# </include>
-       if (.not.(associated(Stellar_Luminosity_Get).and.associated(Stellar_Effective_Temperature_Get))) &
-            & call Galacticus_Error_Report('Stellar_Tracks','method '//char(stellarTracksMethod)//' is unrecognized')
-       stellarTracksInitialized=.true.
+       !$omp critical(Stellar_Tracks_Initialization) 
+       if (.not.stellarTracksInitialized) then
+          ! Get the stellar tracks method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarTracksMethod</name>
+          !@   <defaultValue>file</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for stellar tracks calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarTracksMethod',stellarTracksMethod,defaultValue='file')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarTracksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</functionArgs>
+          include 'stellar_astrophysics.tracks.inc'
+          !# </include>
+          if (.not.(associated(Stellar_Luminosity_Get).and.associated(Stellar_Effective_Temperature_Get))) &
+               & call Galacticus_Error_Report('Stellar_Tracks','method '//char(stellarTracksMethod)//' is unrecognized')
+          stellarTracksInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Tracks_Initialization) 
     end if
-    !$omp end critical(Stellar_Tracks_Initialization) 
-
     return
   end subroutine Stellar_Tracks_Initialize
 

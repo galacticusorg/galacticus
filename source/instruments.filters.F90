@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of filter response curves.
 
 module Instruments_Filters
   !% Implements calculations of filter response curves.
   use ISO_Varying_String
-  use Instruments_Filters_Type
+  use FGSL
+  implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent
+
+  type filterType
+     !% A structure which holds filter response curves.
+     integer                                         :: nPoints
+     double precision,     allocatable, dimension(:) :: wavelength,response
+     type(varying_string)                            :: name
+     ! Interpolation structures.
+     logical                                         :: reset=.true.
+     type(fgsl_interp_accel)                         :: interpolationAccelerator
+     type(fgsl_interp)                               :: interpolationObject
+  end type filterType
 
   ! Array to hold filter data.
   type(filterType), allocatable, dimension(:) :: filterResponses
@@ -41,6 +48,7 @@ contains
     integer                          :: iFilter
 
     ! See if we already have this filter loaded. If not, load it.
+    !$omp critical (Filter_Get_Index_Lock)
     if (.not.allocated(filterResponses)) then
        call Filter_Response_Load(filterName)
        Filter_Get_Index=1
@@ -57,6 +65,7 @@ contains
           Filter_Get_Index=size(filterResponses)
        end if
     end if
+    !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Get_Index
 
@@ -65,7 +74,7 @@ contains
     implicit none
     double precision, dimension(2) :: Filter_Extent
     integer,          intent(in)   :: filterIndex
-    
+
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
     return
@@ -76,6 +85,8 @@ contains
     use Memory_Management
     use Galacticus_Error
     use FoX_dom
+    use Galacticus_Input_Paths
+    use ISO_Varying_String
     implicit none
     type(varying_string), intent(in)                :: filterName
     type(Node),           pointer                   :: doc,datum
@@ -88,11 +99,13 @@ contains
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
        call Move_Alloc(filterResponses,filterResponsesTemporary)
-       call Alloc_Array(filterResponses,size(filterResponsesTemporary)+1,'filterResponses')
+       allocate(filterResponses(size(filterResponsesTemporary)+1))
        filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
-       call Dealloc_Array(filterResponsesTemporary)
+       deallocate(filterResponsesTemporary)
+       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     else
-       call Alloc_Array(filterResponses,1,'filterResponses')
+       allocate(filterResponses(1))
+       call Memory_Usage_Record(sizeof(filterResponses))
     end if
 
     ! Index in array to load into.
@@ -102,7 +115,7 @@ contains
     filterResponses(filterIndex)%name=filterName
 
     ! Construct a file name for the filter.
-    filterFileName='data/filters/'//filterName//'.xml'
+    filterFileName=char(Galacticus_Input_Path())//'data/filters/'//filterName//'.xml'
 
     ! Parse the XML file.
     !$omp critical (FoX_DOM_Access)
@@ -114,8 +127,8 @@ contains
     filterResponses(filterIndex)%nPoints=getLength(datumList)
 
     ! Allocate space for the response curve.
-    call Alloc_Array(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%nPoints,'filterResponses()%wavelength')
-    call Alloc_Array(filterResponses(filterIndex)%response  ,filterResponses(filterIndex)%nPoints,'filterResponses()%response'  )
+    call Alloc_Array(filterResponses(filterIndex)%wavelength,[filterResponses(filterIndex)%nPoints])
+    call Alloc_Array(filterResponses(filterIndex)%response  ,[filterResponses(filterIndex)%nPoints])
 
     ! Extract the data from the file.
     do iDatum=0,filterResponses(filterIndex)%nPoints-1

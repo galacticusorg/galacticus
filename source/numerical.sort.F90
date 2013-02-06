@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,21 +15,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements sorting sequences.
 
 module Sort
   !% Implements sorting.
   use FGSL
-  use, intrinsic :: iso_c_binding
+  use, intrinsic :: ISO_C_Binding
+  implicit none
   private
-  public :: Sort_Do
+  public :: Sort_Do, Sort_Index_Do
+
+  interface Sort_Index_Do
+     !% Generic interface to index sort routines.
+     module procedure Sort_Index_Do_Integer8
+  end interface
 
   interface Sort_Do
+     !% Generic interface to in-place sort routines.
      module procedure Sort_Do_Double
      module procedure Sort_Do_Integer
   end interface
@@ -53,6 +55,18 @@ contains
     call Sort_Do_Integer_C(size(array),array)
     return
   end subroutine Sort_Do_Integer
+
+  function Sort_Index_Do_Integer8(array)
+    !% Given an unsorted integer {\tt array}, sorts it in place.
+    use Kind_Numbers
+    implicit none
+    integer(kind=kind_int8), intent(in), dimension(:)           :: array
+    integer(c_size_t),                   dimension(size(array)) :: Sort_Index_Do_Integer8
+ 
+    call Sort_Index_Do_Integer8_C(size(array),array,Sort_Index_Do_Integer8)
+    Sort_Index_Do_Integer8=Sort_Index_Do_Integer8+1
+    return
+  end function Sort_Index_Do_Integer8
 
   subroutine Sort_Do_Double_C(arraySize,array)
     !% Do a double precision sort.
@@ -82,6 +96,23 @@ contains
     return
   end subroutine Sort_Do_Integer_C
 
+  subroutine Sort_Index_Do_Integer8_C(arraySize,array,idx)
+    !% Do a integer sort.
+    use Kind_Numbers
+    implicit none
+    integer,                 intent(in)            :: arraySize
+    integer(kind=kind_int8), intent(in),    target :: array(arraySize)
+    integer(c_size_t),       intent(inout)         :: idx(arraySize)
+    integer(c_size_t)                              :: arraySizeC
+    integer                                        :: status
+    type(c_ptr)                                    :: arrayPointer
+    
+    arrayPointer=c_loc(array)
+    arraySizeC=arraySize
+    status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int8),Compare_Integer8)
+    return
+  end subroutine Sort_Index_Do_Integer8_C
+
   function Compare_Double(x,y) bind(c)
     !% Comparison function for double precision data.
     type(c_ptr),    value   :: x,y
@@ -105,5 +136,17 @@ contains
     Compare_Integer=0
     if (rx < ry) Compare_Integer=-1
   end function Compare_Integer
+
+  function Compare_Integer8(x,y) bind(c)
+    !% Comparison function for integer data.
+    type(c_ptr),     value   :: x,y
+    integer(c_int)           :: Compare_Integer8
+    integer(c_long), pointer :: rx,ry
+
+    call c_f_pointer(x,rx)
+    call c_f_pointer(y,ry)
+    Compare_Integer8=0
+    if (rx < ry) Compare_Integer8=-1
+  end function Compare_Integer8
 
 end module Sort

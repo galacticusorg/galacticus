@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,21 +15,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements useful cosmological functions.
 
 module Cosmology_Functions
   !% Implements useful cosmological functions.
+  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
+  implicit none
   private
   public :: Cosmology_Age, Expansion_Factor, Hubble_Parameter, Early_Time_Density_Scaling, Expansion_Factor_Is_Valid,&
-       & Cosmic_Time_Is_Valid, Omega_Matter, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
-       & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift
-  
+       & Cosmic_Time_Is_Valid, Omega_Matter_Total, Omega_Dark_Energy, Expansion_Rate, Epoch_of_Matter_Dark_Energy_Equality,&
+       & Epoch_of_Matter_Domination, Expansion_Factor_from_Redshift, Redshift_from_Expansion_Factor, CMB_Temperature,&
+       & Comoving_Distance, Time_From_Comoving_Distance, Comoving_Distance_Conversion, Comoving_Volume_Element_Redshift,&
+       & Comoving_Volume_Element_Time
+
   ! Flag to indicate if this module has been initialized.  
   logical              :: cosmologyInitialized=.false.
 
@@ -43,12 +42,23 @@ module Cosmology_Functions
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Factor_Get                     => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Hubble_Parameter_Get                     => null()
   procedure(Cosmology_Density_Scaling_Template),                  pointer :: Early_Time_Density_Scaling_Get           => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Get                         => null()
+  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Total_Get                   => null()
   procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Dark_Energy_Get                    => null()
+  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: CMB_Temperature_Get                      => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Rate_Get                       => null()
   procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Dark_Energy_Equality_Get => null()
   procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Curvature_Equality_Get   => null()
   procedure(Cosmology_Double_Function_Double_Template),           pointer :: Epoch_of_Matter_Domination_Get           => null()
+  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Comoving_Distance_Get                    => null()
+  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Time_From_Comoving_Distance_Get          => null()
+  procedure(Cosmology_Comoving_Distance_Conversion_Template),     pointer :: Comoving_Distance_Conversion_Get         => null()
+
+  abstract interface
+     double precision function Cosmology_Comoving_Distance_Conversion_Template(output,distanceModulus,redshift)
+       integer         , intent(in)           :: output
+       double precision, intent(in), optional :: distanceModulus,redshift
+     end function Cosmology_Comoving_Distance_Conversion_Template
+  end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_Optional_Integer_Template(inputParameter)
@@ -75,7 +85,7 @@ module Cosmology_Functions
        logical,          intent(in), optional :: collapsingPhase
      end function Cosmology_Double_Function_ddCollapse_Template
   end interface
-
+  
   abstract interface
      logical function Cosmology_Logical_Function_Double_Template(inputParameter)
        double precision, intent(in) :: inputParameter
@@ -83,11 +93,11 @@ module Cosmology_Functions
   end interface
   
   abstract interface
-     logical function Cosmology_Density_Scaling_Template(dominateFactor,densityPower,aDominant,Omega_Dominant)
+     subroutine Cosmology_Density_Scaling_Template(dominateFactor,densityPower,aDominant,Omega_Dominant)
        double precision, intent(in)            :: dominateFactor
        double precision, intent(out)           :: densityPower,aDominant
        double precision, intent(out), optional :: Omega_Dominant
-     end function Cosmology_Density_Scaling_Template
+     end subroutine Cosmology_Density_Scaling_Template
   end interface
 
 contains
@@ -101,34 +111,52 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Cosmology_Functions_Initialization) 
     ! Initialize if necessary.
     if (.not.cosmologyInitialized) then
-       ! Get the disk star formation feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>cosmologyMethod</name>
-       !@   <defaultValue>matter + lambda</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for cosmology calculations.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter + lambda')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="cosmologyMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get</subroutineArgs>
-       include 'cosmology_functions.inc'
-       !# </include>
-       if (.not.(associated(Expansion_Factor_Is_Valid_Get).and.associated(Cosmic_Time_Is_Valid_Get).and.associated(Cosmology_Age_Get) &
-            & .and.associated(Expansion_Factor_Get).and.associated(Hubble_Parameter_Get).and.associated(Early_Time_Density_Scaling_Get) &
-            & .and.associated(Omega_Matter_Get).and.associated(Omega_Dark_Energy_Get).and.associated(Expansion_Rate_Get) &
-            & .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get).and.associated(Epoch_of_Matter_Domination_Get) & 
-            & .and.associated(Epoch_of_Matter_Curvature_Equality_Get))) &
-            & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
-       cosmologyInitialized=.true.
+       !$omp critical(Cosmology_Functions_Initialization) 
+       if (.not.cosmologyInitialized) then
+          ! Get the disk star formation feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>cosmologyMethod</name>
+          !@   <defaultValue>matter-lambda</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for cosmology calculations.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('cosmologyMethod',cosmologyMethod,defaultValue='matter-lambda')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="cosmologyMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get</functionArgs>
+          include 'cosmology_functions.inc'
+          !# </include>
+          if     (                                                                &
+               &  .not.(                                                          &
+               &             associated(Expansion_Factor_Is_Valid_Get           ) &
+               &        .and.associated(Cosmic_Time_Is_Valid_Get                ) &
+               &        .and.associated(Cosmology_Age_Get                       ) &
+               &        .and.associated(Expansion_Factor_Get                    ) &
+               &        .and.associated(Hubble_Parameter_Get                    ) &
+               &        .and.associated(Early_Time_Density_Scaling_Get          ) &
+               &        .and.associated(Omega_Matter_Total_Get                  ) &
+               &        .and.associated(Omega_Dark_Energy_Get                   ) &
+               &        .and.associated(Expansion_Rate_Get                      ) &
+               &        .and.associated(Epoch_of_Matter_Dark_Energy_Equality_Get) &
+               &        .and.associated(Epoch_of_Matter_Domination_Get          ) & 
+               &        .and.associated(Epoch_of_Matter_Curvature_Equality_Get  ) &
+               &        .and.associated(CMB_Temperature_Get                     ) &
+               &        .and.associated(Comoving_Distance_Get                   ) &
+               &        .and.associated(Time_From_Comoving_Distance_Get         ) &
+               &        .and.associated(Comoving_Distance_Conversion_Get        ) &
+               &       )                                                          &
+               & )                                                                &
+               & call Galacticus_Error_Report('Cosmology_Functions','method '//char(cosmologyMethod)//' is unrecognized')
+          cosmologyInitialized=.true.
+       end if
+       !$omp end critical(Cosmology_Functions_Initialization) 
     end if
-    !$omp end critical(Cosmology_Functions_Initialization) 
-
     return
   end subroutine Cosmology_Functions_Initialize
 
@@ -188,7 +216,17 @@ contains
      
      return
    end function Expansion_Factor
-  
+
+   function Expansion_Factor_C(tCosmological) bind(c,name="Expansion_Factor")
+     !% A C-bound wrapper function for \hyperlink{cosmology.functions.F90:cosmology_functions:expansion_factor}{\tt Expansion\_Factor()}.
+     implicit none
+     real(c_double)        :: Expansion_Factor_C
+     real(c_double), value :: tCosmological
+     
+     Expansion_Factor_C=Expansion_Factor(tCosmological)
+     return
+   end function Expansion_Factor_C
+     
    double precision function Expansion_Rate(aExpansion)
      !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\tt aExpansion}.
      implicit none
@@ -248,7 +286,7 @@ contains
      return
    end function Epoch_of_Matter_Domination
 
-   double precision function Omega_Matter(tCosmological,aExpansion,collapsingPhase)
+   double precision function Omega_Matter_Total(tCosmological,aExpansion,collapsingPhase)
      !% Return the matter density parameter at expansion factor {\tt aExpansion}.
      implicit none
      double precision, intent(in), optional :: tCosmological,aExpansion
@@ -258,10 +296,10 @@ contains
      call Cosmology_Functions_Initialize
 
      ! Get the answer using the selected method.
-     Omega_Matter=Omega_Matter_Get(tCosmological,aExpansion,collapsingPhase)
+     Omega_Matter_Total=Omega_Matter_Total_Get(tCosmological,aExpansion,collapsingPhase)
 
      return
-   end function Omega_Matter
+   end function Omega_Matter_Total
    
    double precision function Omega_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
      !% Return the dark energy density parameter at expansion factor {\tt aExpansion}.
@@ -278,6 +316,21 @@ contains
      return
    end function Omega_Dark_Energy
 
+   double precision function CMB_Temperature(tCosmological,aExpansion,collapsingPhase)
+     !% Return the temperature of the cosmic microwave background at {\tt aExpansion}.
+     implicit none
+     double precision, intent(in), optional :: tCosmological,aExpansion
+     logical,          intent(in), optional :: collapsingPhase
+ 
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     CMB_Temperature=CMB_Temperature_Get(tCosmological,aExpansion,collapsingPhase)
+
+     return
+   end function CMB_Temperature
+   
    double precision function Epoch_of_Matter_Dark_Energy_Equality(requestType)
      !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
      implicit none
@@ -306,7 +359,16 @@ contains
      return
    end function Epoch_of_Matter_Curvature_Equality
 
-   double precision function Expansion_Factor_from_Redshift(redshift)
+   elemental double precision function Redshift_from_Expansion_Factor(expansionFactor)
+     !% Returns redshift for a given expansion factor.
+     implicit none
+     double precision, intent(in) :: expansionFactor
+
+     Redshift_from_Expansion_Factor=1.0d0/expansionFactor-1.0d0
+     return
+   end function Redshift_from_Expansion_Factor
+  
+   elemental double precision function Expansion_Factor_from_Redshift(redshift)
      !% Returns expansion factor given a redshift.
      implicit none
      double precision, intent(in) :: redshift
@@ -314,5 +376,74 @@ contains
      Expansion_Factor_from_Redshift=1.0d0/(1.0d0+redshift)
      return
    end function Expansion_Factor_from_Redshift
+   
+   double precision function Comoving_Volume_Element_Redshift(time)
+     !% Returns the differential comoving volume element ${\rm d}V/{\rm d}z = r_{\rm c}^2(t) {\rm c} H^{-1}(t)$ (where $r_{\rm c}$
+     !% is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the
+     !% specified {\tt time}.
+     use Numerical_Constants_Prefixes
+     use Numerical_Constants_Physical
+     implicit none
+     double precision, intent(in) :: time
+
+     Comoving_Volume_Element_Redshift=Comoving_Distance(time)**2*(speedLight/kilo)/Hubble_Parameter(tCosmological=time)
+     return
+   end function Comoving_Volume_Element_Redshift
   
+   double precision function Comoving_Volume_Element_Time(time)
+     !% Returns the differential comoving volume element ${\rm d}V/{\rm d}t = r_{\rm c}^2(t) {\rm c} a(t)$ (where $r_{\rm c}$
+     !% is the comoving distance to time $t$ and $a(t)$ is the expansion at that time) for unit solid angle at the
+     !% specified {\tt time}.
+     use Numerical_Constants_Physical
+     use Numerical_Constants_Astronomical
+     implicit none
+     double precision, intent(in) :: time
+
+     Comoving_Volume_Element_Time=Comoving_Distance(time)**2*(gigaYear*speedLight/megaParsec)/Expansion_Factor(time)
+     return
+   end function Comoving_Volume_Element_Time
+  
+   double precision function Comoving_Distance(time)
+     !% Return the comoving distance to the given cosmic {\tt time}.
+     implicit none
+     double precision, intent(in) :: time
+  
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     Comoving_Distance=Comoving_Distance_Get(time)
+
+     return
+   end function Comoving_Distance
+
+   double precision function Time_From_Comoving_Distance(comovingDistance)
+     !% Return the cosmic time corresponding to the given {\tt comovingDistance}.
+     implicit none
+     double precision, intent(in) :: comovingDistance
+  
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     Time_From_Comoving_Distance=Time_From_Comoving_Distance_Get(comovingDistance)
+
+     return
+   end function Time_From_Comoving_Distance
+
+   double precision function Comoving_Distance_Conversion(output,distanceModulus,redshift)
+     !% Convert between different measures of comoving distance.
+     implicit none
+     integer         , intent(in)           :: output
+     double precision, intent(in), optional :: distanceModulus,redshift
+  
+     ! Initialize the module.
+     call Cosmology_Functions_Initialize
+
+     ! Get the answer using the selected method.
+     Comoving_Distance_Conversion=Comoving_Distance_Conversion_Get(output,distanceModulus,redshift)
+
+     return
+   end function Comoving_Distance_Conversion
+
 end module Cosmology_Functions

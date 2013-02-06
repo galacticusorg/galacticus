@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements the \cite{bett_spin_2007} halo spin distribution.
 
 module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
        & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve
@@ -43,7 +39,7 @@ module Halo_Spin_Distributions_Bett2007
   ! Random number objects.
   type(fgsl_rng)                              :: randomSequenceObject,clonedPseudoSequenceObject
   logical                                     :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
-  !$omp threadprivate(resetRandomSequence,randomSequenceObject)
+  !$omp threadprivate(resetRandomSequence,randomSequenceObject,resetRandomSequenceSnapshot,clonedPseudoSequenceObject)
 
 contains
 
@@ -59,7 +55,7 @@ contains
     use Gamma_Functions
     implicit none
     type(varying_string),          intent(in)    :: haloSpinDistributionMethod
-    procedure(),          pointer, intent(inout) :: Halo_Spin_Sample_Get
+    procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
     integer                                      :: iSpin
 
     if (haloSpinDistributionMethod == 'Bett2007') then
@@ -71,6 +67,8 @@ contains
        !@   <description>
        !@     The median in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spinDistributionBett2007Lambda0',spinDistributionBett2007Lambda0,defaultValue=0.04326d0)
        !@ <inputParameter>
@@ -80,12 +78,14 @@ contains
        !@   <description>
        !@     The dispersion in a lognormal halo spin distribution.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('spinDistributionBett2007Alpha',spinDistributionBett2007Alpha,defaultValue=2.509d0)
 
        ! Tabulate the cumulative distribution.
-       call Alloc_Array(spinDistributionTableSpin      ,spinDistributionTableNumberPoints,'spinDistributionTableSpin'      )
-       call Alloc_Array(spinDistributionTableCumulative,spinDistributionTableNumberPoints,'spinDistributionTableCumulative')
+       call Alloc_Array(spinDistributionTableSpin      ,[spinDistributionTableNumberPoints])
+       call Alloc_Array(spinDistributionTableCumulative,[spinDistributionTableNumberPoints])
        ! Maximum value of x=(lambda/lambda_0)^(3/alpha) to tabulate.
        spinDistributionTableMaximum=(spinDistributionTableSpinMaximum/spinDistributionBett2007Lambda0)**(3.0d0/spinDistributionBett2007Alpha)
        ! Generate a range of spins.
@@ -104,7 +104,7 @@ contains
 
   double precision function Halo_Spin_Distribution_Bett2007(thisNode)
     !% Return a halo spin from a lognormal distribution.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Pseudo_Random
     use Numerical_Interpolation
     implicit none
@@ -117,7 +117,8 @@ contains
 
     randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
     Halo_Spin_Distribution_Bett2007=Interpolate(spinDistributionTableNumberPoints,spinDistributionTableCumulative&
-         &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation)
+         &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation&
+         &,extrapolationType=extrapolationTypeFixed)
     return
   end function Halo_Spin_Distribution_Bett2007
   

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which stores properties of merger remnants related to their size.
 
 module Satellite_Merging_Remnant_Sizes_Properties
   !% Stores properties of merger remnants related to their size.
+  implicit none
   public
   
   ! Value indicating that there was no change in the remnant spheroid.

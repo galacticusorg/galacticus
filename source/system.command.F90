@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which executes system commands.
 
 module System_Command
   !% Executes system commands.
+  implicit none
   private
   public :: System_Command_Do
   
@@ -42,7 +38,7 @@ contains
     if (present(iStatus)) then
        iStatus=iStatusActual
     else
-       if (iStatusActual.ne.0) call Galacticus_Error_Report('System_Command_Do','failed to execute system command')
+       if (iStatusActual /= 0) call Galacticus_Error_Report('System_Command_Do','failed to execute system command')
     end if
     return
   end subroutine System_Command_Do

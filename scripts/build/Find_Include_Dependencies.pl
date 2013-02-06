@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Locate Galform2 code files which have dependencies on include files
+# Locate source files which have dependencies on include files
 
 # Define the source directory
 if ( $#ARGV != 0 ) {die "Usage: Find_Include_Dependencies.pl sourcedir"};
@@ -34,13 +34,14 @@ if ( -e $sourcedir."/Source_Codes" ) {
 # Open the source directory
 #
 $ibase=-1;
+my %nonAutoInclude;
 foreach $srcdir ( @sourcedirs ) {
     ++$ibase;
     $base = $bases[$ibase];
     opendir(indir,$srcdir) or die "Can't open the source directory: #!";
     while (my $fname = readdir indir) {
 	
-	if ( lc($fname) =~ m/\.f(90)??t??$/ && lc($fname) !~ m/^\.\#/ ) {
+	if ( ( lc($fname) =~ m/\.f(90)??t??$/ || lc($fname) =~ m/\.c(pp)??$/ || lc($fname) =~ m/\.h??$/ ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
@@ -55,14 +56,18 @@ foreach $srcdir ( @sourcedirs ) {
 	    $oname =~ s/\.F90t$/\.o/;
 	    $oname =~ s/\.f$/\.o/;
 	    $oname =~ s/\.F$/\.o/;
+	    $oname =~ s/\.c(pp)$/\.o/;
+	    $oname =~ s/\.h$/\.o/;
 	    @incfiles = ();
 	    while (my $line = <infile>) {
-# Locate any lines which use the "include" statement and extract the name of the file they include
-		if ( $line =~ m/^\s*#??include\s*['"](.+\.inc\d*)['"]/ ) {
-		     my $incfile = $1." ";
-		     if ( $hasincludes == 0 ) {$hasincludes = 1};
-		     @incfiles = ( @incfiles, $incfile);
-		 }
+# Locate any lines which use the "include" statemalent and extract the name of the file they include
+		if ( $line =~ m/^\s*#??include\s*['"](.+\.(inc|h)\d*)['"]/ ) {
+		    my $incfile = $1;
+		    $nonAutoInclude{$incfile} = 1 if ( $line =~ m/! NO_USES/ );
+		    $incfile .= " ";
+		    if ( $hasincludes == 0 ) {$hasincludes = 1};
+		    @incfiles = ( @incfiles, $incfile);
+		}
 	    }
 # Process output for files which had include statements
 	    if ( $hasincludes == 1 ) {
@@ -92,21 +97,21 @@ foreach $srcdir ( @sourcedirs ) {
 		    if ( -e $ext_Iinc ) {
 			if ( $ibase == 0 ) {
 			    print outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$Iinc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$Iinc};
 			} else {
 			    print outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$Iinc};			}
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$Iinc};			}
 		    } elsif ( -e $ext_inc ) {
 			if ( $ibase == 0 ) {
 			    print outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
 			} else {
 			    print outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$inc};
 			}
 		    } else {
 			print outfile " ./work/build/$inc";
-			if ( $inc =~ m/\.inc$/ ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
 		    }
 		}
 		print outfile "\n\n";

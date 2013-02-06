@@ -120,7 +120,7 @@ sub processFile {
 	}
 	if ( -e "galacticusFits.xml" ) {
 	    $xml = new XML::Simple;
-	    $fitData = $xml->XMLin("galacticusFits.xml");
+	    $fitData = $xml->XMLin("galacticusFits.xml",KeyAttr => "");
 	    $data->{'galacticusFits'} = $fitData;
 	    system("bzip2 galacticusFits.xml") if ( $reCompressFits == 1 );
 	}

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module of useful atomic constants.
 
 module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
   use FGSL
+  implicit none
   public
 
   ! Atomic mass unit (in kg).
@@ -36,5 +32,8 @@ module Numerical_Constants_Atomic
   
   ! Mass of hydrogen atom (in kg).
   double precision, parameter :: massHydrogenAtom=atomicMassHydrogen*atomicMassUnit
+
+  ! Ionization energies/wavelengths (in eV/Angstroms).
+  double precision, parameter :: ionizationWavelengthHydrogen=911.862d0 ! (Allen's Astrophysical Quantities, p. 36).
 
 end module Numerical_Constants_Atomic

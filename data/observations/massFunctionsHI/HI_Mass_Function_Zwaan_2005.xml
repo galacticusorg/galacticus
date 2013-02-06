@@ -1,0 +1,136 @@
+<dataSets>
+  <massFunction>
+    <description>HI mass function data from Zwaan et al. (2005).</description>
+    <description>Derived from full HIPASS catalogue (4315 galaxies).</description>
+    <description>Data are 2DSWML estimates, as shown in Fig. 1 of source.</description>
+    <url>http://adsabs.harvard.edu/abs/2005MNRAS.359L..30Z</url>
+    <label>Zwaan et al. (2005)</label>
+    <source>Table supplied by M. Zwaan via C. Lacey.</source>
+    <columns>
+      <mass>
+	<description>HI gas mass</description>
+	<units>Solar masses</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>7.186</data>
+	<data>7.3345</data>
+	<data>7.483</data>
+	<data>7.6315</data>
+	<data>7.78</data>
+	<data>7.9285</data>
+	<data>8.077</data>
+	<data>8.2255</data>
+	<data>8.374</data>
+	<data>8.5225</data>
+	<data>8.671</data>
+	<data>8.8195</data>
+	<data>8.968</data>
+	<data>9.1165</data>
+	<data>9.265</data>
+	<data>9.4135</data>
+	<data>9.562</data>
+	<data>9.7105</data>
+	<data>9.859</data>
+	<data>10.0075</data>
+	<data>10.156</data>
+	<data>10.3045</data>
+	<data>10.453</data>
+	<data>10.6015</data>
+	<data>10.75</data>
+      </mass>
+      <massFunction>
+	<description>HI gas mass function</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>-0.733</data>
+	<data>-0.8838</data>
+	<data>-1.1</data>
+	<data>-1.056</data>
+	<data>-1.207</data>
+	<data>-1.35</data>
+	<data>-1.315</data>
+	<data>-1.331</data>
+	<data>-1.308</data>
+	<data>-1.31</data>
+	<data>-1.455</data>
+	<data>-1.555</data>
+	<data>-1.55</data>
+	<data>-1.69</data>
+	<data>-1.735</data>
+	<data>-1.843</data>
+	<data>-1.974</data>
+	<data>-2.166</data>
+	<data>-2.401</data>
+	<data>-2.785</data>
+	<data>-3.013</data>
+	<data>-3.417</data>
+	<data>-4.044</data>
+	<data>-4.83</data>
+	<data>-5.451</data>
+      </massFunction>
+      <upperError>
+	<description>HI gas mass function upper error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>0.2039</data>
+	<data>0.1816</data>
+	<data>0.1761</data>
+	<data>0.1343</data>
+	<data>0.136</data>
+	<data>0.1042</data>
+	<data>0.07443</data>
+	<data>0.06144</data>
+	<data>0.05108</data>
+	<data>0.04027</data>
+	<data>0.03899</data>
+	<data>0.03431</data>
+	<data>0.02969</data>
+	<data>0.02962</data>
+	<data>0.02512</data>
+	<data>0.02324</data>
+	<data>0.02231</data>
+	<data>0.0237</data>
+	<data>0.02602</data>
+	<data>0.03045</data>
+	<data>0.03348</data>
+	<data>0.04506</data>
+	<data>0.06544</data>
+	<data>0.1147</data>
+	<data>0.1602</data>
+      </upperError>
+      <lowerError>
+	<description>HI gas mass function lower error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>75.0</hubble>
+	<scaling>log10</scaling>
+	<data>0.397</data>
+	<data>0.3179</data>
+	<data>0.301</data>
+	<data>0.1955</data>
+	<data>0.1992</data>
+	<data>0.1374</data>
+	<data>0.08988</data>
+	<data>0.07159</data>
+	<data>0.05789</data>
+	<data>0.04438</data>
+	<data>0.04284</data>
+	<data>0.03725</data>
+	<data>0.03187</data>
+	<data>0.03179</data>
+	<data>0.02666</data>
+	<data>0.02456</data>
+	<data>0.02352</data>
+	<data>0.02506</data>
+	<data>0.02768</data>
+	<data>0.03275</data>
+	<data>0.03628</data>
+	<data>0.05028</data>
+	<data>0.07708</data>
+	<data>0.1562</data>
+	<data>0.2567</data>
+      </lowerError>
+    </columns>
+  </massFunction>
+</dataSets>

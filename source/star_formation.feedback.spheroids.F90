@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of feedback from star formation in spheroids.
 
 module Star_Formation_Feedback_Spheroids
   !% Implements calculations of feedback from star formation in spheroids.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Star_Formation_Feedback_Spheroid_Outflow_Rate
   
@@ -56,30 +52,34 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Star_Formation_Feedback_Spheroids_Initialization) 
     ! Initialize if necessary.
     if (.not.starFormationFeedbackSpheroidsInitialized) then
-       ! Get the spheroid star formation feedback method parameter.
-       !@ <inputParameter>
-       !@   <name>starFormationFeedbackSpheroidsMethod</name>
-       !@   <defaultValue>power law</defaultValue>       
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of \SNe\ feedback in spheroids.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='power law')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="starFormationFeedbackSpheroidsMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</subroutineArgs>
-       include 'star_formation.feedbacks.spheroids.inc'
-       !# </include>
-       if (.not.associated(Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Spheroids'&
-            &,'method ' //char(starFormationFeedbackSpheroidsMethod)//' is unrecognized')
-       starFormationFeedbackSpheroidsInitialized=.true.
+       !$omp critical(Star_Formation_Feedback_Spheroids_Initialization) 
+       if (.not.starFormationFeedbackSpheroidsInitialized) then
+          ! Get the spheroid star formation feedback method parameter.
+          !@ <inputParameter>
+          !@   <name>starFormationFeedbackSpheroidsMethod</name>
+          !@   <defaultValue>powerLaw</defaultValue>       
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of \gls{sne} feedback in spheroids.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('starFormationFeedbackSpheroidsMethod',starFormationFeedbackSpheroidsMethod,defaultValue='powerLaw')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="starFormationFeedbackSpheroidsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationFeedbackSpheroidsMethod,Star_Formation_Feedback_Spheroid_Outflow_Rate_Get</functionArgs>
+          include 'star_formation.feedbacks.spheroids.inc'
+          !# </include>
+          if (.not.associated(Star_Formation_Feedback_Spheroid_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Spheroids'&
+               &,'method ' //char(starFormationFeedbackSpheroidsMethod)//' is unrecognized')
+          starFormationFeedbackSpheroidsInitialized=.true.
+       end if
+       !$omp end critical(Star_Formation_Feedback_Spheroids_Initialization) 
     end if
-    !$omp end critical(Star_Formation_Feedback_Spheroids_Initialization) 
-
     return
   end subroutine Star_Formation_Feedback_Spheroids_Initialize
 

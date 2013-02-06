@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements Gaussian random deviates.
 
 module Gaussian_Random
   !% Implements Gaussian random deviates.
   use FGSL
   use, intrinsic :: ISO_C_Binding
+  implicit none
   private
   public :: Gaussian_Random_Get, Gaussian_Random_Free
   
@@ -62,6 +58,8 @@ contains
        !@   <description>
        !@     A seed for the Gaussian random number generator.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
        gaussianRandomSeedC=gaussianRandomSeed

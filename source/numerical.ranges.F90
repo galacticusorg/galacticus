@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,20 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements construction of numerical ranges.
 
 module Numerical_Ranges
   !% Implements construction of numerical ranges.
+  implicit none
   private
   public :: Make_Range
 
   ! Parameters to specify type of range required.
-  integer, public, parameter :: rangeTypeLinear=0, rangeTypeLogarithmic=1
+  integer, public, parameter :: rangeTypeUndefined=-1, rangeTypeLinear=0, rangeTypeLogarithmic=1
   
 contains
 
@@ -52,6 +48,8 @@ contains
     ! Build the range.
     select case (rangeTypeActual)
     case (rangeTypeLinear)
+       ! Check that the rangeNumber is valid.
+       if (rangeNumber <= 1) call Galacticus_Error_Report('Make_Range','number of points in range must exceed 1')
        ! Build a linear range.
        forall(iRange=1:rangeNumber)
           rangeValues(iRange)=rangeMinimum+(rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)

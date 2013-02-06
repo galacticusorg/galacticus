@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,34 +15,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which provides various internal option codes for the galactic structure functions.
 
 module Galactic_Structure_Options
   !% Provides various internal option codes for the galactic structure functions.
+  implicit none
   public
 
   ! Values used to represent different mass types.
-  integer,          parameter :: massTypeAll     =0
-  integer,          parameter :: massTypeDark    =1
-  integer,          parameter :: massTypeBaryonic=2
-  integer,          parameter :: massTypeGalactic=3
-  integer,          parameter :: massTypeGaseous =4
+  integer,          parameter :: massTypeAll      =0
+  integer,          parameter :: massTypeDark     =1
+  integer,          parameter :: massTypeBaryonic =2
+  integer,          parameter :: massTypeGalactic =3
+  integer,          parameter :: massTypeGaseous  =4
+  integer,          parameter :: massTypeStellar  =5
+  integer,          parameter :: massTypeBlackHole=6
 
   ! Values used to represent different component types.
-  integer,          parameter :: componentTypeAll     =0
-  integer,          parameter :: componentTypeDisk    =1
-  integer,          parameter :: componentTypeSpheroid=2
-  integer,          parameter :: componentTypeHotHalo =3
+  integer,          parameter :: componentTypeAll      =0
+  integer,          parameter :: componentTypeDisk     =1
+  integer,          parameter :: componentTypeSpheroid =2
+  integer,          parameter :: componentTypeHotHalo  =3
+  integer,          parameter :: componentTypeDarkHalo =4
+  integer,          parameter :: componentTypeBlackHole=5
 
   ! Coordinate system options.
-  integer,          parameter  :: coordinateSystemSpherical  =1
-  integer,          parameter  :: coordinateSystemCylindrical=2
-  integer,          parameter  :: coordinateSystemCartesian  =3
+  integer,          parameter :: coordinateSystemSpherical  =1
+  integer,          parameter :: coordinateSystemCylindrical=2
+  integer,          parameter :: coordinateSystemCartesian  =3
+
+  ! Weighting options.
+  integer,          parameter :: weightByMass      =0
+  integer,          parameter :: weightByLuminosity=1
+  integer,          parameter :: weightIndexNull   =0
 
   ! Suitably large value to represent infinite radius.
   double precision, parameter :: radiusLarge=1.0d10

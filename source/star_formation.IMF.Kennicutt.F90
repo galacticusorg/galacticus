@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements the Kennicutt stellar initial mass function \citep{kennicutt_rate_1983}.
 
 module Star_Formation_IMF_Kennicutt
   !% Implements the Kennicutt stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Kennicutt, Star_Formation_IMF_Register_Name_Kennicutt,&
        & Star_Formation_IMF_Recycled_Instantaneous_Kennicutt, Star_Formation_IMF_Yield_Instantaneous_Kennicutt,&
@@ -62,13 +58,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Kennicutt</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Kennicutt(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Kennicutt(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Kennicutt"
+    imfNames      (imfIndex)="Kennicutt"
+    imfDescriptors(imfIndex)="Kennicutt"
     return
   end subroutine Star_Formation_IMF_Register_Name_Kennicutt
 
@@ -78,33 +75,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Kennicutt_Initialize)
     if (.not.imfKennicuttInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfKennicuttRecycledInstantaneous</name>
-       !@   <defaultValue>0.57 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Kennicutt \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKennicuttRecycledInstantaneous',imfKennicuttRecycledInstantaneous,defaultValue=0.57d0)
-       !@ <inputParameter>
-       !@   <name>imfKennicuttYieldInstantaneous</name>
-       !@   <defaultValue>0.044 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Kennicutt \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfKennicuttInitialized=.true.
+       !$omp critical (IMF_Kennicutt_Initialize)
+       if (.not.imfKennicuttInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfKennicuttRecycledInstantaneous</name>
+          !@   <defaultValue>0.57 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKennicuttRecycledInstantaneous',imfKennicuttRecycledInstantaneous,defaultValue=0.57d0)
+          !@ <inputParameter>
+          !@   <name>imfKennicuttYieldInstantaneous</name>
+          !@   <defaultValue>0.044 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Kennicutt \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfKennicuttInitialized=.true.
+       end if
+       !$omp end critical (IMF_Kennicutt_Initialize)
     end if
-    !$omp end critical (IMF_Kennicutt_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Kennicutt
 
@@ -216,8 +221,8 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
-       call Alloc_Array(imfMass,nPoints,'imfMass')
-       call Alloc_Array(imfPhi ,nPoints,'imfPhi' )
+       call Alloc_Array(imfMass,[nPoints])
+       call Alloc_Array(imfPhi ,[nPoints])
        imfMass=Make_Range(massLower(1),massUpper(imfPieceCount),nPoints,rangeType=rangeTypeLogarithmic)
        imfPhi =Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,imfMass)
        imfMatched=.true.

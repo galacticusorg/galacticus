@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a calculation of winds from stellar populations using the fitting formulae of \cite{leitherer_deposition_1992}.
 
 module Stellar_Astrophysics_Winds_Leitherer1992
   !% Implements a calculation of winds from stellar populations using the fitting formulae of \cite{leitherer_deposition_1992}.
   use Numerical_Constants_Astronomical
+  implicit none
   private
   public :: Stellar_Winds_Leitherer1992_Initialize
 
@@ -41,8 +37,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in) :: stellarWindsMethod
-    procedure(),          pointer    :: Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get
+    type(varying_string),                 intent(in)    :: stellarWindsMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get
 
     if (stellarWindsMethod == 'Leitherer1992') then
        ! Set procedure pointers.

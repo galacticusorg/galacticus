@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which defines internal error codes for the \glc\ ODE solver.
 
 module ODE_Solver_Error_Codes
   !% Defines internal error codes for the \glc\ ODE solver.
+  use FGSL
+  implicit none
   public
 
   ! An interrupt has been triggered.
-  integer,         parameter :: odeSolverInterrupt=1001
+  integer,         parameter :: odeSolverInterrupt=FGSL_EBADFUNC
 
   ! Point during the integration at which an interrupt occurred.
   double precision           :: interruptedAtX

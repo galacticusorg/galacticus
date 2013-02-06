@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 use lib './perl';
-use System::Redirect;
+require System::Redirect;
 use XML::Simple;
 
 # Locate all allocatable arrays in the code base and determine their type and dimensionality.
@@ -50,7 +50,7 @@ foreach $srcdir ( @sourcedirs ) {
 		}
 		open(infile,$fullname) or die "Can't open input file: $fullname";
 		while (my $line = <infile>) {
-		    if ( $line =~ m/,\s*allocatable\s*[,:]/i && $line =~ m/\(\s*:/i && $line =~ m/^\s*(type)?\s*([a-zA-Z0-9_\s\(\)]+)(\((len|kind)=[\sa-z0-9_]+\))?\s*,/i && $line !~ m/\(\s*kind\s*=\s*HID/ && $line !~ m/memoryManagementIgnore/) {
+		    if ( $line =~ m/,\s*allocatable\s*[,:]/i && $line =~ m/\(\s*:/i && $line =~ m/^\s*([a-zA-Z0-9_\s]+)(\((len|kind)=[\sa-z0-9_]+\))?\s*,/i && $line !~ m/\(\s*kind\s*=\s*HID/ && $line !~ m/\(\s*kind\s*=\s*c_char/ ) {
 			while ( $line =~ m/&\s*$/ ) {
 			    $line =~ s/&\s*$//;
 			    $tline = <infile>;
@@ -58,12 +58,8 @@ foreach $srcdir ( @sourcedirs ) {
 			    $line .= $tline;
 			}
 			# Found a line declaring allocatable arrays.
-			if ( $line =~ m/^\s*type\s*\(([a-zA-Z0-9_]+)\)/i ) {
-			    $vtype = $1;
-			} else {
-			    $line =~ m/^\s*([a-zA-Z0-9_\s]+)/i;
-			    $vtype = $1;
-			}
+			$line =~ m/^\s*([a-zA-Z0-9_\s]+)/i;
+			$vtype = $1;
 			$vtype =~ s/\s*$//;
 			if ( $line =~ m/\(kind=([a-zA-Z0-9_]+)\)/i ) {
 			    $kind = $1;

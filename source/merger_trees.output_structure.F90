@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,27 +15,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which outputs the structure of entire merger trees.
 
 module Merger_Tree_Output_Structure
   !% Outputs the structure of entire merger trees.
+  implicit none
   private
   public :: Merger_Tree_Structure_Output
-  
+
   ! Flag indicating if module is initialized.
   logical :: structureOutputModuleInitialized=.false.
-  
+
   ! Flag indicating if output is required.
   logical :: mergerTreeStructureOutput
 
+  ! Flag indicating if virial quantities should be included in output.
+  logical :: mergerTreeStructureOutputVirialQuantities
+
   ! HDF5 group index.
   integer :: structureGroupID
-  
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -44,134 +43,222 @@ contains
   subroutine Merger_Tree_Structure_Output(thisTree)
     !% Output the structure of {\tt thisTree}.
     use Merger_Trees
-    use Tree_Nodes
-    use Tree_Node_Methods
+    use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
-    use Galacticus_HDF5_Groups
-    use HDF5
+    use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling
+    use Dark_Matter_Halo_Scales
+    use Numerical_Constants_Astronomical
+    !# <include directive="mergerTreeStructureOutputTask" type="moduleUse">
+    include 'merger_trees.output_structure.tasks.modules.inc'
+    !# </include>
     implicit none
-    type(mergerTree), intent(in)                :: thisTree
-    type(treeNode),   pointer                   :: thisNode
-    integer,          allocatable, dimension(:) :: nodeIndex
-    double precision, allocatable, dimension(:) :: nodeProperty
-    integer                                     :: nodeCount,structureDataID,treeGroupID
-    type(varying_string)                        :: groupName,groupComment
+    type(mergerTree),          intent(in),  target       :: thisTree
+    type(treeNode),            pointer                   :: thisNode
+    integer(kind=kind_int8),   allocatable, dimension(:) :: nodeIndex
+    double precision,          allocatable, dimension(:) :: nodeProperty
+    type(hdf5Object),          save                      :: structureGroup
+    class(nodeComponentBasic), pointer                   :: thisBasicComponent
+    type (mergerTree        ), pointer                   :: currentTree
+    integer                                              :: nodeCount
+    type(varying_string)                                 :: groupName,groupComment
+    type(hdf5Object)                                     :: treeGroup,nodeDataset
 
     ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
-       ! Get parameter specifying if output is required.
-       !@ <inputParameter>
-       !@   <name>mergerTreeStructureOutput</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Specifies whether or not to output the structure of merger trees prior to evolution.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeStructureOutput',mergerTreeStructureOutput,defaultValue=.false.)
-       ! Create an output group if necessary.
-       if (mergerTreeStructureOutput) then
-          groupName   ='mergerTreeStructures'
-          groupComment='Pre-evolution structures of merger trees.'
-          structureGroupID=Galacticus_Output_Make_Group(groupName,groupComment)
+       !$omp critical(structureOutputModuleInitialize)
+       if (.not.structureOutputModuleInitialized) then
+          ! Get parameter specifying if output is required.
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutput</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to output the structure of merger trees prior to evolution.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutput',mergerTreeStructureOutput,defaultValue=.false.)
+          !@ <inputParameter>
+          !@   <name>mergerTreeStructureOutputVirialQuantities</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to output virial quantities (radius and velocity) when outputting the structure of merger trees prior to evolution.
+          !@   </description>
+          !@   <type>boolean</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('mergerTreeStructureOutputVirialQuantities',mergerTreeStructureOutputVirialQuantities,defaultValue=.false.)
+          ! Create an output group if necessary.
+          !$omp critical(HDF5_Access)
+          if (mergerTreeStructureOutput) structureGroup=galacticusOutputFile%openGroup('mergerTreeStructures','Pre-evolution structures of merger trees.')
+          !$omp end critical(HDF5_Access)
+          ! Flag that module is initialized.
+          structureOutputModuleInitialized=.true.
        end if
-       ! Flag that module is initialized.
-       structureOutputModuleInitialized=.true.
+       !$omp end critical(structureOutputModuleInitialize)
     end if
 
     ! Output the tree structure history.
     if (mergerTreeStructureOutput) then
-       ! Count up number of nodes in the tree.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          call thisNode%walkTree()
-       end do
-       ! Allocate storage space.
-       call Alloc_Array(nodeIndex   ,nodeCount,'nodeIndex'   )
-       call Alloc_Array(nodeProperty,nodeCount,'nodeProperty')
-       ! Create a group for this tree structure.
-       groupName   ='mergerTree'
-       groupName   =groupName//thisTree%index
-       groupComment='Pre-evolution structure of merger tree.'
-       treeGroupID =Galacticus_Output_Make_Group(groupName,groupComment,structureGroupID)
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
+          ! Count up number of nodes in the tree.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             call thisNode%walkTree(thisNode)
+          end do
+          ! Allocate storage space.
+          call Alloc_Array(nodeIndex   ,[nodeCount])
+          call Alloc_Array(nodeProperty,[nodeCount])
+          ! Create a group for this tree structure.
+          groupName   ='mergerTree'
+          groupName   =groupName//currentTree%index
+          groupComment='Pre-evolution structure of merger tree.'
+          !$omp critical(HDF5_Access)
+          treeGroup   =structureGroup%openGroup(char(groupName),'Pre-evolution structure of merger tree.')
+          !$omp end critical(HDF5_Access)
 
-       ! Extract node indices and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%index()        
-          call thisNode%walkTree()
+          ! Extract node indices and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeIndex(nodeCount)=thisNode%index()        
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeIndex,'nodeIndex','Index of the node.')
+          !$omp end critical(HDF5_Access)
+
+          ! Extract child node indices and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeIndex(nodeCount)=thisNode%firstChild%index()        
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeIndex,'childNodeIndex','Index of the child node.')
+          !$omp end critical(HDF5_Access)
+
+          ! Extract parent node indices and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeIndex(nodeCount)=thisNode%parent%index()        
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeIndex,'parentNodeIndex','Index of the parent node.')
+          !$omp end critical(HDF5_Access)
+
+          ! Extract sibling node indices and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeIndex(nodeCount)=thisNode%sibling%index()        
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeIndex,'siblingNodeIndex','Index of the sibling node.')
+          !$omp end critical(HDF5_Access)
+
+          ! Extract node masses and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
+             nodeCount=nodeCount+1
+             nodeProperty(nodeCount)=thisBasicComponent%mass()
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeProperty,'nodeMass','Mass of node.',datasetReturned=nodeDataset)
+          call nodeDataset%writeAttribute(massSolar,"unitsInSI")
+          call nodeDataset%close()
+          !$omp end critical(HDF5_Access)
+
+          ! Extract node times and output to file.
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          do while (associated(thisNode))
+             thisBasicComponent => thisNode%basic()
+             nodeCount=nodeCount+1
+             nodeProperty(nodeCount)=thisBasicComponent%time()
+             call thisNode%walkTree(thisNode)
+          end do
+          !$omp critical(HDF5_Access)
+          call treeGroup%writeDataset(nodeProperty,'nodeTime','Time at node.',datasetReturned=nodeDataset)
+          call nodeDataset%writeAttribute(gigaYear,"unitsInSI")
+          call nodeDataset%close()
+          !$omp end critical(HDF5_Access)
+
+          ! Check whether output of virial quantities is required.
+          if (mergerTreeStructureOutputVirialQuantities) then
+
+             ! Extract node virial radii and output to file.
+             nodeCount=0
+             thisNode => currentTree%baseNode
+             do while (associated(thisNode))
+                nodeCount=nodeCount+1
+                nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Radius(thisNode)
+                call thisNode%walkTree(thisNode)
+             end do
+             !$omp critical(HDF5_Access)
+             call treeGroup%writeDataset(nodeProperty,'nodeVirialRadius','Virial radius of the node [Mpc].',datasetReturned=nodeDataset)
+             call nodeDataset%writeAttribute(megaParsec,"unitsInSI")
+             call nodeDataset%close()
+             !$omp end critical(HDF5_Access)
+
+             ! Extract node virial velocity and output to file.
+             nodeCount=0
+             thisNode => currentTree%baseNode
+             do while (associated(thisNode))
+                nodeCount=nodeCount+1
+                nodeProperty(nodeCount)=Dark_Matter_Halo_Virial_Velocity(thisNode)
+                call thisNode%walkTree(thisNode)
+             end do
+             !$omp critical(HDF5_Access)
+             call treeGroup%writeDataset(nodeProperty,'nodeVirialVelocity','Virial velocity of the node [km/s].',datasetReturned=nodeDataset)
+             call nodeDataset%writeAttribute(kilo,"unitsInSI")
+             call nodeDataset%close()
+             !$omp end critical(HDF5_Access)
+
+          end if
+
+          !$omp critical(HDF5_Access)
+          ! Call any subroutines that want to attach data to the merger tree output.
+          !# <include directive="mergerTreeStructureOutputTask" type="functionCall" functionType="void">
+          !#  <functionArgs>currentTree%baseNode,nodeProperty,treeGroup</functionArgs>
+          include 'merger_trees.output_structure.tasks.inc'
+          !# </include>
+
+          ! Close output group.
+          call treeGroup%close()
+          !$omp end critical(HDF5_Access)
+
+          ! Deallocate storage space.
+          call Dealloc_Array(nodeIndex   )
+          call Dealloc_Array(nodeProperty)
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
        end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeIndex','Index of the node.',nodeIndex)
-    
-       ! Extract child node indices and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%childNode%index()        
-          call thisNode%walkTree()
-       end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'childNodeIndex','Index of the child node.',nodeIndex)
-    
-       ! Extract parent node indices and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%parentNode%index()        
-          call thisNode%walkTree()
-       end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'parentNodeIndex','Index of the parent node.',nodeIndex)
-    
-       ! Extract sibling node indices and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndex(nodeCount)=thisNode%siblingNode%index()        
-          call thisNode%walkTree()
-       end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'siblingNodeIndex','Index of the sibling node.',nodeIndex)
-    
-       ! Extract node masses and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeProperty(nodeCount)=Tree_Node_Mass(thisNode)
-          call thisNode%walkTree()
-       end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeMass','Mass of node.',nodeProperty)
-    
-       ! Extract node times and output to file.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeProperty(nodeCount)=Tree_Node_Time(thisNode)
-          call thisNode%walkTree()
-       end do
-       structureDataID=0
-       call Galacticus_Output_Dataset(treeGroupID,structureDataID,'nodeTime','Time at node.',nodeProperty)
-    
-       ! Deallocate storage space.
-       call Dealloc_Array(nodeIndex   )
-       call Dealloc_Array(nodeProperty)
     end if
 
     return
   end subroutine Merger_Tree_Structure_Output
-  
+
 end module Merger_Tree_Output_Structure

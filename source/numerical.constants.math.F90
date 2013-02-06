@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,21 +15,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module of useful mathematical constants.
 
 module Numerical_Constants_Math
   !% Contains various useful mathematical constants.
+  use FGSL
+  use Kind_Numbers
+  implicit none
   public
   
   ! Pi.
-  double precision, parameter :: Pi=3.14159265358979323846d0
+  double precision    , parameter :: Pi=m_pi
+  real(kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
 
   ! Natural logarithm of 10.
-  double precision, parameter :: ln10=dlog(10.0d0)
+  double precision    , parameter :: ln10=m_ln10
+
+  ! Natural logarithm of 2.
+  double precision    , parameter :: ln2 =m_ln2
+
+  ! Euler's constant.
+  double precision    , parameter :: eulersConstant=m_euler
 
 end module Numerical_Constants_Math

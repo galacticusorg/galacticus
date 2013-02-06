@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,11 +15,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module that implements calculations of stellar population spectra.
 
 module Stellar_Population_Spectra
@@ -29,6 +24,7 @@ module Stellar_Population_Spectra
   !# <include directive="stellarPopulationSpectraMethod" type="moduleUse">
   include 'stellar_populations.spectra.modules.inc'
   !# </include>
+  implicit none
   private
   public :: Stellar_Population_Spectrum, Stellar_Population_Spectrum_Tabulation
 
@@ -41,11 +37,11 @@ module Stellar_Population_Spectra
   ! Pointer to the function that actually does the calculation.
   procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get => null()
   abstract interface
-     double precision function Stellar_Population_Spectrum_Get_Template(abundances,age,wavelength,imfIndex)
-       import abundancesStructure
-       type(abundancesStructure), intent(in) :: abundances
-       double precision,          intent(in) :: age,wavelength
-       integer,                   intent(in) :: imfIndex
+     double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex)
+       import abundances
+       type(abundances), intent(in) :: abundancesStellar
+       double precision, intent(in) :: age,wavelength
+       integer,          intent(in) :: imfIndex
      end function Stellar_Population_Spectrum_Get_Template
   end interface
   procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get => null()
@@ -65,46 +61,50 @@ contains
     use Input_Parameters
     implicit none
     
-    !$omp critical(Stellar_Population_Spectrum_Initialization) 
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraInitialized) then
-       ! Get the cooling function method parameter.
-       !@ <inputParameter>
-       !@   <name>stellarPopulationSpectraMethod</name>
-       !@   <defaultValue>Conroy, White \&amp; Gunn</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of stellar population spectra.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy, White & Gunn')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationSpectraMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</subroutineArgs>
-       include 'stellar_populations.spectra.inc'
-       !# </include>
-       if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
-            & Galacticus_Error_Report('Stellar_Population_Spectrum','method ' //char(stellarPopulationSpectraMethod)//' is&
-            & unrecognized')
-       stellarPopulationSpectraInitialized=.true.
+       !$omp critical(Stellar_Population_Spectrum_Initialization) 
+       if (.not.stellarPopulationSpectraInitialized) then
+          ! Get the cooling function method parameter.
+          !@ <inputParameter>
+          !@   <name>stellarPopulationSpectraMethod</name>
+          !@   <defaultValue>Conroy-White-Gunn2009</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of stellar population spectra.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('stellarPopulationSpectraMethod',stellarPopulationSpectraMethod,defaultValue='Conroy-White-Gunn2009')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="stellarPopulationSpectraMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarPopulationSpectraMethod,Stellar_Population_Spectrum_Get,Stellar_Population_Spectrum_Tabulation_Get</functionArgs>
+          include 'stellar_populations.spectra.inc'
+          !# </include>
+          if (.not.(associated(Stellar_Population_Spectrum_Get).and.associated(Stellar_Population_Spectrum_Tabulation_Get))) call&
+               & Galacticus_Error_Report('Stellar_Population_Spectrum','method ' //char(stellarPopulationSpectraMethod)//' is&
+               & unrecognized')
+          stellarPopulationSpectraInitialized=.true.
+       end if
+       !$omp end critical(Stellar_Population_Spectrum_Initialization) 
     end if
-    !$omp end critical(Stellar_Population_Spectrum_Initialization) 
     return
   end subroutine Stellar_Population_Spectrum_Initialize
 
-  double precision function Stellar_Population_Spectrum(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms).
     implicit none
-    type(abundancesStructure), intent(in) :: abundances
-    double precision,          intent(in) :: age,wavelength
-    integer,                   intent(in) :: imfIndex
+    type(abundances), intent(in) :: abundancesStellar
+    double precision, intent(in) :: age,wavelength
+    integer,          intent(in) :: imfIndex
     
     ! Initialize the module.
     call Stellar_Population_Spectrum_Initialize
     
     ! Get the spectrum using the selected method.
-    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundances,age,wavelength,imfIndex)
+    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundancesStellar,age,wavelength,imfIndex)
     
     return
   end function Stellar_Population_Spectrum
