@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculation related to stellar astrophyics.
 
@@ -66,7 +22,7 @@ module Stellar_Astrophysics_File
   use Numerical_Interpolation_2D_Irregular
   implicit none
   private
-  public :: Stellar_Astrophysics_File_Initialize
+  public :: Stellar_Astrophysics_File_Initialize, Stellar_Astrophysics_File_Format_Version
 
   ! Arrays to store stellar properties.
   double precision, allocatable, dimension(:  ) :: stellarLifetime,stellarLifetimeMass,stellarLifetimeMetallicity
@@ -77,12 +33,21 @@ module Stellar_Astrophysics_File
   ! Variables that store information about number of elements and number of yields for each element.
   integer,          allocatable, dimension(:)   :: elementYieldCount,atomIndexMap
 
-  ! Interpolator objects for element yields.
-  type(interp2dIrregularObject), allocatable, dimension(:) :: elementYieldInterpolationWorkspace
-  logical,                       allocatable, dimension(:) :: elementYieldResetInterpolation
-  !$omp threadprivate(elementYieldInterpolationWorkspace,elementYieldResetInterpolation)
+  ! Number of elements being tracked.
+  integer                                       :: elementCount
 
+  ! Current file format version for intergalactic background radiation files.
+  integer                      , parameter      :: fileFormatVersionCurrent=1
+  
 contains
+
+  integer function Stellar_Astrophysics_File_Format_Version()
+    !% Return the current file format version of stellar astrophysics files.
+    implicit none
+
+    Stellar_Astrophysics_File_Format_Version=fileFormatVersionCurrent
+    return
+  end function Stellar_Astrophysics_File_Format_Version
 
   !# <stellarAstrophysicsMethod>
   !#  <unitName>Stellar_Astrophysics_File_Initialize</unitName>
@@ -105,7 +70,7 @@ contains
     type(NodeList),              pointer                :: starList,propertyList
     type(varying_string)                                :: stellarPropertiesFile
     integer                                             :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement &
-         &,elementCount,elementYieldCountMaximum,mapToIndex
+         &,elementYieldCountMaximum,mapToIndex,fileFormatVersion
     double precision                                    :: initialMass,metallicity
     logical                                             :: starHasElements
 
@@ -120,7 +85,7 @@ contains
        ! Get the name of the file containing stellar data.
        !@ <inputParameter>
        !@   <name>stellarPropertiesFile</name>
-       !@   <defaultValue>data/Stellar\_Properties\_Compilation.xml</defaultValue>
+       !@   <defaultValue>data/stellarAstrophysics/Stellar\_Properties\_Compilation.xml</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the XML file from which to read stellar properties (ejected masses, yields, etc.).
@@ -129,7 +94,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stellarPropertiesFile',stellarPropertiesFile,defaultValue=char(Galacticus_Input_Path())//'data&
-            &/Stellar_Properties_Compilation.xml')
+            &/stellarAstrophysics/Stellar_Properties_Compilation.xml')
 
        ! Allocate array to store number of entries in file for yield of each element.
        call Alloc_Array(elementYieldCount,[Atomic_Data_Atoms_Count()])
@@ -139,6 +104,12 @@ contains
        ! Open the XML file containing stellar properties.
        doc => parseFile(char(stellarPropertiesFile),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize','Unable to parse stellar properties file')
+  
+       ! Check the file format version of the file.
+       propertyList => getElementsByTagname(doc,"fileFormat")
+       thisDatum => item(propertyList,0)
+       call extractDataContent(thisDatum,fileFormatVersion)
+       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Astrophysics_File_Initialize','file format version is out of date')
 
        ! Get a list of all stars.
        starList => getElementsByTagname(doc,"star")
@@ -204,12 +175,6 @@ contains
        call Alloc_Array(elementYield              ,[elementYieldCountMaximum,elementCount])
        call Alloc_Array(elementYieldMass          ,[elementYieldCountMaximum,elementCount])
        call Alloc_Array(elementYieldMetallicity   ,[elementYieldCountMaximum,elementCount])
-
-       ! Allocate interpolator objects for element yields.
-       allocate(elementYieldInterpolationWorkspace(elementCount))
-       call Memory_Usage_Record(sizeof(elementYieldInterpolationWorkspace))
-       call Alloc_Array(elementYieldResetInterpolation    ,[elementCount])
-       elementYieldResetInterpolation=.true.
 
        ! Loop over stars to process their properties.
        lifetimeCount    =0
@@ -295,24 +260,24 @@ contains
   double precision function Star_Initial_Mass_File(lifetime,metallicity)
     !% Return the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: lifetime,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    !$omp threadprivate(interpolationWorkspace)
+    double precision,             intent(in) :: lifetime,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
+    resetInterpolation=.true.
     Star_Initial_Mass_File=Interpolate_2D_Irregular(stellarLifetime,stellarLifetimeMetallicity,stellarLifetimeMass,lifetime&
-         &,metallicity,interpolationWorkspace,reset=.true.,numberComputePoints=3)
-
+         &,metallicity,interpolationWorkspace,reset=resetInterpolation,numberComputePoints=3)
     return
   end function Star_Initial_Mass_File
 
   double precision function Star_Lifetime_File(initialMass,metallicity)
     !% Return the lifetime of a star (in Gyr) given an {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: initialMass,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    logical,                       save       :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
+    double precision,             intent(in) :: initialMass,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
+    resetInterpolation=.true.
     Star_Lifetime_File=Interpolate_2D_Irregular(stellarLifetimeMass,stellarLifetimeMetallicity,stellarLifetime,initialMass&
          &,metallicity ,interpolationWorkspace,reset=resetInterpolation)
 
@@ -322,12 +287,12 @@ contains
   double precision function Star_Ejected_Mass_File(initialMass,metallicity)
     !% Return the mass ejected during the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: initialMass,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    logical,                       save       :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
+    double precision,             intent(in) :: initialMass,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
     ! Compute the ejected mass.
+    resetInterpolation=.true.
     Star_Ejected_Mass_File=max(Interpolate_2D_Irregular(ejectedMassMass,ejectedMassMetallicity,ejectedMass,initialMass,metallicity&
          &,interpolationWorkspace,reset=resetInterpolation),0.0d0)
 
@@ -336,23 +301,24 @@ contains
 
   double precision function Star_Metal_Yield_Mass_File(initialMass,metallicity,atomIndex)
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
+    use Memory_Management
     implicit none
-    double precision,              intent(in)           :: initialMass,metallicity
-    integer,                       intent(in), optional :: atomIndex
-    type(interp2dIrregularObject), save                 :: interpolationWorkspace
-    logical,                       save                 :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
-    integer                                             :: elementIndex
+    double precision,             intent(in)           :: initialMass,metallicity
+    integer,                      intent(in), optional :: atomIndex
+    type(interp2dIrregularObject)                      :: interpolationWorkspace
+    logical                                            :: resetInterpolation
+    integer                                            :: elementIndex
 
     if (present(atomIndex)) then
        ! Compute the element mass yield.
        elementIndex=atomIndexMap(atomIndex)
+       resetInterpolation=.true.
        Star_Metal_Yield_Mass_File=max(Interpolate_2D_Irregular(elementYieldMass(1:elementYieldCount(atomIndex),elementIndex)&
-            &,elementYieldMetallicity(1:elementYieldCount(atomIndex),elementIndex),elementYield(1:elementYieldCount(atomIndex)&
-            &,elementIndex),initialMass ,metallicity,elementYieldInterpolationWorkspace(elementIndex),reset&
-            &=elementYieldResetInterpolation(elementIndex)),0.0d0)
+            &,elementYieldMetallicity(1:elementYieldCount(atomIndex),elementIndex),elementYield(1:elementYieldCount(atomIndex) &
+            &,elementIndex),initialMass ,metallicity,interpolationWorkspace,reset =resetInterpolation),0.0d0)
     else
        ! Compute the metal mass yield.
+       resetInterpolation=.true.
        Star_Metal_Yield_Mass_File=max(Interpolate_2D_Irregular(metalYieldMass,metalYieldMetallicity,metalYield,initialMass&
             &,metallicity,interpolationWorkspace,reset=resetInterpolation),0.0d0)
     end if

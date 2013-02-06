@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Locate Galform2 code files which have dependencies on include files
+# Locate source files which have dependencies on include files
 
 # Define the source directory
 if ( $#ARGV != 0 ) {die "Usage: Find_Include_Dependencies.pl sourcedir"};

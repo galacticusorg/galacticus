@@ -195,7 +195,7 @@ foreach $model ( @modelsToConvert ) {
 
 	# Create the HDF5 output file.
 	$IMF = ucfirst($IMF);
-	$HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/SSP_Spectra_BC2003_".$resolutionLookup{$resolution}."_imf".$IMF.".hdf5");
+	$HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/stellarPopulations/SSP_Spectra_BC2003_".$resolutionLookup{$resolution}."_imf".$IMF.".hdf5");
 	$HDFfile->dataset("ages"         )->set($ageDataset       );
 	$HDFfile->dataset("wavelengths"  )->set($wavelengthDataset);
 	$HDFfile->dataset("metallicities")->set($metallicities    );

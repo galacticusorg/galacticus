@@ -10,6 +10,13 @@ if ( $? != 0 ) then
  exit 1
 endif
 
+# Extract contributor data.
+scripts/doc/Extract_Contributors.pl source doc/contributions.tex
+if ( $? != 0 ) then
+ echo Failed to extract contributor data
+ exit 1
+endif
+
 # Analyze source code.
 scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
 if ( $? != 0 ) then
@@ -29,7 +36,7 @@ endif
 
 # Compile the manual.
 @ iPass = 1
-while( $iPass <= 3 )
+while( $iPass <= 4 )
  # Run pdflatex.
  pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
  if ( $? != 0 ) then
