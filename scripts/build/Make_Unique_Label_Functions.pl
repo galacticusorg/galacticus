@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -10,7 +10,7 @@ unshift(@INC,$galacticusPath."perl");
 use strict;
 use warnings;
 use XML::Simple;
-use UNIVERSAL 'isa';
+use Scalar::Util 'reftype';
 use Data::Dumper;
 require Fortran::Utils;
 
@@ -25,6 +25,9 @@ my $sourceDirectory = $ARGV[0]."/source";
 open(oHndl,">./work/build/utility.input_parameters.unique_labels.inc"             );
 open(vHndl,">./work/build/utility.input_parameters.unique_labels.visibilities.inc");
 
+# Store for default parameter values.
+my %defaultValues;
+
 # Scan the source directory for source files.
 opendir(dHndl,$sourceDirectory);
 while ( my $fileName = readdir(dHndl) ) {
@@ -32,6 +35,7 @@ while ( my $fileName = readdir(dHndl) ) {
     my $processFile = 0;
     my $labelFunction;
     my %ignoreParameters;
+    my @ignorePatterns;
 
     # Select Fortran source files.
     if ( $fileName =~ m/\.F90$/ ) {
@@ -47,15 +51,22 @@ while ( my $fileName = readdir(dHndl) ) {
 		    my $xml = new XML::Simple;
 		    my $uniqueLabel = $xml->XMLin($xmlBuffer);
 		    $labelFunction = $uniqueLabel->{'function'};
-		    if ( exists($uniqueLabel->{'ignore'}) ) {
+		    if ( exists($uniqueLabel->{'ignore'}) && reftype($uniqueLabel->{'ignore'}) ) {
 			my @ignores;
-			if ( UNIVERSAL::isa($uniqueLabel->{'ignore'},"ARRAY") ) {
+			if ( reftype($uniqueLabel->{'ignore'}) eq "ARRAY" ) {
 			    @ignores = @{$uniqueLabel->{'ignore'}};
 			} else {
 			    push(@ignores,$uniqueLabel->{'ignore'});
 			}
 			foreach my $ignore ( @ignores ) {
 			    $ignoreParameters{$ignore} = 1;
+			}
+		    }
+		    if ( exists($uniqueLabel->{'ignoreRegex'}) ) {
+			if ( UNIVERSAL::isa($uniqueLabel->{'ignoreRegex'},"ARRAY") ) {
+			    @ignorePatterns = @{$uniqueLabel->{'ignoreRegex'}};
+			} else {
+			    push(@ignorePatterns,$uniqueLabel->{'ignoreRegex'});
 			}
 		    }
 		    $processFile = 1;
@@ -94,7 +105,41 @@ while ( my $fileName = readdir(dHndl) ) {
 	    $definitionCode .= "  logical             , intent(in), optional :: includeVersion,asHash\n";
 	    $definitionCode .= "  type(varying_string)                       :: parameterValue\n";
 	    $definitionCode .= "  ".$labelFunction."=''\n";
-	    
+	    	   
+	    # Scan dependencies for default parameter values.
+	    open(iHndl,$depFile);
+	    while ( my $depName = <iHndl> ) {
+		chomp($depName);
+		$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;       
+		# Scan the file for default parameter values.
+		my $sourceFile = $sourceDirectory."/".$depName.".F90";
+		unless ( $depName eq "utility.input_parameters" ) {
+		    my $fileHandle;
+		    open($fileHandle,$sourceFile);
+		    until ( eof($fileHandle) ) {
+			# Grab the next Fortran line.
+			my $rawLine;
+			my $processedLine;
+			my $bufferedComments;
+			&Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+			if ( $processedLine =~ m/Get_Input_Parameter/i ) {
+			    if ( $processedLine =~ m/defaultValue\s*=\s*(.*)[,\)]/i ) {
+				my $defaultValue = $1;
+				$defaultValue =~ s/^\s*'//;
+				$defaultValue =~ s/'\s*$//;
+				$defaultValue =~ s/'/''/;
+				if ( $processedLine =~ m/Get_Input_Parameter\s*\(\s*'([^']*)'/i ) {
+				    my $parameterName = $1;
+				    $defaultValues{$parameterName} = $defaultValue;
+				}
+			    }
+			}
+		    }
+		    close(sFile);
+		}		
+	    }
+	    close(iHndl);
+
 	    # Process the list of dependencies.
 	    open(iHndl,$depFile);
 	    while ( my $depName = <iHndl> ) {
@@ -109,36 +154,11 @@ while ( my $fileName = readdir(dHndl) ) {
 		    $moduleName       =~ s/\.\/work\/build\/(.*)\.mod$/$1/;
 		    my $moduleCode    = "  ".$labelFunction."=".$labelFunction."//'::".$moduleName."'\n";	
 		    my $hasParameters = 0;
-
-		    # Scan the file for default parameter values.
-		    my %defaultValues;
-		    my $sourceFile = $sourceDirectory."/".$depName.".F90";
-		    unless ( $depName eq "utility.input_parameters" ) {
-			my $fileHandle;
-			open($fileHandle,$sourceFile);
-			until ( eof($fileHandle) ) {
-			    # Grab the next Fortran line.
-			    my $rawLine;
-			    my $processedLine;
-			    my $bufferedComments;
-			    &Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
-			    if ( $processedLine =~ m/Get_Input_Parameter/i ) {
-				if ( $processedLine =~ m/defaultValue\s*=\s*(.*)[,\)]/i ) {
-				    my $defaultValue = $1;
-				    if ( $processedLine =~ m/Get_Input_Parameter\s*\(\s*'(.*)'/i ) {
-					my $parameterName = $1;
-					$defaultValues{$parameterName} = $defaultValue;
-				    }
-				}
-			    }
-			}
-			close(sFile);
-		    }
-
 		    # Scan this file for parameters.
 		    my $methodParameter;
 		    my $methodValue;
 		    my $xmlBuffer;
+		    my $sourceFile = $sourceDirectory."/".$depName.".F90";
 		    open(sFile,$sourceFile);
 		    while ( my $line = <sFile> ) {
 			# Find method activations.
@@ -155,9 +175,21 @@ while ( my $fileName = readdir(dHndl) ) {
 				# Parse the XML.
 				my $xml = new XML::Simple;
 				my $inputParameter = $xml->XMLin($xmlBuffer);
-				unless ( exists($ignoreParameters{$inputParameter->{'name'}}) ) {
+
+				my $ignore = 0;
+				$ignore = 1
+				    if ( exists($ignoreParameters{$inputParameter->{'name'}}) );
+				foreach ( @ignorePatterns ) {
+				    $ignore = 1
+					if ( $inputParameter->{'name'} =~ m/$_/ );
+				}
+
+				unless ( $ignore == 1 ) {
 				    $moduleCode .= "  call Get_Input_Parameter_VarString('".$inputParameter->{'name'}."',parameterValue";
-				    $moduleCode .= ",defaultValue='".$defaultValues{$inputParameter->{'name'}}."'" if ( exists($defaultValues{$inputParameter->{'name'}}) );
+				    my $defaultValue = "";
+				    $defaultValue = $defaultValues{$inputParameter->{'name'}}
+				       if ( exists($defaultValues{$inputParameter->{'name'}}) );
+				    $moduleCode .= ",defaultValue='".$defaultValue."'";
 				    $moduleCode .= ",writeOutput=.false.)\n";
 				    $moduleCode .= "  ".$labelFunction."=".$labelFunction."//'#".$inputParameter->{'name'}."['//parameterValue//']'\n";
 				    $hasParameters = 1;
@@ -169,7 +201,10 @@ while ( my $fileName = readdir(dHndl) ) {
 		    if ( $hasParameters == 1 ) {
 			if ( defined($methodParameter) ) {
 			    $definitionCode .= "  call Get_Input_Parameter_VarString('".$methodParameter."',parameterValue";
-			    $definitionCode .= ",defaultValue='".$defaultValues{$methodParameter}."'" if ( exists($defaultValues{$methodParameter}) );
+			    my $defaultValue = "";
+			    $defaultValue = $defaultValues{$methodParameter}
+			        if ( exists($defaultValues{$methodParameter}) );
+			    $definitionCode .= ",defaultValue='".$defaultValue."'";
 			    $definitionCode .= ",writeOutput=.false.)\n";
 			}
 			$definitionCode .= "  if (parameterValue == '".$methodValue."') then\n"

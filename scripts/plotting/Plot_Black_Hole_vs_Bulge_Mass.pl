@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -12,6 +12,8 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
+use Carp 'verbose';
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require Stats::Means;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
@@ -55,11 +57,11 @@ $dataSet->{'store'} = 0;
 &HDF5::Count_Trees($dataSet);
 &HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} = "all";
-&HDF5::Get_Dataset($dataSet,['volumeWeight','spheroidStellarMass','blackHoleMass']);
+&HDF5::Get_Dataset($dataSet,['mergerTreeWeight','spheroidMassStellar','blackHoleMass']);
 $dataSets         = $dataSet->{'dataSets'};
-$volumeWeight     = where($dataSets->{'volumeWeight'}       ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$spheroidMass     = where($dataSets->{'spheroidStellarMass'},$dataSets->{'spheroidStellarMass'} > 3.0e8);
-$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidStellarMass'} > 3.0e8);
+$mergerTreeWeight     = where($dataSets->{'mergerTreeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
+$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
@@ -69,12 +71,15 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	print $xmlOutput->XMLout(\%fitData);
     }
 } else {
-    $weight           = where($volumeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
+    $weight           = where($mergerTreeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logSpheroidMass  = where(log10($spheroidMass ),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     $logBlackHoleMass = where(log10($blackHoleMass),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
     if ( nelem($logSpheroidMass) > 0 ) {
 	($logBlackHoleMassMeanGalacticus,$logBlackHoleMassMeanErrorGalacticus,$logBlackHoleMassSigmaGalacticus,$logBlackHoleMassSigmaErrorGalacticus)
 	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
+    } else {
+	$logBlackHoleMassMeanGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
+	$logBlackHoleMassMeanErrorGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
     }
 
     # Define constants.
@@ -110,7 +115,7 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     $weights          = 1.0/$logError**2;
     ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
 	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
-    
+
     # Compute chi^2.
     if ( nelem($logSpheroidMass) > 0 ) {
 	$nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);
