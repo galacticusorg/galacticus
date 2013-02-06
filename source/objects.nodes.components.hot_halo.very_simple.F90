@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -48,7 +48,7 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingMass</name>
+  !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -117,8 +117,8 @@ contains
           ! Remove mass from the hot component.
           call    thisHotHaloComponent%massRate       (-massRate                             )
           ! Pipe the mass rate to whatever component claimed it.         
-          if (thisHotHaloComponent%coolingMassRateIsAttached()) then
-             call thisHotHaloComponent%coolingMassRate(+massRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if          
        end if
@@ -148,21 +148,16 @@ contains
     type     (treeNode            ), pointer, intent(inout) :: thisNode
     logical                        ,          intent(inout) :: interrupt
     procedure(                    ), pointer, intent(inout) :: interruptProcedure
-    procedure(                    ), pointer                :: interruptProcedurePassed
     class    (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
     class is (nodeComponentHotHaloVerySimple)
-       ! Make a local copy of the interrupt procedure pointer.
-       interruptProcedurePassed => interruptProcedure
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Very_Simple_Cooling_Rate         (thisNode                                               )
        ! Pipe the cooling rate to which ever component claimed it.
-       call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedurePassed)
-       ! Return a copy of our local interrupt pointer.
-       interruptProcedure => interruptProcedurePassed
+       call Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute

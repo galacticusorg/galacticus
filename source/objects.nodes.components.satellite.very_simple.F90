@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,7 +22,8 @@ module Node_Component_Satellite_Very_Simple
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create
+  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create, &
+       &    Node_Component_Satellite_Very_Simple_Tree_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -117,6 +118,18 @@ contains
     end do
     return
   end subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task
+
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(thisNode)
+    !% Initialize the very simple satellite component.
+    implicit none
+    type (treeNode), pointer, intent(inout) :: thisNode
+
+    if (thisNode%isSatellite()) call Node_Component_Satellite_Very_Simple_Create(thisNode)
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize
 
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>

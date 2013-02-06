@@ -65,7 +65,7 @@ sub Compute_Power_Spectrum {
     $linearPowerSpectrum *= $growthFactor[0]**2;
 
     # Get galaxy data.
-    @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','volumeWeight','nodeBias');
+    @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','mergerTreeWeight','nodeBias');
     if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','basicMass')};
     &HDF5::Get_Dataset($dataBlock,\@properties);
     my $dataSets = $dataBlock->{'dataSets'};
@@ -84,7 +84,7 @@ sub Compute_Power_Spectrum {
     }
 
     # Compute mean galaxy number density.
-    my $meanDensity = $dataSets->{'volumeWeight'}->index($selected)->sum;
+    my $meanDensity = $dataSets->{'mergerTreeWeight'}->index($selected)->sum;
 
     # Compute redshift space terms if required.
     if ( $redshiftSpace == 1 ) {
@@ -110,7 +110,7 @@ sub Compute_Power_Spectrum {
 	
 	# Loop over all halos.
 	for(my $i=0;$i<nelem($selected);++$i) {
-	    my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	    my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
 	    my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
 	    my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
 	    my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
@@ -165,7 +165,7 @@ sub Compute_Power_Spectrum {
     undef($Fv);
     undef($twoHaloFactor);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
 	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
 	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
 	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
@@ -196,7 +196,7 @@ sub Compute_Power_Spectrum {
     # Compute the 1-halo
     undef($oneHaloPowerSpectrum);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = $dataSets->{'volumeWeight'     }->index($selected->index($i));
+	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
 	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
 	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
 	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));

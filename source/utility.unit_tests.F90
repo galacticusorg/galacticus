@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -701,8 +701,6 @@ contains
 
     return
   end subroutine Assert_Integer_1D_Array
-
-
 
   subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.

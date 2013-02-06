@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -28,6 +28,9 @@ module Satellite_Merging_Remnant_Sizes_Covington2008
 
   ! Parameter controlling the radiative efficiency used in the calculation.
   double precision :: mergerRemnantRadiativeEfficiency
+
+  ! Record of whether we've already issued a warning about low specific angular momentum.
+  logical          :: warningGiven=.false.
 
 contains
 
@@ -81,15 +84,17 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
-    double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
-    double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
-    double precision,        parameter               :: relativeMassTolerance  =1.0d-9
+    double precision,        parameter               :: bindingEnergyFormFactor             =0.5d+00
+    double precision,        parameter               :: absoluteMassTolerance               =1.0d-06
+    double precision,        parameter               :: relativeMassTolerance               =1.0d-09
+    double precision,        parameter               :: specificAngularMomentumFractionSmall=1.0d-12
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
          &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass&
-         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy
+         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy,radiusVirial,velocityVirial
     character(len= 2)                                :: joinString
     character(len=70)                                :: dataString
     type(varying_string)                             :: message
@@ -201,6 +206,22 @@ contains
           ! Also compute the specific angular momentum at the half-mass radius.
           remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
           remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+
+          ! Check that the specific angular momentum is reasonable.
+          if (.not.warningGiven.and.Galacticus_Verbosity_Level() >= verbosityWarn) then
+             radiusVirial  =Dark_Matter_Halo_Virial_Radius  (hostNode)
+             velocityVirial=Dark_Matter_Halo_Virial_Velocity(hostNode)
+             if (remnantSpecificAngularMomentum < specificAngularMomentumFractionSmall*radiusVirial*velocityVirial) then
+                message='WARNING: the specific angular momentum for node '
+                message=message//hostNode%index()//' has become very small'//char(10) 
+                message=message//' --> this will likely lead to a crash soon'
+                message=message//'NOTE: this can happen with the Covington2008 implementation of the satelliteMergingRemnantSizeMethod method'//char(10)
+                message=message//' --> an alternative choice (e.g. the Cole2000 implementation) may avoid this problem'
+                call Galacticus_Display_Message(message,verbosityWarn)
+                warningGiven=.true.
+             end if
+          end if
+
        else
           ! Remnant has zero mass - don't do anything.
           remnantRadius                 =remnantNoChangeValue

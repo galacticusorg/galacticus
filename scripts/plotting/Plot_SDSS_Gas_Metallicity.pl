@@ -56,7 +56,7 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees   ($dataBlock    );
 &HDF5::Select_Output ($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight'
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
 			      ,'diskMassStellar'
@@ -94,7 +94,7 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
 
     $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
     $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
-    $weight      = where($dataSets->{'volumeWeight'},$gasFraction > $gasFractionMinimum);
+    $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
     $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
     $results     = &Percentiles::BinnedPercentiles(
 	$x,

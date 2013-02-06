@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -24,15 +24,15 @@ subroutine Node_Component_Disk_Exponential_Attach_Pipes(self)
   class(nodeComponentDiskExponential), intent(in) :: self
   type (nodeComponentHotHalo        )             :: hotHalo
   
-  if (hotHalo%coolingMassRateIsAttached           ()) &
+  if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
        call Galacticus_Error_Report('Node_Component_Disk_Exponential_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe'            )
-  if (hotHalo%coolingAngularMomentumRateIsAttached()) &
+  if (hotHalo%hotHaloCoolingAngularMomentumRateIsAttached()) &
        call Galacticus_Error_Report('Node_Component_Disk_Exponential_Attach_Pipes','expected to find unclaimed hot halo angular momentum cooling pipe')
-  if (hotHalo%coolingAbundancesRateIsAttached     ()) &
+  if (hotHalo%hotHaloCoolingAbundancesRateIsAttached     ()) &
        call Galacticus_Error_Report('Node_Component_Disk_Exponential_Attach_Pipes','expected to find unclaimed hot halo abundances cooling pipe'      )
-  call hotHalo%coolingMassRateFunction           (DiskExponentialMassGasRateGeneric        )
-  call hotHalo%coolingAngularMomentumRateFunction(DiskExponentialAngularMomentumRateGeneric)
-  call hotHalo%coolingAbundancesRateFunction     (DiskExponentialAbundancesGasRateGeneric  )
+  call hotHalo%hotHaloCoolingMassRateFunction           (DiskExponentialMassGasRateGeneric        )
+  call hotHalo%hotHaloCoolingAngularMomentumRateFunction(DiskExponentialAngularMomentumRateGeneric)
+  call hotHalo%hotHaloCoolingAbundancesRateFunction     (DiskExponentialAbundancesGasRateGeneric  )
   return
 end subroutine Node_Component_Disk_Exponential_Attach_Pipes
 

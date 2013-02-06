@@ -94,7 +94,7 @@ outputFile.hdf5
  |    +-> versionMajor                        Attribute {1}
  |    +-> versionMinor                        Attribute {1}
  |    +-> versionRevision                     Attribute {1}
- |    +-> bazaarRevision                      Attribute {1}
+ |    +-> hgRevision                          Attribute {1}
  |    +-> runByName                           Attribute {1}
  |    +-> runByEmail                          Attribute {1}
  |
@@ -139,7 +139,7 @@ The UUID is then available as {\tt \$model-\textgreater\{'uuid'\}}.
 \item[{\tt make\_PREPROCESSOR}] The preprocessor command used.
 \end{description}
 
-Additionally, two datasets are included which store details of the \glc\ source changeset. {\tt sourceChangeSetMerge} contains the output of ``{\tt bzr send}'', that is, it contains a Bazaar merge directive that incorporates any changes made to the current branch relative to the main \glc\ branch. {\tt sourceChangeSetDiff} contains the output of ``{\tt bzr diff}'', that is, all differences between the source code in the working directory and that which has been committed to Bazaar. Used together, these two datasets allow the precise source code used to run the model to be recovered from the main branch \glc\ source.
+Additionally, two datasets are included which store details of the \glc\ source changeset. {\tt sourceChangeSetMerge} contains the output of ``{\tt hg bundle -t none}'', that is, it contains a Mercurial changegroup that incorporates any changes made to the current branch relative to the main \glc\ branch. {\tt sourceChangeSetDiff} contains the output of ``{\tt hg diff}'', that is, all differences between the source code in the working directory and that which has been committed to Mercurial. Used together, these two datasets allow the precise source code used to run the model to be recovered from the main branch \glc\ source.
 
 \subsection{Parameters}
 
@@ -147,7 +147,7 @@ The {\tt Parameters} group contains a record of all parameter values (either inp
 
 \subsection{Version}
 
-The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\sc Bazaar} revision (if the code is being maintained using {\sc Bazaar}, otherwise a value of $-1$ is entered). Additionally, the time at which the model was run is stored and, if the {\tt galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\sc Mercurial} revision (if the code is being maintained using {\sc Mercurial}, otherwise a value of $-1$ is entered). Additionally, the time at which the model was run is stored and, if the {\tt galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
 
 \subsection{globalHistory}\label{sec:globalHistory}\index{history!global}\index{outputs!global history}
 
@@ -290,6 +290,7 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt time}] The cosmic time (in Gyr) at which the galaxy exists. Provided by: {\tt Galacticus::Time}.
  \item[{\tt expansionFactor}] The expansion factor at which the galaxy exists. Provided by: {\tt Galacticus::Time}.
  \item[{\tt stellarMass}] The sum of disk and spheroid stellar masses. Provided by: {\tt Galacticus::StellarMass}.
+ \item[{\tt starFormationRate}] The sum of disk and spheroid star formation rates. Provided by: {\tt Galacticus::StellarMass}.
  \item[{\tt hostNodeMass}] For isolated nodes, the node mass. For non-isolated nodes, the mass of the isolated node in which the node resides. Provided by: {\tt Galacticus::HostNode}.\index{nodes!host mass}\index{halos!host mass}\index{satellites!host mass}
  \item[{\tt stellarMass}] The sum of disk and speheroid stellar masses (or, whichever of these exist in the model). Provided by: {\tt Galacticus::StellarMass}.
  \item[{\tt hotHalo(Fraction\textbar Frac)}] The fraction the node's mass in the hot gas halo. Provided by: {\tt Galacticus::Baryons}.
@@ -298,12 +299,19 @@ The module begins by adding an entry to the {\tt \%HDF5::galacticusFunctions} ha
  \item[{\tt \textasciicircum totalStellarLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] (Optionally dust-extingiushed) luminosities for disk plus bulge found by adding together the corresponding disk and bulge luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum bulgeToTotalLuminosity:.*:dustAtlas($\backslash$[faceOn$\backslash$])\$}] Ratio of bulge to total (optionally dust-extingiushed) luminosities. Provided by: {\tt Galacticus::Luminosities}.
  \item[{\tt \textasciicircum magnitude([\textasciicircum :]+):([\textasciicircum :]+):([\textasciicircum :]+):z([$\backslash$d$\backslash$.]+)(:dust[\textasciicircum :]+)?(:vega\textbar :AB)?}] Absolute magnitude corresponding to a stellar luminosity, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
+ \item[{\tt \textasciicircum magnitude:(.*)(:vega\textbar :AB)?}] Absolute magnitude corresponding to the generic luminosity property {\tt \textasciicircum luminosity:\$1}, in either Vega or AB systems. Provided by: {\tt Galacticus::Magnitudes}.
+ \item[{\tt \textasciicircum apparentMagnitude:(.*)}] Apparent magnitude corresponding to the absolute magnitude {\tt \textasciicircum magnitude:\$1}. Provided by: {\tt Galacticus::Magnitudes}.
  \item[{\tt comovingDistance}] The comoving distance (in Mpc) to the galaxy---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt luminosityDistance}] The luminosity distance (in Mpc) to the galaxy---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
+ \item[{\tt distanceModulus}] The distance modulus (including the $+2.5\log_{10}(1+z)$ term to account for squeezing of photon frequencies) to the galaxy---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt redshift}] The redshift at which the galaxy is observed---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt angularWeight}] The weight (in units of ) which should be assigned to this galaxy in order to build a redshift survey---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
+ \item[{\tt \textasciicircum lightconeAngle[12]}] The angular position (in units of radians) of this galaxy in the lightcone field along either principle axis 1 or 2---provided by {\tt Galacticus::Survey} (see \S\ref{sec:Galacticus::Survey} for a full description).
  \item[{\tt \textasciicircum grasilFlux[$\backslash$d$\backslash$.]+microns}] The flux at the given wavelength (specific in microns) of the galaxy as computed by the {\tt Grasil} code (see \S\ref{sec:Grasil} for a full description).
-\item[{\tt flux850micronHayward}] The flux of the galaxy at 850$\mu$m\index{flux!sub-mm} computed using the fitting formula of \cite{hayward_what_2010}, specifically:
+ \item[{\tt \textasciicircum grasilInfraredLuminosity}] The total infrared (8--1000$\mu$m) luminosity of the galaxy as computed by the {\tt Grasil} code (see \S\ref{sec:Grasil} for a full description).
+ \item[{\tt \textasciicircum grasilFlux:([\textasciicircum :]+)}] The flux (in Janskys) of the galaxy as computed by the {\tt Grasil} code integrated under the specified filter (see \S\ref{sec:Grasil} for a full description).
+ \item[{\tt \textasciicircum luminosity:grasil:([\textasciicircum :]+):([\textasciicircum :]+)}] The luminosity (in units of the zero point of the AB magnitude system) of the galaxy as computed by the {\tt Grasil} code integrated under the specified filter and in the specified frame (see \S\ref{sec:Grasil} for a full description).
+ \item[{\tt flux850micronHayward}] The flux of the galaxy at 850$\mu$m\index{flux!sub-mm} computed using the fitting formula of \cite{hayward_what_2010}, specifically:
 \begin{equation}
  {S_{850\mu{\rm m}} \over {\rm Jy}} = A \left({\dot{M}_\star \over 100 M_\odot \hbox{Gyr}^{-1}}\right)^\alpha \left({R_{\rm dust} M_{\rm metals,gas} \over 10^8 M_\odot}\right)^\beta,
 \end{equation}
@@ -440,7 +448,7 @@ To process a \glc\ galaxy through {\sc Grasil} use the following method:
 \end{verbatim}
 where {\tt inputFile} is the name of the \glc\ model file, {\tt outputIndex}, {\tt treeIndex} and {\tt nodeIndex} are the quantities described above that identify the galaxy of interest and {\tt grasilFile} is the name of the file to which the star formation history should be written. {\sc Grasil} convention dictates that this file should have the suffix {\tt .dat}. The optional {\tt plotFile} is the name of a file to which a plot of the star formation history will be written.
  \item Create a suitable input parameter file for {\tt Grasil}, with the same name as your star formation file created above, but with the suffix {\tt .par}. An example of such a file is given in {\tt aux/Grasil/grasilExample.par} ---refer to the {\sc Grasil} \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.doc}{documentation} for details of the parameters and how to control {\sc Grasil}. 
- \item Download the {\sc Grasil} executable and supporting data files from \href{http://adlibitum.oat.ts.astro.it/silva/grasil/download.htm}{here} and unpack them\footnote{You can put these files where ever you want. Usually, we place them into {\tt aux/Grasil/}.}.
+ \item Download the {\sc Grasil} executable from \href{http://users.obs.carnegiescience.edu/abenson/galacticus/tools/grasil}{here} and supporting data files from \href{http://adlibitum.oat.ts.astro.it/silva/grasil/download.htm}{here} and unpack them\footnote{You can put these files where ever you want. Usually, we place them into {\tt aux/Grasil/}.}.
  \item Run {\sc Grasil}:
 \begin{verbatim}
  aux/Grasil/grasil <fileNameRoot>
@@ -450,7 +458,9 @@ where {\tt fileNameRoot} is the name of the parameter file you created without t
 
 \subsection{Using the {\tt Galacticus::Grasil} Module}
 
-A more automated way to compute fluxes using {\tt Grasil} is to use the {\tt Galacticus::Grasil} Perl module that is provided with \glc. This model provides additional derived properties in the usual way (see \S\ref{sec:DerivedProperties} for details). Currently, only observed fluxes are provided, via a derived property {\tt grasilFlux\textless XXX\textgreater microns}, which will give the observed flux of the galaxy at wavelength $\lambda=${\tt\textless XXX\textgreater}$\mu$m. Note that this requires that the {\tt Galacticus::Survey} module be used to provide redshifts for galaxies (see \S\ref{sec:Galacticus::Survey}).
+A more automated way to compute fluxes using {\tt Grasil} is to use the {\tt Galacticus::Grasil} Perl module that is provided with \glc. This model provides additional derived properties in the usual way (see \S\ref{sec:DerivedProperties} for details). Currently, observed fluxes are provided, via a derived property {\tt grasilFlux\textless XXX\textgreater microns}, which will give the observed flux of the galaxy at wavelength $\lambda=${\tt\textless XXX\textgreater}$\mu$m.
+
+Additionally, the flux integrated under a filter can be found using the derived property {\tt grasilFlux:\textless filter\textgreater}, where {\tt \textless filter\textgreater} is the filter name. Luminosities under a filter can be found using {\tt luminosity:grasil:\textless filter\textgreater:\textless frame\textgreater}, where {\tt frame} is either {\tt rest} or {\tt observed}. Finally, {\tt grasilInfraredLuminosity} will give the total infrared (8--1000$\mu$m) luminosity of galaxies. Note that these properties require that the {\tt Galacticus::Survey} module be used to provide redshifts for galaxies (see \S\ref{sec:Galacticus::Survey}).
 
 The module will automatically run {\sc Grasil} using the parameters given in {\tt data/grasilBaseParameters.txt}, subject the modifications specified in the {\tt grasilOptions} element of {\tt \$model}. Allowed options are:
 \begin{description}
@@ -461,12 +471,13 @@ The module will automatically run {\sc Grasil} using the parameters given in {\t
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'radialGridCount'\}}] Specifies the number of radial grid cells to use in calculating radiative transfer (i.e. the ``{\tt ndr}'' parameter in {\sc Grasil}).
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'recomputeSEDs\}}] If set to 1, SEDs will be computed for all galaxies even if they have been previously computed. (This can be useful to recompute SEDs with different options passed to {\sc Grasil} for example.) Set to 0 to re-use previously computed SEDs.
  \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'maxThreads\}}] Specifies the number of parallel threads to launch, each of which will run an instance of {\sc Grasil}. If not specified this number will default to the number of available cores.
+ \item [{\tt \$dataSet-\textgreater\{'grasilOptions'\}-\textgreater\{'cpuLimit\}}] Specifies the maximum time (in seconds) for which a Grasil calculation should be allowed to run before being terminated. Defaults to 3600s.
 \end{description}
-Where possible, multiple instances of {\sc Grasil} are run in parallel to speed up the calculation.
+If necessary, the {\sc Grasil} code and data files will be downloaded automatically. Where possible, multiple instances of {\sc Grasil} are run in parallel to speed up the calculation.
 
 The computed \gls{sed} is stored in the HDF5 output file in dataset {\tt grasilSEDs/Output\textless outputIndex\textgreater/mergerTree\textless treeIndex\textgreater/node\textless nodeIndex\textgreater/SED}, where {\tt outputIndeex}, {\tt treeIndex} and {\tt nodeIndex} are respectively the indices of the output, merger tree and node to which the galaxy belongs. The wavelengths and inclinations at which the \gls{sed} is tabulated are similarly stored in the same group in datasets {\tt wavelength} and {\tt inclination}. If the \gls{sed} has been previously computed for a given galaxy, it will be read from file instead of recomputing using {\tt Grasil}. The flux is found by interpolating to the relevant rest-frame wavelength and osberved inclination.
 
-The {\tt Galacticus::Grasil} module supports the {\tt selection} element of {\tt \$model}. If this element is set to contain a PDL giving the selection of galaxies to process then only those galaxies will have their {\tt Grasil} fluxes computed, rather than all galaxies in the output. Note that the the resulting dataset is stored back to the HDF5 file then any non-selected galaxies will be assigned zero flux, and these zero fluxes will be reported on future attempts to access the flux\footnote{The {\tt selection} element of {\tt \$model} will be more generally supported in future versions of \protect\glc\ and will more elegantly handle storing of partial datasets to file to avoid this problem}.
+The {\tt Galacticus::Grasil} module supports the {\tt selection} element of {\tt \$model}. If this element is set to contain a PDL giving the selection of galaxies to process then only those galaxies will have their {\tt Grasil} fluxes computed, rather than all galaxies in the output. Note that if the resulting dataset is stored back to the HDF5 file then any non-selected galaxies will be assigned zero flux, and these zero fluxes will be reported on future attempts to access the flux\footnote{The {\tt selection} element of {\tt \$model} will be more generally supported in future versions of \protect\glc\ and will more elegantly handle storing of partial datasets to file to avoid this problem}.
 
 \section{Meta-Analysis of \glc}\index{analysis!meta}\index{analysis!{\sc Galacticus}@analysis!galacticus}
 
@@ -501,8 +512,8 @@ will extract the metadata from file {\tt myPlot.pdf}, writing a report to screen
 \begin{description}
 \item[{\tt myMetaDataParameters.xml}] A \glc\ input parameter file containing all parameters used to run the \glc\ model from which {\tt myPlot.pdf} was made;
 \item[{\tt myMetaDataScript.pl}] The script used to create {\tt myPlot.pdf};
-\item[{\tt myMetaData.merge}] A bundled merge directive for Bazaar containing the committed source changeset used to build \glc\. This can be applied to a \glc\ checkout using the {\tt bzr merge} command;
-\item[{\tt myMetaData.patch}] A bundled {\tt diff} of the \glc\ source against the committed source. This can be applied to a \glc\ checkout (after applying {\tt myMetaData.merge}) using the {\tt bzr patch} command.
+\item[{\tt myMetaData.bundle}] A bundled changeset for Mercurial containing the committed source changeset used to build \glc\. This can be applied to a \glc\ checkout using the {\tt hg unbundle} command;
+\item[{\tt myMetaData.patch}] A bundled {\tt diff} of the \glc\ source against the committed source. This can be applied to a \glc\ checkout (after applying {\tt myMetaData.bundle}) using the {\tt hg patch} command.
 \end{description}
 
 \section{Perl Statistics Modules}\index{statistics!Perl modules}

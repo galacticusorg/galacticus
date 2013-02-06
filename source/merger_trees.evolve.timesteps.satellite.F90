@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -151,16 +151,30 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
-  subroutine Satellite_Merger_Process(thisTree,thisNode)
+  subroutine Satellite_Merger_Process(thisTree,thisNode,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use Merger_Trees
     use Galacticus_Nodes
+    use Merger_Trees_Evolve_Deadlock_Status
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
+    type   (mergerTree    ), intent(in   )          :: thisTree
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: deadlockStatus
+    type   (varying_string)                         :: message
+
+    ! Report if necessary.
+    ! Report if necessary.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//thisNode%index()//'] is being merged'
+       call Galacticus_Display_Message(message)
+    end if
 
     ! Allow arbitrary routines to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
@@ -172,7 +186,11 @@ contains
     call thisNode%removeFromHost  ()
     call thisNode%removeFromMergee()
     call thisNode%destroy         ()
+    deallocate(thisNode)
     thisNode => null()
+
+    ! The tree was changed, so mark that it is not deadlocked.
+    deadlockStatus=isNotDeadlocked
     return
   end subroutine Satellite_Merger_Process
 

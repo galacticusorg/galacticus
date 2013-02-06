@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -53,6 +53,10 @@ module Kepler_Orbits
      ! Orbit methods.
      !@ <objectMethods>
      !@   <object>orbit</object>
+     !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <description>Build a Kepler orbit from an XML definition.</description>
+     !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>dump</method>
      !@     <description>Dump an orbit.</description>
@@ -178,6 +182,7 @@ module Kepler_Orbits
      !@     <description>Returns the semi-major axis of an orbit.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: builder               => Kepler_Orbits_Builder
      procedure :: dump                  => Kepler_Orbits_Dump
      procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw
      procedure :: readRaw               => Kepler_Orbits_Read_Raw
@@ -221,6 +226,18 @@ contains
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
+
+  subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
+    !% Build a {\tt keplerOrbit} object from the given XML {\tt keplerOrbitDefinition}.
+    use FoX_DOM
+    use Galacticus_Error
+    implicit none
+    class(keplerOrbit), intent(inout) :: self
+    type (node       ), pointer       :: keplerOrbitDefinition
+
+    call Galacticus_Error_Report('Kepler_Orbit_Builder','building of keplerOrbit objects is not yet supported')
+    return
+  end subroutine Kepler_Orbits_Builder
 
   subroutine Kepler_Orbits_Dump(self)
     !% Reset an orbit to a null state.

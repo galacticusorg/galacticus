@@ -124,7 +124,7 @@ The elements of this document have the following meaning:
 \item [{\tt createIfNeeded}] If {\tt true} then any attempt to get, set, or adjust the rate of this property will cause the component to be created if it does not already exist. This is useful if the component should be created in response to mass transfer from some other component for example.
 \item [{\tt makeGeneric}] If {\tt true} then any {\tt rate} method for this property will have a version created which binds to the base {\tt nodeComponent} class. This version is suitable for attaching to deferred rate functions of components of another class. For example, the disk gas mass rate function is made generic, and then attached to the deferred cooling rate of the hot halo using:
 \begin{verbatim}
-  call hotHalo%coolingMassRateFunction(DiskExponentialMassGasRateGeneric)
+  call hotHalo%hotHaloCoolingMassRateFunction(DiskExponentialMassGasRateGeneric)
 \end{verbatim}
 \item [{\tt isDeferred}] Contains a ``{\tt :}'' separated list which can contain {\tt get}, {\tt set}, and {\tt rate}. The methods present in this list will not have functions bound to them at compile time. Instead a function will be created which allows a function to be bound to these methods at run time. For example:
 \begin{verbatim}
@@ -454,6 +454,7 @@ respectively.
 Currently defined accretion disk methods are:
 \begin{description}
  \item [{\tt simple}] Assumes that halos accrete all available baryons if they have virial velocities above {\tt reionizationSuppressionVelocity} or exist prior to redshift {\tt reionizationSuppressionRedshift}. This is a simple model of the effects of reionization on gas accretion. In halos which cannot accrete, accretion is placed into the failed mode. In halos which can accrete, any gas in the failed reservoir is returned to the accreted channel on a timescale of $\dot{M}/M$. Abundances are computed assuming a pristine \gls{igm} (i.e. abundances are always zero) and chemicals are computed using the chemical state functions (see \S\ref{sec:ChemicalStateMethods}).
+ \item [{\tt null}] Assumes no accretion onto halos.
 \end{description}
 
 \subsubsection{Atomic Collisional Ionization Rates}
@@ -2639,9 +2640,9 @@ The function should return the linear theory bias for the given {\tt mass} and {
 
 Currently defined halo bias methods are:
 \begin{description}
- \item [\hyperlink{structure_formation.CDM.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\tt Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
- \item [\hyperlink{structure_formation.CDM.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\tt SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
- \item [\hyperlink{structure_formation.CDM.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\tt Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
+ \item [\hyperlink{structure_formation.halo_bias.Press-Schechter.F90:dark_matter_halo_biases_press_schechter:dark_matter_halo_bias_press_schechter}{{\tt Press-Schechter}}] Implements the bias resulting from the Press-Schechter \citep{press_formation_1974} mass function \citep{mo_analytic_1996}.
+ \item [\hyperlink{structure_formation.halo_bias.SMT.F90:dark_matter_halo_biases_smt:dark_matter_halo_bias_smt}{{\tt SMT}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} bias.
+ \item [\hyperlink{structure_formation.halo_bias.Tinker2010.F90:dark_matter_halo_biases_tinker2010:dark_matter_halo_bias_tinker2010}{{\tt Tinker2010}}] Implements the bias described by \cite{tinker_large_2010}.
 \end{description}
 
 \subsubsection{Halo Mass Functions}
@@ -2680,9 +2681,9 @@ The function should return the halo mass function, $\d n/\d M$ (in units of Mpc$
 
 Currently defined halo mass function methods are:
 \begin{description}
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_differential_press_schechter}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_differential}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
- \item [\hyperlink{structure_formation.CDM.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_differential_tinker2008}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
+ \item [\hyperlink{structure_formation.halo_mass_function.Press-Schechter.F90:halo_mass_function_press_schechter:halo_mass_function_differential_press_schechter}{{\tt Press-Schechter}}] Implements the Press-Schechter \citep{press_formation_1974} mass function.
+ \item [\hyperlink{structure_formation.halo_mass_function.Sheth-Tormen.F90:halo_mass_function_sheth_tormen:halo_mass_function_sheth_tormen_differential}{{\tt Sheth-Tormen}}] Implements the Sheth-Tormen \citep{sheth_ellipsoidal_2001} mass function.
+ \item [\hyperlink{structure_formation.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_differential_tinker2008}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
 \end{description}
 
 \subsubsection{Halo Mass Sampling Density Functions}
@@ -3421,6 +3422,7 @@ Currently defined merger tree construction methods are:
  \item [{\tt read}] Reads merger tree data from an HDF5 file (see \S\ref{sec:MergerTreeFiles}). The file to read is specified by the {\tt [mergerTreeReadFileName]} parameter.
  \item [{\tt smoothAccretion}] Constructs a branchless merger tree with a smooth accretion history using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}). See \S\ref{sec:SmoothAccretion} for details.
  \item [{\tt stateRestore}] Intended primarily for debugging purposes, this method will restore a tree whose complete internal state was written to file. See \S\ref{sec:TreeConstructStateRestore} for details of how to use this method.
+ \item [{\tt fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
 \end{description}
 
 \subsubsection{Non-linear Matter Power Spectrum}\index{power spectrum!non-linear}
@@ -4106,7 +4108,7 @@ Currently defined star formation feedback methods are:
  \dot{M}_{\rm outflow} = \left({V_{\rm outflow} \over V}\right)^{\alpha_{\rm outflow}} {\dot{E} \over E_{\rm canonical}},
 \end{equation}
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
- \item [\hyperlink{star_formation.feedback.disks.Creasy2012.F90:star_formation_feedback_disks_creasy2012}{{\tt Creasey2012}}] The outflow rate computed using the model of \cite{creasey_how_2012}.
+ \item [\hyperlink{star_formation.feedback.disks.Creasey2012.F90:star_formation_feedback_disks_creasey2012}{{\tt Creasey2012}}] The outflow rate computed using the model of \cite{creasey_how_2012}.
 \end{description}
 
 \subsubsection{(Expulsive) Star Formation Feedback in Disks/Spheroids}\index{feedback!expulsive}
@@ -5044,15 +5046,19 @@ Here, {\tt unitName} gives the name of the subroutine to be called to (possibly)
 \end{verbatim}
 This subroutine should compute a suitable timestep for {\tt thisNode} and, if it is less than the currently defined value of {\tt timeStep} should set {\tt timeStep} to that value. Optionally, the procedure pointer {\tt End\_Of\_Timestep\_Task} can be set to point to a subroutine which will be called after the node is evolved to the end of the timestep. It is acceptable for this pointer to be null. Note that the {\tt End\_Of\_Timestep\_Task} will only be called for the task which provided the shortest timestep---other tasks can always request to be called again when the next timestep is determined. The subroutine to be called at the end of the timestep must have the form:
 \begin{verbatim}
-  subroutine My_End_Of_Timestep_Task(thisNode)
+  subroutine My_End_Of_Timestep_Task(thisTree,thisNode,deadlockStatus)
     implicit none
+    type(mergerTree), intent(in)             :: thisTree
     type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(inout)          :: deadlockStatus
     .
     .
     .
     return
   end subroutine My_End_Of_Timestep_Task
 \end{verbatim}
+The {\tt deadlockStatus} argument should be set to {\tt isNotDeadlocked} (provided by the \hyperlink{merger_trees.evolve.deadlock_options.F90:merger_trees_evolve_deadlock_status}{\tt Merger\_Trees\_Evolve\_Deadlock\_Status} module) if, and only if, the end of timestep task makes some change to the state of the tree (e.g. merging a node), to indicate that the tree was not deadlocked in this pass (i.e. something actually changed in the tree).
+
 If the {\tt report} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\tt lockNode} and {\tt lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\tt lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\tt thisNode} or some other node, e.g. a satellite of {\tt thisNode}, etc.), and {\tt lockType} should be set to a short description label identifying the type of limit.
 
 \subsubsection{Galactic Component Density}

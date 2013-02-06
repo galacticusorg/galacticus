@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Cosmological_Parameters
   !% Implements cosmological parameters and related derived quantities. Default parameter values are taken from
-  !% \cite{komatsu_seven-year_2010}.
+  !% \cite{hinshaw_nine-year_2012}.
   use Input_Parameters
   implicit none
   private
@@ -43,7 +43,7 @@ contains
        if (.not.Omega_b_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_b</name>
-          !@   <defaultValue>0.0455 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <defaultValue>0.04611 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of baryons in the Universe in units of the critical density.
@@ -52,7 +52,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.0455d0)
+          call Get_Input_Parameter('Omega_b',Omega_b_Value,defaultValue=0.04611d0)
           Omega_b_Is_Set=.true.
        end if
        !$omp end critical (Omega_b_Initialization)
@@ -76,7 +76,7 @@ contains
           
           !@ <inputParameter>
           !@   <name>Omega_Matter</name>
-          !@   <defaultValue>0.2725 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <defaultValue>0.2812 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of matter in the Universe in units of the critical density.
@@ -85,7 +85,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2725d0)
+          call Get_Input_Parameter('Omega_Matter',Omega_Matter_Value,defaultValue=0.2812d0)
           Omega_Matter_Is_Set=.true.
        end if
        !$omp end critical (Omega_Matter_Initialization)
@@ -104,7 +104,7 @@ contains
        if (.not.Omega_DE_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_DE</name>
-          !@   <defaultValue>0.7275 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <defaultValue>0.7188 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of dark energy in the Universe in units of the critical density.
@@ -113,7 +113,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7275d0)
+          call Get_Input_Parameter('Omega_DE',Omega_DE_Value,defaultValue=0.7188d0)
           Omega_DE_Is_Set=.true.
        end if
        !$omp end critical (Omega_DE_Initialization)
@@ -206,7 +206,7 @@ contains
        if (.not.H_0_Is_Set) then
           !@ <inputParameter>
           !@   <name>H_0</name>
-          !@   <defaultValue>70.2 \citep{komatsu_seven-year_2010}</defaultValue>       
+          !@   <defaultValue>69.7 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The present day value of the Hubble parameter in units of km/s/Mpc.
@@ -215,7 +215,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@   <group>cosmology</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('H_0',H_0_Value,defaultValue=70.2d0)
+          call Get_Input_Parameter('H_0',H_0_Value,defaultValue=69.7d0)
           ! Validate the input value.
           if (H_0_Value <= 0.0d0) call Galacticus_Display_Message("WARNING: H_0<=0 - are you sure this is what you wanted?",verbosityWarn)
           ! Record that H_0 is now set.

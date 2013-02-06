@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,9 +22,9 @@ module Node_Component_Satellite_Standard
   use Kepler_Orbits
   implicit none
   private
-  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create     , &
-       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize , &
-       &    Node_Component_Satellite_Standard_Halo_Formation_Task
+  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create         , &
+       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize     , &
+       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -133,6 +133,18 @@ contains
 
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
+
+  !# <mergerTreeInitializeTask>
+  !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
+  !# </mergerTreeInitializeTask>
+  subroutine Node_Component_Satellite_Standard_Tree_Initialize(thisNode)
+    !% Initialize the standard satellite component.
+    implicit none
+    type (treeNode), pointer, intent(inout) :: thisNode
+
+    if (thisNode%isSatellite()) call Node_Component_Satellite_Standard_Create(thisNode)
+    return
+  end subroutine Node_Component_Satellite_Standard_Tree_Initialize
   
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
@@ -214,17 +226,20 @@ contains
     implicit none
     type (treeNode              ), pointer, intent(inout) :: thisNode
     class(nodeComponentSatellite), pointer                :: satelliteComponent
-    double precision,              parameter              :: timeScale=1.0d-3
+    class(nodeComponentBasic    ), pointer                :: thisBasicComponent
+    double precision,              parameter              :: timeScale=1.0d-3, massScaleFractional=1.0d-6
 
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.
     select type (satelliteComponent)
     class is (nodeComponentSatelliteStandard)
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Set scale for time.
-       call satelliteComponent%mergeTimeScale(timeScale                     )
+       call satelliteComponent%mergeTimeScale(timeScale                                    )
        ! Set scale for bound mass.
-       call satelliteComponent%boundMassScale(satelliteComponent%boundMass())
+       call satelliteComponent%boundMassScale(massScaleFractional*thisBasicComponent%mass())
     end select
     return
   end subroutine Node_Component_Satellite_Standard_Scale_Set

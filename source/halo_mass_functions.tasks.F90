@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -75,7 +75,7 @@ contains
     use Numerical_Ranges
     use Input_Parameters
     use Critical_Overdensity
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth

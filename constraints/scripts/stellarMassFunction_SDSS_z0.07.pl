@@ -61,10 +61,10 @@ $errorDown .= -$errorDown+$y;
 
 # Read galaxy data and construct mass function.
 $galacticus->{'tree'} = "all";
-&HDF5::Get_Dataset($galacticus,['volumeWeight','stellarMass']);
+&HDF5::Get_Dataset($galacticus,['mergerTreeWeight','stellarMass']);
 my $dataSets               = $galacticus->{'dataSets'};
-my $logarithmicStellarMass = log10($dataSets->{'stellarMass' });
-my $weight                 =       $dataSets->{'volumeWeight'};
+my $logarithmicStellarMass = log10($dataSets->{'stellarMass'     });
+my $weight                 =       $dataSets->{'mergerTreeWeight'};
 delete($galacticus->{'dataSets'});
 
 # Construct the mass function. Assume 0.2 dex errors on stellar masses. This is approximate, but motivated by the discussion of
