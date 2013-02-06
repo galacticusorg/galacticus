@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module that implements simple and convenient interfaces to a variety of HDF5 functionality.
 
@@ -99,6 +55,7 @@ module IO_HDF5
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_DOUBLES
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_INTEGERS
   integer(kind=HID_T), public, dimension(3) :: H5T_NATIVE_INTEGER_8S
+  integer(kind=HID_T), public, dimension(8) :: H5T_NATIVE_INTEGER_8AS
 
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
@@ -426,9 +383,12 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
 
        ! Ensure native datatype arrays are initialized.
-       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
-       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
-       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_DOUBLES         =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
+       H5T_NATIVE_INTEGERS        =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
+       H5T_NATIVE_INTEGER_8S      =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_INTEGER_8AS(1:5)=H5T_NATIVE_INTEGERS
+       H5T_NATIVE_INTEGER_8AS(6:8)=H5T_NATIVE_INTEGER_8S
+
 
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
@@ -2101,7 +2061,7 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0,matches)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,0,matches)
     if (matches) then
        ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
@@ -2112,7 +2072,7 @@ contains
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1,matches)
+       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1,matches)
        if (matches) then          
           ! Get the dimensions of the array.
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2207,7 +2167,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2305,7 +2265,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -4888,7 +4848,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer8 array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5177,7 +5137,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -6067,19 +6027,19 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_2D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 2-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
+    class(hdf5Object),     intent(inout), target         :: thisObject
     character(len=*),      intent(in),    optional       :: datasetName,commentText
     double precision,      intent(in),    dimension(:,:) :: datasetValue
     logical,               intent(in),    optional       :: appendTo
-    integer,               intent(in),    optional       :: chunkSize,compressionLevel
+    integer,               intent(in),    optional       :: appendDimension,chunkSize,compressionLevel
     type(hdf5Object),      intent(out),   optional       :: datasetReturned
     integer(kind=HSIZE_T),                dimension(2)   :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                              :: errorCode,datasetRank
+         &,hyperslabStart,hyperslabCount,newDatasetDimensionsFiltered
+    integer                                              :: errorCode,datasetRank,appendDimensionActual
     integer(kind=HID_T)                                  :: newDataspaceID,dataspaceID
     logical                                              :: preExisted,appendToActual
     type(hdf5Object)                                     :: datasetObject
@@ -6163,20 +6123,25 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:2) /= newDatasetDimensions(2:2))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_2D',message)
        end if
        ! Set the hyperslab. 
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
-       newDatasetDimensions   =datasetDimensions
-       hyperslabStart         =0
-       hyperslabCount         =datasetDimensions
+       newDatasetDimensions                       =datasetDimensions
+       hyperslabStart                             =0
+       hyperslabCount                             =datasetDimensions
     end if
 
     ! Set extent of the dataset.

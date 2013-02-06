@@ -15,9 +15,9 @@ die("FAILED: bug1066052.xml model failed to complete")
 # Check that the spheroid size is non-zero whenever the spheroid mass is non-zero.
 my $model       = new PDL::IO::HDF5("testSuite/outputs/bug1066052.hdf5");
 my $nodeData    = $model->group("Outputs")->group("Output1")->group("nodeData");
-my $scaleLength = $nodeData->dataset("spheroidScaleLength")->get();
-my $stellarMass = $nodeData->dataset("spheroidStellarMass")->get();
-my $gasMass     = $nodeData->dataset("spheroidGasMass"    )->get();
+my $scaleLength = $nodeData->dataset("spheroidRadius"     )->get();
+my $stellarMass = $nodeData->dataset("spheroidMassStellar")->get();
+my $gasMass     = $nodeData->dataset("spheroidMassGas"    )->get();
 my $mass        = $stellarMass+$gasMass;
 my $badNodes    = which(($mass > 0.0) & ($scaleLength <= 0.0));
 die("FAILED: bug1066052.xml model contains zero-sized spheroids")
