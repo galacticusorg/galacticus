@@ -4,19 +4,18 @@ package Survey;
 use strict;
 use warnings;
 use PDL;
-use Galacticus::HDF5;
+require Galacticus::HDF5;
 use Astro::Cosmology;
 use Data::Dumper;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "comovingDistance"   => \&Survey::Get_SurveyProperties,
-			       "luminosityDistance" => \&Survey::Get_SurveyProperties,
-			       "redshift"           => \&Survey::Get_SurveyProperties,
-			       "angularWeight"      => \&Survey::Get_SurveyProperties
+			       "comovingDistance"    => \&Survey::Get_SurveyProperties,
+			       "luminosityDistance"  => \&Survey::Get_SurveyProperties,
+			       "distanceModulus"     => \&Survey::Get_SurveyProperties,
+			       "redshift"            => \&Survey::Get_SurveyProperties,
+			       "angularWeight"       => \&Survey::Get_SurveyProperties,
+			       "^lightconeAngle[12]" => \&Survey::Get_LightconeAngles
     );
-
-my $status = 1;
-$status;
 
 sub Get_SurveyProperties {
     # Get the data structure and the dataset name.
@@ -111,15 +110,40 @@ sub Get_SurveyProperties {
 	# Compute the luminosity distance for each galaxy.
 	$dataSets->{$dataSetName} = $dataSets->{"comovingDistance"}*(1.0+$dataSets->{"redshift"});
     }
+    if ( $dataSetName eq "distanceModulus" ) {
+	# Ensure that we have the "luminosityDistance" and "redshift" properties.
+	&HDF5::Get_Dataset($dataBlock,["luminosityDistance","redshift"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Compute the distance modulus for each galaxy. Include the (1+z) factor arising from the compression of photon
+	# frequencies which boosts F_nu.
+	$dataSets->{$dataSetName} = 25.0+5.0*log10($dataSets->{"luminosityDistance"})-2.5*log10(1.0+$dataSets->{"redshift"});
+    }
     if ( $dataSetName eq "angularWeight"      ) {
 	if ( $useLightcone == 0 ) {
-	    # Ensure that we have the "volumeWeight" property.
-	    &HDF5::Get_Dataset($dataBlock,["volumeWeight"]);
+	    # Ensure that we have the "mergerTreeWeight" property.
+	    &HDF5::Get_Dataset($dataBlock,["mergerTreeWeight"]);
 	    my $dataSets = $dataBlock->{'dataSets'};
 	    # Compute the angular weight for each galaxy.
-	    $dataSets->{$dataSetName} = $dataSets->{"volumeWeight"}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
+	    $dataSets->{$dataSetName} = $dataSets->{"mergerTreeWeight"}*($comovingDistanceMaximum**3-$comovingDistanceMinimum**3)/3.0;
 	} else {
 	    die("Galacticus::Survey: lightcone data was found, but no 'angularWeight' dataset is present");
 	}
     }
 }
+
+sub Get_LightconeAngles {
+    # Get the data structure and the dataset name.
+    my $dataBlock     = shift;
+    my $dataSetName = $_[0];
+    # Get lightcone position datasets.
+    &HDF5::Get_Dataset($dataBlock,["lightconePositionX","lightconePositionY","lightconePositionZ"]);
+    # Construct the relevant angles.
+    my $dataSets = $dataBlock->{'dataSets'};
+    if ( $dataSetName eq "lightconeAngle1" ) {
+	$dataSets->{$dataSetName} = atan2($dataSets->{'lightconePositionY'},$dataSets->{'lightconePositionX'});
+    } else {
+	$dataSets->{$dataSetName} = atan2($dataSets->{'lightconePositionZ'},$dataSets->{'lightconePositionX'});
+    }
+}
+
+1;

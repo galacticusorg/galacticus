@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which handles stellar spectra using the \cite{conroy_propagation_2009} package.
 
@@ -97,10 +53,11 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Star_Formation_IMF
-    use File_Utilities
     use Memory_Management
     use System_Command
     use Stellar_Population_Spectra_File
+    use Galacticus_Input_Paths
+    use String_Handling
     implicit none
     integer,              intent(in)                :: imfIndex
     logical,              allocatable, dimension(:) :: imfReadTemporary
@@ -129,14 +86,13 @@ contains
        imfName=IMF_Descriptor(imfIndex)
 
        ! Name of the parameter to be used for this IMF.
-       stellarPopulationSpectraFile='data/SSP_Spectra_Conroy-et-al_v2.2_imf'//imfName//'.hdf5'
+       stellarPopulationSpectraFile=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.3_imf'//imfName//'.hdf5'
 
        ! Generate the IMF tabulation.
        if (allocated(imfMass)) call Dealloc_Array(imfMass)
        if (allocated(imfPhi )) call Dealloc_Array(imfPhi )
        call IMF_Tabulate(imfIndex,imfMass,imfPhi)
-       imfUnit=File_Units_Get()
-       open(unit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
+       open(newunit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
        do iIMF=1,size(imfMass)
           write (imfUnit,'(2(1x,e12.6))') imfMass(iIMF),imfPhi(iIMF)
        end do
@@ -145,7 +101,8 @@ contains
        call Dealloc_Array(imfPhi )
 
        ! Call the driver script to generate this file.
-       command='./scripts/aux/Conroy_SPS_Driver.pl '//imfName//' '//stellarPopulationSpectraFile
+       command=char(Galacticus_Input_Path())//'scripts/aux/Conroy_SPS_Driver.pl '//imfName//' '//stellarPopulationSpectraFile
+       command=command//' '//Stellar_Population_Spectra_File_Format_Current()
        call System_Command_Do(command)
 
        ! Call routine to read in the tabulated data.
@@ -159,22 +116,22 @@ contains
     return
   end subroutine Stellar_Population_Spectra_Conroy_Initialize_IMF
 
-  double precision function Stellar_Population_Spectra_Conroy_Get(abundances,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_Conroy_Get(abundancesStellar,age,wavelength,imfIndex)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is computed using the
     !% \cite{conroy_propagation_2009} package.
     use Stellar_Population_Spectra_File
     use Abundances_Structure
     implicit none
-    type(abundancesStructure), intent(in)                :: abundances
-    double precision,          intent(in)                :: age,wavelength
-    integer,                   intent(in)                :: imfIndex
+    type(abundances), intent(in) :: abundancesStellar
+    double precision, intent(in) :: age,wavelength
+    integer,          intent(in) :: imfIndex
  
     ! Ensure that IMF has been initialized. 
     call Stellar_Population_Spectra_Conroy_Initialize_IMF(imfIndex)
     
     ! Call routine to interpolate in the tabulated function.
-    Stellar_Population_Spectra_Conroy_Get=Stellar_Population_Spectra_File_Interpolate(abundances,age,wavelength,imfIndex)
+    Stellar_Population_Spectra_Conroy_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
 
     return
   end function Stellar_Population_Spectra_Conroy_Get

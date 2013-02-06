@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use lib './perl';
-use Fortran::Utils;
-use File::Changes;
+require Fortran::Utils;
+require File::Changes;
 use Switch;
 use XML::Simple;
 

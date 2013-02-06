@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the Kroupa stellar initial mass function \citep{kroupa_variation_2001}.
 
@@ -119,33 +75,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Kroupa_Initialize)
     if (.not.imfKroupaInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfKroupaRecycledInstantaneous</name>
-       !@   <defaultValue>0.30 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Kroupa \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
-       !@ <inputParameter>
-       !@   <name>imfKroupaYieldInstantaneous</name>
-       !@   <defaultValue>0.023 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Kroupa \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfKroupaInitialized=.true.
+       !$omp critical (IMF_Kroupa_Initialize)
+       if (.not.imfKroupaInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfKroupaRecycledInstantaneous</name>
+          !@   <defaultValue>0.30 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Kroupa \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKroupaRecycledInstantaneous',imfKroupaRecycledInstantaneous,defaultValue=0.30d0)
+          !@ <inputParameter>
+          !@   <name>imfKroupaYieldInstantaneous</name>
+          !@   <defaultValue>0.023 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Kroupa \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfKroupaInitialized=.true.
+       end if
+       !$omp end critical (IMF_Kroupa_Initialize)
     end if
-    !$omp end critical (IMF_Kroupa_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Kroupa
 

@@ -9,7 +9,7 @@ use Data::Dumper;
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisScript>]")};
 $galacticusFile  = $ARGV[0];
 $outputDirectory = $ARGV[1];
-$analysisScript  = "data/Galacticus_Compute_Fit_Analyses.xml";
+$analysisScript  = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
 $analysisScript  = $ARGV[2] if ( $#ARGV == 2 );
 system("mkdir -p $outputDirectory");
 

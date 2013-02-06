@@ -4,7 +4,7 @@ This chapter contains step-by-step guides to performing common tasks with \glc.
 
 \section{Running \glc\ on N-body Merger Trees}\label{sec:nBodyRun}\index{merger trees!N-body}\index{N-body!merger trees}
 
-\subsection{Creating the Merger Tree Files}
+See \S\ref{sec:MergerTreeBuilder} for details of how to build merger tree files suitable for input into \glc.
 
 \subsection{Setting Input Parameters}
 
@@ -118,8 +118,16 @@ If position and velocity information for tree nodes is available within the merg
     <name>mergerTreeReadPresetOrbitsBoundOnly</name>
     <value>true</value>
   </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetOrbitsSetAll</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeReadPresetOrbitsAssertAllSet</name>
+    <value>true</value>
+  </parameter>
 \end{verbatim}
-Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored and must either be set elsewhere or may be assigned a random value (as in the case of the ``simple'' satellite orbit component for example; see \S\ref{sec:SatelliteOrbitComponentSimple}).
+Typically, a merging halo is not seen at precisely the time at which it crosses the virial radius of its host (due to the fact that N-body simulations are output at discretely spaced timesteps). Therefore, \glc\ computes the orbit at the time just prior to merging and assumes that the orbital parameters (energy and angular momentum) remain fixed to propagate the orbit to the virial radius of the host. The second parameter in the above example, {\tt [mergerTreeReadPresetOrbitsBoundOnly]}, specifies whether or not only bound orbits should be set. Some calculations (e.g. of subhalo merging times) assume bound orbits and may fail if given an unbound orbit. Setting this option to {\tt true} causes only bound orbits to be preset---unbound orbits are ignored. Note that some orbits cannot be propagated to the virial radius (i.e. their pericenter is larger than the virial radius). The {\tt [mergerTreeReadPresetOrbitsSetAll]} option, if true, will cause such orbits to be assigned randomly using the selected XXXXX method, such that all orbits are assigned. The {\tt [mergerTreeReadPresetOrbitsAssertAllSet]} option requires that all orbits be set---if {\tt [mergerTreeReadPresetOrbitsSetAll]}$=${\tt false} and {\tt [mergerTreeReadPresetOrbitsAssertAllSet]}$=${\tt true} then \glc\ will exit with an error message if any orbit cannot be set.
 
 \subsubsection{Merging Times and Targets}
 
@@ -151,11 +159,11 @@ which select a satellite orbit method that allows merger times to be present and
 \end{verbatim}
 which selects a standard satellite orbit method, prevents attempts to preset the merger times and selects the {\tt Jiang2008} method for computing merger times instead.
 
-In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicating that a subhalo merges with another subhalo. Setting
+In addition to setting the times of merger events, it is possible to set the target node with which a merging node should merge. By default, \glc\ will assume that all merging occurs with the non-subhalo host node in which a subhalo is located. This may not be the desired behavior when using N-body merger trees. For example, such trees may indicate that a subhalo merges with another subhalo. Setting
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetMergerNodes</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
@@ -182,28 +190,45 @@ If information on the angular momenta of nodes is available in the merger tree f
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetSpins</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 
 The spin parameter is set using the angular momentum of each node stored in the merger tree file using:
 \begin{equation}
- \lambda = {|{\bf J}| {\rm G} M^{5/2} \over |E|^{1/2}}
+ \lambda = {|{\bf J}| |E|^{1/2} \over {\rm G} M^{5/2}}
 \end{equation}
 where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the node's mass and $E$ is its energy.
 
 \subsubsection{Node Scale Radii}
 
-If information on the half-mass radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node\footnote{Before doing this, it is important to be sure that the half-mass radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass radius.} by setting:
+If information on the half-mass or scale radii of nodes is available in the merger tree file, it can be used to preset the value of the dark matter halo scale radius in each node by setting:
 
 \begin{verbatim}
   <parameter>
     <name>mergerTreeReadPresetScaleRadii</name>
-    <value>false</value>
+    <value>true</value>
   </parameter>
 \end{verbatim}
 
-The scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
+Before doing this, it is important to be sure that the half-mass or scale radii of the nodes are reliable. For example, in low mass nodes extracted from an N-body simulation resolution effect may limit the accuracy of the measured half-mass or scale radius. In such cases, use the {\tt [mergerTreeReadPresetScaleRadiiMinimumMass]} parameter to specify the lowest mass halos for which the scale radii should be preset---lower mass halos will be assigned a scale radius using whatever method is selected by the {\tt [darkMatterConcentrationMethod]} parameter (see \S\ref{sec:DarkMatterProfileConcentration}).
+
+If only half-mass radii are available, the scale radius is set by using a root finding algorithm to ensure that half of the total halo mass is enclosed within the specified half-mass radius.
+
+\subsubsection{``Fly-by'' Halos}
+
+In some cases, a halo that is part of one tree can later become part of another tree. This can happen in so-called ``fly-by'' encounters where a halo may briefly become a subhalo in a halo in tree A then leave that halo and become a subhalo in tree B.
+
+The correct way to handle this issue is to combine trees A and B into a single tree (which will now have multiple base nodes). \glc\ will then process these two trees simultaneously, correctly handling the fly-by, and outputting the trees as two separate trees.
+
+If for some reason this is not possible or desired, the fly-by problem will normally cause \glc\ to complain that the host halo of a node cannot be found (since it exists in a different tree). This problem can be avoided by setting:
+\begin{verbatim}
+  <parameter>
+    <name>mergerTreeReadMissingHostsAreFatal</name>
+    <value>false</value>
+  </parameter>
+\end{verbatim}
+In this case, nodes with missing hosts are simply treated as being isolated halos. This will avoid an error condition, but is not a physically correct way to handle such cases, so use with caution.
 
 \subsection{Analyzing the Output}
 
@@ -257,3 +282,90 @@ Each of the merger tree files created can then be run through \glc\ in the usual
 where the {\tt geometry.xml} file will have been automatically created within the {\tt \textless lightconeDirectory\textgreater} directory.
 
 Selecting the lightcone filter automatically causes lightcone coordinate information (i.e. the position and velocity of each galaxy in a coordinate system with axes aligned along the line of sight of the lightcone and parallel to the two edges of the square field of view) to be output (see \S\ref{sec:OutputLightcone}). The redshift of each galaxy is also output.
+
+\section{Using the Instantaneous Recycling Approximation}\index{recycling!instantaneous}\index{instantaneous recycling approximation}
+
+Choosing {\tt [stellarPopulationPropertiesMethod]}$=${\tt instantaneous} will cause \glc\ to use the instantaneous recycling approximation for all calculations of stellar populations. The recyling rate and yield to use are set by the {\tt [imfNAMERecycledInstantaneous]} and {\tt [imfNAMEYieldInstantaneous]} parameters respectively, where {\tt NAME} is the name of the appropriate \gls{imf}.
+
+Setting {\tt [stellarPopulationPropertiesMethod]}$=${\tt noninstantaneous} causes \glc\ to use a fully non-instantaneous, metal-depdendent calculation of recycling, metal production and \gls{sne} rates. However, it is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
+\begin{verbatim}
+<parameter>
+  <!-- Force the calculation of recycling, yields etc. to   -->
+  <!-- be done assuming instantaneous recycling             -->
+  <name>starFormationImfInstantaneousApproximation</name>
+  <value>true</value>
+</parameter>
+<parameter>
+  <!-- Set the mass of stars which should be used as the    -->
+  <!-- dividing line between long-lived and instantaneously -->
+  <!-- evolving in this approximation.                      -->
+  <name>starFormationImfInstantaneousApproximationMassLongLived</name>
+  <value>1.0</value>
+</parameter>
+<parameter>
+  <!-- Set the effective age of populations to use in this -->
+  <!-- approximation when computing SNe numbers.           -->
+  <name>starFormationImfInstantaneousApproximationEffectiveAge</name>
+  <value>13.8</value>
+</parameter>
+\end{verbatim}
+
+\section{Computing Dust Attenuation and Emission Using Galacticus+Grasil}\label{sec:TutorialGrasil}\index{dust!emission}\index{dust!attenutation}\index{Grasil@{\sc Grasil}}
+
+\glc\ can interface with the \href{http://adlibitum.oat.ts.astro.it/silva/grasil/grasil.html}{\sc Grasil} code to compute the attenutation of starlight by dust, along with the re-emission of absorbed energy by that dust. To do this, it is necessary to store the entire star formation history of galaxies in a \glc\ model, as {\sc Grasil} uses this information to determine the attenuation of stellar populations as a function of their age.
+
+Recording star formation histories is as simple as setting the {\tt [starFormationHistoriesMethod]} parameter to {\tt metallicitySplit}. This particular star formation history method stores the star formation in each galaxy as a function of time and metallicity, as required by {\sc Grasil}. The level of detail with which the star formation history is stored is controlled by several parameters:
+\begin{description}
+\item [{\tt starFormationHistoryTimeStep}] The timestep used in discretizing star formation histories.
+\item [{\tt starFormationHistoryFineTimeStep}] The timestep to use in discretizing star formation histories just prior to output times. This should typically be smaller than {\tt [starFormationHistoryTimeStep]} to give improved resolution in the star formation hsitory for recently formed stars.
+\item [{\tt starFormationHistoryFineTime}] The period before each output for which the {\tt [starFormationHistoryFineTimeStep]} should be used.
+\item [{\tt starFormationHistoryMetallicityCount}] The number of bins in metallicity to use when discretizing the star formation history.
+\item [{\tt starFormationHistoryMetallicityMinimum}] The upper limit to the metallicity in the lowest metallicity bin (i.e. the lowest metallicity bin will extend from zero to this value).
+\item [{\tt starFormationHistoryMetallicityMaximum}] The upper limit to the metallicity in the highest metallicity bin.
+\end{description}
+Default values set a timestep of 0.1~Gyr, with 0.01~Gyr timesteps for 0.1~Gyr before each output, along with 10 metallicity bins ranging from $10^{-4}Z_\odot$ to $10Z_\odot$. It is always recommended to check that these values result in a sufficiently well-resolved star formation history for your purposes.
+
+When run with these parameter settings \glc\ will output an additional group to the output file called {\tt starFormationHistories}. This contains a hierarchically arranged set of datasets describing the star formation histories. The hierarchy extends through output number, and merger tree index. For example {\tt starFormationHistories/Output5/mergerTree3/} will contain the star formation history for merger tree 3 at output 5. This group will, in general, contain many datasets, e.g.
+\begin{verbatim}
+diskSFH7819       Dataset {11, 34}
+diskTime7819      Dataset {34}
+spheroidSFH7819   Dataset {11, 34}
+spheroidTime7819  Dataset {34}
+\end{verbatim}
+In this case, datasets are present for both a disk and bulge component of node 7819. (If a node does not contain one of these components, the corresponding dataset will be missing.) The ``{\tt Time}'' datasets give the times at which the star formation history is stored, while the ``{\tt SFH}'' datasets give the mass of stars formed in each time/metallicity bin. (The metallicities themselves are available in the {\tt starFormationHistories/metallicities} dataset.)
+
+Properties of the {\sc Grasil} \gls{sed} can now be accessed using the {\tt Galacticus::Grasil} module (see \S\ref{sec:Grasil}). When such properties are requested, {\sc Grasil} will be automatically run on each selected galaxy, the \gls{sed} computed and stored to the \glc\ file\footnote{{\sc Grasil} \glspl{sed} are stored in the {\tt grasilSEDs} group in a hierarchy of output, merger tree, and node groups, as for the star formation histories. Within each node group three datasets are stored, giving the {\tt wavelength}, {\tt inclination}, and {\tt SED} of the galaxy.}, and the relevant fluxes computed. If necessary, {\sc Grasil} and its data files will be downloaded automatically. Multiple {\sc Grasil} models will be run simultaneously if multiple cores are available.
+
+For example:
+\begin{verbatim}
+# Specify model.                                                                                                                 
+my $galacticus;
+$galacticus->{'file' } = "/galacticus.hdf5";
+$galacticus->{'store'} = 0;
+$galacticus->{'tree' } = "all";
+
+# Specify Grasil options.                                                                                                        
+$galacticus->{'grasilOptions'}->{'includePAHs'            } = 1;
+$galacticus->{'grasilOptions'}->{'fluctuatingTemperatures'} = 1;
+$galacticus->{'grasilOptions'}->{'wavelengthCount'        } = 1000;
+$galacticus->{'grasilOptions'}->{'radialGridCount'        } = 30;
+$galacticus->{'grasilOptions'}->{'recomputeSEDs'          } = 0;
+
+# Read results from model.                                                                                                       
+&HDF5::Select_Output($galacticus,2.0);
+&HDF5::Get_Dataset  ($galacticus,
+                           [
+                            'grasilFlux850microns',
+                            'grasilFlux250microns',
+                            'grasilFlux350microns',
+                            'grasilFlux500microns',
+                            'grasilInfraredLuminosity'
+                           ]
+\end{verbatim}
+The {\tt grasilOptions} block in the above controls the behavior of {\sc Grasil}. Here we've chosen to include calculations of \gls{pah} features, have accounted for fluctuating tempertures in small grains (both of which slow down the calculation but make it more accurate), have specified the number of wavelengths and the size of the radial grid used to model each galaxy. We have also specified that the \gls{sed} should not be recomputed---if {\sc Grasil} fluxes are requested in future for galaxies in this model, they will be computed from the stored {\sc Grasil} \gls{sed}. If you want to change the parameters of the {\sc Grasil} calculation then set the {\tt recomputeSED} option to 1 instead\footnote{Exercise caution when using this option. Recomputing SEDs requires deleting the old SED group. The HDF5 library currently does not clean up the space occupied by the datasets in this deleted group, so the file size can grow rapidly if you repeatedly recompute {\sc Grasil} SEDs.}. Fluxes are returned in units of Janskys, while the total infrared luminosity ({\tt grasilInfraredLuminosity}) is returned in units of Solar luminosities.
+
+A simple plotting script is provided which illustrates how to access and use the {\sc Grasil} \glspl{sed} stored in \glc\ files. For example:
+\begin{verbatim}
+scripts/plotting/plotGrasilSpectrum.pl galacticus.hdf5 5 9 217 43.2 SED.pdf
+\end{verbatim}
+will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt galacticus.hdf5} file. The \gls{sed} will be shown for an inclination of $43.2^\circ$ and the plot will be written to {\tt SED.pdf}.

@@ -1,11 +1,18 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
-use GnuPlot::LaTeX;
-use GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
+require GnuPlot::PrettyPlots;
 use Data::Dumper;
 
 # Create plots of collected metadata on merger tree ODE evolver.

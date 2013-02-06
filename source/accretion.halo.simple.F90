@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of baryonic accretion onto halos using a simple truncation to mimic
 !% reionization.
@@ -79,9 +35,6 @@ module Accretion_Halos_Simple
   ! Internal record of the number of chemicals being tracked.
   integer          :: chemicalsCount
 
-  ! Zero abundance structure.
-  type(abundancesStructure) :: zeroAbundances
-
   ! Radiation structure.
   type(radiationStructure) :: radiation
   !$omp threadprivate(radiation)
@@ -100,13 +53,16 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     use Atomic_Data
+    use Galacticus_Error
     use Chemical_Abundances_Structure
+    use Intergalactic_Medium_State
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
     procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
          &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
     procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get &
          &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get
+    double precision                                    :: reionizationSuppressionOpticalDepth
 
     if (accretionHalosMethod == 'simple') then
        ! Set pointers to our implementations of accretion functions.
@@ -122,29 +78,46 @@ contains
        abundanceIndexSolar=Abundance_Pattern_Lookup(abundanceName="solar")
        ! Get a count of the number of chemicals being tracked.
        chemicalsCount=Chemicals_Property_Count()
-       ! Create a structure with zero abundances.
-       call zeroAbundances%metallicitySet(0.0d0,adjustElements=adjustElementsReset,abundanceIndex=abundanceIndexSolar)
        ! Read parameters.
-       !@ <inputParameter>
-       !@   <name>reionizationSuppressionRedshift</name>
-       !@   <defaultValue>9.0</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    The redshift below which baryonic accretion is suppressed.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue= 9.0d0)
-       reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
+       if (Input_Parameter_Is_Present("reionizationSuppressionOpticalDepth")) then
+          if (Input_Parameter_Is_Present("reionizationSuppressionRedshift")) call Galacticus_Error_Report("Accretion_Halos_Simple_Initialize","only one of [reionizationSuppressionOpticalDepth] and [reionizationSuppressionRedshift] should be specified")
+          !@ <inputParameter>
+          !@   <name>reionizationSuppressionOpticalDepth</name>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The optical depth to electron scattering below which baryonic accretion is suppressed.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("reionizationSuppressionOpticalDepth",reionizationSuppressionOpticalDepth)
+          reionizationSuppressionTime=Intergalactic_Medium_Electron_Scattering_Time(reionizationSuppressionOpticalDepth&
+               &,assumeFullyIonized=.true.)
+       else
+          !@ <inputParameter>
+          !@   <name>reionizationSuppressionRedshift</name>
+          !@   <defaultValue>9.97 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The redshift below which baryonic accretion is suppressed.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=9.97d0)
+          reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
+       end if
        !@ <inputParameter>
        !@   <name>reionizationSuppressionVelocity</name>
-       !@   <defaultValue>30.0</defaultValue>
+       !@   <defaultValue>35.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The velocity scale below which baryonic accretion is suppressed.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=30.0d0)
-
+       call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=35.0d0)
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])
     end if
@@ -153,24 +126,28 @@ contains
 
   double precision function Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: growthRate,unaccretedMass
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    double precision                                    :: growthRate,unaccretedMass
+    class(nodeComponentBasic  ),                pointer :: thisBasicComponent
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
     else
-       if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
             & reionizationSuppressionVelocity) then
           Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
        else
-          Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass_Accretion_Rate(thisNode)
-          unaccretedMass=Tree_Node_Hot_Halo_Unaccreted_Mass(thisNode)
+          thisHotHaloComponent => thisNode%hotHalo()
+          Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
+          unaccretedMass=thisHotHaloComponent%unaccretedMass()
           if (unaccretedMass > 0.0d0) then
-             growthRate=Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)
+             growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Accretion_Rate_Simple_Get=Halo_Baryonic_Accretion_Rate_Simple_Get+unaccretedMass*growthRate
           end if
        end if
@@ -180,40 +157,50 @@ contains
 
   double precision function Halo_Baryonic_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
-         & reionizationSuppressionVelocity) then
+    if (thisNode%isSatellite()) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     else
-       Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+            & reionizationSuppressionVelocity) then
+          Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
+       else
+          Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+       end if
     end if
     return
   end function Halo_Baryonic_Accreted_Mass_Simple_Get
   
   double precision function Halo_Baryonic_Failed_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: growthRate,unaccretedMass
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic  ),                pointer :: thisBasicComponent
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: growthRate,unaccretedMass
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
     else
-       if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
             & reionizationSuppressionVelocity) then
-          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass_Accretion_Rate(thisNode)
+          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
        else
-          unaccretedMass=Tree_Node_Hot_Halo_Unaccreted_Mass(thisNode)
+          thisHotHaloComponent => thisNode%hotHalo()
+          unaccretedMass=thisHotHaloComponent%unaccretedMass()
           if (unaccretedMass > 0.0d0) then
-             growthRate=Tree_Node_Mass_Accretion_Rate(thisNode)/Tree_Node_Mass(thisNode)
+             growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=-unaccretedMass*growthRate
           else
              Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
@@ -225,27 +212,33 @@ contains
 
   double precision function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
-    if (Tree_Node_Time(thisNode) > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
-         & reionizationSuppressionVelocity) then
-       Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)
-    else
+    if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
+    else
+       thisBasicComponent => thisNode%basic()
+       if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
+            & reionizationSuppressionVelocity) then
+          Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+       else
+          Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
+       end if
     end if
     return
   end function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get
 
   subroutine Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get(thisNode,accretionRateAbundances)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
-    type(abundancesStructure), intent(inout)          :: accretionRateAbundances
+    type(abundances), intent(inout)          :: accretionRateAbundances
 
     ! Assume zero metallicity.
     accretionRateAbundances=zeroAbundances
@@ -254,10 +247,10 @@ contains
   
   subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get(thisNode,accretedAbundances)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),            intent(inout), pointer :: thisNode
-    type(abundancesStructure), intent(inout)          :: accretedAbundances
+    type(abundances), intent(inout)          :: accretedAbundances
 
     ! Assume zero metallicity.
     accretedAbundances=zeroAbundances
@@ -268,11 +261,11 @@ contains
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
-    type(chemicalAbundancesStructure), intent(inout)          :: accretionRateChemicals
+    type(chemicalAbundances), intent(inout)          :: accretionRateChemicals
     double precision                                          :: massAccretionRate
 
     ! Return immediately if no chemicals are being tracked.
@@ -292,11 +285,11 @@ contains
   
   subroutine Halo_Baryonic_Accreted_Chemicals_Simple_Get(thisNode,accretedChemicals)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type(treeNode),                    intent(inout), pointer :: thisNode
-    type(chemicalAbundancesStructure), intent(inout)          :: accretedChemicals
+    type(chemicalAbundances), intent(inout)          :: accretedChemicals
     double precision                                          :: massAccreted
 
     ! Return immediately if no chemicals are being tracked.
@@ -316,7 +309,7 @@ contains
   
   subroutine Get_Chemical_Masses(thisNode,massAccreted,chemicalMasses)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Atomic
@@ -328,12 +321,13 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type(treeNode),                    intent(inout), pointer :: thisNode
-    double precision,                  intent(in)             :: massAccreted
-    type(chemicalAbundancesStructure), intent(out)            :: chemicalMasses
-    double precision                                          :: massToDensityConversion,temperature,numberDensityHydrogen
-    type(chemicalAbundancesStructure), save                   :: chemicalDensities
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , intent(in   )          :: massAccreted
+    type            (chemicalAbundances), intent(  out)          :: chemicalMasses
+    class           (nodeComponentBasic),                pointer :: thisBasicComponent
+    type            (chemicalAbundances), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
+    double precision                                             :: massToDensityConversion,temperature,numberDensityHydrogen
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
@@ -341,7 +335,8 @@ contains
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
-    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_Matter())*Tree_Node_Mass(thisNode)*massToDensityConversion/atomicMassHydrogen
+    thisBasicComponent   => thisNode%basic()
+    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_Matter())*thisBasicComponent%mass()*massToDensityConversion/atomicMassHydrogen
     
     ! Set the radiation field.
     call radiation%set(thisNode)
@@ -351,7 +346,7 @@ contains
 
     ! Convert from densities to masses.
     call chemicalDensities%numberToMass(chemicalMasses)
-    call chemicalMasses%multiply(massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen)
+    chemicalMasses=chemicalMasses*massAccreted*hydrogenByMassPrimordial/numberDensityHydrogen/atomicMassHydrogen
 
     return
   end subroutine Get_Chemical_Masses

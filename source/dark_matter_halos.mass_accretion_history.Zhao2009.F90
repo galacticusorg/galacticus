@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,56 +14,12 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{zhao_accurate_2009} halo mass accretion algorithm.
 
 module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009
   !% Implements the \cite{zhao_accurate_2009} halo mass accretion algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use, intrinsic :: ISO_C_Binding
   use FGSL
   implicit none
@@ -108,22 +64,23 @@ contains
   double precision function Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009(baseNode,nodeMass)
     !% Compute the time corresponding to {\tt nodeMass} in the mass accretion history of {\tt thisNode} using the algorithm of
     !% \cite{zhao_accurate_2009}.
-    use Tree_Nodes
     use ODE_Solver
     use Galacticus_Error
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
-    type(treeNode),   intent(inout), pointer :: baseNode
-    double precision, intent(in)             :: nodeMass
-    double precision, parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
-    double precision, dimension(1)           :: nowTime
-    double precision                         :: currentMass
-    type(c_ptr)                              :: parameterPointer
+    type (treeNode          ), intent(inout), pointer :: baseNode
+    double precision,          intent(in  )           :: nodeMass
+    class(nodeComponentBasic),                pointer :: baseBasicComponent
+    double precision,          parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
+    double precision,          dimension(1)           :: nowTime
+    double precision                                  :: currentMass
+    type(c_ptr)                                       :: parameterPointer
 
     ! Get properties of the base node.
-    baseMass=Tree_Node_Mass(baseNode)
-    baseTime=Tree_Node_Time(baseNode)
+    baseBasicComponent => baseNode%basic()
+    baseMass=baseBasicComponent%mass()
+    baseTime=baseBasicComponent%time()
 
     ! Trap cases where the mass occurs in the future.
     if (nodeMass > baseMass) call Galacticus_Error_Report('Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009','specified mass is in the future')
@@ -160,7 +117,7 @@ contains
 
   function growthRateODEs(mass,nowTime,dNowTimedMass,parameterPointer) bind(c)
     !% System of differential equations to solve for the growth rate.
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     integer(c_int)                           :: growthRateODEs

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,76 +14,35 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
-module Stellar_Population_Spectra_Postprocess_Meiksin2006
+module Stellar_Population_Spectra_Postprocessing_Meiksin2006
   !% Implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
   use ISO_Varying_String
+  public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize,Stellar_Population_Spectra_Postprocess_Meiksin2006
 
-  public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
+  ! Record of whether this method is active.
+  logical :: methodIsActive
 
 contains
   
-  !# <stellarPopulationSpectraPostprocessMethod>
+  !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
-  !# </stellarPopulationSpectraPostprocessMethod>
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
+  !# </stellarPopulationSpectraPostprocessInitialize>
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string),                 intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(double precision), pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
+    type(varying_string), dimension(:), intent(in) :: stellarPopulationSpectraPostprocessMethods
     
-    if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') Stellar_Population_Spectra_Postprocess_Get =>&
-         & Stellar_Population_Spectra_Postprocess_Meiksin2006_Get
+    methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Meiksin2006')
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
 
-  double precision function Stellar_Population_Spectra_Postprocess_Meiksin2006_Get(wavelength,redshift)
+  !# <stellarPopulationSpectraPostprocess>
+  !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006</unitName>
+  !# </stellarPopulationSpectraPostprocess>
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006(wavelength,redshift,modifier)
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{meiksin_colour_2006}.
     use Numerical_Constants_Atomic
@@ -91,6 +50,7 @@ contains
     use Gamma_Functions
     implicit none
     double precision, intent(in)    :: wavelength,redshift
+    double precision, intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
     double precision, parameter     :: N0   =0.25d0
     double precision, parameter     :: beta =1.50d0
@@ -100,9 +60,9 @@ contains
     double precision                :: seriesSolutionTermA,seriesSolutionTermB,wavelengthObservedLymanContinuum,nFactorial,opticalDepth
 
     ! Check if this is a zero redshift case.
-    if (redshift <= 0.0d0) then
-       ! It is, so return no attenuation.
-       Stellar_Population_Spectra_Postprocess_Meiksin2006_Get=1.0d0
+    if (.not.methodIsActive .or. redshift <= 0.0d0) then
+       ! It is, so return no attenuation modification.
+       return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
        wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/ionizationWavelengthHydrogen
@@ -175,9 +135,9 @@ contains
        end if
        
        ! Compute attenuation from optical depth.
-       Stellar_Population_Spectra_Postprocess_Meiksin2006_Get=dexp(-opticalDepth)
+       modifier=modifier*dexp(-opticalDepth)
     end if
     return
-  end function Stellar_Population_Spectra_Postprocess_Meiksin2006_Get
+  end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006
 
-end module Stellar_Population_Spectra_Postprocess_Meiksin2006
+end module Stellar_Population_Spectra_Postprocessing_Meiksin2006

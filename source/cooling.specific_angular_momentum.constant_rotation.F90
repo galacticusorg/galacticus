@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which calculates the specific angular momentum of cooling gas assuming a constant rotation velocity as a
 !% function of radius.
@@ -86,6 +42,7 @@ module Cooling_Specific_Angular_Momenta_Constant_Rotation
   integer,         parameter :: profileDarkMatter=0
   integer,         parameter :: profileHotGas    =1
   integer                    :: meanSpecificAngularMomentumFrom,rotationNormalizationFrom
+  logical                    :: coolingAngularMomentumUseInteriorMean
 
 contains
 
@@ -112,6 +69,8 @@ contains
        !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the mean specific angular momentum should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingMeanAngularMomentumFrom',inputOption,defaultValue='hotGas')
        select case (char(inputOption))
@@ -123,20 +82,34 @@ contains
 
        !@ <inputParameter>
        !@   <name>coolingRotationVelocityFrom</name>
-       !@   <defaultValue>darkMatter</defaultValue>
+       !@   <defaultValue>hotGas</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The component (``{\tt hotGas}'' or ``{\tt darkMatter}'') from which the constant rotation speed should be computed for
        !@     calculations of cooling gas specific angular momentum.
        !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='darkMatter')
+       call Get_Input_Parameter('coolingRotationVelocityFrom',inputOption,defaultValue='hotGas')
        select case (char(inputOption))
        case ("darkMatter")
           rotationNormalizationFrom=profileDarkMatter
        case ("hotGas")
           rotationNormalizationFrom=profileHotGas
        end select
+
+       !@ <inputParameter>
+       !@   <name>coolingAngularMomentumUseInteriorMean</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether to use the specific angular momentum at the cooling radius, or the mean specific angular momentum interior to that radius.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingAngularMomentumUseInteriorMean',coolingAngularMomentumUseInteriorMean,defaultValue=.false.)
 
     end if
     return
@@ -147,7 +120,7 @@ contains
   !# </calculationResetTask>
   subroutine Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
     !% Reset the specific angular momentum of cooling gas calculation.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -156,16 +129,20 @@ contains
     return
   end subroutine Cooling_Specific_AM_Constant_Rotation_Reset
 
-  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode)
+  double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: meanSpecificAngularMomentum,rotationNormalization
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    double precision           , intent(in   )          :: radius
+    class(nodeComponentBasic  ),                pointer :: thisBasicComponent
+    class(nodeComponentSpin   ),                pointer :: thisSpinComponent
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: meanSpecificAngularMomentum,rotationNormalization
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
@@ -179,14 +156,17 @@ contains
        select case (meanSpecificAngularMomentumFrom)
        case (profileDarkMatter)
           ! Compute mean specific angular momentum of the dark matter halo from the spin parameter, mass and energy of the halo.
-          meanSpecificAngularMomentum= gravitationalConstantGalacticus                          &
-               &                      *           Tree_Node_Spin            (thisNode)          &
-               &                      *           Tree_Node_Mass            (thisNode)  **1.5d0 &
+          thisBasicComponent => thisNode%basic()
+          thisSpinComponent  => thisNode%spin ()
+          meanSpecificAngularMomentum= gravitationalConstantGalacticus                   &
+               &                      *thisSpinComponent %spin()                         &
+               &                      *thisBasicComponent%mass()**1.5d0                  &
                &                      /dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
        case (profileHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
-          meanSpecificAngularMomentum= Tree_Node_Hot_Halo_Angular_Momentum(thisNode) &
-               &                      /Tree_Node_Hot_Halo_Mass            (thisNode)
+          thisHotHaloComponent => thisNode%hotHalo()
+          meanSpecificAngularMomentum= thisHotHaloComponent%angularMomentum() &
+               &                      /thisHotHaloComponent%mass           ()
        end select
 
        ! Compute the rotation normalization.
@@ -198,13 +178,27 @@ contains
        end select
 
        ! Compute the specific angular momentum of the cooling gas.
-       coolingSpecificAngularMomentumStored= Infall_Radius(thisNode)     &
-            &                               *rotationNormalization       &
+       coolingSpecificAngularMomentumStored= rotationNormalization       &
             &                               *meanSpecificAngularMomentum
     end if
 
-    ! Return the computed value.
-    Cooling_Specific_Angular_Momentum_Constant_Rotation=coolingSpecificAngularMomentumStored
+    ! Check that the radius is positive.
+    if (radius > 0.0d0) then
+       ! Return the computed value.
+       if (coolingAngularMomentumUseInteriorMean) then
+          ! Find the specific angular momentum interior to the specified radius.          
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                  &
+               &                                              *Hot_Halo_Profile_Radial_Moment(thisNode,3.0d0,radius) &
+               &                                              /Hot_Halo_Profile_Radial_Moment(thisNode,2.0d0,radius)
+       else
+          ! Find the specific angular momentum at the specified radius.
+          Cooling_Specific_Angular_Momentum_Constant_Rotation= coolingSpecificAngularMomentumStored                  &
+               &                                              *                                              radius
+       end if
+    else
+       ! Radius is non-positive - return zero.
+       Cooling_Specific_Angular_Momentum_Constant_Rotation=0.0d0
+    end if
     return
   end function Cooling_Specific_Angular_Momentum_Constant_Rotation
   

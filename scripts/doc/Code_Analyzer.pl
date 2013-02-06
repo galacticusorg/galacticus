@@ -1,7 +1,14 @@
 #!/usr/bin/env perl
-use lib './perl';
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use File::Find;
-use Fortran::Utils;
+require Fortran::Utils;
 use Data::Dumper;
 use Cwd;
 use Text::Balanced qw (extract_bracketed);
@@ -51,9 +58,9 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
 %intrinsicDeclarations = (
     integer   => { variables => 3, regEx => "^\\s*integer\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     real      => { variables => 3, regEx => "^\\s*real\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:=\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     logical   => { variables => 3, regEx => "^\\s*logical\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
     procedure => { variables => 3, regEx => "^\\s*procedure\\s*(\\(\\s*[a-z0-9_]*\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" }
     );
 
@@ -70,7 +77,7 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
     # Find interfaces.
     interface          => { unitName => 2, regEx => "^\\s*(abstract\\s+)??interface\\s+([a-z0-9_\\(\\)\\/\\+\\-\\*\\.=]*)"},
     # Find types.
-    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*public\\s*|,\\s*private\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
+    type               => { unitName => 3, regEx => "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$"}
     );
 
 # Specify unit closing regexs.
@@ -103,221 +110,226 @@ sub processFile {
     chomp($fileName);
 
     # Check if this is a Fortran or C++ source file.
-    if ( $fileName =~ m/\.[fF]90$/ ) {
+    if ( $fileName =~ m/\.[fF]90$/ || $fileName =~ m/\.cpp$/ ) {
+
 	# Initialize the unitIdList array and the units hash.
 	undef(@unitIdList);
 	$unitIdList[0] = $fileName;
 	$units{$fileName} = {
-		unitType => "file",
-		unitName => $fileName
+	    unitType => "file",
+	    unitName => $fileName
 	};
 
-	# Add the file to the list of filenames to process.
-	undef(@fileNames);
-	undef(@filePositions);
-	unshift(@fileNames,$fileName);
-	unshift(@filePositions,-1);
+	# Process further only for Fortran.
+	if ( $fileName =~ m/\.[fF]90$/ ) {
 
-	# Process files until none remain.
-	while ( $#fileNames >= 0 ) {
+	    # Add the file to the list of filenames to process.
+	    undef(@fileNames);
+	    undef(@filePositions);
+	    unshift(@fileNames,$fileName);
+	    unshift(@filePositions,-1);
 
-	    # Open the file.
-	    open($fileHandle,$fileNames[0]);
-	    seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
+	    # Process files until none remain.
+	    while ( $#fileNames >= 0 ) {
 
-	    # Process until end of file is reached.
-	    LINE: until ( eof($fileHandle) ) {
-
-		# Specify that line has yet to be processed.
-		$lineProcessed = 0;
+		# Open the file.
+		open($fileHandle,$fileNames[0]);
+		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
 		
-		# Grab the next Fortran line.
-		&Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
-		foreach $unitID ( @unitIdList ) {
-		    ++$units{$unitID}->{"codeLines"};
-		}
+		# Process until end of file is reached.
+	      LINE: until ( eof($fileHandle) ) {
+		  
+		  # Specify that line has yet to be processed.
+		  $lineProcessed = 0;
 
-                # Detect include files, and recurse into them.
-		if ( $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
-		    $includeFile = $includeFileDirectory."/".$1;
-		    if ( -e $includeFile ) {
-			$filePositions[0] = tell($fileHandle);
-			unshift(@fileNames,$includeFile);
-			unshift(@filePositions,-1);
-			last;
-		    }
-		}
+		  # Grab the next Fortran line.
+		  &Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+		  foreach $unitID ( @unitIdList ) {
+		      ++$units{$unitID}->{"codeLines"};
+		  }
 
-		# Detect unit opening.
-		foreach $unitType ( keys(%unitOpeners) ) {
-		    
-		    # Check for a match to a unit opening regex.
-		    if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i ) {
-			$matchIndex = $unitOpeners{$unitType}->{"unitName"};
-			$unitName   = lc($$matchIndex);
-			# Get the ID of the parent unit.
-			$parentID = $unitIdList[$#unitIdList];
-			# Generate identifier for this unit.
-			$unitID = $parentID.":".$unitName;
-			# Add this unit to the "contains" list for its parent.
-			$units{$parentID}->{"contains"}->{$unitID} = 1;
-			# Create an entry for this new unit.
-			push(@unitIdList,$unitID);
-			$units{$unitID} = {
-			    unitType => $unitType,
-			    unitName => $unitName,
-			    belongsTo => $parentID
-			};
-			# Mark line as processed.
-			$lineProcessed = 1;
-		    }
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
-		
-		# Detect unit closing.
-		foreach $unitType ( keys(%unitClosers) ) {
-		    
-		    # Check for a match to a unit closing regex.
-		    if ( $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i ) {
-			$matchIndex = $unitClosers{$unitType}->{"unitName"};
-			$unitName   = lc($$matchIndex);
-			# Get ID of last unit opening.
-			$openerID = $unitIdList[$#unitIdList];
-			# Check we have a matching opening.
-			unless ( $unitType eq $units{$openerID}->{"unitType"} && ( $unitName eq $units{$openerID}->{"unitName"} || $unitType =~ m/interface/i ) ) {
-			    print "Unit close does not match unit open:\n";
-			    print " Closing with: ".$unitType." ".$unitName."\n";
-			    print "  Opened with: ".$units{$openerID}->{"unitType"}." ".$units{$openerID}->{"unitName"}."\n";
-			    print "      In file: ".$fileName."\n";
-			    die;
-			}
-			# Remove entry from ID list.
-			--$#unitIdList;
-			# Mark line as processed.
-			$lineProcessed = 1;
-		    }
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Detect include files, and recurse into them.
+		  if ( $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+		      $includeFile = $includeFileDirectory."/".$1;
+		      if ( -e $includeFile ) {
+			  $filePositions[0] = tell($fileHandle);
+			  unshift(@fileNames,$includeFile);
+			  unshift(@filePositions,-1);
+			  last;
+		      }
+		  }
 
-		# Check for source code comments.
-		if ( $bufferedComments =~ m/$commentRegex/i ) {
-		    $unitId = $unitIdList[$#unitIdList];
-		    ($trimmedComments = $bufferedComments) =~ s/^\s*\%//;
-		    $units{$unitId}->{"comments"} .= $trimmedComments;
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Detect unit opening.
+		  foreach $unitType ( keys(%unitOpeners) ) {
+		      
+		      # Check for a match to a unit opening regex.
+		      if ( $processedLine =~ m/$unitOpeners{$unitType}->{"regEx"}/i ) {
+			  $matchIndex = $unitOpeners{$unitType}->{"unitName"};
+			  $unitName   = lc($$matchIndex);
+			  # Get the ID of the parent unit.
+			  $parentID = $unitIdList[$#unitIdList];
+			  # Generate identifier for this unit.
+			  $unitID = $parentID.":".$unitName;
+			  # Add this unit to the "contains" list for its parent.
+			  $units{$parentID}->{"contains"}->{$unitID} = 1;
+			  # Create an entry for this new unit.
+			  push(@unitIdList,$unitID);
+			  $units{$unitID} = {
+			      unitType => $unitType,
+			      unitName => $unitName,
+			      belongsTo => $parentID
+			  };
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for use statements.
-		if ( $processedLine =~ m/$useRegex/i ) {
-		    $moduleName = lc($3);
-		    $unitId = $unitIdList[$#unitIdList];
-		    $units{$unitId}->{"modulesUsed"}->{$moduleName} = 1;
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Detect unit closing.
+		  foreach $unitType ( keys(%unitClosers) ) {
+		      
+		      # Check for a match to a unit closing regex.
+		      if ( $processedLine =~ m/$unitClosers{$unitType}->{"regEx"}/i ) {
+			  $matchIndex = $unitClosers{$unitType}->{"unitName"};
+			  $unitName   = lc($$matchIndex);
+			  # Get ID of last unit opening.
+			  $openerID = $unitIdList[$#unitIdList];
+			  # Check we have a matching opening.
+			  unless ( $unitType eq $units{$openerID}->{"unitType"} && ( $unitName eq $units{$openerID}->{"unitName"} || $unitType =~ m/interface/i ) ) {
+			      print "Unit close does not match unit open:\n";
+			      print " Closing with: ".$unitType." ".$unitName."\n";
+			      print "  Opened with: ".$units{$openerID}->{"unitType"}." ".$units{$openerID}->{"unitName"}."\n";
+			      print "      In file: ".$fileName."\n";
+			      die;
+			  }
+			  # Remove entry from ID list.
+			  --$#unitIdList;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for direct subroutine calls.
-		if ( $processedLine =~ m/$callRegex/i ) {
-		    $subroutineName = lc($2);
-		    $unitId = $unitIdList[$#unitIdList];
- 		    $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = -1;
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Check for source code comments.
+		  if ( $bufferedComments =~ m/$commentRegex/i ) {
+		      $unitId = $unitIdList[$#unitIdList];
+		      ($trimmedComments = $bufferedComments) =~ s/^\s*\%//;
+		      $units{$unitId}->{"comments"} .= $trimmedComments;
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for subroutine calls via type-bound procedures.
-		if ( $processedLine =~ m/$callTypeBoundRegex/i ) {
-		    $subroutineName = lc($3);
-		    $variableName   = lc($2);
-		    $unitId = $unitIdList[$#unitIdList];
-		    # Store the name of the type-bound subroutine call, and the name of the variable it was applied to.
- 		    $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = $variableName;
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Check for use statements.
+		  if ( $processedLine =~ m/$useRegex/i ) {
+		      $moduleName = lc($3);
+		      $unitId = $unitIdList[$#unitIdList];
+		      $units{$unitId}->{"modulesUsed"}->{$moduleName} = 1;
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for type-bound procedures.
-		if ( $units{$unitIdList[$#unitIdList]}->{"unitType"} eq "type" ) {
-		    if ( $processedLine =~ m/$typeBoundRegex/i ) {
-			$methodName = lc($2);
-			($procedureList = lc($3)) =~ s/\s//g;
-			@procedures = split(/,/,$procedureList);
-			$unitId = $unitIdList[$#unitIdList];
-			@{$units{$unitId}->{"methods"}->{$methodName}} = @procedures;
-			# Mark line as processed.
-			$lineProcessed = 1;
-		    }
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Check for direct subroutine calls.
+		  if ( $processedLine =~ m/$callRegex/i ) {
+		      $subroutineName = lc($2);
+		      $unitId = $unitIdList[$#unitIdList];
+		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = -1;
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Detect intrinsic variable declarations.
-		foreach $intrinsicType ( keys(%intrinsicDeclarations) ) {
-		    
-		    # Check for a match to an intrinsic declaration regex.
-		    if ( $processedLine =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
-			$matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
-			$variablesList = lc($$matchIndex);
-			# Get ID of unit.
-			$unitId = $unitIdList[$#unitIdList];
-			@variables = &Extract_Variables($variablesList);
-			# Store the variable list.
-			push(@{$units{$unitId}->{$intrinsicType}},@variables);
-			# Mark line as processed.
-			$lineProcessed = 1;
-		    }
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Check for subroutine calls via type-bound procedures.
+		  if ( $processedLine =~ m/$callTypeBoundRegex/i ) {
+		      $subroutineName = lc($3);
+		      $variableName   = lc($2);
+		      $unitId = $unitIdList[$#unitIdList];
+		      # Store the name of the type-bound subroutine call, and the name of the variable it was applied to.
+		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = $variableName;
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for derived-type declarations.
-		if ( $processedLine =~ m/$derivedTypeRegex/i ) {
-		    $derivedType = $1;
-		    $variablesList = $3;
-		    @variables = &Extract_Variables($variablesList);		    
-		    $unitId = $unitIdList[$#unitIdList];
-		    push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Check for type-bound procedures.
+		  if ( $units{$unitIdList[$#unitIdList]}->{"unitType"} eq "type" ) {
+		      if ( $processedLine =~ m/$typeBoundRegex/i ) {
+			  $methodName = lc($2);
+			  ($procedureList = lc($3)) =~ s/\s//g;
+			  @procedures = split(/,/,$procedureList);
+			  $unitId = $unitIdList[$#unitIdList];
+			  @{$units{$unitId}->{"methods"}->{$methodName}} = @procedures;
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for module procedures.
-		if ( $processedLine =~ m/$moduleProcedureRegex/i ) {
-		    $procedureName = lc($1);
-		    $unitId = $unitIdList[$#unitIdList];
-		    $units{$unitId}->{"moduleProcedures"}->{$procedureName} = 1;
-		    # Mark line as processed.
-		    $lineProcessed = 1;
-		}
-		if ( $lineProcessed == 1 ) {next LINE};
+		  # Detect intrinsic variable declarations.
+		  foreach $intrinsicType ( keys(%intrinsicDeclarations) ) {
+		      # Check for a match to an intrinsic declaration regex.
+		      if ( $processedLine =~ m/$intrinsicDeclarations{$intrinsicType}->{"regEx"}/i ) {
+			  $matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
+			  $variablesList = lc($$matchIndex);
+			  # Get ID of unit.
+			  $unitId = $unitIdList[$#unitIdList];
+			  @variables = &Extract_Variables($variablesList);
+			  # Store the variable list.
+			  push(@{$units{$unitId}->{$intrinsicType}},@variables);
+			  # Mark line as processed.
+			  $lineProcessed = 1;
+		      }
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
 
-		# Check for function calls.
-		$functionSeek = lc($processedLine);
-		$functionSeek =~ s/'[^']+'//g;
-		while ( $functionSeek =~ m/\(/ ) {
-		    ($extracted,$remainder,$prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
-		    if ( $prefix =~ m/(([a-z0-9_]+)\s*%\s*)*([a-z0-9_]+)$/ ) {
-			$functionName = lc($3);
-			($derivedType = lc($1)) =~ s/%\s*$//;
-			if ( $derivedType eq "" ) {$derivedType = -1};
-			$unitId = $unitIdList[$#unitIdList];
-			$units{$unitId}->{"functionCalls"}->{$functionName} = $derivedType;
-		    }
-		    $functionSeek = $remainder;
+		  # Check for derived-type declarations.
+		  if ( $processedLine =~ m/$derivedTypeRegex/i ) {
+		      $derivedType = $1;
+		      $variablesList = $3;
+		      @variables = &Extract_Variables($variablesList);		    
+		      $unitId = $unitIdList[$#unitIdList];
+		      push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
+
+		  # Check for module procedures.
+		  if ( $processedLine =~ m/$moduleProcedureRegex/i ) {
+		      $procedureName = lc($1);
+		      $unitId = $unitIdList[$#unitIdList];
+		      $units{$unitId}->{"moduleProcedures"}->{$procedureName} = 1;
+		      # Mark line as processed.
+		      $lineProcessed = 1;
+		  }
+		  if ( $lineProcessed == 1 ) {next LINE};
+
+		  # Check for function calls.
+		  $functionSeek = lc($processedLine);
+		  $functionSeek =~ s/'[^']+'//g;
+		  $functionSeek =~ s/"[^"]+"//g;
+		  while ( $functionSeek =~ m/\(/ ) {
+		      ($extracted,$remainder,$prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
+		      if ( $prefix =~ m/(([a-z0-9_]+)\s*%\s*)*([a-z0-9_]+)$/ ) {
+			  $functionName = lc($3);
+			  ($derivedType = lc($1)) =~ s/%\s*$//;
+			  if ( $derivedType eq "" ) {$derivedType = -1};
+			  $unitId = $unitIdList[$#unitIdList];
+			  $units{$unitId}->{"functionCalls"}->{$functionName} = $derivedType;
+		      }
+		      $functionSeek = $remainder;
+		  }
+	      }
+
+		# Close the file and shift the list of filenames.
+		if ( eof($fileHandle) ) {
+		    shift(@fileNames);
+		    shift(@filePositions);
 		}
+		close($fileHandle);
+
 	    }
-
-	    # Close the file and shift the list of filenames.
-	    if ( eof($fileHandle) ) {
-		shift(@fileNames);
-		shift(@filePositions);
-	    }
-	    close($fileHandle);
-
 	}
     }
 }
@@ -325,6 +337,7 @@ sub processFile {
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
     $variableList = shift;
+    die("Code_Analyzer.pl (Extract_Variables) variable list contains '::' - most likely regex matching failed") if ( $variableList =~ m/::/ );
     # Convert to lower case.
     $variableList = lc($variableList);
     # Remove whitespace.

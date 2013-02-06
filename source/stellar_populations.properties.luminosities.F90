@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 module Stellar_Population_Properties_Luminosities
   use ISO_Varying_String
@@ -127,8 +83,8 @@ contains
     return
   end function Stellar_Population_Luminosities_Name
   
-  function Stellar_Population_Luminosities_Get(imfSelected,time,abundances)
-    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundances} and
+  function Stellar_Population_Luminosities_Get(imfSelected,time,abundancesStellar)
+    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundancesStellar} and
     !% which formed at cosmological {\tt time} with IMF specified by {\tt imfSelected}.
     use Abundances_Structure
     use Stellar_Population_Luminosities
@@ -136,7 +92,7 @@ contains
     double precision,          dimension(luminosityCount) :: Stellar_Population_Luminosities_Get
     integer,                   intent(in)                 :: imfSelected
     double precision,          intent(in)                 :: time
-    type(abundancesStructure), intent(in)                 :: abundances
+    type(abundances),          intent(in)                 :: abundancesStellar
     double precision,          dimension(luminosityCount) :: ages
 
     ! Ensure module is initialized.
@@ -146,7 +102,7 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundances&
+    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundancesStellar&
          &,ages,luminosityRedshift)
     return
   end function Stellar_Population_Luminosities_Get
@@ -176,113 +132,123 @@ contains
     type(varying_string) :: luminosityOutputOptionText
 
     ! Initialize the module if necessary.
-    !$omp critical (Stellar_Population_Properties_Luminosities_Initialize)
     if (.not.luminositiesInitialized) then
-       ! Get luminosity output option.
-       !@ <inputParameter>
-       !@   <name>luminosityOutputOption</name>
-       !@   <defaultValue>present</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects which luminosities will be output at each output time:
-       !@     \begin{description}
-       !@     \item [all] Output all luminosities;
-       !@     \item [future] Output only those luminosities computed for the present output or future times;
-       !@     \item [present] Output only those luminosities computed for the present output time.
-       !@     \end{description}
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('luminosityOutputOption',luminosityOutputOptionText,defaultValue="present")
-       select case (char(luminosityOutputOptionText))
-       case ("all")
-          luminosityOutputOption=luminosityOutputOptionAll
-       case ("future")
-          luminosityOutputOption=luminosityOutputOptionFuture
-       case ("present")
-          luminosityOutputOption=luminosityOutputOptionPresent
-       case default
-          call Galacticus_Error_Report("Stellar_Population_Properties_Luminosities_Initialize","unrecognized luminosityOutputOption")
-       end select
-
-       ! Read in the parameters which specify the luminosities to be computed.
-       luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
-       if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
-            & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityFilter and luminosityCount&
-            & input arrays must have same dimension')
-       if (Get_Input_Parameter_Array_Size('luminosityType') /= luminosityCount) call&
-            & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityType and luminosityCount&
-            & input arrays must have same dimension')
-
-       if (luminosityCount > 0) then
-          call Alloc_Array(luminosityRedshift   ,[luminosityCount])
-          call Alloc_Array(luminosityCosmicTime ,[luminosityCount])
-          allocate(luminosityFilter(luminosityCount))
-          allocate(luminosityType  (luminosityCount))
-          allocate(luminosityName  (luminosityCount))
-          call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityName),blockCount=3)
-          call Alloc_Array(luminosityFilterIndex,[luminosityCount])
-          call Alloc_Array(luminosityIndex      ,[luminosityCount])
+       !$omp critical (Stellar_Population_Properties_Luminosities_Initialize)
+       if (.not.luminositiesInitialized) then
+          ! Get luminosity output option.
           !@ <inputParameter>
-          !@   <name>luminosityRedshift</name>
+          !@   <name>luminosityOutputOption</name>
+          !@   <defaultValue>present</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     The redshift for which to compute each specified stellar luminosity.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('luminosityRedshift',luminosityRedshift)
-          !@ <inputParameter>
-          !@   <name>luminosityFilter</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The filter name for each stellar luminosity to be computed.
-          !@   </description>
-          !@ </inputParameter>
-          call Get_Input_Parameter('luminosityFilter'  ,luminosityFilter  )
-          !@ <inputParameter>
-          !@   <name>luminosityType</name>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The luminosity type for each stellar luminosity to be computed:
+          !@     Selects which luminosities will be output at each output time:
           !@     \begin{description}
-          !@      \item[rest] Compute luminosity in the galaxy rest frame;
-          !@      \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
-          !@                      frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
-          !@                      must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
-          !@                      frequencies.}.
+          !@     \item [all] Output all luminosities;
+          !@     \item [future] Output only those luminosities computed for the present output or future times;
+          !@     \item [present] Output only those luminosities computed for the present output time.
           !@     \end{description}
           !@   </description>
+          !@   <type>integer</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('luminosityType'    ,luminosityType    )
+          call Get_Input_Parameter('luminosityOutputOption',luminosityOutputOptionText,defaultValue="present")
+          select case (char(luminosityOutputOptionText))
+          case ("all")
+             luminosityOutputOption=luminosityOutputOptionAll
+          case ("future")
+             luminosityOutputOption=luminosityOutputOptionFuture
+          case ("present")
+             luminosityOutputOption=luminosityOutputOptionPresent
+          case default
+             call Galacticus_Error_Report("Stellar_Population_Properties_Luminosities_Initialize","unrecognized luminosityOutputOption")
+          end select
           
-          ! Process the list of luminosities.
-          do iLuminosity=1,luminosityCount
-             ! Assign a name to this luminosity.
-             write (redshiftLabel,'(f7.4)') luminosityRedshift(iLuminosity)
-             luminosityName(iLuminosity)="Luminosity:"//luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
-                  &//trim(adjustl(redshiftLabel))
-             ! Assign an index for this luminosity.
-             luminosityIndex(iLuminosity)=iLuminosity
-             ! Get the index of the specified filter.
-             luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
-             ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-             expansionFactor=Expansion_Factor_from_Redshift(luminosityRedshift(iLuminosity))
-             luminosityCosmicTime(iLuminosity)=Cosmology_Age(expansionFactor)
-             ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
-             ! it is set to zero to indicate a rest-frame filter.
-             select case(char(luminosityType(iLuminosity)))
-             case ("rest")
-                luminosityRedshift(iLuminosity)=0.0d0
-             case ("observed")
-                ! Do nothing, we already have the correct redshift.
-             case default
-                call Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','unrecognized filter type')
-             end select
-          end do
+          ! Read in the parameters which specify the luminosities to be computed.
+          luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
+          if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
+               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityFilter and luminosityCount&
+               & input arrays must have same dimension')
+          if (Get_Input_Parameter_Array_Size('luminosityType') /= luminosityCount) call&
+               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityType and luminosityCount&
+               & input arrays must have same dimension')
+          
+          if (luminosityCount > 0) then
+             call Alloc_Array(luminosityRedshift   ,[luminosityCount])
+             call Alloc_Array(luminosityCosmicTime ,[luminosityCount])
+             allocate(luminosityFilter(luminosityCount))
+             allocate(luminosityType  (luminosityCount))
+             allocate(luminosityName  (luminosityCount))
+             call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityName),blockCount=3)
+             call Alloc_Array(luminosityFilterIndex,[luminosityCount])
+             call Alloc_Array(luminosityIndex      ,[luminosityCount])
+             !@ <inputParameter>
+             !@   <name>luminosityRedshift</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The redshift for which to compute each specified stellar luminosity.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>0..*</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('luminosityRedshift',luminosityRedshift)
+             !@ <inputParameter>
+             !@   <name>luminosityFilter</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The filter name for each stellar luminosity to be computed.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>0..*</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('luminosityFilter'  ,luminosityFilter  )
+             !@ <inputParameter>
+             !@   <name>luminosityType</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The luminosity type for each stellar luminosity to be computed:
+             !@     \begin{description}
+             !@      \item[rest] Compute luminosity in the galaxy rest frame;
+             !@      \item[observed] Compute luminosity in the observer frame\footnote{The luminosity computed in this way is that in the galaxy rest
+             !@                      frame using a filter blueshifted to the galaxy's redshift. This means that to compute an apparent magnitude you
+             !@                      must add not only the distance modulus, but a factor of $-2.5\log_{10}(1+z)$ to account for compression of photon
+             !@                      frequencies.}.
+             !@     \end{description}
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>0..*</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('luminosityType'    ,luminosityType    )
+             
+             ! Process the list of luminosities.
+             do iLuminosity=1,luminosityCount
+                ! Assign a name to this luminosity.
+                write (redshiftLabel,'(f7.4)') luminosityRedshift(iLuminosity)
+                luminosityName(iLuminosity)=luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
+                     &//trim(adjustl(redshiftLabel))
+                ! Assign an index for this luminosity.
+                luminosityIndex(iLuminosity)=iLuminosity
+                ! Get the index of the specified filter.
+                luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
+                ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
+                expansionFactor=Expansion_Factor_from_Redshift(luminosityRedshift(iLuminosity))
+                luminosityCosmicTime(iLuminosity)=Cosmology_Age(expansionFactor)
+                ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
+                ! it is set to zero to indicate a rest-frame filter.
+                select case(char(luminosityType(iLuminosity)))
+                case ("rest")
+                   luminosityRedshift(iLuminosity)=0.0d0
+                case ("observed")
+                   ! Do nothing, we already have the correct redshift.
+                case default
+                   call Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','unrecognized filter type')
+                end select
+             end do
+          end if
+          luminositiesInitialized=.true.
        end if
-       luminositiesInitialized=.true.
+       !$omp end critical (Stellar_Population_Properties_Luminosities_Initialize)
     end if
-    !$omp end critical (Stellar_Population_Properties_Luminosities_Initialize)
-
     return
   end subroutine Stellar_Population_Properties_Luminosities_Initialize
   

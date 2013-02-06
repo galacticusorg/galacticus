@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements a calculation of the core radius in the hot halo density profile that is a fraction of the
 !% dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial radius constant (similar
@@ -67,11 +23,13 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
   !% Implements a calculation of the core radius in the hot halo density profile that is a fraction of the
   !% dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial radius constant (similar
   !% to the algorithm of \citep{cole_hierarchical_2000}).
-  use Tree_Nodes
+  use Galacticus_Nodes
   use FGSL
   implicit none
   private
-  public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize
+  public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize,&
+       & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store,&
+       & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
 
   ! Parameters of the model.
   double precision                            :: isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusMaximum
@@ -102,9 +60,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),                 intent(in)    :: hotHaloCoredIsothermalCoreRadiiMethod
+    type     (varying_string  ),          intent(in   ) :: hotHaloCoredIsothermalCoreRadiiMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
-    
+
     if (hotHaloCoredIsothermalCoreRadiiMethod == 'growingCore') then
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core
        !@ <inputParameter>
@@ -114,6 +72,8 @@ contains
        !@   <description>
        !@     The core radius in the ``cored isothermal'' hot halo density profile in units of the dark matter profile scale radius.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverScaleRadius',isothermalCoreRadiusOverScaleRadius,defaultValue=0.1d0)
        !@ <inputParameter>
@@ -123,13 +83,15 @@ contains
        !@   <description>
        !@     The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
 
        ! Ensure that the dark matter profile supports the scale property.
-       if (.not.associated(Tree_Node_Dark_Matter_Profile_Scale)) call Galacticus_Error_Report( &
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call Galacticus_Error_Report( &
             & 'Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize',&
-            &'method requires a component that supports the Tree_Node_Dark_Matter_Profile_Scale property')
+            &'method requires a dark matter profile component that provides a gettable "scale" property')
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize
@@ -139,22 +101,30 @@ contains
     !% a fraction of the dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial
     !% radius constant (similar to the algorithm of \citep{cole_hierarchical_2000}).
     use Cosmological_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
+    class(nodeComponentHotHalo          ),                pointer :: thisHotHaloComponent
+    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
+    double precision                     , save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
          &,isothermalCoreRadiusOverVirialRadiusSaved
     !$omp threadprivate(isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved,isothermalCoreRadiusOverVirialRadiusSaved)
-    double precision                         :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
+    double precision                                              :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
          &,hotGasFraction,targetValue
-    logical                                  :: makeTable
+    logical                                                       :: makeTable
+
+    ! Get components.
+    thisBasicComponent             => thisNode%basic            ()
+    thisHotHaloComponent           => thisNode%hotHalo          ()
+    thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
 
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
-    hotGasFraction=(Tree_Node_Hot_Halo_Mass(thisNode)/Tree_Node_Mass(thisNode))*(Omega_Matter()/Omega_b())
+    hotGasFraction=(thisHotHaloComponent%mass()/thisBasicComponent%mass())*(Omega_Matter()/Omega_b())
 
     ! Return an arbitrary value for empty halos.
     if (hotGasFraction <= 0.0d0) then
@@ -163,7 +133,7 @@ contains
     end if
 
     ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
-    isothermalCoreRadiusOverVirialRadiusInitial=isothermalCoreRadiusOverScaleRadius*Tree_Node_Dark_Matter_Profile_Scale(thisNode)&
+    isothermalCoreRadiusOverVirialRadiusInitial=isothermalCoreRadiusOverScaleRadius*thisDarkMatterProfileComponent%scale()&
          &/Dark_Matter_Halo_Virial_Radius(thisNode)
 
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.
@@ -194,16 +164,16 @@ contains
        targetValue=Growing_Core_Virial_Density_Function(isothermalCoreRadiusOverVirialRadiusInitial)*hotGasFraction
        
        ! Interpolate to get the required core radius.
+       !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
        if      (hotGasFraction >= 1.0d0                                             ) then
           isothermalCoreRadiusOverVirialRadius=isothermalCoreRadiusOverVirialRadiusInitial
        else if (targetValue    <= coreRadiusTableDensityFactor(1)) then
           isothermalCoreRadiusOverVirialRadius=coreRadiusTableCoreRadius(1)
        else
-          !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
           isothermalCoreRadiusOverVirialRadius=Interpolate(coreRadiusTableCount,coreRadiusTableDensityFactor,coreRadiusTableCoreRadius&
                &,interpolationObject,interpolationAccelerator,targetValue,reset=interpolationReset)
-          !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
        end if
+       !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
        isothermalCoreRadiusOverVirialRadiusInitialSaved=isothermalCoreRadiusOverVirialRadiusInitial
        hotGasFractionSaved                             =hotGasFraction
        isothermalCoreRadiusOverVirialRadiusSaved       =isothermalCoreRadiusOverVirialRadius
@@ -222,5 +192,34 @@ contains
     Growing_Core_Virial_Density_Function=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*datan(1.0d0/radiusOverVirialRadius))
     return
   end function Growing_Core_Virial_Density_Function
+
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store(stateFile,fgslStateFile)
+    !% Write the tablulation state to file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) coreRadiusMinimum,coreRadiusMaximum
+    return
+  end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store
   
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the tabulation state from the file.
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
+    read (stateFile) coreRadiusMinimum,coreRadiusMaximum
+    ! Force retabulation on next evaluation.
+    coreRadiusTableInitialized=.false.
+    return
+  end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
+
 end module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core

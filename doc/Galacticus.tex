@@ -1,15 +1,16 @@
-\documentclass[letterpaper,10pt]{book}
+\documentclass[letterpaper,10pt,headsepline]{scrbook}
 \usepackage[T1]{fontenc} 
 \usepackage{natbib}
 \usepackage{supertabular}
 \usepackage{epsfig}
 \usepackage{ifthen}
 \usepackage{index}
-\usepackage[backref]{hyperref}
+\usepackage[backref,colorlinks]{hyperref}
 \usepackage{listings}
 \usepackage{verbatim}
 \usepackage{hyphenat}
 \usepackage{ragged2e}
+\usepackage[acronym]{glossaries}
 
 % Table of contents
 \setcounter{tocdepth}{5}
@@ -17,7 +18,7 @@
 % Margins.
 \setlength{\topmargin}{0mm}
 \setlength{\textwidth}{160mm}
-\setlength{\textheight}{230mm}
+\setlength{\textheight}{210mm}
 \setlength{\oddsidemargin}{0mm}
 \setlength{\evensidemargin}{0mm}
 
@@ -30,53 +31,12 @@
 \def\d{{\rm d}}
 \def\e{{\rm e}}
 
-% CDM
-\newcounter{CDMDone}
-\setcounter{CDMDone}{0}
-\def\CDM{\ifthenelse{\equal{\arabic{CDMDone}}{0}}{cold dark matter (CDM) \setcounter{CDMDone}{1}}{CDM}}
-
-% CMB
-\newcounter{CMBDone}
-\setcounter{CMBDone}{0}
-\def\CMB{\ifthenelse{\equal{\arabic{CMBDone}}{0}}{cosmic microwave background (CMB) \setcounter{CMBDone}{1}}{CMB}}
-
-% IMF
-\newcounter{IMFDone}
-\setcounter{IMFDone}{0}
-\def\IMF{\ifthenelse{\equal{\arabic{IMFDone}}{0}}{initial mass function (IMF) \setcounter{IMFDone}{1}}{IMF}}
-
-% NFW
-\newcounter{NFWDone}
-\setcounter{NFWDone}{0}
-\def\NFW{\ifthenelse{\equal{\arabic{NFWDone}}{0}}{Navarro-Frenk-White (NFW) \setcounter{NFWDone}{1}}{NFW}}
-
-% ISM
-\newcounter{ISMDone}
-\setcounter{ISMDone}{0}
-\def\ISM{\ifthenelse{\equal{\arabic{ISMDone}}{0}}{interstellar medium (ISM) \setcounter{ISMDone}{1}}{ISM}}
-
-% IGM
-\newcounter{IGMDone}
-\setcounter{IGMDone}{0}
-\def\IGM{\ifthenelse{\equal{\arabic{IGMDone}}{0}}{intergalactic medium (IGM) \setcounter{IGMDone}{1}}{IGM}}
-
-% ISCO
-\newcounter{ISCODone}
-\setcounter{ISCODone}{0}
-\def\ISCO{\ifthenelse{\equal{\arabic{ISCODone}}{0}}{innermost stable circular orbit (ISCO) \setcounter{ISCODone}{1}}{ISCO}}
-
-% SED
-\newcounter{SEDDone}
-\setcounter{SEDDone}{0}
-\def\SED{\ifthenelse{\equal{\arabic{SEDDone}}{0}}{spectral energy distribution (SED) \setcounter{SEDDone}{1}}{SED}}
-
-% SNe
-\newcounter{SNeDone}
-\setcounter{SNeDone}{0}
-\def\SNe{\ifthenelse{\equal{\arabic{SNeDone}}{0}}{supernovae (SNe) \setcounter{SNeDone}{1}}{SNe}}
-
+\makeglossary
+\glstoctrue
 \makeindex
 \newindex{code}{cdx}{cnd}{Code Index}
+
+\include{Glossary}
 
 \begin{document}
 
@@ -86,29 +46,18 @@
 
 \pagestyle{empty}
 \begin{center}
-\begin{minipage}{9.5cm}
-\begin{verbatim}
-             ##                                     
-  ####        #                  #                  
- #   #        #             #                       
-#       ###   #  ###   ### ###  ##   ### ## ##   ## 
-#       #  #  #  #  # #  #  #    #  #  #  #  #  #   
-#   ###  ###  #   ### #     #    #  #     #  #   #  
- #   #  #  #  #  #  # #     #    #  #     #  #    # 
-  ####  #### ### ####  ###   ## ###  ###   #### ##  
-
-\end{verbatim}
-\end{minipage}
+\includegraphics[width=125mm]{GalacticusLogo.png}\\
 
 \includegraphics{New_Logo_Galaxy_192_Transparent.png}\\
 A semi-analytic galaxy formation code.\\
 
-\copyright\ 2009, 2010 2011, Andrew Benson
+\copyright\ 2009, 2010 2011, 2012, 2013, Andrew Benson
 \end{center}
 
 \tableofcontents
 
 \mainmatter
+\pagestyle{headings}
 
 \part{Installation and Basic Use}
 
@@ -126,9 +75,17 @@ A semi-analytic galaxy formation code.\\
 
 \include{Tutorials}
 
+\include{Numerics}
+
+\part{Advanced Use}
+
+\include{Constraints}
+
 \part{Physical Implementation}
 
 In this Part we describe the physical implementation of galaxy formation in \glc, including all components and their properties and additional output quantities from the code.
+
+\include{Definitions}
 
 \include{Components}
 
@@ -144,11 +101,19 @@ In this Part we focus on how to modify \glc\ to meet your own needs. \glc\ is de
 
 \include{Methods}
 
+\include{Auxilliary}
+
 \include{Source_Documentation}
+
+\part{Contributions and Acknowledgements}
+
+\include{contributions}
 
 \include{Acknowledgements}
 
 \appendix
+
+\part{Appendices}
 
 \chapter{Merger Tree File Format}\label{sec:MergerTreeFileFormat}
 
@@ -164,6 +129,8 @@ In this Part we focus on how to modify \glc\ to meet your own needs. \glc\ is de
 
 \bibliographystyle{plainnat}
 \bibliography{GalacticusAccented}
+
+\printglossaries
 
 \citeindextrue
 \printindex
