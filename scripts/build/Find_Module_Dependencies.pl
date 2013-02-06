@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# Locate Galform2 code files which create modules
+# Locate source files which create modules
 
 # Define the source directory
 if ( $#ARGV != 0 ) {die "Usage: Find_Module_Dependencies.pl sourcedir"};

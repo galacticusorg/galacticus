@@ -59,6 +59,12 @@ module iso_varying_string
      !@   <description>Destroys the object by deallocating internal storage.</description>
      !@ </objectMethod>
      procedure :: destroy => destroy_VS
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>loadFromFile</method>
+     !@   <description>Loads a varying string with the contents of a file.</description>
+     !@ </objectMethod>
+     procedure :: loadFromFile => load_from_file_VS
   end type varying_string
 
 ! Interface blocks
@@ -2644,6 +2650,29 @@ contains
     if (allocated(string%chars)) deallocate(string%chars)
     return
   end subroutine destroy_VS
+
+  subroutine load_from_file_VS(string,fileName)
+    !% Load a varying string object with the contents of a file (specified by {\tt fileName}).
+    class(varying_string), intent(inout) :: string
+    character(len=*),      intent(in   ) :: fileName
+    character(len=1)                     :: thisChar
+    integer                              :: ioError,iUnit,fileSize,iChar
+
+    call string%destroy()
+    open(newUnit=iUnit,file=fileName,status='old',access='stream',ioStat=ioError)
+    inquire(unit=iUnit,size=fileSize)
+    allocate(string%chars(fileSize))
+    iChar=0
+    do while (ioError == 0)
+       read (iUnit,ioStat=ioError) thisChar
+       if (ioError == 0) then
+          iChar=iChar+1
+          string%chars(iChar)=thisChar
+       end if
+    end do
+    close(iUnit)
+    return
+  end subroutine load_from_file_VS
   
 end module iso_varying_string
 
