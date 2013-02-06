@@ -12,7 +12,7 @@ my $outputPrefix = $ARGV[1];
 # Specify output files.
 my $parameterFile = $outputPrefix."Parameters.xml";
 my $scriptFile    = $outputPrefix."Script.pl";
-my $mergeFile     = $outputPrefix.".merge";
+my $mergeFile     = $outputPrefix.".bundle";
 my $patchFile     = $outputPrefix.".patch";
 
 # Extract the metadata.

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which provides an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
 
@@ -76,33 +32,35 @@ contains
 #ifdef PROFILE
        &,Error_Analyzer &
 #endif
-       &,yScale,errorHandler,reset)
+       &,yScale,errorHandler,algorithm,reset)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use String_Handling
     implicit none
-    double precision,         intent(in   )           :: x1,toleranceAbsolute,toleranceRelative
-    type(c_ptr),              intent(in   )           :: parameterPointer
-    integer,                  intent(in   )           :: yCount
-    double precision,         intent(inout)           :: x0,y(yCount)
-    double precision,         intent(in   ), optional :: yScale(yCount)
-    type(fodeiv2_driver),     intent(inout)           :: odeDriver
-    type(fodeiv2_system),     intent(inout)           :: odeSystem
-    logical,                  intent(inout), optional :: reset
-    procedure(),              pointer,       optional :: errorHandler
+    double precision,            intent(in   )           :: x1,toleranceAbsolute,toleranceRelative
+    type(c_ptr),                 intent(in   )           :: parameterPointer
+    integer,                     intent(in   )           :: yCount
+    double precision,            intent(inout)           :: x0,y(yCount)
+    double precision,            intent(in   ), optional :: yScale(yCount)
+    type(fodeiv2_driver),        intent(inout)           :: odeDriver
+    type(fodeiv2_system),        intent(inout)           :: odeSystem
+    logical,                     intent(inout), optional :: reset
+    procedure(),                 pointer,       optional :: errorHandler
+    type(fodeiv2_step_type),     intent(in   ), optional :: algorithm
 #ifdef PROFILE
-    type(c_funptr),           intent(in)              :: Error_Analyzer
+    type(c_funptr),              intent(in)              :: Error_Analyzer
 #endif
-    integer(kind=4),          external                :: odeFunction
-    integer,                  parameter               :: genericFailureCountMaximum=10
-    double precision,         parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
-    integer                                           :: status
-    integer(c_size_t)                                 :: odeNumber
-    double precision                                  :: x,h,x1Internal
-    logical                                           :: resetActual,forwardEvolve
-    type(varying_string)                              :: message
+    integer(kind=4),             external                :: odeFunction
+    integer,                     parameter               :: genericFailureCountMaximum=10
+    double precision,            parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
+    integer                                              :: status
+    integer(c_size_t)                                    :: odeNumber
+    double precision                                     :: x,h,x1Internal
+    logical                                              :: resetActual,forwardEvolve
+    type(fodeiv2_step_type)                              :: algorithmActual
+    type(varying_string)                                 :: message
 
     ! Number of ODEs to solve.
     odeNumber=yCount
@@ -117,13 +75,19 @@ contains
        ! Make initial guess for timestep.
        h=(x1-x0)
        odeSystem=FODEIV2_System_Init(odeFunction,odeNumber,parameterPointer)
+       ! Select the algorithm to use.
+       if (present(algorithm)) then
+          algorithmActual=algorithm
+       else
+          algorithmActual=Fodeiv2_Step_RKCK
+       end if
        if (present(yScale)) then
           ! Scales for the absolute tolerance have been given, so use them.
-          odeDriver=FODEIV2_Driver_Alloc_Scaled_New(odeSystem,Fodeiv2_Step_RKCK,h,toleranceAbsolute,toleranceRelative&
+          odeDriver=FODEIV2_Driver_Alloc_Scaled_New(odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative&
                &,yScaleUniform,dydtScaleUniform,yScale)
        else
           ! No scales given, assume they are all unity.
-          odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,Fodeiv2_Step_RKCK,h,toleranceAbsolute,toleranceRelative)
+          odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
        end if
     end if
     ! Keep a local copy of the end point as we may reset it.

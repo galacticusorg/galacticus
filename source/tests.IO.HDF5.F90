@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 program Tests_IO_HDF5
   !% Tests the HDF5 I/O module.
@@ -641,6 +597,33 @@ program Tests_IO_HDF5
      ! Read the varying string 1-D array dataset back to a static array.
      call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
+
+     ! Write a scalar integer attribute to the group.
+     integerValue=2020
+     call groupObject%writeAttribute(integerValue,"integerShortAttribute")
+     ! Read the scalar integer attribute back into a long integer.
+     call groupObject%readAttribute("integerShortAttribute",integer8ValueReread)
+     call Assert("read scalar integer attribute to long integer",int(integerValue,kind=kind_int8),integer8ValueReread)
+
+     ! Write an integer 1-D array attribute to the group.
+     integerValueArray=7
+     call groupObject%writeAttribute(integerValueArray,"integerShortAttribute1dArray")
+     ! Read the long integer 1-D array attribute back.
+     call groupObject%readAttribute("integerShortAttribute1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer attribute to long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the long integer 1-D array attribute back to a static array.
+     call groupObject%readAttributeStatic("integerShortAttribute1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer attribute to static long integer array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
+
+     ! Write an integer 1-D array dataset.
+     integerValueArray=[0,11,22,33,44,55,66,77,88,99]
+     call groupObject%writeDataset(integerValueArray,"integerShortDataset1dArray","This is an example dataset")
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDataset("integerShortDataset1dArray",integer8ValueArrayReread)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayReread)
+     ! Read the dataset back into a long integer 1-D array dataset.
+     call groupObject%readDatasetStatic("integerShortDataset1dArray",integer8ValueArrayRereadStatic)
+     call Assert("read 1-D array integer dataset to 1-D long integer allocatable array",int(integerValueArray,kind=kind_int8),integer8ValueArrayRereadStatic)
 
      ! Close the group.
      call groupObject%close()

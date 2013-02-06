@@ -68,8 +68,8 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
 #include <math.h>
 #include <stdio.h>
   
-//: ./work/build/objects.tree_node.cWrappers.o
-#include <objects.tree_node.cWrappers.h>
+//: ./work/build/objects.nodes.bindings.C.o
+#include <objects.nodes.bindings.C.h>
   
 //: ./work/build/cosmology.functions.o
 #include <cosmology.functions.h>
@@ -94,16 +94,18 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
     //% Return the star formation timescale for disks using the \cite{baugh_can_2005} prescription.
     double time, expansionFactor, timeScale, diskVelocity;
     double velocityNormalization  =200.0;
+    nodeComponentBasic thisBasicComponent (thisNode);
+    nodeComponentDisk  thisDiskComponent  (thisNode);
 
-    diskVelocity=Tree_Node_Disk_Velocity(thisNode);
+    diskVelocity=thisDiskComponent.velocity();
     if (diskVelocity <= 0.0) {
       timeScale=0.0;
     } else {
-      time           =Tree_Node_Time(thisNode);
+      time           =thisBasicComponent.time();
       expansionFactor=Expansion_Factor(time);
       timeScale      =starFormationDiskTimescale
-	*pow(diskVelocity/velocityNormalization,starFormationDiskVelocityExponent)
-	*pow(expansionFactor,starFormationExpansionExponent);
+     	*pow(diskVelocity/velocityNormalization,starFormationDiskVelocityExponent)
+     	*pow(expansionFactor,starFormationExpansionExponent);
     }
     return timeScale;
   }

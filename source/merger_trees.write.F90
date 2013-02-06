@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which writes merger trees to file.
 
@@ -67,10 +23,10 @@ module Merger_Trees_Write
   implicit none
   private
   public :: Merger_Tree_Write
-  
+
   ! Flag indicating if module is initialized.
   logical                 :: moduleInitialized=.false.
-  
+
   ! Flag indicating if first tree has been written.
   logical                 :: firstTreeWritten=.false.
 
@@ -93,31 +49,33 @@ contains
     use Cosmological_Parameters
     use Cosmology_Functions
     use Dates_and_Times
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Numerical_Interpolation
     use Merger_Trees
     use Merger_Tree_Data_Structure
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
     use Kind_Numbers
     use Sort
     use FGSL
     implicit none
-    type   (mergerTree       ), intent(in)                  :: thisTree
-    integer                   , parameter                   :: hdfChunkSize=1024, hdfCompressionLevel=9
-    double precision          , allocatable, dimension(:  ) :: nodeMass,nodeRedshift
-    double precision          , allocatable, dimension(:,:) :: nodePosition,nodeVelocity
-    integer(kind=kind_int8   ), allocatable, dimension(:  ) :: descendentIndex,treeIndex,nodeIndex,nodeSnapshot
-    type   (treeNode         ), pointer                     :: thisNode
-    integer                   , parameter                   :: snapshotCountIncrement=100
-    double precision          , allocatable, dimension(:  ) :: snapshotTime,snapshotTimeTemp
-    integer                                                 :: nodeCount,snapshotCount
-    type   (mergerTreeData   )                              :: mergerTrees
-    logical                                                 :: snapshotInterpolatorReset
-    type   (fgsl_interp_accel)                              :: snapshotInterpolatorAccelerator
+    type   (mergerTree           ), intent(in),  target         :: thisTree
+    integer                       , parameter                   :: hdfChunkSize=1024, hdfCompressionLevel=9
+    double precision              , allocatable, dimension(:  ) :: nodeMass,nodeRedshift,snapshotTime,snapshotTimeTemp
+    double precision              , allocatable, dimension(:,:) :: nodePosition,nodeVelocity
+    integer(kind=kind_int8       ), allocatable, dimension(:  ) :: descendentIndex,treeIndex,nodeIndex,nodeSnapshot
+    type   (treeNode             ), pointer                     :: thisNode
+    class  (nodeComponentBasic   ), pointer                     :: thisBasicComponent
+    class  (nodeComponentPosition), pointer                     :: thisPositionComponent
+    type   (mergerTree           ), pointer                     :: currentTree
+    integer                       , parameter                   :: snapshotCountIncrement=100
+    integer                                                     :: nodeCount,snapshotCount
+    type   (mergerTreeData       )                              :: mergerTrees
+    logical                                                     :: snapshotInterpolatorReset
+    type   (fgsl_interp_accel    )                              :: snapshotInterpolatorAccelerator
 
     ! Check if module is initialized.
     if (.not.moduleInitialized) then
@@ -172,133 +130,143 @@ contains
     ! Write tree to file.
     if (mergerTreesWrite) then
 
-       ! Reset the tree data structure.
-       call mergerTrees%reset                   (       )
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
 
-       ! Specify a single tree in the structure.
-       call mergerTrees%treeCountSet            (      1)
+          ! Reset the tree data structure.
+          call mergerTrees%reset                   (       )
 
-       ! Specify that we do not want to create individual merger tree reference datasets.
-       call mergerTrees%makeReferences          (.false.)
+          ! Specify a single tree in the structure.
+          call mergerTrees%treeCountSet            (      1)
 
-       ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
-       call mergerTrees%setSelfContained        (.true. )
-       
-       ! Specify that halo masses do include subhalo contributions.
-       call mergerTrees%setIncludesSubhaloMasses(.true. )
-       
-       ! Specify units system used.
-       call mergerTrees%setUnits(unitsMass    ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0,name="Msolar")
-       call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0,name="Mpc"   )
-       call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent=0,scaleFactorExponent=0,name="km/s"  )
+          ! Specify that we do not want to create individual merger tree reference datasets.
+          call mergerTrees%makeReferences          (.false.)
 
-       ! Set cosmology metadata.
-       call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,Omega_Matter()                 )
-       call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,Omega_B     ()                 )
-       call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,Omega_DE    ()                 )
-       call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,Little_H_0  ()                 )
-       call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8     ()                 )
+          ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
+          call mergerTrees%setSelfContained        (.true. )
 
-       ! Set provenance metadata.
-       call mergerTrees%addMetadata(metaDataProvenance,'fileBuiltBy'       ,'Galacticus'                   )
-       call mergerTrees%addMetadata(metaDataProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))
+          ! Specify that halo masses do include subhalo contributions.
+          call mergerTrees%setIncludesSubhaloMasses(.true. )
 
-       ! Count nodes in the tree.
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          call thisNode%walkTree(thisNode)
-       end do
-       call mergerTrees%nodeCountSet(nodeCount)
+          ! Specify units system used.
+          call mergerTrees%setUnits(unitsMass    ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0,name="Msolar")
+          call mergerTrees%setUnits(unitsLength  ,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0,name="Mpc"   )
+          call mergerTrees%setUnits(unitsVelocity,unitsInSI=kilo      ,hubbleExponent=0,scaleFactorExponent=0,name="km/s"  )
 
-       ! Allocate arrays for serialization.
-       call Alloc_Array(treeIndex      ,[nodeCount])
-       call Alloc_Array(nodeIndex      ,[nodeCount])
-       call Alloc_Array(descendentIndex,[nodeCount])
-       call Alloc_Array(nodeMass       ,[nodeCount])
-       call Alloc_Array(nodeRedshift   ,[nodeCount])
-       if (needsSnapshots                ) call Alloc_Array(nodeSnapshot,[nodeCount  ])
-       if (associated(Tree_Node_Position)) call Alloc_Array(nodePosition,[nodeCount,3])
-       if (associated(Tree_Node_Velocity)) call Alloc_Array(nodeVelocity,[nodeCount,3])
+          ! Set cosmology metadata.
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaMatter'       ,Omega_Matter()                 )
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaBaryon'       ,Omega_B     ()                 )
+          call mergerTrees%addMetadata(metaDataCosmology ,'OmegaLambda'       ,Omega_DE    ()                 )
+          call mergerTrees%addMetadata(metaDataCosmology ,'HubbleParam'       ,Little_H_0  ()                 )
+          call mergerTrees%addMetadata(metaDataCosmology ,'sigma_8'           ,sigma_8     ()                 )
+          call mergerTrees%addMetadata(metaDataCosmology ,'powerSpectrumIndex',"not specified"                )
 
-       ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
-       if (needsSnapshots) then
-          call Alloc_Array(snapshotTime,[snapshotCountIncrement])
-          thisNode => thisTree%baseNode
-          snapshotCount=1
-          snapshotTime(snapshotCount)=Tree_Node_Time(thisNode)
+          ! Set provenance metadata.
+          call mergerTrees%addMetadata(metaDataProvenance,'fileBuiltBy'       ,'Galacticus'                   )
+          call mergerTrees%addMetadata(metaDataProvenance,'fileTimestamp'     ,char(Formatted_Date_and_Time()))
+
+          ! Count nodes in the tree.
+          nodeCount=0
+          thisNode => currentTree%baseNode
           do while (associated(thisNode))
-             if (all(snapshotTime(1:snapshotCount) /= Tree_Node_Time(thisNode))) then
-                snapshotCount=snapshotCount+1
-                if (snapshotCount > size(snapshotTime)) then
-                   call Move_Alloc(snapshotTime,snapshotTimeTemp)
-                   call Alloc_Array(snapshotTime,[size(snapshotTimeTemp)+snapshotCountIncrement])
-                   snapshotTime(1:size(snapshotTimeTemp))=snapshotTimeTemp
-                   call Dealloc_Array(snapshotTimeTemp)
-                end if
-                snapshotTime(snapshotCount)=Tree_Node_Time(thisNode)
-             end if
+             nodeCount=nodeCount+1
              call thisNode%walkTree(thisNode)
           end do
-          call Sort_Do(snapshotTime(1:snapshotCount))
-       end if
+          call mergerTrees%nodeCountSet(nodeCount)
 
-       ! Serialize node data to arrays and write to merger tree data structure.
-       treeIndex=thisTree%index
-       nodeCount=0
-       thisNode => thisTree%baseNode
-       do while (associated(thisNode))
-          nodeCount=nodeCount+1
-          nodeIndex      (nodeCount)=thisNode           %index()
-          descendentIndex(nodeCount)=thisNode%parentNode%index()
-          nodeMass       (nodeCount)=Tree_Node_Mass                                                (thisNode)
-          nodeRedshift   (nodeCount)=Redshift_From_Expansion_Factor(Expansion_Factor(Tree_Node_Time(thisNode)))
-          if (associated(Tree_Node_Position)) call Tree_Node_Position(thisNode,nodePosition(nodeCount,:))
-          if (associated(Tree_Node_Velocity)) call Tree_Node_Velocity(thisNode,nodeVelocity(nodeCount,:))
+          ! Allocate arrays for serialization.
+          call Alloc_Array(treeIndex      ,[nodeCount])
+          call Alloc_Array(nodeIndex      ,[nodeCount])
+          call Alloc_Array(descendentIndex,[nodeCount])
+          call Alloc_Array(nodeMass       ,[nodeCount])
+          call Alloc_Array(nodeRedshift   ,[nodeCount])
+          if (needsSnapshots                               ) call Alloc_Array(nodeSnapshot,[nodeCount  ])
+          if (defaultPositionComponent%positionIsGettable()) call Alloc_Array(nodePosition,[nodeCount,3])
+          if (defaultPositionComponent%velocityIsGettable()) call Alloc_Array(nodeVelocity,[nodeCount,3])
+
+          ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
           if (needsSnapshots) then
-             nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
-                  &,Tree_Node_Time(thisNode),reset=snapshotInterpolatorReset,closest=.true.)
+             call Alloc_Array(snapshotTime,[snapshotCountIncrement])
+             thisNode           => currentTree%baseNode
+             thisBasicComponent => thisNode%basic()
+             snapshotCount=1
+             snapshotTime(snapshotCount)=thisBasicComponent%time()
+             do while (associated(thisNode))
+                thisBasicComponent => thisNode%basic()
+                if (all(snapshotTime(1:snapshotCount) /= thisBasicComponent%time())) then
+                   snapshotCount=snapshotCount+1
+                   if (snapshotCount > size(snapshotTime)) then
+                      call Move_Alloc(snapshotTime,snapshotTimeTemp)
+                      call Alloc_Array(snapshotTime,[size(snapshotTimeTemp)+snapshotCountIncrement])
+                      snapshotTime(1:size(snapshotTimeTemp))=snapshotTimeTemp
+                      call Dealloc_Array(snapshotTimeTemp)
+                   end if
+                   snapshotTime(snapshotCount)=thisBasicComponent%time()
+                end if
+                call thisNode%walkTree(thisNode)
+             end do
+             call Sort_Do(snapshotTime(1:snapshotCount))
           end if
-          call thisNode%walkTree(thisNode)
+
+          ! Serialize node data to arrays and write to merger tree data structure.
+          treeIndex=currentTree%index
+          nodeCount=0
+          thisNode => currentTree%baseNode
+          snapshotInterpolatorReset=.true.
+          do while (associated(thisNode))
+             nodeCount=nodeCount+1
+             nodeIndex      (nodeCount)=thisNode       %index()
+             descendentIndex(nodeCount)=thisNode%parent%index()
+             thisBasicComponent    => thisNode%basic   ()
+             thisPositionComponent => thisNode%position()
+             nodeMass       (nodeCount)=                                                thisBasicComponent%mass()
+             nodeRedshift   (nodeCount)=Redshift_From_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
+             if (defaultPositionComponent%positionIsGettable()) nodePosition(nodeCount,:)=thisPositionComponent%position()
+             if (defaultPositionComponent%velocityIsGettable()) nodeVelocity(nodeCount,:)=thisPositionComponent%velocity()
+             if (needsSnapshots) nodeSnapshot(nodeCount)=Interpolate_Locate(snapshotCount,snapshotTime,snapshotInterpolatorAccelerator&
+                     &,thisBasicComponent%time(),reset=snapshotInterpolatorReset,closest=.true.)
+             call thisNode%walkTree(thisNode)
+          end do
+          call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
+          call mergerTrees%setProperty(propertyTypeTreeIndex      ,treeIndex      )
+          call mergerTrees%setProperty(propertyTypeNodeIndex      ,nodeIndex      )
+          call mergerTrees%setProperty(propertyTypeHostIndex      ,nodeIndex      )
+          call mergerTrees%setProperty(propertyTypeDescendentIndex,descendentIndex)
+          call mergerTrees%setProperty(propertyTypeNodeMass       ,nodeMass       )
+          call mergerTrees%setProperty(propertyTypeRedshift       ,nodeRedshift   )
+          if (defaultPositionComponent%positionIsGettable()) then
+             call mergerTrees%setProperty(propertyTypePositionX,nodePosition(:,1))
+             call mergerTrees%setProperty(propertyTypePositionY,nodePosition(:,2))
+             call mergerTrees%setProperty(propertyTypePositionZ,nodePosition(:,3))
+          end if
+          if (defaultPositionComponent%velocityIsGettable()) then
+             call mergerTrees%setProperty(propertyTypeVelocityX,nodeVelocity(:,1))
+             call mergerTrees%setProperty(propertyTypeVelocityY,nodeVelocity(:,2))
+             call mergerTrees%setProperty(propertyTypeVelocityZ,nodeVelocity(:,3))
+          end if
+          if (needsSnapshots) call mergerTrees%setProperty(propertyTypeSnapshot,nodeSnapshot)
+
+          ! Write the tree to file.
+          !$omp critical (Merger_Tree_Write)
+          call mergerTrees%export(char(mergerTreeExportFileName),char(mergerTreeExportOutputFormat),hdfChunkSize,hdfCompressionLevel,append=firstTreeWritten)
+          firstTreeWritten=.true.
+          !$omp end critical (Merger_Tree_Write)
+
+          ! Deallocate arrays.
+          call Dealloc_Array(treeIndex      )
+          call Dealloc_Array(nodeIndex      )
+          call Dealloc_Array(descendentIndex)
+          call Dealloc_Array(nodeMass       )
+          call Dealloc_Array(nodeRedshift   )
+          if (defaultPositionComponent%positionIsGettable()) call Dealloc_Array(nodePosition)
+          if (defaultPositionComponent%velocityIsGettable()) call Dealloc_Array(nodeVelocity)
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
        end do
-       call Interpolate_Done(interpolationAccelerator=snapshotInterpolatorAccelerator,reset=snapshotInterpolatorReset)
-       call mergerTrees%setProperty(propertyTypeTreeIndex      ,treeIndex      )
-       call mergerTrees%setProperty(propertyTypeNodeIndex      ,nodeIndex      )
-       call mergerTrees%setProperty(propertyTypeHostIndex      ,nodeIndex      )
-       call mergerTrees%setProperty(propertyTypeDescendentIndex,descendentIndex)
-       call mergerTrees%setProperty(propertyTypeNodeMass       ,nodeMass       )
-       call mergerTrees%setProperty(propertyTypeRedshift       ,nodeRedshift   )
-       if (associated(Tree_Node_Position)) then
-          call mergerTrees%setProperty(propertyTypePositionX,nodePosition(:,1))
-          call mergerTrees%setProperty(propertyTypePositionY,nodePosition(:,2))
-          call mergerTrees%setProperty(propertyTypePositionZ,nodePosition(:,3))
-       end if
-       if (associated(Tree_Node_Velocity)) then
-          call mergerTrees%setProperty(propertyTypeVelocityX,nodeVelocity(:,1))
-          call mergerTrees%setProperty(propertyTypeVelocityY,nodeVelocity(:,2))
-          call mergerTrees%setProperty(propertyTypeVelocityZ,nodeVelocity(:,3))
-       end if
-       if (needsSnapshots) call mergerTrees%setProperty(propertyTypeSnapshot,nodeSnapshot)
-
-       ! Write the tree to file.
-       !$omp critical (Merger_Tree_Write)
-       call mergerTrees%export(char(mergerTreeExportFileName),char(mergerTreeExportOutputFormat),hdfChunkSize,hdfCompressionLevel,append=firstTreeWritten)
-       firstTreeWritten=.true.
-       !$omp end critical (Merger_Tree_Write)
-
-       ! Deallocate arrays.
-       call Dealloc_Array(treeIndex      )
-       call Dealloc_Array(nodeIndex      )
-       call Dealloc_Array(descendentIndex)
-       call Dealloc_Array(nodeMass       )
-       call Dealloc_Array(nodeRedshift   )
-       if (associated(Tree_Node_Position)) call Dealloc_Array(nodePosition)
-       if (associated(Tree_Node_Velocity)) call Dealloc_Array(nodeVelocity)
-
     end if
 
     return
   end subroutine Merger_Tree_Write
-  
+
 end module Merger_Trees_Write
