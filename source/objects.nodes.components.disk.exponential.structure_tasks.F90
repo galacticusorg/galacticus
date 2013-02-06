@@ -59,21 +59,21 @@ contains
   !# <surfaceDensityTask>
   !#  <unitName>Node_Component_Disk_Exponential_Surface_Density</unitName>
   !# </surfaceDensityTask>
-  subroutine Node_Component_Disk_Exponential_Surface_Density(thisNode,positionCylindrical,massType,componentType,componentDensity)
+  double precision function Node_Component_Disk_Exponential_Surface_Density(thisNode,positionCylindrical,massType,componentType,haloLoaded)
     !% Computes the surface density at a given position for an exponential disk.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Galacticus_Nodes
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    integer                 , intent(in   )          :: massType,componentType
-    double precision        , intent(in   )          :: positionCylindrical(3)
-    double precision        , intent(  out)          :: componentDensity
-    double precision                                 :: fractionalRadius
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    integer                 , intent(in   )           :: massType,componentType
+    double precision        , intent(in   )           :: positionCylindrical(3)
+    logical                 , intent(in   ), optional :: haloLoaded
+    double precision                                  :: fractionalRadius
     
     ! Return immediately if disk component is not requested.    
-    componentDensity=0.0d0
+    Node_Component_Disk_Exponential_Surface_Density=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
 
     ! Get the disk component and check that it is of the exponential class.
@@ -97,29 +97,29 @@ contains
              surfaceDensityCentralTotal          =(thisDiskComponent%massGas()+thisDiskComponent%massStellar())/2.0d0/Pi/radiusScaleDisk**2
              surfaceDensityCentralTotalComputed  =.true.
           end if
-          componentDensity=surfaceDensityCentralTotal
+          Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralTotal
        case (massTypeGaseous)
           if (.not.surfaceDensityCentralGasComputed    ) then
              surfaceDensityCentralGas            = thisDiskComponent%massGas()                                 /2.0d0/Pi/radiusScaleDisk**2
              surfaceDensityCentralGasComputed    =.true.
           end if
-          componentDensity=surfaceDensityCentralGas
+          Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralGas
        case (massTypeStellar)
           if (.not.surfaceDensityCentralStellarComputed) then
              surfaceDensityCentralStellar        =                             thisDiskComponent%massStellar() /2.0d0/Pi/radiusScaleDisk**2
              surfaceDensityCentralStellarComputed=.true.
           end if
-          componentDensity=surfaceDensityCentralStellar
+          Node_Component_Disk_Exponential_Surface_Density=surfaceDensityCentralStellar
        end select
 
        ! Return if no density.
-       if (componentDensity <= 0.0d0) return
+       if (Node_Component_Disk_Exponential_Surface_Density <= 0.0d0) return
        
        ! Compute the actual density.
        fractionalRadius=positionCylindrical(1)/radiusScaleDisk
-       componentDensity=componentDensity*exp(-fractionalRadius)
+       Node_Component_Disk_Exponential_Surface_Density=Node_Component_Disk_Exponential_Surface_Density*exp(-fractionalRadius)
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Surface_Density
+  end function Node_Component_Disk_Exponential_Surface_Density
   
 end module Node_Component_Disk_Exponential_Structure_Tasks

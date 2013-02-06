@@ -50,8 +50,30 @@
   <parameters>
     <parameter>
       <name>galacticStructureRadiusSolverMethod</name>
-      <value>adiabatic</value>
-      <value>simple</value>
+      <value>adiabatic
+      <parameter>
+	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
+	<value>adiabatic</value>
+      </parameter>
+      </value>
+      <value>simple
+      <parameter>
+	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
+	<value>static</value>
+      </parameter>
+      </value>
+      <value>linear
+      <parameter>
+	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
+	<value>static</value>
+      </parameter>
+      </value>
+      <value>fixed
+      <parameter>
+	<name>galacticStructureRadiusSolverInitialRadiusMethod</name>
+	<value>static</value>
+      </parameter>
+      </value>
     </parameter>
   </parameters>
   <parameters>

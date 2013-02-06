@@ -31,7 +31,7 @@ module Galactic_Structure_Potentials
 
 contains
 
-  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType)
+  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded)
     !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
     use Galacticus_Error
     use Input_Parameters
@@ -44,6 +44,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: componentType,massType
+    logical,          intent(in),    optional :: haloLoaded
     double precision, intent(in)              :: radius
     integer                                   :: componentTypeActual,massTypeActual
     double precision                          :: componentPotential
@@ -65,8 +66,8 @@ contains
     Galactic_Structure_Potential=0.0d0
     
     ! Call routines to supply the potential for all components.
-    !# <include directive="potentialTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,radius,componentTypeActual,massTypeActual,componentPotential</functionArgs>
+    !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
+    !#  <functionArgs>thisNode,radius,componentTypeActual,massTypeActual,haloLoaded</functionArgs>
     !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
     include 'galactic_structure.potential.tasks.inc'
     !# </include>

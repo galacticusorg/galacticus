@@ -28,7 +28,7 @@ module Galactic_Structure_Surface_Densities
 
 contains
 
-  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,massType,componentType)
+  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,massType,componentType,haloLoaded)
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
@@ -40,6 +40,7 @@ contains
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in),    optional :: massType,componentType,coordinateSystem
+    logical,          intent(in),    optional :: haloLoaded
     double precision, intent(in)              :: position(3)
     integer                                   :: massTypeActual,coordinateSystemActual,componentTypeActual
     double precision                          :: positionCylindrical(3),componentDensity
@@ -79,8 +80,8 @@ contains
     Galactic_Structure_Surface_Density=0.0d0
 
     ! Call routines to supply the densities for all components.
-    !# <include directive="surfaceDensityTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode,positionCylindrical,massTypeActual,componentTypeActual,componentDensity</functionArgs>
+    !# <include directive="surfaceDensityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
+    !#  <functionArgs>thisNode,positionCylindrical,massTypeActual,componentTypeActual,haloLoaded</functionArgs>
     !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>
     include 'galactic_structure.surface_density.tasks.inc'
     !# </include>

@@ -28,7 +28,7 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merger , &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Density
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -1445,33 +1445,5 @@ contains
 
     return
   end subroutine Node_Component_Hot_Halo_Standard_Formation
-
-  !# <densityTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Density</unitName>
-  !# </densityTask>
-  subroutine Node_Component_Hot_Halo_Standard_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
-    !% Computes the density at a given position in the hot halo.
-    use Hot_Halo_Density_Profile
-    use Galactic_Structure_Options
-    implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    integer                    , intent(in   )          :: massType,componentType
-    double precision           , intent(in   )          :: positionSpherical(3)
-    double precision           , intent(  out)          :: componentDensity
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    
-    componentDensity=0.0d0
-    thisHotHaloComponent => thisNode%hotHalo()
-    select type (thisHotHaloComponent)
-    class is (nodeComponentHotHaloStandard)
-       if (componentType == componentTypeAll .or. componentType == componentTypeHotHalo) then
-          select case (massType)
-          case (massTypeAll,massTypeBaryonic,massTypeGaseous)
-             componentDensity=Hot_Halo_Density(thisNode,positionSpherical(1))
-          end select
-       end if
-    end select
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Density
 
 end module Node_Component_Hot_Halo_Standard

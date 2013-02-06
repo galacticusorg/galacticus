@@ -30,27 +30,31 @@ module Galactic_Structure_Velocity_Dispersions
   ! Module scoped variables used in integrations.
   integer                 :: componentTypeGlobal
   type(treeNode), pointer :: activeNode
+  logical                 :: haloLoadedActual
   !$omp threadprivate(componentTypeGlobal,activeNode)
 
 contains
 
-  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType)
+  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,haloLoaded)
     !% Returns the velocity dispersion of the specified {\tt componentType} in {\tt thisNode} at the given {\tt radius}.
     use FGSL
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
-    type(treeNode),   intent(inout), pointer :: thisNode  
-    double precision, intent(in)             :: radius,radiusOuter
-    integer,          intent(in)             :: componentType
-    double precision                         :: densityVelocityVariance,componentDensity
-    type(c_ptr)                              :: parameterPointer
-    type(fgsl_function)                      :: integrandFunction
-    type(fgsl_integration_workspace)         :: integrationWorkspace
+    type(treeNode),   intent(inout), pointer  :: thisNode  
+    double precision, intent(in)              :: radius,radiusOuter
+    integer,          intent(in)              :: componentType
+    logical,          intent(in),    optional :: haloLoaded
+    double precision                          :: densityVelocityVariance,componentDensity
+    type(c_ptr)                               :: parameterPointer
+    type(fgsl_function)                       :: integrandFunction
+    type(fgsl_integration_workspace)          :: integrationWorkspace
 
     activeNode         => thisNode
     componentTypeGlobal=  componentType
+    haloLoadedActual   =.true.
+    if (present(haloLoaded)) haloLoadedActual=haloLoaded
     densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand,parameterPointer&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
@@ -82,7 +86,7 @@ contains
     Velocity_Dispersion_Integrand= gravitationalConstantGalacticus                                                                     &
          &                        *Galactic_Structure_Enclosed_Mass(activeNode, radius                                               ) &
          &                        /radius**2                                                                                           &
-         &                        *Galactic_Structure_Density      (activeNode,[radius,0.0d0,0.0d0],componentType=componentTypeGlobal)
+         &                        *Galactic_Structure_Density      (activeNode,[radius,0.0d0,0.0d0],componentType=componentTypeGlobal,haloLoaded=haloLoadedActual)
     return
   end function Velocity_Dispersion_Integrand
 

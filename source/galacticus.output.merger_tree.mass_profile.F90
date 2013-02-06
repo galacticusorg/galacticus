@@ -151,7 +151,7 @@ contains
     type(treeNode),          intent(inout), pointer :: thisNode
     integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision,        intent(inout)          :: doubleBuffer (:,:)
     integer                                         :: iRadius
     double precision                                :: massEnclosed
 
@@ -165,7 +165,7 @@ contains
        do iRadius=1,massProfilePropertyCount
           
           ! Find the total mass enclosed.
-          massEnclosed=Galactic_Structure_Enclosed_Mass(thisNode,outputMassProfileRadii(iRadius),componentType=componentTypeAll,massType=massTypeAll)
+          massEnclosed=Galactic_Structure_Enclosed_Mass(thisNode,outputMassProfileRadii(iRadius),componentType=componentTypeAll,massType=massTypeAll,haloLoaded=.true.)
           
           ! Store the resulting mass.
           doubleProperty=doubleProperty+1

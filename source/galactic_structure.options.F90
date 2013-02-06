@@ -23,21 +23,44 @@ module Galactic_Structure_Options
   public
 
   ! Values used to represent different mass types.
-  integer,          parameter :: massTypeAll      =0
-  integer,          parameter :: massTypeDark     =1
-  integer,          parameter :: massTypeBaryonic =2
-  integer,          parameter :: massTypeGalactic =3
-  integer,          parameter :: massTypeGaseous  =4
-  integer,          parameter :: massTypeStellar  =5
-  integer,          parameter :: massTypeBlackHole=6
-
+  integer         , parameter                               :: massTypeCount    = 7
+  integer         , parameter                               :: massTypeUnknown  =-1
+  integer         , parameter                               :: massTypeAll      = 0
+  integer         , parameter                               :: massTypeDark     = 1
+  integer         , parameter                               :: massTypeBaryonic = 2
+  integer         , parameter                               :: massTypeGalactic = 3
+  integer         , parameter                               :: massTypeGaseous  = 4
+  integer         , parameter                               :: massTypeStellar  = 5
+  integer         , parameter                               :: massTypeBlackHole= 6
+  character(len=9), parameter, dimension(0:massTypeCount-1) :: massTypesName    = &
+       &                                                        [                 &
+       &                                                         'all      ',     &
+       &                                                         'dark     ',     &
+       &                                                         'baryonic ',     &
+       &                                                         'galactic ',     &
+       &                                                         'gaseous  ',     &
+       &                                                         'stellar  ',     &
+       &                                                         'blackHole'      &
+       &                                                        ]
+  
   ! Values used to represent different component types.
-  integer,          parameter :: componentTypeAll      =0
-  integer,          parameter :: componentTypeDisk     =1
-  integer,          parameter :: componentTypeSpheroid =2
-  integer,          parameter :: componentTypeHotHalo  =3
-  integer,          parameter :: componentTypeDarkHalo =4
-  integer,          parameter :: componentTypeBlackHole=5
+  integer         , parameter                                    :: componentTypeCount    = 6
+  integer         , parameter                                    :: componentTypeUnknown  =-1
+  integer         , parameter                                    :: componentTypeAll      = 0
+  integer         , parameter                                    :: componentTypeDisk     = 1
+  integer         , parameter                                    :: componentTypeSpheroid = 2
+  integer         , parameter                                    :: componentTypeHotHalo  = 3
+  integer         , parameter                                    :: componentTypeDarkHalo = 4
+  integer         , parameter                                    :: componentTypeBlackHole= 5
+  character(len=9), parameter, dimension(0:componentTypeCount-1) :: componentTypesName    = &
+       &                                                        [                           &
+       &                                                         'all      ',               &
+       &                                                         'disk     ',               &
+       &                                                         'spheroid ',               &
+       &                                                         'hotHalo  ',               &
+       &                                                         'darkHalo ',               &
+       &                                                         'blackHole'                &
+       &                                                         ]
 
   ! Coordinate system options.
   integer,          parameter :: coordinateSystemSpherical  =1
@@ -51,5 +74,45 @@ module Galactic_Structure_Options
 
   ! Suitably large value to represent infinite radius.
   double precision, parameter :: radiusLarge=1.0d10
+
+contains
+
+  integer function Galactic_Structure_Mass_Type_Decode(massTypeName)
+    !% Decode a mass type from a string, returning the appropriate identifier.
+    use Galacticus_Error
+    implicit none
+    character(len=*), intent(in   ) :: massTypeName
+    integer                         :: i
+
+    Galactic_Structure_Mass_Type_Decode=massTypeUnknown
+    do i=0,massTypeCount-1
+       if (trim(massTypeName) == trim(massTypesName(i))) then
+          Galactic_Structure_Mass_Type_Decode=i
+          exit
+       end if
+    end do
+    if (Galactic_Structure_Mass_Type_Decode == massTypeUnknown) &
+         & call Galacticus_Error_Report('Galactic_Structure_Mass_Type_Decode','unrecognized mass specifier ['//trim(massTypeName)//']')
+    return
+  end function Galactic_Structure_Mass_Type_Decode
+
+  integer function Galactic_Structure_Component_Type_Decode(componentTypeName)
+    !% Decode a component type from a string, returning the appropriate identifier.
+    use Galacticus_Error
+    implicit none
+    character(len=*), intent(in   ) :: componentTypeName
+    integer                         :: i
+
+    Galactic_Structure_Component_Type_Decode=componentTypeUnknown
+    do i=0,componentTypeCount-1
+       if (trim(componentTypeName) == trim(componentTypesName(i))) then
+          Galactic_Structure_Component_Type_Decode=i
+          exit
+       end if
+    end do
+    if (Galactic_Structure_Component_Type_Decode == componentTypeUnknown) &
+         & call Galacticus_Error_Report('Galactic_Structure_Component_Type_Decode','unrecognized component specifier ['//trim(componentTypeName)//']')
+    return
+  end function Galactic_Structure_Component_Type_Decode
 
 end module Galactic_Structure_Options

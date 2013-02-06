@@ -317,18 +317,18 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Enclosed_Mass</unitName>
   !# </enclosedMassTask>
-  subroutine Node_Component_Disk_Very_Simple_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
+  double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for an very simple disk.
     use Galactic_Structure_Options
     use Galacticus_Error
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    integer                 , intent(in   )          :: massType,componentType,weightBy,weightIndex
-    double precision        , intent(in   )          :: radius
-    double precision        , intent(  out)          :: componentMass
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    integer                 , intent(in   )           :: massType,componentType,weightBy,weightIndex
+    double precision        , intent(in   )           :: radius
+    logical                 , intent(in   ), optional :: haloLoaded
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
 
-    componentMass=0.0d0
+    Node_Component_Disk_Very_Simple_Enclosed_Mass=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
 
     ! Get the disk component and check that it is of the verySimple class.
@@ -339,24 +339,24 @@ contains
        case (weightByMass      )
           select case (massType)
           case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-             componentMass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
+             Node_Component_Disk_Very_Simple_Enclosed_Mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
           case (massTypeGaseous)
-             componentMass=thisDiskComponent%massGas()
+             Node_Component_Disk_Very_Simple_Enclosed_Mass=thisDiskComponent%massGas()
           case (massTypeStellar)
-             componentMass=                            thisDiskComponent%massStellar()
+             Node_Component_Disk_Very_Simple_Enclosed_Mass=                            thisDiskComponent%massStellar()
           end select
        case default
           call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not track luminosity')
        end select
        ! Return if no mass.
-       if (componentMass <=       0.0d0) return
+       if (Node_Component_Disk_Very_Simple_Enclosed_Mass <=       0.0d0) return
        ! Return if the total mass was requested.
        if (radius        >= radiusLarge) return
        ! Otherwise we have an error.
        call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not specify a mass profile')
     end select
     return
-  end subroutine Node_Component_Disk_Very_Simple_Enclosed_Mass
+  end function Node_Component_Disk_Very_Simple_Enclosed_Mass
 
   double precision function Node_Component_Disk_Very_Simple_SFR(thisNode)
     !% Return the star formation rate of the very simple disk.

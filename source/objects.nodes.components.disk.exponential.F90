@@ -863,19 +863,19 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Node_Component_Disk_Exponential_Enclosed_Mass</unitName>
   !# </enclosedMassTask>
-  subroutine Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,componentMass)
+   double precision function Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for an exponential disk.
     use Galactic_Structure_Options
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    integer                 , intent(in   )          :: massType,componentType,weightBy,weightIndex
-    double precision        , intent(in   )          :: radius
-    double precision        , intent(  out)          :: componentMass
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    double precision                                 :: fractionalRadius,diskRadius
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    integer                 , intent(in   )           :: massType,componentType,weightBy,weightIndex
+    double precision        , intent(in   )           :: radius
+    logical                 , intent(in   ), optional :: haloLoaded
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    double precision                                  :: fractionalRadius,diskRadius
     
     ! Return immediately if disk component is not requested.    
-    componentMass=0.0d0
+    Node_Component_Disk_Exponential_Enclosed_Mass=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
 
     ! Get the disk component and check that it is of the exponential class.
@@ -887,32 +887,32 @@ contains
        case (weightByMass      )
           select case (massType)
           case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-             componentMass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
+             Node_Component_Disk_Exponential_Enclosed_Mass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
           case (massTypeGaseous)
-             componentMass=thisDiskComponent%massGas()
+             Node_Component_Disk_Exponential_Enclosed_Mass=thisDiskComponent%massGas()
           case (massTypeStellar)
-             componentMass=                            thisDiskComponent%massStellar()
+             Node_Component_Disk_Exponential_Enclosed_Mass=                            thisDiskComponent%massStellar()
           end select
        case (weightByLuminosity)
           select case (massType)
           case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
              luminositiesDisk=thisDiskComponent%luminositiesStellar()
-             componentMass   =luminositiesDisk(weightIndex)
+             Node_Component_Disk_Exponential_Enclosed_Mass   =luminositiesDisk(weightIndex)
           end select
        end select
        ! Return if no mass.
-       if (componentMass <=       0.0d0) return
+       if (Node_Component_Disk_Exponential_Enclosed_Mass <=       0.0d0) return
        ! Return if the total mass was requested.
        if (radius        >= radiusLarge) return
        ! Compute the actual mass.
        diskRadius=thisDiskComponent%radius()
        if (diskRadius > 0.0d0) then
           fractionalRadius=radius/diskRadius
-          componentMass=componentMass*Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(fractionalRadius)
+          Node_Component_Disk_Exponential_Enclosed_Mass=Node_Component_Disk_Exponential_Enclosed_Mass*Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(fractionalRadius)
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Enclosed_Mass
+  end function Node_Component_Disk_Exponential_Enclosed_Mass
 
    double precision function Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(radius)
      !% Returns the fractional mass enclosed within {\tt radius} in a dimensionless exponential disk.
@@ -926,20 +926,20 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Disk_Exponential_Rotation_Curve</unitName>
   !# </rotationCurveTask>
-  subroutine Node_Component_Disk_Exponential_Rotation_Curve(thisNode,radius,massType,componentType,componentVelocity)
+   double precision function Node_Component_Disk_Exponential_Rotation_Curve(thisNode,radius,massType,componentType,haloLoaded)
     !% Computes the rotation curve at a given radius for an exponential disk.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    integer                 , intent(in   )          :: massType,componentType
-    double precision        , intent(in   )          :: radius
-    double precision        , intent(  out)          :: componentVelocity
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    double precision                                 :: fractionalRadius,fractionalRadiusFactor,diskRadius,componentMass,halfRadius
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    integer                 , intent(in   )           :: massType,componentType
+    double precision        , intent(in   )           :: radius
+    logical                 , intent(in   ), optional :: haloLoaded
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    double precision                                  :: fractionalRadius,fractionalRadiusFactor,diskRadius,componentMass,halfRadius
 
     ! Set to zero by default.
-    componentVelocity=0.0d0
+    Node_Component_Disk_Exponential_Rotation_Curve=0.0d0
 
     ! Get the disk component and check that it is of the exponential class.
     thisDiskComponent => thisNode%disk()
@@ -947,7 +947,7 @@ contains
     class is (nodeComponentDiskExponential)
            
        ! Get the mass of the disk.
-       call Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
+       componentMass=Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
        if (componentMass <= 0.0d0) return
        
        ! Compute the actual velocity.
@@ -957,7 +957,7 @@ contains
           if (fractionalRadius > fractionalRadiusMaximum) then
              ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
              ! very large arguments.
-             componentVelocity=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
+             Node_Component_Disk_Exponential_Rotation_Curve=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
           else
              ! We are often called at precisely one scale length. Use pre-computed factors in that case.
              if (fractionalRadius == 1.0d0) then
@@ -973,12 +973,12 @@ contains
                 halfRadius=0.5d0*fractionalRadius
                 fractionalRadiusFactor=Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(halfRadius)
              end if
-             componentVelocity=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*fractionalRadiusFactor)
+             Node_Component_Disk_Exponential_Rotation_Curve=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)*fractionalRadiusFactor)
           end if
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Rotation_Curve
+  end function Node_Component_Disk_Exponential_Rotation_Curve
    
    double precision function Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(halfRadius)
      !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
@@ -1043,21 +1043,21 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
   !# <rotationCurveGradientTask>
   !#  <unitName>Node_Component_Disk_Exponential_Rotation_Curve_Gradient</unitName>
   !# </rotationCurveGradientTask>
-  subroutine Node_Component_Disk_Exponential_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+   double precision function Node_Component_Disk_Exponential_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,haloLoaded)
     !% Computes the rotation curve gradient for an exponential disk.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    integer                 , intent(in   )          :: massType,componentType
-    double precision        , intent(in   )          :: radius
-    double precision        , intent(  out)          :: componentRotationCurveGradient
-    double precision                                 :: componentMass,besselArgument,besselFactor
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    integer                 , intent(in   )           :: massType,componentType
+    double precision        , intent(in   )           :: radius
+    logical                 , intent(in   ), optional :: haloLoaded
+    double precision                                  :: componentMass,besselArgument,besselFactor
 
     ! Set to zero by default.
-    componentRotationCurveGradient=0.0d0
+    Node_Component_Disk_Exponential_Rotation_Curve_Gradient=0.0d0
 
     ! Return if radius is zero.
     if (radius <= 0.0d0) return
@@ -1067,7 +1067,7 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
     select type (thisDiskComponent)
     class is (nodeComponentDiskExponential)
 
-       call Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
+       componentMass=Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
        if (componentMass              <= 0.0d0) return
        if (thisDiskComponent%radius() <= 0.0d0) return
        besselArgument= radius                          &
@@ -1077,19 +1077,20 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
        if (2.0d0*besselArgument > fractionalRadiusMaximum) then
           ! Beyond some maximum radius, approximate the disk as a point mass to avoid evaluating Bessel functions for
           ! very large arguments.
-          componentRotationCurveGradient=-gravitationalConstantGalacticus*componentMass/radius**2
+          Node_Component_Disk_Exponential_Rotation_Curve_Gradient=-gravitationalConstantGalacticus*componentMass/radius**2
           return
        end if
 
        ! Checks for low radius and approximations.
        besselFactor=Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs(besselArgument)
-       componentRotationCurveGradient= gravitationalConstantGalacticus    &
+       Node_Component_Disk_Exponential_Rotation_Curve_Gradient=           &
+            &                          gravitationalConstantGalacticus    &
             &                         *componentMass                      &
             &                         *besselFactor                       &
             &                         /thisDiskComponent%radius()**2 
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Rotation_Curve_Gradient
+  end function Node_Component_Disk_Exponential_Rotation_Curve_Gradient
 
   double precision function Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs(halfRadius)
     !% Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
@@ -1161,21 +1162,21 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
   !# <potentialTask>
   !#  <unitName>Node_Component_Disk_Exponential_Potential</unitName>
   !# </potentialTask>
-  subroutine Node_Component_Disk_Exponential_Potential(thisNode,radius,componentType,massType,componentPotential)
+  double precision function Node_Component_Disk_Exponential_Potential(thisNode,radius,componentType,massType,haloLoaded)
     !% Compute the gravitational potential due to an exponential disk.
     use Numerical_Constants_Physical 
     use Bessel_Functions
     use Galactic_Structure_Options
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    integer                 , intent(in   )          :: componentType,massType
-    double precision        , intent(in   )          :: radius
-    double precision        , intent(  out)          :: componentPotential
-    double precision                                 :: halfRadius,correctionSmallRadius,componentMass
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    integer                 , intent(in   )           :: componentType,massType
+    double precision        , intent(in   )           :: radius
+    logical                 , intent(in   ), optional :: haloLoaded
+    double precision                                  :: halfRadius,correctionSmallRadius,componentMass
 
     ! Return immediately if disk component is not requested.    
-    componentPotential=0.0d0
+    Node_Component_Disk_Exponential_Potential=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
 
     ! Avoid an arithmetic exception at radius zero.
@@ -1187,7 +1188,7 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
     class is (nodeComponentDiskExponential)
     
        ! Get the relevant mass of the disk.
-       call Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,componentMass)
+       componentMass=Node_Component_Disk_Exponential_Enclosed_Mass(thisNode,radiusLarge,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
        if (componentMass <= 0.0d0) return
 
        ! Compute the potential. If the radius is lower than the height then approximate the disk mass as being spherically distributed.
@@ -1203,7 +1204,8 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
        end if
        
        ! Compute the potential including the correction to small radii.
-       componentPotential=-0.5d0                             &
+       Node_Component_Disk_Exponential_Potential=            &
+            &             -0.5d0                             &
             &             *gravitationalConstantGalacticus   &
             &             *componentMass                     &
             &             /thisDiskComponent%radius()        & 
@@ -1216,29 +1218,29 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
             &             + correctionSmallRadius
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Potential
+  end function Node_Component_Disk_Exponential_Potential
 
   !# <densityTask>
   !#  <unitName>Node_Component_Disk_Exponential_Density</unitName>
   !# </densityTask>
-  subroutine Node_Component_Disk_Exponential_Density(thisNode,positionSpherical,massType,componentType,componentDensity)
+  double precision function Node_Component_Disk_Exponential_Density(thisNode,positionSpherical,massType,componentType,haloLoaded)
     !% Computes the density at a given position for an exponential disk.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Coordinate_Systems
     use Galacticus_Nodes
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    integer                 , intent(in   )          :: massType,componentType
-    double precision        , intent(in   )          :: positionSpherical(3)
-    double precision        , intent(  out)          :: componentDensity
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    double precision        , parameter              :: diskHeightToRadiusRatio=0.1d0
-    double precision        , parameter              :: coshArgumentMaximum=50.0d0
-    double precision                                 :: fractionalRadius,fractionalHeight,positionCylindrical(3),coshTerm
+    type (treeNode         ), intent(inout), pointer  :: thisNode
+    integer                 , intent(in   )           :: massType,componentType
+    double precision        , intent(in   )           :: positionSpherical(3)
+    logical                 , intent(in   ), optional :: haloLoaded
+    class(nodeComponentDisk),                pointer  :: thisDiskComponent
+    double precision        , parameter               :: diskHeightToRadiusRatio=0.1d0
+    double precision        , parameter               :: coshArgumentMaximum=50.0d0
+    double precision                                  :: fractionalRadius,fractionalHeight,positionCylindrical(3),coshTerm
 
     ! Return immediately if disk component is not requested.    
-    componentDensity=0.0d0
+    Node_Component_Disk_Exponential_Density=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
 
     ! Get the disk component and check that it is of the exponential class.
@@ -1249,14 +1251,14 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
        ! Determine mass type.
        select case (massType)
        case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-          componentDensity=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
+          Node_Component_Disk_Exponential_Density=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
        case (massTypeGaseous)
-          componentDensity=thisDiskComponent%massGas()
+          Node_Component_Disk_Exponential_Density=thisDiskComponent%massGas()
        case (massTypeStellar)
-          componentDensity=                            thisDiskComponent%massStellar()
+          Node_Component_Disk_Exponential_Density=                            thisDiskComponent%massStellar()
        end select
        ! Skip further calculation if mass or radius is zero.
-       if (componentDensity > 0.0d0 .and. thisDiskComponent%radius() > 0.0d0) then
+       if (Node_Component_Disk_Exponential_Density > 0.0d0 .and. thisDiskComponent%radius() > 0.0d0) then
           ! Compute the actual density.
           positionCylindrical=Coordinates_Spherical_To_Cylindrical(positionSpherical)
           fractionalRadius=positionCylindrical(1)/                         thisDiskComponent%radius()
@@ -1266,12 +1268,12 @@ Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable
           else
              coshTerm=1.0d0/cosh(0.5d0*fractionalHeight)**2
           end if
-          componentDensity=componentDensity*exp(-fractionalRadius)*coshTerm/4.0d0/Pi/thisDiskComponent%radius()**3&
-               &/diskHeightToRadiusRatio
+          Node_Component_Disk_Exponential_Density=Node_Component_Disk_Exponential_Density*exp(-fractionalRadius)*coshTerm/4.0d0&
+               &/Pi/thisDiskComponent%radius()**3/diskHeightToRadiusRatio
        end if
     end select
     return
-  end subroutine Node_Component_Disk_Exponential_Density
+  end function Node_Component_Disk_Exponential_Density
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Exponential_Radius_Solver_Plausibility</unitName>
