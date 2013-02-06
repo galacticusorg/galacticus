@@ -70,7 +70,7 @@
     <value>false</value>
   </parameter>
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>
   </parameter>
   <parameter>

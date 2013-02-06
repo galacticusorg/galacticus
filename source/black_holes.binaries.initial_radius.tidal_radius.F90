@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
@@ -65,7 +21,7 @@
 
 module Black_Hole_Binary_Initial_Radii_Tidal_Radius
   !% Implements a black hole binary initial separation based on tidal disruption of the satellite galaxy.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Black_Hole_Binary_Initial_Radii_Tidal_Radius_Initialize
@@ -106,31 +62,26 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type(treeNode         ), intent(inout), pointer  :: thisNode, hostNode
-    type(fgsl_function    ), save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type            (treeNode              ), intent(inout), pointer :: thisNode, hostNode
+    class           (nodeComponentBlackHole),                pointer :: thisBlackHoleComponent
+    type            (fgsl_function         ), save                   :: rootFunction
+    type            (fgsl_root_fsolver     ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                 :: radiusMinimum,radiusMaximum
-    type(c_ptr            )                          :: parameterPointer
+    double precision                                                 :: radiusMinimum,radiusMaximum
+    type            (c_ptr                 )                         :: parameterPointer
 
     ! Assume zero separation by default.
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
-
+    ! Get the black hole component.
+    thisBlackHoleComponent => thisNode%blackHole(instance=1)
     ! If the primary black hole has zero mass (i.e. has been ejected), then return immediately.
-    if (Tree_Node_Black_Hole_Mass(thisNode) <= 0.0d0) return
-
+    if (thisBlackHoleComponent%mass() <= 0.0d0) return
     ! Get the half-mass radius of the satellite galaxy.
     radiusHalfMass=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-
     ! Get the mass within the half-mass radius.
     massHalf=Galactic_Structure_Enclosed_Mass(thisNode,radiusHalfMass,massType=massTypeGalactic)
-
     ! Return zero radius for massless galaxy.
-    if (radiusHalfMass <= 0.0d0 .or. massHalf <= 0.0d0) then
-       Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
-       return
-    end if
-
+    if (radiusHalfMass <= 0.0d0 .or. massHalf <= 0.0d0) return
     ! Solve for the radius around the host at which the satellite gets disrupted.
     activeNode => hostNode
     radiusMinimum=Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
