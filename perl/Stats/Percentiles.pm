@@ -5,9 +5,6 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::Ufunc;
 
-my $status = 1;
-$status;
-
 sub BinnedPercentiles {
     # Distribute input data into specified bins, find the cumulative distribution of (weighted) values and determine the specified
     # percentiles of that distribution.
@@ -60,3 +57,5 @@ sub BinnedPercentiles {
     # Return the results.
     return $results;
 }
+
+1;

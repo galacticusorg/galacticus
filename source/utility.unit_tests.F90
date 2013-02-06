@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,56 +14,13 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements unit testing.
 
 module Unit_Tests
   !% Implements unit testing.
   use ISO_Varying_String
+  implicit none
   private
   public :: Assert, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
 
@@ -91,16 +48,20 @@ module Unit_Tests
   ! Interface for assert routines.
   interface Assert
      !% Generic interface for assert routines.
+     module procedure Assert_Real_Scalar
      module procedure Assert_Double_Scalar
      module procedure Assert_Integer_Scalar
      module procedure Assert_Integer8_Scalar
      module procedure Assert_Character_Scalar
      module procedure Assert_VarString_Scalar
+     module procedure Assert_Logical_Scalar
+     module procedure Assert_Real_1D_Array
      module procedure Assert_Double_1D_Array
      module procedure Assert_Integer_1D_Array
      module procedure Assert_Integer8_1D_Array
      module procedure Assert_Character_1D_Array
      module procedure Assert_VarString_1D_Array
+     module procedure Assert_Logical_1D_Array
      module procedure Assert_Double_2D_Array
      module procedure Assert_Double_3D_Array
      module procedure Assert_Double_4D_Array
@@ -108,6 +69,51 @@ module Unit_Tests
   end interface Assert
 
 contains
+
+  subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
+    !% Assess and record an assertion about real arguments.
+    use Numerical_Comparison
+    implicit none
+    character(len=*),   intent(in)           :: testName
+    real,               intent(in)           :: value1,value2
+    integer,            intent(in), optional :: compare
+    real,               intent(in), optional :: absTol,relTol
+    type(assertResult), pointer              :: thisResult
+    integer                                  :: compareActual
+    logical                                  :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals)
+       passed=.not.Values_Differ(value1,value2,absTol,relTol)
+    case (compareNotEqual          )
+       passed=(value1 /= value2)
+    case (compareLessThan          )
+       passed=(value1  < value2)
+    case (compareGreaterThan       )
+       passed=(value1  > value2)
+    case (compareLessThanOrEqual   )
+       passed=(value1 <= value2)
+    case (compareGreaterThanOrEqual)
+       passed=(value1 >= value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Real_Scalar
 
   subroutine Assert_Double_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
@@ -326,6 +332,57 @@ contains
 
     return
   end subroutine Assert_VarString_Scalar
+
+  subroutine Assert_Real_1D_Array(testName,value1,value2,compare,absTol,relTol)
+    !% Assess and record an assertion about real arguments.
+    use Numerical_Comparison
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    real,               intent(in), dimension(:) :: value1,value2
+    integer,            intent(in), optional     :: compare
+    real,               intent(in), optional     :: absTol,relTol
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual,iTest
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals)
+       passed=.true.
+       do iTest=1,min(size(value1),size(value2))
+          if (Values_Differ(value1(iTest),value2(iTest),absTol,relTol)) then
+             passed=.false.
+             exit
+          end if
+       end do
+    case (compareNotEqual          )
+       passed=all(value1 /= value2)
+    case (compareLessThan          )
+       passed=all(value1  < value2)
+    case (compareGreaterThan       )
+       passed=all(value1  > value2)
+    case (compareLessThanOrEqual   )
+       passed=all(value1 <= value2)
+    case (compareGreaterThanOrEqual)
+       passed=all(value1 >= value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Real_1D_Array
 
   subroutine Assert_Double_1D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
@@ -645,6 +702,42 @@ contains
     return
   end subroutine Assert_Integer_1D_Array
 
+  subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
+    !% Assess and record an assertion about integer arguments.
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    logical,            intent(in), dimension(:) :: value1,value2
+    integer,            intent(in), optional     :: compare
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals  )
+       passed=all(value1 .eqv.  value2)
+    case (compareNotEqual)
+       passed=all(value1 .neqv. value2)
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Logical_1D_Array
+
+
   subroutine Assert_Integer8_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     use Kind_Numbers
@@ -688,6 +781,44 @@ contains
 
     return
   end subroutine Assert_Integer8_1D_Array
+
+  subroutine Assert_Logical_Scalar(testName,value1,value2,compare)
+    !% Assess and record an assertion about logical arguments.
+    use Galacticus_Error
+    implicit none
+    character(len=*),   intent(in)               :: testName
+    logical,            intent(in)               :: value1,value2
+    integer,            intent(in), optional     :: compare
+    type(assertResult), pointer                  :: thisResult
+    integer                                      :: compareActual
+    logical                                      :: passed
+
+    ! Determine what type of comparison to perform.
+    if (present(compare)) then
+       compareActual=compare
+    else
+       compareActual=compareEquals
+    end if
+    
+    ! Perform the comparison.
+    select case (compareActual)
+    case (compareEquals            )
+       passed=value1 .eqv.  value2
+    case (compareNotEqual          )
+       passed=value1 .neqv. value2
+    case default
+       call Galacticus_Error_Report('Assert_Logical_Scalar','assertions about logical variables can be equality or non-equality only')
+    end select
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+
+    ! Store the result.
+    thisResult%result=passed
+    thisResult%label =trim(testName)
+
+    return
+  end subroutine Assert_Logical_Scalar
 
   subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
@@ -827,11 +958,19 @@ contains
        end if
        thisResult => thisResult%nextResult
     end do
-    percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+    if (passCount+FailCount > 0) then
+       percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
+    else
+       percentage=100
+    end if
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
     call Galacticus_Display_Message(message)
-    percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+    if (passCount+FailCount > 0) then
+       percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
+    else
+       percentage=100
+    end if
     message="Tests failed: "
     message=message//failCount//" ("//percentage//"%)"
     call Galacticus_Display_Message(message)
@@ -840,6 +979,7 @@ contains
     thisResult => firstResult%nextResult
     do while (associated(thisResult))
        nextResult => thisResult%nextResult
+       call thisResult%label%destroy()
        deallocate(thisResult)
        call Memory_Usage_Record(sizeof(thisResult),addRemove=-1)
        thisResult => nextResult

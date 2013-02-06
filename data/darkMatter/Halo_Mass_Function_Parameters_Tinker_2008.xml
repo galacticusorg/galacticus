@@ -1,0 +1,62 @@
+<massFunction>
+  <description>Values of the parameters as a function of halo overdensity in the dark matter halo mass function fit from Tinker et al. (2008) taken from Jeremy Tinker's mass function code.</description>
+  <url>http://adsabs.harvard.edu/abs/2008ApJ...688..709T</url>
+  <source>http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar</source>
+  <columns>
+    <overdensity>
+      <data> 200</data>
+      <data> 300</data>
+      <data> 400</data>
+      <data> 600</data>
+      <data> 800</data>
+      <data>1200</data>
+      <data>1600</data>
+      <data>2400</data>
+      <data>3200</data>
+    </overdensity>
+    <normalization>
+      <data>1.858659e-01</data>
+      <data>1.995973e-01</data>
+      <data>2.115659e-01</data>
+      <data>2.184113e-01</data>
+      <data>2.480968e-01</data>
+      <data>2.546053e-01</data>
+      <data>2.600000e-01</data>
+      <data>2.600000e-01</data>
+      <data>2.600000e-01</data>
+    </normalization>
+    <parameterA>
+      <data>1.466904e+00</data>
+      <data>1.521782e+00</data>
+      <data>1.559186e+00</data>
+      <data>1.614585e+00</data>
+      <data>1.869936e+00</data>
+      <data>2.128056e+00</data>
+      <data>2.301275e+00</data>
+      <data>2.529241e+00</data>
+      <data>2.661983e+00</data>
+    </parameterA>
+    <parameterB>
+      <data>2.571104e+00</data>
+      <data>2.254217e+00</data>
+      <data>2.048674e+00</data>
+      <data>1.869559e+00</data>
+      <data>1.588649e+00</data>
+      <data>1.507134e+00</data>
+      <data>1.464374e+00</data>
+      <data>1.436827e+00</data>
+      <data>1.405210e+00</data>
+    </parameterB>
+    <parameterC>
+      <data>1.193958e+00</data>
+      <data>1.270316e+00</data>
+      <data>1.335191e+00</data>
+      <data>1.446266e+00</data>
+      <data>1.581345e+00</data>
+      <data>1.795050e+00</data>
+      <data>1.965613e+00</data>
+      <data>2.237466e+00</data>
+      <data>2.439729e+00</data>
+    </parameterC>
+  </columns>
+</massFunction>

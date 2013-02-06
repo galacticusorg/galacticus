@@ -17,9 +17,6 @@ use Data::Dumper;
 # Define Pi.
 $Pi = pdl 3.141592653589793;
 
-my $status = 1;
-$status;
-
 # Computes the power spectrum of a selected subset of galaxies. This
 # subroutine should be passed a standard data hash reference as used by
 # the Galacticus::HDF5 module which has been initialized for a
@@ -35,8 +32,8 @@ sub Compute_Power_Spectrum {
     # Compute the power spectrum of a selection of galaxies, using the halo model.
 
     # Get the data hash and indices of selected galaxies.
-    my $dataHash = shift;
-    my $selected = shift;
+    my $dataBlock = shift;
+    my $selected  = shift;
     if ( $#_ >= 1 ) {(%options) = @_};
 
     # Check that some galaxies were selected.
@@ -54,75 +51,77 @@ sub Compute_Power_Spectrum {
     }
 
     # Open the file.
-    my $HDFfile = new PDL::IO::HDF5(${$dataHash}{'file'});
+    &HDF5::Open_File($dataBlock);
 
     # Read the linear power spectrum.
-    my $waveNumber          = $HDFfile->group("haloModel")->dataset("wavenumber"   )->get;
-    my $linearPowerSpectrum = $HDFfile->group("haloModel")->dataset("powerSpectrum")->get;
+    my $waveNumber          = $dataBlock->{'hdf5File'}->group("haloModel")->dataset("wavenumber"   )->get;
+    my $linearPowerSpectrum = $dataBlock->{'hdf5File'}->group("haloModel")->dataset("powerSpectrum")->get;
 
     # Get the linear growth factor for this output.
-    my @growthFactor              = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->attrGet("linearGrowthFactor"             );
-    my @growthFactorLogDerivative = $HDFfile->group("Outputs/Output".${$dataHash}{'output'})->attrGet("linearGrowthFactorLogDerivative");
+    my @growthFactor              = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->attrGet("linearGrowthFactor"             );
+    my @growthFactorLogDerivative = $dataBlock->{'hdf5File'}->group("Outputs/Output".$dataBlock->{'output'})->attrGet("linearGrowthFactorLogDerivative");
 
     # Scale the power spectrum by the growth factor.
     $linearPowerSpectrum *= $growthFactor[0]**2;
 
     # Get galaxy data.
-    @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','volumeWeight','nodeBias');
-    if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','nodeMass')};
-    &HDF5::Get_Dataset($dataHash,\@properties);
-    my $dataSets = $dataHash->{'dataSets'};
+    @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','mergerTreeWeight','nodeBias');
+    if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','basicMass')};
+    &HDF5::Get_Dataset($dataBlock,\@properties);
+    my $dataSets = $dataBlock->{'dataSets'};
 
     # Acquire data on profiles and occupancy.
     undef($occupancy);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	# Read Fourier profiles of all relevant dark matter halos.
 	unless ( exists($profiles->{$treeIndex}->{$hostIndex}) ) {
-	    $profiles->{$treeIndex}->{$hostIndex} = $HDFfile->group("haloModel/Output".${$dataHash}{'output'}."/mergerTree".$treeIndex)->dataset("fourierProfile".$hostIndex)->get;
+	    $profiles->{$treeIndex}->{$hostIndex} = $dataBlock->{'hdf5File'}->group("haloModel/Output".$dataBlock->{'output'}."/mergerTree".$treeIndex)->dataset("fourierProfile".$hostIndex)->get;
 	}
 	# Compute occupancy of isolated halos.
 	++$occupancy->{$treeIndex}->{$hostIndex};
     }
 
     # Compute mean galaxy number density.
-    my $meanDensity = ${$dataSets->{'volumeWeight'}}->index($selected)->sum;
+    my $meanDensity = $dataSets->{'mergerTreeWeight'}->index($selected)->sum;
 
     # Compute redshift space terms if required.
     if ( $redshiftSpace == 1 ) {
 	# Compute the Hubble parameter at the selected redshift.
-	$expansionFactor = ${$dataHash->{'outputs'}->{'expansionFactor'}}->index(${$dataHash}{'output'}-1);
-	$hubble = ${$dataHash}{'parameters'}->{'H_0'}
+	$expansionFactor = $dataBlock->{'outputs'}->{'expansionFactor'}->index($dataBlock->{'output'}-1);
+	$hubble = $dataBlock->{'parameters'}->{'H_0'}
 	*sqrt(
-	    ${$dataHash}{'parameters'}->{'Omega_0'}/($expansionFactor**3)
-	    +${$dataHash}{'parameters'}->{'Lambda_0'}
-	    +(1.0-${$dataHash}{'parameters'}->{'Omega_0'}-${$dataHash}{'parameters'}->{'Lambda_0'})/($expansionFactor**2)
+	    $dataBlock->{'parameters'}->{'Omega_Matter'}/($expansionFactor**3)
+	    +$dataBlock->{'parameters'}->{'Omega_DE'}
+	    +(1.0-$dataBlock->{'parameters'}->{'Omega_Matter'}-$dataBlock->{'parameters'}->{'Omega_DE'})/($expansionFactor**2)
 	    );
 	# Compute the growth rate (the quantity often approximated as f(Omega)=Omega^0.6 at z=0).
 	$growthRate = $growthFactorLogDerivative[0];
 
-	    # Construct arrays of wavenumber and power spectrum for interpolation.
+	# Construct arrays of wavenumber and power spectrum for interpolation.
 	$logWaveNumber    = log($waveNumber);
 	$logPowerSpectrum = log($linearPowerSpectrum);
+	$logWaveNumberMinimum = $logWaveNumber->index(0);
+	$logWaveNumberMaximum = $logWaveNumber->index(nelem($logWaveNumber)-1);
 	
 	# Initialize the interpolator.
 	$interp = PDL::GSL::INTERP->init('cspline',$logWaveNumber,$logPowerSpectrum);
 	
 	# Loop over all halos.
 	for(my $i=0;$i<nelem($selected);++$i) {
-	    my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	    my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	    my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	    my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	    my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
+	    my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	    my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	    my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	    if ( $hostIndex == $nodeIndex ) {
 		# Compute virial 1-D velocity dispersion. The normalization factor appearing below is taken from Table 2 of
 		# (Bryan & Norman; 1998; 495; 80-99) in which they calibrate this relation against N-body simulations.
 		my $sigmaVirialNormalization = 0.85;
-		my $sigmaVirial1D = sqrt(0.5*$sigmaVirialNormalization)*${$dataSets->{'nodeVirialVelocity'}}->index($selected->index($i));
+		my $sigmaVirial1D = sqrt(0.5*$sigmaVirialNormalization)*$dataSets->{'nodeVirialVelocity'}->index($selected->index($i));
 
 		# Get the comoving virial radius of the halo.
-		$virialRadius = ${$dataSets->{'nodeVirialRadius'}}->index($selected->index($i))/$expansionFactor;
+		$virialRadius = $dataSets->{'nodeVirialRadius'}->index($selected->index($i))/$expansionFactor;
 
 		# Compute halo-halo velocity dispersion.
 		my $absoluteTolerance   = 1.0e-10;
@@ -149,7 +148,7 @@ sub Compute_Power_Spectrum {
 
 		# Combine virial and halo velocity dispersions.
 		my $sigma = sqrt($sigmaVirial1D**2+($sigmaHalo3D**2)/3.0);
-		
+
 		# Convert velocity dispersion to a comoving distance.
 		$sigma /= $hubble*$expansionFactor;
 		# Compute the R-factors for 1-halo term.
@@ -166,11 +165,11 @@ sub Compute_Power_Spectrum {
     undef($Fv);
     undef($twoHaloFactor);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
-	my $bias      = ${$dataSets->{'nodeBias'         }}->index($selected->index($i));
+	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
+	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
+	my $bias      = $dataSets->{'nodeBias'         }->index($selected->index($i));
 	if ( $hostIndex == $nodeIndex ) {
 	    if ( $redshiftSpace == 1 ) {
 		$Fg += $weight*$bias
@@ -193,14 +192,14 @@ sub Compute_Power_Spectrum {
 
     # Compute 2-halo power spectrum.
     $twoHaloPowerSpectrum = $linearPowerSpectrum*$twoHaloFactor;
-
+ 
     # Compute the 1-halo
     undef($oneHaloPowerSpectrum);
     for(my $i=0;$i<nelem($selected);++$i) {
-	my $weight    = ${$dataSets->{'volumeWeight'     }}->index($selected->index($i));
-	my $nodeIndex = ${$dataSets->{'nodeIndex'        }}->index($selected->index($i));
-	my $treeIndex = ${$dataSets->{'mergerTreeIndex'  }}->index($selected->index($i));
-	my $hostIndex = ${$dataSets->{'isolatedHostIndex'}}->index($selected->index($i));
+	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
+	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
+	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
+	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
 	if ( $hostIndex == $nodeIndex ) {
 	    $haloRp = 1.0;
 	    if ( $occupancy->{$treeIndex}->{$hostIndex} > 1 ) {
@@ -234,17 +233,18 @@ sub Sigma_Integrand {
     my ($myWaveNumber) = @_;
 
     # Get logarithm of wavenumber.
-    $logWaveNumber   = log($myWaveNumber);
+    my $logWaveNumber   = log($myWaveNumber);
 
     # Interpolate to get the power spectrum.
-    $myPowerSpectrum = exp($interp->eval($logWaveNumber,{Extrapolate => 1}));
+    my $myPowerSpectrum = 0.0;    
+    $myPowerSpectrum    = exp($interp->eval($logWaveNumber)) if ( $logWaveNumber > $logWaveNumberMinimum && $logWaveNumber < $logWaveNumberMaximum );
 
     # Compute the window function.
-    $x = $myWaveNumber*$virialRadius;
-    $windowFunction = (3.0/$x**3)*(sin($x)-$x*cos($x));
+    my $x = $myWaveNumber*$virialRadius;
+    my $windowFunction = (3.0/$x**3)*(sin($x)-$x*cos($x));
 
     # Compute the integrand.
-    $integrand       = ($myWaveNumber**(2.0+2.0*$sigmaJ))*$myPowerSpectrum*$windowFunction**2/2.0/($Pi**2);
+    my $integrand = ($myWaveNumber**(2.0+2.0*$sigmaJ))*$myPowerSpectrum*$windowFunction**2/2.0/($Pi**2);
     return $integrand;
 }
 
@@ -306,3 +306,5 @@ sub Correlation_Function_Integrand {
     $integrand       = ($myWaveNumber**2)*$myPowerSpectrum/2.0/($Pi**2)/$separation/$myWaveNumber;
     return $integrand;
 }
+
+1;

@@ -1,0 +1,16 @@
+<filter>
+  <description>Hard X-ray filter (2.0-10.0keV)</description>
+  <name>xRayHard</name>
+  <origin>definition</origin>
+  <note>
+    This is a top-hat filter designed to count photons in the hard X-ray band.
+  </note>
+  <response>
+    <datum>1.240 0.0</datum>
+    <datum>1.241 1.0</datum>
+    <datum>6.199 0.0</datum>
+    <datum>6.200 1.0</datum>
+  </response>
+  <effectiveWavelength>3.7205</effectiveWavelength>
+  <vegaOffset>-122.335043182039</vegaOffset>
+</filter>
