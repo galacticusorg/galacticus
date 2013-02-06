@@ -1,0 +1,56 @@
+<filter>
+  <description>SDSS u vacuum (filter+CCD +0 air mass)</description>
+  <name>SDSS u</name>
+  <origin>Michael Blanton</origin>
+  <response>
+    <datum>2980.000      0.0000000E+00</datum>
+    <datum>3005.000      6.5219998E-03</datum>
+    <datum>3030.000      3.3569999E-02</datum>
+    <datum>3055.000      6.0720000E-02</datum>
+    <datum>3080.000      9.4990000E-02</datum>
+    <datum>3105.000      0.1514000    </datum>
+    <datum>3130.000      0.2252000    </datum>
+    <datum>3155.000      0.3074000    </datum>
+    <datum>3180.000      0.3901000    </datum>
+    <datum>3205.000      0.4690000    </datum>
+    <datum>3230.000      0.5438000    </datum>
+    <datum>3255.000      0.6150000    </datum>
+    <datum>3280.000      0.6808000    </datum>
+    <datum>3305.000      0.7384000    </datum>
+    <datum>3330.000      0.7874000    </datum>
+    <datum>3355.000      0.8293000    </datum>
+    <datum>3380.000      0.8664000    </datum>
+    <datum>3405.000      0.9016000    </datum>
+    <datum>3430.000      0.9325000    </datum>
+    <datum>3455.000      0.9559000    </datum>
+    <datum>3480.000      0.9735000    </datum>
+    <datum>3505.000      0.9889000    </datum>
+    <datum>3530.000       1.000000    </datum>
+    <datum>3555.000       1.005000    </datum>
+    <datum>3580.000       1.008000    </datum>
+    <datum>3605.000       1.011000    </datum>
+    <datum>3630.000       1.014000    </datum>
+    <datum>3655.000       1.014000    </datum>
+    <datum>3680.000       1.003000    </datum>
+    <datum>3705.000      0.9768000    </datum>
+    <datum>3730.000      0.9344000    </datum>
+    <datum>3755.000      0.8776000    </datum>
+    <datum>3780.000      0.8035000    </datum>
+    <datum>3805.000      0.7102000    </datum>
+    <datum>3830.000      0.6037000    </datum>
+    <datum>3855.000      0.4901000    </datum>
+    <datum>3880.000      0.3670000    </datum>
+    <datum>3905.000      0.2360000    </datum>
+    <datum>3930.000      0.1266000    </datum>
+    <datum>3955.000      6.5059997E-02</datum>
+    <datum>3980.000      3.6370002E-02</datum>
+    <datum>4005.000      1.9210000E-02</datum>
+    <datum>4030.000      8.7460000E-03</datum>
+    <datum>4055.000      4.6319999E-03</datum>
+    <datum>4080.000      3.2619999E-03</datum>
+    <datum>4105.000      1.8760000E-03</datum>
+    <datum>4130.000      0.0000000E+00</datum>
+  </response>
+  <effectiveWavelength>3531.99187390837</effectiveWavelength>
+  <vegaOffset>-0.935108309028028</vegaOffset>
+</filter>
