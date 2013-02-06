@@ -12,6 +12,10 @@
       <name>outputRedshifts</name>
       <value>0.0 0.07 0.1</value>
     </parameter>
+    <parameter>
+      <name>mergerTreeBuildTreesPerDecade</name>
+      <value>100</value>
+    </parameter>
     <!-- Luminosities -->
     <parameter>
       <name>luminosityFilter</name>

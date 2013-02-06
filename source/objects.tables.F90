@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,7 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
 
 !% Contains a module which defines a {\tt table} class with optimized interpolation operators.
 
@@ -58,7 +57,7 @@ module Tables
   
   interface
      double precision function Table1D_Interpolate(self,x,table)
-       !% Interface to {\tt table} destructor.
+       !% Interface to {\tt table} interpolator.
        import table1D
        implicit none
        class(table1D)  , intent(inout)           :: self
@@ -74,6 +73,7 @@ module Tables
      logical                    :: reset
    contains
      procedure :: create              => Table_Generic_1D_Create
+     procedure :: destroy             => Table_Generic_1D_Destroy
      procedure ::                        Table_Generic_1D_Populate
      procedure ::                        Table_Generic_1D_Populate_Single
      generic   :: populate            => Table_Generic_1D_Populate, Table_Generic_1D_Populate_Single
@@ -132,7 +132,7 @@ module Tables
 contains
 
   subroutine Table_1D_Destroy(self)
-    !% Create a 1-D table.
+    !% Destroy a 1-D table.
     use Memory_Management
     use Numerical_Ranges
     implicit none
@@ -169,7 +169,7 @@ contains
   end function Table1D_Xs
 
   double precision function Table1D_Y(self,i,table)
-    !% Return the {\tt i}^${\rm th}$ $y$-value for a 1D table.
+    !% Return the {\tt i}$^{\rm th}$ $y$-value for a 1D table.
     use Galacticus_Error
     implicit none
     class  (table1D), intent(in   )           :: self
@@ -268,6 +268,17 @@ contains
     self%reset=.true.
     return
   end subroutine Table_Generic_1D_Create
+
+  subroutine Table_Generic_1D_Destroy(self)
+    !% Destroy a generic 1-D table.
+    use Numerical_Interpolation
+    implicit none
+    class(table1DGeneric), intent(inout) :: self
+    
+    call Table_1D_Destroy(self)
+    call Interpolate_Done(self%interpolator,self%accelerator,self%reset)
+    return
+  end subroutine Table_Generic_1D_Destroy
 
   subroutine Table_Generic_1D_Populate(self,y,table)
     !% Populate a 1-D generic table.
@@ -441,7 +452,7 @@ contains
        else if (x >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((x-self%xv(1))*self%inverseDeltaX)+1
+          i=max(min(int((x-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
        end if       
        ! Compute the interpolating factor.
        h=(x-self%xv(i))*self%inverseDeltaX    
@@ -567,6 +578,17 @@ contains
     self%inverseDeltaX=1.0d0/self%deltaX
     return
   end subroutine Table_Linear_CSpline_1D_Create
+
+  subroutine Table_Linear_CSpline_1D_Destroy(self)
+    !% Destroy a linear cubic-sline 1-D table.
+    use Memory_Management
+    implicit none
+    class(table1DLinearCSpline), intent(inout) :: self
+    
+    call Table_1D_Destroy(self)
+    if (allocated(self%sv)) call Dealloc_Array(self%sv)
+    return
+  end subroutine Table_Linear_CSpline_1D_Destroy
 
   subroutine Table_Linear_CSpline_1D_Populate(self,y,table,computeSpline)
     !% Populate a 1-D linear table.

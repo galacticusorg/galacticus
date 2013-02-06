@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -149,10 +149,10 @@ contains
           currentNode => currentNode%parent
        end do
        ! Check if this is the same tree, at the same time as on the previous call.
-       if (time /= timePrevious .or. thisNode%uniqueId() /= uniqueIdPrevious) then
+       if (time /= timePrevious .or. currentNode%uniqueId() /= uniqueIdPrevious) then
           ! It is not, so record the new tree root unique ID and the new time.
           timePrevious    =time
-          uniqueIdPrevious=thisNode%uniqueId()
+          uniqueIdPrevious=currentNode%uniqueId()
           ! Find the most massive progenitor in the tree at this time.
           mostMassiveProgenitorMass=0.0d0
           do while (associated(currentNode))

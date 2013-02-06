@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -42,7 +42,7 @@ contains
 
   double precision function Power_Spectrum_Nonlinear_Linear(waveNumber,time)
     !% Return a nonlinear power spectrum equal to the linear power spectrum. (Useful mostly for testing.)
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Linear_Growth
     implicit none
     double precision, intent(in) :: waveNumber,time

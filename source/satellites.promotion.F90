@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -28,12 +28,23 @@ contains
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\tt satelliteNode} to be a satellite of {\tt newHostNode}.
     use Galacticus_Nodes
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
     !# <include directive="satelliteHostChangeTask" type="moduleUse">
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode), pointer, intent(inout) :: satelliteNode,newHostNode
-    type(treeNode), pointer                :: lastSatelliteNode
+    type(treeNode      ), pointer, intent(inout) :: satelliteNode,newHostNode
+    type(treeNode      ), pointer                :: lastSatelliteNode
+    type(varying_string)                         :: message
+
+    ! Report if necessary.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//']'
+       call Galacticus_Display_Message(message)
+    end if
 
     ! First remove from its current host.
     call satelliteNode%removeFromHost()

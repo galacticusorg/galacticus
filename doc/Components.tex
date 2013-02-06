@@ -44,9 +44,13 @@ The rest mass accretion rate is removed (as a mass sink) from the spheroid and h
  \item [Radio-mode] If {\tt [blackHoleHeatsHotHalo]}$=${\tt true} then any jet power from the black hole-accretion disk system (see \S\ref{sec:CircumnuclearDisks}) is included in the hot halo heating rate providing that the halo is in the slow cooling regime\footnote{Specifically, the jet power multiplied by $f_{\rm hot} [(M_{\rm hot}/M_{\rm total}) (\Omega_{\rm M}/\Omega_{\rm b})]^2$ is added to the hot halo heating rate. The dependence on the gas fraction in the hot halo ensures that the heating rate goes smoothly to zero as the hot halo becomes depleted of gas.}\index{feedback!AGN}\index{active galactic nuclei (AGN)!feedback} (i.e. if the cooling radius is smaller than the virial radius; see, for example, \citealt{benson_cold_2010});
  \item [Quasar-mode] A mechanical wind luminosity of \citep{ostriker_momentum_2010}
 \begin{equation}
- L_{\rm wind} = \epsilon_{\bullet, wind} \dot{M}_0 \clight^2,
+ L_{\rm wind} = \epsilon_{\bullet, {\rm wind}} H(\epsilon_{\rm radiation},1,s) \dot{M}_0 \clight^2,
 \end{equation}
-where $\epsilon_{\bullet wind}=${\tt [blackHoleWindEfficiency]} is the black hole wind efficiency, is added to the gas \gls{component} of the spheroid (which, presumably, will respond with an outflow for example) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas \citep{ciotti_feedbackcentral_2009}, i.e.
+where $\epsilon_{\bullet {\rm wind}}=${\tt [blackHoleWindEfficiency]} is the black hole wind efficiency,\newline $s$={\tt blackHoleWindEfficiencyScalesWithRadiativeEfficiency}, and
+\begin{equation}
+H(a,b,c) = \left\{\begin{array}{ll}a & \hbox{ if } c={\tt true} \\b & \hbox{ if } c={\tt false},\end{array}\right.
+\end{equation}
+is added to the gas \gls{component} of the spheroid (which, presumably, will respond with an outflow for example---see \S\ref{sec:ComponentSpheroid} for details of how specific implementations of the spheroid component respond to the addition of energy) if and only if the wind pressure (at the spheroid characteristic radius) is less than the typical thermal pressure in the spheroid gas \citep{ciotti_feedbackcentral_2009}, i.e.
 \begin{eqnarray}
  P_{\rm wind} &<& P_{\rm ISM} \nonumber \\
  \frac{1}{2}\rho_{\rm wind} V_{\rm wind}^2 &<& {3 {\rm k_B} T_{\rm ISM} \langle \rho_{\rm ISM}\rangle \over 2 m_{\rm H}}.
@@ -453,7 +457,7 @@ The option {\tt [diskRadiusSolverCole2000Method]}, if set to {\tt true}, alters 
 \end{equation}
 where $V_{\rm disk}$ is the rotation curve in the plane of an infinitely thin exponential disk. This adjustment accounts for the difference between a thin disk and spherical mass distribution. Note that in this case (as in \citealt{cole_hierarchical_2000}) the resulting disk will not precisely satisfy $j(r) = r V_{\rm c}(r)$ where $V_{\rm c}(r)$ is the net rotation curve.
 
-\section{Galactic Spheroid}
+\section{Galactic Spheroid}\label{sec:ComponentSpheroid}
 
 \subsection{``Standard'' Implementation}
 

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -25,24 +25,33 @@ module Node_Branch_Jumps
   
 contains
 
-  subroutine Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
+  logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
     use Input_Parameters
     use Galacticus_Nodes
     use Galacticus_Error
-    use Merger_Trees
+    use Galacticus_Display
     use Merger_Trees_Evolve_Deadlock_Status
+    use ISO_Varying_String
+    use String_Handling
     implicit none
-    class  (nodeEvent ),          intent(in   ) :: thisEvent
-    type   (treeNode  ), pointer, intent(inout) :: thisNode
-    integer            ,          intent(inout) :: deadlockStatus
-    type   (nodeEvent ), pointer                :: pairEvent,lastEvent,nextEvent
-    type   (treeNode  ), pointer                :: newHost,lastSatellite
-    type   (mergerTree)                         :: thisTree
-    logical                                     :: pairMatched
+    class  (nodeEvent     ),          intent(in   ) :: thisEvent
+    type   (treeNode      ), pointer, intent(inout) :: thisNode
+    integer                ,          intent(inout) :: deadlockStatus
+    type   (treeNode      ), pointer                :: newHost,lastSatellite
+    type   (varying_string)                         :: message
 
-    ! If the node is not yet a satellite, it must become one.
-    if (.not.thisNode%isSatellite()) call thisTree%mergeNode(thisNode)
+    ! If the node is not yet a satellite, wait until it is before peforming this task.
+    if (.not.thisNode%isSatellite()) then
+       Node_Branch_Jump=.false.
+       return
+    else
+       Node_Branch_Jump=.true.
+    end if
+    ! Report.
+    message='Node ['
+    message=message//thisNode%index()//'] jumping branch to ['//thisEvent%node%index()//']'
+    call Galacticus_Display_Message(message,verbosityInfo)
     ! Remove the satellite from its current host.
     call thisNode%removeFromHost()
     ! Find the new host and insert the node as a satellite in that new host.
@@ -56,32 +65,10 @@ contains
        newHost      %firstSatellite => thisNode
     end if
     ! Locate the paired event in the host and remove it.
-    pairEvent => newHost%event
-    lastEvent => newHost%event
-    ! Iterate over all events.
-    pairMatched=.false.
-    do while (associated(pairEvent).and..not.pairMatched)
-       ! Match the paired event ID with the current event ID.
-       if (pairEvent%ID == thisEvent%ID) then
-          pairMatched=.true.
-          if (associated(pairEvent,newHost%event)) then
-             newHost  %event => pairEvent%next
-             lastEvent       => newHost %event
-          else
-             lastEvent%next  => pairEvent%next
-          end if
-          nextEvent => pairEvent%next
-          deallocate(pairEvent)
-          pairEvent => nextEvent
-       else
-          lastEvent => pairEvent
-          pairEvent => pairEvent%next
-       end if
-    end do
-    if (.not.pairMatched) call Galacticus_Error_Report('Node_Branch_Jump','unable to find paired event')
+    call newHost%removePairedEvent(thisEvent)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=isNotDeadlocked
     return
-  end subroutine Node_Branch_Jump
+  end function Node_Branch_Jump
   
 end module Node_Branch_Jumps
