@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -67,7 +67,7 @@ $redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$reds
 
 # Read the XML data file.
 $xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/Star_Formation_Rate_Data.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/starFormationRate/Star_Formation_Rate_Data.xml");
 $iDataset = -1;
 $chiSquared = 0.0;
 $degreesOfFreedom = 0;
@@ -124,17 +124,21 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     $dataSets[$iDataset]->{'label'}       = $dataSet->{'label'};
 
     # Compute a binned mean star formation rate.
+    $e      = sqrt($yUpperError**2+$yLowerError**2);
     $weight = 1.0/($yUpperError**2+$yLowerError**2);
     ($yBinned,$yBinnedError,$ySigma,$ySigmaError)
 	= &Means::BinnedMean($redshiftBins,$x,$y,$weight);
+    ($eBinned,$eBinnedError,$eSigma,$eSigmaError)
+	= &Means::BinnedMean($redshiftBins,$x,$e,$weight);
+    $sigmaMax = which($ySigma > $eBinned);
+    $eBinned->index($sigmaMax) .= $ySigma->index($sigmaMax);
     $empty = which($yBinnedError == 0.0);
-    $yBinnedError->index($empty) .= 1.0e30;
+    $eBinned->index($empty) .= 1.0e30;
 
     # Interpolate model to data points and compute chi^2.
     ($sfrInterpolated,$error) = interpolate($redshiftBins,$redshift,$SFR);
-    $chiSquared += sum((($yBinned-$sfrInterpolated)/$yBinnedError)**2);
+    $chiSquared += sum((($yBinned-$sfrInterpolated)/$eBinned)**2);
     $degreesOfFreedom += nelem($yBinned)-nelem($empty);
-
 }
 
 # Display chi^2 information if requested.
@@ -152,7 +156,7 @@ my $plot;
 my $gnuPlot;
 my $plotFile = $outputFile;
 (my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
-open($gnuPlot,"|gnuplot");
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 print $gnuPlot "set output '".$plotFileEPS."'\n";
 print $gnuPlot "set title 'Star Formation Rate History'\n";

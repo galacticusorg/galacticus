@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
@@ -123,10 +79,10 @@ contains
     return
   end subroutine Black_Hole_Binary_Separation_Growth_Rate_Standard_Init
 
-  double precision function Black_Hole_Binary_Separation_Growth_Rate_Standard(thisNode)
+  double precision function Black_Hole_Binary_Separation_Growth_Rate_Standard(thisBlackHoleComponent)
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Bessel_Functions
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
@@ -141,221 +97,238 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, parameter              :: hardeningRateDimensionless    =15.0d0
-    double precision, parameter              :: outerRadiusMultiplier         =10.0d0
-    double precision, parameter              :: dynamicalFrictionMinimumRadius=0.1d0
-    double precision                         :: rateScattering, rateGravitationalWaves, dynamicalFrictionAcceleration,&
-         & densitySpheroid, densityDarkMatter, dynamicalFrictionXSpheroid, dynamicalFrictionXDarkMatter, coulombLogarithmSpheroid&
-         &, coulombLogarithmDarkMatter, rotationCurveTotal, densityStellar, stellarDensityFractionRemaining &
-         &,rateScatteringDynamicalFriction, rateScatteringStars, velocityDispersionSpheroid, velocityDispersionDarkMatter,&
-         & radiusHardBinary,rotationCurveGradient
-    character(len=24)                        :: message
-
+    class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+    type            (treeNode              ),                pointer :: thisNode
+    class           (nodeComponentBlackHole),                pointer :: centralBlackHoleComponent
+    class           (nodeComponentSpheroid ),                pointer :: thisSpheroidComponent
+    double precision                        , parameter              :: hardeningRateDimensionless    =15.0d0
+    double precision                        , parameter              :: outerRadiusMultiplier         =10.0d0
+    double precision                        , parameter              :: dynamicalFrictionMinimumRadius=0.1d0
+    double precision                                                 :: rateScattering, rateGravitationalWaves,&
+         & dynamicalFrictionAcceleration, densitySpheroid, densityDarkMatter, dynamicalFrictionXSpheroid,&
+         & dynamicalFrictionXDarkMatter, coulombLogarithmSpheroid , coulombLogarithmDarkMatter, densityStellar,&
+         & stellarDensityFractionRemaining ,rateScatteringDynamicalFriction, rateScatteringStars, velocityDispersionSpheroid,&
+         & velocityDispersionDarkMatter, radiusHardBinary,rotationCurveGradient
+    character(len=24)                                                :: message
+    
+    ! Get the host node.
+    thisNode                  => thisBlackHoleComponent%host()
+    ! Get the primary (central) black hole of this node.
+    centralBlackHoleComponent => thisNode%blackHole(instance=1)
     ! Return a zero separation growth rate if the black hole has non-positive radial position or either black hole (active or
     ! central) has negative mass.
-    if     (                                                                    &
-         &   Tree_Node_Black_Hole_Radial_Position(thisNode           ) <= 0.0d0 &
-         &  .or.                                                                &
-         &   Tree_Node_Black_Hole_Mass           (thisNode           ) <= 0.0d0 &
-         &  .or.                                                                &
-         &   Tree_Node_Black_Hole_Mass           (thisNode,instance=1) <= 0.0d0 &
+    if     (                                                     &
+         &   thisBlackHoleComponent   %radialPosition() <= 0.0d0 &
+         &  .or.                                                 &
+         &   thisBlackHoleComponent   %mass          () <= 0.0d0 &
+         &  .or.                                                 &
+         &   centralBlackHoleComponent%mass          () <= 0.0d0 &
          & ) then
        Black_Hole_Binary_Separation_Growth_Rate_Standard=0.0d0
        return
     end if
-
+    ! Get the spheroid component.
+    thisSpheroidComponent => thisNode%spheroid()
     ! Compute the velocity dispersion of stars and dark matter.
     if (blackHoleBinariesComputeVelocityDispersion) then
-       velocityDispersionSpheroid  =Galactic_Structure_Velocity_Dispersion(                                                                      &
-            &                                                                                                   thisNode,                        &
-            &                                                              Tree_Node_Black_Hole_Radial_Position(thisNode),                       &
-            &                                                              Tree_Node_Spheroid_Radius           (thisNode)*outerRadiusMultiplier, &
-            &                                                              componentTypeSpheroid                                                 &
+       velocityDispersionSpheroid  =Galactic_Structure_Velocity_Dispersion(                                                                       &
+            &                                                                                                    thisNode,                        &
+            &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
+            &                                                              thisSpheroidComponent %radius        (        )*outerRadiusMultiplier, &
+            &                                                              componentTypeSpheroid                                                  &
             &                                                             )
-       velocityDispersionDarkMatter=Galactic_Structure_Velocity_Dispersion(                                                                      &
-            &                                                                                                   thisNode,                        &
-            &                                                              Tree_Node_Black_Hole_Radial_Position(thisNode),                       &
-            &                                                              Dark_Matter_Halo_Virial_Radius      (thisNode)*outerRadiusMultiplier, &
-            &                                                              componentTypeDarkHalo                                                 &
+       velocityDispersionDarkMatter=Galactic_Structure_Velocity_Dispersion(                                                                       &
+            &                                                                                                    thisNode,                        &
+            &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
+            &                                                              Dark_Matter_Halo_Virial_Radius       (thisNode)*outerRadiusMultiplier, &
+            &                                                              componentTypeDarkHalo                                                  &
             &                                                             )
     else
-       velocityDispersionSpheroid  =Tree_Node_Spheroid_Velocity     (thisNode)
+       velocityDispersionSpheroid  =thisSpheroidComponent%velocity  (        )
        velocityDispersionDarkMatter=Dark_Matter_Halo_Virial_Velocity(thisNode)
     end if
     ! Compute the separation growth rate due to emission of gravitational waves.
-    rateGravitationalWaves=-( 256.0d0                                                  &
-         &             *gravitationalConstantGalacticus**3                             &
-         &             *  Tree_Node_Black_Hole_Mass           (thisNode           )    &
-         &             *  Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
-         &             *(                                                              &
-         &                Tree_Node_Black_Hole_Mass           (thisNode           )    &
-         &               +Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
-         &              )                                                              &
-         &            )                                                                &
-         &           /(                                                                &
-         &              5.0d0                                                          &
-         &             *(speedLight*milli)**5                                          &
-         &             *  Tree_Node_Black_Hole_Radial_Position(thisNode           )**3 &
-         &            )                                                                &
+    rateGravitationalWaves=-( 256.0d0                                &
+         &             *gravitationalConstantGalacticus**3           &
+         &             *  thisBlackHoleComponent   %mass       ()    &
+         &             *  centralBlackHoleComponent%mass       ()    &
+         &             *(                                            &
+         &                thisBlackHoleComponent   %mass       ()    &
+         &               +centralBlackHoleComponent%mass       ()    &
+         &              )                                            &
+         &            )                                              &
+         &           /(                                              &
+         &              5.0d0                                        &
+         &             *(speedLight*milli)**5                        &
+         &             *  thisBlackHoleComponent%radialPosition()**3 &
+         &            )                                              &
          &           /Mpc_per_km_per_s_To_Gyr
     ! Compute the hard binary radius, where shrinking of the binary switches from dynamical friction to hardening due to strong
     ! scattering of individual stars.
-    radiusHardBinary= (                                                         &
-         &              gravitationalConstantGalacticus                         &
-         &             *(                                                       &
-         &                Tree_Node_Black_Hole_Mass       (thisNode           ) &
-         &               +Tree_Node_Black_Hole_Mass       (thisNode,instance=1) &
-         &              )                                                       &
-         &            )                                                         &
-         &           /(                                                         &
-         &              4.0d0                                                   &
-         &             *velocityDispersionSpheroid**2                           &
-         &            )
-    
+    if (velocityDispersionSpheroid > 0.0d0) then
+       radiusHardBinary= (                                    &
+            &              gravitationalConstantGalacticus    &
+            &             *(                                  &
+            &                thisBlackHoleComponent   %mass() &
+            &               +centralBlackHoleComponent%mass() &
+            &              )                                  &
+            &            )                                    &
+            &           /(                                    &
+            &              4.0d0                              &
+            &             *velocityDispersionSpheroid**2      &
+            &            )
+    else
+       radiusHardBinary=0.0d0
+    end if
     ! First, check if the change in stellar density due to the binary's inward motion is to be computed.
     stellarDensityFractionRemaining=1.0d0
     ! If it does change, we first compute the fraction of that change according to Volonteri et al. (2003) else we set it as the
     ! normal density.
-    if (stellarDensityChangeBinaryMotion)                                                                                                                   &
-         &  stellarDensityFractionRemaining=(                                                  Tree_Node_Black_Hole_Radial_Position(thisNode           )    &
-         &                                   *                                                 velocityDispersionSpheroid**2                                &
-         &                                   *(4.0d0/3.0d0)/(gravitationalConstantGalacticus*( Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
-         &                                                                                    +Tree_Node_Black_Hole_Mass           (thisNode           )    &
-         &                                                                                   )                                                              &
-         &                                   *log                                            (                                                              &
-         &                                                   gravitationalConstantGalacticus*  Tree_Node_Black_Hole_Mass           (thisNode           )    &
-         &                                                                                    /4.0d0                                                        &
-         &                                                                                    /velocityDispersionSpheroid**2                                &
-         &                                                                                    /Tree_Node_Black_Hole_Radial_Position(thisNode           )    &
-         &                                                                                   )                                                              &
-         &                                                  )                                                                                               &
+    if (stellarDensityChangeBinaryMotion .and. velocityDispersionSpheroid > 0.0d0)                                                        &
+         &  stellarDensityFractionRemaining=(                                                  thisBlackHoleComponent   %radialPosition() &
+         &                                   *                                                 velocityDispersionSpheroid**2              &
+         &                                   *(4.0d0/3.0d0)/(gravitationalConstantGalacticus*( centralBlackHoleComponent%mass          () &
+         &                                                                                    +thisBlackHoleComponent   %mass          () &
+         &                                                                                   )                                            &
+         &                                   *log                                            (                                            &
+         &                                                   gravitationalConstantGalacticus*  thisBlackHoleComponent   %mass          () &
+         &                                                                                    /4.0d0                                      &
+         &                                                                                    /velocityDispersionSpheroid**2              &
+         &                                                                                    /thisBlackHoleComponent   %radialPosition() &
+         &                                                                                   )                                            &
+         &                                                  )                                                                             &
          &                                  )**2
     ! Limit the density fraction to unity.
     stellarDensityFractionRemaining=min(stellarDensityFractionRemaining,1.0d0)
-
     ! Compute the stellar density, accounting for any loss.
-    densityStellar= Galactic_Structure_Density(                                       thisNode               &
-         &                                     ,[Tree_Node_Black_Hole_Radial_Position(thisNode),0.0d0,0.0d0] &
-         &                                     ,coordinateSystem=coordinateSystemSpherical                   &
-         &                                     ,massType        =massTypeStellar                             &
-         &                                     ,componentType   =componentTypeSpheroid                       &
-         &                                    )                                                              &
+    densityStellar= Galactic_Structure_Density(thisNode                                             , &
+         &                                     [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
+         &                                     coordinateSystem=coordinateSystemCylindrical         , &
+         &                                     massType        =massTypeStellar                     , &
+         &                                     componentType   =componentTypeSpheroid                 &
+         &                                    )                                                       &
          &         *stellarDensityFractionRemaining
- 
     ! Compute the hardening rate due to strong scattering of individual stars.
-    rateScatteringStars=-gravitationalConstantGalacticus                   &
-         &              *densityStellar                                    &
-         &              *Tree_Node_Black_Hole_Radial_Position(thisNode)**2 &
-         &              *hardeningRateDimensionless                        &
-         &              /velocityDispersionSpheroid                        &
-         &              /Mpc_per_km_per_s_To_Gyr  
-
+    if (velocityDispersionSpheroid > 0.0d0) then
+       rateScatteringStars=-gravitationalConstantGalacticus            &
+            &              *densityStellar                             &
+            &              *thisBlackHoleComponent%radialPosition()**2 &
+            &              *hardeningRateDimensionless                 &
+            &              /velocityDispersionSpheroid                 &
+            &              /Mpc_per_km_per_s_To_Gyr  
+    else
+       rateScatteringStars=0.0d0
+    end if
     ! Check if the binary has sufficiently large separation that we should compute the rate of hardening due to dynamical friction.
-    if (Tree_Node_Black_Hole_Radial_Position(thisNode) > dynamicalFrictionMinimumRadius*radiusHardBinary) then
+    if (thisBlackHoleComponent%radialPosition() > dynamicalFrictionMinimumRadius*radiusHardBinary) then
        ! Compute the total density, including dark matter.
-       densitySpheroid  =Galactic_Structure_Density(                                       thisNode               &
-            &                                       ,[Tree_Node_Black_Hole_Radial_Position(thisNode),0.0d0,0.0d0] &
-            &                                       ,coordinateSystem=coordinateSystemSpherical                   &
-            &                                       ,massType        =massTypeGalactic                            &
+       densitySpheroid  =Galactic_Structure_Density(thisNode                                             , &
+            &                                       [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
+            &                                       coordinateSystem=coordinateSystemCylindrical         , &
+            &                                       massType        =massTypeGalactic                      &
             &                                      )                                                              
-       densityDarkMatter=Galactic_Structure_Density(                                       thisNode               &
-            &                                       ,[Tree_Node_Black_Hole_Radial_Position(thisNode),0.0d0,0.0d0] &
-            &                                       ,coordinateSystem=coordinateSystemSpherical                   &
-            &                                       ,massType        =massTypeDark                                &
+       densityDarkMatter=Galactic_Structure_Density(thisNode                                             , &
+            &                                       [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
+            &                                       coordinateSystem=coordinateSystemCylindrical         , &
+            &                                       massType        =massTypeDark                          &
             &                                      )
        ! Compute the Coulomb logarithms for dynamical friction.
-       coulombLogarithmSpheroid  = (                                                                &
-            &                          Tree_Node_Black_Hole_Radial_Position(thisNode           )    &
-            &                       *  velocityDispersionSpheroid**2                                &
-            &                      )                                                                &
-            &                     /(                                                                &
-            &                        gravitationalConstantGalacticus                                &
-            &                       *(                                                              &
-            &                          Tree_Node_Black_Hole_Mass           (thisNode           )    &
-            &                         +Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
-            &                        )                                                              &
+       coulombLogarithmSpheroid  = (                                              &
+            &                          thisBlackHoleComponent   %radialPosition() &
+            &                       *  velocityDispersionSpheroid**2              &
+            &                      )                                              &
+            &                     /(                                              &
+            &                        gravitationalConstantGalacticus              &
+            &                       *(                                            &
+            &                          thisBlackHoleComponent   %mass          () &
+            &                         +centralBlackHoleComponent%mass          () &
+            &                        )                                            &
             &                      )
-       coulombLogarithmDarkMatter= (                                                                &
-            &                          Tree_Node_Black_Hole_Radial_Position(thisNode           )    &
-            &                       *  velocityDispersionDarkMatter**2                              &
-            &                      )                                                                &
-            &                     /(                                                                &
-            &                        gravitationalConstantGalacticus                                &
-            &                       *(                                                              &
-            &                          Tree_Node_Black_Hole_Mass           (thisNode           )    &
-            &                         +Tree_Node_Black_Hole_Mass           (thisNode,instance=1)    &
-            &                        )                                                              &
+       coulombLogarithmDarkMatter= (                                              &
+            &                          thisBlackHoleComponent   %radialPosition() &
+            &                       *  velocityDispersionDarkMatter**2            &
+            &                      )                                              &
+            &                     /(                                              &
+            &                        gravitationalConstantGalacticus              &
+            &                       *(                                            &
+            &                          thisBlackHoleComponent   %mass          () &
+            &                         +centralBlackHoleComponent%mass          () &
+            &                        )                                            &
             &                      )
        ! Compute the rotation curve of the galaxy and the additional contribution from the active black hole. Add them in
        ! quadrature to get an estimate of the actual orbital speed of the black hole binary.
        ! Precompute the "X" term appearing in the dynamical friction formula.
-       dynamicalFrictionXSpheroid  = Galactic_Structure_Rotation_Curve(                                                &
-            &                                                                                                thisNode  &
-            &                                                          ,Tree_Node_Black_Hole_Radial_Position(thisNode) &
-            &                                                         )                                                &
-            &                       /dsqrt(2.0d0)                                                                      &
-            &                       /velocityDispersionSpheroid
-       dynamicalFrictionXDarkMatter= Galactic_Structure_Rotation_Curve(                                                &
-            &                                                                                                thisNode  &
-            &                                                          ,Tree_Node_Black_Hole_Radial_Position(thisNode) &
-            &                                                         )                                                &
-            &                 /dsqrt(2.0d0)                                                                            &
+       if (velocityDispersionSpheroid > 0.0d0) then
+          dynamicalFrictionXSpheroid  = Galactic_Structure_Rotation_Curve(                                         &
+               &                                                          thisNode                               , &
+               &                                                          thisBlackHoleComponent%radialPosition()  &
+               &                                                         )                                         &
+               &                       /sqrt(2.0d0)                                                                &
+               &                       /velocityDispersionSpheroid
+       else
+          dynamicalFrictionXSpheroid=0.0d0
+       end if
+       dynamicalFrictionXDarkMatter= Galactic_Structure_Rotation_Curve(                                         &
+            &                                                          thisNode                               , &
+            &                                                          thisBlackHoleComponent%radialPosition()  &
+            &                                                         )                                         &
+            &                 /sqrt(2.0d0)                                                                      &
             &                 /velocityDispersionDarkMatter
        ! Compute the acceleration due to dynamical friction.
-       dynamicalFrictionAcceleration=-4.0d0                                                                                         & 
-            &                        *Pi                                                                                            &
-            &                        *gravitationalConstantGalacticus**2                                                            &
-            &                        *Tree_Node_Black_Hole_Mass(thisNode)                                                           &
-            &                        *0.5d0                                                                                         &
-            &                        /Galactic_Structure_Rotation_Curve(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))**2 &
-            &                        /Mpc_per_km_per_s_To_Gyr                                                                       &
-            &                        *(                                                                                             &
-            &                           densitySpheroid                                                                             &
-            &                          *log(1.0d0+coulombLogarithmSpheroid**2)                                                      &
-            &                          *(                                                                                           &
-            &                             erf(dynamicalFrictionXSpheroid)                                                           &
-            &                            -(                                                                                         &
-            &                               2.0d0                                                                                   &
-            &                              *dynamicalFrictionXSpheroid                                                              &
-            &                              /dsqrt(Pi)                                                                               &
-            &                              *exp(-dynamicalFrictionXSpheroid**2)                                                     &
-            &                             )                                                                                         &
-            &                           )                                                                                           &
-            &                          +densityDarkMatter                                                                           &
-            &                          *log(1.0d0+coulombLogarithmDarkMatter**2)                                                    &
-            &                          *(                                                                                           &
-            &                             erf(dynamicalFrictionXDarkMatter)                                                         &
-            &                            -(                                                                                         &
-            &                               2.0d0                                                                                   &
-            &                              *dynamicalFrictionXDarkMatter                                                            &
-            &                              /dsqrt(Pi)                                                                               &
-            &                              *exp(-dynamicalFrictionXDarkMatter**2)                                                   &
-            &                             )                                                                                         &
-            &                           )                                                                                           &
+       dynamicalFrictionAcceleration=-4.0d0                                                                                  & 
+            &                        *Pi                                                                                     &
+            &                        *gravitationalConstantGalacticus**2                                                     &
+            &                        *thisBlackHoleComponent%mass()                                                          &
+            &                        *0.5d0                                                                                  &
+            &                        /Galactic_Structure_Rotation_Curve(thisNode,thisBlackHoleComponent%radialPosition())**2 &
+            &                        /Mpc_per_km_per_s_To_Gyr                                                                &
+            &                        *(                                                                                      &
+            &                           densitySpheroid                                                                      &
+            &                          *log(1.0d0+coulombLogarithmSpheroid**2)                                               &
+            &                          *(                                                                                    &
+            &                             erf(dynamicalFrictionXSpheroid)                                                    &
+            &                            -(                                                                                  &
+            &                               2.0d0                                                                            &
+            &                              *dynamicalFrictionXSpheroid                                                       &
+            &                              /dsqrt(Pi)                                                                        &
+            &                              *exp(-dynamicalFrictionXSpheroid**2)                                              &
+            &                             )                                                                                  &
+            &                           )                                                                                    &
+            &                          +densityDarkMatter                                                                    &
+            &                          *log(1.0d0+coulombLogarithmDarkMatter**2)                                             &
+            &                          *(                                                                                    &
+            &                             erf(dynamicalFrictionXDarkMatter)                                                  &
+            &                            -(                                                                                  &
+            &                               2.0d0                                                                            &
+            &                              *dynamicalFrictionXDarkMatter                                                     &
+            &                              /dsqrt(Pi)                                                                        &
+            &                              *exp(-dynamicalFrictionXDarkMatter**2)                                            &
+            &                             )                                                                                  &
+            &                           )                                                                                    &
             &                         )
        ! Compute the radial inflow velocity due to dynamical friction.
-       rotationCurveGradient          =(                                                                                                     &
-            &                            Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
-            &                           +Tree_Node_Black_Hole_Radial_Position      (thisNode                                               ) &
-            &                           *Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode)) &
+       rotationCurveGradient          =(                                                                                              &
+            &                            Galactic_Structure_Rotation_Curve         (thisNode,thisBlackHoleComponent%radialPosition()) &
+            &                           +                                                    thisBlackHoleComponent%radialPosition()  &
+            &                           *Galactic_Structure_Rotation_Curve_Gradient(thisNode,thisBlackHoleComponent%radialPosition()) &
             &                          )
        if (rotationCurveGradient == 0.0d0) then
           call Galacticus_Display_Indent('dynamical friction calculation report')
-          write (message,'(a,e12.6)') '    V(r) = ',Galactic_Structure_Rotation_Curve         (thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          write (message,'(a,i12)  ') 'nodeIndex = ',thisNode%index()
+          write (message,'(a,e12.6)') '     V(r) = ',Galactic_Structure_Rotation_Curve         (thisNode,thisBlackHoleComponent%radialPosition())
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') '       r = ',Tree_Node_Black_Hole_Radial_Position      (thisNode                                               )
+          write (message,'(a,e12.6)') '        r = ',                                                    thisBlackHoleComponent%radialPosition()
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') 'dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(thisNode,Tree_Node_Black_Hole_Radial_Position(thisNode))
+          write (message,'(a,e12.6)') ' dV(r)/dr = ',Galactic_Structure_Rotation_Curve_Gradient(thisNode,thisBlackHoleComponent%radialPosition())
           call Galacticus_Display_Message(trim(message))
-          write (message,'(a,e12.6)') '  a_{df} = ',dynamicalFrictionAcceleration
+          write (message,'(a,e12.6)') '   a_{df} = ',dynamicalFrictionAcceleration
           call Galacticus_Display_Message(trim(message))
           call Galacticus_Display_Unindent('done')
           call Galacticus_Error_Report('Black_Hole_Binary_Separation_Growth_Rate_Standard','rotation curve gradient is zero')
        end if
-       rateScatteringDynamicalFriction= 2.0d0                                                                                                &
-            &                          *dynamicalFrictionAcceleration                                                                        &
-            &                          *Tree_Node_Black_Hole_Radial_Position(thisNode)                                                       &
+       rateScatteringDynamicalFriction= 2.0d0                                   &
+            &                          *dynamicalFrictionAcceleration           &
+            &                          *thisBlackHoleComponent%radialPosition() &
             &                          /rotationCurveGradient
        ! Take the most negative rate from dynamical friction or scattering of stars.
        rateScattering=min(rateScatteringDynamicalFriction,rateScatteringStars)
@@ -363,7 +336,6 @@ contains
        ! For sufficiently small radii assume that scattering of individual stars always dominates over dynamical friction.
        rateScattering=rateScatteringStars
     end if
-
     ! Sum the two contributions to the radial growth rate.
     Black_Hole_Binary_Separation_Growth_Rate_Standard=rateScattering+rateGravitationalWaves 
     return

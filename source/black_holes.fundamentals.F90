@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,56 +14,12 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements fundamental properties of black holes.
 
 module Black_Hole_Fundamentals
   !% Implements fundamental properties of black holes.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Gravitational_Radius,&
@@ -158,29 +114,28 @@ contains
     return
   end function Black_Hole_ISCO_Radius_Spin
 
-  double precision function Black_Hole_Eddington_Accretion_Rate(thisNode)
-    !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\tt thisNode}.
+  double precision function Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
+    !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\tt thisBlackHole}.
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
 
-    Black_Hole_Eddington_Accretion_Rate=4.0d0*Pi*gravitationalConstant*Tree_Node_Black_Hole_Mass(thisNode)*massHydrogenAtom&
+    Black_Hole_Eddington_Accretion_Rate=4.0d0*Pi*gravitationalConstant*thisBlackHole%mass()*massHydrogenAtom&
          &*gigaYear/thomsonCrossSection/speedLight
-
     return
   end function Black_Hole_Eddington_Accretion_Rate
 
-  double precision function Black_Hole_ISCO_Radius_Node(thisNode,units,orbit)
+  double precision function Black_Hole_ISCO_Radius_Node(thisBlackHole,units,orbit)
     !% Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
-    !% circular orbit for the black hole in {\tt thisNode}.
+    !% circular orbit for the black hole in {\tt thisBlackHole}.
     use Galacticus_Error
     implicit none
-    type(treeNode), intent(inout), pointer  :: thisNode
-    integer,        intent(in),    optional :: units,orbit
-    integer                                 :: unitsActual,orbitActual
-    double precision                        :: blackHoleSpin
+    class(nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    integer                      , intent(in   ), optional :: units,orbit
+    integer                                                :: unitsActual,orbitActual
+    double precision                                       :: blackHoleSpin
  
     ! Determine what system of units to use.
     if (present(units)) then
@@ -197,26 +152,26 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Compute the radius of the innermost stable circular orbit in units of the gravitational radius.
     Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbitActual)
 
     ! Convert to physical units if necessary.
-    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Node*Black_Hole_Gravitational_Radius(thisNode)
+    if (unitsActual == unitsPhysical) Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Node*Black_Hole_Gravitational_Radius(thisBlackHole)
     return
   end function Black_Hole_ISCO_Radius_Node
 
-  double precision function Black_Hole_ISCO_Specific_Energy_Node(thisNode,units,orbit)
+  double precision function Black_Hole_ISCO_Specific_Energy_Node(thisBlackHole,units,orbit)
     !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
     !% stable circular orbit for the black hole in {\tt thisNode}.
     use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: units,orbit
-    integer                                   :: unitsActual
-    double precision                          :: blackHoleSpin
+    class(nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    integer,                       intent(in),    optional :: units,orbit
+    integer                                                :: unitsActual
+    double precision                                       :: blackHoleSpin
  
     ! Determine what system of units to use.
     if (present(units)) then
@@ -226,14 +181,14 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the dimensionless ISCO energy.
     Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
-         &*gravitationalConstantGalacticus*Tree_Node_Black_Hole_Mass(thisNode)**2/Black_Hole_Gravitational_Radius(thisNode)
+         &*gravitationalConstantGalacticus*thisBlackHole%mass()**2/Black_Hole_Gravitational_Radius(thisBlackHole)
     return
   end function Black_Hole_ISCO_Specific_Energy_Node
 
@@ -264,20 +219,20 @@ contains
     return
   end function Black_Hole_ISCO_Specific_Energy_Spin
 
-  double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisNode,units,orbit)
+  double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units,orbit)
     !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
-    !% innermost stable circular orbit for the black hole in {\tt thisNode}.
+    !% innermost stable circular orbit for the black hole in {\tt thisBlackHole}.
     use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: units,orbit
+    class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    integer                                 , intent(in   ), optional :: units,orbit
     ! Maximum spin above which we use series solution.
-    double precision, parameter               :: maximumSpin=0.99999d0
+    double precision                        , parameter               :: maximumSpin=0.99999d0
     ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
-    double precision, parameter               :: coefficientZeroth=1.154700538d0, coefficientFirst=1.832972849d0
-    integer                                   :: unitsActual,orbitActual
-    double precision                          :: blackHoleSpin,blackHoleIscoRadius
+    double precision                        , parameter               :: coefficientZeroth=1.154700538d0, coefficientFirst=1.832972849d0
+    integer                                                           :: unitsActual,orbitActual
+    double precision                                                  :: blackHoleSpin,blackHoleIscoRadius
  
     ! Determine what system of units to use.
     if (present(units)) then
@@ -294,8 +249,8 @@ contains
     end if
 
     ! Get black hole spin and ISCO radius.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
-    blackHoleIscoRadius=Black_Hole_ISCO_Radius(thisNode,units=unitsGravitational,orbit=orbitActual)
+    blackHoleSpin      =thisBlackHole%spin()
+    blackHoleIscoRadius=Black_Hole_ISCO_Radius(thisBlackHole,units=unitsGravitational,orbit=orbitActual)
 
     ! Compute the specific angular momentum in gravitational units.
     if (blackHoleSpin > maximumSpin) then
@@ -308,30 +263,30 @@ contains
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Angular_Momentum=Black_Hole_ISCO_Specific_Angular_Momentum &
-         &*dsqrt(gravitationalConstantGalacticus*Tree_Node_Black_Hole_Mass(thisNode)*Black_Hole_Gravitational_Radius(thisNode))
+         &*dsqrt(gravitationalConstantGalacticus*thisBlackHole%mass()*Black_Hole_Gravitational_Radius(thisBlackHole))
     return
   end function Black_Hole_ISCO_Specific_Angular_Momentum
 
-  double precision function Black_Hole_Gravitational_Radius(thisNode)
-    !% Computes the gravitational radius (in Mpc) for the black hole in {\tt thisNode}.
+  double precision function Black_Hole_Gravitational_Radius(thisBlackHole)
+    !% Computes the gravitational radius (in Mpc) for the {\tt thisBlackHole}.
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
 
-    Black_Hole_Gravitational_Radius=gravitationalConstantGalacticus*Tree_Node_Black_Hole_Mass(thisNode)/(milli*speedLight)**2
+    Black_Hole_Gravitational_Radius=gravitationalConstantGalacticus*thisBlackHole%mass()/(milli*speedLight)**2
     return
   end function Black_Hole_Gravitational_Radius
 
-  double precision function Black_Hole_Frame_Dragging_Frequency_Node(thisNode,radius,units)
+  double precision function Black_Hole_Frame_Dragging_Frequency_Node(thisBlackHole,radius,units)
     !% Returns the frame-dragging angular velocity in the Kerr metric.
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer    :: thisNode
-    double precision, intent(in)                :: radius
-    integer,          intent(in),    optional   :: units
-    integer                                     :: unitsActual
-    double precision                            :: blackHoleSpin,radiusDimensionless
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    double precision                        , intent(in   )           :: radius
+    integer                                 , intent(in   ), optional :: units
+    integer                                                           :: unitsActual
+    double precision                                                  :: blackHoleSpin,radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -345,13 +300,13 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisNode)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        call Galacticus_Error_Report('Black_Hole_Frame_Dragging_Frequency_Spin','unrecognized units')
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -367,15 +322,15 @@ contains
     return
   end function Black_Hole_Frame_Dragging_Frequency_Spin
 
-  double precision function Black_Hole_Metric_A_Factor_Node(thisNode,radius,units)
-    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\tt thisNode}.
+  double precision function Black_Hole_Metric_A_Factor_Node(thisBlackHole,radius,units)
+    !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for {\tt thisBlackHole}.
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer    :: thisNode
-    double precision, intent(in)                :: radius
-    integer,          intent(in),    optional   :: units
-    integer                                     :: unitsActual
-    double precision                            :: blackHoleSpin,radiusDimensionless
+    class(nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    double precision             , intent(in   )           :: radius
+    integer                      , intent(in   ), optional :: units
+    integer                                                :: unitsActual
+    double precision                                       :: blackHoleSpin,radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -389,13 +344,13 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisNode)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        call Galacticus_Error_Report('Black_Hole_Metric_A_Factor_Spin','unrecognized units')
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     Black_Hole_Metric_A_Factor_Node=Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -411,15 +366,15 @@ contains
     return
   end function Black_Hole_Metric_A_Factor_Spin
 
-  double precision function Black_Hole_Metric_D_Factor_Node(thisNode,radius,units)
-    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\tt thisNode}.
+  double precision function Black_Hole_Metric_D_Factor_Node(thisBlackHole,radius,units)
+    !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for {\tt thisBlackHole}.
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer    :: thisNode
-    double precision, intent(in)                :: radius
-    integer,          intent(in),    optional   :: units
-    integer                                     :: unitsActual
-    double precision                            :: blackHoleSpin,radiusDimensionless
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    double precision                        , intent(in   )           :: radius
+    integer                                 , intent(in   ), optional :: units
+    integer                                                           :: unitsActual
+    double precision                                                  :: blackHoleSpin,radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -433,13 +388,13 @@ contains
     case (unitsGravitational)
        radiusDimensionless=radius
     case (unitsPhysical)
-       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisNode)
+       radiusDimensionless=radius/Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        call Galacticus_Error_Report('Black_Hole_Metric_D_Factor_Spin','unrecognized units')
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     Black_Hole_Metric_D_Factor_Node=Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radiusDimensionless)
     return
@@ -455,15 +410,15 @@ contains
     return
   end function Black_Hole_Metric_D_Factor_Spin
 
-  double precision function Black_Hole_Horizon_Radius_Node(thisNode,units)
+  double precision function Black_Hole_Horizon_Radius_Node(thisBlackHole,units)
     !% Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\tt j}.
     !% The radius is in units of the gravitational radius.
     use Galacticus_Error
     implicit none
-    type(treeNode),  intent(inout), pointer  :: thisNode
-    integer,         intent(in),    optional :: units
-    double precision                         :: blackHoleSpin,radiusDimensionless
-    integer                                  :: unitsActual
+    class           (nodeComponentBlackHole), intent(inout), pointer  :: thisBlackHole
+    integer                                 , intent(in   ), optional :: units
+    double precision                                                  :: blackHoleSpin,radiusDimensionless
+    integer                                                           :: unitsActual
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -473,14 +428,14 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     radiusDimensionless=Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
     select case (unitsActual)
     case (unitsGravitational)
        Black_Hole_Horizon_Radius_Node=radiusDimensionless
     case (unitsPhysical)
-       Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisNode)
+       Black_Hole_Horizon_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        call Galacticus_Error_Report('Black_Hole_Horizon_Radius_Node','unrecognized units')
     end select
@@ -498,15 +453,15 @@ contains
     return
   end function Black_Hole_Horizon_Radius_Spin
   
-  double precision function Black_Hole_Static_Radius_Node(thisNode,theta,units)
-    !% Return the radius of the static limit for a Kerr metric for the black hole in {\tt thisNode} and angle {\tt theta}.
+  double precision function Black_Hole_Static_Radius_Node(thisBlackHole,theta,units)
+    !% Return the radius of the static limit for a Kerr metric for the black hole in {\tt thisBlackHole} and angle {\tt theta}.
     use Galacticus_Error
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: units
-    double precision, intent(in),    optional :: theta
-    double precision                          :: blackHoleSpin,radiusDimensionless
-    integer                                   :: unitsActual
+    class(nodeComponentBlackHole), intent(inout)           :: thisBlackHole
+    integer                      , intent(in   ), optional :: units
+    double precision             , intent(in   ), optional :: theta
+    double precision                                       :: blackHoleSpin,radiusDimensionless
+    integer                                                :: unitsActual
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -516,7 +471,7 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the dimensionless static radius.
     radiusDimensionless=Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
@@ -526,7 +481,7 @@ contains
     case (unitsGravitational)
        Black_Hole_Static_Radius_Node=radiusDimensionless
     case (unitsPhysical)
-       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisNode)
+       Black_Hole_Static_Radius_Node=radiusDimensionless*Black_Hole_Gravitational_Radius(thisBlackHole)
     case default
        call Galacticus_Error_Report('Black_Hole_Static_Radius_Node','unrecognized units')
     end select
@@ -571,15 +526,15 @@ contains
     return
   end function A2
 
-  double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(thisNode)
+  double precision function Black_Hole_Rotational_Energy_Spin_Down_Node(thisBlackHole)
     !% Wrapper function for \href{func:black_hole_rotational_energy_spin_down_spin}{{\tt
     !% Black\_Hole\_Rotational\_Energy\_Spin\_Down\_Node}} which takes a tree node as input.
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
-    double precision                        :: blackHoleSpin
+    class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                             :: blackHoleSpin
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the spin down function.
     Black_Hole_Rotational_Energy_Spin_Down_Node=Black_Hole_Rotational_Energy_Spin_Down_Spin(blackHoleSpin)

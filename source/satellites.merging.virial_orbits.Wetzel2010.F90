@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
 
@@ -100,7 +56,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Hypergeometric_Functions
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
     procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
@@ -137,42 +93,43 @@ contains
  function Virial_Orbital_Parameters_Wetzel2010(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
     !% Return orbital velocities of a satellite selected at random from the fitting function found by \cite{wetzel_orbits_2010}.
     use Pseudo_Random
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Galacticus_Error
     use Critical_Overdensity
     use Numerical_Interpolation
     use Root_Finder
     use Cosmology_Functions
-    use FGSL
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     implicit none
-    type(keplerOrbit)                                :: thisOrbit
-    type(treeNode),          intent(inout), pointer  :: thisNode,hostNode
-    logical,                 intent(in)              :: acceptUnboundOrbits
-    double precision,        parameter               :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
-    double precision,        parameter               :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
-    double precision,        parameter               :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type(fgsl_interp),       save                    :: interpolationObject
-    type(fgsl_interp_accel), save                    :: interpolationAccelerator
-    logical,                 save                    :: interpolationReset=.true.
+    type (keplerOrbit       )                         :: thisOrbit
+    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical,                   intent(in)             :: acceptUnboundOrbits
+    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision,          parameter              :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
+    double precision,          parameter              :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
+    double precision,          parameter              :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    type(fgsl_interp),         save                   :: interpolationObject
+    type(fgsl_interp_accel),   save                   :: interpolationAccelerator
+    logical,                   save                   :: interpolationReset=.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-    type(fgsl_function),     save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
+    type(fgsl_function),       save                   :: rootFunction
+    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                      :: parameterPointer
-    double precision                                 :: g1,R1,timeNode,massCharacteristic,expansionFactor&
+    type(c_ptr)                                       :: parameterPointer
+    double precision                                  :: g1,R1,timeNode,massCharacteristic,expansionFactor&
          &,pericentricRadius,apocentricRadius,probabilityTotal,circularity,eccentricityInternal,radialScale
-    logical                                          :: foundOrbit
+    logical                                           :: foundOrbit
 
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
-    call thisOrbit%massesSet(Tree_Node_Mass(thisNode),Tree_Node_Mass(hostNode))
+    thisBasicComponent => thisNode%basic()
+    hostBasicComponent => hostNode%basic()
+    call thisOrbit%massesSet(thisBasicComponent%mass(),hostBasicComponent%mass())
     call thisOrbit%radiusSet(Dark_Matter_Halo_Virial_Radius(hostNode))
 
     ! Get the time at which this node exists.
-    timeNode=Tree_Node_Time(thisNode)
+    timeNode=thisBasicComponent%time()
 
     ! Get the expansion factor.
     expansionFactor=Expansion_Factor(timeNode)
@@ -269,7 +226,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
@@ -285,7 +241,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer,         intent(in) :: stateFile
