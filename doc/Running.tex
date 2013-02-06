@@ -1,8 +1,35 @@
 \chapter{Running Galacticus}
 
+\section{Configuration File}\label{sec:ConfigFile}\index{galacticusConfig.xml@{\tt galacticusConfig.xml}}\index{configuration}
+
+The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+\begin{verbatim}
+<config>
+  <contact>
+    <name>My Name</name>
+    <email>me@ivory.towers.edu</email>
+  </contact>
+  <email>
+    <host>
+      <name>myComputerHostName</name>
+      <method>smtp</method>
+      <host>smtp-server.ivory.towers.edu</host>
+      <user>myUserName</user>
+      <passwordFrom>kdewallet</passwordFrom>
+    </host>
+    <host>
+      <name>default</name>
+      <method>sendmail</method>
+    </host>
+  </email>
+</config>
+\end{verbatim}
+The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
+setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
+
 \section{Parameter Files}
 
-\glc\ requires a file of parameters to be given as a command line argument. (In fact, it technically doesn't as all of the parameters will be assigned default values if no file is given, but in most cases you want to change some parameters, in which case you must specify them in a file.) The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
+\glc\ requires a file of parameters to be given as a command line argument. The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
 \begin{verbatim}
  <parameters>
    <parameter>
@@ -14,9 +41,16 @@
    .
  </parameters>
 \end{verbatim}
-Each {\tt parameter} element contains {\tt name} and {\tt value} elements which contain the parameter name and desired value respectively. The value can be a number, word(s) or an array of space-separated numbers. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves.
+Each {\tt parameter} element contains {\tt name} and {\tt value} elements which contain the parameter name and desired value respectively. The value can be a number, word(s) or an array of space-separated numbers or words. Parameters are used to control the values of numerical parameters and also to select methods and other options. If a parameter is not specified in the file a default value (hard coded into \glc) will be used instead. The default values have been chosen to produce a realistic model of galaxy formation, but may change as \glc\ evolves.
 
-All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\tt Parameters} group within the \glc\ output file. The script {\tt scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc.
+All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\tt Parameters} group within the \glc\ output file. The script {\tt scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
+
+\subsection{Generating Parameter Files}\index{parameters!generating}
+
+Some scripts are provided which assist in the generation of parameter files. These are located in the {\tt scripts/parameters/} folder and are detailed below:
+\begin{description}
+\item [{\tt cosmologicalParametersMonteCarlo.pl}] This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints \cite{hinshaw_nine-year_2012}. It uses the covariance matrix (currently defined in {\tt data/Cosmological\_Parameters\_WMAP-9.xml}) to produce correlated random variables\footnote{Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.}. The generated parameters are printed to standard output as \glc-compatible XML.
+\end{description}
 
 \section{Running Galacticus}
 
@@ -24,11 +58,11 @@ All parameter values (both those specified in this file and those set to default
 \begin{verbatim}
  Galacticus.exe [<parameterFile>]
 \end{verbatim}
-where {\tt parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\tt verbosityLevel} parameter).
+where {\tt parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\tt verbosityLevel} parameter). Usually, the \glc\ executable should be invoked from the directory in which it was built. However, you can choose to set the environment variable {\tt GALACTICUS\_ROOT\_V091} to the full path to the build directory\index{path!galacticus root@{\glc\ root}}, in which case the \glc\ executable can be invoked from anywhere and will access all required files and scripts relative to this path. This can allow multiple users to all make use of the same \glc\ install.
 
 \subsection{Restarting A Crashed Run}\label{sec:Restarting}
 
-If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} method of merger tree construction, such that the internal state is stored prior to commencing the building of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
+If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} and {\tt read} methods of merger tree construction, such that the internal state is stored prior to commencing the building or reading of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
 
 To cause \glc\ to periodically store its internal state include the following input parameter:
 \begin{verbatim}
@@ -50,62 +84,121 @@ This will cause the internal state to be stored to files {\tt galacticusState.st
 \end{verbatim}
 where {\tt N} is the number of the tree that crashed. This will cause calculations to begin with tree {\tt N} and for the internal state to be recovered from the above mentioned files. The resulting tree and all galaxy formation calculations should therefore proceed just as in the original run (and so create the same crash condition).
 
+\subsubsection{OpenMP}\index{debugging!OpenMP}\index{OpenMP!debugging}
+
+When running a model in parallel using OpenMP, a separate state file will be written for each thread, with the thread number appended to the end of each state file name. For debugging purposes, it is suggested that a crashed OpenMP run be restarted using just a single thread. To do this, change the appended thread number on the state files corresponding to the thread which crashed to 0 such that they will be used by the single thread when the run is restarted.
+
 \subsection{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
  ./scripts/aux/Run_Galacticus.pl <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). The {\tt runFile} is an XML file with the following structure:
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\tt Run\_Galacticus.pl} can be used to ensure that they do not duplicate work. Adding {\tt --instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\tt Run\_Galacticus.pl} scripts on four different machines with {\tt --instance 1:4}, {\tt --instance 2:4}, {\tt --instance 3:4} and {\tt --instance 4:4} will then divide the models between those machines.
+
+The {\tt runFile} is an XML file with the following structure:
 \begin{verbatim}
 <parameterGrid>
-  <modelRootDirectory>models.new</modelRootDirectory>
-  <baseParameters>newBestParametersQuick.xml</baseParameters>
-  <parameters>
-   <parameter>
-    <name>stabilityThresholdStellar</name>
-    <value>1.1</value>
-    <value>0.9</value>
-   </parameter>
-  </parameters>
-  <parameters>
-   <parameter>
-    <name>stabilityThresholdGaseous</name>
-    <value>1.1</value>
-    <value>0.9</value>
-   </parameter>
-   <parameter>
-    <name>imfSalpeterYieldInstantaneous</name>
-    <value>0.02</value>
-    <value>0.04</value>
-   </parameter>
-  </parameters>
+ <modelRootDirectory>models.new</modelRootDirectory>
+ <baseParameters>newBestParametersQuick.xml</baseParameters>
+ <threadCount>maximum</threadCount>
+ <compressModels>no</compressModels>
+ <condor>
+   <useCondor>true</useCondor>
+   <galacticusDirectory>/home/condor/Galacticus/v0.9.1</galacticusDirectory>
+   <universe>vanilla</universe>
+   <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
+   <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
+   <transferFile>{PWD}/myFile.data</transferFile>
+   <wholeMachine>true</wholeMachine>
+ </condor>
+ <pbs>
+   <usePBS>true</usePBS>
+   <scratchPath>/scratch/me</scratchPath>
+   <wallTime>48:00:00</wallTime>
+   <memory>3gb</memory>
+   <ompThreads>8</ompThreads>
+   <queue>standard</queue>
+   <maxJobsInQueue>10</maxJobsInQueue>
+   <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
+   <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+ </pbs>                                                                                                             
+ <parameters>
+  <label>modelLabel</label>
+  <parameter>
+   <name>stabilityThresholdStellar</name>
+   <value>1.1</value>
+   <value>0.9</value>
+  </parameter>
+ </parameters>
+ <parameters>
+  <parameter>
+   <name>stabilityThresholdGaseous</name>
+   <value>1.1</value>
+   <value>0.9</value>
+  </parameter>
+  <parameter>
+   <name>imfSalpeterYieldInstantaneous</name>
+   <value>0.02</value>
+   <value>0.04</value>
+  </parameter>
+  <parameter>
+   <name>starFormationTimescaleDisksMethod</name>
+   <value>Kennicutt-Schmidt
+    <parameter>
+     <name>starFormationKennicuttSchmidtTruncate</name>
+     <value>true</value>
+     <value>false</value>
+    </parameter>
+   </value>
+   <value>dynamical time</value>
+  </parameter>
+ </parameters>
 </parameterGrid>
 \end{verbatim}
-Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values.
+Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamical time}.
 
-By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur.
+By default, each model is output into a sequentially numbered directory within the {\tt ./models} directory. By default, these directories have the prefix {\tt galacticus}. This can be changed by including a {\tt label} element inside a {\tt parameters} block, in which case the content of the {\tt label} element will be used as the prefix. This root directory can be modfified by the optional {\tt modelRootDirectory} element. Additionally, a set of base parameters can be read from a file specified by the {\tt baseParameters} file---these will be read before each model is run and before any variations in parameters for the specific model are applied. As such, it defines the default model around which parameter variations occur. Additional options that may be present in the file (as elements within the {\tt parameterGrid} element) are:
+\begin{description}
+\item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\tt analysisScript} element (see \S\ref{sec:AnalysisScripts});
+\item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
+\item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
+\item[{\tt compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\tt bzip2}.
+\item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
+\begin{description}
+\item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
+\item[{\tt galacticusDirectory}] When a \glc\ job is submitted to a {\sc Condor} cluster the \glc\ executable and the input parameter file are transferred to the machine where the job runs. Other files, such as data files, are not transferred. Therefore, they must be already present on any remote machine on which the job can run. This option specifies where a complete \glc\ installation can be found on the remote machine. If not present, it defaults to {\tt /home/condor/Galacticus/v0.9.0};
+\item[{\tt universe}] Specifies to which {\sc Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\tt condor\_compile}---the {\tt Makefile} allows this if the relevant lines are uncommented;
+\item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
+\item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
+\item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\end{description}
+\item[{\tt pbs}] This section, if present, specifies if and how jobs should be submitted to a {\tt PBS} batch queue system. The following options are available:
+\begin{description}
+\item[{\tt usePBS}] If set to ``true'' then jobs will be submitted to a {\sc PBS} batch queue system, otherwise they will be run on the local machine;
+\item[{\tt scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\tt wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\tt memory}] A limit on the memory allowed for each model (optional);
+\item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
+\item[{\tt queue}] The name of the queue to submit the jobs to (optional);
+\item[{\tt maxJobsInQueue}] The maximum number of jobs to place in the queue. Additional jobs will be held and submitted once the number of jobs in the queue drops below this value (optional);
+\item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
+\item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
+\end{description}
+\end{description}
 
 In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
 
-If present, the file {\tt runGalacticus.xml} is parsed for configuration options. It should have the following structure:
-\begin{verbatim}
-<config>
-  <errorReport>
-    <name>My Name</name>
-    <email>me@ivory.towers.edu</email>
-  </errorReport>
-</config>
-\end{verbatim}
-The {\tt errorReport} element contains the name and e-mail address of the person who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
+If present, the file {\tt galacticusConfig.xml}, described in \S\ref{sec:ConfigFile}, is parsed for configuration options. If the {\tt contact} element is present, the listed name and e-mail address will be used to determine who should receive error reports should a model crash. The error report will contain the host name of the computer running the model, the location of the model output and the log file (which may be incomplete if output is being buffered). Additionally, any core file produced will be stored in the model directory for later perusal, and the state files (see \S\ref{sec:Restarting}) for the run can also be found in the model directory.
 
-\subsection{Analysis of Models}
+\subsection{Analysis of Models}\label{sec:AnalysisScripts}
 
-The {\tt Run\_Galacticus.pl} script will automatically run {\tt scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data. This script, which can also be running manually using
+The {\tt Run\_Galacticus.pl} script will automatically run {\tt scripts/analysis/Galacticus\_Compute\_Fit.pl} on each model to generate plots and fitting data unless {\tt doAnalysis}$=${\tt no} is set in the {\tt runFile} (see \S\ref{sec:RunningGrids}). This script, which can also be running manually using
 \begin{verbatim}
- ./scripts/analysis/Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory>
+ ./scripts/analysis/Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisFile>]
 \end{verbatim}
-where {\tt galacticusFile} is the name of the \glc\ output file to analyze and {\tt outputDirectory} is the directory into which plots and fitting data should be placed, reads the file {\tt data/Galacticus\_Compute\_Fit\_Analyses.xml} which has the following structure:
+where {\tt galacticusFile} is the name of the \glc\ output file to analyze and {\tt outputDirectory} is the directory into which plots and fitting data should be placed, reads the file {\tt \textless analysisFile\textgreater} (or {\tt data/Galacticus\_Compute\_Fit\_Analyses.xml} if {\tt \textless analysisFile\textgreater} is not specified) which has the following structure:
 \begin{verbatim}
  <analyses>
   <analysis>
@@ -136,9 +229,13 @@ where the {\tt showFit} argument can be 0 or 1 and, if set to 1, the script shou
 \end{verbatim}
 where {\tt chiSquared} and {\tt degreesOfFreedom} are the fitting results. All such data returned from fitting scripts will be collated by {\tt Galacticus\_Compute\_Fit.pl}, augmented with the weight value and the net goodness of fit determined. All of this information is then output to {\tt galacticusFits.xml} in the selected output directory.
 
-\subsection{Running Models in Parallel}
+\subsubsection{Performing Other Analysis}
 
-Currently, \glc\ is not parallelized\footnote{This is planned for future releases, but awaits the fixing of bugs in {\sc GFortran}.}. However, it is possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
+If {\tt \textless doAnalysis \textgreater}$=${\tt yes} and {\tt \textless analysisFile\textgreater} is set to something other than an XML file it is assumed that this is an analysis script that should be run directly. The script will be executed with the output directory for the \glc\ model as the first and only argument.
+
+\subsection{Running Models in ``Embarrassingly Parallel'' Mode}
+
+While \glc\ is parallelized via OpenMP it is also possible to split a given model across several ``worker'' CPUs on one or more computers. The trees to be processed will be shared between these workers and the results can be later recombined. To use this ``poor man's'' parallelization, add the following to a model parameter file:
 \begin{verbatim}
   <parameter>
     <name>treeEvolveWorkerCount</name>
@@ -149,8 +246,184 @@ Currently, \glc\ is not parallelized\footnote{This is planned for future release
     <value>i</value>
   </parameter>
 \end{verbatim}
-where {\tt N} is the total number of workers to be used and {\tt i} is the number of this worker (ranging from 1 to {\tt N}). Once all workers have finished, their outputs can (if required) be combined into a single output file using the {\tt Merge\_Models.pl} script as follows:
+where {\tt N} is the total number of workers to be used and {\tt i} is the number of this worker (ranging from 1 to {\tt N}). You can generate these individual input parameter files from a single base parameter file using:
+\begin{verbatim}
+scripts/aux/Split_Models_For_Workers.pl <parameterFile> <workerCount>
+\end{verbatim}
+where {\tt <parameterFile>} is the name of the base parameter file and {\tt <workerCount>} is the number of workers required. The script will create an input file for each worker (input files will have the same name as the base parameter file but with a ``{\tt \_N}'', where {\tt N} is the worker number, inserted before the ``{\tt .xml}''). Output file name for each worker will be the same as specified in the base parameter file, but with a ``{\tt \_N}'', where {\tt N} is the worker number, inserted before the ``{\tt .hdf5}''.
+
+Once all workers have finished, their outputs can (if required) be combined into a single output file using the {\tt Merge\_Models.pl} script as follows:
 \begin{verbatim}
 ./scripts/aux/Merge_Models.pl <model1> <model2> .... <modelOutput>
 \end{verbatim}
-where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files.
+where {\tt model1} etc. are the names of the various output files and {\tt modelOutput} is the file into which the combined results should be placed. The {\tt Merge\_Models.pl} script will combine all merger trees into the output file and will additionally cumulate any data in the {\tt globalHistory} groups in these files. The UUIDs of the merged files (see \S\ref{sec:UUID}) will be concatenated (with a ``:'' separator) and placed into the {\tt UUIDs} attribute of the new file. Additionally, a new UUID will be generated and stored in the {\tt UUID} attribute of the new file.
+
+\subsection{Limiting the Load Average}\index{load average}
+
+If {\tt [treeEvolveLimitLoadAverage]}$=${\tt true} then \glc\ will attempt to keep the load average of the system under {\tt [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\tt [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\tt processorCount} in which case the number of processor cores present on the system will be used for {\tt [treeEvolveLoadAverageMaximum]}.
+
+\section{Additional Codes}
+
+The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
+
+\subsection{{\tt Excursion\_Sets}}\index{excursion sets}
+
+The {\tt Excursion\_Sets} code will generate an HDF5 output file which contains a variety of measures related to excursion sets in the Press-Schechter formalism. The code is built and run as follows:
+\begin{verbatim}
+make Excursion_Sets.exe
+Excursion_Sets.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the excursion set data will be written. The output file has the following structure:
+\begin{verbatim}
++-> barrier                  [dataset]
+|
++-> firstCrossingProbability [dataset]
+|
++-> firstCrossingRate        [dataset]
+|
++-> haloMass                 [dataset]
+|
++-> haloMassFunction         [dataset]
+|
++-> powerSpectrum            [dataset]
+|
++-> variance                 [dataset]
+|
++-> wavenumber               [dataset]
+\end{verbatim}
+These datasets contain the following information:
+\begin{description}
+ \item [{\tt haloMass}] Halo mass [${\rm M}_\odot$];
+ \item [{\tt wavenumber}] Wavenumber corresponding to this halo mass [Mpc$^{-1}$];
+ \item [{\tt powerSpectrum}] Power spectrum at this wavenumber [Mpc$^3$];
+ \item [{\tt variance}] The variance, $S(M)\equiv\sigma^2(M)$, at this halo mass;
+ \item [{\tt barrier}] The excursion set barrier, $B(S)$;
+ \item [{\tt firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+{\rm d}S$;
+ \item [{\tt firstCrossingRate}] The rate of first crossing of the barrier per unit time [Gyr$^{-1}$] for all pairs of halo mass;
+ \item [{\tt haloMassFunction}] The halo mass function [${\rm M}^{-1}_\odot$~Mpc$^{-3}$].
+\end{description}
+
+\subsection{{\tt Halo\_Mass\_Functions}}
+
+The {\tt Halo\_Mass\_Functions} code will generate an HDF5 output file which contains a variety of measures of the dark matter halo mass function tabulated as a function of mass and at a variety of redshifts. The code is built and run as follows:
+\begin{verbatim}
+make Halo_Mass_Functions.exe
+Halo_Mass_Functions.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the halo mass function data will be written. The parameter file can specify any parameters needed for computing the mass function (they will be set to default values in cases where a paramter is not included). The redshifts at which to output halo mass functions are given by the {\tt [outputRedshifts]} parameter. In addition to the usual \glc\ parameters three additional parameters control behavior:
+\begin{description}
+\item [{\tt [haloMassFunctionsMassMinimum]}] The lowest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\tt [haloMassFunctionsMassMaximum]}] The highest mass halo (in units of $M_\odot$) at which to tabulate;
+\item [{\tt [haloMassFunctionsPointsPerDecade]}] The number of points per decade of halo mass at which to tabulate.
+\end{description}
+The output file has the following structure:
+\begin{verbatim}
++-> Outputs
+|   |
+|   +-> outputCharacteristicMass      [dataset]
+|   |
+|   +-> outputCriticalOverdensities   [dataset]
+|   |
+|   +-> outputExpansionFactor         [dataset]
+|   |
+|   +-> outputGrowthFactors           [dataset]
+|   |
+|   +-> outputRedshift                [dataset]
+|   |
+|   +-> outputTime                    [dataset]
+|   |
+|   +-> outputVirialDensityContrast   [dataset]
+|    
++-> Parameters
+|   |
+|   +-> parameter1                    [attribute]
+|   |
+|   +-> parameterN                    [attribute]
+|    
++-> haloMassFunctions
+    |
+    +-> haloBias                      [dataset]
+    |
+    +-> haloMass                      [dataset]
+    |
+    +-> haloMassFractionCumulative    [dataset]
+    |
+    +-> haloMassFunctionCumulative    [dataset]
+    |
+    +-> haloMassFunctionLnM           [dataset]
+    |
+    +-> haloMassFunctionM             [dataset]
+    |
+    +-> haloNu                        [dataset]
+    |
+    +-> haloSigma                     [dataset]
+    |
+    +-> haloVirialRadius              [dataset]
+    |
+    +-> haloVirialTemperature         [dataset]
+    |
+    +-> haloVirialVelocity            [dataset]
+\end{verbatim}
+The {\tt Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\tt Outputs} group contains datasets which give global properties at each requested output time as follows:
+\begin{description}
+\item [{\tt outputCharacteristicMass}] The characteristic mass scale (in units of $M_\odot$), $M_*$, at which $\sigma(M)=\delta_{\rm c}(z)$;
+\item [{\tt outputCriticalOverdensities}] The critical overdensity for collapse of halos, $\delta_{\rm c}$;
+\item [{\tt outputExpansionFactor}] The expansion factor;
+\item [{\tt outputGrowthFactors}] The linear growth factor;
+\item [{\tt outputRedshift}] The redshift;
+\item [{\tt outputTime}] The cosmic time (in units of Gyr);
+\item [{\tt outputVirialDensityContrast}] The virial density contrast of halos.
+\end{description}
+The {\tt haloMassFunctions} group contains datasets which list the properties of halos as a function of mass at each requested output time as follows:
+\begin{description}
+\item [{\tt haloBias}] The large scale linear theory bias of the halo;
+\item [{\tt haloMass}] The mass of the halo (in $M_\odot$);
+\item [{\tt haloMassFractionCumulative}] The mass fraction in halos above the current halo mass;
+\item [{\tt haloMassFunctionCumulative}] The cumulative number of halos per unit volume above the current halo mass (in units of Mpc$^{-3}$);
+\item [{\tt haloMassFunctionLnM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3}$);
+\item [{\tt haloMassFunctionM}] The halo mass function per logarithmic halo mass (in units of Mpc$^{-3} M_\odot^{-1}$);
+\item [{\tt haloNu}] The peak height of the halo, $\nu = \delta_{\rm c}/\sigma(M)$;
+\item [{\tt haloSigma}] The root-variance of the mass field smoothed in top-hat spheres;
+\item [{\tt haloVirialRadius}] The virial radius (in units of Mpc) of the current halo mass;
+\item [{\tt haloVirialTemperature}] The virial temperature (in units of Kelvin) of the current halo mass;
+\item [{\tt haloVirialVelocity}] The virial velocity (in units of km/s) of the current halo mass;
+\end{description}
+Dimensionful datasets have an {\tt unitsInSI} attribute that gives their units in the SI system.
+
+\subsection{{\tt Power\_Spectra}}\index{power spectrum!outputting}
+
+The {\tt Power\_Spectra} code will generate an HDF5 output file which contains a variety of measures of the matter power spectrum tabulated as a function of wavenumber. The code is built and run as follows:
+\begin{verbatim}
+make Power_Spectra.exe
+Power_Spectra.exe <parameterFile> <outputFile>
+\end{verbatim}
+where {\tt parameterFile} is a file of parameters in \glc's usual XML format and {\tt outputFile} is the name of the file to which the power spectrum data will be written. The parameter file can specify any parameters needed for computing the power spectrum (they will be set to default values in cases where a parameter is not included).
+The output file has the following structure:
+\begin{verbatim}
++-> powerSpectrum
+|   |
+|   +-> alpha         [dataset]
+|   |
+|   +-> mass          [dataset]
+|   |
+|   +-> powerSpectrum [dataset]
+|   |
+|   +-> sigma         [dataset]
+|   |
+|   +-> wavenumber    [dataset]
+|    
++-> Parameters
+    |
+    +-> parameter1    [attribute]
+    |
+    +-> parameterN    [attribute]
+\end{verbatim}
+The {\tt Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\tt powerSpectrum} group contains datasets which give the power spectrum and related properties as follows:
+\begin{description}
+\item [{\tt alpha}] The logarithmic slope of $\sigma(M)$: $\alpha = {\rm d} \ln \sigma / {\rm d} \ln M$;
+\item [{\tt mass}] The mass scale, $M$, corresponding to the given wavenumber, $k$, defined such that $M=4 \pi \Omega_{\rm M} \rho_{\rm crit} / 3 k^3$ (in units of $M_\odot$);
+\item [{\tt powerSpectrum}] The linear theory power spectrum at $z=0$: $P(k)$ in units of Mpc$^3$;
+\item [{\tt sigma}] The dimensionless linear theory mass fluctuation at $z=0$: $\sigma(M)$;
+\item [{\tt wavenumber}] The wavenumber in units of Mpc$^{-1}$.
+\end{description}
+Dimensionful datasets have an {\tt unitsInSI} attribute that gives their units in the SI system.

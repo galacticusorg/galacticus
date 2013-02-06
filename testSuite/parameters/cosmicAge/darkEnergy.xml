@@ -1,0 +1,25 @@
+<!-- Parameter file used for testing cosmic age calculations in a dark energy universe model. Note that a very high Hubble parameter is used -->
+<!-- since Ned Wright's cosmology calculator (against which Galacticus results are checked) includes the radiation term. Making the          -->
+<!-- Hubble constant large means that the radiation term has negligible effect on the results.                                               -->
+<parameters>
+  <parameter>
+    <name>cosmologyMethod</name>
+    <value>matter-lambda</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.3</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.7</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>10000.0</value>
+  </parameter>
+</parameters>

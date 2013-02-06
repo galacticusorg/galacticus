@@ -1,15 +1,24 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Magnitudes;
 use Math::SigFigs;
-use Stats::Percentiles;
+require Galacticus::HDF5;
+require Galacticus::Magnitudes;
+require Stats::Percentiles;
+require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Gas_Metallicity.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+$self           = $0;
 $galacticusFile = $ARGV[0];
 $outputTo       = $ARGV[1];
 if ( $#ARGV == 2 ) {
@@ -41,41 +50,41 @@ $chiSquared      = 0.0;
 $degreesOfFreedom = 0;
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusFile;
-$dataSet{'store'} = 0;
-&HDF5::Get_Parameters(\%dataSet);
-&HDF5::Count_Trees(\%dataSet);
-&HDF5::Select_Output(\%dataSet,0.1);
-$dataSet{'tree'} = "all";
-&HDF5::Get_Dataset(\%dataSet,['volumeWeight'
+$dataBlock->{'file'}  = $galacticusFile;
+$dataBlock->{'store'} = 0;
+&HDF5::Get_Parameters($dataBlock    );
+&HDF5::Count_Trees   ($dataBlock    );
+&HDF5::Select_Output ($dataBlock,0.1);
+$dataBlock->{'tree'} = "all";
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
 			      ,'magnitudeTotal:SDSS_g:observed:z0.1000:dustAtlas[faceOn]:AB'
 			      ,'magnitudeTotal:SDSS_z:observed:z0.1000:AB'
-			      ,'diskStellarMass'
-			      ,'spheroidStellarMass'
-			      ,'diskGasMass'
-			      ,'spheroidGasMass'
-			      ,'diskGasMetals'
-			      ,'spheroidGasMetals'
+			      ,'diskMassStellar'
+			      ,'spheroidMassStellar'
+			      ,'diskMassGas'
+			      ,'spheroidMassGas'
+			      ,'diskAbundancesGasMetals'
+			      ,'spheroidAbundancesGasMetals'
 		   ]);
-$dataSets = \%{$dataSet{'dataSets'}};
-$gasFraction    = (${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}+${$dataSets->{'diskStellarMass'}}+${$dataSets->{'spheroidStellarMass'}});
-$gasMetallicity = where(12.0+log10((${$dataSets->{'diskGasMetals'}}+${$dataSets->{'spheroidGasMetals'}})/(${$dataSets->{'diskGasMass'}}+${$dataSets->{'spheroidGasMass'}}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
+$dataSets = $dataBlock->{'dataSets'};
+$gasFraction    = ($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidMassStellar'});
+$gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$dataSets->{'spheroidAbundancesGasMetals'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
-open(gnuPlot,"|gnuplot");
+open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
 # Read the XML data file.
 undef(@tmpFiles);
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/SDSS_Gas_Phase_Metallicities.xml");
+$data = $xml->XMLin($galacticusPath."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
 $iDataset = 0;
 foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
     $columns = $dataSet->{'columns'};
     $x = pdl @{$columns->{'magnitude'}->{'data'}};
-    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet{'parameters'}->{'H_0'});
+    $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
 
     # Compute the distribution of Galacticus galaxies.
     $filter = $columns->{'magnitude'}->{'filter'};
@@ -84,8 +93,8 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
     if ( $dust eq "face-on" )   {$dustLabel = ":dustAtlas[faceOn]"};
 
     $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
-    $magnitude   = where(${$dataSets->{$property}}     ,$gasFraction > $gasFractionMinimum);
-    $weight      = where(${$dataSets->{'volumeWeight'}},$gasFraction > $gasFractionMinimum);
+    $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
+    $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
     $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
     $results     = &Percentiles::BinnedPercentiles(
 	$x,
@@ -157,6 +166,7 @@ close(gnuPlot);
 
 # Convert to PDF.
 system("ps2pdf tmp.ps ".$outputFile);
+&MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
 unlink("tmp.ps",@tmpFiles);

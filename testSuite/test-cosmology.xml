@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models which explore cosmological models. -->
+<!-- Andrew Benson                                                         -->
+<!-- 05-Sep-2010                                                           -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-cosmology</modelRootDirectory>
+  <baseParameters>testSuite/test-cosmology-base.xml</baseParameters>
+  <parameters>
+    <parameter>
+      <name>Omega_Matter</name>
+      <value>0.25</value>
+    </parameter>
+    <parameter>
+      <name>Omega_DE</name>
+      <value>0.75</value>
+      <value>0.00</value>
+    </parameter>
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>Omega_Matter</name>
+      <value>1.00</value>
+      <value>1.25</value>
+    </parameter>
+    <parameter>
+      <name>Omega_DE</name>
+      <value>0.00</value>
+    </parameter>
+  </parameters>
+</parameterGrid>

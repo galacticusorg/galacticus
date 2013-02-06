@@ -492,7 +492,7 @@ File::NFSLock - perl module to do NFS (or not) locking
 
 =head1 SYNOPSIS
 
-  use File::NFSLock qw(uncache);
+  require File::NFSLock qw(uncache);
   use Fcntl qw(LOCK_EX LOCK_NB);
 
   my $file = "somefile";
