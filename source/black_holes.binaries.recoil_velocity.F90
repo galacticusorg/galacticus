@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,7 +41,7 @@ contains
     !% Computes the recoil velocity of a black hole binary.
     use Galacticus_Error
     use Input_Parameters
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="moduleUse">
     include 'black_holes.binary.recoil_velocity.modules.inc'
     !# </include>
@@ -64,8 +64,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('blackHoleBinaryRecoilVelocityMethod',blackHoleBinaryRecoilVelocityMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</subroutineArgs>
+          !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get</functionArgs>
           include 'black_holes.binaries.recoil_velocity.inc'
           !# </include>
           if (.not.associated(Black_Hole_Binary_Recoil_Velocity_Get)) call Galacticus_Error_Report('Black_Hole_Binary_Recoil_Velocity','method ' &

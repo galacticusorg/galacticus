@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -23,7 +23,7 @@ program Tests_Bug745815
   use ISO_Varying_String
   use Memory_Management
   use Merger_Trees
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Kind_Numbers
   implicit none
   type(varying_string)            :: parameterFile
@@ -56,18 +56,18 @@ program Tests_Bug745815
   call nodes(5)%node%indexSet(100017990003571_kind_int8)
   
   ! Set child nodes.
-  nodes(1)%node%childNode => nodes(2)%node
-  nodes(2)%node%childNode => nodes(3)%node
-  nodes(3)%node%childNode => nodes(4)%node
+  nodes(1)%node%firstChild => nodes(2)%node
+  nodes(2)%node%firstChild => nodes(3)%node
+  nodes(3)%node%firstChild => nodes(4)%node
   
   ! Set parent nodes.
-  nodes(2)%node%parentNode => nodes(1)%node
-  nodes(3)%node%parentNode => nodes(2)%node
-  nodes(4)%node%parentNode => nodes(3)%node
-  nodes(5)%node%parentNode => nodes(3)%node
+  nodes(2)%node%parent => nodes(1)%node
+  nodes(3)%node%parent => nodes(2)%node
+  nodes(4)%node%parent => nodes(3)%node
+  nodes(5)%node%parent => nodes(3)%node
   
   ! Set satellite nodes.
-  nodes(3)%node%satelliteNode => nodes(5)%node
+  nodes(3)%node%firstSatellite => nodes(5)%node
   
   ! Walk the tree, with satellites.
   nodeFound=.false.
@@ -76,7 +76,7 @@ program Tests_Bug745815
      do iNode=1,5
         if (nodes(iNode)%node%index() == thisNode%index()) nodeFound(iNode)=.true.
      end do
-     call thisNode%walkTreeWIthSatellites(thisNode)
+     call thisNode%walkTreeWithSatellites(thisNode)
   end do
   call Assert('All nodes walked to',all(nodeFound),.true.)
 

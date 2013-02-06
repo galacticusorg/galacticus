@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -27,8 +27,8 @@ module Merger_Tree_Build
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
   double precision     :: mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum,mergerTreeBuildTreesBaseRedshift &
-       &,mergerTreeBuildTreesBaseTime
-  integer              :: mergerTreeBuildTreesPerDecade,mergerTreeBuildTreesBeginAtTree
+       &,mergerTreeBuildTreesBaseTime,mergerTreeBuildTreesPerDecade
+  integer              :: mergerTreeBuildTreesBeginAtTree
   type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution,mergerTreeBuildTreeMassesFile
 
   ! Direction in which to process trees.
@@ -128,7 +128,7 @@ contains
        !@   <type>integer</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10    )
+       call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10.0d0)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesBaseRedshift</name>
        !@   <defaultValue>0</defaultValue>       
@@ -165,7 +165,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesProcessDescending</name>
-       !@   <defaultValue>false</defaultValue>       
+       !@   <defaultValue>true</defaultValue>       
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     If true, causes merger trees to be processed in order of decreasing mass.
@@ -173,7 +173,7 @@ contains
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.false.)
+       call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
        !@   <defaultValue>null</defaultValue>       
@@ -190,7 +190,7 @@ contains
        mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
 
        ! Generate a randomly sampled set of halo masses.
-       treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
+       treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
        call Alloc_Array(treeHaloMass,[treeCount])
        call Alloc_Array(treeWeight  ,[treeCount])
 
@@ -198,7 +198,7 @@ contains
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
        case ("quasi","uniform")
           ! Generate a randomly sampled set of halo masses.
-          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(mergerTreeBuildTreesPerDecade)))
+          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call Alloc_Array(treeHaloMass,[treeCount])
           call Alloc_Array(treeWeight  ,[treeCount])
           
@@ -218,7 +218,7 @@ contains
              call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
           end select
           ! Create a cumulative probability for sampling halo masses.
-          massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*dble(massFunctionSamplePerDecade)))
+          massFunctionSampleCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*massFunctionSamplePerDecade))
           call Alloc_Array(massFunctionSampleLogMass         ,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleLogMassMonotonic,[massFunctionSampleCount])
           call Alloc_Array(massFunctionSampleProbability     ,[massFunctionSampleCount])
@@ -282,23 +282,30 @@ contains
           ! Get the minimum mass of the interval occupied by this tree.
           if (iTree==1) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                MassMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                massMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
              else
-                MassMinimum=mergerTreeBuildHaloMassMinimum
+                massMinimum=mergerTreeBuildHaloMassMinimum
              end if
           else
-             MassMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
+             massMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
           end if
           ! Get the maximum mass of the interval occupied by this tree.
           if (iTree==treeCount) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                MassMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                massMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
              else
-                MassMaximum=mergerTreeBuildHaloMassMaximum
+                massMaximum=mergerTreeBuildHaloMassMaximum
              end if
           else
-             MassMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
+             massMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
           end if
+          ! For distributions of masses, adjust the masses at the end points so that they are at the
+          ! geometric mean of their range.
+          if     (                                                          &
+               &   (iTree == 1 .or. iTree == treeCount)                     &
+               &  .and.                                                     &
+               &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
+               & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
           ! Get the integral of the halo mass function over this range.
           treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
        end do
@@ -315,8 +322,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildMethod',mergerTreeBuildMethod,defaultValue='Cole2000')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="mergerTreeBuildMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>mergerTreeBuildMethod,Merger_Tree_Builder</subroutineArgs>
+       !# <include directive="mergerTreeBuildMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>mergerTreeBuildMethod,Merger_Tree_Builder</functionArgs>
        include 'merger_trees.build.inc'
        !# </include>
        if (.not.associated(Merger_Tree_Builder)) call Galacticus_Error_Report('Merger_Tree_Build','method '&
@@ -340,21 +347,22 @@ contains
   
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_State
     use Kind_Numbers
     use String_Handling
     implicit none
-    type(mergerTree),        intent(inout) :: thisTree
-    logical,                 intent(in)    :: skipTree
-    integer(kind=kind_int8), parameter     :: baseNodeIndex=1
-    integer(kind=kind_int8)                :: thisTreeIndex
-    type(varying_string)                   :: message
+    type(mergerTree),          intent(inout) :: thisTree
+    logical,                   intent(in)    :: skipTree
+    class(nodeComponentBasic), pointer       :: baseNodeBasicComponent
+    integer(kind=kind_int8),   parameter     :: baseNodeIndex=1
+    integer(kind=kind_int8)                  :: thisTreeIndex
+    type(varying_string)                     :: message
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)
-    if (nextTreeIndex<=treeCount) then
+    if (nextTreeIndex <= treeCount) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve
        ! Take a snapshot of the internal state and store it.
@@ -377,15 +385,17 @@ contains
        call thisTree%createNode(thisTree%baseNode,baseNodeIndex)
        ! Assign a weight to the tree.
        thisTree%volumeWeight=treeWeight(thisTreeIndex)
+       ! Get the basic component of the base node.
+       baseNodeBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
        ! Assign a mass to it.
-       call Tree_Node_Mass_Set(thisTree%baseNode,treeHaloMass(thisTreeIndex))
+       call baseNodeBasicComponent%massSet(treeHaloMass(thisTreeIndex) )
        ! Assign a time.
-       call Tree_Node_Time_Set(thisTree%baseNode,mergerTreeBuildTreesBaseTime)
+       call baseNodeBasicComponent%timeSet(mergerTreeBuildTreesBaseTime)
        ! Increment the tree index counter.
        nextTreeIndex=nextTreeIndex+1
     end if
     !$omp end critical (Merger_Tree_Build_Do)
-    ! If we got a tree, we can now process it (in paralell if running under OpenMP).
+    ! If we got a tree, we can now process it (in parallel if running under OpenMP).
     if (associated(thisTree%baseNode).and..not.skipTree) then
        ! Call routine to actually build the tree.
        call Merger_Tree_Builder(thisTree)

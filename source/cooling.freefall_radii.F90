@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Freefall_Radii
   !% Implements calculations of the freefall radius in cooling calculations.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="freefallRadiusMethod" type="moduleUse">
   include 'cooling.freefall_radius.modules.inc'
   !# </include>
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('freefallRadiusMethod',freefallRadiusMethod,defaultValue='darkMatterHalo')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="freefallRadiusMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</subroutineArgs>
+          !# <include directive="freefallRadiusMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>freefallRadiusMethod,Freefall_Radius_Get,Freefall_Radius_Growth_Rate_Get</functionArgs>
           include 'cooling.freefall_radius.inc'
           !# </include>
           if (.not.(associated(Freefall_Radius_Get).and.associated(Freefall_Radius_Growth_Rate_Get))) call&

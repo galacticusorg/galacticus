@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Cooling_Freefall_Times_Available
   !% Implements calculations of the time available for freefall in cooling calculations.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="freefallTimeAvailableMethod" type="moduleUse">
   include 'cooling.freefall_time_available.modules.inc'
   !# </include>
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('freefallTimeAvailableMethod',freefallTimeAvailableMethod,defaultValue='haloFormation')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="freefallTimeAvailableMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</subroutineArgs>
+          !# <include directive="freefallTimeAvailableMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>freefallTimeAvailableMethod,Cooling_Freefall_Time_Available_Get,Cooling_Freefall_Time_Available_Increase_Rate_Get</functionArgs>
           include 'cooling.freefall_time_available.inc'
           !# </include>
           if (.not.(associated(Cooling_Freefall_Time_Available_Get).and.associated(Cooling_Freefall_Time_Available_Increase_Rate_Get))) call&

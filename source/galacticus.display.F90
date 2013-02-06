@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -302,6 +302,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (percentageComplete == barPercentage) return
        if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
        percentage=max(0,min(percentageComplete,100))
        majorCount=percentage/2

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -76,7 +76,7 @@ contains
     use FGSL
     implicit none
     type(fgsl_error_handler_t) :: galacticusGslErrorHandler,standardGslErrorHandler
-  
+
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)

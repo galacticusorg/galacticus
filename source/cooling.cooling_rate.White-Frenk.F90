@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Cooling_Rates_White_Frenk
   !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
   use, intrinsic :: ISO_C_Binding
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Rate_White_Frenk_Initialize
@@ -39,9 +39,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),                 intent(in   ) :: coolingRateMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
-    
+    type     (varying_string      ),          intent(in   ) :: coolingRateMethod
+    procedure(double precision    ), pointer, intent(inout) :: Cooling_Rate_Get
+
     if (coolingRateMethod == 'White-Frenk1991') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk
 
@@ -59,15 +59,15 @@ contains
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
 
        ! Check that the properties we need are gettable.
-       if (.not.associated(Tree_Node_Hot_Halo_Mass        ))                                   &
-            & call Galacticus_Error_Report(                                                    &
-            &                              'Cooling_Rate_White_Frenk_Initialize'             , &
-            &                              'Tree_Node_Hot_Halo_Mass must be gettable'          &
+       if (.not.defaultHotHaloComponent%massIsGettable())                                                  &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
+            &                              'mass property of hot halo component must be gettable'          &
             &                             )
-       if (.not.associated(Tree_Node_Hot_Halo_Outer_Radius))                                   &
-            & call Galacticus_Error_Report(                                                    &
-            &                              'Cooling_Rate_White_Frenk_Initialize'             , &
-            &                              'Tree_Node_Hot_Halo_Outer_Radius must be gettable'  &
+       if (.not.defaultHotHaloComponent%outerRadiusIsGettable())                                           &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
+            &                              'outer radius property of hot halo component must be gettable'  &
             &                             )
     end if
     return
@@ -75,15 +75,17 @@ contains
 
   double precision function Cooling_Rate_White_Frenk(thisNode)
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: infallRadius,coolingDensity,outerRadius,infallRadiusGrowthRate,virialVelocity
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                    :: infallRadius,coolingDensity,outerRadius,infallRadiusGrowthRate&
+         &,virialVelocity
 
     ! Get the virial velocity.
     virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
@@ -95,14 +97,15 @@ contains
     end if
     
     ! Get the outer radius of the hot halo.
-    outerRadius=Tree_Node_Hot_Halo_Outer_Radius(thisNode)
+    thisHotHaloComponent => thisNode            %hotHalo    ()
+    outerRadius          =  thisHotHaloComponent%outerRadius()
 
     ! Get the cooling radius.
     infallRadius=Infall_Radius(thisNode)
 
     if (infallRadius >= outerRadius) then
        ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
-       Cooling_Rate_White_Frenk=Tree_Node_Hot_Halo_Mass(thisNode)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
+       Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
        ! Find the density at the cooling radius.
        coolingDensity=Hot_Halo_Density(thisNode,infallRadius)

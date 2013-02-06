@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -192,32 +192,37 @@ contains
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
     !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output. 
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Arrays_Search
     use Numerical_Constants_Astronomical
     use Cosmology_Functions
     implicit none
-    type(treeNode),       intent(inout), pointer      :: thisNode
-    logical,              intent(inout)               :: doOutput
-    double precision,     parameter                   :: timeTolerance=1.0d-3
-    integer,              dimension(3,3)              :: periodicRange
-    double precision,     dimension(3  )              :: galaxyPosition,galaxyVelocity
-    logical                                           :: galaxyIsInLightcone,galaxyIsInFieldOfView
-    integer                                           :: iAxis,iOutput,i,j,k
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    logical                     , intent(inout)          :: doOutput
+    class(nodeComponentBasic   ),                pointer :: thisBasicComponent
+    class(nodeComponentPosition),                pointer :: thisPositionComponent
+    double precision            , parameter              :: timeTolerance=1.0d-3
+    integer                     , dimension(3,3)         :: periodicRange
+    double precision            , dimension(3  )         :: galaxyPosition,galaxyVelocity
+    logical                                              :: galaxyIsInLightcone,galaxyIsInFieldOfView
+    integer                                              :: iAxis,iOutput,i,j,k
     
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
 
+    ! Get components.
+    thisBasicComponent => thisNode%basic()
+
     ! Determine to which output this galaxy corresponds.
-    iOutput=Search_Array_For_Closest(lightconeTime,Tree_Node_Time(thisNode),timeTolerance)
+    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicCOmponent%time(),timeTolerance)
 
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
     periodicRange(:,1)=floor  ((lightconeOrigin+lightconeMinimumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)-1
     periodicRange(:,2)=ceiling((lightconeOrigin+lightconeMaximumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)+0
 
     ! Get position of galaxy in original coordinates.
-    call Tree_Node_Position(thisNode,galaxyPosition)
-    galaxyPosition=galaxyPosition/Expansion_Factor(lightconeTime(iOutput))
+    thisPositionComponent => thisNode             %position()
+    galaxyPosition        =  thisPositionComponent%position()/Expansion_Factor(lightconeTime(iOutput))
 
     ! Loop over all replicants.
     galaxyIsInLightcone=.false.
@@ -249,7 +254,7 @@ contains
                 ! If the galaxy is in the lightcone compute also its velocity in the lightcone coordinate system and the redshift.
                 if (galaxyIsInLightcone) then
                    ! Compute velocity of galaxy in lightcone coordinate system.
-                   call Tree_Node_Velocity(thisNode,galaxyVelocity)
+                   galaxyVelocity=thisPositionComponent%velocity()
                    forall(iAxis=1:3)
                       lightconeVelocity(iAxis)=Dot_Product(galaxyVelocity,lightconeUnitVector(:,iAxis))
                    end forall
@@ -297,17 +302,19 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Lightcone_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Lightcone</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Lightcone_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Lightcone_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (lightconeFilterActive) then
        !@ <outputPropertyGroup>
@@ -430,11 +437,13 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Lightcone_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Lightcone</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Lightcone_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Lightcone_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     if (lightconeFilterActive) doublePropertyCount=doublePropertyCount+lightconePropertyCount
     return
@@ -447,14 +456,14 @@ contains
   subroutine Galacticus_Output_Tree_Lightcone(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store link properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    double precision       , intent(in   )          :: time
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision       , intent(inout)          :: doubleBuffer (:,:)
 
    if (lightconeFilterActive) then
        doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconePosition

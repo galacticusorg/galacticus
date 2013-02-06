@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -43,7 +43,7 @@ contains
 
   double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null(thisNode,starFormationRate,energyInputRate)
     !% Implements a null expulsive outflow rate for disks.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: starFormationRate,energyInputRate

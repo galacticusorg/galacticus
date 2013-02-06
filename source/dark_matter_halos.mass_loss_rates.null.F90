@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,7 +41,7 @@ contains
 
   double precision function Dark_Matter_Halos_Mass_Loss_Rate_Null(thisNode)
     !% Returns the a zero rate of mass loss from dark matter halos.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
 

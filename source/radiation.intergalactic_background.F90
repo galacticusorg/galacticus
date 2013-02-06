@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Radiation_Intergalactic_Background
   !% Implements an intergalatic background (excluding the CMB) radiation component.
   use FGSL
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Radiation_Set_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
@@ -80,8 +80,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('radiationIntergalacticBackgroundMethod',radiationIntergalacticBackgroundMethod,defaultValue='file')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="radiationIntergalacticBackgroundMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</subroutineArgs>
+          !# <include directive="radiationIntergalacticBackgroundMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</functionArgs>
           include 'radiation.intergalactic_background.inc'
           !# </include>
           if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) call&

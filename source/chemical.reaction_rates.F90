@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -65,8 +65,8 @@ contains
           call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
           
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="chemicalReactionRates" type="code" action="subroutine">
-          !#  <subroutineArgs>chemicalReactionRateMethods</subroutineArgs>
+          !# <include directive="chemicalReactionRates" type="functionCall" functionType="void">
+          !#  <functionArgs>chemicalReactionRateMethods</functionArgs>
           include 'chemical.reaction_rates.inc'
           !# </include>
           chemicalReactionRateInitialized=.true.
@@ -85,17 +85,17 @@ contains
     include 'chemical.reaction_rates.compute.modules.inc'
     !# </include>
     implicit none
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
+    type(chemicalAbundances), intent(inout) :: chemicalRates
     double precision,                  intent(in)    :: temperature
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
+    type(chemicalAbundances), intent(in)    :: chemicalDensity
     type(radiationStructure),          intent(in)    :: radiation
 
     ! Initialize the module.
     call Chemical_Reaction_Rates_Initialize
   
     call chemicalRates%reset()
-    !# <include directive="chemicalRatesCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>temperature,chemicalDensity,radiation,chemicalRates</subroutineArgs>
+    !# <include directive="chemicalRatesCompute" type="functionCall" functionType="void">
+    !#  <functionArgs>temperature,chemicalDensity,radiation,chemicalRates</functionArgs>
     include 'chemical.reaction_rates.compute.inc'
     !# </include>
 

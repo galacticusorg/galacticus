@@ -34,13 +34,13 @@ sub Get_850micron {
 
     # Ensure that we have required datasets.
     &HDF5::Get_Dataset($dataBlock,[
-			   "diskStarFormationRate","spheroidStarFormationRate",
-			   "diskGasMetals"        ,"spheroidGasMetals"
+			   "diskStarFormationRate"  ,"spheroidStarFormationRate"  ,
+			   "diskAbundancesGasMetals","spheroidAbundancesGasMetals"
 		       ]);
     my $dataSets = $dataBlock->{'dataSets'};
     # Compute dust mass and total star formation rate.
     my $starFormationRate = $dataSets->{"diskStarFormationRate"}+$dataSets->{"spheroidStarFormationRate"};
-    my $dustMass          = ($dataSets->{"diskGasMetals"}+$dataSets->{"spheroidGasMetals"})*$dustToMetalsRatio;
+    my $dustMass          = ($dataSets->{"diskAbundancesGasMetals"}+$dataSets->{"spheroidAbundancesGasMetals"})*$dustToMetalsRatio;
     # Select comoving distances at random for the galaxies.
     $dataSets->{$dataSetName} = 
 	$fitNormalization

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -60,9 +60,9 @@ contains
     return
   end subroutine Cooling_Time_Simple_Initialize
 
-  double precision function Cooling_Time_Simple(temperature,density,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Time_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
     use Numerical_Constants_Atomic
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -75,22 +75,22 @@ contains
     use Chemical_States
     implicit none
     double precision,                  intent(in) :: temperature,density
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
     ! Effectively infinite time (for arbitrarily long cooling times).
     double precision,                  parameter  :: largeTime=1.0d10
     double precision                              :: numberDensityHydrogen,numberDensityAllSpecies,coolingFunction,energyDensityThermal
 
     ! Compute number density of hydrogen (in cm^-3).
-    numberDensityHydrogen=density*abundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
+    numberDensityHydrogen=density*gasAbundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
 
     ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies= numberDensityHydrogen/abundances%hydrogenNumberFraction() &
-         &                  +Electron_Density(temperature,numberDensityHydrogen,abundances,radiation)
+    numberDensityAllSpecies= numberDensityHydrogen/gasAbundances%hydrogenNumberFraction() &
+         &                  +Electron_Density(temperature,numberDensityHydrogen,gasAbundances,radiation)
 
     ! Get the cooling function (in ergs cm^-3 s^-1).
-    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
 
     ! Determine the thermal energy density of the gas (in ergs cm^-3).
     energyDensityThermal=(coolingTimeSimpleDegreesOfFreedom/2.0d0)*boltzmannsConstant*temperature*numberDensityAllSpecies/ergs
@@ -104,37 +104,37 @@ contains
     return
   end function Cooling_Time_Simple
   
-  double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Time_Density_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_{\rm cool}/\d\ln \rho$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
     implicit none
     double precision,                  intent(in) :: temperature,density
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
 
-    Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
+    Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Density_Log_Slope_Simple
   
-  double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Time_Temperature_Log_Slope_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln t_{\rm cool}/\d\ln T$ for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
-    !% Mpc$^{-3}$), composition specified by {\tt abundances} and experiencing a radiation field as described by {\tt radiation}.
+    !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
     use Cooling_Functions
     implicit none
     double precision,                  intent(in) :: temperature,density
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
 
-    Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,abundances,chemicalDensities,radiation)
+    Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Temperature_Log_Slope_Simple
   

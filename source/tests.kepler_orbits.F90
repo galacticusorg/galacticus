@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,7 +21,7 @@ program Tests_Kepler_Orbits
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Kepler_Orbits_Structure
+  use Kepler_Orbits
   use Numerical_Constants_Physical
   implicit none
   type(varying_string) :: parameterFile

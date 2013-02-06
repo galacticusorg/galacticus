@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -47,7 +47,7 @@ contains
 
   double precision function Infall_Radius_Cooling_Freefall(thisNode)
     !% Return the infall radius in the ``cooling and freefall'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Radii
     use Freefall_Radii
     use Dark_Matter_Halo_Scales
@@ -77,7 +77,7 @@ contains
   
   double precision function Infall_Radius_Growth_Rate_Cooling_Freefall(thisNode)
     !% Return the growth rate of the infall radius in the ``cooling and freefall'' model in Mpc/Gyr.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cooling_Radii
     use Freefall_Radii
     use Dark_Matter_Halo_Scales

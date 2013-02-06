@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -44,7 +44,7 @@ contains
 
   double precision function Hot_Halo_Temperature_Virial_Get(thisNode,radius)
     !% Compute the temperature at radius {\tt radius} in an isothermal (virial) temperature profile for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
@@ -57,7 +57,7 @@ contains
   double precision function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get(thisNode,radius)
     !% Compute the logarithmic slope of the temperature at radius {\tt radius} in an isothermal temperature profile
     !% for {\tt thisNode}.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: radius

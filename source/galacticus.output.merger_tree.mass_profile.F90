@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Galacticus_Output_Tree_Mass_Profiles
   !% Handles outputting of node mass profiles.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Tree_Mass_Profile, Galacticus_Output_Tree_Mass_Profile_Property_Count, Galacticus_Output_Tree_Mass_Profile_Names
@@ -89,17 +89,18 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Mass_Profile_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Mass_Profile</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Mass_Profile_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
-       &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
+  subroutine Galacticus_Output_Tree_Mass_Profile_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
+       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of half-light properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       :: iRadius
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    integer                                          :: iRadius
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
@@ -120,11 +121,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Mass_Profile_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Mass_Profile</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Mass_Profile_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Mass_Profile_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize

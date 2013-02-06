@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Cooling_Infall_Radii
   !% Implements calculations of the infall radius for cooling calculations.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="infallRadiusMethod" type="moduleUse">
   include 'cooling.infall_radius.modules.inc'
   !# </include>
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('infallRadiusMethod',infallRadiusMethod,defaultValue='coolingRadius')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="infallRadiusMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get</subroutineArgs>
+          !# <include directive="infallRadiusMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>infallRadiusMethod,Infall_Radius_Get,Infall_Radius_Growth_Rate_Get</functionArgs>
           include 'cooling.infall_radius.inc'
           !# </include>
           if (.not.(associated(Infall_Radius_Get).and.associated(Infall_Radius_Growth_Rate_Get))) call&

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -66,7 +66,7 @@ contains
     return
   end subroutine Chemical_State_Atomic_CIE_Cloudy_Initialize
 
-  subroutine Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
+  subroutine Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
     !% Create the chemical state.
     use Chemical_States_CIE_File
     use Abundances_Structure
@@ -74,7 +74,7 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances), intent(in) :: gasAbundances
     logical                               :: makeFile
     character(len=32)                     :: metallicityLabel
     type(varying_string)                  :: command,chemicalStateFileVarString
@@ -85,8 +85,8 @@ contains
     if (.not.chemicalStateInitialized) then
        makeFile=.true.
     else
-       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
-          makeFile=(min(Abundances_Get_Metallicity(abundances,linearByMassSolar),metallicityMaximumLimit) > metallicityMaximum&
+       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+          makeFile=(min(Abundances_Get_Metallicity(gasAbundances,linearByMassSolar),metallicityMaximumLimit) > metallicityMaximum&
                &*(1.0d0+metallicityTolerance))
        else
           makeFile=.false.
@@ -100,8 +100,8 @@ contains
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then
        ! Determine maximum metallicity to which we should tabulate.
-       if (Abundances_Get_Metallicity(abundances,linearByMassSolar) > 0.0d0) then
-          metallicityMaximum=min(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(abundances,linearByMassSolar))&
+       if (Abundances_Get_Metallicity(gasAbundances,linearByMassSolar) > 0.0d0) then
+          metallicityMaximum=min(max(metallicityMaximumDefault,3.0d0*Abundances_Get_Metallicity(gasAbundances,linearByMassSolar))&
                &,metallicityMaximumLimit)
        else
           metallicityMaximum=metallicityMaximumDefault
@@ -125,26 +125,26 @@ contains
     return
   end subroutine Chemical_State_Atomic_CIE_Cloudy_Create
 
-  double precision function Electron_Density_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,abundances,radiation)
+  double precision function Electron_Density_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Return the electron density assuming atomic CIE as computed by {\sc Cloudy}.
     use Chemical_States_CIE_File
     use Abundances_Structure
     use Radiation_Structure
     implicit none
     double precision,          intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in) :: abundances
+    type(abundances), intent(in) :: gasAbundances
     type(radiationStructure),  intent(in) :: radiation
 
     ! Create the chemical state.
-    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
+    call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
     
     ! Call routine to interpolate in the tabulated function.
-    Electron_Density_Atomic_CIE_Cloudy=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,abundances,radiation)
+    Electron_Density_Atomic_CIE_Cloudy=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     
     return
   end function Electron_Density_Atomic_CIE_Cloudy
 
-  double precision function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,abundances&
+  double precision function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to temperature assuming atomic CIE as computed by {\sc Cloudy}.
     use Chemical_States_CIE_File
@@ -152,27 +152,27 @@ contains
     use Radiation_Structure
     implicit none
     double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
+    type(abundances), intent(in)  :: gasAbundances
     type(radiationStructure),  intent(in)  :: radiation
     
     ! Create the chemical state.
-    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
+    call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
     
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy=Electron_Density_CIE_File_logTemperature_Interpolate(temperature&
-         &,numberDensityHydrogen ,abundances,radiation)
+         &,numberDensityHydrogen ,gasAbundances,radiation)
  
     return
   end function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy
       
-  double precision function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,abundances&
+  double precision function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\sc Cloudy}.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
     double precision,          intent(in)  :: temperature,numberDensityHydrogen
-    type(abundancesStructure), intent(in)  :: abundances
+    type(abundances), intent(in)  :: gasAbundances
     type(radiationStructure),  intent(in)  :: radiation
     
     ! Electron density always scales as total density under CIE conditions.
@@ -181,7 +181,7 @@ contains
     return
   end function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
 
-  subroutine Chemical_Densities_Atomic_CIE_Cloudy(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+  subroutine Chemical_Densities_Atomic_CIE_Cloudy(theseAbundances,temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     use Chemical_States_CIE_File
@@ -189,16 +189,16 @@ contains
     use Radiation_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type(chemicalAbundancesStructure), intent(inout) :: theseAbundances
+    type(chemicalAbundances), intent(inout) :: theseAbundances
     double precision,                  intent(in)    :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in)    :: abundances
+    type(abundances),         intent(in)    :: gasAbundances
     type(radiationStructure),          intent(in)    :: radiation
 
     ! Create the chemical state.
-    call Chemical_State_Atomic_CIE_Cloudy_Create(abundances)
+    call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
     
     ! Call routine to interpolate in the tabulated function.
-    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,abundances,radiation)
+    call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,gasAbundances,radiation)
  
     return
   end subroutine Chemical_Densities_Atomic_CIE_Cloudy

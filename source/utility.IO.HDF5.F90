@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -55,6 +55,7 @@ module IO_HDF5
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_DOUBLES
   integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_INTEGERS
   integer(kind=HID_T), public, dimension(3) :: H5T_NATIVE_INTEGER_8S
+  integer(kind=HID_T), public, dimension(8) :: H5T_NATIVE_INTEGER_8AS
 
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
@@ -382,9 +383,12 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
 
        ! Ensure native datatype arrays are initialized.
-       H5T_NATIVE_DOUBLES   =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
-       H5T_NATIVE_INTEGERS  =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
-       H5T_NATIVE_INTEGER_8S=[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_DOUBLES         =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
+       H5T_NATIVE_INTEGERS        =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
+       H5T_NATIVE_INTEGER_8S      =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_INTEGER_8AS(1:5)=H5T_NATIVE_INTEGERS
+       H5T_NATIVE_INTEGER_8AS(6:8)=H5T_NATIVE_INTEGER_8S
+
 
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
@@ -2057,7 +2061,7 @@ contains
     end if
 
     ! Check that the object is a scalar integer.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,0,matches)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,0,matches)
     if (matches) then
        ! Read the attribute.
        dataBuffer=c_loc(attributeValue)
@@ -2068,7 +2072,7 @@ contains
        end if
     else if (allowPseudoScalarActual) then
        ! Attribute is not a scalar. Check if it is a pseudo-scalar.
-       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1,matches)
+       call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1,matches)
        if (matches) then          
           ! Get the dimensions of the array.
           call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2163,7 +2167,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -2261,7 +2265,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8S,1)
+    call attributeObject%assertAttributeType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array.
     call h5aget_space_f(attributeObject%objectID,attributeDataspaceID,errorCode)
@@ -4844,7 +4848,7 @@ contains
     end if
 
     ! Check that the object is a 1D integer8 array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then
@@ -5133,7 +5137,7 @@ contains
     end if
 
     ! Check that the object is a 1D long integer array.
-    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8S,1)
+    call datasetObject%assertDatasetType(H5T_NATIVE_INTEGER_8AS,1)
 
     ! Get the dimensions of the array to be read.
     if (isReference) then

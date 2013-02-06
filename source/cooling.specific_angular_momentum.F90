@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Cooling_Specific_Angular_Momenta
   !% Implements calculations of the specific angular momentum of cooling gas.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="coolingSpecificAngularMomentumMethod" type="moduleUse">
   include 'cooling.specific_angular_momentum.modules.inc'
   !# </include>
@@ -62,8 +62,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('coolingSpecificAngularMomentumMethod',coolingSpecificAngularMomentumMethod,defaultValue='constantRotation')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="coolingSpecificAngularMomentumMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</subroutineArgs>
+          !# <include directive="coolingSpecificAngularMomentumMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>coolingSpecificAngularMomentumMethod,Cooling_Specific_Angular_Momentum_Get</functionArgs>
           include 'cooling.specific_angular_momentum.inc'
           !# </include>
           if (.not.associated(Cooling_Specific_Angular_Momentum_Get)) call&

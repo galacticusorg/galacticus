@@ -13,6 +13,7 @@ use DateTime;
 require Galacticus::HDF5;
 require Galacticus::ColumnDensity;
 require Galacticus::ISMCrossSections;
+require Galacticus::Filters;
 
 %HDF5::galacticusFunctions = 
     (
@@ -229,18 +230,7 @@ sub Get_AGN_Luminosity {
 	$bolometricLuminosity->index($zeroLuminosities) .= -10.0;
 
 	# Load the filter.
-	my $filterFile        = "./data/filters/".$filterName.".xml";
-	my $xml               = new XML::Simple;
-	my $filter            = $xml->XMLin($filterFile);
-	my $filterWavelengths = pdl [];
-	my $filterResponse    = pdl [];
-	foreach my $datum ( @{$filter->{'response'}->{'datum'}} ) {
-	    $datum =~ s/^\s*//;
-	    $datum =~ s/\s*$//;
-	    my @columns = split(/\s+/,$datum);
-	    $filterWavelengths = append($filterWavelengths,$columns[0]);
-	    $filterResponse    = append($filterResponse   ,$columns[1]);
-	}
+	(my $filterWavelengths, my $filterResponse) = &Filters::Load($filterName);
 	
 	# Make a joint set of filter and SED wavelengths.
 	my $jointWavelengths = $wavelengths->copy();

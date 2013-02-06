@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Star_Formation_Feedback_Disks
   !% Implements calculations of feedback from star formation in disks.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disk_Outflow_Rate
@@ -70,8 +70,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationFeedbackDisksMethod',starFormationFeedbackDisksMethod,defaultValue='powerLaw')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationFeedbackDisksMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get</subroutineArgs>
+          !# <include directive="starFormationFeedbackDisksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationFeedbackDisksMethod,Star_Formation_Feedback_Disk_Outflow_Rate_Get</functionArgs>
           include 'star_formation.feedbacks.disks.inc'
           !# </include>
           if (.not.associated(Star_Formation_Feedback_Disk_Outflow_Rate_Get)) call Galacticus_Error_Report('Star_Formation_Feedback_Disks'&

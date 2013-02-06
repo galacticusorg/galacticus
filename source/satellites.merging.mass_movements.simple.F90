@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -83,7 +83,7 @@ contains
 
   subroutine Satellite_Merging_Mass_Movement_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
@@ -94,7 +94,7 @@ contains
     double precision                        :: satelliteMass,hostMass
 
     ! Find the node to merge with.
-    call thisNode%mergesWith(hostNode)
+    hostNode => thisNode%mergesWith()
 
     ! Find the baryonic masses of the two galaxies.
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)

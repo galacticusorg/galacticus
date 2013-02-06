@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Star_Formation_Timescales_Spheroids
   !% Implements calculations of star formation timescales for galactic spheroids.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Timescale_Spheroid
@@ -69,8 +69,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('starFormationTimescaleSpheroidsMethod',starFormationTimescaleSpheroidsMethod,defaultValue='dynamicalTime')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="starFormationTimescaleSpheroidsMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</subroutineArgs>
+          !# <include directive="starFormationTimescaleSpheroidsMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>starFormationTimescaleSpheroidsMethod,Star_Formation_Timescale_Spheroid_Get</functionArgs>
           include 'star_formation.timescales.spheroids.inc'
           !# </include>
           if (.not.associated(Star_Formation_Timescale_Spheroid_Get)) call Galacticus_Error_Report('Star_Formation_Timescale_Spheroids'&

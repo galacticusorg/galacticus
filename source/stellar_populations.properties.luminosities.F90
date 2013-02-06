@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -83,8 +83,8 @@ contains
     return
   end function Stellar_Population_Luminosities_Name
   
-  function Stellar_Population_Luminosities_Get(imfSelected,time,abundances)
-    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundances} and
+  function Stellar_Population_Luminosities_Get(imfSelected,time,abundancesStellar)
+    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundancesStellar} and
     !% which formed at cosmological {\tt time} with IMF specified by {\tt imfSelected}.
     use Abundances_Structure
     use Stellar_Population_Luminosities
@@ -92,7 +92,7 @@ contains
     double precision,          dimension(luminosityCount) :: Stellar_Population_Luminosities_Get
     integer,                   intent(in)                 :: imfSelected
     double precision,          intent(in)                 :: time
-    type(abundancesStructure), intent(in)                 :: abundances
+    type(abundances),          intent(in)                 :: abundancesStellar
     double precision,          dimension(luminosityCount) :: ages
 
     ! Ensure module is initialized.
@@ -102,7 +102,7 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundances&
+    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundancesStellar&
          &,ages,luminosityRedshift)
     return
   end function Stellar_Population_Luminosities_Get
@@ -224,7 +224,7 @@ contains
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
                 write (redshiftLabel,'(f7.4)') luminosityRedshift(iLuminosity)
-                luminosityName(iLuminosity)="Luminosity:"//luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
+                luminosityName(iLuminosity)=luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
                      &//trim(adjustl(redshiftLabel))
                 ! Assign an index for this luminosity.
                 luminosityIndex(iLuminosity)=iLuminosity

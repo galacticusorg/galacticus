@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -70,10 +70,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Main_Branch_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Main_Branch</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Main_Branch_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Main_Branch_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of main branch properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
+    type(treeNode),   intent(inout), pointer      :: thisNode
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
@@ -104,11 +106,13 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Main_Branch_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Main_Branch</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Main_Branch_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Main_Branch_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of main branch properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
@@ -124,7 +128,7 @@ contains
   subroutine Galacticus_Output_Tree_Main_Branch(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store mainBranch properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time

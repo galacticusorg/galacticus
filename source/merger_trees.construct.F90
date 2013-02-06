@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -63,15 +63,15 @@ contains
           !@   <defaultValue>build</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@     Selects the method to be used constructing merger trees.
+          !@     Selects the method to be used for constructing merger trees.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeConstructMethod',mergerTreeConstructMethod,defaultValue='build')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="mergerTreeConstructMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>mergerTreeConstructMethod,Merger_Tree_Construct</subroutineArgs>
+          !# <include directive="mergerTreeConstructMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>mergerTreeConstructMethod,Merger_Tree_Construct</functionArgs>
           include 'merger_trees.construct.inc'
           !# </include>
           if (.not.associated(Merger_Tree_Construct)) call Galacticus_Error_Report('Merger_Tree_Create','method '&

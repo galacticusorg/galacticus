@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Galacticus_Output_Tree_Half_Light_Properties
   !% Handles outputting of galaxy half-light radii and associated masses.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Tree_Half_Light, Galacticus_Output_Tree_Half_Light_Property_Count, Galacticus_Output_Tree_Half_Light_Names
@@ -78,19 +78,20 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Half_Light_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Half_Light</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Half_Light_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Half_Light_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of half-light properties to be written to the \glc\ output file.
     use ISO_Varying_String 
     use Numerical_Constants_Astronomical
     use Stellar_Population_Properties_Luminosities
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       :: iLuminosity
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    integer                                          :: iLuminosity
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
@@ -131,11 +132,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Half_Light_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Half_Light</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Half_Light_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Half_Light_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
@@ -180,7 +182,7 @@ contains
           ! Find the total mass enclosed.
           massEnclosed   =Galactic_Structure_Enclosed_Mass(thisNode,halfLightRadius,componentType=componentTypeAll,massType&
                &=massTypeAll)
-          
+
           ! Store the resulting radius.
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=halfLightRadius

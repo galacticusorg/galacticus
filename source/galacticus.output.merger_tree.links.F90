@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,12 +19,13 @@
 
 module Galacticus_Output_Trees_Links
   !% Handles outputting of tree link data to the \glc\ output file.
+  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Tree_Links, Galacticus_Output_Tree_Links_Property_Count, Galacticus_Output_Tree_Links_Names
 
   ! Number of link properties.
-  integer, parameter   :: linkPropertyCount=6
+  integer, parameter :: linkPropertyCount=6
 
 contains
 
@@ -32,11 +33,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Links_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Links</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Links_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Links_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     implicit none
-    double precision, intent(in)                  :: time
+    type(treeNode),   intent(inout), pointer      :: thisNode
+    double precision, intent(in   )               :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
@@ -121,11 +123,12 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Links_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Links</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Links_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Links_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode),   intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     integerPropertyCount=integerPropertyCount+linkPropertyCount
     return
@@ -138,25 +141,24 @@ contains
   subroutine Galacticus_Output_Tree_Links(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store link properties in the \glc\ output file buffers.
-    use Tree_Nodes
     use Kind_Numbers
     implicit none
     double precision,        intent(in)             :: time
     type(treeNode),          intent(inout), pointer :: thisNode
     integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision,        intent(inout)          :: doubleBuffer (:,:)
 
     integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%index()
+    integerBuffer(integerBufferCount,integerProperty)=thisNode               %index()
     integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%parentNode%index()
+    integerBuffer(integerBufferCount,integerProperty)=thisNode%parent        %index()
     integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%childNode%index()
+    integerBuffer(integerBufferCount,integerProperty)=thisNode%firstChild    %index()
     integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%siblingNode%index()
+    integerBuffer(integerBufferCount,integerProperty)=thisNode%sibling       %index()
     integerProperty=integerProperty+1
-    integerBuffer(integerBufferCount,integerProperty)=thisNode%satelliteNode%index()
+    integerBuffer(integerBufferCount,integerProperty)=thisNode%firstSatellite%index()
     integerProperty=integerProperty+1
     select case (thisNode%isSatellite())
     case (.true.)

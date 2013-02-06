@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,7 @@
 
 module Dark_Matter_Profiles_Concentrations_NFW1996
   !% Implements the \cite{navarro_structure_1996} NFW halo concentration algorithm.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_NFW1996_Initialize
@@ -71,34 +71,37 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter("nfw96ConcentrationC",nfw96ConcentrationC,defaultValue=2000.0d0)
     end if
-
     return
   end subroutine Dark_Matter_Concentrations_NFW1996_Initialize
 
   double precision function Dark_Matter_Profile_Concentration_NFW1996(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{navarro_structure_1996}.
     use, intrinsic :: ISO_C_Binding
-    use Tree_Nodes
-    use CDM_Power_Spectrum
+    use Galacticus_Nodes
+    use Power_Spectrum
     use Cosmology_Functions
     use Critical_Overdensity
     use Root_Finder
     use FGSL
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    double precision,        parameter              :: fitParameterNuHalf=0.47693628d0
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type(treeNode),            intent(inout), pointer :: thisNode
+    double precision,          parameter              :: fitParameterNuHalf=0.47693628d0
+    double precision,          parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type(fgsl_function),       save                   :: rootFunction
+    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity,collapseTime&
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity,collapseTime&
          &,collapseExpansionFactor,expansionFactor,collapseOverdensity,concentrationMinimum,concentrationMaximum
-    type(c_ptr)                                     :: parameterPointer
+    type(c_ptr)                                       :: parameterPointer
+
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
 
     ! Get the properties of the node.
-    nodeMass                   =Tree_Node_Mass(thisNode)
-    nodeTime                   =Tree_Node_Time(thisNode)
+    nodeMass                   =thisBasicComponent%mass()
+    nodeTime                   =thisBasicComponent%time()
     expansionFactor            =Expansion_Factor(nodeTime)
 
     ! Compute the mass of a progenitor as defined by NFW.
@@ -120,7 +123,6 @@ contains
     concentrationMaximum=20.0d0
     Dark_Matter_Profile_Concentration_NFW1996=Root_Find(concentrationMinimum,concentrationMaximum,NFW_Concentration_Function_Root,parameterPointer &
             &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-
     return
   end function Dark_Matter_Profile_Concentration_NFW1996
   

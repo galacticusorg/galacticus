@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,6 +21,7 @@
 module Freefall_Times_Available_Halo_Formation
   !% Implements the \cite{cole_hierarchical_2000} method for computing the time available for freefall in
   !% cooling calculations in hot halos.
+  use Galacticus_Nodes
   implicit none
   private
   public :: Freefall_Time_Available_Halo_Formation_Initialize
@@ -36,7 +37,6 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    use Tree_Nodes
     implicit none
     type(varying_string),                 intent(in)    :: freefallTimeAvailableMethod
     procedure(double precision), pointer, intent(inout) :: Freefall_Time_Available_Get,Freefall_Time_Available_Increase_Rate_Get
@@ -46,7 +46,7 @@ contains
        Freefall_Time_Available_Get               => Freefall_Time_Available_Halo_Formation
        Freefall_Time_Available_Increase_Rate_Get => Freefall_Time_Available_Increase_Rate_Halo_Formation
        ! Check that there is a gettable formation time property.
-       if (.not.associated(Tree_Node_Formation_Time)) call Galacticus_Error_Report('Freefall_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for freefall requires a component that supports getting of the Formation_Time property")
+       if (.not.defaultFormationTimeComponent%formationTimeIsGettable()) call Galacticus_Error_Report('Freefall_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for freefall requires a formation time component that supports getting of the formationTime property")
     end if
     return
   end subroutine Freefall_Time_Available_Halo_Formation_Initialize
@@ -54,18 +54,20 @@ contains
   double precision function Freefall_Time_Available_Halo_Formation(thisNode)
     !% Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
-    use Tree_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode                  ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic        ),                pointer :: thisBasicComponent
+    class(nodeComponentFormationTime),                pointer :: thisFormationTimeComponent
 
-    Freefall_Time_Available_Halo_Formation=Tree_Node_Time(thisNode)-Tree_Node_Formation_Time(thisNode)
+    thisBasicComponent         => thisNode%basic        ()
+    thisFormationTimeComponent => thisNode%formationTime()
+    Freefall_Time_Available_Halo_Formation=thisBasicComponent%time()-thisFormationTimeComponent%formationTime()
     return
   end function Freefall_Time_Available_Halo_Formation
   
   double precision function Freefall_Time_Available_Increase_Rate_Halo_Formation(thisNode)
     !% Compute the rate of increase of the time available for freefall using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
-    use Tree_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

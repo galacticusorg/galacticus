@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -45,17 +45,24 @@ contains
   double precision function Black_Hole_Binary_Initial_Radius_Volonteri_2003(thisNode,hostNode)
     !% Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the assumption that
     !% the local velocity dispersion is approximately the dark matter halo virial velocity.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode,hostNode
+    type (treeNode              ), intent(inout), pointer :: thisNode,hostNode
+    class(nodeComponentBlackHole),                pointer :: thisBlackHoleComponent,hostBlackHoleComponent
 
-    Black_Hole_Binary_Initial_Radius_Volonteri_2003=gravitationalConstantGalacticus*(       Tree_Node_Black_Hole_Mass(thisNode)    &
-       &                                                                           +        Tree_Node_Black_Hole_Mass(hostNode)    &
-       &                                                                            )                                              &
-       &                                                             /(2.0d0       * Dark_Matter_Halo_Virial_Velocity(hostNode)**2 &
-       &                                                              )
+    ! Get the black hole components.
+    thisBlackHoleComponent => thisNode%blackHole()
+    hostBlackHoleComponent => hostNode%blackHole()
+    ! Compute the initial separation.
+    Black_Hole_Binary_Initial_Radius_Volonteri_2003=gravitationalConstantGalacticus                &
+         &                                          *(                                             &
+         &                                             thisBlackHoleComponent%mass()               &
+         &                                            +hostBlackHoleComponent%mass()               &
+         &                                           )                                             &
+         &                                          /2.0d0                                         &
+         &                                          /Dark_Matter_Halo_Virial_Velocity(hostNode)**2
 
     return
   end function Black_Hole_Binary_Initial_Radius_Volonteri_2003

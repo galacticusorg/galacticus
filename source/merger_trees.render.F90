@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -31,6 +31,14 @@ contains
 
   subroutine Merger_Trees_Render_Dump(thisTree)
     !% Dumps information on merger tree structure useful for rendering 3D views of merger trees.
+    use Merger_Trees
+    use Galacticus_Nodes
+    use Dark_Matter_Halo_Scales
+    use Cosmology_Functions
+    use File_Utilities
+    use IO_HDF5
+    use Numerical_Constants_Astronomical
+    use Memory_Management
     implicit none
     type(mergerTree), intent(inout)               :: thisTree
     type(treeNode),   pointer                     :: thisNode
@@ -76,8 +84,8 @@ contains
     do while (associated(thisNode))
        iNode=iNode+1
        nodeIndex      (iNode)=thisNode           %index()
-       parentIndex    (iNode)=thisNode%parentNode%index()
-       childIndex     (iNode)=thisNode%childNode %index()
+       parentIndex    (iNode)=thisNode%parent    %index()
+       childIndex     (iNode)=thisNode%firstChild%index()
        time           (iNode)=                               Tree_Node_Time(thisNode)
        expansionFactor(iNode)=Expansion_Factor              (Tree_Node_Time(thisNode))
        radiusVirial   (iNode)=Dark_Matter_Halo_Virial_Radius(               thisNode )

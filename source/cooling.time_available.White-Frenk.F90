@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -65,21 +65,24 @@ contains
   double precision function Cooling_Time_Available_WF(thisNode)
     !% Compute the time available for cooling using the \cite{white_galaxy_1991} method. This is assumed to be equal to the
     !% dynamical timescale of the halo.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
 
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
     ! Return the appropriate time.
     if (coolingTimeAvailableAgeFactor == 1.0d0) then
        ! Time available equals the age of the Universe, which is just the time for this node.
-       Cooling_Time_Available_WF=Tree_Node_Time(thisNode)
+       Cooling_Time_Available_WF=thisBasicComponent%time()
     else if (coolingTimeAvailableAgeFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
        Cooling_Time_Available_WF=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
-       Cooling_Time_Available_WF=dexp(dlog(Tree_Node_Time(thisNode))*coolingTimeAvailableAgeFactor&
+       Cooling_Time_Available_WF=dexp(dlog(thisBasicComponent%time())*coolingTimeAvailableAgeFactor&
             &+dlog(Dark_Matter_Halo_Dynamical_Timescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
     end if
     return
@@ -88,7 +91,7 @@ contains
   double precision function Cooling_Time_Available_Increase_Rate_WF(thisNode)
     !% Compute the rate of increase of the time available for cooling using the \cite{white_galaxy_1991} method. We return a rate
     !% of 1, even though technically it can depend on halo properties.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

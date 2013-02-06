@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Dark_Matter_Profiles_Concentrations
   !% Implements calculations of dark matter halo density profile concentrations.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Profile_Concentration
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('darkMatterConcentrationMethod',darkMatterConcentrationMethod,defaultValue='Gao2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="darkMatterConcentrationMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get</subroutineArgs>
+          !# <include directive="darkMatterConcentrationMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get</functionArgs>
           include 'dark_matter_profiles.structure.concentration.inc'
           !# </include>
           if (.not.associated(Dark_Matter_Profile_Concentration_Get)) &

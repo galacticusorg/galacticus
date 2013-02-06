@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -62,8 +62,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('accretionDisksMethod',accretionDisksMethod,defaultValue='switched')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="accretionDisksMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get</subroutineArgs>
+          !# <include directive="accretionDisksMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get</functionArgs>
           include 'accretion_disks.inc'
           !# </include>
           if (.not.(associated(Accretion_Disk_Radiative_Efficiency_Get).and.associated(Black_Hole_Spin_Up_Rate_Get) &
@@ -77,51 +77,51 @@ contains
     return
   end subroutine Accretion_Disks_Initialize
   
-  double precision function Accretion_Disk_Radiative_Efficiency(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an accretion disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     ! Ensure the module is initalized.
-    call Accretion_Disks_Initialize
+    call Accretion_Disks_Initialize()
 
     ! Get the radiative efficiency.
-    Accretion_Disk_Radiative_Efficiency=Accretion_Disk_Radiative_Efficiency_Get(thisNode,massAccretionRate)
+    Accretion_Disk_Radiative_Efficiency=Accretion_Disk_Radiative_Efficiency_Get(thisBlackHole,massAccretionRate)
 
     return
   end function Accretion_Disk_Radiative_Efficiency
 
-  double precision function Accretion_Disk_Jet_Power(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power(thisBlackHole,massAccretionRate)
     !% Computes the jet power for an accretion disk in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     ! Ensure the module is initalized.
     call Accretion_Disks_Initialize
 
     ! Get the radiative efficiency.
-    Accretion_Disk_Jet_Power=Accretion_Disk_Jet_Power_Get(thisNode,massAccretionRate)
+    Accretion_Disk_Jet_Power=Accretion_Disk_Jet_Power_Get(thisBlackHole,massAccretionRate)
 
     return
   end function Accretion_Disk_Jet_Power
 
-  double precision function Black_Hole_Spin_Up_Rate(thisNode,massAccretionRate)
+  double precision function Black_Hole_Spin_Up_Rate(thisBlackHole,massAccretionRate)
     !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an accretion
     !% disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     ! Ensure the module is initalized.
     call Accretion_Disks_Initialize
 
     ! Get the spin up rate.
-    Black_Hole_Spin_Up_Rate=Black_Hole_Spin_Up_Rate_Get(thisNode,massAccretionRate)
+    Black_Hole_Spin_Up_Rate=Black_Hole_Spin_Up_Rate_Get(thisBlackHole,massAccretionRate)
 
     return
   end function Black_Hole_Spin_Up_Rate

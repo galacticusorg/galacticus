@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -30,20 +30,21 @@ program Test_Zhao2009_Dark_Energy
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
   use Merger_Trees
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Unit_Tests
   use String_Handling
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type(mergerTree),    pointer                 :: thisTree
-  type(treeNode),      pointer                 :: thisNode
-  integer,             parameter, dimension(2) :: logarithmicHaloMasses           =[12    ,15    ]
-  double precision,    parameter, dimension(2) :: timeDifferenceTolerance         =[2.5d-2,2.0d-2], &
-       &                                          concentrationDifferenceTolerance=[3.1d-2,5.5d-4]
-  type(varying_string)                         :: parameterFile,fileName,message
-  integer                                      :: fUnit,totalLinesInFile,dataLinesInFile,iLine,iMass
-  double precision                             :: redshift,haloMass,theirConcentration,theirTime,ourConcentration,ourTime&
+  type (mergerTree        ), pointer                 :: thisTree
+  type (treeNode          ), pointer                 :: thisNode
+  class(nodeComponentBasic), pointer                 :: thisBasicComponent
+  integer                  , parameter, dimension(2) :: logarithmicHaloMasses           =[12    ,15    ]
+  double precision         , parameter, dimension(2) :: timeDifferenceTolerance         =[2.5d-2,2.0d-2],&
+       & concentrationDifferenceTolerance=[3.1d-2,5.5d-4]
+  type (varying_string    )                          :: parameterFile,fileName,message
+  integer                                            :: fUnit,totalLinesInFile,dataLinesInFile,iLine,iMass
+  double precision                                   :: redshift,haloMass,theirConcentration,theirTime,ourConcentration,ourTime &
        &,timeDifferenceMaximum,concentrationDifferenceMaximum
 
   ! Read in basic code memory usage.
@@ -59,6 +60,9 @@ program Test_Zhao2009_Dark_Energy
   
   ! Create a node.
   call thisTree%createNode(thisNode)
+
+  ! Get the basic component.
+  thisBasicComponent => thisNode%basic(autoCreate=.true.)
   
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
@@ -87,15 +91,15 @@ program Test_Zhao2009_Dark_Energy
         theirTime=Cosmology_Age(Expansion_Factor_From_Redshift(redshift))
         
         ! Set the mass and time of the original node.
-        call Tree_Node_Mass_Set(thisNode,10.0d0**logarithmicHaloMasses(iMass))
-        call Tree_Node_Time_Set(thisNode,Cosmology_Age                (1.0d0))
+        call thisBasicComponent%massSet(10.0d0**logarithmicHaloMasses(iMass))
+        call thisBasicComponent%timeSet(Cosmology_Age                (1.0d0))
 
         ! Get the time corresponding to the current halo mass.
         ourTime=Dark_Matter_Halo_Mass_Accretion_Time(thisNode,haloMass)
         
         ! Set the node mass and time to the current values.
-        call Tree_Node_Mass_Set(thisNode,              haloMass )
-        call Tree_Node_Time_Set(thisNode,              theirTime)
+        call thisBasicComponent%massSet(haloMass )
+        call thisBasicComponent%timeSet(theirTime)
         
         ! Get the corresponding halo concentration.
         ourConcentration=Dark_Matter_Profile_Concentration(thisNode)

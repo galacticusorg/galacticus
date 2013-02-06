@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,9 +41,9 @@ contains
 
     do while (tasksRemaining)
        tasksRemaining=.false.
-       !# <include directive="galacticusTask" type="code" action="procPointer">
+       !# <include directive="galacticusTask" type="functionCall" functionType="pointer">
        !#  <pointerName>taskFunction</pointerName>
-       !#  <pointerAction>tasksRemaining=tasksRemaining.or.taskFunction()</pointerAction>
+       !#  <onReturn>tasksRemaining=tasksRemaining.or.taskFunction()</onReturn>
        include 'galacticus.tasks.task_rules.inc'
        !# </include>
     end do

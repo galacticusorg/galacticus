@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Hot_Halo_Density_Cored_Isothermal_Core_Radii
   !% Implements calculations of the core radius in cored isothermal hot halo profiles.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radius
@@ -68,8 +68,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloCoredIsothermalCoreRadiiMethod',hotHaloCoredIsothermalCoreRadiiMethod,defaultValue='virialRadiusFraction')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloCoredIsothermalCoreRadiiMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>hotHaloCoredIsothermalCoreRadiiMethod,Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get</subroutineArgs>
+          !# <include directive="hotHaloCoredIsothermalCoreRadiiMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloCoredIsothermalCoreRadiiMethod,Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get</functionArgs>
           include 'hot_halo.density_profile.cored_isothermal.core_radius.inc'
           !# </include>
           if (.not.associated(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get)) call&

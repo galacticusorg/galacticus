@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -32,33 +32,35 @@ contains
 #ifdef PROFILE
        &,Error_Analyzer &
 #endif
-       &,yScale,errorHandler,reset)
+       &,yScale,errorHandler,algorithm,reset)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use String_Handling
     implicit none
-    double precision,         intent(in   )           :: x1,toleranceAbsolute,toleranceRelative
-    type(c_ptr),              intent(in   )           :: parameterPointer
-    integer,                  intent(in   )           :: yCount
-    double precision,         intent(inout)           :: x0,y(yCount)
-    double precision,         intent(in   ), optional :: yScale(yCount)
-    type(fodeiv2_driver),     intent(inout)           :: odeDriver
-    type(fodeiv2_system),     intent(inout)           :: odeSystem
-    logical,                  intent(inout), optional :: reset
-    procedure(),              pointer,       optional :: errorHandler
+    double precision,            intent(in   )           :: x1,toleranceAbsolute,toleranceRelative
+    type(c_ptr),                 intent(in   )           :: parameterPointer
+    integer,                     intent(in   )           :: yCount
+    double precision,            intent(inout)           :: x0,y(yCount)
+    double precision,            intent(in   ), optional :: yScale(yCount)
+    type(fodeiv2_driver),        intent(inout)           :: odeDriver
+    type(fodeiv2_system),        intent(inout)           :: odeSystem
+    logical,                     intent(inout), optional :: reset
+    procedure(),                 pointer,       optional :: errorHandler
+    type(fodeiv2_step_type),     intent(in   ), optional :: algorithm
 #ifdef PROFILE
-    type(c_funptr),           intent(in)              :: Error_Analyzer
+    type(c_funptr),              intent(in)              :: Error_Analyzer
 #endif
-    integer(kind=4),          external                :: odeFunction
-    integer,                  parameter               :: genericFailureCountMaximum=10
-    double precision,         parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
-    integer                                           :: status
-    integer(c_size_t)                                 :: odeNumber
-    double precision                                  :: x,h,x1Internal
-    logical                                           :: resetActual,forwardEvolve
-    type(varying_string)                              :: message
+    integer(kind=4),             external                :: odeFunction
+    integer,                     parameter               :: genericFailureCountMaximum=10
+    double precision,            parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
+    integer                                              :: status
+    integer(c_size_t)                                    :: odeNumber
+    double precision                                     :: x,h,x1Internal
+    logical                                              :: resetActual,forwardEvolve
+    type(fodeiv2_step_type)                              :: algorithmActual
+    type(varying_string)                                 :: message
 
     ! Number of ODEs to solve.
     odeNumber=yCount
@@ -73,13 +75,19 @@ contains
        ! Make initial guess for timestep.
        h=(x1-x0)
        odeSystem=FODEIV2_System_Init(odeFunction,odeNumber,parameterPointer)
+       ! Select the algorithm to use.
+       if (present(algorithm)) then
+          algorithmActual=algorithm
+       else
+          algorithmActual=Fodeiv2_Step_RKCK
+       end if
        if (present(yScale)) then
           ! Scales for the absolute tolerance have been given, so use them.
-          odeDriver=FODEIV2_Driver_Alloc_Scaled_New(odeSystem,Fodeiv2_Step_RKCK,h,toleranceAbsolute,toleranceRelative&
+          odeDriver=FODEIV2_Driver_Alloc_Scaled_New(odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative&
                &,yScaleUniform,dydtScaleUniform,yScale)
        else
           ! No scales given, assume they are all unity.
-          odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,Fodeiv2_Step_RKCK,h,toleranceAbsolute,toleranceRelative)
+          odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
        end if
     end if
     ! Keep a local copy of the end point as we may reset it.

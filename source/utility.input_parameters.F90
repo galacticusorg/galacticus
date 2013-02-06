@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -152,7 +152,7 @@ contains
              !$    write (0,'(a2,a2,$)') "MM",": "
              !$ end if
             unknownParameter=getTextContent(nameElement)
-            minimumDistance=1e4
+            minimumDistance=10000
             do jParameter=0,allowedParameterCount-1
                thisParameter => item(allowedParameterList,jParameter)
                distance=String_Levenshtein_Distance(char(unknownParameter),getTextContent(thisParameter))

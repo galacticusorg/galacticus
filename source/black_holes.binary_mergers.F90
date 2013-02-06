@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -63,8 +63,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('blackHoleBinaryMergersMethod',blackHoleBinaryMergersMethod,defaultValue='Rezzolla2008')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinaryMergersMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</subroutineArgs>
+          !# <include directive="blackHoleBinaryMergersMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do</functionArgs>
           include 'black_holes.binary_mergers.inc'
           !# </include>
           if (.not.associated(Black_Hole_Binary_Merger_Do)) call Galacticus_Error_Report('Black_Hole_Binary_Merger','method ' &

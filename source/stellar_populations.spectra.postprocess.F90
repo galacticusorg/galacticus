@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -75,8 +75,8 @@ contains
              call Get_Input_Parameter('stellarPopulationSpectraPostprocessMethods',stellarPopulationSpectraPostprocessMethods,defaultValue=['Meiksin2006'])
           end if
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="code" action="subroutine">
-          !#  <subroutineArgs>stellarPopulationSpectraPostprocessMethods</subroutineArgs>
+          !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="functionCall" functionType="void">
+          !#  <functionArgs>stellarPopulationSpectraPostprocessMethods</functionArgs>
           include 'stellar_populations.spectra.postprocess.initialize.inc'
           !# </include>
           stellarPopulationSpectraPostprocessInitialized=.true.
@@ -102,8 +102,8 @@ contains
 
     ! Compute the postprocessing factor.
     Stellar_Population_Spectrum_Postprocess=1.0d0
-    !# <include directive="stellarPopulationSpectraPostprocess" type="code" action="subroutine">
-    !#  <subroutineArgs>wavelength,redshift,Stellar_Population_Spectrum_Postprocess</subroutineArgs>
+    !# <include directive="stellarPopulationSpectraPostprocess" type="functionCall" functionType="void">
+    !#  <functionArgs>wavelength,redshift,Stellar_Population_Spectrum_Postprocess</functionArgs>
     include 'stellar_populations.spectra.postprocess.inc'
     !# </include>
     return

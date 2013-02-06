@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,6 +41,7 @@ contains
     integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop
     double precision                    :: sigma_8,powerSpectrumIndex,boxSize
     type(varying_string)                :: transferFunction,source
+    logical                             :: haloMassesIncludeSubhalos
 
     ! Process the file.
 
@@ -155,6 +156,19 @@ contains
        call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   ,boxSize                            )
     end if
 
+    ! Set halo properties.
+    !@ <inputParameter>
+    !@   <name>haloMassesIncludeSubhalos</name>
+    !@   <attachedTo>module</attachedTo>
+    !@   <description>
+    !@     Specifies whether or not halo masses include the masses of their subhalos.
+    !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
+    !@   <group>cosmology</group>
+    !@ </inputParameter>
+    call Get_Input_Parameter('haloMassesIncludeSubhalos',haloMassesIncludeSubhalos,defaultValue=.true.)
+    call mergerTrees%setIncludesSubhaloMasses(haloMassesIncludeSubhalos)
     return
   end subroutine Merger_Trees_Simple_Process
   

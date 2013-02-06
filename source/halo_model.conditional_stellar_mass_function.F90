@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -72,8 +72,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('conditionalStellarMassFunctionMethod',conditionalStellarMassFunctionMethod,defaultValue='Behroozi2010')
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="conditionalStellarMassFunctionMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>conditionalStellarMassFunctionMethod,Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get</subroutineArgs>
+       !# <include directive="conditionalStellarMassFunctionMethod" type="functionCall" functionType="void">
+       !#  <functionArgs>conditionalStellarMassFunctionMethod,Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get</functionArgs>
        include 'halo_model.conditional_stellar_mass_function.inc'
        !# </include>
        if     (                                                                            &

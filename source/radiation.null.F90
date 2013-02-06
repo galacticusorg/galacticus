@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -32,7 +32,7 @@ contains
   !# </radiationSet>
   subroutine Radiation_Set_Null(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for null radiation component.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     logical,          intent(in)                               :: componentMatched
     type(treeNode),   intent(inout), pointer                   :: thisNode

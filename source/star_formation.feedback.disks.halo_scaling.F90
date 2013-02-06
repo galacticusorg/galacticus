@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -21,7 +21,7 @@
 module Star_Formation_Feedback_Disks_Halo_Scaling
   !% Implements an outflow rate due to star formation feedback in galactic disks that scales with halo
   !% virial velocity and redshift.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_Halo_Scaling_Initialize
@@ -87,19 +87,22 @@ contains
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling(thisNode,starFormationRate,energyInputRate)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}.
-    use Tree_Nodes
     use Stellar_Feedback
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: starFormationRate,energyInputRate
-    double precision, parameter              :: virialVelocityNormalization=200.0d0
-    double precision                         :: expansionFactor,virialVelocity
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    double precision         , intent(in   )          :: starFormationRate,energyInputRate
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision         , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                                  :: expansionFactor,virialVelocity
+
+    ! Get the basic component.
+    thisBasicComponent => thisNode%basic()
 
     ! Get virial velocity and expansion factor.
-    virialVelocity =Dark_Matter_Halo_Virial_Velocity               (thisNode)
-    expansionFactor=Expansion_Factor                (Tree_Node_Time(thisNode))
+    virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
+    expansionFactor=Expansion_Factor                (thisBasicComponent%time())
 
     ! Compute the outflow rate.
     Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling=                                 &

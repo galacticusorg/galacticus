@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -75,7 +75,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Covington2008(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{covington_predicting_2008} algorithm.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
     use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
@@ -101,13 +101,12 @@ contains
     logical                                          :: errorCondition
 
     ! Get the host node.
-    call thisNode%mergesWith(hostNode)
+    hostNode => thisNode%mergesWith()
 
     ! Get properties of the merging systems.
     call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
-
     if (satelliteMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -241,14 +241,14 @@ contains
     return
   end subroutine Accretion_Disks_ADAF_Get_Parameters
 
-  double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an ADAF.
     use Accretion_Disks_Shakura_Sunyaev
     use Black_Hole_Fundamentals
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
@@ -257,14 +257,14 @@ contains
     case (adafRadiativeEfficiencyTypeFixed   )
        Accretion_Disk_Radiative_Efficiency_ADAF=adafRadiativeEfficiency
     case (adafRadiativeEfficiencyTypeThinDisk)
-       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisNode,massAccretionRate)
+       Accretion_Disk_Radiative_Efficiency_ADAF=Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev(thisBlackHole,massAccretionRate)
     end select
     return
   end function Accretion_Disk_Radiative_Efficiency_ADAF
 
-  double precision function Accretion_Disk_Jet_Power_ADAF(thisNode,massAccretionRate)
+  double precision function Accretion_Disk_Jet_Power_ADAF(thisBlackHole,massAccretionRate)
     !% Computes the jet power for an ADAF in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Memory_Management
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
@@ -272,11 +272,11 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
-    integer                                  :: iSpin
-    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha,blackHoleSpinParameter
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                                 :: iSpin
+    double precision                                        :: radiusIsco,radiusStatic,blackHoleSpin,adafViscosityAlpha,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
@@ -322,7 +322,7 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the "spin parameter".
     blackHoleSpinParameter=1.0d0-blackHoleSpin
@@ -337,20 +337,20 @@ contains
     return
   end function Accretion_Disk_Jet_Power_ADAF
 
-  double precision function Black_Hole_Spin_Up_Rate_ADAF(thisNode,massAccretionRate)
-    !% Computes the spin up rate of the black hole in {\tt thisNode} due to accretion from an ADAF.
+  double precision function Black_Hole_Spin_Up_Rate_ADAF(thisBlackHole,massAccretionRate)
+    !% Computes the spin up rate of the black hole in {\tt thisBlackHole} due to accretion from an ADAF.
     !% disk.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Memory_Management
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: massAccretionRate
-    double precision, parameter              :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
-    integer                                  :: iSpin
-    double precision                         :: radiusIsco,radiusStatic,blackHoleSpin,adafEnergyValue,adafViscosityAlpha&
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMinimum=1.0d-6,blackHoleSpinParameterMaximum=1.0d0
+    integer                                                 :: iSpin
+    double precision                                        :: radiusIsco,radiusStatic,blackHoleSpin,adafEnergyValue,adafViscosityAlpha&
          &,spinToMassRateOfChangeRatio,blackHoleSpinParameter
 
     ! Ensure that parameters have been read.
@@ -400,7 +400,7 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=Tree_Node_Black_Hole_Spin(thisNode)
+    blackHoleSpin=thisBlackHole%spin()
 
     ! Get the "spin parameter".
     blackHoleSpinParameter=1.0d0-blackHoleSpin
@@ -412,7 +412,7 @@ contains
     !$omp end critical(ADAF_Spin_Up_Rate_Interpolate)
 
     ! Scale to the mass rate of change.
-    Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/Tree_Node_Black_Hole_Mass(thisNode)
+    Black_Hole_Spin_Up_Rate_ADAF=spinToMassRateOfChangeRatio*massAccretionRate/thisBlackHole%mass()
     return
   end function Black_Hole_Spin_Up_Rate_ADAF
 

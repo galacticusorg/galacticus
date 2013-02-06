@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -20,7 +20,7 @@
 module Hot_Halo_Density_Profile
   !% Implements calculations of the hot halo gas density profile.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="hotHaloDensityMethod" type="moduleUse">
   include 'hot_halo.density_profile.modules.inc'
   !# </include>
@@ -28,7 +28,7 @@ module Hot_Halo_Density_Profile
   private
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
        & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization,&
-       & Hot_Halo_Profile_Rotation_Curve_Gradient_Task
+       & Hot_Halo_Profile_Rotation_Curve_Gradient_Task,Hot_Halo_Profile_Radial_Moment
   ! Flag to indicate if this module has been initialized.  
   logical              :: hotHaloDensityInitialized=.false.
 
@@ -53,6 +53,7 @@ module Hot_Halo_Density_Profile
        type(treeNode),   intent(inout), pointer :: thisNode
      end function Hot_Halo_Profile_Rotation_Normalization_Template
   end interface
+  procedure(Hot_Halo_Profile_Radial_Moment), pointer :: Hot_Halo_Profile_Radial_Moment_Get
 
 contains
 
@@ -79,14 +80,15 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
           ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-          !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
+          !# <include directive="hotHaloDensityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Profile_Radial_Moment_Get</functionArgs>
           include 'hot_halo.density_profile.inc'
           !# </include>
           if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
                &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
                &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
                &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
+               &        .and.associated(Hot_Halo_Profile_Radial_Moment_Get         )                    &
                &       )                                                                                &
                & )                                                                                      &
                & call Galacticus_Error_Report(                                                          &
@@ -259,4 +261,17 @@ contains
     return
   end function Hot_Halo_Profile_Rotation_Normalization
 
+  double precision function Hot_Halo_Profile_Radial_Moment(thisNode,moment,radius)
+    !% Returns a radial {\tt moment} of the hot gas profile in {\tt thisNode} to the specified {\tt radius}.
+    implicit none
+    type            (treeNode), pointer, intent(inout) :: thisNode
+    double precision          ,          intent(in   ) :: moment,radius
+    
+    ! Initialize the module if necessary.
+    call Hot_Halo_Density_Initialize()
+    ! Get the energy using the selected method.
+    Hot_Halo_Profile_Radial_Moment=Hot_Halo_Profile_Radial_Moment_Get(thisNode,moment,radius)
+    return
+  end function Hot_Halo_Profile_Radial_Moment
+  
 end module Hot_Halo_Density_Profile

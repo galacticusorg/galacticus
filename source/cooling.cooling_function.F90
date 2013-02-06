@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -68,8 +68,8 @@ contains
           
           ! Include file that makes calls to all available method initialization routines.
           coolingFunctionsMatched=0
-          !# <include directive="coolingFunctionMethods" type="code" action="subroutine">
-          !#  <subroutineArgs>coolingFunctionMethods,coolingFunctionsMatched</subroutineArgs>
+          !# <include directive="coolingFunctionMethods" type="functionCall" functionType="void">
+          !#  <functionArgs>coolingFunctionMethods,coolingFunctionsMatched</functionArgs>
           include 'cooling.cooling_function.inc'
           !# </include>
           if (coolingFunctionsMatched /= coolingFunctionsCount) call Galacticus_Error_Report('Cooling_Function_Initialize','number of cooling functions matched does not equal number specified - check that entries in [coolingFunctionMethods] are correct')
@@ -80,7 +80,7 @@ contains
     return
   end subroutine Cooling_Function_Initialize
 
-  double precision function Cooling_Function(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Function(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation
     !% field. Units of the returned cooling function are the traditional ergs cm$^-3$ s$^{-1}$.
     !# <include directive="coolingFunctionCompute" type="moduleUse">
@@ -88,8 +88,8 @@ contains
     !# </include>
     implicit none
     double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
     double precision                              :: thisCoolingFunction
 
@@ -97,16 +97,16 @@ contains
     call Cooling_Function_Initialize
   
     Cooling_Function=0.0d0
-    !# <include directive="coolingFunctionCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>thisCoolingFunction,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation</subroutineArgs>
-    !#  <subroutineAction>Cooling_Function=Cooling_Function+thisCoolingFunction</subroutineAction>
+    !# <include directive="coolingFunctionCompute" type="functionCall" functionType="void">
+    !#  <functionArgs>thisCoolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation</functionArgs>
+    !#  <onReturn>Cooling_Function=Cooling_Function+thisCoolingFunction</onReturn>
     include 'cooling.cooling_function.compute.inc'
     !# </include>
     
     return
   end function Cooling_Function
   
-  double precision function Cooling_Function_Density_Log_Slope(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Function_Density_Log_Slope(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln\Lambda/\d\ln\rho$ for a cooling function at the given temperature and hydrogen density for the specified set
     !% of abundances and radiation field.
     !# <include directive="coolingFunctionDensitySlopeCompute" type="moduleUse">
@@ -114,8 +114,8 @@ contains
     !# </include>
     implicit none
     double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
     double precision                              :: thisCoolingFunctionDensitySlope,coolingFunction
 
@@ -123,14 +123,14 @@ contains
     call Cooling_Function_Initialize
   
     Cooling_Function_Density_Log_Slope=0.0d0
-    !# <include directive="coolingFunctionDensitySlopeCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>thisCoolingFunctionDensitySlope,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation</subroutineArgs>
-    !#  <subroutineAction>Cooling_Function_Density_Log_Slope=Cooling_Function_Density_Log_Slope+thisCoolingFunctionDensitySlope</subroutineAction>
+    !# <include directive="coolingFunctionDensitySlopeCompute" type="functionCall" functionType="void">
+    !#  <functionArgs>thisCoolingFunctionDensitySlope,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation</functionArgs>
+    !#  <onReturn>Cooling_Function_Density_Log_Slope=Cooling_Function_Density_Log_Slope+thisCoolingFunctionDensitySlope</onReturn>
     include 'cooling.cooling_function.computeDensitySlope.inc'
     !# </include>
     
     ! Get cooling function.
-    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
 
     ! Convert to logarithmic slope.
     if (coolingFunction > 0.0d0) then
@@ -142,7 +142,7 @@ contains
     return
   end function Cooling_Function_Density_Log_Slope
 
-  double precision function Cooling_Function_Temperature_Log_Slope(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+  double precision function Cooling_Function_Temperature_Log_Slope(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return $\d\ln\Lambda/\d\ln T$ for a cooling function at the given temperature and hydrogen density for the specified set
     !% of abundances and radiation field.
     !# <include directive="coolingFunctionTemperatureSlopeCompute" type="moduleUse">
@@ -150,8 +150,8 @@ contains
     !# </include>
     implicit none
     double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundancesStructure),         intent(in) :: abundances
-    type(chemicalAbundancesStructure), intent(in) :: chemicalDensities
+    type(abundances),         intent(in) :: gasAbundances
+    type(chemicalAbundances), intent(in) :: chemicalDensities
     type(radiationStructure),          intent(in) :: radiation
     double precision                              :: thisCoolingFunctionTemperatureSlope,coolingFunction
 
@@ -159,14 +159,14 @@ contains
     call Cooling_Function_Initialize
   
     Cooling_Function_Temperature_Log_Slope=0.0d0
-    !# <include directive="coolingFunctionTemperatureSlopeCompute" type="code" action="subroutine">
-    !#  <subroutineArgs>thisCoolingFunctionTemperatureSlope,temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation</subroutineArgs>
-    !#  <subroutineAction>Cooling_Function_Temperature_Log_Slope=Cooling_Function_Temperature_Log_Slope+thisCoolingFunctionTemperatureSlope</subroutineAction>
+    !# <include directive="coolingFunctionTemperatureSlopeCompute" type="functionCall" functionType="void">
+    !#  <functionArgs>thisCoolingFunctionTemperatureSlope,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation</functionArgs>
+    !#  <onReturn>Cooling_Function_Temperature_Log_Slope=Cooling_Function_Temperature_Log_Slope+thisCoolingFunctionTemperatureSlope</onReturn>
     include 'cooling.cooling_function.computeTemperatureSlope.inc'
     !# </include>
     
     ! Get cooling function.
-    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,abundances,chemicalDensities,radiation)
+    coolingFunction=Cooling_Function(temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
 
     ! Convert to logarithmic slope.
     if (coolingFunction > 0.0d0) then
