@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements writing of \glc\ build information to the \glc\ output file.
 
@@ -87,6 +43,7 @@ contains
   subroutine Galacticus_Build_Output
     !% Output build information to the main output file.
     use Galacticus_HDF5
+    use Galacticus_Input_Paths
     use IO_HDF5
     use FoX_Common
     use HDF5
@@ -94,21 +51,22 @@ contains
     use String_Handling
     use Galacticus_Error
     use FGSL
+    use File_Utilities
     implicit none
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
+    type(varying_string),         dimension(1)          :: changeSet
     integer,                      parameter             :: versionStringlengthMaximum=10
     type(hdf5Object)                                    :: buildGroup
     integer                                             :: hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError,iChr
-    type(varying_string)                                :: versionString
     type(c_ptr)                                         :: charVersionPointer
-    type(varying_string)                                :: PREPROCESSOR,F03COMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,F03FLAGS &
-      &  ,F03FLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,F03COMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
+    type(varying_string)                                :: versionString,PREPROCESSOR,FCCOMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,FCFLAGS &
+      &  ,FCFLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,FCCOMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
 
     ! Include build environment definitions.
     include 'galacticus.output.build.environment.inc' ! NO_USES
 
     ! Create a group for build information.
-    buildGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Build','Build information for this model.')
+    buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
 
     ! Write FGSL library version string.
     call buildGroup%writeAttribute(FGSL_Version,'FGSL_library_version')
@@ -138,20 +96,32 @@ contains
     call buildGroup%writeAttribute(versionString,'HDF5_library_version' )
 
     ! Write Make environment variables.
-    call buildGroup%writeAttribute(F03COMPILER        ,'make_F03COMPILER        ')
+    call buildGroup%writeAttribute(FCCOMPILER         ,'make_FCCOMPILER         ')
     call buildGroup%writeAttribute(PREPROCESSOR       ,'make_PREPROCESSOR       ')
     call buildGroup%writeAttribute(CCOMPILER          ,'make_CCOMPILER          ')
     call buildGroup%writeAttribute(CPPCOMPILER        ,'make_CPPCOMPILER        ')
     call buildGroup%writeAttribute(MODULETYPE         ,'make_MODULETYPE         ')
-    call buildGroup%writeAttribute(F03FLAGS           ,'make_F03FLAGS           ')
-    call buildGroup%writeAttribute(F03FLAGS_NOOPT     ,'make_F03FLAGS_NOOPT     ')
+    call buildGroup%writeAttribute(FCFLAGS            ,'make_FCFLAGS            ')
+    call buildGroup%writeAttribute(FCFLAGS_NOOPT      ,'make_FCFLAGS_NOOPT      ')
     call buildGroup%writeAttribute(CFLAGS             ,'make_CFLAGS             ')
     call buildGroup%writeAttribute(CPPFLAGS           ,'make_CPPFLAGS           ')
-    call buildGroup%writeAttribute(F03COMPILER_VERSION,'make_F03COMPILER_VERSION')
+    call buildGroup%writeAttribute(FCCOMPILER_VERSION ,'make_FCCOMPILER_VERSION ')
     call buildGroup%writeAttribute(CCOMPILER_VERSION  ,'make_CCOMPILER_VERSION  ')
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
-    ! Close the version group.
+    ! Add Bazaar changeset information.
+    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.hg.patch")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.hg.patch'))
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "hg diff" - gives the uncommitted source changeset')
+       call changeSet(1)%destroy()
+    end if
+    if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.hg.bundle")) then
+       call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.hg.bundle'))
+       if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetBundle','Output of "hg bundle -t none" - gives the committed source changeset')
+       call changeSet(1)%destroy()
+    end if
+
+    ! Close the build group.
     call buildGroup%close()
     return
   end subroutine Galacticus_Build_Output

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which handles reading of data from CSV files of simple merger trees.
 
@@ -74,31 +30,36 @@ contains
     use ISO_Varying_String
     use Merger_Tree_Data_Structure
     use File_Utilities
+    use Input_Parameters
     use Dates_and_Times
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Cosmological_Parameters
     implicit none
     character(len=*),     intent(in)    :: nodesFile
     type(mergerTreeData), intent(inout) :: mergerTrees
     integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop
+    double precision                    :: sigma_8,powerSpectrumIndex,boxSize
+    type(varying_string)                :: transferFunction,source
+    logical                             :: haloMassesIncludeSubhalos
 
     ! Process the file.
 
     ! Find number of lines in file, with and without comments.
     lineCountTotal=Count_Lines_in_File(nodesFile    )
-    lineCountData =Count_Lines_in_File(nodesFile,"#")-1
+    lineCountData =Count_Lines_in_File(nodesFile,"#")
 
     ! Find lines number ranges with data.
-    lineNumberStart=lineCountTotal-lineCountData
-    lineNumberStop =lineCountTotal-1
+    lineNumberStart=lineCountTotal-lineCountData+1
+    lineNumberStop =lineCountTotal
 
     ! Set columns to read.
-    call mergerTrees%setProperty(propertyTypeTreeIndex      ,1)
-    call mergerTrees%setProperty(propertyTypeNodeIndex      ,2)
-    call mergerTrees%setProperty(propertyTypeHostIndex      ,3)
-    call mergerTrees%setProperty(propertyTypeDescendentIndex,4)
-    call mergerTrees%setProperty(propertyTypeNodeMass       ,5)
-    call mergerTrees%setProperty(propertyTypeRedshift       ,6)
+    call mergerTrees%setPropertyColumn(propertyTypeTreeIndex      ,1)
+    call mergerTrees%setPropertyColumn(propertyTypeNodeIndex      ,2)
+    call mergerTrees%setPropertyColumn(propertyTypeHostIndex      ,3)
+    call mergerTrees%setPropertyColumn(propertyTypeDescendentIndex,4)
+    call mergerTrees%setPropertyColumn(propertyTypeNodeMass       ,5)
+    call mergerTrees%setPropertyColumn(propertyTypeRedshift       ,6)
 
     ! Read in the data.
     call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
@@ -110,22 +71,104 @@ contains
     call mergerTrees%setSelfContained        (.true. )
 
     ! Specify units system used.
-    call mergerTrees%setUnits(unitsMass,unitsInSI=massSolar,hubbleExponent=0,scaleFactorExponent=0)
+    call mergerTrees%setUnits(unitsMass  ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0)
+    call mergerTrees%setUnits(unitsLength,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0)
 
     ! Set cosmology metadata.
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,0.300d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,0.040d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,0.700d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,0.700d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,0.930d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,1.000d0                            )
-    call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,'BBKS'                             )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,Omega_Matter()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,Omega_b     ()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,Omega_DE    ()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,Little_H_0  ()                     )
+    if (Input_Parameter_Is_Present("sigma_8"           )) then
+       !@ <inputParameter>
+       !@   <name>sigma_8</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'sigma_8'                   ,sigma_8                            )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'sigma_8'                   ,sigma_8                            )
+    end if
+    if (Input_Parameter_Is_Present("powerSpectrumIndex")) then
+       !@ <inputParameter>
+       !@   <name>powerSpectrumIndex</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The index of the power-law primordial power spectrum.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'powerSpectrumIndex'        ,powerSpectrumIndex                 )
+    end if
+    if (Input_Parameter_Is_Present("transferFunction"  )) then
+       !@ <inputParameter>
+       !@   <name>transferFunction</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The type of transfer function used.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'transferFunction'          ,     transferFunction              )
+       call mergerTrees%addMetadata(metaDataCosmology  ,'transferFunction'          ,char(transferFunction)             )
+    end if
 
     ! Set provenance metadata.
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
-    call mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
-    call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,'???'                              )
+    call    mergerTrees%addMetadata(metaDataProvenance ,'fileBuiltBy'               ,'Galacticus'                       )
+    call    mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
+    if (Input_Parameter_Is_Present("source"            )) then
+       !@ <inputParameter>
+       !@   <name>source</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The source of the merger trees.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'source'                    ,     source                        )
+       call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,char(source)                       )
+    end if
 
+    ! Set simulation metadata.
+    if (Input_Parameter_Is_Present("boxSize"           )) then
+       !@ <inputParameter>
+       !@   <name>boxSize</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The box size of the simulation from which merger trees were extracted.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>cosmology</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter    (                    'boxSize'                   ,boxSize                            )
+       call mergerTrees%addMetadata(metaDataSimulation ,'boxSize'                   ,boxSize                            )
+    end if
+
+    ! Set halo properties.
+    !@ <inputParameter>
+    !@   <name>haloMassesIncludeSubhalos</name>
+    !@   <attachedTo>module</attachedTo>
+    !@   <description>
+    !@     Specifies whether or not halo masses include the masses of their subhalos.
+    !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
+    !@   <group>cosmology</group>
+    !@ </inputParameter>
+    call Get_Input_Parameter('haloMassesIncludeSubhalos',haloMassesIncludeSubhalos,defaultValue=.true.)
+    call mergerTrees%setIncludesSubhaloMasses(haloMassesIncludeSubhalos)
     return
   end subroutine Merger_Trees_Simple_Process
   

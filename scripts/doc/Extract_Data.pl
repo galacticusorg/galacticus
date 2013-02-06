@@ -31,7 +31,8 @@ while ( $fileName = readdir(dirHndl) ) {
 	open(fileHndl,$sourceDir."/".$fileName);
 
 	# Initialize the data directive buffer.
-	$dataDirective = "";
+	$dataDirective  = "";
+	$openingElement = "";
 
 	# Initialize the program unit stack.
 	undef(@programUnits);
@@ -55,14 +56,26 @@ while ( $fileName = readdir(dirHndl) ) {
 	    }
 
 	    # Search for "!@".
+	    $process = 0;
 	    if ( $line =~ m/^\s*(\!|\/\/)\@\s/ ) {
 		# Found directive - add it to the buffer.
+		if ( $dataDirective eq "" && $line =~ m/<([^>]+)>/ ) {
+		    $openingElement = $1;
+		} elsif ( $line =~ m/<\/$openingElement>/ ) {
+		    $process = 1;
+		}
 		$line =~ s/^\s*(\!|\/\/)\@\s*//;
 		$line =~ s/\s*$//;
 		$dataDirective .= $line." ";
 	    } elsif ( $dataDirective ne "" ) {
-		# No directive found, but we have one to process. First parse the XML.
-		$data = $xml->XMLin($dataDirective, KeepRoot => 1);
+		$process = 1;
+	    }
+	    if ( $process == 1 ) {
+		# Process a directive.
+		$openingElement = "";
+		$data = eval{$xml->XMLin($dataDirective, KeepRoot => 1)};
+		$lineNumber = $.;
+		die("Extract_Data.pl failed in file ".$sourceDir."/".$fileName." at line ".$lineNumber." with message:\n".$@."and data \n".$dataDirective) if ($@);
 
 		# Loop over all data types found.
 		foreach $dataType ( keys(%{$data}) ) {
@@ -168,7 +181,7 @@ foreach $parameterName ( @sortedParameters ) {
 
 # Write method descriptions.
 foreach $object ( sort(keys(%objects)) ) {
-    print methodHndl "\\subsubsection{{\\tt ".$object."}}\n\n";
+    print methodHndl "\\subsubsection{{\\tt ".$object."}}\\label{sec:AutoMethods".ucfirst($object)."}\n\n";
     print methodHndl "\\begin{description}\n";
     foreach $method ( sort(keys(%{$objects{$object}})) ) {
 	print methodHndl "\\item[{\\tt ".$method."}] ".$objects{$object}->{$method}."\n";

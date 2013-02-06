@@ -34,10 +34,10 @@
   </parameter>
   <parameter>
     <name>darkMatterAccretionHistoryMethod</name>
-    <value>Zhao 2009</value>
+    <value>Zhao2009</value>
   </parameter>
   <parameter>
     <name>darkMatterConcentrationMethod</name>
-    <value>Zhao 2009</value>
+    <value>Zhao2009</value>
   </parameter>
 </parameters>

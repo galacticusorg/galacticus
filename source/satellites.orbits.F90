@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,63 +14,19 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations related to satellite orbits.
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Tree_Nodes
+  use Galacticus_Nodes
   implicit none
   private
-  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius
+  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Pericenter_Phase_Space_Coordinates
   
-  ! Orbital energy - used for finding radius of equivalent circular orbit.
-  double precision          :: orbitalEnergyInternal
-  !$omp threadprivate(orbitalEnergyInternal)
+  ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
+  double precision          :: orbitalEnergyInternal,orbitalAngularMomentumInternal
+  !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
   
   ! Node used in root finding calculations.
   type(treeNode),   pointer :: activeNode
@@ -83,7 +39,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Root_Finder
     use FGSL
-    use Kepler_Orbits_Structure
+    use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
     type(treeNode),          pointer, intent(inout) :: hostNode
@@ -128,5 +84,65 @@ contains
          &*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
     return
   end function Equivalent_Circular_Orbit_Solver
+
+  subroutine Satellite_Orbit_Pericenter_Phase_Space_Coordinates(hostNode,thisOrbit,radius,velocity)
+    !% Solves for the pericentric radius and velocity of {\tt thisOrbit} in {\tt hostNode}.
+    use, intrinsic :: ISO_C_Binding
+    use Root_Finder
+    use FGSL
+    use Kepler_Orbits
+    implicit none
+    type(treeNode),          pointer, intent(inout) :: hostNode
+    type(keplerOrbit),                intent(inout) :: thisOrbit
+    double precision,                 intent(  out) :: radius,velocity
+    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type(fgsl_function),     save                   :: rootFunction
+    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    type(c_ptr)                                     :: parameterPointer
+    double precision                                :: radiusMinimum,radiusMaximum
+
+    ! Extract the orbital energy and angular momentum.
+    orbitalEnergyInternal         =  thisOrbit%energy         ()
+    orbitalAngularMomentumInternal=  thisOrbit%angularMomentum()
+    ! Set a pointer to the host node.
+    activeNode                    => hostNode
+    ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the current radius of the orbit.
+    radiusMinimum=thisOrbit%radius()
+    radiusMaximum=radiusMinimum
+
+    ! Catch orbits which are close to being circular.
+    if      (Pericenter_Solver(radiusMinimum,parameterPointer) == 0.0d0) then
+       ! Orbit is at pericenter.
+       radius=radiusMinimum
+    else if (Pericenter_Solver(radiusMinimum,parameterPointer) >  0.0d0) then
+       ! No solution exists, assume a circular orbit.
+       radius=radiusMinimum
+    else
+       ! Find the pericenter of the orbit.
+       do while (Pericenter_Solver(radiusMinimum,parameterPointer) <= 0.0d0)
+          radiusMinimum=0.5d0*radiusMinimum
+       end do
+       ! Solve for the pericentric radius.
+       radius=Root_Find(radiusMinimum,radiusMaximum,Pericenter_Solver,parameterPointer,rootFunction,rootFunctionSolver&
+            &,toleranceAbsolute,toleranceRelative)
+    end if
+    ! Get the orbital velocity at this radius.
+    velocity=orbitalAngularMomentumInternal/radius
+    return
+  end subroutine Satellite_Orbit_Pericenter_Phase_Space_Coordinates
+
+  function Pericenter_Solver(radius,parameterPointer) bind(c)
+    !% Root function used in finding orbital pericentric radius.
+    use, intrinsic :: ISO_C_Binding
+    use Dark_Matter_Profiles
+    implicit none
+    real(c_double), value :: radius
+    type(c_ptr),    value :: parameterPointer
+    real(c_double)        :: Pericenter_Solver
+
+    Pericenter_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
+    return
+  end function Pericenter_Solver
 
 end module Satellite_Orbits

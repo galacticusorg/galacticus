@@ -34,7 +34,7 @@
   </parameter>
   <parameter>
     <name>darkMatterConcentrationMethod</name>
-    <value>NFW 1996</value>
+    <value>NFW1996</value>
   </parameter>
   <parameter>
     <name>nfw96ConcentrationC</name>
@@ -50,6 +50,6 @@
   </parameter>
   <parameter>
     <name>virialDensityConstrastFixedType</name>
-    <value>critical density</value>
+    <value>criticalDensity</value>
   </parameter>
 </parameters>

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,65 +14,21 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module that implements calculations of the hot halo gas density profile.
 
 module Hot_Halo_Density_Profile
   !% Implements calculations of the hot halo gas density profile.
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   !# <include directive="hotHaloDensityMethod" type="moduleUse">
   include 'hot_halo.density_profile.modules.inc'
   !# </include>
   implicit none
   private
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
-       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization
-
+       & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization,&
+       & Hot_Halo_Profile_Rotation_Curve_Gradient_Task,Hot_Halo_Profile_Radial_Moment
   ! Flag to indicate if this module has been initialized.  
   logical              :: hotHaloDensityInitialized=.false.
 
@@ -97,6 +53,7 @@ module Hot_Halo_Density_Profile
        type(treeNode),   intent(inout), pointer :: thisNode
      end function Hot_Halo_Profile_Rotation_Normalization_Template
   end interface
+  procedure(Hot_Halo_Profile_Radial_Moment), pointer :: Hot_Halo_Profile_Radial_Moment_Get
 
 contains
 
@@ -106,37 +63,42 @@ contains
     use Galacticus_Error
     implicit none
 
-    !$omp critical(Hot_Halo_Density_Initialization) 
-    ! Initialize if necessary.
+    ! Initialize if necessary. 
     if (.not.hotHaloDensityInitialized) then
-       ! Get the cooling time available method parameter.
-       !@ <inputParameter>
-       !@   <name>hotHaloDensityMethod</name>
-       !@   <defaultValue>coredIsothermal</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The name of the method to be used for calculations of the hot halo density profile.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="hotHaloDensityMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get</subroutineArgs>
-       include 'hot_halo.density_profile.inc'
-       !# </include>
-       if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
-            &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
-            &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
-            &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
-            &       )                                                                                &
-            & )                                                                                      &
-            & call Galacticus_Error_Report(                                                          &
-            &                               'Hot_Halo_Density_Initialize'                            &
-            &                              ,'method '//char(hotHaloDensityMethod)//' is unrecognized'&
-            &                             )
-       hotHaloDensityInitialized=.true.
+       !$omp critical(Hot_Halo_Density_Initialization) 
+       if (.not.hotHaloDensityInitialized) then
+          ! Get the cooling time available method parameter.
+          !@ <inputParameter>
+          !@   <name>hotHaloDensityMethod</name>
+          !@   <defaultValue>coredIsothermal</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The name of the method to be used for calculations of the hot halo density profile.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('hotHaloDensityMethod',hotHaloDensityMethod,defaultValue='coredIsothermal')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="hotHaloDensityMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Profile_Radial_Moment_Get</functionArgs>
+          include 'hot_halo.density_profile.inc'
+          !# </include>
+          if     (.not.(     associated(Hot_Halo_Density_Get                       )                    &
+               &        .and.associated(Hot_Halo_Density_Log_Slope_Get             )                    &
+               &        .and.associated(Hot_Halo_Enclosed_Mass_Get                 )                    &
+               &        .and.associated(Hot_Halo_Profile_Rotation_Normalization_Get)                    &
+               &        .and.associated(Hot_Halo_Profile_Radial_Moment_Get         )                    &
+               &       )                                                                                &
+               & )                                                                                      &
+               & call Galacticus_Error_Report(                                                          &
+               &                               'Hot_Halo_Density_Initialize'                            &
+               &                              ,'method '//char(hotHaloDensityMethod)//' is unrecognized'&
+               &                             )
+          hotHaloDensityInitialized=.true.
+       end if
+       !$omp end critical(Hot_Halo_Density_Initialization) 
     end if
-    !$omp end critical(Hot_Halo_Density_Initialization) 
     return
   end subroutine Hot_Halo_Density_Initialize
 
@@ -213,7 +175,7 @@ contains
   !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
   subroutine Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,componentVelocity)
-    !% Computes the rotation curve at a given radius for a dark matter profile.
+    !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
@@ -233,6 +195,35 @@ contains
     end if
     return
   end subroutine Hot_Halo_Profile_Rotation_Curve_Task
+
+  !# <rotationCurveGradientTask>
+  !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Gradient_Task</unitName>
+  !# </rotationCurveGradientTask>
+  subroutine Hot_Halo_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,componentRotationCurveGradient)
+    !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
+    use Galactic_Structure_Options
+    use Numerical_Constants_Physical
+    use Numerical_Constants_Math
+    implicit none
+    type(treeNode),   intent(inout), pointer :: thisNode
+    integer,          intent(in)             :: massType,componentType
+    double precision, intent(in)             :: radius
+    double precision, intent(out)            :: componentRotationCurveGradient
+    double precision                         :: componentMass,componentDensity
+
+    ! Set to zero by default.
+    componentRotationCurveGradient=0.0d0
+
+    ! Compute if a spheroid is present.
+    if (radius > 0.0d0) then
+       call Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,componentMass)
+       if (componentMass > 0.0d0) then
+          componentDensity=Hot_Halo_Density(thisNode,radius)
+          componentRotationCurveGradient=gravitationalConstantGalacticus*(-componentMass/radius**2+4.0d0*Pi*radius*componentDensity)
+       end if
+    end if
+    return
+  end subroutine Hot_Halo_Profile_Rotation_Curve_Gradient_Task
 
   !# <densityTask>
   !#  <unitName>Hot_Halo_Profile_Density_Task</unitName>
@@ -270,4 +261,17 @@ contains
     return
   end function Hot_Halo_Profile_Rotation_Normalization
 
+  double precision function Hot_Halo_Profile_Radial_Moment(thisNode,moment,radius)
+    !% Returns a radial {\tt moment} of the hot gas profile in {\tt thisNode} to the specified {\tt radius}.
+    implicit none
+    type            (treeNode), pointer, intent(inout) :: thisNode
+    double precision          ,          intent(in   ) :: moment,radius
+    
+    ! Initialize the module if necessary.
+    call Hot_Halo_Density_Initialize()
+    ! Get the energy using the selected method.
+    Hot_Halo_Profile_Radial_Moment=Hot_Halo_Profile_Radial_Moment_Get(thisNode,moment,radius)
+    return
+  end function Hot_Halo_Profile_Radial_Moment
+  
 end module Hot_Halo_Density_Profile

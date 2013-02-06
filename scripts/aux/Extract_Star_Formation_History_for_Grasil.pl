@@ -1,13 +1,20 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
 use PDL::NiceSlice;
 use Text::Table;
 use Math::SigFigs;
-use GnuPlot::PrettyPlots;
-use GnuPlot::LaTeX;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Plot the star formation history of a galaxy split by metallicity and output the data in a form suitable for input to Grasil.
 # Andrew Benson (06-September-2010)
@@ -48,15 +55,15 @@ $count = $treeNodeCount->index($selection);
 $end   = $start+$count-1;
 
 # Read in galaxy data.
-$nodeIndices         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("nodeIndex"          )->get($start,$end);
-$diskScaleLength     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskScaleLength"    )->get($start,$end);
-$spheroidScaleLength = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidScaleLength")->get($start,$end);
-$diskStellarMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskStellarMass"    )->get($start,$end);
-$spheroidStellarMass = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidStellarMass")->get($start,$end);
-$diskGasMass         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskGasMass"        )->get($start,$end);
-$spheroidGasMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidGasMass"    )->get($start,$end);
-$diskGasMetals       = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskGasMetals"      )->get($start,$end);
-$spheroidGasMetals   = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidGasMetals"  )->get($start,$end);
+$nodeIndices         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("nodeIndex"                  )->get($start,$end);
+$diskScaleLength     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskRadius"                 )->get($start,$end);
+$spheroidScaleLength = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidRadius"             )->get($start,$end);
+$diskStellarMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassStellar"            )->get($start,$end);
+$spheroidStellarMass = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassStellar"        )->get($start,$end);
+$diskGasMass         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassGas"                )->get($start,$end);
+$spheroidGasMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassGas"            )->get($start,$end);
+$diskGasMetals       = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskAbundancesGasMetals"    )->get($start,$end);
+$spheroidGasMetals   = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidAbundancesGasMetals")->get($start,$end);
 
 # Find the node in question.
 $selected = which($nodeIndices == $nodeIndex);

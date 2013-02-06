@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements an arbitrary piecewise power-law stellar initial mass function.
 
@@ -135,79 +91,93 @@ contains
     double precision, dimension(:), allocatable :: massPoints
     logical                                     :: pieceWiseImfIsDefined
 
-    !$omp critical (IMF_PiecewisePowerLaw_Initialize)
     if (.not.imfPiecewisePowerLawInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0.39</defaultValue>
-       !@   <description>
-       !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
-       !@ <inputParameter>
-       !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>0.02</defaultValue>
-       !@   <description>
-       !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
-
-       ! Get the number of intervals and allocate arrays appropriately.
-       imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
-       if (imfPieceCount == -1 ) then
-          pieceWiseImfIsDefined=.false.
-          imfPieceCount        =1
-       else
-          pieceWiseImfIsDefined=.true.
-          if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
-       end if
-       call Alloc_Array(massLower       ,[imfPieceCount])
-       call Alloc_Array(massUpper       ,[imfPieceCount])
-       call Alloc_Array(massExponent    ,[imfPieceCount])
-       call Alloc_Array(imfNormalization,[imfPieceCount])
-       allocate(massPoints(imfPieceCount+1))
-       
-       if (pieceWiseImfIsDefined) then
-          ! Read the mass intervals.
+       !$omp critical (IMF_PiecewisePowerLaw_Initialize)
+       if (.not.imfPiecewisePowerLawInitialized) then
           !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawMassPoints</name>
+          !@   <name>imfPiecewisePowerLawRecycledInstantaneous</name>
           !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>0.1, 125</defaultValue>
+          !@   <defaultValue>0.39</defaultValue>
           !@   <description>
-          !@     The mass points used to define a piecewise power-law initial mass function.
+          !@     The recycled fraction for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
+          call Get_Input_Parameter('imfPiecewisePowerLawRecycledInstantaneous',imfPiecewisePowerLawRecycledInstantaneous,defaultValue=0.39d0)
           !@ <inputParameter>
-          !@   <name>imfPiecewisePowerLawExponents</name>
+          !@   <name>imfPiecewisePowerLawYieldInstantaneous</name>
           !@   <attachedTo>module</attachedTo>
-          !@   <defaultValue>-2.35</defaultValue>
+          !@   <defaultValue>0.02</defaultValue>
           !@   <description>
-          !@     The exponents used to define a piecewise power-law initial mass function.
+          !@     The yield for piecewise power-law stellar initial mass functions in the instantaneous recycling approximation.
           !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
           !@ </inputParameter>
-          call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
-       else
-          ! Set defaults (a Salpeter IMF).
-          massPoints  =[0.1d0,125.0d0]
-          massExponent=[-2.35d0]
+          call Get_Input_Parameter('imfPiecewisePowerLawYieldInstantaneous'   ,imfPiecewisePowerLawYieldInstantaneous   ,defaultValue=0.02d0)
+          
+          ! Get the number of intervals and allocate arrays appropriately.
+          imfPieceCount=Get_Input_Parameter_Array_Size('imfPiecewisePowerLawMassPoints')-1
+          if (imfPieceCount == -1 ) then
+             pieceWiseImfIsDefined=.false.
+             imfPieceCount        =1
+          else
+             pieceWiseImfIsDefined=.true.
+             if (imfPieceCount < 1) call Galacticus_Error_Report('Star_Formation_IMF_Initialize_PiecewisePowerLaw','at least 2 mass points are required to define the IMF')
+          end if
+          call Alloc_Array(massLower       ,[imfPieceCount])
+          call Alloc_Array(massUpper       ,[imfPieceCount])
+          call Alloc_Array(massExponent    ,[imfPieceCount])
+          call Alloc_Array(imfNormalization,[imfPieceCount])
+          allocate(massPoints(imfPieceCount+1))
+          
+          if (pieceWiseImfIsDefined) then
+             ! Read the mass intervals.
+             !@ <inputParameter>
+             !@   <name>imfPiecewisePowerLawMassPoints</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>0.1, 125</defaultValue>
+             !@   <description>
+             !@     The mass points used to define a piecewise power-law initial mass function.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>initialMassFunction</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('imfPiecewisePowerLawMassPoints',massPoints )
+             !@ <inputParameter>
+             !@   <name>imfPiecewisePowerLawExponents</name>
+             !@   <attachedTo>module</attachedTo>
+             !@   <defaultValue>-2.35</defaultValue>
+             !@   <description>
+             !@     The exponents used to define a piecewise power-law initial mass function.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1..*</cardinality>
+             !@   <group>initialMassFunction</group>
+             !@ </inputParameter>
+             call Get_Input_Parameter('imfPiecewisePowerLawExponents' ,massExponent)
+          else
+             ! Set defaults (a Salpeter IMF).
+             massPoints  =[0.1d0,125.0d0]
+             massExponent=[-2.35d0]
+          end if
+          
+          ! Extract lower and upper limits of the mass ranges.
+          massLower=massPoints(1:imfPieceCount  )
+          massUpper=massPoints(2:imfPieceCount+1)
+          deallocate(massPoints)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfPiecewisePowerLawInitialized=.true.
        end if
-
-       ! Extract lower and upper limits of the mass ranges.
-       massLower=massPoints(1:imfPieceCount  )
-       massUpper=massPoints(2:imfPieceCount+1)
-       deallocate(massPoints)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfPiecewisePowerLawInitialized=.true.
+       !$omp end critical (IMF_PiecewisePowerLaw_Initialize)
     end if
-    !$omp end critical (IMF_PiecewisePowerLaw_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_PiecewisePowerLaw
 

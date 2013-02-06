@@ -2,26 +2,52 @@
 use XML::Simple;
 use Data::Dumper;
 use Fcntl qw (:flock);
+my $galacticusPath;
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl");
 
 # Driver script for Cloudy.
 # Andrew Benson (26-Jan-2010)
 
 # Get arguments.
-if ( $#ARGV != 2 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile>"};
+if ( $#ARGV != 3 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile> <fileFormatVersion>"};
 $logMetallicityMaximum = $ARGV[0];
 $coolingFunctionFile   = $ARGV[1];
-$chemicalStateFile   = $ARGV[2];
+$chemicalStateFile     = $ARGV[2];
+$fileFormat            = $ARGV[3];
+
+# Ensure the requested file format version is compatible.
+my $fileFormatCurrent = 1;
+die('Atomic_CIE_Cloudy_Driver.pl: this script supports file format version '.$fileFormatCurrent.' but version '.$fileFormat.' was requested')
+    unless ( $fileFormat == $fileFormatCurrent );
 
 # Determine if we need to compute cooling functions.
 if ( -e $coolingFunctionFile ) {
-    $computeCoolingFunctions = 0;
+    my $xmlDoc = new XML::Simple;
+    $coolingFunction = $xmlDoc->XMLin($coolingFunctionFile);
+    if ( exists($coolingFunction->{'fileFormat'}) ) { 
+	$computeCoolingFunctions = 1 unless ( $coolingFunction->{'fileFormat'} == $fileFormatCurrent );
+    } else {
+	$computeCoolingFunctions = 0;
+    }
 } else {
     $computeCoolingFunctions = 1;
 }
 
 # Determine if we need to compute cooling functions.
 if ( -e $chemicalStateFile ) {
-    $computeChemicalStates = 0;
+    my $xmlDoc = new XML::Simple;
+    $chemicalState = $xmlDoc->XMLin($chemicalStateFile);
+    if ( exists($chemicalState->{'fileFormat'}) ) { 
+	$computeChemicalStates = 1 unless ( $chemicalState->{'fileFormat'} == $fileFormatCurrent );
+    } else {
+	$computeChemicalStates = 0;
+    }
 } else {
     $computeChemicalStates = 1;
 }
@@ -65,23 +91,23 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 
     # Download the code.
     unless ( -e "aux/".$cloudyVersion.".tar.gz" ) {
-	print "Cloudy_Driver.pl: downloading Cloudy code.\n";
-	system("wget \"http://data.nublado.org/cloudy_releases/".$cloudyVersion.".tar.gz\" -O aux/".$cloudyVersion.".tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e "aux/".$cloudyVersion.".tar.gz" );
+	print "Atomic_CIE_Cloudy_Driver.pl: downloading Cloudy code.\n";
+	system("wget \"http://data.nublado.org/cloudy_releases/".$cloudyVersion.".tar.gz\" -O ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to download Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion.".tar.gz" );
     }
     
     # Unpack the code.
-    unless ( -e "aux/".$cloudyVersion ) {
-	print "Cloudy_Driver.pl: unpacking Cloudy code.\n";
-	system("tar -x -v -z -C aux -f aux/".$cloudyVersion.".tar.gz");
-	die("Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e "aux/".$cloudyVersion );
+    unless ( -e $galacticusPath."aux/".$cloudyVersion ) {
+	print "Atomic_CIE_Cloudy_Driver.pl: unpacking Cloudy code.\n";
+	system("tar -x -v -z -C aux -f ".$galacticusPath."aux/".$cloudyVersion.".tar.gz");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to unpack Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion );
     }
     
     # Build the code.
-    unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" ) {
-	print "Cloudy_Driver.pl: compiling Cloudy code.\n";
-	system("cd aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
-	die("Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e "aux/".$cloudyVersion."/source/cloudy.exe" );
+    unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" ) {
+	print "Atomic_CIE_Cloudy_Driver.pl: compiling Cloudy code.\n";
+	system("cd ".$galacticusPath."aux/".$cloudyVersion."/source; chmod u=wrx configure.sh capabilities.pl; make");
+	die("Atomic_CIE_Cloudy_Driver.pl: FATAL - failed to build Cloudy code.") unless ( -e $galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe" );
     }
    
     # Temporary files for Cloudy data.
@@ -117,7 +143,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'metallicity'} = $logMetallicity;
 	
 	# Run Cloudy.
-	open(cloudyPipe,"|aux/".$cloudyVersion."/source/cloudy.exe 1> /dev/null");
+	open(cloudyPipe,"|".$galacticusPath."aux/".$cloudyVersion."/source/cloudy.exe"); # 1> /dev/null");
 	print cloudyPipe "print off\n";
 	print cloudyPipe "background, z=0\n";            # Use a very low level incident continuum.
 	print cloudyPipe "cosmic rays background\n";     # Include cosmic ray background ionization rate.
@@ -139,7 +165,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	print cloudyPipe "punch cooling \"".$coolingTempFile."\"\n";
 	print cloudyPipe "punch overview \"".$overviewTempFile."\"\n";
 	close(cloudyPipe);
-
+	exit;
 	# Extract the cooling rate.
 	open(coolHandle,$coolingTempFile);
 	$headerLine = <coolHandle>;
@@ -191,9 +217,9 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     ${${${$coolingFunctions{'extrapolation'}}{'temperature'}}[1]}{'method'} = "power law";
     # Specify extrapolation methods in metallicity.
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'limit'}  = "low";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[0]}{'method'} = "fixed";
     ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
-    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "power law";
+    ${${${$coolingFunctions{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
     # Add some description.
     $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";

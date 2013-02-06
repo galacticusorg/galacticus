@@ -4,10 +4,8 @@ package LaTeX;
 use strict;
 use warnings;
 use File::Copy;
-use System::Redirect;
-
-my $status = 1;
-$status;
+use Digest::MD5  qw(md5_hex);
+require System::Redirect;
 
 sub GnuPlot2PNG {
     # Generate a PNG image of the plot with a transparent background.
@@ -80,6 +78,7 @@ sub GnuPlot2ODG {
 
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
+    my (%options) = @_;
     
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
@@ -113,7 +112,7 @@ sub GnuPlot2ODG {
     move($gnuplotRoot.".eps.swapped",$gnuplotRoot.".eps");
 
     # Convert to PDF.
-    &GnuPlot2PDF($gnuplotEpsFile);
+    &GnuPlot2PDF($gnuplotEpsFile,%options);
 
     # Convert to SVG.
     system("pdf2svg ".$gnuplotRoot.".pdf ".$gnuplotRoot."_percent.svg");
@@ -134,7 +133,20 @@ sub GnuPlot2ODG {
     close(iHndl);
 
     # Convert to ODG.
-    system("java -jar /usr/local/bin/svg2office-1.2.2.jar ".$gnuplotRoot.".svg");
+    my @svg2officeLocations = ( "/usr/bin", "/usr/local/bin", $ENV{'HOME'}."/bin" );
+    push(
+	@svg2officeLocations,
+	$ENV{'GALACTICUS_ROOT_V091'}."../Tools/bin"
+	)
+	if ( exists($ENV{'GALACTICUS_ROOT_V091'}) );
+    my $svg2office;
+    foreach my $location ( @svg2officeLocations ) {
+	$svg2office = $location."/svg2office-1.2.2.jar"
+	    if ( -e $location."/svg2office-1.2.2.jar" );
+    }
+    die("GnuPlot::LaTeX.pm: svg2office-1.2.2.jar not found")
+	unless ( defined($svg2office) );
+    system("java -jar ".$svg2office." ".$gnuplotRoot.".svg");
 
     # Remove the PDF and SVG files.
     unlink($gnuplotRoot.".pdf",$gnuplotRoot.".svg",$gnuplotRoot."_percent.svg");
@@ -144,8 +156,19 @@ sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
 
+    # Extract any remaining options.
+    my (%options) = @_ if ( $#_ >= 0 );
+
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
+
+    # Get any folder name.
+    my $folderName = "./";
+    my $gnuplotBase = $gnuplotRoot;
+    if ( $gnuplotRoot =~ m/^(.*\/)(.*)$/ ) {
+	$folderName = $1;
+	$gnuplotBase = $2;
+    }
 
     # Construct the name of the corresponding LaTeX files.
     my $gnuplotLatexFile = $gnuplotRoot.".tex";
@@ -154,18 +177,28 @@ sub GnuPlot2PDF {
     # Construct the name of the corresponding pdf file.
     my $gnuplotPdfFile = $gnuplotRoot.".pdf";
 
-    # Remove duplicated labelling.
-    my $labelsFound = 0;
+    # Initialize hash that will store MD5s of previously seen labels.
+    my %labels;
+    # Populate with MD5s for empty front and back text labels.
+    $labels{'079019eb66826e1085e8f82634835781'} = 1;
+    $labels{'47add47b938f7b849abb82e200954083'} = 1;
+    # Process the file.
     open(iHndl,$gnuplotRoot.".tex");
     open(oHndl,">".$gnuplotRoot.".tex.swapped");
     while ( my $line = <iHndl> ) {
-	if ( $line =~ m/^\s*\\gplgaddtomacro\\gplbacktext\{\%\s*$/ ) {
-	    ++$labelsFound;
-	    if ( $labelsFound > 1 ) {
-		do {$line = <iHndl>} until ( $line =~ m/^\s*\}\%\s*$/ );
-		$line = "";
-	    }
+	if ( $line =~ m/^\s*\\gplgaddtomacro\\gpl(front|back)text\{\%\s*$/ ) {
+	    my $buffer = $line;
+	    do {
+		$line    = <iHndl>;
+		$buffer .= $line;
+	    } until ( $line =~ m/^\s*\}\%\s*$/ );
+	    my $md5 = md5_hex($buffer);
+	    $line = "";
+	    $line = $buffer
+		unless ( exists($labels{$md5}) );
+	    $labels{$md5} = 1;
 	}
+	$line =~ s/includegraphics\{$folderName/includegraphics\{/;
 	print oHndl $line;
     }
     close(oHndl);
@@ -173,20 +206,49 @@ sub GnuPlot2PDF {
     unlink($gnuplotRoot.".tex");
     move($gnuplotRoot.".tex.swapped",$gnuplotRoot.".tex");
 
+    # Convert the plot body from EPS to PDF.
+    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile,"/dev/null");
+
+    # Get the dimensions of the plot body.
+    my $width;
+    my $height;
+    open(pHndl,"pdfinfo ".$gnuplotPdfFile."|");
+    while ( my $line = <pHndl> ) {
+	if ( $line =~ m/Page size:\s*(\d+)\s*x\s*(\d+)/ ) {
+	    $width  = $1+100;
+	    $height = $2+100;
+	}
+    }
+    close(pHndl);
+
     # Create a wrapper file for the LaTeX.
+    my $fontSize = "10";
+    $fontSize = $options{'fontSize'}
+        if ( exists($options{'fontSize'}) );
     my $wrapper = "gnuplotWrapper".$$;
-    open(wHndl,">".$wrapper.".tex");
-    print wHndl "\\documentclass[10pt]{article}\n\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotRoot."}\n\\end{document}\n";
+    open(wHndl,">".$folderName.$wrapper.".tex");
+    print wHndl "\\documentclass[".$fontSize."pt]{article}\n";
+    print wHndl "\\usepackage[margin=0pt";
+    print wHndl ",paperwidth=".$width."pt,paperheight=".$height."pt"
+	if ( defined($width) );
+    print wHndl "]{geometry}\n";
+    print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
-    &SystemRedirect::tofile("epstopdf ".$gnuplotEpsFile."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
-    move("".$wrapper."-crop.pdf",$gnuplotPdfFile);
+    my $command = "cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf";
+    $command .= " --margins ".$options{'margin'}
+       if ( exists($options{'margin'}) );
+    &SystemRedirect::tofile($command,"/dev/null");
+    move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
     unlink(
-	   $wrapper.".pdf",
-	   $wrapper.".tex",
-	   $wrapper.".log",
-	   $wrapper.".aux",
-	   $gnuplotEpsFile,
-	   $gnuplotLatexFile,
-	   $gnuplotAuxFile
-	   );
+    	$folderName.$wrapper.".pdf",
+    	$folderName.$wrapper.".tex",
+    	$folderName.$wrapper.".log",
+    	$folderName.$wrapper.".aux",
+    	$gnuplotEpsFile,
+    	$gnuplotLatexFile,
+    	$gnuplotAuxFile
+    	)
+	unless ( exists($options{'cleanUp'}) && $options{'cleanUp'} == 0 );
 }
+
+1;

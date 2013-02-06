@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which filters output for lightcone geometry.
 
@@ -129,6 +85,9 @@ contains
           !@   <description>
           !@    The name of an XML file from which to read details of lightcone geometry.
           !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('filterLightconeGeometryFileName',filterLightconeGeometryFileName)
 
@@ -233,32 +192,37 @@ contains
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
     !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output. 
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Arrays_Search
     use Numerical_Constants_Astronomical
     use Cosmology_Functions
     implicit none
-    type(treeNode),       intent(inout), pointer      :: thisNode
-    logical,              intent(inout)               :: doOutput
-    double precision,     parameter                   :: timeTolerance=1.0d-3
-    integer,              dimension(3,3)              :: periodicRange
-    double precision,     dimension(3  )              :: galaxyPosition,galaxyVelocity
-    logical                                           :: galaxyIsInLightcone,galaxyIsInFieldOfView
-    integer                                           :: iAxis,iOutput,i,j,k
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    logical                     , intent(inout)          :: doOutput
+    class(nodeComponentBasic   ),                pointer :: thisBasicComponent
+    class(nodeComponentPosition),                pointer :: thisPositionComponent
+    double precision            , parameter              :: timeTolerance=1.0d-3
+    integer                     , dimension(3,3)         :: periodicRange
+    double precision            , dimension(3  )         :: galaxyPosition,galaxyVelocity
+    logical                                              :: galaxyIsInLightcone,galaxyIsInFieldOfView
+    integer                                              :: iAxis,iOutput,i,j,k
     
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
 
+    ! Get components.
+    thisBasicComponent => thisNode%basic()
+
     ! Determine to which output this galaxy corresponds.
-    iOutput=Search_Array_For_Closest(lightconeTime,Tree_Node_Time(thisNode),timeTolerance)
+    iOutput=Search_Array_For_Closest(lightconeTime,thisBasicCOmponent%time(),timeTolerance)
 
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
     periodicRange(:,1)=floor  ((lightconeOrigin+lightconeMinimumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)-1
     periodicRange(:,2)=ceiling((lightconeOrigin+lightconeMaximumDistance(iOutput)*lightconeUnitVector(:,1))/lightconeReplicationPeriod)+0
 
     ! Get position of galaxy in original coordinates.
-    call Tree_Node_Position(thisNode,galaxyPosition)
-    galaxyPosition=galaxyPosition/Expansion_Factor(lightconeTime(iOutput))
+    thisPositionComponent => thisNode             %position()
+    galaxyPosition        =  thisPositionComponent%position()/Expansion_Factor(lightconeTime(iOutput))
 
     ! Loop over all replicants.
     galaxyIsInLightcone=.false.
@@ -290,7 +254,7 @@ contains
                 ! If the galaxy is in the lightcone compute also its velocity in the lightcone coordinate system and the redshift.
                 if (galaxyIsInLightcone) then
                    ! Compute velocity of galaxy in lightcone coordinate system.
-                   call Tree_Node_Velocity(thisNode,galaxyVelocity)
+                   galaxyVelocity=thisPositionComponent%velocity()
                    forall(iAxis=1:3)
                       lightconeVelocity(iAxis)=Dot_Product(galaxyVelocity,lightconeUnitVector(:,iAxis))
                    end forall
@@ -338,48 +302,130 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Lightcone_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Lightcone</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Tree_Lightcone_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Tree_Lightcone_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
+    type     (treeNode), intent(inout), pointer      :: thisNode
+    double precision   , intent(in   )               :: time
+    integer            , intent(inout)               :: integerProperty,doubleProperty
+    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
          &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
 
     if (lightconeFilterActive) then
+       !@ <outputPropertyGroup>
+       !@   <name>lightconePosition</name>
+       !@   <description>Lightcone X-Y-Z coordinates</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
+       !@ <outputPropertyGroup>
+       !@   <name>lightconeVelocity</name>
+       !@   <description>Lightcone X-Y-Z velocity components</description>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputPropertyGroup>
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (radial axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionX'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (radial axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (1st angular axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionY'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (1st angular axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconePositionZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Position of galaxy in lightcone (2nd angular axis) [Mpc].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconePosition</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconePositionZ'
        doublePropertyComments(doubleProperty)='Position of galaxy in lightcone (2nd angular axis) [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityX</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (radial axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityX'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (radial axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityY</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (1st angular axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityY'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (1st angular axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeVelocityZ</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Velocity of galaxy in lightcone (2nd angular axis) [km/s].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@   <group>lightconeVelocity</group>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeVelocityZ'
        doublePropertyComments(doubleProperty)='Velocity of galaxy in lightcone (2nd angular axis) [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>lightconeRedshift</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Reshift of galaxy in lightcone.</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='lightconeRedshift'
        doublePropertyComments(doubleProperty)='Reshift of galaxy in lightcone.'
        doublePropertyUnitsSI (doubleProperty)=0.0d0
        doubleProperty=doubleProperty+1
+       !@ <outputProperty>
+       !@   <name>angularWeight</name>
+       !@   <datatype>real</datatype>
+       !@   <cardinality>0..1</cardinality>
+       !@   <description>Number of such galaxies per unit area [degrees^-2].</description>
+       !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
+       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='angularWeight'
        doublePropertyComments(doubleProperty)='Number of such galaxies per unit area [degrees⁻²].'
        doublePropertyUnitsSI (doubleProperty)=(180.0d0/Pi)**2
@@ -391,11 +437,13 @@ contains
   !#  <unitName>Galacticus_Output_Tree_Lightcone_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Tree_Lightcone</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Tree_Lightcone_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Tree_Lightcone_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     if (lightconeFilterActive) doublePropertyCount=doublePropertyCount+lightconePropertyCount
     return
@@ -408,14 +456,14 @@ contains
   subroutine Galacticus_Output_Tree_Lightcone(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store link properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    double precision       , intent(in   )          :: time
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
     integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision       , intent(inout)          :: doubleBuffer (:,:)
 
    if (lightconeFilterActive) then
        doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconePosition

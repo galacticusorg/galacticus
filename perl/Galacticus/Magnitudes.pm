@@ -2,18 +2,18 @@
 
 package Magnitudes;
 use PDL;
-use Galacticus::HDF5;
-use Galacticus::DustAttenuation;
-use Galacticus::Luminosities;
+require Galacticus::HDF5;
+require Galacticus::DustAttenuation;
+require Galacticus::Luminosities;
+require Galacticus::Survey;
 use Data::Dumper;
 use XML::Simple;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Magnitudes::Get_Magnitude
+    "^magnitude([^:]+):([^:]+):([^:]+):z([\\d\\.]+)(:dust[^:]+)?(:vega|:AB)?" => \&Magnitudes::Get_Magnitude                 ,
+    "^magnitude:.*(:vega|:AB)?"                                               => \&Magnitudes::Get_Generic_Magnitude         ,
+    "^apparentMagnitude:.*"                                                   => \&Magnitudes::Get_Generic_Apparent_Magnitude
     );
-
-my $status = 1;
-$status;
 
 sub Get_Magnitude {
     $dataSet = shift;
@@ -32,7 +32,7 @@ sub Get_Magnitude {
 	    $vegaMagnitude = 0;
 	}
 	# Construct the name of the corresponding luminosity property.
-	$luminosityDataset = lc($component)."StellarLuminosity:".$filter.":".$frame.":z".$redshift.$dustExtension;
+	$luminosityDataset = lc($component)."LuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
 	&HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
 	$dataSets = $dataSet->{'dataSets'};
 	$dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);
@@ -57,3 +57,43 @@ sub Get_Magnitude {
 	die("Get_Magnitude(): unable to parse data set: ".$dataSetName);
     }
 }
+
+sub Get_Generic_Magnitude {
+    my $dataSet     = shift;
+    my $dataSetName = $_[0];
+    # Construct the name of the corresponding luminosity property.
+    (my $luminosityDataset = $dataSetName) =~ s/^magnitude:/luminosity:/;
+    $luminosityDataset =~ s/(:vega|:AB)$//;
+    &HDF5::Get_Dataset($dataSet,[$luminosityDataset]);
+    $dataSets = $dataSet->{'dataSets'};
+    $dataSets->{$dataSetName} = -2.5*log10($dataSets->{$luminosityDataset}+1.0e-40);
+    # If a Vega magnitude was requested, add the appropriate offset.
+    if ( $vegaMagnitude == 1 ) {
+	unless ( exists($vegaOffsets{$filter}) ) {
+	    $filterPath = "./data/filters/".$filter.".xml";
+	    die("Get_Magnitudes(): can not find filter file for: ".$filter) unless ( -e $filterPath );
+	    $xml = new XML::Simple;
+	    $filterData = $xml->XMLin($filterPath);
+	    unless ( exists($filterData->{'vegaOffset'}) ) {
+		# No Vega offset data available for filter - run the script that computes it.
+		system("scripts/filters/vega_offset_effective_lambda.pl");
+		$filterData = $xml->XMLin($filterPath);
+		die ("Get_Magnitudes(): failed to compute Vega offsets for filters") unless ( exists($filterData->{'vegaOffset'}) );
+	    }
+	    $vegaOffsets{$filter} = pdl $filterData->{'vegaOffset'};
+	}
+	$dataSets->{$dataSetName} += $vegaOffsets{$filter};
+    }
+}
+
+sub Get_Generic_Apparent_Magnitude {
+    my $dataSet     = shift;
+    my $dataSetName = $_[0];
+    # Construct the name of the corresponding absolute magnitude property.
+    (my $absoluteMagnitudeDataset = $dataSetName) =~ s/^apparentMagnitude:/magnitude:/;
+    &HDF5::Get_Dataset($dataSet,[$absoluteMagnitudeDataset,"distanceModulus"]);
+    $dataSets = $dataSet->{'dataSets'};
+    $dataSets->{$dataSetName} = $dataSets->{$absoluteMagnitudeDataset}+$dataSets->{'distanceModulus'};
+}
+
+1;

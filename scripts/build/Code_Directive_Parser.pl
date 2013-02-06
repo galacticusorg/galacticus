@@ -3,7 +3,7 @@ use XML::Simple;
 use Data::Dumper;
 use Switch;
 use lib './perl';
-use System::Redirect;
+require System::Redirect;
 
 # Scans source code for "!#" directives and generates a Makefile.
 
@@ -30,49 +30,88 @@ foreach $srcdir ( @sourcedirs ) {
 	    && $fname !~ m/^\.\#/
 	    ) {
 	    $fullname = $srcdir."/".$fname;
-	    open(infile,$fullname) or die "Can't open input file: #!";
-	    while ($line = <infile>) {
-		if (
-		    $line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
-		    || $line =~ m/^\s*\/\/\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
-		    ) {
-		    $xmlCode = $1."\n";
-		    $xmlTag  = $2;
-		    # Read ahead until a matching close tag is found.
-		    unless ( $xmlCode =~  m/\/>/ ) {
-			$nextLine = "";
-			until ( $nextLine =~ m/<\/$xmlTag>/ || eof(infile) ) {
-			    $nextLine = <infile>;
-			    $nextLine =~ s/^\s*!\#\s+//;
-			    $nextLine =~ s/^\s*\/\/\#\s+//;
-			    $xmlCode .= $nextLine;
+
+	    # Add the file to the list of filenames to process.
+	    undef(@fileNames);
+	    undef(@filePositions);
+	    unshift(@fileNames,$fullname);
+	    unshift(@filePositions,-1);
+	    
+	    # Process files until none remain.
+	    while ( $#fileNames >= 0 ) {
+		
+		# Open the file.
+		open($fileHandle,$fileNames[0]) or die "Can't open input file: #!";
+		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
+
+		while ($line = <$fileHandle>) {
+		    $lineNumber = $.;
+
+		    # Detect include files, and recurse into them.
+		    if ( $line =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+			$includeFile = $srcdir."/".$1;
+			$includeFile =~ s/\.inc$/.Inc/;
+			if ( -e $includeFile ) {
+			    $filePositions[0] = tell($fileHandle);
+			    unshift(@fileNames,$includeFile);
+			    unshift(@filePositions,-1);
+			    last;
 			}
 		    }
-		    $data = $xml->XMLin($xmlCode);
-		    if ( $verbosity == 1 ) {
-			print "$fname : $xmlCode\n";
-			print Dumper($data);
-		    }
-		    # Act on the directive.
-		    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
-		    switch ( $xmlTag ) {
-			case ( "include" ) {
-			    if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
-				($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
-				${$data}{'fileName'} = $fileName;
+
+		    if (
+			$line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
+			|| $line =~ m/^\s*\/\/\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
+			) {
+			$xmlCode = $1."\n";
+			$xmlTag  = $2;
+			# Read ahead until a matching close tag is found.
+			unless ( $xmlCode =~  m/\/>/ ) {
+			    $nextLine = "";
+			    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($fileHandle) ) {
+				$nextLine = <$fileHandle>;
+				$nextLine =~ s/^\s*!\#\s+//;
+				$nextLine =~ s/^\s*\/\/\#\s+//;
+				$xmlCode .= $nextLine;
 			    }
-			    delete(${$data}{'content'});
-			    ${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'fileName'} = $fileName;
-			    ${$includeDirectives{${$data}{'directive'}.".".${$data}{'type'}}}{'xml'} = $xmlOutput->XMLout($data);
 			}
-			else {
-			    $otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
+			$data = eval{$xml->XMLin($xmlCode)};
+			die("Code_Directive_Parser.pl failed in ".$fullname." at line ".$lineNumber." with message:\n".$@) if ($@);
+			if ( $verbosity == 1 ) {
+			    print "$fname : $xmlCode\n";
+			    print Dumper($data);
+			}
+			# Act on the directive.
+			$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
+			switch ( $xmlTag ) {
+			    case ( "include" ) {
+				if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
+				    ($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
+				    ${$data}{'fileName'} = $fileName;
+				}
+				delete(${$data}{'content'});
+
+				my $directive = ${$data}{'directive'};
+				$directive = ${$data}{'name'}
+				   if ( exists(${$data}{'name'}) );
+				$directive .= ".".${$data}{'type'};
+				${$includeDirectives{$directive}}{'fileName'} = $fileName;
+				${$includeDirectives{$directive}}{'xml'     } = $xmlOutput->XMLout($data);
+			    }
+			    else {
+				$otherDirectives->{$xmlTag}->{$srcdir."/".$fname} = 1;
+			    }
 			}
 		    }
 		}
+		if ( eof($fileHandle) ) {
+		    shift(@fileNames);
+		    shift(@filePositions);
+		}
+		close($fileHandle);
 	    }
 	}
-	close(infile);
+
     }
     closedir(indir);
 }

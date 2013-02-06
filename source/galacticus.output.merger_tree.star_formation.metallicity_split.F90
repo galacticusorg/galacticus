@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which handles computation and output of star formation histories split by metallicity for galaxies.
 
@@ -119,6 +75,9 @@ contains
        !@   <description>
        !@     The time step to use in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryTimeStep'          ,starFormationHistoryTimeStep          ,defaultValue=0.1d0 )
        !@ <inputParameter>
@@ -128,6 +87,9 @@ contains
        !@   <description>
        !@     The fine time step to use in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryFineTimeStep'      ,starFormationHistoryFineTimeStep      ,defaultValue=0.01d0)
        !@ <inputParameter>
@@ -137,6 +99,9 @@ contains
        !@   <description>
        !@     The period prior to each output for which the fine time step is used in tabulations of star formation histories [Gyr].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryFineTime'          ,starFormationHistoryFineTime          ,defaultValue=0.1d0 )
        !@ <inputParameter>
@@ -146,6 +111,9 @@ contains
        !@   <description>
        !@     The number of bins in metallicity to use when tabulating star formation histories.
        !@   </description>
+       !@   <type>integer</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityCount'  ,starFormationHistoryMetallicityCount  ,defaultValue=10    )
        !@ <inputParameter>
@@ -155,6 +123,9 @@ contains
        !@   <description>
        !@     The upper limit to the metallicity in the lowest metallicity bin when tabulating star formation histories [Solar units].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityMinimum',starFormationHistoryMetallicityMinimum,defaultValue=1.0d-4)
        !@ <inputParameter>
@@ -164,6 +135,9 @@ contains
        !@   <description>
        !@     The upper limit to the metallicity in the highest metallicity bin when tabulating star formation histories [Solar units].
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationHistoryMetallicityMaximum',starFormationHistoryMetallicityMaximum,defaultValue=1.0d+1)
 
@@ -188,15 +162,17 @@ contains
   subroutine Star_Formation_History_Create_Metallicity_Split(thisNode,thisHistory)
     !% Create the history required for storing star formation history.
     use Histories
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),      intent(inout), pointer :: thisNode
-    type(history),       intent(inout)          :: thisHistory
-    double precision                            :: timeBegin,timeEnd
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    type (history           ), intent(inout)          :: thisHistory
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
+    double precision                                  :: timeBegin,timeEnd
 
     ! Find the start and end times for this history.
-    timeBegin=Tree_Node_Time(thisNode  )
+    thisBasicComponent => thisNode%basic()
+    timeBegin=thisBasicComponent%time()
     timeEnd  =Galacticus_Next_Output_Time(timeBegin)
     call Star_Formation_History_Metallicity_Split_Make_History(thisHistory,timeBegin,timeEnd)
     return
@@ -206,7 +182,7 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Galacticus_Output_Times
     use Galacticus_Error
     implicit none
@@ -341,7 +317,6 @@ contains
           thisTimeStep => nextTimeStep
        end do
     end if
-    
     return
   end subroutine Star_Formation_History_Metallicity_Split_Make_History
 
@@ -349,20 +324,22 @@ contains
     !% Record the star formation history for {\tt thisNode}.
     use Histories
     use Numerical_Ranges
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Abundances_Structure
     use Arrays_Search
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    type(history),             intent(inout)          :: thisHistory
-    type(abundancesStructure), intent(in)             :: fuelAbundances
-    double precision,          intent(in)             :: starFormationRate
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    type (history           ), intent(inout)          :: thisHistory
+    type (abundances        ), intent(in   )          :: fuelAbundances
+    double precision         , intent(in   )          :: starFormationRate
+    class(nodeComponentBasic),                pointer :: thisBasicComponent
     integer                                           :: iHistory,iMetallicity,historyCount
     double precision                                  :: timeNode,fuelMetallicity
 
     ! Get the current time for this node.
-    timeNode    =Tree_Node_Time(thisNode)
+    thisBasicComponent => thisNode%basic()
+    timeNode=thisBasicComponent%time()
 
     ! Get the number of times at which star formation rate is tabulated for this node.
     historyCount=size(thisHistory%time)
@@ -378,8 +355,8 @@ contains
        iMetallicity=Search_Array(metallicityTable,fuelMetallicity)+1
     end if
 
-    ! Accumulate to all future times.
-    thisHistory%rates(iHistory,iMetallicity)=thisHistory%rates(iHistory,iMetallicity)+starFormationRate
+    ! Accumulate to the appropriate time.
+    thisHistory%data(iHistory,iMetallicity)=starFormationRate
 
     return
   end subroutine Star_Formation_History_Record_Metallicity_Split
@@ -390,33 +367,35 @@ contains
     use ISO_Varying_String
     use Galacticus_HDF5
     use IO_HDF5
-    use Tree_Nodes
+    use Galacticus_Nodes
     use String_Handling
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    logical,                 intent(in)             :: nodePassesFilter
-    type(history),           intent(inout)          :: thisHistory
-    integer,                 intent(in)             :: iOutput
-    integer(kind=kind_int8), intent(in)             :: treeIndex
-    character(len=*),        intent(in)             :: componentLabel
-    type(treeNode),                         pointer :: parentNode
-    double precision                                :: timeBegin,timeEnd
-    type(varying_string)                            :: groupName
-    type(hdf5Object)                                :: historyGroup,treeGroup,outputGroup
-    type(history)                                   :: newHistory
+    type     (treeNode          ), intent(inout), pointer :: thisNode
+    logical                      , intent(in   )          :: nodePassesFilter
+    type     (history           ), intent(inout)          :: thisHistory
+    integer                      , intent(in   )          :: iOutput
+    integer  (kind=kind_int8    ), intent(in   )          :: treeIndex
+    character(len=*             ), intent(in   )          :: componentLabel
+    class    (nodeComponentBasic),                pointer :: parentBasicComponent
+    type     (treeNode          ),                pointer :: parentNode
+    double precision                                      :: timeBegin,timeEnd
+    type     (varying_string    )                         :: groupName
+    type     (hdf5Object        )                         :: historyGroup,treeGroup,outputGroup
+    type     (history           )                         :: newHistory
  
     ! Return if the history does not exist.
     if (.not.thisHistory%exists()) return
 
     ! Check if the node passes any filtering, and output it if it does.
     if (nodePassesFilter) then
-       
+       !$omp critical(HDF5_Access)
+      
        ! Write metallicities if not already done.
        if (.not.metallicityTableWritten) then
           ! Open the histories group.
-          historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
+          historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
           
           ! Write the metallicities.
           call historyGroup%writeDataset(metallicityTable,"metallicities","Metallicities at which star formation histories are tabulated.")
@@ -429,13 +408,13 @@ contains
        end if
        
        ! Create a group for the profile datasets.
-       historyGroup=IO_HDF5_Open_Group(galacticusOutputFile,"starFormationHistories","Star formation history data.")
+       historyGroup=galacticusOutputFile%openGroup("starFormationHistories","Star formation history data.")
        groupName="Output"
        groupName=groupName//iOutput
-       outputGroup=IO_HDF5_Open_Group(historyGroup,char(groupName),"Star formation histories for all trees at each output.")
+       outputGroup=historyGroup%openGroup(char(groupName),"Star formation histories for all trees at each output.")
        groupName="mergerTree"
        groupName=groupName//treeIndex
-       treeGroup=IO_HDF5_Open_Group(outputGroup,char(groupName),"Star formation histories for each tree.")
+       treeGroup=outputGroup%openGroup(char(groupName),"Star formation histories for each tree.")
        ! Write dataset to the group.
        groupName=trim(componentLabel)//"Time"
        groupname=groupName//thisNode%index()
@@ -447,6 +426,7 @@ contains
        call treeGroup   %close()
        call outputGroup %close()
        call historyGroup%close()
+       !$omp end critical(HDF5_Access)
     end if
     
     timeBegin=thisHistory%time(1)
@@ -454,10 +434,11 @@ contains
        timeEnd =Galacticus_Output_Time(iOutput+1)
     else
        parentNode => thisNode
-       do while (associated(parentNode%parentNode))
-          parentNode => parentNode%parentNode
+       do while (associated(parentNode%parent))
+          parentNode => parentNode%parent
        end do
-       timeEnd=Tree_Node_Time(parentNode)
+       parentBasicComponent => parentNode%basic()
+       timeEnd=parentBasicComponent%time()
     end if
     call Star_Formation_History_Metallicity_Split_Make_History(newHistory,timeBegin,timeEnd,thisHistory%time)
     newHistory%data(1:size(thisHistory%time),:)=thisHistory%data(:,:)
@@ -474,12 +455,12 @@ contains
     use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision,          intent(in)                :: stellarMass
-    type(abundancesStructure), intent(in)                :: stellarAbundances
-    type(history),             intent(inout)             :: thisHistory
-    double precision,          parameter                 :: stellarMassMinimum=1.0d0
-    double precision,          dimension(:), allocatable :: timeSteps
-    integer                                              :: iMetallicity
+    double precision            , intent(in   )             :: stellarMass
+    type            (abundances), intent(in   )             :: stellarAbundances
+    type            (history   ), intent(inout)             :: thisHistory
+    double precision            , parameter                 :: stellarMassMinimum=1.0d0
+    double precision            , dimension(:), allocatable :: timeSteps
+    integer                                                 :: iMetallicity
 
     ! Return immediately if the history does not exist.
     if (.not.thisHistory%exists()) return
@@ -489,7 +470,7 @@ contains
 
     ! Set scaling factors for recycled mass.
     forall(iMetallicity=1:starFormationHistoryMetallicityCount+1)
-       thisHistory%scales(:,iMetallicity)=max(stellarMass,stellarMassMinimum)/timeSteps
+       thisHistory%data(:,iMetallicity)=max(stellarMass,stellarMassMinimum)/timeSteps
     end forall
 
     ! Destroy temporary array.
