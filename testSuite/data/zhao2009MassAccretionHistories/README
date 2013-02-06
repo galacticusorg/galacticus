@@ -1,0 +1,225 @@
+c=============================================================================
+c  This file contains detailed description of results obtained by the halo
+c  evolution web-calculator and introduction on how to plot them.
+c
+c
+c=============================================================================
+c  The calculator was developed by
+c  Donghai Zhao
+c  Copyright (C) 2007
+c
+c  Version 1.00 (2008.11.02):
+c     A main program version code which perform the same as this web calculator
+c     is available on the same web site.
+c  Version 1.03 (2010.09.14):
+c     1) We add a new output, the age of the universe, to the end of each row
+c     in the output file;
+c     2) For clarity, in the case of power spectrum type 1, we make use of a
+c     new fitting formula to calculate the transfer function, which was provided
+c     also by Eisentein & Hu (1998) but does NOT take into account effects of
+c     massive neutrinos on the transfer function.
+c     Actually, this modification will induce only TINY changes in the final
+c     results for universe without massive neutrino, like our concordant LCDM
+c     universe.
+c     A main program version code and two subroutine version codes which all
+c     perform the same as this web calculator are also available on the same
+c     web site.
+c
+c=============================================================================
+c  According to Zhao, Jing, Mo & Boerner (2009), this calculator predicts
+c     1) the median mass accretion history (the median main branch of merger
+c        trees) for halos of any given mass Mobs at any given redshift zobs,
+c        M(z|zobs,Mobs), and
+c     2) evolution of halo structural properties along this median main branch
+c        (such as concentraion evolution c(z|zobs,Mobs), see below for details)
+c
+c     You may choose to output 
+c     a) time evolution of the mass and structural properties along the median
+c        main branch of final halos with a given mass Mobs (such as above
+c        M(z|zobs,Mobs) and c(z|zobs,Mobs)), OR
+c     b) mass dependence of these structural properties at final redshift zobs
+c        (such as that of median concentration, c(zobs,M); and you can run
+c        repeatedly with many other zobs to obtain the redshift dependence).
+c
+c     Mass accretion history and concentration evolution history with different 
+c     halo definitions are also available.
+c     
+c     This version can be used for Einstein de Sitter, open, or flat
+c     universe with cosmological costant, as some fitting formulae from
+c     the literature (such as formulae for halo virial density and for
+c     linear growth factor) are limited to these cosmologies.
+c
+c-----------------------------------------------------------------------------
+c
+c  1.Output format:
+c
+c     output file name: 
+c
+c        when output type you choose is 'evolution of given halo', properties
+c        along the median mass accretion history of final offspring halos of
+c        mass lgMobs are output in a file 'mandcoutput.a-random-number'
+c
+c        when output type you choose is 'dependence on mass', properties of
+c        final offspring halos of many different masses at redshift zobs are
+c        output in a file of similar name 'mandcoutput.a-random-number'
+c
+c     both the files have the same format:
+c
+c        row 1:  ispec,nbin1,zobs,omegam0,omegaL0,sigma8,tilt,omegab0,
+c                omeganu0,T_cmb,N_nu,h/note ('---' will take place of
+c                those parameters that needn't be input)
+c
+c        row >1: ziz,Miz,c,rhohiz,R,V,Ms,rhos,Rs,Vs,Miz_200c,c_200c,
+c                rhohiz_200c,Miz_200m,c_200m,rhohiz_200m,uniage_iz
+c
+c-----------------------------------------------------------------------------
+c
+c  2.Output:
+c
+c        ispec    --  power spectrum type indicator
+c                     (0)  power-law power spectrum
+c                     (1)  Eisenstein & Hu 1998 power spectrum
+c                     (2)  BBKS 1986 power spectrum
+c                     (3)  Bond & Efstathiou 1987 power spectrum
+c                     (4)  DEFW 1985 power spectrum
+c        nbin1    --  final offspring number
+c                     (when output type is 'evolution of given halo') nbin1=1
+c                     (when output type is 'dependence on mass') nbin1>1
+c        zobs     --  redshift at which you choose final offspring halos
+c        omegam0  --  matter density at redshift 0 in critical units; including
+c                     dark matter and baryon; 0<omegam0<=1 
+c        omegaL0  --  cosmological constant at redshift 0 in critical units;
+c                     omegaL0=1-omegam0 or omegaL0=0
+c        sigma8   --  rms of the linear density field smoothed in a sphere of
+c                     radius 8 Mpc/h at redshift 0; needed when ispec>0
+c        tilt     --  (when ispec=0) power index of linear power spectrum;
+c                     -3 < tilt < 1
+c                     (for other cases) power index of primodial power spectrum;
+c                     -3 < tilt
+c        h        --  Hubble constant at redshift 0 in [100 km/s/Mpc];
+c                     needed when ispec>0
+c        note     --  a note to remind reader that mass, radius and velocity
+c                     etc. have been scaled when ispec=0
+c        ziz      --  redshift for output
+c                     (when nbin1=1) ziz>= zobs
+c                     (when nbin1>1) ziz = zobs
+c        uniage_iz--  universe age at ziz, here in [year/h]
+c
+c     following 4 are NOT needed unless ispec=1 (Eisentein & Hu spectrum), and
+c     from the release of version 1.03, omeganu0 and N_nu of the 4 parameters are
+c     NOT needed any longer even for ispec=1, as we adopt a new fitting formula
+c     to calculate the transfer function, which was provided also by Eisentein &
+c     Hu (1998) but does not consider effects of massive neutrinos on the transfer
+c     function:
+c        omegab0  --  baryon density at redshift 0 in critical units
+c        omeganu0 --  massive neutrino density at redshift 0 in critical units;
+c                     0<=omegab0+omeganu0<=omegam0
+c        T_cmb    --  CMB temperature at redshift 0
+c        N_nu     --  number of degenerate massive neutrinos
+c
+c     following are for the spherical virial halo definition 
+c        Miz      --  halo virial mass, in [M_sun/h] (except for the special
+c                     case with ispec=0, see below)
+c                     (when nbin1=1) for the final offspring halo of logarithmic
+c                     mass lgMobs and its main progenitors;
+c                     Miz=M(ziz|zobs,Mobs)
+c                     (when nbin1>1) for final offspring halos only; lgMobs is
+c                     renewedly uniformly choosed in (7,16) or so;
+c                     Miz=M(zobs|zobs,Mobs)=Mobs
+c        c        --  halo virial concentration
+c                     (when nbin1=1) c=c(ziz|zobs,Mobs)
+c                     (when nbin1>1) c=c(zobs|zobs,Mobs)=c(zobs,Mobs)
+c        rhohiz   --  corresponding halo virial density at redshift ziz, in 
+c                     [h^2 M_sun/Mpc^3]
+c        R        --  halo virial radius, in [Mpc/h]
+c        V        --  halo circular velocity at virial radius, in [km/s]
+c
+c     following are some characteristic inner quntities
+c        Rs       --  halo characteristic inner radius Rs, in [Mpc/h]
+c        Ms       --  mass enclosed in Rs,                 in [M_sun/h]
+c        rhos     --  density at Rs,                 in [h^2 M_sun/Mpc^3]
+c        Vs       --  circular velocity at Rs,             in [km/s]
+c
+c     following are for some other halo definitions 
+c      rhohiz_200c--  200 times critical density at redshift ziz, in
+c                     [h^2 M_sun/Mpc^3]
+c        Miz_200c --  corresponding halo mass with halo density equal to 
+c                     rhohiz_200c, in [M_sun/h]
+c        c_200c   --  corresponding halo concentration with halo density
+c                     equal to rhohiz_200c
+c      rhohiz_200m--  200 times universe mean matter density at redshift
+c                     ziz, in [h^2 M_sun/Mpc^3]
+c        Miz_200m --  corresponding halo mass with halo density equal to 
+c                     rhohiz_200m, in [M_sun/h]
+c        c_200m   --  corresponding halo concentration with halo density
+c                     equal to rhohiz_200m
+c
+c     For the case of power-law power spectrum (ispec=0), the age of the
+c     universe and all halo properties, except concentration, have been
+c     scaled respectively with universe age at redshift 0 and corresponding
+c     quantities of halos of mass M_star0 at redshift 0. For example, in
+c     this special case, universe age, halo mass and radius are in [uniage0],
+c     [M_star0] and [R_star0] respectively.
+c
+c     For main progenitors that are the earliest (also the smallest)
+c     in the output file, if Miz is less than 25 times of the smallest
+c     main progenitor, negative c, Ms, rhos, Rs, Vs, Miz_200c, c_200c,
+c     Miz_200m and c_200m will be output (because the characteristic time
+c     t_0.04 has to be computed, see Zhao et al. 2009).
+c
+c     For users interested in different halo definitions: For the second
+c     output type, mass dependences of halo properties in DIFFERENT HALO
+c     DEFINITIONs are all output as shown above. For the first output type,
+c     the halo mass input, lgMobs, should always be VIRIAL mass, even though
+c     masses in other halo definitions are output again as shown above. If
+c     you want to output property evolution for final offspring halos of
+c     a given mass in ANOTHER HALO DEFINITION, i.e., if you want to start
+c     from a mass in another halo definition, you may do it in two steps:
+c     1. by choosing the output type 'dependence on mass', you can obtain
+c     one-to-one correspondence among halo masses in different definitions
+c     at the redshift in consideration for the current cosmology; 2. by
+c     choosing the output type 'evolution of given halo' and specifying
+c     the corresponding virial halo mass, you will get the history you want.
+c
+c
+c=============================================================================
+c  Plotting results:
+c
+c     You may find some sample Super Mongo macros in file 'mandcweb.sm', which
+c     can be used to plot both 1) mass & redshift dependence of halo median
+c     concentration c(z,M) and 2) evolution of halo properties along its
+c     mass accretion history, such as M(z|zobs,Mobs) and c(z|zobs,Mobs).
+c
+c
+c=============================================================================
+c  Reporting bug:
+c
+c     This calculator is maintained by Donghai Zhao. If you find any bug or if
+c     you have any suggestion or question, please write to
+c     dhzhao@shao.ac.cn
+c
+c
+c=============================================================================
+c  Getting the latest version:
+c
+c     The latest version of the calculator and the latest version of the code
+c     to perform relevant calculations are available at the web site:
+c     http://www.shao.ac.cn/dhzhao/mandc.html
+c
+c     There a paper (Zhao, Jing, Mo & Boerner 2009) with an appendix describing
+c     the step-by-step implementation of our models is also provided.
+c
+c
+c=============================================================================
+c  Credits:
+c
+c     Any publication which is benefited from the current code is supposed
+c     to contain reference to the paper Zhao, Jing, Mo & Boerner 2009, ApJ,
+c     707, 354 / arXiv: 0811.0828 and acknowledgement of use of the code.
+c     In addition, we will appreciate preprints of publications based on it,
+c     and please send them to one of the following addresses:
+c     dhzhao@shao.ac.cn
+c     ypjing@shao.ac.cn
+c     hjmo@astro.umass.edu
+c
+

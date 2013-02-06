@@ -1,0 +1,275 @@
+MAIN
+# Example Grasil parameter file for use with Galacticus output.
+# Andrew Benson (21-February-2011)
+#
+# This section is quite free form: parameters may appear in any order,
+# lines begining with #, % or blank space are for comments, otherwise
+# from column 1 to 10 an identifier of the parameter (case sensitive)
+# from 11 to 20 its value (always real with explicit decimal point)
+# from 21 on comments.
+#2345678901234567890123456789
+#
+#annflag  0.0       0.0 1.0 2.0 3.0
+flutmc    0.0
+istarfo   10.0       sets the kind of SF law:
+# istarfo=0  SFR from che_evo code
+# istarfo=1  no more used
+# istarfo=2  no more used
+# istarfo=3  no more used
+# istarfo=4  SFR from semianalytical hierarchical clustering models
+# istarfo=5  as 4 but writes only files with SFR including bursts
+# For istarfo=0 the residual gas fraction can be imposed, when 
+# required, through gastmp and igastmp in section MAIN.
+#
+#ssp_mass4  5.015    Salpeter IMF with Mlow=0.15Mo
+ssp_mass4  2.950    Kennicutt IMF with Mlow=0.15Mo
+# ssp_mass4 = IMF mass integral from Mlow to 120Mo;used for istarfo=4.
+# for Mlow=0.15, ssp_mass4= 5.015, 2.950, 5.920 for Salpeter, Kennicutt, k1p
+# for Mlow=0.1, ssp_mass4= 5.862, 3.065, 6.036 for Salpeter, Kennicutt, k1p
+# For istarfo=0 it is read in the SFR file. It is used to normalize the
+# SSP spectra (set in section SSP). Note that the SSP are computed for a 
+# given IMF (slopes and mass limits), thus the only meaningful IMF variations.
+# NB rescaling using ssp_mass4 only done for SSPs marked 1 below (i.e. normal)
+# not for those marked 2 (i.e. burst)
+#
+tgal      13.0      age of the model
+# NOTE: when tgal < 0 it is ignored and 
+# 1) for istarfo=0 is read in age.par:
+#    this is a trick to be used in programs running GRASIL for the same
+#    model at different ages. See for instance program AGETAB.
+# 2) for istarfo=4 tgal is reset to tb+abs(tgal)*te, where tb and te are
+# the time and e-folding time of the last burst listed in bursts_bulge file.
+extflag   1.0       if 1.0, the effective optical thickness 
+# tau_eff = sqrt(tau_a*tau_e) is used in the diffuse component,
+# if 0.0 tau_a is used
+#lam_tru   100.0
+#exp_tru   1.3           
+# lam_tru is the wavelength in micron above which the slope of the dust absorption
+#efficiency is set equal to exp_tru. These parameters are optional. 
+gastmp    6.0e-4    if igastmp=1 then gas mass is forced to 
+# gastmp*(final total mass in .sf file), if igastmp=0 then gastmp is not
+# used and the actual gas mass at tgal, as listed in .sf file is adopted
+# istarfo=0 and igastmp=1
+igastmp   0.0       see gastmp
+mmolfraz  0.25      fraction of molecular over total gas
+# NOTE: if mmolfraz<0 no gas, useful for bare EPS
+# if mmolfraz>1, then it is reset to min(1,SFR(tgal)/mmolfraz), 
+# where SFR is in Msun/yr. This is used to have mmolfraz proportional to SFR.
+mcloud    1.0e6     Mass (Msun) of molecular clouds (MCs)
+# NOTE: if mcloud<0, then -mcloud is interpreted as the required 1 micron 
+# optical depth of clouds, and mcloud is reset accordingly.
+rcloud    16.0      radius (pc) of molecular clouds
+vout      -1.0      [Gyr^-1] see below.  If <0 is set to 1/etastart.
+# normal galaxies
+etastart  0.001     [Gyr] see below
+# ongoing bursts
+#etastart  0.001     [Gyr] see below
+# fraction f of SSP energy inside MCs depends on its age t according to
+# f=1                    if t<=etastart
+# f=1-vout*(t-etastart)  if etastart<t<=etastart+1/vout
+# f=0                    otherwise
+pahflag   1.0       if 0.0 no computation of PAHs features (speeds up)
+# if 1.0 PAHs are computed
+flutflag  1.0       if 0.0 no computation of T fluctuations of small
+# grains (speeds up), if 1.0 fluctuations are computed
+hiiflag   0.0       if 1.0 computes lines and nebular continuum
+emiflag   1.0       if 0.0 no computation of dust emission 
+intrho    0.0       
+# intrho 0 do nothing, 1 writes path normalized integrals 
+# in a file, 2 reads from the same file instead of computing
+dsug      0.61       0.45    
+idz       1.0            
+# if idz=0.0 dsug is simply the dust/gas mass ratio. If idz=1.0
+# (not meaningful for istarfo=1) dsug is the proportionality 
+# factor between Z and dust/gas.
+# In this case dsug=0.45 gives the standard DL dsug=1/110 for Zsun
+tgra      400.0     maximum T of graphite grains in MCs
+tsil      400.0     maximum T of silicate grains in MCs
+ndr       40.00     Number in radial bins (shells) in diffuse component
+#ndr       10.00     use this to speed up test runs
+# 40 is usually a good choice for moderate optical thickness. Increase
+# when energy is badly conserved; ndr has no effect for
+# exponential profiles (igeo=2) for which ndr is optimized by the code.
+nlf       400.00     Number of frequency bins
+wavsspout 0.0       If not 0, spectra are output also at the
+# resolution of input SSP (interpolating the attenuation laws)
+# in files <name>.ssp.<inclination>.  
+# In this way the stellar features can be studied. 
+# If wavsspout is 0.0 or not present, these files are not produced
+igeo      -1.0       sets the geometry of stars and gas
+# igeo=0 homogeneous
+# igeo=1 King profiles: core radii given by rcstar and rcdiff
+# igeo=2 Exponentials of distances from polar axis and from equator.
+# scale lengths given by (rdstar,rddiff) and  (zdstar,zddiff) 
+# igeo=3 elliptical galaxy defined by Witt et al. 1992, APJ,393,611 
+# igeo=4 Cloudy galxy defined by Witt et al. 1992, APJ,393,611 
+# igeo=5 like 1 but the exponent 3/2 replaced by gamdiff in diffuse gas
+# igeo=-1 for a bulge+disk composite geometry. For istarfo=4 separate
+# SF history for the 2 components are available. For istarfo=0,2,3
+# the same SF history is assigned to the 2 components according to
+# bulge/total mass ratio read in file mon_name.bst
+#
+# For istarfo=4 only: 
+#     igeo<=-2 for a pure bulge (igeo=1) or disk (igeo=2) geometry according 
+#     the ratio Bulge/Total ratio in K magnitude of the SF model.
+#     2 more parameters have to be given in input:
+#     fburst = the ratio between the burst duration and the bulge dynamical timescale.
+#     beta   = half-mass radius of exponential disk where ongoing bursts occur is 
+#              beta*rbulge
+#     littleh= Ho/100
+#     tbemin = min SFR time scale for bursts Gyr
+#     dtbe   = sets the duration of bursts= dtbe * burst e-folding time
+# normal galaxy
+beta      1.0
+# ongoing burst
+#beta      1.0
+littleh   0.7
+#  fburst, tbemin & dtbe are all now OBSOLETE - however, GRASIL still tries to 
+#  read them in for istarfo=4, so you have to set them to something
+fburst    0.0             OBSOLETE
+tbemin    0        [Gyr]  OBSOLETE
+dtbe      0               OBSOLETE
+#
+taugalmax 100.      optional parameter. used for istarfor=4
+ntstart   100.      optional parameter. used with taugalmax for istarfor=4 
+#  these 2 optional parameters taugalmax & ntstart control the fix for galaxies 
+#  with v.large cirrus opt depth, in which most of cirrus extinction is replaced 
+#  by an equivalent spherical distribn in molecular cloud
+#  maximum allowed polar tau cirrus. if present, mmolfraz is reset so that the 
+#  remaining amount of cirrus dust have a polar tau = taugalmax
+#  if ntstart present, the original etastart is multiplied by ntstart, to cope 
+#  with the lower amount of cirrus dust
+#
+#     for istarfo=4 the radial scalelenghts are set as follows:
+#     radial scale lengths for stars (rcstar, rdstar) are given by the SF model;
+#     the other scalelenght parameters are ratios:
+#     rcdiff is (rcdiff/rcstar); 
+#     zdstar is (zdstar/rdstar); rddiff is (rddiff/rdstar); zddiff is (zddiff/rddiff).
+rcstar    0.15       [kpc] igeo=1
+rcdiff    0.2      [kpc] igeo=1
+gamdiff   0.5       [kpc] igeo=5
+rdstar    3.0       [kpc] igeo=2
+rddiff    1.0       [kpc] igeo=2
+# normal galaxies zdstar=zddiff=0.1
+zdstar    0.1       [kpc] igeo=2
+zddiff    0.1       [kpc] igeo=2
+# ongoing bursts zdstar=zddiff=0.5
+#zdstar    0.5       [kpc] igeo=2
+#zddiff    0.5       [kpc] igeo=2
+#
+#MC_LINE
+#Optional section to define a distribution of values of optical depths of MCs
+#and of escape time scales of young stars from them
+#2                n_tau_mc: number of tau and t0 for MCs
+#16.   65.32      r_mc_arr: MC radii in pc
+#0.625 0.375      f_mc_arr: numerical fractions of MCs with given radius (i.e. tau)
+#0.008  0.008       t0_arr  : Gyr, see etastart in sec MAIN  
+#
+#
+SPECTRA
+Directions in degrees from the polar axis in which the SEDs are computed:
+7  number of directions
+0.00  degrees
+15.0
+30.0
+45.0 degrees
+60.0
+75.0
+90.0 degrees
+#
+#
+SSP
+Names of SSPs to be used. NB!! List ended by a comment line !!
+First column put 1 if ssp is to be used, 2 if use in bursts, 0 otherwise. 
+1 'gkn1rdZ0004.ken'
+1 'gkn1rdZ004.ken'
+1 'gkn1rdZ008.ken'
+1 'gkn1rdZ02.ken'
+1 'gkn1rdZ05.ken'
+#1    'gk1_25Z0004.ken' 
+#1    'gk1_25Z004.ken' 
+#1    'gk1_25Z008.ken' 
+#1    'gk1_25Z02.ken' 
+#1    'gk1_25Z05.ken' 
+#2    'gk1_25Z0004.ken' 
+#2    'gk1_25Z004.ken' 
+#2    'gk1_25Z008.ken' 
+#2    'gk1_25Z02.ken' 
+#2    'gk1_25Z05.ken' 
+#
+#1    'pd01_ken_Z0004.ssp' 
+#1    'pd01_ken_Z0040.ssp' 
+#1    'pd01_ken_Z0080.ssp' 
+#1    'pd01_ken_Z0200.ssp' 
+#1    'pd01_ken_Z0500.ssp'
+#2    'pd01_x0_Z0004.ssp'
+#2    'pd01_x0_Z0040.ssp'
+#2    'pd01_x0_Z0080.ssp'
+#2    'pd01_x0_Z0200.ssp'
+#2    'pd01_x0_Z0500.ssp'
+# SSPs marked 1 used in quiescent SF, and also in bursts if none marked 2
+# if present, SSPs marked 2 used in bursts instead of those marked 1
+# NB must set ssp_mass4 consistent with choice of IMF & Mlow,Mup
+# (rescaling according to ssp_mass4 only for SSPs marked 1)
+#
+MIXDIF
+# Parameters setting the dust mixture in the diffuse component
+# This section is quite free form: parameters may appear in any order,
+# lines begining with #, % or blank space are for comments, otherwise
+# from column 1 to 10 an identifier of the parameter (case sensitive)
+# from 11 to 20 its value (always real with explicit decimal point)
+# from 21 on comments.
+#2345678901234567890123456789
+#parameters for graphite follow  
+amin_gr   0.0008e-4 minimum radius
+amax_gr   0.25e-4   maximum radius
+ab_gr     0.0050e-4 break radius between the two power laws
+beta1_gr  -3.5      power law index from amax to ab
+beta2_gr  -4.05     pawer law index from ab to amin
+corgra    1.00      correction factor with respect to abundance in DL model
+# can be used to vary the ratio between graphite and silicate
+# parameters for silicate follow  
+amin_si   0.0050e-4 minimum radius
+amax_si   0.25e-4   maximum radius
+ab_si     0.0003e-4 break radius between the two power laws
+beta1_si  -3.5      power law index from amax to ab
+beta2_si  -3.95     pawer law index from ab to amin
+corsil    1.00      correction factor with respect to abundance in DL model
+# can be used to vary the ratio between graphite and silicate
+# parameters for PAHs follow 
+# (updated following Draine & Li 2007, as in Laura's email of 18/10/07)
+xx        2.02e-25  normalization power law PAHs
+xh        1.0       hydro coverage PAHs
+#
+MIXMOL
+# Parameters setting the dust mixture in the molecular clouds
+# This section is quite free form: parameters may appear in any order,
+# lines begining with #, % or blank space are for comments, otherwise
+# from column 1 to 10 an identifier of the parameter (case sensitive)
+# from 11 to 20 its value (always real with explicit decimal point)
+# from 21 on comments.
+#2345678901234567890123456789
+#parameters for graphite follow  
+amin_gr   0.0008e-4 minimum radius
+amax_gr   0.25e-4   maximum radius
+ab_gr     0.0050e-4 break radius between the two power laws
+beta1_gr  -3.5      power law index from amax to ab
+beta2_gr  -4.05     pawer law index from ab to amin
+corgra    1.00      correction factor with respect to abundance in DL model
+# can be used to vary the ratio between graphite and silicate
+# parameters for silicate follow  
+amin_si   0.0050e-4 minimum radius
+amax_si   0.25e-4   maximum radius
+ab_si     0.0003e-4 break radius between the two power laws
+beta1_si  -3.5      power law index from amax to ab
+beta2_si  -3.95     pawer law index from ab to amin
+corsil    1.00      correction factor with respect to abundance in DL model
+# can be used to vary the ratio between graphite and silicate
+# parameters for PAHs follow 
+# (updated following Draine & Li 2007, as in Laura's email of 18/10/07)
+xx        2.02e-28  normalization power law PAHs 
+xh        1.0       hydro coverage PAHs
+#
+# is better to leave some comment line at the end
+
+

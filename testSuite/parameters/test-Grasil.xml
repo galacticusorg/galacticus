@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Defines a set of Galacticus models for Grasil calculations. -->
+<!-- Andrew Benson                                               -->
+<!-- 12-January-2013                                             -->
+<parameterGrid>
+  <emailReport>no</emailReport>
+  <doAnalysis>no</doAnalysis>
+  <modelRootDirectory>testSuite/outputs/test-Grasil</modelRootDirectory>
+  <baseParameters>testSuite/parameters/test-Grasil-base.xml</baseParameters>
+  <parameters>
+
+    <!-- Specify output redshifts -->
+    <parameter>
+      <name>outputRedshifts</name>
+      <value>0.0 1.0</value>
+    </parameter>
+
+    <!-- Switch on star formation history tracking for Grasil processing. -->
+    <parameter>
+      <name>starFormationHistoriesMethod</name>
+      <value>metallicitySplit</value>
+    </parameter>
+
+    <!-- Switch on output of star formation rates. -->
+    <parameter>
+      <name>spheroidOutputStarFormationRate</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>diskOutputStarFormationRate</name>
+      <value>true</value>
+    </parameter>
+
+  </parameters>
+</parameterGrid>

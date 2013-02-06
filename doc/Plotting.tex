@@ -1,0 +1,108 @@
+\chapter{Plotting Support}\index{plotting}
+
+\section{Plotting with {\sc Gnuplot}}
+
+While \glc\ data can, of course, be plotted using whatever method you choose, two Perl modules are provided that we find useful for plotting \glc\ data. These are intended for use with \href{http://www.gnuplot.info/}{\sc GnuPlot} and with datasets stored as \href{http://pdl.perl.org/}{\tt PDL} variables. The first module, {\tt GnuPlot::PrettyPlots} plots lines and points with two color style (typically a lighter interior color and a darker border) with support for errorbars and limits (show as arrows) on points. The second, {\tt GnuPlot::LaTeX} provides a convenient way to process output from {\sc GnuPlot}'s {\tt epslatex} terminal into PDF files (suitable for inclusion in documents), PNG images with transparent backgrounds or \href{http://www.openoffice.org/}{OpenOffice} \href{http://www.wikimedia.org/wikipedia/en/wiki/OpenDocument}{ODG} files (suitable for inclusion into presentations\footnote{If you create an OpenOffice ODG file it's recommended that you covert it to a Metafile within OpenOffice before putting it into a presentation---this seems to prevent a bug which occasionally causes an element of the plot to be lost during saving\ldots}).
+
+A typical use of these packages would look as follows:
+\begin{verbatim}
+use lib "./perl";
+use PDL;
+use GnuPlot::LaTeX;
+use GnuPlot::PrettyPlots;
+
+$outputFile = "myImage";
+open($gnuPlot,"|gnuplot");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$outputFile.".eps'\n";
+print $gnuPlot "set xlabel '\$x-axis label\$'\n";
+print $gnuPlot "set ylabel '\$y-axis label\$'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key spacing 1.2\n";
+print $gnuPlot "set key at screen 0.4,0.8\n";
+print $gnuPlot "set key left bottom\n";
+print $gnuPlot "set xrange [0.0:6.0]\n";
+print $gnuPlot "set yrange [0.0:1.0]\n";
+print $gnuPlot "set pointsize 2.0\n";
+&PrettyPlots::Prepare_Dataset(\$plot,
+			      $x1Data, $y1Data,
+                              title => "First dataset",
+                              style => line,
+                              linePattern => 0,
+                              weight => [7,3],
+			      color => $PrettyPlots::colorPairs{'lightGoldenrod'}
+                             );
+&PrettyPlots::Prepare_Dataset(\$plot,
+			      $x2Data, $y2Data,
+			      errorDown => $errorDown,
+			      errorUp   => $errorUp,
+                              title => "Galacticus",
+			      style => point,
+                              symbol => [6,7],
+                              weight => [5,3],
+			      color => $PrettyPlots::colorPairs{'redYellow'}
+                             );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PNG($outputFile.".eps", backgroundColor => "#000080", margin => 1);
+\end{verbatim}
+
+The process begins by opening a pipe to {\sc GnuPlot} and specifying the {\tt epslatex} terminal along with {\tt color} and {\tt colortext} options, any line weight preferences and the output EPS file. This is followed by commands to set up the plot, including labels, ranges etc. Note that you \emph{must} specify margins manually\footnote{The {\tt GnuPlot::PrettyPlots} module works by generating multiple layers of plotting which are overlaid. Axes are only drawn for the first layer. If you do not specify margins manually, they will be computed automatically for each layer and so will not match up between all layers. This will result in data being plotted incorrectly.}. Following this are calls to {\tt \&PrettyPlots::Prepare\_Dataset} which prepares instructions for plotting of a single dataset. The first argument is a reference to a structure which will store the instructions, while the second and third arguments are PDLs containing the $x$ and $y$ data to be plotted. Following this are multiple options as follows:
+\begin{description}
+\item[{\tt title}] Gives the title of the dataset for inclusion in the plot key;
+\item[{\tt style}] Specifies how the dataset should be drawn: either {\tt line}, {\tt point}, {\tt boxes}, or {\tt filledCurve};
+\item{{\tt linePattern}} Specifies the line pattern (as defined for {\sc GnuPlot}'s {\tt lt} option) to use;
+\item[{\tt symbol}] A two element list giving the symbol indices that should be used to plot the border and inner parts of each point respectively;
+\item[{\tt weight}] A two element list giving the line weights to be used for border and inner parts of each point/line respectively;
+\item[{\tt color}] A two element list giving the color of border and inner parts of each point/line respectively. Colors should be specified as {\tt \#RRGGBB} in hexadecimal. Several suitable color pairs and sequences of pairs are defined in the {\tt GnuPlot::PrettyPlots} module;
+\item[{\tt pointSize}] Specifies the size of the points to be used;
+\item[{\tt errorNNN}] Gives a PDL containing sizes of errors to be plotted on points in the up, down, left and right directions. A zero value will cause the error bar to be omitted, while a negative value will cause an arrow to be drawn with a length equal to the absolute value of the specified value;
+\item[{\tt filledCurve}] If the {\tt filledCurve} style is used, this option specifies the type of filled curve ({\tt closed}, {\tt x1}, {\tt x2}, etc.---see the {\sc GnuPlot} {\tt help filledcurve} text for complete options). The default is {\tt closed};
+\item[{\tt y2}] If the {\tt filledCurve} style is used along with the {\tt filledCurve}$=${\tt closed} option, this option is used to specify a second PDL of $y$-axis values. The region between this curve and the usual $y$-axis curve will be filled.
+\end{description}
+Once all datasets have been prepared, the call to {\tt \&PrettyPlots::Plot\_Datasets} will generate the EPS and \LaTeX\ files necessary to make the plot. This resulting plot can be converted to PDF, PNG or ODG form by calling {\tt \&LaTeX::GnuPlot2PDF}, {\tt \&LaTeX::GnuPlot2PNG} or {\tt \&LaTeX::GnuPlot2ODG} respectively. The EPS file will be replaced with the appropriate file. The {\tt \&LaTeX::GnuPlot2PNG} routine accepts an optional {\tt backgroundColor} argument in {\tt \#RRGGBB} format. If present, this color will be used to set the background color of the plot (otherwise white is assumed). Although the background is made transparent in the PNG, setting the background color is important as antialiasing will make use of this background. Note that both PNG and ODG options will switch black axes and labels to white\footnote{This is just a presonal preference for plots displayed in presentations---other options could be added}. Finally, the {\tt \&LaTeX::GnuPlot2PNG} routine accepts an optional {\tt margin} argument which specifies the size of the margin (in pixels) to be left around the plot when cropping.
+
+The ODG option requires that both \href{http://www.cityinthesky.co.uk/opensource/pdf2svg}{{\tt pdf2svg}} and \href{http://www.haumacher.de/svg-import/}{{svg2office}} be installed on your system ({\tt svg2office} should be located in {\tt /usr/local/bin}).
+
+\section{Merger Tree Diagrams with {\sc dot}}\index{merger trees!graphing}
+
+The {\sc dot} command, which is a part of \href{http://www.graphviz.org/}{{\sc GraphViz}}\index{graphviz@{\sc GraphViz}} is useful for creating diagrams of merger trees. \glc\ provides a function to output the structure of any merger tree in {\sc GraphViz} format. This function, \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Tree\_Dump}}, is provided by the \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Trees\_Dump}} module. Usage is as follows:
+\begin{lstlisting}[escapechar=@,breaklines,prebreak=\&,postbreak=\&]
+call Merger_Tree_Dump(                                    &
+     &                index                             , &
+     &                baseNode                          , &
+     &                highlightNodes     =highlightNodes, &
+     &                backgroundColor    ='white'       , &
+     &                nodeColor          ='black'       , &
+     &                highlightColor     ='black'       , &
+     &                edgeColor          ='#DDDDDD'     , &
+     &                nodeStyle          ='solid'       , &
+     &                highlightStyle     ='filled'      , &
+     &                edgeStyle          ='solid'       , &
+     &                labelNodes         =.false.       , &
+     &                scaleNodesByLogMass=.true.        , &
+     &                edgeLengthsToTimes =.true.          &
+     &               )
+\end{lstlisting}
+Here {\tt index} is the tree index (successive calls to \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Tree\_Dump}} with the same index will result in a sequence of output files---see below), and {\tt baseNode} is a pointer to the base node of the tree to be dumped. All other arguments are optional:
+\begin{description}
+ \item [{\tt highlightNodes}] A list of node IDs. All nodes listed will be highlighted in the diagram;
+ \item [{\tt backgroundColor}] The color for the background of the diagram;
+ \item [{\tt nodeColor}] The color used to draw nodes;
+ \item [{\tt highlightColor}] The color used for highlighted nodes;
+ \item [{\tt edgeColor}] The color of edges (lines joining nodes);
+ \item [{\tt nodeStyle}] The style to use when drawing nodes;
+ \item [{\tt highlightStyle}] The style to use when drawing highlighted nodes;
+ \item [{\tt edgeStyle}] The style to use when drawing edges;
+ \item [{\tt labelNodes}] Specifies whether or not nodes should be labelled (labels consist of the node ID followed by the redshift);
+ \item [{\tt scaleNodesByLogMass}] If true, the size of nodes will be set to be proportional to the logarithm of the node mass;
+ \item [{\tt edgeLengthsToTimes}] If true, the spacing between parent and child nodes will be proportional to the logarithmic time interval between them.
+\end{description}
+All colors and styles are character strings and can be in any format understood by {\sc dot}. The tree structure will be dumped to file named {\tt mergerTreeDump:$\langle$ID$\rangle$:$\langle$N$\rangle$.gv} where {\tt $\langle$ID$\rangle$} is the index of the tree and {\tt $\langle$N$\rangle$} increasing incrementally from $1$ each time the same tree is consecutively dumped. These files can be processed using {\sc dot}. For example
+\begin{verbatim}
+ dot -Tps mergerTreeDump:1:1.gv > tree.ps
+\end{verbatim}
+will create a tree diagram as the PostScript file {\tt tree.ps}.
