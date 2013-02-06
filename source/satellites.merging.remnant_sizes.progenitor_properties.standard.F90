@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -32,12 +32,29 @@ contains
        &,Satellite_Merging_Remnant_Progenitor_Properties_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
+    use Galacticus_Error
+    use Galacticus_Nodes
     implicit none
     type(varying_string),          intent(in   ) :: satelliteMergingRemnantProgenitorPropertiesMethod
     procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
     
-    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'standard') &
-         & Satellite_Merging_Remnant_Progenitor_Properties_Get => Satellite_Merging_Remnant_Progenitor_Properties_Standard
+    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'standard') then
+       Satellite_Merging_Remnant_Progenitor_Properties_Get => Satellite_Merging_Remnant_Progenitor_Properties_Standard
+       ! Ensure that required methods are supported.
+       if     (                                                                &
+            &  .not.                                                           &
+            &       (                                                          &
+            &        defaultDiskComponent    %    massStellarIsGettable().and. &
+            &        defaultDiskComponent    %        massGasIsGettable().and. &
+            &        defaultDiskComponent    % halfMassRadiusIsGettable().and. &
+            &        defaultDiskComponent    %angularMomentumIsGettable().and. &
+            &        defaultSpheroidComponent%    massStellarIsGettable().and. &
+            &        defaultSpheroidComponent%        massGasIsGettable().and. &
+            &        defaultSpheroidComponent% halfMassRadiusIsGettable().and. &
+            &        defaultSpheroidComponent%angularMomentumIsGettable()      &
+            &  )                                                               &
+            & ) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init','this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for both disk and spheroid')
+    end if
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init
 

@@ -11,58 +11,76 @@ system("cd ..; bunzip2 testSuite/outputs/test-plotting-scripts/galacticus_*/gala
 my @plottingScripts =
     (
      {
-	 script => "Plot_Black_Hole_vs_Bulge_Mass.pl",
-	 model  => "0:1"
+	 script     => "Plot_Black_Hole_vs_Bulge_Mass.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_HI_Mass_Function.pl",
-	 model  => "0:1"
+	 script     => "Plot_HI_Mass_Function.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_Star_Formation_History.pl",
-	 model  => "0:1"
+	 script     => "Plot_Star_Formation_History.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_Stellar_Mass_Function.pl",
-	 model  => "0:1"
+	 script     => "stellarMassFunction_SDSS_z0.07.pl",
+	 model      => "0:1",
+	 constraint => 1
      },
      {
-	 script => "Plot_K_Luminosity_Function.pl",
-	 model  => "0:1"
+	 script     => "Plot_K_Luminosity_Function.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_Morphological_Luminosity_Function.pl",
-	 model  => "0:1"
+	 script     => "Plot_Morphological_Luminosity_Function.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_SDSS_Color_Distribution.pl",
-	 model  => "0:1"
+	 script     => "Plot_SDSS_Color_Distribution.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_SDSS_Gas_Metallicity.pl",
-	 model  => "0:1"
+	 script     => "Plot_SDSS_Gas_Metallicity.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_Disk_Scalelengths.pl",
-	 model  => "0:1"
+	 script     => "Plot_Disk_Scalelengths.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_SDSS_Galaxy_Sizes.pl",
-	 model  => "0:1"
+	 script     => "Plot_SDSS_Galaxy_Sizes.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_SDSS_Tully_Fisher.pl",
-	 model  => "0:1"
+	 script     => "Plot_SDSS_Tully_Fisher.pl",
+	 model      => "0:1",
+	 constraint => 0
      },
      {
-	 script => "Plot_bJ_Luminosity_Function.pl",
-	 model  => "0:1"
+	 script     => "Plot_bJ_Luminosity_Function.pl",
+	 model      => "0:1",
+	 constraint => 0
      }
     );
 foreach ( @plottingScripts ) {
-    system("cd ..; scripts/plotting/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}." 1");
-    print "FAILED: plotting script ".$_->{'script'}." failed\n"
-	unless ( $? == 0 );
+    if ( $_->{'constraint'} == 0 ) {
+	system("cd ..; scripts/plotting/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}." 1");
+	print "FAILED: plotting script ".$_->{'script'}." failed\n"
+	    unless ( $? == 0 );
+    } else {
+	system("cd ..; constraints/scripts/".$_->{'script'}." testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/galacticus.hdf5 testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.xml testSuite/outputs/test-plotting-scripts/galacticus_".$_->{'model'}."/tmp.pdf");
+	print "FAILED: plotting script ".$_->{'script'}." failed\n"
+	    unless ( $? == 0 );
+    }
 }
 
 exit;

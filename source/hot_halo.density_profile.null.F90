@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -29,19 +29,20 @@ contains
   !#  <unitName>Hot_Halo_Density_Null</unitName>
   !# </hotHaloDensityMethod>
   subroutine Hot_Halo_Density_Null(hotHaloDensityMethod,Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get)
+       &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Density_Radial_Moment_Get)
     !% Initialize the null hot halo density profile module.
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
     procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get
+         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Density_Radial_Moment_Get
     
     if (hotHaloDensityMethod == 'null') then
        Hot_Halo_Density_Get                        => Hot_Halo_Density_Null_Get
        Hot_Halo_Density_Log_Slope_Get              => Hot_Halo_Density_Null_Log_Slope_Get
        Hot_Halo_Enclosed_Mass_Get                  => Hot_Halo_Density_Null_Enclosed_Mass_Get
        Hot_Halo_Profile_Rotation_Normalization_Get => Hot_Halo_Density_Null_Rotation_Normalization_Get
+       Hot_Halo_Density_Radial_Moment_Get          => Hot_Halo_Density_Null_Radial_Moment_Get
     end if
     return
   end subroutine Hot_Halo_Density_Null
@@ -88,5 +89,16 @@ contains
     Hot_Halo_Density_Null_Rotation_Normalization_Get=0.0d0
     return
   end function Hot_Halo_Density_Null_Rotation_Normalization_Get
+  
+  double precision function Hot_Halo_Density_Null_Radial_Moment_Get(thisNode,moment,radius)
+    !% Return a radial moment in a null hot halo density profile for {\tt thisNode}.
+    use Galacticus_Nodes
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: moment,radius
     
+    Hot_Halo_Density_Null_Radial_Moment_Get=0.0d0
+    return
+  end function Hot_Halo_Density_Null_Radial_Moment_Get
+  
 end module Hot_Halo_Density_Profile_Null

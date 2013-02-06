@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -47,6 +47,8 @@ contains
        !@   <name>excursionSetBarrierConstantCoefficient</name>
        !@   <defaultValue>1.67</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>real</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The constant term in the excursion set barrier.
        !@   </description>
@@ -56,6 +58,8 @@ contains
        !@   <name>excursionSetBarrierLinearCoefficient</name>
        !@   <defaultValue>0.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>real</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The coefficient of the linear term in the excursion set barrier.
        !@   </description>

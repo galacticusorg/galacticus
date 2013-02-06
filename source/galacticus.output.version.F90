@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -41,7 +41,7 @@ contains
     type(varying_string) :: Galacticus_Version
     
     Galacticus_Version="v"
-    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//bazaarRevision
+    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision
     return
   end function Galacticus_Version
 
@@ -74,7 +74,7 @@ contains
     call versionGroup%writeAttribute(versionMajor   ,'versionMajor'   )
     call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
     call versionGroup%writeAttribute(versionRevision,'versionRevision')
-    call versionGroup%writeAttribute(bazaarRevision ,'bazaarRevision' )
+    call versionGroup%writeAttribute(hgRevision     ,'hgRevision'     )
     runTime=Formatted_Date_and_Time()
     call versionGroup%writeAttribute(runTime        ,'runTime'        )
 

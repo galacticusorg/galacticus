@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -51,7 +51,7 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Record_Evolution</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report)
+  subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use Galacticus_Nodes
     use Input_Parameters
@@ -61,14 +61,17 @@ contains
     use Numerical_Interpolation
     use Merger_Trees_Evolve_Timesteps_Template
     use Evolve_To_Time_Reports
+    use ISO_Varying_String
     implicit none
-    type     (treeNode                     ), intent(inout), pointer :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision                        , intent(inout)          :: timeStep
-    logical                                 , intent(in   )          :: report
-    class    (nodeComponentBasic           ),                pointer :: thisBasicComponent
-    integer                                                          :: timeIndex
-    double precision                                                 :: time,ourTimeStep
+    type     (treeNode                     ), intent(inout), pointer           :: thisNode
+    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision                        , intent(inout)                    :: timeStep
+    logical                                 , intent(in   )                    :: report
+    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string               ), intent(inout),          optional :: lockType  
+    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent
+    integer                                                                    :: timeIndex
+    double precision                                                           :: time,ourTimeStep
     
     if (.not.timestepRecordEvolutionInitialized) then
        !$omp critical (timestepRecordEvolutionInitialize)
@@ -157,6 +160,8 @@ contains
           
           ! Set return value if our timestep is smaller than current one.
           if (ourTimeStep <= timeStep) then
+             if (present(lockNode)) lockNode => thisNode
+             if (present(lockType)) lockType =  "record evolution"
              timeStep=ourTimeStep
              End_Of_Timestep_Task => Merger_Tree_Record_Evolution_Store
           end if
@@ -166,7 +171,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Record_Evolution
 
-  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode)
+  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use Merger_Trees
     use Galacticus_Nodes
@@ -176,6 +181,7 @@ contains
     implicit none
     type (mergerTree        ), intent(in   )          :: thisTree
     type (treeNode          ), intent(inout), pointer :: thisNode
+    integer                  , intent(inout)          :: deadlockStatus
     class(nodeComponentBasic),                pointer :: thisBasicComponent
     integer                                           :: timeIndex
     double precision                                  :: time

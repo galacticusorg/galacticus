@@ -9,7 +9,7 @@ use PDL::Math;
 use PDL::NiceSlice;
 use PDL::GSL::INTEG;
 use PDL::GSL::INTERP;
-require PDL::Fit::LM;
+use PDL::Fit::LM;
 use PDL::IO::HDF5;
 use Galacticus::HDF5;
 use Astro::Cosmology;

@@ -13,6 +13,10 @@
     <value>false</value>
   </parameter>
   <parameter>
+    <name>mergerTreeReadTreeIndexToRootNodeIndex</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
     <name>mergerTreeReadFileName</name>
     <value>testSuite/data/bug1066052.hdf5</value>
   </parameter>

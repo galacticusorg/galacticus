@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -49,7 +49,7 @@ contains
 
   double precision function Excursion_Sets_Barrier_Critical_Overdensity(variance,time)
     !% Return a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: variance,time
@@ -69,7 +69,7 @@ contains
 
   double precision function Excursion_Sets_Barrier_Gradient_Critical_Overdensity(variance,time)
     !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: variance,time

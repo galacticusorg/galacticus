@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -112,7 +112,7 @@ contains
   double precision function Expansion_Factor_At_Formation(haloMass)
     !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
     use Cosmology_Functions
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: haloMass

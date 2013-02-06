@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -569,6 +569,7 @@ contains
 
        ! Record the star formation history.
        stellarHistoryRate=thisSpheroidComponent%starFormationHistory()
+       call stellarHistoryRate%reset()
        call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call thisSpheroidComponent%starFormationHistoryRate(stellarHistoryRate)
 
@@ -747,6 +748,7 @@ contains
     use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
     use Histories
+use kind_numbers
     implicit none
     type (treeNode             ), pointer, intent(inout)       :: thisNode
     type (treeNode             ), pointer                      :: hostNode
@@ -884,12 +886,12 @@ contains
              call historySpheroid%reset   (                   )
              call hostDiskComponent    %stellarPropertiesHistorySet(historyDisk    )
              call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
-             ! Also add stellar properties histories.
+             ! Also add star formation histories.
              historyDisk    =    hostDiskComponent%starFormationHistory()
              historySpheroid=hostSpheroidComponent%starFormationHistory()
              call historyDisk    %combine(historySpheroid     )
              call historySpheroid%reset  (                    )
-             call hostDiskComponent    %    starFormationHistorySet( historyDisk   )
+             call hostDiskComponent    %    starFormationHistorySet(historyDisk    )
              call hostSpheroidComponent%    starFormationHistorySet(historySpheroid)
              call historyDisk    %destroy(recordMemory=.false.)
              call historySpheroid%destroy(recordMemory=.false.)
@@ -925,7 +927,7 @@ contains
              call historyDisk    %reset   (           )
              call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
              call hostDiskComponent    %stellarPropertiesHistorySet( historyDisk   )
-             ! Also add stellar properties histories.
+             ! Also add star formation histories.
              historyDisk    =hostDiskComponent    %starFormationHistory()
              historySpheroid=hostSpheroidComponent%starFormationHistory()
              call historySpheroid%combine(historyDisk         )
@@ -934,6 +936,8 @@ contains
              call hostDiskComponent    %starFormationHistorySet    (historyDisk    )
              call historyDisk    %destroy(recordMemory=.false.)
              call historySpheroid%destroy(recordMemory=.false.)
+             historyDisk    =hostDiskComponent    %starFormationHistory()
+             historySpheroid=hostSpheroidComponent%starFormationHistory()
           case (doesNotMove)
              ! Do nothing.
           case default
@@ -1390,22 +1394,32 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type(nodeComponentSpheroidStandard)          :: self
-    type(treeNode                      ), pointer :: selfNode
-    type(history                       )          :: stellarPopulationHistory,starFormationHistory
+    type   (nodeComponentSpheroidStandard)           :: self
+    type   (treeNode                      ), pointer :: selfNode
+    type   (history                       )          :: stellarPropertiesHistory,starFormationHistory
+    logical                                          :: createStellarPropertiesHistory,createStarFormationHistory
 
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the associated node.
     selfNode => self%host()
-    ! Create stellar luminosities array.
-    call self%luminositiesStellarSet(zeroLuminosities)
+    ! Determine which histories must be created.
+    starFormationHistory          =self%starFormationHistory            ()
+    createStarFormationHistory    =.not.starFormationHistory    %exists ()
+    call                                starformationhistory    %destroy()
+    stellarPropertiesHistory      =self%stellarPropertiesHistory        ()
+    createStellarPropertiesHistory=.not.stellarPropertiesHistory%exists ()
+    call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
-    call Stellar_Population_Properties_History_Create(selfNode,stellarPopulationHistory)
-    call self%stellarPropertiesHistorySet(                     stellarPopulationHistory)
+    if (createStellarPropertiesHistory) then
+       call Stellar_Population_Properties_History_Create(selfNode,stellarPropertiesHistory)
+       call self%stellarPropertiesHistorySet(                     stellarPropertiesHistory)
+    end if
     ! Create the star formation history.
-    call Star_Formation_History_Create               (selfNode,    starFormationHistory)
-    call self%    starFormationHistorySet(                         starFormationHistory)
+    if (createStarFormationHistory    ) then
+       call Star_Formation_History_Create               (selfNode,    starFormationHistory)
+       call self%    starFormationHistorySet(                         starFormationHistory)
+    end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
     return
@@ -1474,9 +1488,10 @@ contains
     ! Output the star formation history if a spheroid exists for this component.
     thisSpheroidComponent => thisNode%spheroid()
     select type (thisSpheroidComponent)
-       class is (nodeComponentSpheroidStandard)
+    class is (nodeComponentSpheroidStandard)
        starFormationHistory=thisSpheroidComponent%starFormationHistory()
        call Star_Formation_History_Output(thisNode,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'spheroid')
+       call thisSpheroidComponent%starFormationHistorySet(starFormationHistory)
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output

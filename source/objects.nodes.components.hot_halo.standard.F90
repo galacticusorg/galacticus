@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -28,9 +28,7 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merger , &
        &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Output_Names, Node_Component_Hot_Halo_Standard_Output_Count     , &
-       &    Node_Component_Hot_Halo_Standard_Output      , Node_Component_Hot_Halo_Standard_Density          , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Density
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -133,21 +131,21 @@ module Node_Component_Hot_Halo_Standard
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </method>
   !#   <method>
-  !#     <name>coolingMass</name>
+  !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingAngularMomentum</name>
+  !#     <name>hotHaloCoolingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#   <method>
-  !#     <name>coolingAbundances</name>
+  !#     <name>hotHaloCoolingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
@@ -186,9 +184,6 @@ module Node_Component_Hot_Halo_Standard
   logical                             :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
   double precision                    :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
-
-  ! Output controls.
-  logical                             :: hotHaloOutputCooling
 
   ! Radiation structure.
   type(radiationStructure          )  :: radiation
@@ -365,19 +360,6 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.3d0)
 
-       ! Get options controlling output.
-       !@ <inputParameter>
-       !@   <name>hotHaloOutputCooling</name>
-       !@   <defaultValue>false</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@    Determines whether or not cooling rates and radii are output.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('hotHaloOutputCooling',hotHaloOutputCooling,defaultValue=.false.)
-
        ! Bind the outer radius get function.
        call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
 
@@ -527,8 +509,8 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Post_Evolve
 
-  subroutine Node_Component_Hot_Halo_Standard_Stripped_Gas_Rates(thisNode,gasMassRate)
-    !% Adjusts the rates of all components of the stripped gas reservoir under the assumption of uniformly distributed properties
+  subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,gasMassRate)
+    !% Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
     !% (e.g. fully-mixed metals).
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
@@ -548,13 +530,13 @@ contains
        ! If gas is present, adjust the rates.
        if (gasMass > 0.0d0) then
           ! Mass.
-          call thisHotHaloComponent%      strippedMassRate(                                          gasMassRate        )
+          call thisHotHaloComponent%      strippedMassRate(                                  gasMassRate        )
           ! Metal abundances.
-          call thisHotHaloComponent%strippedAbundancesRate(thisHotHaloComponent%strippedAbundances()*gasMassRate/gasMass)
+          call thisHotHaloComponent%strippedAbundancesRate(thisHotHaloComponent%abundances()*gasMassRate/gasMass)
        end if
     end select
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Stripped_Gas_Rates
+  end subroutine Node_Component_Hot_Halo_Standard_Strip_Gas_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Heat_Source(thisHotHaloComponent,rate,interrupt,interruptProcedure)
     !% An incoming pipe for sources of heating to the hot halo.
@@ -633,8 +615,8 @@ contains
           ! Remove mass from the hot component.
           call    thisHotHaloComponent%massRate       (-massRate                             )
           ! Pipe the mass rate to whichever component claimed it.
-          if (thisHotHaloComponent%coolingMassRateIsAttached()) then
-             call thisHotHaloComponent%coolingMassRate(+massRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingMassRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if
        
@@ -662,8 +644,8 @@ contains
           end if
           call    thisHotHaloComponent%angularMomentumRate       (     -angularMomentumCoolingRate                                                                                  )   
           ! Pipe the cooling rate to which ever component claimed it.
-          if (thisHotHaloComponent%coolingAngularMomentumRateIsAttached()) then
-             call thisHotHaloComponent%coolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingAngularMomentumRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingAngularMomentumRate(sign(+angularMomentumCoolingRate*(1.0d0-hotHaloAngularMomentumLossFraction),massRate),interrupt,interruptProcedure)
              if (interrupt) return
           end if
           ! Get the rate of change of abundances.
@@ -672,8 +654,8 @@ contains
           abundancesCoolingRate=massRate*abundancesCoolingRate/coolingFromHotHaloComponent%mass()
           call    thisHotHaloComponent%abundancesRate       (-abundancesCoolingRate                             )
           ! Pipe the cooling rate to which ever component claimed it.
-          if (thisHotHaloComponent%coolingAbundancesRateIsAttached()) then
-             call thisHotHaloComponent%coolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
+          if (thisHotHaloComponent%hotHaloCoolingAbundancesRateIsAttached()) then
+             call thisHotHaloComponent%hotHaloCoolingAbundancesRate(+abundancesCoolingRate,interrupt,interruptProcedure)
              if (interrupt) return
           end if
        end if
@@ -835,7 +817,6 @@ contains
     type (treeNode            ), pointer, intent(inout) :: thisNode
     logical                    ,          intent(inout) :: interrupt
     procedure()                , pointer, intent(inout) :: interruptProcedure
-    procedure()                , pointer                :: interruptProcedurePassed
     class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
     class(nodeComponentBasic  ), pointer                :: thisBasicComponent
     double precision           , parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3
@@ -867,7 +848,6 @@ contains
           return
        class is (nodeComponentHotHaloStandard)
           ! A standard hot halo component exists.
-          interruptProcedurePassed => interruptProcedure
           ! Get the basic component.
           thisBasicComponent => thisNode%basic()
           ! Apply accretion rates.
@@ -877,7 +857,7 @@ contains
           ! Next compute the cooling rate in this halo.
           call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
           ! Pipe the cooling rate to which ever component claimed it.
-          call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedurePassed)
+          call Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,coolingRate,interrupt,interruptProcedure)
           ! Get the rate at which abundances are accreted onto this halo.
           call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances)
           call thisHotHaloComponent%abundancesRate(accretionRateAbundances)  
@@ -975,17 +955,15 @@ contains
                 outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
                 if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode) .and. outerRadius > outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode)) then
                    massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-                   call thisHotHaloComponent% outerRadiusRate(+outerRadiusGrowthRate)
-                   call thisHotHaloComponent%     massSinkSet(+         massLossRate)
-                   call thisHotHaloComponent%strippedMassRate(-         massLossRate)
+                   call thisHotHaloComponent%outerRadiusRate(+outerRadiusGrowthRate)
+                   call thisHotHaloComponent%    massSinkSet(+         massLossRate)
+                   call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,-massLossRate)
                 end if
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
              call thisHotHaloComponent%outerRadiusRate(Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode))
           end if
-          ! Return a copy of our local interrupt pointer.
-          interruptProcedure => interruptProcedurePassed
        end select
     end if
     return
@@ -1495,128 +1473,5 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Density
-
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output_Names</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Node_Component_Hot_Halo_Standard_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
-       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set names of hot halo properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
-    use Abundances_Structure
-    use ISO_Varying_String
-    implicit none
-    type (treeNode            ), intent(inout), pointer      :: thisNode
-    double precision           , intent(in   )               :: time
-    integer                    , intent(inout)               :: integerProperty,doubleProperty
-    character(len=*)           , intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision           , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    class(nodeComponentHotHalo),                pointer      :: thisHotHaloComponent
-    integer                                                  :: iAbundance
-    
-    if (defaultHotHaloComponent%standardIsActive()) then
-       !@ <outputPropertyGroup>
-       !@   <name>hotHalo</name>
-       !@   <description>Hot halo properities</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
-       if (hotHaloOutputCooling) then
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>hotHaloCoolingRate</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Rate of mass cooling in the hot halo.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>hotHalo</group>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
-          doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
-          doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>hotHaloCoolingRadius</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Cooling radius in the hot halo.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>hotHalo</group>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='hotHaloCoolingRadius'
-          doublePropertyComments(doubleProperty)='Cooling radius in the hot halo.'
-          doublePropertyUnitsSI (doubleProperty)=megaParsec
-       end if
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output_Names
-
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output_Count</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputPropertyCount>
-  subroutine Node_Component_Hot_Halo_Standard_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of hot halo properties to be written to the the \glc\ output file.
-    implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision           , intent(in   )          :: time
-    integer                    , intent(inout)          :: integerPropertyCount,doublePropertyCount
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    integer                    , parameter              :: extraPropertyCount=2
-
-    if (defaultHotHaloComponent%standardIsActive()) then
-       if (hotHaloOutputCooling) doublePropertyCount=doublePropertyCount+extraPropertyCount
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output_Count
-
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Node_Component_Hot_Halo_Standard_Output</unitName>
-  !#  <sortName>Node_Component_Hot_Halo_Standard_Output</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Node_Component_Hot_Halo_Standard_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time)
-    !% Store hot halo properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
-    use Cooling_Radii
-    use Kind_Numbers
-    use Abundances_Structure
-    implicit none
-    double precision             , intent(in   )              :: time
-    type   (treeNode            ), intent(inout), pointer     :: thisNode
-    integer                      , intent(inout)              :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8      ), intent(inout)              :: integerBuffer(:,:)
-    double precision             , intent(inout)              :: doubleBuffer (:,:)
-    double precision             , dimension(abundancesCount) :: hotAbundanceMasses,outflowedAbundanceMasses
-    class  (nodeComponentHotHalo),                pointer     :: thisHotHaloComponent
-    type   (abundances          ), save                       :: hotHaloAbundances,outflowedAbundances
-    !$omp threadprivate(hotHaloAbundances,outflowedAbundances)
-
-    ! Check that the standard hot halo component is active.
-    if (defaultHotHaloComponent%standardIsActive()) then
-       ! Get the hot halo component.
-       thisHotHaloComponent => thisNode%hotHalo()
-       ! Ensure that it is of unspecified class.
-       select type (thisHotHaloComponent)
-       class is (nodeComponentHotHaloStandard)
-          if (hotHaloOutputCooling) then
-             ! Ensure that we reset so that cooling rate will be re-computed.
-             call Node_Component_Hot_Halo_Standard_Reset       (thisNode)
-             ! Get and store the cooling rate.
-             call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
-             doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+2)=[                          &
-                  &                                                             coolingRate             , &
-                  &                                                             Cooling_Radius(thisNode)  &
-                  &                                                            ]
-             doubleProperty=doubleProperty+2
-          end if
-       end select
-    end if
-    return
-  end subroutine Node_Component_Hot_Halo_Standard_Output
 
 end module Node_Component_Hot_Halo_Standard
