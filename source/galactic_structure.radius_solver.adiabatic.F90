@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using the
 !% adiabatic contraction algorithm of \cite{gnedin_response_2004}.
@@ -65,18 +21,27 @@
 module Galactic_Structure_Radii_Adiabatic
   !% Implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using the adiabatic
   !% contraction algorithm of \cite{gnedin_response_2004}.
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
+  implicit none
   private
   public :: Galactic_Structure_Radii_Adiabatic_Initialize
 
   ! Parameters of the adiabatic contraction algorithm.
-  double precision :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega,inverseAdiabaticContractionGnedinOmegaMinusOne
+  double precision        :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega&
+       &,inverseAdiabaticContractionGnedinOmegaMinusOne
+
+  ! Parameter controlling the accuracy of the solutions sought.
+  double precision        :: adiabaticContractionSolutionTolerance
 
   ! Module variables used to communicate current state of radius solver.
-  integer          :: iterationCount,activeComponentCount
-  double precision :: fitMeasure,haloFraction
-  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction)
+  integer                 :: iterationCount,activeComponentCount
+  double precision        :: fitMeasure,haloFraction
+  type(treeNode), pointer :: haloNode
+  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction,haloNode)
+
+  ! Options controlling the solver.
+  logical                 :: adiabaticContractionIncludeBaryonGravity,adiabaticContractionUseFormationHalo
 
 contains
 
@@ -101,6 +66,8 @@ contains
        !@   <description>
        !@     The parameter $A$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinA'    ,adiabaticContractionGnedinA    ,defaultValue=0.80d0)
        !@ <inputParameter>
@@ -110,8 +77,43 @@ contains
        !@   <description>
        !@     The parameter $\omega$ appearing in the \cite{gnedin_response_2004} adiabatic contraction algorithm.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('adiabaticContractionGnedinOmega',adiabaticContractionGnedinOmega,defaultValue=0.77d0)
+       !@ <inputParameter>
+       !@   <name>adiabaticContractionIncludeBaryonGravity</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('adiabaticContractionIncludeBaryonGravity',adiabaticContractionIncludeBaryonGravity,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>adiabaticContractionUseFormationHalo</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('adiabaticContractionUseFormationHalo',adiabaticContractionUseFormationHalo,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>adiabaticContractionSolutionTolerance</name>
+       !@   <defaultValue></defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('adiabaticContractionSolutionTolerance',adiabaticContractionSolutionTolerance,defaultValue=1.0d-2)
        ! Store the exponent that we actually use in the equations.
        inverseAdiabaticContractionGnedinOmegaMinusOne=1.0d0/adiabaticContractionGnedinOmega-1.0d0
     end if
@@ -120,33 +122,46 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Cosmological_Parameters
     use Galacticus_Error
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     include 'galactic_structure.radius_solver.tasks.modules.inc'
+    include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 parameter              :: iterationMaximum=100
-    double precision,        parameter              :: fitMeasureAcceptable=1.0d-2
-    logical                                         :: componentActive,galaxyIsPhysicallyPlausible
-    double precision                                :: specificAngularMomentum
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    integer,                           parameter              :: iterationMaximum=100
+    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
+    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
+    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+    class    (nodeComponentBasic     ),               pointer :: thisBasicComponent
+    logical                                                   :: componentActive
+    double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
-    galaxyIsPhysicallyPlausible=.true.
+    thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (galaxyIsPhysicallyPlausible) then
+    if (thisNode%isPhysicallyPlausible) then
        ! Initialize the solver state.
        iterationCount=0
-       fitMeasure    =2.0d0*fitMeasureAcceptable
-       
+       fitMeasure    =2.0d0*adiabaticContractionSolutionTolerance
+
+       ! Determine which node to use for halo properties.
+       if (adiabaticContractionUseFormationHalo) then
+          if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','no formation node exists')
+          haloNode => thisNode%formationNode
+       else
+          haloNode => thisNode
+       end if
+
        ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
        ! exploring regimes of high baryonic mass, and this would cause problems.
-       haloFraction=max(1.0d0-Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)/Tree_Node_Mass(thisNode),0.0d0)
+       thisBasicComponent => thisNode%basic()
+       haloFraction=max(1.0d0-Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)/thisBasicComponent%mass(),0.0d0)
        
        ! Begin iteration to find a converged solution.
-       do while (iterationCount <= 2 .or. ( fitMeasure > fitMeasureAcceptable .and. iterationCount < iterationMaximum ) )
+       do while (iterationCount <= 2 .or. ( fitMeasure > adiabaticContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )
           iterationCount      =iterationCount+1
           activeComponentCount=0
           if (iterationCount > 1) fitMeasure=0.0d0
@@ -161,13 +176,13 @@ contains
           end if
        end do
        ! Check that we found a converged solution.
-       if (fitMeasure > fitMeasureAcceptable) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
+       if (fitMeasure > adiabaticContractionSolutionTolerance) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Adiabatic','failed to find converged solution')
 
     end if
     return
   end subroutine Galactic_Structure_Radii_Solve_Adiabatic
-  
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum)
+
+  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     use Dark_Matter_Halo_Scales
@@ -175,27 +190,35 @@ contains
     use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: specificAngularMomentum
-    double precision                         :: radius,velocity,virialRadius,angularMomentumC,angularMomentumCPrimed &
-         &,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared,baryonicVelocitySquared,radiusNew &
-         &,specificAngularMomentumPrimed
+    type(treeNode),                    pointer, intent(inout) :: thisNode
+    double precision,                           intent(in)    :: specificAngularMomentum
+    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
+    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    character(len=14)                                         :: label
+    type(varying_string)                                      :: message
+    double precision                                          :: radius,velocity,virialRadius,angularMomentumC&
+         &,angularMomentumCPrimed ,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared&
+         &,baryonicVelocitySquared,radiusNew ,specificAngularMomentumPrimed
 
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 
-    if (iterationCount == 1) then
+    if (iterationCount == 1 .or. haloFraction <= 0.0d0) then
        ! On first iteration, see if we have a previous radius set for this component.
        radius=Radius_Get(thisNode)
+
        if (radius <= 0.0d0) then
           ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
 
           ! Find the radius in the dark matter profile with the required specific angular momentum
-          radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
+          radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
           
           ! Find the velocity at this radius.
-          velocity=Dark_Matter_Profile_Circular_Velocity(thisNode,radius)
+          velocity=Dark_Matter_Profile_Circular_Velocity(haloNode,radius)
        else
           ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
           velocity=Velocity_Get(thisNode)
@@ -203,14 +226,13 @@ contains
 
     else
        ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
-
        if (specificAngularMomentum <= 0.0d0) return
-       
+
        ! Get current radius of the component.
        radius=Radius_Get(thisNode)
 
        ! Get the virial radius of the node.
-       virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+       virialRadius=Dark_Matter_Halo_Virial_Radius(haloNode)
 
        ! Compute the angular momentum parameter, c.
        angularMomentumC=specificAngularMomentum**2/gravitationalConstantGalacticus
@@ -226,10 +248,10 @@ contains
 
        ! Solve for radius in halo with correct pseudo-specific angular momentum.
        specificAngularMomentumPrimed=dsqrt(angularMomentumCPrimed*gravitationalConstantGalacticus)
-       radiusInitial=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentumPrimed)
+       radiusInitial=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentumPrimed)
 
        ! Compute mass within that radius.
-       haloMassInitial=Dark_Matter_Profile_Enclosed_Mass(thisNode,radiusInitial)
+       haloMassInitial=Dark_Matter_Profile_Enclosed_Mass(haloNode,radiusInitial)
 
        ! Compute dark matter mass within final radius.
        darkMatterMassFinal=haloMassInitial*haloFraction
@@ -238,19 +260,45 @@ contains
        darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
 
        ! Compute baryonic contribution to rotation curve.
-       baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(thisNode,radius,massType=massTypeGalactic)**2
+       if (adiabaticContractionIncludeBaryonGravity) then
+          baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(thisNode,radius,massType=massTypeGalactic)**2
+       else
+          baryonicVelocitySquared=0.0d0
+       end if
 
        ! Compute new estimate of velocity.
        velocity=dsqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
 
        ! Compute new estimate of radius.
-       radiusNew=specificAngularMomentum/velocity
-
+       if (radius > 0.0d0) then
+          radiusNew=sqrt(specificAngularMomentum/velocity*radius)
+       else
+          radiusNew=specificAngularMomentum/velocity
+       endif
        ! Compute a fit measure.
        if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+dabs(dlog(radiusNew/radius))
 
        ! Set radius to new radius.
        radius=radiusNew
+
+       ! Catch unphysical states.
+       if (radius <= 0.0d0) then
+          message='radius has reached zero for node '
+          message=message//thisNode%index()//' - report follows:'//char(10)
+          write (label,'(e12.6)') specificAngularMomentum
+          message=message//'  specific angular momentum:    '//label//char(10)
+          write (label,'(e12.6)') velocity
+          message=message//'  rotation velocity:            '//label//char(10)
+          write (label,'(e12.6)') sqrt(darkMatterVelocitySquared)
+          message=message//'   -> dark matter contribution: '//label//char(10)
+          write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
+          message=message//'   -> baryonic contribution:    '//label//char(10)
+          write (label,'(e12.6)') haloMassInitial
+          message=message//'  initial halo mass enclosed:   '//label//char(10)
+          write (label,'(e12.6)') haloFraction
+          message=message//'  halo fraction:                '//label
+          call Galacticus_Error_Report('Galactic_Structure_Radii_Adiabatic::Solve_For_Radius',message)
+       end if
 
     end if
 
