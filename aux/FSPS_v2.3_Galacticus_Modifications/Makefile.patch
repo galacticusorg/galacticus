@@ -1,0 +1,19 @@
+*** Makefile.orig	2012-10-10 15:16:25.000000000 -0700
+--- Makefile	2012-10-10 15:18:27.000000000 -0700
+***************
+*** 47,53 ****
+  PROGS = simple lesssimple autosps 
+  
+  COMMON = sps_vars.o nrtype.o sps_utils.o nr.o nrutil.o compsp.o	 \
+! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o trapzd.o \
+  sps_setup.o pz_convol.o get_tuniv.o imf.o imf_weight.o add_dust.o getspec.o \
+  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_gb.o \
+  write_isochrone.o sfhstat.o linterp.o
+--- 47,53 ----
+  PROGS = simple lesssimple autosps 
+  
+  COMMON = sps_vars.o nrtype.o sps_utils.o nr.o nrutil.o compsp.o	 \
+! ssp_gen.o getmags.o ran.o locate.o qromb.o polint.o galacticus_IMF.o trapzd.o \
+  sps_setup.o pz_convol.o get_tuniv.o imf.o imf_weight.o add_dust.o getspec.o \
+  add_bs.o mod_hb.o add_remnants.o getindx.o velbroad.o mod_gb.o \
+  write_isochrone.o sfhstat.o linterp.o

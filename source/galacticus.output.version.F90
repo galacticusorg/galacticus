@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,59 +14,36 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements writing of the version number and run time to the \glc\ output file.
 
-module Galacticus_Version
+module Galacticus_Versioning
   !% Implements writing of the version number and run time to the \glc\ output file.
+  implicit none
   private
-  public :: Galacticus_Version_Output
+  public :: Galacticus_Version_Output, Galacticus_Version
+
+  ! Define the version.
+  integer, parameter :: versionMajor   =0
+  integer, parameter :: versionMinor   =9
+  integer, parameter :: versionRevision=1
+
+  ! Include the automatically generated Bazaar revision number.
+  include 'galacticus.output.version.revision.inc'
 
 contains
+
+  function Galacticus_Version()
+    !% Returns a string describing the version of \glc.
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type(varying_string) :: Galacticus_Version
+    
+    Galacticus_Version="v"
+    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision
+    return
+  end function Galacticus_Version
 
   !# <outputFileOpenTask>
   !#  <unitName>Galacticus_Version_Output</unitName>
@@ -80,8 +57,8 @@ contains
     use Dates_and_Times
     use File_Utilities
     use FoX_dom
+    use FoX_utils
     implicit none
-    include 'galacticus.output.version.revision.inc'
     type(Node),           pointer      :: doc,thisNode,nameNode,emailNode
     type(NodeList),       pointer      :: nodesList
     integer                            :: ioErr
@@ -89,14 +66,17 @@ contains
     type(hdf5Object)                   :: versionGroup
     type(varying_string)               :: runTime
 
+	! Write a UUID for this model.
+    call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
+
     ! Create a group for version information.
-    versionGroup=IO_HDF5_Open_Group(galacticusOutputFile,'Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(0             ,'versionMajor'   )
-    call versionGroup%writeAttribute(9             ,'versionMinor'   )
-    call versionGroup%writeAttribute(0             ,'versionRevision')
-    call versionGroup%writeAttribute(bazaarRevision,'bazaarRevision' )
+    versionGroup=galacticusOutputFile%openGroup('Version','Version and timestamp for this model.')
+    call versionGroup%writeAttribute(versionMajor   ,'versionMajor'   )
+    call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
+    call versionGroup%writeAttribute(versionRevision,'versionRevision')
+    call versionGroup%writeAttribute(hgRevision     ,'hgRevision'     )
     runTime=Formatted_Date_and_Time()
-    call versionGroup%writeAttribute(runTime       ,'runTime'        )
+    call versionGroup%writeAttribute(runTime        ,'runTime'        )
 
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then
@@ -128,4 +108,4 @@ contains
     return
   end subroutine Galacticus_Version_Output
   
-end module Galacticus_Version
+end module Galacticus_Versioning

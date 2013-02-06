@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which implements calculations of stellar population luminosities in the AB magnitude system.
 
@@ -66,6 +22,7 @@ module Stellar_Population_Luminosities
   use FGSL
   use, intrinsic :: ISO_C_Binding                             
   use Abundances_Structure
+  implicit none
   private
   public :: Stellar_Population_Luminosity
 
@@ -86,26 +43,36 @@ module Stellar_Population_Luminosities
   ! Module global variables used in integrations.
   double precision          :: ageTabulate,redshiftTabulate
   integer                   :: filterIndexTabulate,imfIndexTabulate
-  type(abundancesStructure) :: abundancesTabulate
+  type(abundances)          :: abundancesTabulate
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
+
+  ! Flag indicating if this module has been initialized yet.
+  logical                   :: moduleInitialized=.false.
+  
+  ! Tolerance used in integrations.
+  double precision          :: stellarPopulationLuminosityIntegrationToleranceRelative
 
 contains
   
-  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundances,age,redshift)
+  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
     use Memory_Management
-    use Abundances_Structure
     use Stellar_Population_Spectra
     use Instruments_Filters
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Galacticus_Error
+    use Galacticus_Display
+    use Input_Parameters
+    use Star_Formation_IMF
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
     double precision,          intent(in)                                    :: age(:),redshift(:)
-    type(abundancesStructure), intent(in)                                    :: abundances
+    type(abundances),          intent(in)                                    :: abundancesStellar
     double precision,                       dimension(size(luminosityIndex)) :: Stellar_Population_Luminosity
     type(luminosityTable),     allocatable, dimension(:)                     :: luminosityTablesTemporary
     double precision,          allocatable, dimension(:,:,:)                 :: luminosityTemporary
@@ -118,9 +85,28 @@ contains
     type(c_ptr)                                                              :: parameterPointer                         
     type(fgsl_function)                                                      :: integrandFunction
     type(fgsl_integration_workspace)                                         :: integrationWorkspace
+    type(varying_string)                                                     :: message
 
     ! Determine if we have created space for this IMF yet.
     !$omp critical (Luminosity_Tables_Initialize)
+    if (.not.moduleInitialized) then
+       ! Read the parameter controlling integration tolerance.
+       !@ <inputParameter>
+       !@   <name>stellarPopulationLuminosityIntegrationToleranceRelative</name>
+       !@   <defaultValue>$10^{-3}$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    The relative tolerance used when integrating the flux of stellar populations through filters.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationLuminosityIntegrationToleranceRelative',stellarPopulationLuminosityIntegrationToleranceRelative,defaultValue=1.0d-3)
+       
+       ! Flag that this module is now initialized.
+       moduleInitialized=.true.
+    end if
+    
     if (allocated(luminosityTables)) then
        if (size(luminosityTables) < imfIndex) then
           call Move_Alloc(luminosityTables,luminosityTablesTemporary)
@@ -173,6 +159,12 @@ contains
        ! If we haven't, do so now.
        if (computeTable) then
           
+          ! Display a message and counter.
+          message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
+          message=message//iLuminosity
+          call Galacticus_Display_Indent (message,verbosityWorking)
+          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+
           ! Get wavelength extent of the filter.
           wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
           
@@ -183,22 +175,46 @@ contains
           do iAge=1,luminosityTables(imfIndex)%agesCount
              ageTabulate=luminosityTables(imfIndex)%age(iAge)
              do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
+
+                ! Update the counter.
+                call Galacticus_Display_Counter(                                                                                               &
+                     &                           int(                                                                                          &
+                     &                                100.0d0                                                                                  &
+                     &                               *dble(                                                                                    &
+                     &                                      luminosityTables(imfIndex)%metallicitiesCount*iAge                                 &
+                     &                                     +                                              iMetallicity                         &
+                     &                                    )                                                                                    &
+                     &                               /dble(                                                                                    &
+                     &                                      luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount &
+                     &                                    )                                                                                    &
+                     &                              )                                                                                          &
+                     &                          ,.false.                                                                                       &
+                     &                          ,verbosityWorking                                                                              &
+                     &                         )
+
                 call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
                      &,metallicityType=logarithmicByMassSolar)
-                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity)&
-                     &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer&
-                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+                luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity) &
+                     &=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand,parameterPointer &
+                     &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+                     &=stellarPopulationLuminosityIntegrationToleranceRelative,integrationRule =FGSL_Integ_Gauss15,maxIntervals&
+                     &=10000)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
           end do
+
+          ! Clear the counter and write a completion message.
+          call Galacticus_Display_Counter_Clear(           verbosityWorking)
+          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
           
           ! Get the normalization by integrating a zeroth magnitude (AB) source through the filter.
           normalization=Integrate(wavelengthRange(1),wavelengthRange(2),Filter_Luminosity_Integrand_AB,parameterPointer &
-               &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+               &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative&
+               &=stellarPopulationLuminosityIntegrationToleranceRelative)
           call Integrate_Done(integrandFunction,integrationWorkspace)
           
           ! Normalize the luminosity.
-          luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)&
+          luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:) &
                &=luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),:,:)/normalization
           
           ! Flag that calculations have been performed for this filter.
@@ -207,7 +223,7 @@ contains
     end do
  
     ! Get interpolation in metallicity.
-    metallicity=Abundances_Get_Metallicity(abundances,metallicityType=logarithmicByMassSolar)
+    metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity == logMetallicityZero .or. metallicity < luminosityTables(imfIndex)%metallicity(1)) then
        iMetallicity=1
        hMetallicity=[1.0d0,0.0d0]
@@ -223,7 +239,8 @@ contains
     end if
     
     ! Do the interpolation.
-    Stellar_Population_Luminosity(:)=0.0d0
+    Stellar_Population_Luminosity(:)= 0.0d0
+    ageLast                         =-1.0d0
     do iLuminosity=1,size(luminosityIndex)
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
@@ -282,12 +299,8 @@ contains
   
   function Filter_Luminosity_Integrand_AB(wavelength,parameterPointer) bind(c)
     !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-    use Stellar_Population_Spectra
     use Instruments_Filters
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     implicit none
     real(c_double)              :: Filter_Luminosity_Integrand_AB
     real(c_double),   value     :: wavelength

@@ -52,6 +52,19 @@ module iso_varying_string
   type, public :: varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
+   contains
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>destroy</method>
+     !@   <description>Destroys the object by deallocating internal storage.</description>
+     !@ </objectMethod>
+     procedure :: destroy => destroy_VS
+     !@ <objectMethod>
+     !@   <object>varying_string</object>
+     !@   <method>loadFromFile</method>
+     !@   <description>Loads a varying string with the contents of a file.</description>
+     !@ </objectMethod>
+     procedure :: loadFromFile => load_from_file_VS
   end type varying_string
 
 ! Interface blocks
@@ -441,7 +454,7 @@ contains
 
     ALLOCATE(concat_string%chars(len_string_a+len(string_b)))
 
-    concat_string%chars(:len_string_a) = string_a%chars
+    if (len_string_a > 0) concat_string%chars(:len_string_a) = string_a%chars
     concat_string%chars(len_string_a+1:) = string_b%chars
 
 ! Finish
@@ -1471,6 +1484,7 @@ contains
 ! Convert a character string to a varying string
 
     length = LEN(char)
+
 
     ALLOCATE(string%chars(length))
 
@@ -2629,5 +2643,36 @@ contains
 
   end subroutine split_CH
 
+  subroutine destroy_VS (string)
+    !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
+    class(varying_string), intent(inout) :: string
+
+    if (allocated(string%chars)) deallocate(string%chars)
+    return
+  end subroutine destroy_VS
+
+  subroutine load_from_file_VS(string,fileName)
+    !% Load a varying string object with the contents of a file (specified by {\tt fileName}).
+    class(varying_string), intent(inout) :: string
+    character(len=*),      intent(in   ) :: fileName
+    character(len=1)                     :: thisChar
+    integer                              :: ioError,iUnit,fileSize,iChar
+
+    call string%destroy()
+    open(newUnit=iUnit,file=fileName,status='old',access='stream',ioStat=ioError)
+    inquire(unit=iUnit,size=fileSize)
+    allocate(string%chars(fileSize))
+    iChar=0
+    do while (ioError == 0)
+       read (iUnit,ioStat=ioError) thisChar
+       if (ioError == 0) then
+          iChar=iChar+1
+          string%chars(iChar)=thisChar
+       end if
+    end do
+    close(iUnit)
+    return
+  end subroutine load_from_file_VS
+  
 end module iso_varying_string
 
