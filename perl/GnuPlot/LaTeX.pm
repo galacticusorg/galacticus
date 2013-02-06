@@ -155,9 +155,10 @@ sub GnuPlot2ODG {
 sub GnuPlot2PDF {
     # Get the name of the GnuPlot-generated EPS file.
     my $gnuplotEpsFile = shift;
+
     # Extract any remaining options.
     my (%options) = @_ if ( $#_ >= 0 );
-    
+
     # Get the root name.
     (my $gnuplotRoot = $gnuplotEpsFile) =~ s/\.eps//;
 
@@ -176,7 +177,6 @@ sub GnuPlot2PDF {
     # Construct the name of the corresponding pdf file.
     my $gnuplotPdfFile = $gnuplotRoot.".pdf";
 
-    # Remove duplicated labelling.
     # Initialize hash that will store MD5s of previously seen labels.
     my %labels;
     # Populate with MD5s for empty front and back text labels.
@@ -234,7 +234,10 @@ sub GnuPlot2PDF {
     print wHndl "]{geometry}\n";
     print wHndl "\\usepackage{graphicx}\n\\usepackage{nopageno}\n\\usepackage{txfonts}\n\\usepackage[usenames]{color}\n\\begin{document}\n\\include{".$gnuplotBase."}\n\\end{document}\n";
     close(wHndl);
-    &SystemRedirect::tofile("cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf","/dev/null");
+    my $command = "cd ".$folderName."; pdflatex ".$wrapper."; pdfcrop ".$wrapper.".pdf";
+    $command .= " --margins ".$options{'margin'}
+       if ( exists($options{'margin'}) );
+    &SystemRedirect::tofile($command,"/dev/null");
     move($folderName.$wrapper."-crop.pdf",$gnuplotPdfFile);
     unlink(
     	$folderName.$wrapper.".pdf",

@@ -246,8 +246,8 @@ sub Prepare_Dataset {
 
     # Create attribute for line type, assuming no specification if type option is not present.
     my %lineType;
-    $lineType{'lower'} = "";
-    $lineType{'upper'} = "";
+    $lineType{'lower'} = " lt 1";
+    $lineType{'upper'} = " lt 1";
     $lineType{'lower'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
     $lineType{'upper'} = " lt ".$options{'linePattern'} if ( exists($options{'linePattern'}) );
 
@@ -333,11 +333,18 @@ sub Prepare_Dataset {
 	    }
 	    case ("filledCurve") {
 		# Draw a filled curve - using the "y2" option as the second set of y points.
-		die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector") unless (exists($options{'y2'}));
+		$options{'filledCurve'} = "closed"
+		    unless ( exists($options{'filledCurve'}) );
+		if ( $options{'filledCurve'} eq "closed" ) {
+		    die ("GnuPlot::PrettyPlots - filledCurve requires a 'y2' vector")
+			unless ( exists($options{'y2'}) );
+		}
 		if ( exists($phaseRules{$phase}->{'level'}) ) {
 		    # Plot just a single level, no real data.
 		    my $level = "upper";
-		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve".$title
+		    ${$plot}->{$phase}->{'command'} .= ${$plot}->{$phase}->{'prefix'}." '-' with filledcurve "
+			.$options{'filledCurve'}
+			.$title
 			.$lineType  {$level}
 		        .$lineColor {$level}
 		        .$lineWeight{$level}
@@ -351,7 +358,10 @@ sub Prepare_Dataset {
 		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
 		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n";
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
-			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint)." ".$options{'y2'}->index($iPoint)."\n";
+			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint);
+			${$plot}->{$phase}->{'data'} .= " ".$options{'y2'}->index($iPoint)
+			    if ( $options{'filledCurve'} eq "closed" );
+			${$plot}->{$phase}->{'data'} .= "\n";
 		    }
 		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n";
 		    ${$plot}->{$phase}->{'data'} .= $endPoint;

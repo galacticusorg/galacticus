@@ -47,7 +47,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
+MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps ./work/build/Makefile_Component_Includes
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -98,6 +98,8 @@ vpath %.cpp source
 	$(FCCOMPILER) -c $< -o ./work/build/Bivar/bivar.o $(FCFLAGS_NOOPT)
 
 # Rule for running *.Inc files through the preprocessor.
+./work/build/%.Inc : ./source/%.Inc
+	cp -f ./source/$*.Inc ./work/build/$*.Inc
 ./work/build/%.inc : ./work/build/%.Inc Makefile
 	$(PREPROCESSOR) -C $< -o ./work/build/$*.tmp
 	mv -f ./work/build/$*.tmp ./work/build/$*.inc
@@ -156,7 +158,7 @@ vpath %.cpp source
 	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: %.o %.d %.dd %.m %.make
+.PRECIOUS: %.o %.d %.dd %.m %.make %.Inc
 
 # Include depenencies on "include" files.
 -include ./work/build/Makefile_Include_Deps 
@@ -170,6 +172,9 @@ vpath %.cpp source
 # Include rules to build include files generated from directives.
 -include ./work/build/Makefile_Directives
 
+# Include dependencies on component include files.
+-include ./work/build/Makefile_Component_Includes
+
 # Rules for memory management routines.
 ./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
@@ -182,7 +187,7 @@ vpath %.cpp source
 
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
-	@if [ -f .bzr/branch/last-revision ] ; then awk '{print "integer, parameter :: bazaarRevision="$$1}' .bzr/branch/last-revision > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":"} {if ($$1 == "changeset") print "integer, parameter :: hgRevision="$$2}' > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: hgRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:
@@ -209,11 +214,11 @@ mfiles := $(patsubst source/%.F90,work/build/%.m,$(wildcard source/*.F90))
 	scripts/build/Make_Unique_Label_Functions.pl `pwd`
 
 # Rules for changeset creation.
-Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
-./work/build/galacticus.bzr.patch:
-	bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ > ./work/build/galacticus.bzr.patch | true
-./work/build/galacticus.bzr.merge:
-	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge | true
+Galacticus.exe: ./work/build/galacticus.hg.patch ./work/build/galacticus.hg.bundle
+./work/build/galacticus.hg.patch:
+	hg diff > ./work/build/galacticus.hg.patch | true
+./work/build/galacticus.hg.bundle:
+	hg bundle -t none ./work/build/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus_v0.9.2 | true
 
 # Rules for cleaning up.
 clean: tidy
@@ -228,18 +233,25 @@ all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
 ./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
 ./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
 ./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
 ./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Include_Dependencies.pl `pwd`
 
 ./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Programs.pl `pwd`
+
+./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs

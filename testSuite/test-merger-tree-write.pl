@@ -15,7 +15,7 @@ system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-write; scripts/aux/Ru
 # Validate the IRATE-format output.
 my $validator = which('iratevalidate');
 if ( $validator ) {
-    system("iratevalidate outputs/millenniumTestTreesIRATE.hdf5");
+    system("iratevalidate outputs/test-merger-tree-write/exportedTreesIRATE.hdf5");
     die("FAILED: IRATE-format file ouput by Galacticus did not validate")
 	unless ( $? == 0 );
 } else {
