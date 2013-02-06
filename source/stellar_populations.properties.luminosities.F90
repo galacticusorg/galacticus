@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 module Stellar_Population_Properties_Luminosities
   use ISO_Varying_String
@@ -127,8 +83,8 @@ contains
     return
   end function Stellar_Population_Luminosities_Name
   
-  function Stellar_Population_Luminosities_Get(imfSelected,time,abundances)
-    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundances} and
+  function Stellar_Population_Luminosities_Get(imfSelected,time,abundancesStellar)
+    !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundancesStellar} and
     !% which formed at cosmological {\tt time} with IMF specified by {\tt imfSelected}.
     use Abundances_Structure
     use Stellar_Population_Luminosities
@@ -136,7 +92,7 @@ contains
     double precision,          dimension(luminosityCount) :: Stellar_Population_Luminosities_Get
     integer,                   intent(in)                 :: imfSelected
     double precision,          intent(in)                 :: time
-    type(abundancesStructure), intent(in)                 :: abundances
+    type(abundances),          intent(in)                 :: abundancesStellar
     double precision,          dimension(luminosityCount) :: ages
 
     ! Ensure module is initialized.
@@ -146,7 +102,7 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundances&
+    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundancesStellar&
          &,ages,luminosityRedshift)
     return
   end function Stellar_Population_Luminosities_Get
@@ -268,7 +224,7 @@ contains
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
                 write (redshiftLabel,'(f7.4)') luminosityRedshift(iLuminosity)
-                luminosityName(iLuminosity)="Luminosity:"//luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
+                luminosityName(iLuminosity)=luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
                      &//trim(adjustl(redshiftLabel))
                 ! Assign an index for this luminosity.
                 luminosityIndex(iLuminosity)=iLuminosity

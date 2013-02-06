@@ -1,5 +1,5 @@
-*** aux/FSPS_v2.3/src/Makefile.orig	2012-06-11 10:31:05.000000000 -0700
---- aux/FSPS_v2.3/src/Makefile	2012-06-11 10:31:25.000000000 -0700
+*** Makefile.orig	2012-10-10 15:16:25.000000000 -0700
+--- Makefile	2012-10-10 15:18:27.000000000 -0700
 ***************
 *** 47,53 ****
   PROGS = simple lesssimple autosps 

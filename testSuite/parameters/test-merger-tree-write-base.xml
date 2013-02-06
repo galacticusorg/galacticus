@@ -1,0 +1,14 @@
+<parameters>
+  <parameter>
+    <name>mergerTreeBuildTreesPerDecade</name>
+    <value>5</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMaximum</name>
+    <value>1e+12</value>
+  </parameter>
+  <parameter>
+    <name>mergerTreeBuildHaloMassMinimum</name>
+    <value>10000000000</value>
+  </parameter>
+</parameters>

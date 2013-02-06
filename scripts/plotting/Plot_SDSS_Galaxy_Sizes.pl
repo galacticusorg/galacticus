@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -63,23 +63,23 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight'
-			      ,'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
-			      ,'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
+			      ,'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
+			      ,'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'
-			      ,'diskScaleLength'
-			      ,'spheroidScaleLength'
+			      ,'diskRadius'
+			      ,'spheroidRadius'
 		   ]);
 my $dataSets = $dataBlock->{'dataSets'};
-my $spheroidScaleLength = $dataSets->{'spheroidScaleLength'}/$dataSets->{'diskScaleLength'};
-my $spheroidLuminosity  = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/$dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'};
-my $indexScaleLength = interpol($spheroidScaleLength,$spheroidRadii,$spheroidRadiiIndex);
+my $spheroidRadius = $dataSets->{'spheroidRadius'}/$dataSets->{'diskRadius'};
+my $spheroidLuminosity  = $dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}/$dataSets->{'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'};
+my $indexRadius = interpol($spheroidRadius,$spheroidRadii,$spheroidRadiiIndex);
 my $indexLuminosity  = interpol($spheroidLuminosity ,$spheroidMasses,$spheroidMassesIndex);
-my $radius           = $halfRadiiTable->interpND(transpose(cat($indexScaleLength,$indexLuminosity)));
-$radius          *= 1000.0*$dataSets->{'diskScaleLength'};
-my $morphology       = $dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidStellarLuminosity:SDSS_r:observed:z0.1000:dustAtlas'});
+my $radius           = $halfRadiiTable->interpND(transpose(cat($indexRadius,$indexLuminosity)));
+$radius          *= 1000.0*$dataSets->{'diskRadius'};
+my $morphology       = $dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'});
 my $magnitude        = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
-my $weight           = $dataSets->{'volumeWeight'};
+my $weight           = $dataSets->{'mergerTreeWeight'};
 
 # Initialize chi^2 accumulator.
 my $chiSquared = 0.0;

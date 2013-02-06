@@ -29,4 +29,14 @@
       <value>true</value>
     </parameter>
   </parameters>
+  <parameters>
+    <parameter>
+      <name>outputHotHaloCoolingRates</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>outputHotHaloCoolingRadii</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
 </parameterGrid>

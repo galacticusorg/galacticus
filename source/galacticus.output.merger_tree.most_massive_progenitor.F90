@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -14,50 +14,6 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-!!
-!!
-!!    COPYRIGHT 2010. The Jet Propulsion Laboratory/California Institute of Technology
-!!
-!!    The California Institute of Technology shall allow RECIPIENT to use and
-!!    distribute this software subject to the terms of the included license
-!!    agreement with the understanding that:
-!!
-!!    THIS SOFTWARE AND ANY RELATED MATERIALS WERE CREATED BY THE CALIFORNIA
-!!    INSTITUTE OF TECHNOLOGY (CALTECH). THE SOFTWARE IS PROVIDED "AS-IS" TO
-!!    THE RECIPIENT WITHOUT WARRANTY OF ANY KIND, INCLUDING ANY WARRANTIES OF
-!!    PERFORMANCE OR MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE OR
-!!    PURPOSE (AS SET FORTH IN UNITED STATES UCC §2312-§2313) OR FOR ANY
-!!    PURPOSE WHATSOEVER, FOR THE SOFTWARE AND RELATED MATERIALS, HOWEVER
-!!    USED.
-!!
-!!    IN NO EVENT SHALL CALTECH BE LIABLE FOR ANY DAMAGES AND/OR COSTS,
-!!    INCLUDING, BUT NOT LIMITED TO, INCIDENTAL OR CONSEQUENTIAL DAMAGES OF
-!!    ANY KIND, INCLUDING ECONOMIC DAMAGE OR INJURY TO PROPERTY AND LOST
-!!    PROFITS, REGARDLESS OF WHETHER CALTECH BE ADVISED, HAVE REASON TO KNOW,
-!!    OR, IN FACT, SHALL KNOW OF THE POSSIBILITY.
-!!
-!!    RECIPIENT BEARS ALL RISK RELATING TO QUALITY AND PERFORMANCE OF THE
-!!    SOFTWARE AND ANY RELATED MATERIALS, AND AGREES TO INDEMNIFY CALTECH FOR
-!!    ALL THIRD-PARTY CLAIMS RESULTING FROM THE ACTIONS OF RECIPIENT IN THE
-!!    USE OF THE SOFTWARE.
-!!
-!!    In addition, RECIPIENT also agrees that Caltech is under no obligation
-!!    to provide technical support for the Software.
-!!
-!!    Finally, Caltech places no restrictions on RECIPIENT's use, preparation
-!!    of Derivative Works, public display or redistribution of the Software
-!!    other than those specified in the included license and the requirement
-!!    that all copies of the Software released be marked with the language
-!!    provided in this notice.
-!!
-!!    This software is separately available under negotiable license terms
-!!    from:
-!!    California Institute of Technology
-!!    Office of Technology Transfer
-!!    1200 E. California Blvd.
-!!    Pasadena, California 91125
-!!    http://www.ott.caltech.edu
-
 
 !% Contains a module which handles outputting a flag for the most massive progenitor in a tree.
 
@@ -110,10 +66,12 @@ contains
   !#  <unitName>Galacticus_Output_Most_Massive_Progenitor_Names</unitName>
   !#  <sortName>Galacticus_Output_Most_Massive_Progenitor</sortName>
   !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Most_Massive_Progenitor_Names(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
+  subroutine Galacticus_Output_Most_Massive_Progenitor_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
+    type(treeNode)  , intent(inout), pointer      :: thisNode
     double precision, intent(in)                  :: time
     integer,          intent(inout)               :: integerProperty,doubleProperty
     character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
@@ -144,11 +102,13 @@ contains
   !#  <unitName>Galacticus_Output_Most_Massive_Progenitor_Property_Count</unitName>
   !#  <sortName>Galacticus_Output_Most_Massive_Progenitor</sortName>
   !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Most_Massive_Progenitor_Property_Count(integerPropertyCount,doublePropertyCount,time)
+  subroutine Galacticus_Output_Most_Massive_Progenitor_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes
     implicit none
-    double precision, intent(in)    :: time
-    integer,          intent(inout) :: integerPropertyCount,doublePropertyCount
+    type(treeNode)  , intent(inout), pointer :: thisNode
+    double precision, intent(in   )          :: time
+    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
 
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
@@ -164,19 +124,20 @@ contains
   subroutine Galacticus_Output_Most_Massive_Progenitor(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store link properties in the \glc\ output file buffers.
-    use Tree_Nodes
+    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
-    double precision,        save                   :: timePrevious    =-1.0d0
-    integer(kind=kind_int8), save                   :: uniqueIdPrevious=-1,uniqueIdMatched
+    double precision           , intent(in)             :: time
+    type   (treeNode          ), intent(inout), pointer :: thisNode
+    integer                    , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer(kind=kind_int8    ), intent(inout)          :: integerBuffer(:,:)
+    double precision,            intent(inout)          :: doubleBuffer(:,:)
+    double precision,            save                   :: timePrevious    =-1.0d0
+    integer(kind=kind_int8    ), save                   :: uniqueIdPrevious=-1,uniqueIdMatched
     !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
-    type(treeNode),          pointer                :: currentNode
-    double precision                                :: mostMassiveProgenitorMass
+    type   (treeNode          ),                pointer :: currentNode
+    class  (nodeComponentBasic),                pointer :: currentBasicComponent
+    double precision                                    :: mostMassiveProgenitorMass
 
     ! Ensure the module is initialized.
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
@@ -184,20 +145,21 @@ contains
     if (outputMostMassiveProgenitor) then
        ! Find the root node in the tree.
        currentNode => thisNode
-       do while (associated(currentNode%parentNode))
-          currentNode => currentNode%parentNode
+       do while (associated(currentNode%parent))
+          currentNode => currentNode%parent
        end do
        ! Check if this is the same tree, at the same time as on the previous call.
-       if (time /= timePrevious .or. thisNode%uniqueId() /= uniqueIdPrevious) then
+       if (time /= timePrevious .or. currentNode%uniqueId() /= uniqueIdPrevious) then
           ! It is not, so record the new tree root unique ID and the new time.
           timePrevious    =time
-          uniqueIdPrevious=thisNode%uniqueId()
+          uniqueIdPrevious=currentNode%uniqueId()
           ! Find the most massive progenitor in the tree at this time.
           mostMassiveProgenitorMass=0.0d0
           do while (associated(currentNode))
-             if (Tree_Node_Time(currentNode) == time .and. Tree_Node_Mass(currentNode) > mostMassiveProgenitorMass) then
-                uniqueIdMatched          =               currentNode%uniqueId()
-                mostMassiveProgenitorMass=Tree_Node_Mass(currentNode)
+             currentBasicComponent => currentNode%basic()
+             if (currentBasicComponent%time() == time .and. currentBasicComponent%mass() > mostMassiveProgenitorMass) then
+                uniqueIdMatched          =currentNode          %uniqueId()
+                mostMassiveProgenitorMass=currentBasicComponent%mass    ()
              end if
              call currentNode%walkTree(currentNode)
           end do
