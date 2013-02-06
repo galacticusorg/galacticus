@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -42,17 +42,28 @@ contains
   
   subroutine Events_Node_Merger_Do_SLH(thisNode)
     !% Processes a node merging event, utilizing a single level substructure hierarchy.
+    use Galacticus_Error
+    use ISO_Varying_String
+    use String_Handling
     use Galacticus_Nodes
     use Satellite_Promotion
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    type(treeNode),                pointer :: parentNode,childNode,thisSatellite,nextSatellite
+    type(treeNode      ), intent(inout), pointer :: thisNode
+    type(treeNode      ),                pointer :: parentNode,childNode,thisSatellite,nextSatellite
+    type(varying_string)                         :: message
 
     ! Get the parent node.
     parentNode => thisNode%parent
-
     ! Uncouple thisNode from the children of its parent.
     childNode  => parentNode%firstChild
+    if (.not.associated(childNode%sibling)) then
+       message='attempting to make node '
+       message=message//thisNode%index()//' a satellite, but it is the primary progenitor'//char(10)
+       message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
+       message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
+       message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
+       call Galacticus_Error_Report('Events_Node_Merger_Do_SLH',message)
+    end if
     do while (.not.associated(childNode%sibling,thisNode))
        childNode => childNode%sibling
     end do

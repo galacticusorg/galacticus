@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -55,7 +55,6 @@ module Node_Component_Satellite_Preset
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>selfBasicComponent%mass()</classDefault>
   !#     <getFunction>SatellitePresetMergeBoundMass</getFunction>
   !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
   !#   </method>
@@ -88,6 +87,8 @@ contains
     type (treeNode              ), pointer                :: parentNode
     class(nodeComponentSatellite), pointer                :: thisSatelliteComponent,parentSatelliteComponent
 
+    ! Return immediately if the preset satellite implementation is not active.
+    if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the satellite component and check if it is of preset class.
     thisSatelliteComponent   => thisNode  %satellite(autoCreate=.true.)
     ! Get the parent node of this node.

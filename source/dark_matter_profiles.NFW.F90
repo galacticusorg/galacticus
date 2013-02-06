@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,6 +22,7 @@ module Dark_Matter_Profiles_NFW
   use Galacticus_Nodes
   use FGSL
   use Kind_Numbers
+  use Tables
   implicit none
   private
   public :: Dark_Matter_Profile_NFW_Initialize, Dark_Matter_Profiles_NFW_State_Store, Dark_Matter_Profiles_NFW_State_Retrieve,&
@@ -42,13 +43,14 @@ module Dark_Matter_Profiles_NFW
   ! Tables of NFW properties.
   logical                                     :: nfwTableInitialized=.false.,nfwInverseTableInitialized=.false.,nfwFreefallTableInitialized=.false.
   integer                                     :: nfwTableNumberPoints,nfwInverseTableNumberPoints,nfwFreefallTableNumberPoints
-  double precision, allocatable, dimension(:) :: nfwConcentration,nfwEnergy,nfwRotationNormalization,nfwRadius&
-       &,nfwSpecificAngularMomentum,nfwFreefallTime,nfwFreefallRadius
+  double precision, allocatable, dimension(:) :: nfwRadius ,nfwSpecificAngularMomentum,nfwFreefallTime,nfwFreefallRadius
+  integer                 , parameter         :: nfwConcentrationEnergyIndex=1,nfwConcetrationRotationNormalizationIndex=2
+  type(table1DLogarithmicLinear)                    :: nfwConcentrationTable
 
   ! Interpolator variables.
-  type(fgsl_interp)                           :: interpolationObject      ,interpolationInverseObject      ,interpolationFreefallObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator ,interpolationInverseAccelerator ,interpolationFreefallAccelerator
-  logical                                     :: interpolationReset=.true.,interpolationInverseReset=.true.,interpolationFreefallReset=.true.
+  type(fgsl_interp)                           :: interpolationInverseObject      ,interpolationFreefallObject
+  type(fgsl_interp_accel)                     :: interpolationInverseAccelerator ,interpolationFreefallAccelerator
+  logical                                     :: interpolationInverseReset=.true.,interpolationFreefallReset=.true.
 
   ! Module variables used in integrations.
   double precision                            :: concentrationParameter,radiusStart
@@ -127,13 +129,13 @@ contains
 
   subroutine Dark_Matter_Profile_NFW_Tabulate(concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
-    use Numerical_Ranges
     use Memory_Management
     use Numerical_Interpolation
     implicit none
     double precision, intent(in), optional :: concentration
     integer                                :: iConcentration
     logical                                :: retabulate
+    double precision                       :: tableConcentration
 
     !$omp critical (NFW_Interpolation)
     retabulate=.not.nfwTableInitialized
@@ -150,25 +152,16 @@ contains
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
        nfwTableNumberPoints=int(dlog10(concentrationMaximum/concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
-       if (allocated(nfwConcentration)) then
-          call Dealloc_Array(nfwConcentration        )
-          call Dealloc_Array(nfwEnergy               )
-          call Dealloc_Array(nfwRotationNormalization)
-       end if
-       call Alloc_Array(nfwConcentration        ,[nfwTableNumberPoints])
-       call Alloc_Array(nfwEnergy               ,[nfwTableNumberPoints])
-       call Alloc_Array(nfwRotationNormalization,[nfwTableNumberPoints])
-       ! Create a range of concentrations.
-       nfwConcentration=Make_Range(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,rangeType=rangeTypeLogarithmic)
+       call nfwConcentrationTable%destroy()
+       call nfwConcentrationTable%create(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
        do iConcentration=1,nfwTableNumberPoints
-          nfwEnergy(iConcentration)               =NFW_Profile_Energy(nfwConcentration(iConcentration))
-          nfwRotationNormalization(iConcentration)=nfwConcentration(iConcentration)&
-               &/Angular_Momentum_NFW_Scale_Free(nfwConcentration(iConcentration))
+          tableConcentration=nfwConcentrationTable%x(iConcentration)
+          call nfwConcentrationTable%populate(NFW_Profile_Energy(tableConcentration),iConcentration,table&
+               &=nfwConcentrationEnergyIndex)
+          call nfwConcentrationTable%populate(tableConcentration /Angular_Momentum_NFW_Scale_Free(tableConcentration)&
+               &,iConcentration,table=nfwConcetrationRotationNormalizationIndex)
        end do
-       ! Ensure interpolations get reset.
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-       interpolationReset=.true.
        ! Specify that tabulation has been made.
        nfwTableInitialized=.true.
     end if
@@ -402,9 +395,8 @@ contains
 
     ! Find the energy by interpolation.
     !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Rotation_Normalization_NFW=Interpolate(nfwTableNumberPoints,nfwConcentration,nfwRotationNormalization&
-         &,interpolationObject,interpolationAccelerator,concentration,reset=interpolationReset)&
-         &/Dark_Matter_Halo_Virial_Radius(thisNode)
+    Dark_Matter_Profile_Rotation_Normalization_NFW=nfwConcentrationTable%interpolate(concentration,table&
+         &=nfwConcentrationEnergyIndex)/Dark_Matter_Halo_Virial_Radius(thisNode)
     !$omp end critical(NFW_Interpolation)
     return
   end function Dark_Matter_Profile_Rotation_Normalization_NFW
@@ -432,9 +424,8 @@ contains
 
     ! Find the energy by interpolation.
     !$omp critical(NFW_Interpolation)
-    Dark_Matter_Profile_Energy_NFW=Interpolate(nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)*thisBasicComponent%mass()&
-         &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    Dark_Matter_Profile_Energy_NFW=nfwConcentrationTable%interpolate(concentration,table=nfwConcentrationEnergyIndex)&
+         &*thisBasicComponent%mass()*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     !$omp end critical(NFW_Interpolation)
     return
   end function Dark_Matter_Profile_Energy_NFW
@@ -462,10 +453,8 @@ contains
 
     ! Find the energy gradient by interpolation.
     !$omp critical(NFW_Interpolation)
-    energy=Interpolate                   (nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)
-    energyGradient=Interpolate_Derivative(nfwTableNumberPoints,nfwConcentration,nfwEnergy,interpolationObject&
-         &,interpolationAccelerator,concentration,reset=interpolationReset)
+    energy        =nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
+    energyGradient=nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
     !$omp end critical(NFW_Interpolation)
 
     Dark_Matter_Profile_Energy_Growth_Rate_NFW=Dark_Matter_Profile_Energy_NFW(thisNode)&

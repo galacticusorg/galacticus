@@ -696,4 +696,13 @@
     </parameter>
   </parameters>
 
+  <!-- Black hole wind efficiencies -->
+  <parameters>
+    <parameter>
+      <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+      <value>false</value>
+      <value>true</value>
+    </parameter> 
+  </parameters>
+
 </parameterGrid>

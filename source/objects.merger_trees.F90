@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -697,7 +697,7 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree),   intent(inout)          :: thisTree
+    class(mergerTree),   intent(in   )          :: thisTree
     type(treeNode),      intent(inout), pointer :: thisNode
     type(varying_string)                        :: message
     

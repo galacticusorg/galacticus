@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -171,7 +171,7 @@ contains
     return
   end subroutine Merger_Tree_Timestep_Record_Evolution
 
-  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode)
+  subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use Merger_Trees
     use Galacticus_Nodes
@@ -181,6 +181,7 @@ contains
     implicit none
     type (mergerTree        ), intent(in   )          :: thisTree
     type (treeNode          ), intent(inout), pointer :: thisNode
+    integer                  , intent(inout)          :: deadlockStatus
     class(nodeComponentBasic),                pointer :: thisBasicComponent
     integer                                           :: timeIndex
     double precision                                  :: time

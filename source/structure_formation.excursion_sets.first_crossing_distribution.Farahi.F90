@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -87,6 +87,8 @@ contains
        !@   <name>excursionSetFirstCrossingFarahiFileName</name>
        !@   <defaultValue>none</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The name of the file to/from which tabulations of barrier first crossing probabilities should be written/read. If set to ``{\tt none}'' tables will not be stored.
        !@   </description>
@@ -97,6 +99,8 @@ contains
        !@   <name>excursionSetFirstCrossingFarahiFractionalTimeStep</name>
        !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>real</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The fractional time step used when computing barrier crossing rates in the Farahi excursion set solver
        !@     (i.e. the step used in finite difference calculations).
@@ -114,7 +118,7 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     use Input_Parameters
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display
@@ -270,7 +274,7 @@ contains
     !% Tabulate the excursion set crossing rate.
     use Numerical_Ranges
     use Numerical_Interpolation
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display

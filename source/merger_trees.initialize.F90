@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -45,7 +45,7 @@ contains
           include 'merger_trees.initialize.tasks.inc'
           !# </include>
 
-          call thisNode%walkTree(thisNode)
+          call thisNode%walkTreeWithSatellites(thisNode)
        end do
        thisTree%initialized=.true.
     end if

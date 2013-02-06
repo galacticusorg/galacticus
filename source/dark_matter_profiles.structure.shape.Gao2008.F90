@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -48,7 +48,7 @@ contains
     !% \end{equation}
     !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
-    use CDM_Power_Spectrum
+    use Power_Spectrum
     use Critical_Overdensity
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode

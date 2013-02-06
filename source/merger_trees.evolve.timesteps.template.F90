@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -25,10 +25,11 @@ module Merger_Trees_Evolve_Timesteps_Template
   public
 
   abstract interface
-     subroutine End_Of_Timestep_Task_Template(thisTree,thisNode)
+     subroutine End_Of_Timestep_Task_Template(thisTree,thisNode,deadlockStatus)
        import mergerTree, treeNode
        type(mergerTree), intent(in)             :: thisTree
        type(treeNode),   intent(inout), pointer :: thisNode
+       integer,          intent(inout)          :: deadlockStatus
      end subroutine End_Of_Timestep_Task_Template
   end interface
 
