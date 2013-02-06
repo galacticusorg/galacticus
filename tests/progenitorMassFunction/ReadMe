@@ -1,0 +1,16 @@
+Generates plots of dark matter halo progenitor mass functions produced
+using the Parkinson, Cole & Helly (2008;
+http://adsabs.harvard.edu/abs/2008MNRAS.383..557P) plus Cole et
+al. (2000; http://adsabs.harvard.edu/abs/2000MNRAS.319..168C) algorithms
+for merger tree building and compares them with measurements from the
+Millennium Simulation.
+
+To perform this test, do:
+
+make Galacticus.exe
+Galacticus.exe tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml
+tests/progenitorMassFunction/Progenitor_Mass_Function.pl
+
+The resulting plot should then exist in:
+
+tests/progenitorMassFunction/progenitorMassFunction.pdf

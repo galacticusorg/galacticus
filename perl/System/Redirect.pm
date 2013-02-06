@@ -1,6 +1,4 @@
 package SystemRedirect;
-  my $status = 1;
-  $status;
 
 sub tofile {
     ($command, $file) = @_;
@@ -30,3 +28,5 @@ sub tofile {
 
     return $result;
 }
+
+1;
