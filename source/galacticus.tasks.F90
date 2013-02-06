@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
-
-
 !% Contains a module which defines and keeps track of the current task in {\sc Galacticus}.
 
 module Galacticus_Tasks
   !% Defines and keeps track of the current task in {\sc Galacticus}.
+  implicit none
   private
   public :: Galacticus_Task_Do
 
@@ -40,7 +32,6 @@ contains
 
   subroutine Galacticus_Task_Do()
     !% Performs \glc\ tasks.
-    use Galacticus_Evolve_To_Module
     !# <include directive="galacticusTask" type="moduleUse">
     include 'galacticus.tasks.task_rules.modules.inc'
     !# </include>
@@ -50,9 +41,9 @@ contains
 
     do while (tasksRemaining)
        tasksRemaining=.false.
-       !# <include directive="galacticusTask" type="code" action="procPointer">
+       !# <include directive="galacticusTask" type="functionCall" functionType="pointer">
        !#  <pointerName>taskFunction</pointerName>
-       !#  <pointerAction>tasksRemaining=tasksRemaining.or.taskFunction()</pointerAction>
+       !#  <onReturn>tasksRemaining=tasksRemaining.or.taskFunction()</onReturn>
        include 'galacticus.tasks.task_rules.inc'
        !# </include>
     end do

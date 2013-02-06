@@ -1,4 +1,16 @@
 #!/usr/bin/env perl
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
+use PDL;
+require Galacticus::HDF5;
+use Data::Dumper;
+use XML::Simple;
 
 # Extracts parameter values from a Galacticus output file and writes them to an XML file in a format suitable to re-use by Galacticus.
 # Andrew Benson (10-Mar-2010)
@@ -7,28 +19,33 @@ if ( $#ARGV != 1 ) {die("Usage: Extract_Parameter_File.pl <inputGalacticusFile> 
 $galacticusFile = $ARGV[0];
 $parametersFile = $ARGV[1];
 
-open(oHndl,">".$parametersFile);
-print oHndl "<parameters>\n";
-open(pHndl,"h5ls -d ".$galacticusFile."/Parameters|");
-while ( $line = <pHndl> ) {
-    @columns = split(/\s+/,$line);
-    $name = $columns[0];
-    $line = <pHndl>;
-    $line = <pHndl>;
-    if ( $line =~ m/^\s*\(\d+\)\s*(.*)/ ) {
-	$value = $1;
-	$value =~ s/\s*\"\s*,\s*\"\s*/ /g;
-	$value =~ s/\s*\,\s*/ /g;
-	$value =~ s/\s*\"\s*//g;
-	$value =~ s/&/&amp;/g;
-	print oHndl "  <parameter>\n";
-	print oHndl "    <name>".$name."</name>\n";
-	print oHndl "    <value>".$value."</value>\n";
-	print oHndl "  </parameter>\n";
+$dataSet{'file'} =$galacticusFile;
+&HDF5::Get_Parameters(\%dataSet);
+
+$iParameter = -1;
+foreach $parameter ( keys(%{$dataSet{'parameters'}}) ) {
+    ++$iParameter;
+    if ( ref(${$dataSet{'parameters'}}{$parameter}) eq "PDL" ) {
+	$value = join(" ",list(${$dataSet{'parameters'}}{$parameter}));
+    } elsif ( ref(${$dataSet{'parameters'}}{$parameter}) eq "PDL::Char" ) {
+	@dims = ${$dataSet{'parameters'}}{$parameter}->dims;
+	$value = "";
+	$join  = "";
+	for ($i=0;$i<$dims[1];++$i) {
+	    $value .= $join.${$dataSet{'parameters'}}{$parameter}->atstr($i);
+	    $join   = " ";
+	}
+    } else {
+	$value = ${$dataSet{'parameters'}}{$parameter};
     }
+    ${$data{'parameter'}}[$iParameter] = {
+	"name"  => $parameter,
+	"value" => $value
+    };
 }
-close(pHndl);
-print oHndl "</parameters>\n";
+$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+open(oHndl,">".$parametersFile);
+print oHndl $xmlOutput->XMLout(\%data);
 close(oHndl);
 
 exit;

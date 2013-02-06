@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of sizes of galactic components (or more general components).
 
 module Galactic_Structure_Radii
   !% Implements calculations of sizes of galactic components (or more general components).
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Galactic_Structure_Radii_Solve
 
@@ -46,9 +42,9 @@ module Galactic_Structure_Radii
   
 contains
 
-  !# <preDerivativeComputeTask>
-  !# <unitName>Galactic_Structure_Radii_Solve</unitName>
-  !# </preDerivativeComputeTask>
+  !# <preDerivativeTask>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !# </preDerivativeTask>
   subroutine Galactic_Structure_Radii_Solve(thisNode)
     !% Solve for the radii of galactic components in {\tt thisNode}.
     use Galacticus_Error
@@ -59,29 +55,33 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
-    !$omp critical(Galactic_Structure_Radii_Initialization) 
     ! Initialize if necessary.
     if (.not.galacticStructureRadiusSolverInitialized) then
-       ! Get the galactic structure radii solver method parameter.
-       !@ <inputParameter>
-       !@   <name>galacticStructureRadiusSolverMethod</name>
-       !@   <defaultValue>simple</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     Selects the method to be used for solving for galactic structure.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='simple')
-       ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="galacticStructureRadiusSolverMethod" type="code" action="subroutine">
-       !#  <subroutineArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</subroutineArgs>
-       include 'galactic_structure.radius_solver.inc'
-       !# </include>
-       if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
-            & call Galacticus_Error_Report('Galactic_Structure_Radii','method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized')
-       galacticStructureRadiusSolverInitialized=.true.
+       !$omp critical(Galactic_Structure_Radii_Initialization) 
+       if (.not.galacticStructureRadiusSolverInitialized) then
+          ! Get the galactic structure radii solver method parameter.
+          !@ <inputParameter>
+          !@   <name>galacticStructureRadiusSolverMethod</name>
+          !@   <defaultValue>adiabatic</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Selects the method to be used for solving for galactic structure.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter('galacticStructureRadiusSolverMethod',galacticStructureRadiusSolverMethod,defaultValue='adiabatic')
+          ! Include file that makes calls to all available method initialization routines.
+          !# <include directive="galacticStructureRadiusSolverMethod" type="functionCall" functionType="void">
+          !#  <functionArgs>galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do</functionArgs>
+          include 'galactic_structure.radius_solver.inc'
+          !# </include>
+          if (.not.associated(Galactic_Structure_Radii_Solve_Do)) &
+               & call Galacticus_Error_Report('Galactic_Structure_Radii','method '//char(galacticStructureRadiusSolverMethod)//' is unrecognized')
+          galacticStructureRadiusSolverInitialized=.true.
+       end if
+       !$omp end critical(Galactic_Structure_Radii_Initialization) 
     end if
-    !$omp end critical(Galactic_Structure_Radii_Initialization) 
 
     ! Call the routine to solve for the radii.
     call Galactic_Structure_Radii_Solve_Do(thisNode)

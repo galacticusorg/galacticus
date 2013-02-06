@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a simple calculation of energy feedback from stellar populations.
 
 module Stellar_Feedback_Standard
   !% Implements a simple calculation of energy feedback from stellar populations.
   use Numerical_Constants_Astronomical
+  implicit none
   private
   public :: Stellar_Feedback_Standard_Initialize
 
@@ -44,13 +40,11 @@ contains
   !# </stellarFeedbackMethod>
   subroutine Stellar_Feedback_Standard_Initialize(stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get)
     !% Initialize the ``standard'' stellar feedback module.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in) :: stellarFeedbackMethod
-    procedure(),          pointer    :: Stellar_Feedback_Cumulative_Energy_Input_Get
+    type(varying_string),                 intent(in)    :: stellarFeedbackMethod
+    procedure(double precision), pointer, intent(inout) :: Stellar_Feedback_Cumulative_Energy_Input_Get
 
     if (stellarFeedbackMethod == 'standard') then
        ! Set procedure pointers.
@@ -64,6 +58,8 @@ contains
        !@   <description>
        !@     The minimum mass that a star must have in order that is result in a Type II supernova.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('initialMassForSupernovaeTypeII',initialMassForSupernovaeTypeII,defaultValue=8.0d0)
        !@ <inputParameter>
@@ -73,6 +69,8 @@ contains
        !@   <description>
        !@     The energy produced by a supernova (in ergs).
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('supernovaEnergy',supernovaEnergy,defaultValue=1.0d51)
        ! Convert energy to MSolar (km/s)^2.
@@ -84,7 +82,6 @@ contains
   double precision function Stellar_Feedback_Cumulative_Energy_Input_Standard(initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
     use Stellar_Astrophysics
     use Supernovae_Type_Ia
     use Supernovae_Population_III

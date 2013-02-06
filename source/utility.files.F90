@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,23 +15,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
-
-
 !% Contains a module which stores file units and finds available file units.
 
 module File_Utilities
   !% Contains a function which returns an available file unit. Also stores the name of the output directory and unit numbers for
   !% various files which remain open throughout.
   use iso_varying_string
+  implicit none
   private
-  public :: File_Units_Get,Count_Lines_in_File,File_Exists
+  public :: Count_Lines_in_File,File_Exists
 
   interface Count_Lines_in_File
      !% Generic interface for {\tt Count\_Lines\_in\_File} function.
@@ -46,29 +38,6 @@ module File_Utilities
   end interface
 
 contains
-
-  integer function File_Units_Get()
-    !% Returns the number of an unused file unit. It tries unit numbers from 100 upwards and returns the first free unit.
-    !% It aborts if it runs out of valid unit numbers.
-    use Galacticus_Error
-    implicit none
-    integer :: iUnit
-    logical :: open, exists
-
-    iUnit=100
-    open  =.true.
-    exists=.true.
-    do while (open.and.exists)
-       iUnit=iUnit+1
-       inquire(unit=iUnit,opened=open,exist=exists)
-    end do
-
-    if (.not.exists) call Galacticus_Error_Report('File_Units_Get','ran out of valid unit numbers')
-
-    File_Units_Get=iUnit
-
-    return
-  end function File_Units_Get
 
   logical function File_Exists_VarStr(FileName)
     !% Checks for existance of file {\tt FileName} (version for varying string argument).
@@ -113,18 +82,17 @@ contains
     integer,   save                 :: io_status,i_unit
     !$omp threadprivate(io_status,i_unit)
 
-    i_unit=File_Units_Get()
-    open(i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
-    if (io_status.ne.0) then
+    open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
+    if (io_status /= 0) then
        write (0,*) 'Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file)
        call Galacticus_Error_Report
     end if
     Count_Lines_in_File_Char=0
-    do while (io_status.eq.0)
+    do while (io_status == 0)
        read (i_unit,*,iostat=io_status) first_char
-       if (io_status.eq.0) then
+       if (io_status == 0) then
           if (present(comment_char)) then
-             if (first_char.ne.comment_char) Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
+             if (first_char /= comment_char) Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
           else
              Count_Lines_in_File_Char=Count_Lines_in_File_Char+1
           end if

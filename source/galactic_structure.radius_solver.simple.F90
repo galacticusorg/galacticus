@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,19 +15,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a simple galactic radii solver (no adiabatic contraction and no self-gravity of baryons).
 
 module Galactic_Structure_Radii_Simple
   !% Implements a simple galactic radii solver (no adiabatic contraction and no self-gravity of baryons).
-  use Tree_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
+  implicit none
   private
   public :: Galactic_Structure_Radii_Simple_Initialize
+
+  ! Module variables used to communicate current state of radius solver.
+  type(treeNode), pointer :: haloNode
+  !$omp threadprivate(haloNode)
+
+  ! Options controlling the solver.
+  logical                 :: simpleRadiusSolverUseFormationHalo
 
 contains
 
@@ -37,18 +39,32 @@ contains
   subroutine Galactic_Structure_Radii_Simple_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do)
     !% Initializes the ``simple'' galactic radii solver module.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: galacticStructureRadiusSolverMethod
     procedure(),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
     
-    if (galacticStructureRadiusSolverMethod == 'simple') Galactic_Structure_Radii_Solve_Do =>&
-         & Galactic_Structure_Radii_Solve_Simple
+    if (galacticStructureRadiusSolverMethod == 'simple') then
+       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple
+       !@ <inputParameter>
+       !@   <name>simpleRadiusSolverUseFormationHalo</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('simpleRadiusSolverUseFormationHalo',simpleRadiusSolverUseFormationHalo,defaultValue=.false.)
+    end if
     return
   end subroutine Galactic_Structure_Radii_Simple_Initialize
 
   subroutine Galactic_Structure_Radii_Solve_Simple(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``simple'' method.
-    use Tree_Nodes
+    use Galacticus_Error
+    use Galacticus_Nodes
     !# <include directive="radiusSolverTask" type="moduleUse">
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     !# </include>
@@ -56,39 +72,55 @@ contains
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     !# </include>
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    logical                                         :: componentActive,galaxyIsPhysicallyPlausible
-    double precision                                :: specificAngularMomentum
+    type(treeNode),                    intent(inout), pointer :: thisNode
+    procedure(Structure_Get_Template), save,          pointer :: Radius_Get => null(), Velocity_Get => null()
+    procedure(Structure_Set_Template), save,          pointer :: Radius_Set => null(), Velocity_Set => null()
+    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
+    logical                                                   :: componentActive
+    double precision                                          :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
-    galaxyIsPhysicallyPlausible=.true.
-    !# <include directive="radiusSolverPlausibility" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,galaxyIsPhysicallyPlausible</subroutineArgs>
+    thisNode%isPhysicallyPlausible=.true.
+    !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,thisNode%isPhysicallyPlausible</functionArgs>
     include 'galactic_structure.radius_solver.plausible.inc'
     !# </include>
 
-    !# <include directive="radiusSolverTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</subroutineArgs>
-    !#  <subroutineAction>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum)</subroutineAction>
+    ! Determine which node to use for halo properties.
+    if (simpleRadiusSolverUseFormationHalo) then
+       if (.not.associated(thisNode%formationNode)) call Galacticus_Error_Report('Galactic_Structure_Radii_Solve_Simple','no formation node exists')
+       haloNode => thisNode%formationNode
+    else
+       haloNode => thisNode
+    end if
+
+    !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set</functionArgs>
+    !#  <onReturn>if (componentActive) call Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)</onReturn>
     include 'galactic_structure.radius_solver.tasks.inc'
     !# </include>
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Simple
   
-  subroutine Solve_For_Radius(thisNode,specificAngularMomentum)
+  subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: specificAngularMomentum
-    double precision                         :: radius,velocity
+    type(treeNode),                    pointer, intent(inout) :: thisNode
+    double precision,                           intent(in)    :: specificAngularMomentum
+    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
+    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    double precision                                          :: radius,velocity
 
+    ! Return immediately if the specific angular momentum is zero.
+    if (specificAngularMomentum <= 0.0d0) return
+    
     ! Find the radius in the dark matter profile with the required specific angular momentum
-    radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(thisNode,specificAngularMomentum)
+    radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
 
     ! Find the velocity at this radius.
-    velocity=Dark_Matter_Profile_Circular_Velocity(thisNode,radius)
+    velocity=Dark_Matter_Profile_Circular_Velocity(haloNode,radius)
 
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )

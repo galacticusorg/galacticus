@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of black hole mass and spin resulting from binary mergers utilizing the
 !% approximations of \cite{rezzolla_final_2008}.
 
 module Black_Hole_Binary_Mergers_Rezzolla
   !% Implements calculations of black hole mass and spin resulting from binary mergers utilizing the approximations of
   !% \cite{rezzolla_final_2008}.
+  implicit none
   private
   public :: Black_Hole_Binary_Merger_Rezzolla_Initialize
 
@@ -59,6 +55,13 @@ contains
     double precision, parameter   :: cosinePhi=1.0d0, cosineTheta=1.0d0, cosineXi=1.0d0
     double precision              :: blackHoleMass1,blackHoleMass2,blackHoleSpin1,blackHoleSpin2,massRatio,symmetricMassRatio&
          &,orbitalAngularMomentum
+
+    ! Check for case of two zero-mass black holes.
+    if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then
+       blackHoleMassFinal=0.0d0
+       blackHoleSpinFinal=0.0d0
+       return
+    end if
 
     ! Find which is the more massive of the two black holes.
     if (blackHoleMassA < blackHoleMassB) then

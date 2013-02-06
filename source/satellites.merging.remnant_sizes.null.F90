@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a null algorithm for merger remnant sizes.
 
 module Satellite_Merging_Remnant_Sizes_Null
   !% Implements a null algorithm for merger remnant sizes.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Sizes_Null_Initialize
 
@@ -46,7 +42,7 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Null(thisNode)
     !% A null implementation of merger remnant size. Does nothing.
-    use Tree_Nodes
+    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

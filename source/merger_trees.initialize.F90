@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements initialization of merger tree structures.
 
 module Merger_Trees_Initialize
   !% Implements initialization of merger tree structures.
+  implicit none
   private
   public :: Merger_Tree_Initialize
 
@@ -32,7 +28,7 @@ contains
   subroutine Merger_Tree_Initialize(thisTree)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
     use Merger_Trees
-    use Tree_Nodes
+    use Galacticus_Nodes
     !# <include directive="mergerTreeInitializeTask" type="moduleUse">
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>
@@ -43,14 +39,13 @@ contains
     if (.not.thisTree%initialized) then
        thisNode => thisTree%baseNode
        do while (associated(thisNode))
-
           ! Call subroutines to perform any necessary initialization of this node.
-          !# <include directive="mergerTreeInitializeTask" type="code" action="subroutine">
-          !#  <subroutineArgs>thisNode</subroutineArgs>
+          !# <include directive="mergerTreeInitializeTask" type="functionCall" functionType="void">
+          !#  <functionArgs>thisNode</functionArgs>
           include 'merger_trees.initialize.tasks.inc'
           !# </include>
 
-          call thisNode%walkTree()
+          call thisNode%walkTreeWithSatellites(thisNode)
        end do
        thisTree%initialized=.true.
     end if

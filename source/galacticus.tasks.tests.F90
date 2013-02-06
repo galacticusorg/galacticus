@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which performs self tests of \glc.
 
 module Galacticus_Tasks_Tests
 !% Performs self tests of \glc.
+  implicit none
   private
   public :: Galacticus_Task_Test
   
@@ -50,7 +46,7 @@ contains
        call Unit_Tests_Begin_Group("Galacticus self tests")
 
        ! Perform any test required.
-       !# <include directive="galacticusSelfTest" type="code" action="subroutine">
+       !# <include directive="galacticusSelfTest" type="functionCall" functionType="void">
        include 'galacticus.tasks.tests.inc'
        !# </include>
 

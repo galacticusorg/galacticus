@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,18 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of the rotation curve as a specified radius.
 
 module Galactic_Structure_Rotation_Curves
   !% Implements calculations of the rotation curve as a specified radius.
-  use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
+  implicit none
   private
   public :: Galactic_Structure_Rotation_Curve
 
@@ -68,9 +63,9 @@ contains
     Galactic_Structure_Rotation_Curve=0.0d0
 
     ! Call routines to supply the velocities for all components.
-    !# <include directive="rotationCurveTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radius,massTypeActual,componentTypeActual,componentVelocity</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Rotation_Curve=Galactic_Structure_Rotation_Curve+componentVelocity**2</subroutineAction>
+    !# <include directive="rotationCurveTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,componentVelocity</functionArgs>
+    !#  <onReturn>Galactic_Structure_Rotation_Curve=Galactic_Structure_Rotation_Curve+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>
 

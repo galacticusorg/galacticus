@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements a null calculation of bar instability.
 
 module Galactic_Dynamics_Bar_Instabilities_Null
   !% Implements a null calculation of bar instability.
-  use Tree_Nodes
+  use Galacticus_Nodes
+  implicit none
   private
   public :: Galactic_Dynamics_Bar_Instabilities_Null_Initialize
 
@@ -38,8 +34,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: barInstabilityMethod
-    procedure(),          pointer, intent(inout) :: Bar_Instability_Timescale_Get
+    type(varying_string),                 intent(in)    :: barInstabilityMethod
+    procedure(double precision), pointer, intent(inout) :: Bar_Instability_Timescale_Get
     
     if (barInstabilityMethod == 'null') Bar_Instability_Timescale_Get => Bar_Instability_Timescale_Null
 

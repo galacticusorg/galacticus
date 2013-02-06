@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
 !% Contains a module which displays a banner for \glc.
 
 module Galacticus_Banner
   !% Displays a banner for \glc.
+  implicit none
   private
   public :: Galacticus_Banner_Show
 
@@ -44,7 +38,7 @@ contains
     write (0,*) ' #   #  #  #  #  #  # #     #    #  #     #  #    # '
     write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
     write (0,*)
-    write (0,*) '          (c) 2009-2010 - Andrew Benson             '
+    write (0,*) '   © 2009, 2010, 2011, 2012, 2013 - Andrew Benson   '
     write (0,*)
     return
   end subroutine Galacticus_Banner_Show

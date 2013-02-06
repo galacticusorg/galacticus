@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,180 +15,185 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
-
-
 !% Contains a module for storing and reporting memory usage by the code.
 
 module Memory_Management
   !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
   !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
-  !$ use omp_lib
-  include 'utility.memory_management.use.inc'
+  use, intrinsic :: ISO_C_Binding
+  use Kind_Numbers
+  implicit none
   private
-  public :: Memory_Management_Type,Report_Memory_Usage,Memory_Type,Free_Memory,Code_Memory_Usage,Alloc_Array,Dealloc_Array&
-       &,Memory_Usage_Record
+  public :: Memory_Usage_Report,Code_Memory_Usage,Alloc_Array,Dealloc_Array,Memory_Usage_Record
+#ifdef PROCPS
+  public :: Memory_Usage_Get
+#endif
 
-  integer          :: successive_decreases=0
-  double precision :: last_report_usage=0.0d0
+  ! Count of number of successive decreases in memory usage.
+  integer                 :: successiveDecreaseCount=0
 
-  type Memory_Type
-     !% Dervied type variable for storing the properties of a single class of memory storage (memory usage, divider for outputting
+  ! Record of memory usage at the last time it was reported.
+  integer(kind=kind_int8) :: usageAtPreviousReport=0
+
+  type memoryUsage
+     !% Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
      !% and suffix for outputting)
-     double precision   :: usage,divider
-     character (len=20) :: name
-     character (len=2)  :: suffix
-  end type Memory_Type
+     integer(kind=kind_int8) :: usage,divisor
+     character(len=20)       :: name
+     character(len=3)        :: suffix
+  end type memoryUsage
 
-  ! Identifiers for the various memory types used
-  integer, public, parameter :: MEM_TYPE_CODE     =1
-  integer, public, parameter :: MEM_TYPE_TREE     =2
-  integer, public, parameter :: MEM_TYPE_GALAXY   =3
-  integer, public, parameter :: MEM_TYPE_SATELLITE=4
-  integer, public, parameter :: MEM_TYPE_SSP      =5
-  integer, public, parameter :: MEM_TYPE_LEVELS   =6
-  integer, public, parameter :: MEM_TYPE_SAMPLE   =7
-  integer, public, parameter :: MEM_TYPE_MISC     =8
-  integer, public, parameter :: MEM_TYPE_TOTAL    =9
+  ! Identifiers for the various memory types used.
+  integer, public, parameter :: memoryTypeCode =1
+  integer, public, parameter :: memoryTypeNodes=2
+  integer, public, parameter :: memoryTypeMisc =3
+  integer, public, parameter :: memoryTypeTotal=4
 
-  type Memory_Management_Type
+  type memoryUsageList
      !% Dervied type variable for storing all memory usage in the code.
-     type (Memory_Type) :: mem_type(9)
-  end type Memory_Management_Type
+     type (memoryUsage) :: memoryType(4)
+  end type memoryUsageList
 
-  type (Memory_Management_Type) :: Memory_Used=Memory_management_Type( (/Memory_Type(-1.0,1.0,'code'     ,'??'),&
-       & Memory_Type( 0.0 ,1.0,'tree'     ,'??'), Memory_Type( 0.0,1.0,'galaxy'   ,'??'), Memory_Type( 0.0,1.0,'satellite','??'),&
-       & Memory_Type( 0.0 ,1.0,'ssp'      ,'??'), Memory_Type( 0.0,1.0,'levels'   ,'??'), Memory_Type( 0.0,1.0,'sample'   ,'??'),&
-       & Memory_Type( 0.0 ,1.0,'misc'     ,'??'), Memory_Type( 0.0,1.0,'total'    ,'??')/))
+  ! List of all types of memory usage.
+  type (memoryUsageList) :: usedMemory=memoryUsageList([memoryUsage(-1,1,'code' ,'??'), &
+       &                                                memoryUsage( 0,1,'nodes','??'), &
+       &                                                memoryUsage( 0,1,'misc' ,'??'), &
+       &                                                memoryUsage( 0,1,'total','??')  &
+       &                                               ]                                &
+       &                                              )
 
+  ! Overhead memory (in bytes) per allocation.
+  integer(kind=kind_int8) :: allocationOverhead=8
+
+#ifdef PROCPS
+  interface
+     !: ./work/build/utility.memory_usage.o
+     function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
+       !% Template for a C function that returns the current memory usage.
+       import
+       integer(c_long) :: Memory_Usage_Get_C
+     end function Memory_Usage_Get_C
+  end interface
+#endif
+
+  ! Include automatically generated inferfaces.
   include 'utility.memory_management.precontain.inc'
 
 contains
-  subroutine Report_Memory_Usage
+
+  subroutine Memory_Usage_Report
     !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
     !% units prior to output.
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision, parameter :: total_change_factor=1.2d0
-    logical                     :: report_now
-    type (Memory_Type)          :: galaxy_total
-    type (varying_string)       :: str1,str2
+    double precision, parameter :: newReportChangeFactor=1.2d0
+    logical                     :: issueNewReport
+    type(varying_string)        :: headerText,usageText
     character(len=1)            :: join
 
     !$omp critical (MemAdd)
-    report_now=.false.
-    galaxy_total%usage=Memory_Used%mem_type(MEM_TYPE_GALAXY)%usage+Memory_Used%mem_type(MEM_TYPE_SATELLITE)%usage
-    galaxy_total%name='galaxy'
-    Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage=0.0
-    Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage=sum(Memory_Used%mem_type(:)%usage)
-    if (last_report_usage.le.0.0) then ! First call, so always report memory usage.
-       report_now=.true.
-    else if (Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage.gt.0.0) then
-       ! Only report memory usage if the total usage has changed by more than total_change_factor.
-       if (abs(log(Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage/last_report_usage)).gt.log(total_change_factor)) then
-          if (Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage.lt.last_report_usage) then
-             successive_decreases=successive_decreases+1
-             if (successive_decreases.ge.2) then
-                report_now=.true.
-                successive_decreases=0
+    issueNewReport=.false.
+    usedMemory%memoryType(memoryTypeTotal)%usage=0
+    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
+    if (usageAtPreviousReport <= 0) then ! First call, so always report memory usage.
+       issueNewReport=.true.
+    else if (usedMemory%memoryType(memoryTypeTotal)%usage > 0) then
+       ! Only report memory usage if the total usage has changed by more than newReportChangeFactor.
+       if (dabs(dlog(dble(usedMemory%memoryType(memoryTypeTotal)%usage)/dble(usageAtPreviousReport))) > dlog(newReportChangeFactor)) then
+          if (usedMemory%memoryType(memoryTypeTotal)%usage < usageAtPreviousReport) then
+             successiveDecreaseCount=successiveDecreaseCount+1
+             if (successiveDecreaseCount >= 2) then
+                issueNewReport         =.true.
+                successiveDecreaseCount=0
              end if
           else
-             successive_decreases=0
-             report_now=.true.
+             successiveDecreaseCount=0
+             issueNewReport         =.true.
           end if
        end if
-    endif
-    if (report_now) then
-       last_report_usage=Memory_Used%mem_type(MEM_TYPE_TOTAL)%usage
-       call Set_Memory_Prefix(galaxy_total)
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_CODE  )) ! Set dividers and suffixes for output.
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_TREE  ))
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_SSP   ))
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_LEVELS))
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_SAMPLE))
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_MISC  ))
-       call Set_Memory_Prefix(Memory_Used%mem_type(MEM_TYPE_TOTAL ))
+    end if
+    if (issueNewReport) then
+       ! Record new memory usage reported.
+       usageAtPreviousReport=usedMemory%memoryType(memoryTypeTotal)%usage
+       ! Set divisors and suffixes for output.
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeCode ))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeNodes))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeMisc ))
+       call Set_Memory_Prefix(usedMemory%memoryType(memoryTypeTotal))
        ! Output the memory usage.
        join=' '
-       str1='Memory: '
-       str2='       ' ! Note that these are non-breaking spaces.
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_CODE)  ,str1,str2,join)
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_TREE)  ,str1,str2,join)
-       call Add_Memory_Component(galaxy_total                         ,str1,str2,join)
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_SSP)   ,str1,str2,join)
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_LEVELS),str1,str2,join)
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_SAMPLE),str1,str2,join)
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_MISC)  ,str1,str2,join)
+       headerText='Memory: '
+       usageText='       ' ! Note that these are non-breaking spaces.
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeCode) ,headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeNodes),headerText,usageText,join)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeMisc) ,headerText,usageText,join)
        join='='
-       call Add_Memory_Component(Memory_Used%mem_type(MEM_TYPE_TOTAL) ,str1,str2,join)
-       call Galacticus_Display_Message(str1)
-       call Galacticus_Display_Message(str2)
+       call Add_Memory_Component(usedMemory%memoryType(memoryTypeTotal),headerText,usageText,join)
+       call Galacticus_Display_Message(headerText)
+       call Galacticus_Display_Message(usageText )
     end if
     !$omp end critical (MemAdd)
-  end subroutine Report_Memory_Usage
+    return
+  end subroutine Memory_Usage_Report
 
-  subroutine Add_Memory_Component(Memory,str1,str2,join)
+  subroutine Add_Memory_Component(thisMemoryUsage,headerText,usageText,join)
     !% Add a memory type to the memory reporting strings.
-    use iso_varying_string
+    use ISO_Varying_String
     implicit none
-    type (Memory_Type),    intent(in)    :: Memory
-    type (varying_string), intent(inout) :: str1,str2
-    character(len=1),      intent(inout) :: join
-    integer                              :: ispace
-    character(len=20)                    :: format_string
-    character(len=len(str1)+40)          :: tmp_string
+    type(memoryUsage),    intent(in)    :: thisMemoryUsage
+    type(varying_string), intent(inout) :: headerText,usageText
+    character(len=1),     intent(inout) :: join
+    integer                             :: spaceCount
+    character(len=20)                   :: formatString
+    character(len=len(headerText)+40)   :: temporaryString
+    character(len=13)                   :: usageString
 
-    if (Memory%usage.gt.0) then
-       ispace=max(0,10-len_trim(Memory%name))
-       write (format_string,'(a,i1,a)') '(a,1x,a1,',ispace,'x,a)'
-       write (tmp_string,format_string) trim(char(str1)),join,trim(Memory%name)
-       str1=trim(tmp_string)
-       write (tmp_string,'(1x,a1,1x,f7.3,a2)') join,Memory%usage/Memory%divider,Memory%suffix
-       str2=trim(str2)//trim(tmp_string)
+    if (thisMemoryUsage%usage > 0) then
+       spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
+       write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
+       write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
+       headerText=trim(temporaryString)
+       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
+       usageText=trim(usageText)//usageString
        join='+'
     end if
     return
   end subroutine Add_Memory_Component
 
-  subroutine Set_Memory_Prefix(This_Memory)
-    !% Given a memory variable, sets the divider and suffix required to put the memory usage into convenient units for output.
+  subroutine Set_Memory_Prefix(thisMemoryUsage)
+    !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    use ISO_Varying_String
     implicit none
-    type (Memory_Type), intent(inout)   :: This_Memory
-    double precision,   parameter       :: log10_Kilo=3.0103d0 ! log_10 of 1024
-    double precision,   parameter       :: kilo=1024.0d0
-    integer                             :: usage_base
+    type(memoryUsage),       intent(inout) :: thisMemoryUsage
+    integer(kind=kind_int8), parameter     :: kilo     =1024
+    double precision,        parameter     :: log10kilo=dlog10(dble(kilo))
+    integer                                :: usageDecade
 
-    if (This_Memory%usage.gt.0.0) then
-       usage_base=int(log10(This_Memory%usage)/log10_Kilo+0.01)
-       select case (usage_base)
+    if (thisMemoryUsage%usage > 0) then
+       usageDecade=int(dlog10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
+       select case (usageDecade)
        case (:0)
-          This_Memory%divider=1.0
-          This_Memory%suffix='b '
+          thisMemoryUsage%divisor=1
+          thisMemoryUsage%suffix='  b'
        case (1)
-          This_Memory%divider=kilo
-          This_Memory%suffix='kb'
+          thisMemoryUsage%divisor=kilo
+          thisMemoryUsage%suffix='kib'
        case (2)
-          This_Memory%divider=kilo**2
-          This_Memory%suffix='Mb'
+          thisMemoryUsage%divisor=kilo**2
+          thisMemoryUsage%suffix='Mib'
        case (3:)
-          This_Memory%divider=kilo**3
-          This_Memory%suffix='Gb'
+          thisMemoryUsage%divisor=kilo**3
+          thisMemoryUsage%suffix='Gib'
        end select
     else
-       This_Memory%divider=1.0
-       This_Memory%suffix='b '
+       thisMemoryUsage%divisor=1
+       thisMemoryUsage%suffix='  b'
     end if
     return
   end subroutine Set_Memory_Prefix
 
-  subroutine Code_Memory_Usage(sizefile)
+  subroutine Code_Memory_Usage(codeSizeFile)
     !% If present reads the file {\tt $\langle$executable$\rangle$.size} to determine the amount
     !% of memory the {\tt $\langle$executable$\rangle$.exe} code needs before other memory is
     !% allocated. This is stored to allow an accurate calculation of the
@@ -196,56 +201,74 @@ contains
     !%
     !% The {\tt $\langle$executable$\rangle$.size} file is made by running the Perl script {\tt Find\_Executable\_Size.pl} (which is done
     !% automatically when the executable is built by {\tt make}).
-    use File_Utilities
     use ISO_Varying_String
+    use Galacticus_Display
+    use Galacticus_Input_Paths
     implicit none
-    character(len=*), intent(in) :: sizefile
-    integer                      :: file_err,iunit
-    double precision             :: dummy
-    character                    :: line*80
-    type (varying_string)        :: sizefile_ext
+    character(len=*),    intent(in) :: codeSizeFile
+    integer                         :: ioError,unitNumber
+    double precision                :: dummy
+    character(len=80)               :: line
+    type(varying_string)            :: codeSizeFileExtension
 
-    Memory_Used%mem_type(MEM_TYPE_CODE)%usage=0.0  ! Default value in case size file is unreadable.
-    iunit=File_Units_Get()
-    sizefile_ext='./work/build/'//trim(sizefile)
-    open (iunit,file=char(sizefile_ext),iostat=file_err,status='old',form='formatted')
-    read (iunit,'(a80)',iostat=file_err) line ! Read header line.
-    if (file_err.eq.0) then
-       read (iunit,*) dummy,dummy,dummy,Memory_Used%mem_type(MEM_TYPE_CODE)%usage
-       close (iunit)
+    usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
+    codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
+    open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
+    read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
+    if (ioError == 0) then
+       read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage
+       close (unitNumber)
        return
     else
-#ifdef WARN
-       write (0,*) 'Code_Memory_Usage(): WARNING - ',trim(char(sizefile_ext)),' not present or unreadable'
-       write (0,*) '                     this file can be made using Find_Executable_Size.pl'
-#endif
-       close (iunit)
+       call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] not present or unreadable: can be made using Find_Executable_Size.pl')
+       close (unitNumber)
        return
     endif
   end subroutine Code_Memory_Usage
 
-  subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove)
+  subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount)
     !% Record a change in memory usage.
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    integer, intent(in)           :: elementsUsed
-    integer, intent(in), optional :: memoryType,addRemove
-    integer                       :: memoryTypeActual,addRemoveActual
+    integer(kind=C_SIZE_T), intent(in)           :: elementsUsed
+    integer,                intent(in), optional :: addRemove,memoryType,blockCount
+    integer                                      :: memoryTypeActual,blockCountActual,addRemoveActual
 
     if (present(memoryType)) then
        memoryTypeActual=memoryType
     else
-       memoryTypeActual=MEM_TYPE_MISC
+       memoryTypeActual=memoryTypeMisc
     end if
     if (present(addRemove)) then
        addRemoveActual=addRemove
     else
        addRemoveActual=1
     end if
-    !$omp atomic
-    Memory_Used%mem_type(memoryTypeActual)%usage=Memory_Used%mem_type(memoryTypeActual)%usage+dble(elementsUsed*addRemoveActual)
+    if (present(blockCount)) then
+       blockCountActual=blockCount
+    else
+       blockCountActual=1
+    end if
+    !$omp critical(Memory_Management_Usage)
+    usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+elementsUsed*addRemoveActual
+    usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sign(blockCountActual,addRemoveActual)*allocationOverhead
+    !$omp end critical(Memory_Management_Usage)
     return
   end subroutine Memory_Usage_Record
 
   include 'utility.memory_management.postcontain.inc'
+
+#ifdef PROCPS
+  function Memory_Usage_Get()
+    implicit none
+    integer(kind_int8) :: Memory_Usage_Get(2)
+
+    usedMemory%memoryType(memoryTypeTotal)%usage=0
+    usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
+    Memory_Usage_Get(1)=Memory_Usage_Get_C()*4096_kind_int8
+    Memory_Usage_Get(2)=usedMemory%memoryType(memoryTypeTotal)%usage
+    return
+  end function Memory_Usage_Get
+#endif
 
 end module Memory_Management

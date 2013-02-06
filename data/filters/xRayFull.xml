@@ -1,0 +1,16 @@
+<filter>
+  <description>Full-band X-ray filter (0.5-10.0keV)</description>
+  <name>xRayHard</name>
+  <origin>definition</origin>
+  <note>
+    This is a top-hat filter designed to count photons in the full X-ray band.
+  </note>
+  <response>
+    <datum> 1.240 0.0</datum>
+    <datum> 1.241 1.0</datum>
+    <datum>24.796 1.0</datum>
+    <datum>24.797 0.0</datum>
+  </response>
+  <effectiveWavelength>13.0185</effectiveWavelength>
+  <vegaOffset>-121.68293133009</vegaOffset>
+</filter>

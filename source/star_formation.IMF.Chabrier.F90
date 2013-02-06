@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-!% Contains a module which implements the Chabrier stellar initial mass function \citep{}.
+!% Contains a module which implements the Chabrier stellar initial mass function \citep{chabrier_galactic_2001}.
 
 module Star_Formation_IMF_Chabrier
   !% Implements the Chabrier stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Chabrier, Star_Formation_IMF_Register_Name_Chabrier,&
        & Star_Formation_IMF_Recycled_Instantaneous_Chabrier, Star_Formation_IMF_Yield_Instantaneous_Chabrier,&
@@ -62,13 +58,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Chabrier</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Chabrier(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Chabrier(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Chabrier"
+    imfNames      (imfIndex)="Chabrier"
+    imfDescriptors(imfIndex)="Chabrier"
     return
   end subroutine Star_Formation_IMF_Register_Name_Chabrier
 
@@ -78,30 +75,37 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Chabrier_Initialize)
     if (.not.imfChabrierInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfChabrierRecycledInstantaneous</name>
-       !@   <defaultValue>0.46 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Chabrier \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfChabrierRecycledInstantaneous',imfChabrierRecycledInstantaneous,defaultValue=0.46d0)
-       !@ <inputParameter>
-       !@   <name>imfChabrierYieldInstantaneous</name>
-       !@   <defaultValue>0.035 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Chabrier \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
-
-       imfChabrierInitialized=.true.
+       !$omp critical (IMF_Chabrier_Initialize)
+       if (.not.imfChabrierInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfChabrierRecycledInstantaneous</name>
+          !@   <defaultValue>0.46 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Chabrier \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierRecycledInstantaneous',imfChabrierRecycledInstantaneous,defaultValue=0.46d0)
+          !@ <inputParameter>
+          !@   <name>imfChabrierYieldInstantaneous</name>
+          !@   <defaultValue>0.035 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Chabrier \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfChabrierYieldInstantaneous'   ,imfChabrierYieldInstantaneous   ,defaultValue=0.035d0)
+          imfChabrierInitialized=.true.
+       end if
+       !$omp end critical (IMF_Chabrier_Initialize)
     end if
-    !$omp end critical (IMF_Chabrier_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Chabrier
 
@@ -213,8 +217,8 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
-       call Alloc_Array(imfMass,nPoints,'imfMass')
-       call Alloc_Array(imfPhi ,nPoints,'imfPhi' )
+       call Alloc_Array(imfMass,[nPoints])
+       call Alloc_Array(imfPhi ,[nPoints])
        imfMass=Make_Range(chabrierMassLower,chabrierMassUpper,nPoints,rangeType=rangeTypeLogarithmic)
        imfPhi =Chabrier_Phi(imfMass)
        imfMatched=.true.

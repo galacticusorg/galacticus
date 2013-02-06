@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,31 +15,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of the mass enclosed within a specified radius.
 
 module Galactic_Structure_Enclosed_Masses
   !% Implements calculations of the mass enclosed within a specified radius.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tree_Nodes
+  use Galacticus_Nodes
   use Galactic_Structure_Options
+  implicit none
   private
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
 
   ! Variables used in root finding.
-  integer                  :: massTypeRoot,componentTypeRoot
+  integer                  :: massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot
   double precision         :: massRoot
   type(treeNode),  pointer :: activeNode
-  !$omp threadprivate(massRoot,massTypeRoot,componentTypeRoot,activeNode)
+  !$omp threadprivate(massRoot,massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot,activeNode)
 
 contains
 
-  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType)
+  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
     use Galacticus_Error
@@ -49,9 +45,9 @@ contains
     !# </include>
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: massType,componentType
+    integer,          intent(in),    optional :: massType,componentType,weightBy,weightIndex
     double precision, intent(in),    optional :: radius
-    integer                                   :: massTypeActual,componentTypeActual
+    integer                                   :: massTypeActual,componentTypeActual,weightByActual,weightIndexActual
     double precision                          :: radiusActual,componentMass
 
     ! Determine which radius to use.
@@ -68,6 +64,18 @@ contains
        massTypeActual=massTypeAll
     end if
 
+    ! Determine which weighting to use.
+    if (present(weightBy)) then
+       weightByActual=weightBy
+       select case (weightByActual)
+       case (weightByLuminosity)
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Enclosed_Mass','weightIndex should be specified for luminosity weighting')
+          weightIndexActual=weightIndex
+       end select
+    else
+       weightByActual=weightByMass
+    end if
+
     ! Determine which component type to use.
     if (present(componentType)) then
        componentTypeActual=componentType
@@ -79,34 +87,34 @@ contains
     Galactic_Structure_Enclosed_Mass=0.0d0
 
     ! Call routines to supply the masses for all components.
-    !# <include directive="enclosedMassTask" type="code" action="subroutine">
-    !#  <subroutineArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,componentMass</subroutineArgs>
-    !#  <subroutineAction>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</subroutineAction>
+    !# <include directive="enclosedMassTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode,radiusActual,massTypeActual,componentTypeActual,weightByActual,weightIndexActual,componentMass</functionArgs>
+    !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>
-
     return
   end function Galactic_Structure_Enclosed_Mass
   
-  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,massType,componentType)
+  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,massType,componentType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\tt thisNode}.
     use Galacticus_Error
     use Root_Finder
     use FGSL
     use Dark_Matter_Halo_Scales
-
-use tree_node_methods
-
-
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
-    integer,                 intent(in),    optional :: massType,componentType
+    integer,                 intent(in),    optional :: massType,componentType,weightBy,weightIndex
     double precision,        intent(in),    optional :: mass,fractionalMass
     type(fgsl_function),     save                    :: rootFunction
     type(fgsl_root_fsolver), save                    :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
     double precision                                 :: radiusMinimum,radiusMaximum
     type(c_ptr)                                      :: parameterPointer
+    type(varying_string)                             :: message
+    character(len=11)                                :: massLabel
 
     ! Determine which mass type to use.
     if (present(massType)) then
@@ -122,6 +130,18 @@ use tree_node_methods
        componentTypeRoot=componentTypeAll
     end if
 
+    ! Determine which weighting to use.
+    if (present(weightBy)) then
+       weightByRoot=weightBy
+       select case (weightByRoot)
+       case (weightByLuminosity)
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','weightIndex should be specified for luminosity weighting')
+          weightIndexRoot=weightIndex
+       end select
+    else
+       weightByRoot=weightByMass
+    end if
+
     ! Determine what mass to use.
     if (present(mass)) then
        if (present(fractionalMass)) call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','only one mass or&
@@ -132,7 +152,7 @@ use tree_node_methods
           Galactic_Structure_Radius_Enclosing_Mass=radiusLarge
           return
        end if
-       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeRoot)
+       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeRoot,weightBy=weightByRoot,weightIndex=weightIndexRoot)
     else
        call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','either mass or fractionalMass must be specified')
     end if
@@ -144,6 +164,15 @@ use tree_node_methods
     ! Solve for the radius.
     activeNode => thisNode
     radiusMinimum=0.0d0
+    if (Enclosed_Mass_Root(radiusMinimum,parameterPointer) >= 0.0d0) then
+       message='Enclosed mass in galaxy (ID='
+       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,radiusMinimum,massTypeRoot,componentTypeRoot)
+       message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
+       write (massLabel,'(e10.4)') massRoot
+       message=message//') at zero radius (was seeking '//trim(massLabel)
+       message=message//') - expect a crash.'
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
     radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
     do while (Enclosed_Mass_Root(radiusMaximum,parameterPointer) <= 0.0d0)
        radiusMaximum=radiusMaximum*2.0d0
@@ -161,7 +190,7 @@ use tree_node_methods
     real(c_double)          :: Enclosed_Mass_Root
    
     ! Evaluate the root function.
-    Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,massTypeRoot,componentTypeRoot)-massRoot
+    Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot)-massRoot
   end function Enclosed_Mass_Root
 
 end module Galactic_Structure_Enclosed_Masses

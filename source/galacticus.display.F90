@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,21 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
 !% Contains a module which implements outputting of formatted, indented messages at various vebosity levels from \glc.
 
 module Galacticus_Display
   !% Implements outputting of formatted, indented messages at various vebosity levels from \glc.
   !$ use OMP_Lib
   use ISO_Varying_String
+  implicit none
   private
-  public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level
+  public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
+       &,Galacticus_Verbosity_Level_Set, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
 
   integer                                      :: maxThreads
   integer,           allocatable, dimension(:) :: indentationLevel
@@ -37,8 +32,15 @@ module Galacticus_Display
   character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
 
   logical                                      :: displayInitialized=.false.
-  integer                                      :: verbosityLevel
-  integer,           parameter, public         :: verbosityWarn=2, verbosityInfo=3, verbosityDebug=4
+  integer                                      :: verbosityLevel  =1
+  integer,           parameter, public         :: verbosityWorking=2, &
+       &                                          verbosityWarn   =3, &
+       &                                          verbosityInfo   =4, &
+       &                                          verbosityDebug  =5
+
+  ! Progress bar state.
+  logical                                      :: barVisible=.false.
+  integer                                      :: barPercentage
 
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
@@ -60,39 +62,38 @@ contains
     return
   end function Galacticus_Verbosity_Level
 
+  subroutine Galacticus_Verbosity_Level_Set(verbosityLevelNew)
+    !% Set the verbosity level.
+    implicit none
+    integer, intent(in) :: verbosityLevelNew
+
+    verbosityLevel=verbosityLevelNew
+    return
+  end subroutine Galacticus_Verbosity_Level_Set
+
   subroutine Initialize_Display
     !% Initialize the module by determining the requested verbosity level.
-    use Input_Parameters
     implicit none
 
-    !$omp critical (Initialize_Display)
     if (.not.displayInitialized) then
-       ! Get the verbosity level parameter.
-       !@ <inputParameter>
-       !@   <name>verbosityLevel</name>
-       !@   <defaultValue>1</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The level of verbosity for \glc\ (higher values give more verbosity).
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
-
-       ! For OpenMP runs, create an array of indentation levels.
-       maxThreads=1
-       !$ maxThreads=omp_get_max_threads()
-       ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
-       ! parallel locks.
-       allocate(indentationLevel          (maxThreads))
-       allocate(indentationFormat         (maxThreads))
-       allocate(indentationFormatNoNewLine(maxThreads))
-       indentationLevel=0
-       indentationFormat='(a)'
-       indentationFormatNoNewLine='(a,$)'
-
-       displayInitialized=.true.
+       !$omp critical (Initialize_Display)
+       if (.not.displayInitialized) then
+          ! For OpenMP runs, create an array of indentation levels.
+          maxThreads=1
+          !$ maxThreads=omp_get_max_threads()
+          ! Do not use Alloc_Array() routines here as they may trigger recursive calls to this module which can lead to unbreakable
+          ! parallel locks.
+          allocate(indentationLevel          (maxThreads))
+          allocate(indentationFormat         (maxThreads))
+          allocate(indentationFormatNoNewLine(maxThreads))
+          indentationLevel=0
+          indentationFormat='(a)'
+          indentationFormatNoNewLine='(a,$)'
+          
+          displayInitialized=.true.
+       end if
+       !$omp end critical (Initialize_Display)
     end if
-    !$omp end critical (Initialize_Display)
     return
   end subroutine Initialize_Display
 
@@ -198,6 +199,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -206,6 +208,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) trim(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -227,6 +230,7 @@ contains
        showMessage=.true.
     end if
     if (showMessage) then
+       if (barVisible) call Galacticus_Display_Counter_Clear_Lockless()
        !$ if (omp_in_parallel()) then
        !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
        !$ else
@@ -235,6 +239,7 @@ contains
        threadNumber=1
        !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
        write (0,indentationFormat(threadNumber)) char(message)
+       if (barVisible) call Galacticus_Display_Counter_Lockless(barPercentage,.true.)
     end if
     !$omp end critical(Galacticus_Message_Lock)
     return
@@ -266,5 +271,80 @@ contains
     !$ end if
     return
   end subroutine Create_Indentation_Format
+
+  subroutine Galacticus_Display_Counter(percentageComplete,isNew,verbosity)
+    !% Displays a percentage counter and bar to show progress.
+    implicit none
+    integer,          intent(in)           :: percentageComplete
+    logical,          intent(in)           :: isNew
+    integer,          intent(in), optional :: verbosity
+
+    !$omp critical(Galacticus_Message_Lock)
+    call Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter
+
+  subroutine Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
+    !% Displays a percentage counter and bar to show progress.
+    implicit none
+    integer,          intent(in)           :: percentageComplete
+    logical,          intent(in)           :: isNew
+    integer,          intent(in), optional :: verbosity
+    character(len=50)                      :: bar
+    integer                                :: percentage,minorCount,majorCount
+    logical                                :: showMessage
+    
+    call Initialize_Display
+    if (present(verbosity)) then
+       showMessage=(verbosity<=verbosityLevel)
+    else
+       showMessage=.true.
+    end if
+    if (showMessage) then
+       if (percentageComplete == barPercentage) return
+       if (.not.isNew) call Galacticus_Display_Counter_Clear_Lockless()
+       percentage=max(0,min(percentageComplete,100))
+       majorCount=percentage/2
+       minorCount=percentage-majorCount*2
+       bar=repeat("=",majorCount)//repeat("-",minorCount)//repeat(" ",50-majorCount-minorCount)
+       write (0,'(1x,i3,"% [",a50,"]",$)') percentage,bar
+       barVisible   =.true.
+       barPercentage=percentageComplete
+    end if
+    return
+  end subroutine Galacticus_Display_Counter_Lockless
+
+  subroutine Galacticus_Display_Counter_Clear(verbosity)
+    !% Clears a percentage counter.
+    implicit none
+    integer, intent(in), optional :: verbosity
+    
+    !$omp critical(Galacticus_Message_Lock)
+    call Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    barVisible=.false.
+    !$omp end critical(Galacticus_Message_Lock)
+    return
+  end subroutine Galacticus_Display_Counter_Clear
+
+  subroutine Galacticus_Display_Counter_Clear_Lockless(verbosity)
+    !% Clears a percentage counter.
+    implicit none
+    integer, intent(in), optional :: verbosity
+    logical                       :: showMessage
+    
+    call Initialize_Display
+    if (present(verbosity)) then
+       showMessage=(verbosity<=verbosityLevel)
+    else
+       showMessage=.true.
+    end if
+    if (showMessage) then
+       write (0,'(a58,$)') repeat(char(8),58)
+       write (0,'(a58,$)') repeat(" "    ,58)
+       write (0,'(a58,$)') repeat(char(8),58)
+    end if
+    return
+  end subroutine Galacticus_Display_Counter_Clear_Lockless
 
 end module Galacticus_Display

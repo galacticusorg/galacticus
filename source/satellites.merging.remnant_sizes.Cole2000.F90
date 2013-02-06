@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
 
 module Satellite_Merging_Remnant_Sizes_Cole2000
   !% Implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
+  implicit none
   private
   public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
 
@@ -52,6 +48,8 @@ contains
        !@   <description>
        !@     The orbital energy used in the ``Cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.
        !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("mergerRemnantSizeOrbitalEnergy",mergerRemnantSizeOrbitalEnergy,defaultValue=1.0d0)
     end if
@@ -60,154 +58,50 @@ contains
 
   subroutine Satellite_Merging_Remnant_Size_Cole2000(thisNode)
     !% Compute the size of the merger remnant for {\tt thisNode} using the \cite{cole_hierarchical_2000} algorithm.
-    use Tree_Nodes
-    use Tree_Node_Methods
-    use Galactic_Structure_Radii
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Galacticus_Nodes
     use Numerical_Constants_Physical
+    use Numerical_Comparison
     use Satellite_Merging_Remnant_Sizes_Properties
-    use Galactic_Structure_Rotation_Curves
-    use Numerical_Interpolation
-    use FGSL
     use Galacticus_Error
     use String_Handling
     use ISO_Varying_String
     use Galacticus_Display
+    use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Galactic_Structure_Options
+    use Galactic_Structure_Enclosed_Masses
     implicit none
     type(treeNode),          intent(inout), pointer  :: thisNode
     type(treeNode),                         pointer  :: hostNode
     double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
-    double precision,        parameter               :: massTolerance          =1.0d-6
-    type(fgsl_interp),       save                    :: interpolationObject
-    type(fgsl_interp_accel), save                    :: interpolationAccelerator
-    !$omp threadprivate(interpolationObject,interpolationAccelerator)
-    logical                                          :: interpolationReset
+    double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
+    double precision,        parameter               :: relativeMassTolerance  =1.0d-9
     double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor&
-         &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,darkMatterFactor,componentMass
+         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass &
+         &,remnantSpheroidMass,hostDarkMatterBoost,satelliteDarkMatterBoost,hostSpheroidMassTotal,satelliteSpheroidMassTotal
     character(len= 2)                                :: joinString
     character(len=40)                                :: dataString
     type(varying_string)                             :: message
     logical                                          :: errorCondition
 
-    ! Get the host node.
-    hostNode => thisNode%parentNode
+    ! Find the node to merge with.
+    hostNode => thisNode%mergesWith()
 
-    ! Solve for the radii of the host node, to ensure they are computed and up to date. (Those for the satellite will always be up to
-    ! date, as they are computed as the satellite is evolved in time.)
-    call Galactic_Structure_Radii_Solve(hostNode)
-
-    ! Find the baryonic masses of the two galaxies.
-    satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
-    hostMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic)
-
-    ! Find the half-mass radii of the two galaxies.
-    satelliteRadius=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-    hostRadius     =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
-
-    ! Compute dark matter factors. These are the specific angular momenta of components divided by sqrt(G M / r) where M is the
-    ! component mass and r its half-mass radius. We use a weighted average of these factors to infer the specific angular momentum
-    ! of the remnant from its mass and radius.
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-    if (Tree_Node_Spheroid_Half_Mass_Radius(hostNode) > 0.0d0 .and. componentMass > 0.0d0) then
-       hostSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(hostNode)/(componentMass**1.5d0) &
-            &/dsqrt(gravitationalConstantGalacticus*Tree_Node_Spheroid_Half_Mass_Radius(hostNode))
-    else
-       hostSpheroidDarkMatterFactor=0.0d0
-    end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(hostNode) +Tree_Node_Disk_Gas_Mass(hostNode)
-    if (Tree_Node_Disk_Half_Mass_Radius(hostNode) > 0.0d0 .and. componentMass > 0.0d0) then
-       hostDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(hostNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Disk_Half_Mass_Radius(hostNode))
-    else
-       hostDiskDarkMatterFactor=0.0d0
-    end if
-    componentMass=Tree_Node_Spheroid_Stellar_Mass(thisNode) +Tree_Node_Spheroid_Gas_Mass(thisNode)
-    if (Tree_Node_Spheroid_Half_Mass_Radius(thisNode) > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteSpheroidDarkMatterFactor=Tree_Node_Spheroid_Angular_Momentum(thisNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Spheroid_Half_Mass_Radius(thisNode))
-    else
-       satelliteSpheroidDarkMatterFactor=0.0d0
-    end if
-    componentMass=Tree_Node_Disk_Stellar_Mass(thisNode) +Tree_Node_Disk_Gas_Mass(thisNode)
-    if (Tree_Node_Disk_Half_Mass_Radius(thisNode) > 0.0d0 .and. componentMass > 0.0d0) then
-       satelliteDiskDarkMatterFactor=Tree_Node_Disk_Angular_Momentum(thisNode)/(componentMass**1.5d0)&
-            &/dsqrt(gravitationalConstantGalacticus *Tree_Node_Disk_Half_Mass_Radius(thisNode))
-    else
-       satelliteDiskDarkMatterFactor=0.0d0
-    end if
-
-    ! Find the masses of material that will end up in the spheroid component of the remnant.
-    select case (thisHostGasMovesTo)
-    case (movesToSpheroid)
-       hostSpheroidMass=Tree_Node_Spheroid_Gas_Mass(hostNode)                             +Tree_Node_Disk_Gas_Mass(hostNode)
-       darkMatterFactor=Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(hostNode)*hostDiskDarkMatterFactor
-    case (movesToDisk)
-       hostSpheroidMass=0.0d0
-       darkMatterFactor=0.0d0
-    case (doesNotMove)
-       hostSpheroidMass=Tree_Node_Spheroid_Gas_Mass(hostNode)
-       darkMatterFactor=Tree_Node_Spheroid_Gas_Mass(hostNode)*hostSpheroidDarkMatterFactor
-    case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','unrecognized moveTo descriptor')
-    end select
-    select case (thisHostStarsMoveTo)
-    case (movesToSpheroid)
-       hostSpheroidMass=hostSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)                             +Tree_Node_Disk_Stellar_Mass(hostNode)
-       darkMatterFactor=darkMatterFactor+Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(hostNode)*hostDiskDarkMatterFactor
-    case (movesToDisk)
-       hostSpheroidMass=hostSpheroidMass
-       darkMatterFactor=darkMatterFactor
-    case (doesNotMove)
-       hostSpheroidMass=hostSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(hostNode)
-       darkMatterFactor=darkMatterFactor+Tree_Node_Spheroid_Stellar_Mass(hostNode)*hostSpheroidDarkMatterFactor
-    case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','unrecognized moveTo descriptor')
-    end select
-    select case (thisMergerGasMovesTo)
-    case (movesToSpheroid)
-       satelliteSpheroidMass=                 Tree_Node_Spheroid_Gas_Mass(thisNode)                                  +Tree_Node_Disk_Gas_Mass(thisNode)
-       darkMatterFactor     =darkMatterFactor+Tree_Node_Spheroid_Gas_Mass(thisNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Gas_Mass(thisNode)*satelliteDiskDarkMatterFactor
-    case (movesToDisk)
-       satelliteSpheroidMass=0.0d0
-       darkMatterFactor     =darkMatterFactor
-    case (doesNotMove)
-       satelliteSpheroidMass=                 Tree_Node_Spheroid_Gas_Mass(thisNode)
-       darkMatterFactor     =darkMatterFactor+Tree_Node_Spheroid_Gas_Mass(thisNode)*satelliteSpheroidDarkMatterFactor
-    case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','unrecognized moveTo descriptor')
-    end select
-    select case (thisMergerStarsMoveTo)
-    case (movesToSpheroid)
-       satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(thisNode)                                  +Tree_Node_Disk_Stellar_Mass(thisNode)
-       darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(thisNode)*satelliteSpheroidDarkMatterFactor+Tree_Node_Disk_Stellar_Mass(thisNode)*satelliteDiskDarkMatterFactor
-    case (movesToDisk)
-       satelliteSpheroidMass=satelliteSpheroidMass
-       darkMatterFactor     =darkMatterFactor
-    case (doesNotMove)
-       satelliteSpheroidMass=satelliteSpheroidMass+Tree_Node_Spheroid_Stellar_Mass(thisNode)
-       darkMatterFactor     =darkMatterFactor     +Tree_Node_Spheroid_Stellar_Mass(thisNode)*satelliteSpheroidDarkMatterFactor
-    case default
-       call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','unrecognized moveTo descriptor')
-    end select
-    if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
-       darkMatterFactor=darkMatterFactor/(satelliteSpheroidMass+hostSpheroidMass)
-    else
-       darkMatterFactor=1.0d0
-    end if
-
-    hostSpheroidMassPreMerger=Tree_Node_Spheroid_Stellar_Mass(hostNode)+Tree_Node_Spheroid_Gas_Mass(hostNode)
-
-    if (satelliteSpheroidMass <= 0.0d0 .and. hostSpheroidMass == hostSpheroidMassPreMerger) then
+    ! Get properties of the merging systems.
+    call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
+         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
+         &,remnantSpheroidGasMass)
+    if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
        remnantSpecificAngularMomentum=remnantNoChangeValue
     else       
        ! Check that the properties of the galaxies are physically reasonable.
        errorCondition=.false.
-       if (satelliteRadius <= 0.0d0 .or. satelliteMass < -massTolerance .or. satelliteSpheroidMass < -massTolerance) then
+       if     (                                                                         &
+            &      (satelliteRadius       <= 0.0d0 .and. satelliteSpheroidMass > 0.0d0) &
+            &  .or. satelliteMass         < -absoluteMassTolerance                      &
+            &  .or. satelliteSpheroidMass < -absoluteMassTolerance                      &
+            & ) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') satelliteRadius,satelliteMass,satelliteSpheroidMass
           message='Satellite galaxy ['
           message=message//thisNode%index()//'] has '
@@ -216,11 +110,11 @@ contains
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (satelliteMass         <  -massTolerance) then
+          if (satelliteMass         <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (satelliteSpheroidMass <  -massTolerance) then
+          if (satelliteSpheroidMass <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
@@ -228,7 +122,7 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if (hostRadius <= 0.0d0 .or. hostMass < -massTolerance .or. hostSpheroidMass < -massTolerance) then
+       if ((hostRadius <= 0.0d0 .and. hostSpheroidMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
           write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
           message='Host galaxy ['
           message=message//hostNode%index()//'] has '
@@ -237,11 +131,11 @@ contains
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (hostMass         <  -massTolerance) then
+          if (hostMass         <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (hostSpheroidMass <  -massTolerance) then
+          if (hostSpheroidMass <  -absoluteMassTolerance) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
@@ -250,16 +144,42 @@ contains
           errorCondition=.true.
        end if
        if (errorCondition) call Galacticus_Error_Report('Satellite_Merging_Remnant_Size_Cole2000','error condition detected')
-       ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-       progenitorsEnergy= satelliteSpheroidMass*satelliteMass/satelliteRadius &
-            &            +hostSpheroidMass     *hostMass     /hostRadius      &
-            &            +mergerRemnantSizeOrbitalEnergy*satelliteSpheroidMass*hostSpheroidMass/(satelliteRadius+hostRadius)&
-            &                                                                                  /bindingEnergyFormFactor
-       remnantRadius=(satelliteSpheroidMass+hostSpheroidMass)**2/progenitorsEnergy
-
-       ! Also compute the specific angular momentum at the half-mass radius.
-       remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-       remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*darkMatterFactor
+       ! Check if host has finite mass.
+       if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
+          ! Find the contribution of dark matter to the masses enclosed within the galaxy radii.
+          if (hostSpheroidMass      > 0.0d0) then
+             hostDarkMatterBoost     =1.0d0+Galactic_Structure_Enclosed_Mass(hostNode,hostRadius     ,massType=massTypeDark)/hostSpheroidMass
+          else
+             hostDarkMatterBoost     =1.0d0
+          end if
+          if (satelliteSpheroidMass > 0.0d0) then
+             satelliteDarkMatterBoost=1.0d0+Galactic_Structure_Enclosed_Mass(thisNode,satelliteRadius,massType=massTypeDark)/satelliteSpheroidMass
+          else
+             satelliteDarkMatterBoost=1.0d0
+          end if
+          ! Scale masses to account for dark matter.
+          hostSpheroidMassTotal     =hostSpheroidMass     *hostDarkMatterBoost
+          satelliteSpheroidMassTotal=satelliteSpheroidMass*satelliteDarkMatterBoost
+          ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
+          progenitorsEnergy=0.0d0
+          if (hostRadius                 > 0.0d0)                                                                                     &
+               & progenitorsEnergy=progenitorsEnergy+                           hostSpheroidMassTotal**2/                 hostRadius
+          if (           satelliteRadius > 0.0d0)                                                                                     & 
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal                      **2/ satelliteRadius  
+          if (hostRadius+satelliteRadius > 0.0d0)                                                                                     &
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
+               &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
+          remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
+          
+          ! Also compute the specific angular momentum at the half-mass radius.
+          remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
+          remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+       else
+          ! Remnant has zero mass - don't do anything.
+          remnantRadius                 =remnantNoChangeValue
+          remnantCircularVelocity       =remnantNoChangeValue
+          remnantSpecificAngularMomentum=remnantNoChangeValue
+       end if       
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Cole2000

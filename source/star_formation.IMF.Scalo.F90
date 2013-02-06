@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements the Scalo stellar initial mass function \citep{scalo_stellar_1986}.
 
 module Star_Formation_IMF_Scalo
   !% Implements the Scalo stellar initial mass function.
+  implicit none
   private
   public :: Star_Formation_IMF_Register_Scalo, Star_Formation_IMF_Register_Name_Scalo,&
        & Star_Formation_IMF_Recycled_Instantaneous_Scalo, Star_Formation_IMF_Yield_Instantaneous_Scalo,&
@@ -62,13 +58,14 @@ contains
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Scalo</unitName>
   !# </imfRegisterName>
-  subroutine Star_Formation_IMF_Register_Name_Scalo(imfNames)
+  subroutine Star_Formation_IMF_Register_Name_Scalo(imfNames,imfDescriptors)
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:)
+    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
 
-    imfNames(imfIndex)="Scalo"
+    imfNames      (imfIndex)="Scalo"
+    imfDescriptors(imfIndex)="Scalo"
     return
   end subroutine Star_Formation_IMF_Register_Name_Scalo
 
@@ -78,33 +75,41 @@ contains
     use Star_Formation_IMF_PPL
     implicit none
 
-    !$omp critical (IMF_Scalo_Initialize)
     if (.not.imfScaloInitialized) then
-       !@ <inputParameter>
-       !@   <name>imfScaloRecycledInstantaneous</name>
-       !@   <defaultValue>0.24 (computed internally)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The recycled fraction for the Scalo \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfScaloRecycledInstantaneous',imfScaloRecycledInstantaneous,defaultValue=0.24d0)
-       !@ <inputParameter>
-       !@   <name>imfScaloYieldInstantaneous</name>
-       !@   <defaultValue>0.086 (internally computed)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The yield for the Scalo \IMF\ in the instantaneous recycling approximation.
-       !@   </description>
-       !@ </inputParameter>
-       call Get_Input_Parameter('imfScaloYieldInstantaneous'   ,imfScaloYieldInstantaneous   ,defaultValue=0.0086d0)
-
-       ! Get the normalization for this IMF.
-       call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-
-       imfScaloInitialized=.true.
+       !$omp critical (IMF_Scalo_Initialize)
+       if (.not.imfScaloInitialized) then
+          !@ <inputParameter>
+          !@   <name>imfScaloRecycledInstantaneous</name>
+          !@   <defaultValue>0.24 (computed internally)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The recycled fraction for the Scalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfScaloRecycledInstantaneous',imfScaloRecycledInstantaneous,defaultValue=0.24d0)
+          !@ <inputParameter>
+          !@   <name>imfScaloYieldInstantaneous</name>
+          !@   <defaultValue>0.086 (internally computed)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The yield for the Scalo \gls{imf} in the instantaneous recycling approximation.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>initialMassFunction</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('imfScaloYieldInstantaneous'   ,imfScaloYieldInstantaneous   ,defaultValue=0.0086d0)
+          
+          ! Get the normalization for this IMF.
+          call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
+          
+          imfScaloInitialized=.true.
+       end if
+       !$omp end critical (IMF_Scalo_Initialize)
     end if
-    !$omp end critical (IMF_Scalo_Initialize)
     return
   end subroutine Star_Formation_IMF_Initialize_Scalo
 
@@ -216,8 +221,8 @@ contains
 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Scalo
-       call Alloc_Array(imfMass,nPoints,'imfMass')
-       call Alloc_Array(imfPhi ,nPoints,'imfPhi' )
+       call Alloc_Array(imfMass,[nPoints])
+       call Alloc_Array(imfPhi ,[nPoints])
        imfMass=Make_Range(massLower(1),massUpper(imfPieceCount),nPoints,rangeType=rangeTypeLogarithmic)
        imfPhi =Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,imfMass)
        imfMatched=.true.

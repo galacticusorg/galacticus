@@ -4,18 +4,15 @@ package DustAttenuation;
 use PDL;
 use PDL::NiceSlice;
 use XML::Simple;
-use Galacticus::HDF5;
-use Galacticus::Inclination;
+require Galacticus::HDF5;
+require Galacticus::Inclination;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-    "^(disk|spheroid)StellarLuminosity:.*:dustAtlas(\\[faceOn\\])?\$" => "DustAttenuation::Get_Dust_Attenuated_Luminosity"
+    "^(disk|spheroid)LuminositiesStellar:.*:dustAtlas(\\[faceOn\\])?\$" => \&DustAttenuation::Get_Dust_Attenuated_Luminosity
     );
 
 # Flag indicating whether dust data is loaded yet.
 $dustDataLoaded = 0;
-
-my $status = 1;
-$status;
 
 sub Get_Dust_Attenuated_Luminosity {
     $dataSet = shift;
@@ -23,42 +20,48 @@ sub Get_Dust_Attenuated_Luminosity {
 
     # Check parameters.
     &HDF5::Get_Parameters($dataSet);
-    die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist spheroids")
-	unless ( ${$dataSet}{'parameters'}->{"treeNodeMethodDisk"} eq "exponential"
-		 &&  ${$dataSet}{'parameters'}->{"treeNodeMethodSpheroid"} eq "Hernquist" );
+    die ("Get_Dust_Attenuated_Luminosity(): routine assumes exponential disks and Hernquist or Sersic spheroids")
+	unless
+	(
+	 $dataSet ->{'parameters'}->{"treeNodeMethodDisk"      } eq "exponential" &&
+	 (
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "hernquist" ||
+	  $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "sersic" 
+	 )
+	);
 
     # Get the name of the unattenuated luminosity dataset.
     ($luminosityDataSet = $dataSetName) =~ s/:dustAtlas(\[faceOn\])?//;
 
     # List of properties to read.
-    @propertyList = ("diskGasMetals","diskScaleLength","spheroidScaleLength",$luminosityDataSet);
+    @propertyList = ("diskAbundancesGasMetals","diskRadius","spheroidRadius",$luminosityDataSet);
 
     # Check if a face-on magnitude is required.
     if ( $dataSetName =~ m/\[faceOn\]/ ) {
 	$faceOn = 1;
-	push(@propertyList,"inclination");
     } else {
 	$faceOn = 0;
+	push(@propertyList,"inclination");
     }
 
     # Get the datasets needed for our calculation.
     &HDF5::Get_Dataset($dataSet,\@propertyList);
-    $dataSets = \%{${$dataSet}{'dataSets'}};
+    $dataSets = $dataSet->{'dataSets'};
 
     # Load the dust atlas data.
     &Load_Dust_Atlas;
 
     # Determine types of extrapolation to be used.
-    if ( exists(${$dataSet}{'dustAtlasExtrapolateInSize'}) ) {
-	$extrapolateInSize = ${$dataSet}{'dustAtlasExtrapolateInSize'};
+    if ( exists($dataSet->{'dustAtlasExtrapolateInSize'}) ) {
+	$extrapolateInSize = $dataSet->{'dustAtlasExtrapolateInSize'};
 	if ( lc($extrapolateInSize) eq "yes" ) {$extrapolateInSize = 1};
 	if ( lc($extrapolateInSize) eq "no"  ) {$extrapolateInSize = 0};
     } else {
 	# Assume that we will extrapolate in spheroid sizes by default.
 	$extrapolateInSize = 1;
     }
-    if ( exists(${$dataSet}{'dustAtlasExtrapolateInTau'}) ) {
-	$extrapolateInSize = ${$dataSet}{'dustAtlasExtrapolateInTau'};
+    if ( exists($dataSet->{'dustAtlasExtrapolateInTau'}) ) {
+	$extrapolateInTau = $dataSet->{'dustAtlasExtrapolateInTau'};
 	if ( lc($extrapolateInTau) eq "yes" ) {$extrapolateInTau = 1};
 	if ( lc($extrapolateInTau) eq "no"  ) {$extrapolateInTau = 0};
     } else {
@@ -67,7 +70,7 @@ sub Get_Dust_Attenuated_Luminosity {
     }
 
     # Extract filter data.
-    if ( $dataSetName =~ m/^(.*?)StellarLuminosity:([^:]+):([^:]+):z([\d\.]+)/ ) {
+    if ( $dataSetName =~ m/^(.*?)LuminositiesStellar:([^:]+):([^:]+):z([\d\.]+)/ ) {
 	# Extract the dataset name information.
 	$component = $1;
 	$filter    = $2;
@@ -99,16 +102,16 @@ sub Get_Dust_Attenuated_Luminosity {
 	if ( $frame eq "rest" ) {
 	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'};
 	} else {
-	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/$redshift;
+	    $effectiveWavelength{$filterLabel} = pdl $filterData->{'effectiveWavelength'}/(1.0+$redshift);
 	}
 	($wavelengthIndex{$filterLabel},$error) = interpolate($effectiveWavelength{$filterLabel},$wavelengths,$wavelengthIndices);
     }
 
     # Get interpolations of inclinations.
     if ( $faceOn == 1 ) {
-	$galacticusInclination = zeroes(nelem(${$dataSets->{"diskScaleLength"}}));
+	$galacticusInclination = zeroes(nelem($dataSets->{"diskScaleLength"}));
     } else {
-	$galacticusInclination = ${$dataSets->{"inclination"}};
+	$galacticusInclination = $dataSets->{"inclination"};
     }
     if ( $component      eq "disk"     ) {
 	($inclinationIndex,$error) = interpolate($galacticusInclination,$diskInclinations    ,$diskInclinationIndices    );
@@ -121,7 +124,12 @@ sub Get_Dust_Attenuated_Luminosity {
     # Get interpolations of bulge sizes.
     if ( $component eq "spheroid" ) {
 	# Compute size as spheroid (assumed to be Hernquist profile) half-mass radius in units of disk scale length.
-	$sizes = (1.0+sqrt(2.0))*${$dataSets->{"spheroidScaleLength"}}/${$dataSets->{"diskScaleLength"}};
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Hernquist" ) {
+	    $sizes = (1.0+sqrt(2.0))*$dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
+	}
+	if ( $dataSet->{'parameters'}->{"spheroidMassDistribution"} eq "Sersic" ) {
+	    $sizes =                 $dataSets->{"spheroidScaleLength"}/$dataSets->{"diskScaleLength"};
+	}
 	if ( $extrapolateInSizes == 1 ) {
 	    $sizeMinimum  = $spheroidSizes->index(0);
 	    $sizeMaximum  = $spheroidSizes->index($spheroidSizesCount-1);
@@ -147,9 +155,11 @@ sub Get_Dust_Attenuated_Luminosity {
     $opticalDepthNormalization = (1.0/$opticalDepthToMagnitudes)*($AV_to_EBV/$NH_to_EBV)*($hydrogenMassFractionSolar/$atomicMass)*($solarMass/($parsec*$hecto)**2)/$localISMMetallicity;
 
     # Central surface density in M_Solar/pc^2.
-    $gasMetalMass                   = pdl ${$dataSets->{"diskGasMetals"}};
-    $diskScaleLength                = pdl ${$dataSets->{"diskScaleLength"}};
+    $gasMetalMass                   = pdl $dataSets->{"diskGasMetals"};
+    $diskScaleLength                = pdl $dataSets->{"diskScaleLength"};
+    $noDisks                        = which($diskScaleLength <= 0.0);
     $gasMetalsSurfaceDensityCentral = $gasMetalMass/(2.0*$Pi*($mega*$diskScaleLength)**2);
+    $gasMetalsSurfaceDensityCentral->index($noDisks) .= 0.0;
 
     # Compute central optical depths.
     $opticalDepthCentral            = $opticalDepthNormalization*$gasMetalsSurfaceDensityCentral;
@@ -180,6 +190,7 @@ sub Get_Dust_Attenuated_Luminosity {
     }
 
     # Interpolate in the attenuation table.
+    $PDL::BIGPDL = 1;
     if ( $component eq "disk" ) {
 	$indices = zeroes(3,nelem($inclinationIndex));
 	$indices->((0),0:nelem($inclinationIndex)-1) .= $inclinationIndex;
@@ -196,20 +207,20 @@ sub Get_Dust_Attenuated_Luminosity {
     } else{
  	die("Get_Dust_Attenuated_Luminosity(): unknown component");
     }
+    $PDL::BIGPDL = 0;
     
     # Multiply luminosities by attenuations.
-    ${$dataSets->{$dataSetName}} = ${$dataSets->{$luminosityDataSet}}*$attenuations;
-
+    $dataSets->{$dataSetName} = $dataSets->{$luminosityDataSet}*$attenuations;
 }
 
 sub Load_Dust_Atlas {
     # Ensure that dust attenuation data is loaded.
     unless ( $dustDataLoaded == 1 ) {
 	# Specify the dust file.
-	if ( exists(${$dataSet}{'dustAtlasFile'}) ) {
-	    $dustFile = ${$dataSet}{'dustAtlasFile'};
+	if ( exists($dataSet->{'dustAtlasFile'}) ) {
+	    $dustFile = $dataSet->{'dustAtlasFile'};
 	} else {
-	    $dustFile = "data/dust_atlas/attenuations_MilkyWay_dustHeightRatio1.0.xml";
+	    $dustFile = "data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
 	}
 	
         # Read the dust file.
@@ -297,3 +308,5 @@ sub Load_Dust_Atlas {
 	$dustDataLoaded = 1;
     }
 }
+
+1;

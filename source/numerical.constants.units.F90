@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,23 +15,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module of useful unit conversions.
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use Numerical_Constants_Astronomical
+  use FGSL
   use Numerical_Constants_Prefixes
+  implicit none
   public
   
   ! Ergs in Joules.
   double precision, parameter :: ergs=1.0d-7
 
-  ! Conversion from Mpc/(km/s) to Gyr.
-  double precision, parameter :: Mpc_per_km_per_s_To_Gyr=megaParsec/kilo/gigaYear
+  ! Angstroms in microns.
+  double precision, parameter :: angstromsPerMicron=1.0d4
+
+  ! Angstroms in meters.
+  double precision, parameter :: angstromsPerMeter=1.0d10
+
+  ! Electron volt (in units of Joules).
+  double precision, parameter :: electronVolt=FGSL_CONST_MKSA_ELECTRON_VOLT
+
+  ! Barn (cross section unit, in units of m^2).
+  double precision, parameter :: barn=1.0d-28
 
 end module Numerical_Constants_Units

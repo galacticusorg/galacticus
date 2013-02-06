@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,17 +15,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module of useful physical constants.
 
 module Numerical_Constants_Physical
   !% Contains various useful physical constants.
   use FGSL
   use Numerical_Constants_Prefixes
+  implicit none
   public
 
   ! Speed of light (m/s).
@@ -38,6 +34,9 @@ module Numerical_Constants_Physical
   ! Newton's gravitational constant (in SI units).
   double precision, parameter :: gravitationalConstant=FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT
 
+  ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).
+  double precision, parameter :: stefanBoltzmannConstant=FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT
+
   ! Radiation constant (in units of J/m^3/K^4).
   double precision, parameter :: radiationConstant=4.0d0*FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT/FGSL_CONST_MKSA_SPEED_OF_LIGHT
 
@@ -46,5 +45,11 @@ module Numerical_Constants_Physical
 
   ! Thomson cross section (in units of m^2).
   double precision, parameter :: thomsonCrossSection=FGSL_CONST_MKSA_THOMSON_CROSS_SECTION
+
+  ! Electron mass (in units of kg).
+  double precision, parameter :: electronMass=FGSL_CONST_MKSA_MASS_ELECTRON
+
+  ! Planck's constant (in units of J s).
+  double precision, parameter :: plancksConstant=FGSL_CONST_MKSA_PLANCKS_CONSTANT_H
 
 end module Numerical_Constants_Physical

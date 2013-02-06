@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,16 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations of Bessel functions.
 
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
   use FGSL
+  implicit none
   private
   public :: Bessel_Function_K0, Bessel_Function_K1, Bessel_Function_I0, Bessel_Function_I1
 

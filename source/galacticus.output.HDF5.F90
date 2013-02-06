@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,18 +15,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which manages HDF5 output from \glc.
 
 module Galacticus_HDF5
   !% Manages HDF5 output from \glc.
-  private
+  use HDF5
+  use IO_HDF5
+  implicit none
+  public
 
-  ! Output file identifier.
-  integer, public :: galacticusOutputID=-1
+  ! Flag indicating if output file has been opened.
+  logical                       :: galacticusOutputFileIsOpen=.false.
+
+  ! Galacticus output file object.
+  type(hdf5Object),      target :: galacticusOutputFile
+
+  ! Chunk size.
+  integer(kind=HSIZE_T)         :: hdf5ChunkSize       = 1
+
+  ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
+  integer                       :: hdf5CompressionLevel=-1
 
 end module Galacticus_HDF5

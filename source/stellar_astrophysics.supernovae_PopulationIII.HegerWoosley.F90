@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements calculations related to Population III supernovae.
 
 module Supernovae_Population_III_HegerWoosley
   !% Implements calculations related to Population III supernovae.
+  implicit none
   private
   public :: Supernovae_Population_III_HegerWoosley_Initialize
   
@@ -37,29 +33,27 @@ contains
   !#  <unitName>Supernovae_Population_III_HegerWoosley_Initialize</unitName>
   !# </supernovaePopIIIMethod>
   subroutine Supernovae_Population_III_HegerWoosley_Initialize(supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get)
-    !% Initialize the ``HegerWoosley'' Population III supernovae module.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
+    !% Initialize the ``Heger-Woosley2002'' Population III supernovae module.
     use Numerical_Constants_Astronomical
     use ISO_Varying_String
     use Galacticus_Error
     use FoX_dom
     use Memory_Management
     implicit none
-    type(varying_string), intent(in) :: supernovaePopIIIMethod
-    procedure(),          pointer    :: SNePopIII_Cumulative_Energy_Get
-    type(Node),           pointer    :: doc,massElement,energyElement,thisDatum
-    type(NodeList),       pointer    :: massList,energyList,massDataList,energyDataList
-    integer                          :: ioErr,iSupernovae
+    type(varying_string),                 intent(in)    :: supernovaePopIIIMethod
+    procedure(double precision), pointer, intent(inout) :: SNePopIII_Cumulative_Energy_Get
+    type(Node),                  pointer                :: doc,massElement,energyElement,thisDatum
+    type(NodeList),              pointer                :: massList,energyList,massDataList,energyDataList
+    integer                                             :: ioErr,iSupernovae
 
-    if (supernovaePopIIIMethod == 'Heger + Woosley') then
+    if (supernovaePopIIIMethod == 'Heger-Woosley2002') then
        ! Set up pointers to our procedures.
        SNePopIII_Cumulative_Energy_Get => SNePopIII_Cumulative_Energy_HegerWoosley
 
        ! Read in pair instability supernova energies.
        !$omp critical (FoX_DOM_Access)
        ! Open the XML file containing yields.
-       doc => parseFile('data/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
+       doc => parseFile('data/stellarAstrophysics/Supernovae_Pair_Instability_Heger_Woosley_1992.xml',iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Population_III_HegerWoosley_Initialize','Unable to parse supernovae file')
 
        ! Get the mass and energy elements.
@@ -72,8 +66,8 @@ contains
 
        ! Count how many elements are present and allocate arrays.
        supernovaeTableCount=getLength(massDataList)
-       call Alloc_Array(supernovaeTableHeliumCoreMass,supernovaeTableCount,'supernovaeTableHeliumCoreMass')
-       call Alloc_Array(supernovaeTableEnergy        ,supernovaeTableCount,'supernovaeTableEnergy'        )
+       call Alloc_Array(supernovaeTableHeliumCoreMass,[supernovaeTableCount])
+       call Alloc_Array(supernovaeTableEnergy        ,[supernovaeTableCount])
 
        ! Loop through isotopes and compute the net metal yield.
        do iSupernovae=0,getLength(massDataList)-1

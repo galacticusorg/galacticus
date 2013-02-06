@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
-
-
-
-
 !% {\sc Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson \href{mailto:abenson@caltech.edu}{{\tt
 !% <abenson@caltech.edu>}}.
 
@@ -32,7 +23,7 @@ program Galacticus
   use Galacticus_Banner
   use Galacticus_Error
   use Galacticus_Tasks
-  use Galacticus_Output_Open
+  use Galacticus_HDF5
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
@@ -44,6 +35,9 @@ program Galacticus
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show
 
+  ! Register error handlers.
+  call Galacticus_Error_Handler_Register
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Galacticus.size')
 
@@ -53,16 +47,10 @@ program Galacticus
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  call Input_Parameters_File_Open(parameterFile)
-
-  ! Open the Galacticus output file.
-  call Galacticus_Output_Open_File
+  call Input_Parameters_File_Open(parameterFile,galacticusOutputFile,allowedParametersFile='Galacticus.parameters.xml')
 
   ! Perform tasks, until all tasks are done.
   call Galacticus_Task_Do
-
-  ! Close the Galacticus output file.
-  call Galacticus_Output_Close_File
 
   ! Close the parameter file.
   call Input_Parameters_File_Close

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, Andrew Benson <abenson@caltech.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,15 +15,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-
-
-
 !% Contains a module which implements thermodynamic properties of ideal gases.
 
 module Ideal_Gases_Thermodynamics
   !% Implements thermodynamic properties of ideal gases.
+  implicit none
   private
   public :: Ideal_Gas_Sound_Speed, Ideal_Gas_Jeans_Length
 
@@ -35,16 +31,14 @@ contains
     implicit none
     double precision, intent(in) :: temperature,density
 
-    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/dsqrt(gravitationalConstantGalacticus*density)
+    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/dsqrt(gravitationalConstantGalacticus)/dsqrt(density)
     return
   end function Ideal_Gas_Jeans_Length
 
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
     !% Return the sound speed (in km/s) for an ideal gas of given {\tt temperature} and (optionally) {\tt meanAtomicMass}.
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Atomic
     implicit none
     double precision, intent(in)           :: temperature
     double precision, intent(in), optional :: meanAtomicMass
