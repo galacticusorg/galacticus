@@ -187,7 +187,7 @@ vpath %.cpp source
 
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
-	@if [ -f .bzr/branch/last-revision ] ; then awk '{print "integer, parameter :: bazaarRevision="$$1}' .bzr/branch/last-revision > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: bazaarRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":"} {if ($$1 == "changeset") print "integer, parameter :: hgRevision="$$2}' > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: hgRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:
@@ -214,11 +214,11 @@ mfiles := $(patsubst source/%.F90,work/build/%.m,$(wildcard source/*.F90))
 	scripts/build/Make_Unique_Label_Functions.pl `pwd`
 
 # Rules for changeset creation.
-Galacticus.exe: ./work/build/galacticus.bzr.patch ./work/build/galacticus.bzr.merge
-./work/build/galacticus.bzr.patch:
-	bzr diff -r http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ > ./work/build/galacticus.bzr.patch | true
-./work/build/galacticus.bzr.merge:
-	bzr send http://bazaar.launchpad.net/~abenson/galacticus/v0.9.1/ -o ./work/build/galacticus.bzr.merge | true
+Galacticus.exe: ./work/build/galacticus.hg.patch ./work/build/galacticus.hg.bundle
+./work/build/galacticus.hg.patch:
+	hg diff > ./work/build/galacticus.hg.patch | true
+./work/build/galacticus.hg.bundle:
+	hg bundle -t none ./work/build/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus_v0.9.2 | true
 
 # Rules for cleaning up.
 clean: tidy
@@ -233,18 +233,23 @@ all: deps $(all_exes)
 
 # Rules for building dependency Makefiles.
 ./work/build/Makefile_Module_Deps: ./scripts/build/Find_Module_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
 ./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+	@mkdir -p work/build
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
 ./work/build/Makefile_Directives: ./scripts/build/Code_Directive_Parser.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Code_Directive_Parser.pl `pwd`
 
 ./work/build/Makefile_Include_Deps: ./scripts/build/Find_Include_Dependencies.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Include_Dependencies.pl `pwd`
 
 ./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
+	@mkdir -p work/build
 	./scripts/build/Find_Programs.pl `pwd`
 
 ./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc

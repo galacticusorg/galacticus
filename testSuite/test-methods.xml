@@ -476,10 +476,17 @@
   <parameters>
     <parameter>
       <name>coolingSpecificAngularMomentumMethod</name>
+      <value>mean</value>
       <value>constantRotation
       <parameter>
 	<name>coolingMeanAngularMomentumFrom</name>
-	<value>hotGas</value>
+	<value>hotGas
+	<parameter>
+	  <name>coolingAngularMomentumUseInteriorMean</name>
+	  <value>true</value>
+	  <value>false</value>
+	</parameter>
+	</value>
 	<value>darkMatter</value>
       </parameter>
       </value>
@@ -687,6 +694,15 @@
       <name>luminosityRedshift</name>
       <value>0.0 0.1 0.1 0.1</value>
     </parameter>
+  </parameters>
+
+  <!-- Black hole wind efficiencies -->
+  <parameters>
+    <parameter>
+      <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+      <value>false</value>
+      <value>true</value>
+    </parameter> 
   </parameters>
 
 </parameterGrid>

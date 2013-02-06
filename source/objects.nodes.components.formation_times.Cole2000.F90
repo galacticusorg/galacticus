@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -123,7 +123,7 @@ contains
 
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Formation_Time_Cole2000_Node_Promotion</unitName>
-  !#  <after>Node_Component_Hot_Halo_Standard_Promote</after>
+  !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(thisNode)
     implicit none

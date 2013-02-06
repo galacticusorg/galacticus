@@ -66,7 +66,7 @@ if ( $makeFile == 1 ) {
     close(pHndl);
     open(pHndl,"svn info ".$galacticusPath."aux/FSPS_v2.3 |");
     while ( my $line = <pHndl> ) {
- 	if ( $line =~ m/Last Changed Rev:\s*(\d+)/ ) {$currentRevision = $1};
+ 	if ( $line =~ m/Revision:\s*(\d+)/ ) {$currentRevision = $1};
     }
     close(pHndl);
     if ( $currentRevision < $availableRevision ) {

@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -260,24 +260,24 @@ contains
   double precision function Star_Initial_Mass_File(lifetime,metallicity)
     !% Return the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: lifetime,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    !$omp threadprivate(interpolationWorkspace)
+    double precision,             intent(in) :: lifetime,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
+    resetInterpolation=.true.
     Star_Initial_Mass_File=Interpolate_2D_Irregular(stellarLifetime,stellarLifetimeMetallicity,stellarLifetimeMass,lifetime&
-         &,metallicity,interpolationWorkspace,reset=.true.,numberComputePoints=3)
-
+         &,metallicity,interpolationWorkspace,reset=resetInterpolation,numberComputePoints=3)
     return
   end function Star_Initial_Mass_File
 
   double precision function Star_Lifetime_File(initialMass,metallicity)
     !% Return the lifetime of a star (in Gyr) given an {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: initialMass,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    logical,                       save       :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
+    double precision,             intent(in) :: initialMass,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
+    resetInterpolation=.true.
     Star_Lifetime_File=Interpolate_2D_Irregular(stellarLifetimeMass,stellarLifetimeMetallicity,stellarLifetime,initialMass&
          &,metallicity ,interpolationWorkspace,reset=resetInterpolation)
 
@@ -287,12 +287,12 @@ contains
   double precision function Star_Ejected_Mass_File(initialMass,metallicity)
     !% Return the mass ejected during the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision,              intent(in) :: initialMass,metallicity
-    type(interp2dIrregularObject), save       :: interpolationWorkspace
-    logical,                       save       :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
+    double precision,             intent(in) :: initialMass,metallicity
+    type(interp2dIrregularObject)            :: interpolationWorkspace
+    logical                                  :: resetInterpolation
 
     ! Compute the ejected mass.
+    resetInterpolation=.true.
     Star_Ejected_Mass_File=max(Interpolate_2D_Irregular(ejectedMassMass,ejectedMassMetallicity,ejectedMass,initialMass,metallicity&
          &,interpolationWorkspace,reset=resetInterpolation),0.0d0)
 
@@ -303,32 +303,22 @@ contains
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     use Memory_Management
     implicit none
-    double precision,              intent(in)                      :: initialMass,metallicity
-    integer,                       intent(in), optional            :: atomIndex
-    type(interp2dIrregularObject), save                            :: interpolationWorkspace
-    logical,                       save                            :: resetInterpolation=.true.
-    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
-    type(interp2dIrregularObject), save, allocatable, dimension(:) :: elementYieldInterpolationWorkspace
-    logical,                       save, allocatable, dimension(:) :: elementYieldResetInterpolation
-    !$omp threadprivate(elementYieldInterpolationWorkspace,elementYieldResetInterpolation)
-    integer                                                        :: elementIndex
+    double precision,             intent(in)           :: initialMass,metallicity
+    integer,                      intent(in), optional :: atomIndex
+    type(interp2dIrregularObject)                      :: interpolationWorkspace
+    logical                                            :: resetInterpolation
+    integer                                            :: elementIndex
 
     if (present(atomIndex)) then
-       ! Allocate interpolator objects for element yields if not already allocated.
-       if (.not.allocated(elementYieldInterpolationWorkspace)) then
-          allocate(elementYieldInterpolationWorkspace(elementCount))
-          call Memory_Usage_Record(sizeof(elementYieldInterpolationWorkspace))
-          call Alloc_Array(elementYieldResetInterpolation,[elementCount])
-          elementYieldResetInterpolation=.true.
-       end if
        ! Compute the element mass yield.
        elementIndex=atomIndexMap(atomIndex)
+       resetInterpolation=.true.
        Star_Metal_Yield_Mass_File=max(Interpolate_2D_Irregular(elementYieldMass(1:elementYieldCount(atomIndex),elementIndex)&
-            &,elementYieldMetallicity(1:elementYieldCount(atomIndex),elementIndex),elementYield(1:elementYieldCount(atomIndex)&
-            &,elementIndex),initialMass ,metallicity,elementYieldInterpolationWorkspace(elementIndex),reset&
-            &=elementYieldResetInterpolation(elementIndex)),0.0d0)
+            &,elementYieldMetallicity(1:elementYieldCount(atomIndex),elementIndex),elementYield(1:elementYieldCount(atomIndex) &
+            &,elementIndex),initialMass ,metallicity,interpolationWorkspace,reset =resetInterpolation),0.0d0)
     else
        ! Compute the metal mass yield.
+       resetInterpolation=.true.
        Star_Metal_Yield_Mass_File=max(Interpolate_2D_Irregular(metalYieldMass,metalYieldMetallicity,metalYield,initialMass&
             &,metallicity,interpolationWorkspace,reset=resetInterpolation),0.0d0)
     end if

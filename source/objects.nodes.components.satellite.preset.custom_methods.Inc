@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -16,21 +16,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains custom functions for the prest satellite component.
-
-double precision function Node_Component_Satellite_Preset_Time_Of_Merging(self)
-  !% Return the {\tt timeOfMerging} property of the {\tt satellitePreset} component class.
-  implicit none
-  class(nodeComponentSatellitePreset), intent(inout) :: self
-  type (treeNode                    ), pointer       :: selfNode
-
-  selfNode => self%host()
-  if (selfNode%isSatellite()) then
-     Node_Component_Satellite_Preset_Time_Of_Merging=self%timeOfMergingData%value
-  else
-     Node_Component_Satellite_Preset_Time_Of_Merging=-1.0d0
-  end if
-  return
-end function Node_Component_Satellite_Preset_Time_Of_Merging
 
 double precision function Node_Component_Satellite_Preset_Merge_Time(self)
   !% Return the {\tt mergeTime} property of the {\tt satellitePreset} component class.

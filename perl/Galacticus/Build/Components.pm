@@ -96,6 +96,8 @@ sub Components_Generate_Output {
 	    \&Generate_Implementations                               ,
 	    # Generate the treeNode object.
 	    \&Generate_Tree_Node_Object                              ,
+	    # Create the node event object.
+	    \&Generate_Node_Event_Object                             ,
 	    # Create an initialization method.
 	    \&Generate_Initialization_Function                       ,
 	    # Generate a finalization method.
@@ -120,6 +122,8 @@ sub Components_Generate_Output {
 	    \&Generate_Tree_Node_Creation_Function                   ,
 	    # Generate a tree node destruction function.
 	    \&Generate_Tree_Node_Destruction_Function                ,
+	    # Generate a tree node builder function.
+	    \&Generate_Tree_Node_Builder_Function                    ,
 	    # Generate type name functions.
 	    \&Generate_Type_Name_Functions                           ,
 	    # Generate component assignment function.
@@ -132,6 +136,10 @@ sub Components_Generate_Output {
 	    \&Generate_Component_Class_Move_Functions                ,
 	    # Generate dump functions for each component class.
 	    \&Generate_Component_Class_Dump_Functions                ,
+	    # Generate builder functions for each component class.
+	    \&Generate_Component_Class_Builder_Functions             ,
+	    # Generate initializor functions for each component class.
+	    \&Generate_Component_Class_Initializor_Functions         ,
 	    # Generate output functions for each component class.
 	    \&Generate_Component_Class_Output_Functions              ,
 	    # Generate functions to determine if an implementation is active.
@@ -142,6 +150,10 @@ sub Components_Generate_Output {
 	    \&Generate_ODE_Initialization_Functions                  ,
 	    # Generate dump functions for each implementation.
 	    \&Generate_Implementation_Dump_Functions                 ,
+	    # Generate initializor functions for each implementation.
+	    \&Generate_Implementation_Initializor_Functions          ,
+	    # Generate builder functions for each implementation.
+	    \&Generate_Implementation_Builder_Functions              ,
 	    # Generate output functions for each implementation.
 	    \&Generate_Implementation_Output_Functions               ,
 	    # Generate functions to get the name of properties from an index.
@@ -172,6 +184,8 @@ sub Components_Generate_Output {
 	    \&Generate_Active_Implementation_Records                 ,
 	    # Generate deferred procedure pointers.
 	    \&Generate_Deferred_Procedure_Pointers                   ,
+	    # Generate interface for nodeEvent tasks.
+	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
 	    \&Generate_Null_Binding_Functions                        ,
 	    # Insert the "contains" line.
@@ -554,6 +568,15 @@ sub Distribute_Class_Defaults {
 				unless ($method->{'classDefault'}->{'count'} eq $classDefaults{$componentID.$methodName}->{'count'} );
 			} else {
 			    $classDefaults{$componentID.$methodName}->{'count'} = $method->{'classDefault'}->{'count'};
+			}
+		    } elsif ( $method->{'classDefault'} =~ m/^\[.*\]$/ ) {
+			my @splitDefault = split(/,/,$method->{'classDefault'});
+			my $defaultCount = scalar(@splitDefault);
+			if ( exists($classDefaults{$componentID.$methodName}->{'count'}) ) {
+			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$method)
+				unless ( $defaultCount eq $classDefaults{$componentID.$methodName}->{'count'} );
+			} else {
+			    $classDefaults{$componentID.$methodName}->{'count'} = $defaultCount
 			}
 		    }
 		}
@@ -1184,6 +1207,40 @@ sub Generate_Deferred_Procedure_Pointers {
     $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
+sub Generate_Node_Event_Interface {
+    # Generate interace for node event tasks.
+    my $buildData = shift;
+    # Initialize data content.
+    my @dataContent = 
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "nodeEvent",
+	     attributes => [ "intent(in   )" ],
+	     variables  => [ "thisEvent" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "treeNode",
+	     attributes => [ "pointer", "intent(inout)" ],
+	     variables  => [ "thisNode" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "deadlockStatus" ]
+	 }
+	);
+    # Insert interface.
+    $buildData->{'content'} .= "  ! Interface for node event tasks.\n";
+    $buildData->{'content'} .= "  abstract interface\n";
+    $buildData->{'content'} .= "    logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
+    $buildData->{'content'} .= "      import nodeEvent,treeNode\n";
+    $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $buildData->{'content'} .= "    end function nodeEventTask\n";
+    $buildData->{'content'} .= "  end interface\n";
+}
+
 sub Generate_Default_Component_Sources{
     # Generate records of which component implementations are selected.
     my $buildData = shift;
@@ -1259,6 +1316,7 @@ sub Generate_Tree_Node_Object {
 	 {type => "procedure", name => "uniqueIDSet"              , function => "Tree_Node_Unique_ID_Set"                 },
 	 {type => "procedure", name => "initialize"               , function => "treeNodeInitialize"                      },
 	 {type => "procedure", name => "destroy"                  , function => "treeNodeDestroy"                         },
+	 {type => "procedure", name => "componentBuilder"         , function => "Tree_Node_Component_Builder"             },
 	 {type => "procedure", name => "removeFromHost"           , function => "Tree_Node_Remove_From_Host"              },
 	 {type => "procedure", name => "removeFromMergee"         , function => "Tree_Node_Remove_From_Mergee"            },
 	 {type => "procedure", name => "isPrimaryProgenitor"      , function => "Tree_Node_Is_Primary_Progenitor"         },
@@ -1274,7 +1332,9 @@ sub Generate_Tree_Node_Object {
 	 {type => "procedure", name => "walkBranchWithSatellites" , function => "Tree_Node_Walk_Branch_With_Satellites"   },
 	 {type => "procedure", name => "walkTree"                 , function => "Tree_Node_Walk_Tree"                     },
 	 {type => "procedure", name => "walkTreeUnderConstruction", function => "Tree_Node_Walk_Tree_Under_Construction"  },
-	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     }
+	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     },
+	 {type => "procedure", name => "createEvent"              , function => "Tree_Node_Create_Event"                  },
+	 {type => "procedure", name => "removePairedEvent"        , function => "Tree_Node_Remove_Paired_Event"           }
 	);
     # Add data content.
     my @dataContent =
@@ -1294,6 +1354,12 @@ sub Generate_Tree_Node_Object {
 	     intrinsic  => "logical",
 	     attributes => [ "public" ],
 	     variables  => [ "isPhysicallyPlausible" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "event" ]
 	 }
 	);
     foreach ( @{$buildData->{'componentClassList'}} ) {
@@ -1317,6 +1383,52 @@ sub Generate_Tree_Node_Object {
 	dataContent    => \@dataContent
     };
     push(@{$buildData->{'typesOrder'}},"treeNode");
+}
+
+sub Generate_Node_Event_Object {
+    # Generate the nodeEvent object.
+    my $buildData = shift;
+    # Add data content.
+    my @dataContent =
+	(
+	 {
+	     intrinsic  => "integer",
+	     type       => "kind=kind_int8",
+	     attributes => [ "public" ],
+	     variables  => [ "ID" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "treeNode",
+	     attributes => [ "pointer", "public" ],
+	     variables  => [ "node" ]
+	 },
+	 {
+	     intrinsic  => "double precision",
+	     attributes => [ "public" ],
+	     variables  => [ "time" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "next" ]
+	 },
+	 {
+	     intrinsic  => "procedure",
+	     type       => "nodeEventTask",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "task" ]
+	 }
+	);
+    # Create the tree node class.
+    $buildData->{'types'}->{'nodeEvent'} = {
+	name           => "nodeEvent",
+	comment        => "Type for events attached to nodes.",
+	isPublic       => "true",
+	dataContent    => \@dataContent
+    };
+    push(@{$buildData->{'typesOrder'}},"nodeEvent");
 }
 
 sub Generate_Initialization_Function {
@@ -1369,6 +1481,16 @@ sub Generate_Initialization_Function {
 	die("No default method was found for ".$componentClass." class")
 	    unless ( defined($defaultMethod) );
 	# Insert a function call to get the parameter controlling the choice of implementation for this class.
+        $functionCode .= "    !@ <inputParameter>\n";
+        $functionCode .= "    !@   <name>treeNodeMethod".ucfirst($componentClass)."</name>\n";
+        $functionCode .= "    !@   <defaultValue>".$defaultMethod."</defaultValue>\n";
+        $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
+        $functionCode .= "    !@   <description>\n";
+        $functionCode .= "    !@    Specifies the implementation to be used for the ".$componentClass." component of nodes.\n";
+        $functionCode .= "    !@   </description>\n";
+        $functionCode .= "    !@   <type>string</type>\n";
+        $functionCode .= "    !@   <cardinality>1</cardinality>\n";
+        $functionCode .= "    !@ </inputParameter>\n";
     	$functionCode .= "    call Get_Input_Parameter('treeNodeMethod".padComponentClass(ucfirst($componentClass)."'",[1,0]).",methodSelection,defaultValue='".padImplementation($defaultMethod."'",[1,0]).")\n";
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
     	    my $fullName  = ucfirst($componentClass).ucfirst($implementationName);
@@ -1396,6 +1518,16 @@ sub Generate_Initialization_Function {
 		    ) 
 		{
 		    my $parameterName = $1;
+		    $functionCode .= "    !@ <inputParameter>\n";
+		    $functionCode .= "    !@   <name>".$parameterName."</name>\n";
+		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
+		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
+		    $functionCode .= "    !@   <description>\n";
+		    $functionCode .= "    !@    Specifies whether the {\\tt ".$methodName."} method of the {\\tt ".$implementationName."} implemention of the {\\tt ".$componentClass."} component class should be output.\n";
+		    $functionCode .= "    !@   </description>\n";
+		    $functionCode .= "    !@   <type>string</type>\n";
+		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
+		    $functionCode .= "    !@ </inputParameter>\n";
 		    $functionCode .= "call Get_Input_Parameter('".$parameterName."',".$parameterName.",defaultValue=.false.)\n";
 		    $buildData->{'content'} .= "  logical :: ".$parameterName."\n";
 		}
@@ -2544,6 +2676,255 @@ sub Generate_Implementation_Dump_Functions {
     }
 }
 
+sub Generate_Implementation_Initializor_Functions {
+    # Generate initializor for each component implementation.
+    my $buildData = shift;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Initialize function code.
+	my $functionCode;
+	# Initialize data content.
+	my @dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     }
+	    );
+	# Generate the initialization code.
+	my %requiredComponents;
+	my $initializeCode = "";
+	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    if ( exists($method->{'linkedData'}) ) {
+		my $linkedDataName = $method->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		# Set to a class default value if available.
+		if ( exists($method->{'classDefault'}) ) {
+		    my $default = $method->{'classDefault'}->{'code'};
+		    while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
+			$requiredComponents{$1} = 1;
+			$default =~ s/self([a-zA-Z]+)Component\s*%//;
+		    }
+		    $default = $method->{'classDefault'}->{'code'};
+		    if ( exists($method->{'classDefault'}->{'count'}) ) {
+			my @gsr = ( "value" );
+			push
+			    (
+			     @gsr,
+			     "rate",
+			     "scale"
+			    )
+			    if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			foreach ( @gsr ) {
+			    $initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.",[".$method->{'classDefault'}->{'count'}."])\n";
+			}
+		    }
+		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=".$default."\n";
+		} else {
+		    # Set to null.
+		    switch ( $linkedData->{'type'} ) {
+			case ( "real"    ) {
+			    if ( $linkedData->{'rank'} == 0 ) {
+				$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
+			    } else {
+				$initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
+			    }
+			}
+			case ( "integer" ) {
+			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
+			}
+			case ( "logical" ) {
+			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
+			}
+			else {
+			    $initializeCode .= "       call self%".padLinkedData($linkedDataName,[0,0])."%value%reset()\n";			    
+			}
+		    }
+		}
+	    }
+	}
+	# Add pointers for each required component.
+	push(
+	    @dataContent,
+	    {
+		intrinsic  => "class",
+		type       => "nodeComponent".ucfirst($_),
+		attributes => [ "pointer" ],
+		variables  => [ "self".ucfirst($_)."Component" ]
+	    }
+	    )
+	    foreach ( keys(%requiredComponents) );
+	# Generate initializor function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Initializor(self)\n";
+	$functionCode .= "    !% Initialize a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    use Memory_Management\n";
+	# Insert any required modules.
+	my %requiredModules;
+	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    if ( exists($method->{'classDefault'}) && exists($method->{'classDefault'}->{'modules'}) ) {
+		foreach ( @{$method->{'classDefault'}->{'modules'}} ) {
+		    $requiredModules{$_} = 1;
+		}
+	    }
+	}
+	foreach ( keys(%requiredModules) ) {
+	    $functionCode .= "    use ".$_."\n";
+	}
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	unless ( $component->{'name'} eq "null" ) {
+	    # Initialize the parent type if necessary.
+	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n"
+		if ( exists($component->{'extends'}) );
+	}
+	foreach my $requiredComponent ( keys(%requiredComponents) ) {
+	    $functionCode .= "     self".$requiredComponent."Component => self%hostNode%".lc($requiredComponent)."()\n";
+	}
+	$functionCode .= $initializeCode;
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Initializor\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentID)."_Initializor"},
+	    );
+    }
+}
+
+sub Generate_Implementation_Builder_Functions {
+    # Generate builder for each component implementation.
+    my $buildData = shift;
+    # Iterate over component implementations.
+    foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
+	# Get the component.
+	my $component = $buildData->{'components'}->{$componentID};
+	# Initialize function code.
+	my $functionCode;
+	# Initialize data content.
+	my @dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentID),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "intent(in   )", "pointer" ],
+		 variables  => [ "componentDefinition" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "pointer" ],
+		 variables  => [ "property" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "nodeList",
+		 attributes => [ "pointer" ],
+		 variables  => [ "propertyList" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    );
+	# Generate builder function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Builder(self,componentDefinition)\n";
+	$functionCode .= "    !% Build a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
+	$functionCode .= "    use FoX_DOM\n";
+	$functionCode .= "    use Galacticus_Error\n";
+	$functionCode .= "    use Memory_Management\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	unless ( $component->{'name'} eq "null" ) {
+	    # Initialize the component.
+	    $functionCode .= "    call self%initialize()\n";
+	    # Build the parent type if necessary.
+	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%builder(componentDefinition)\n"
+		if ( exists($component->{'extends'}) );
+	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		# Check if this method has any linked data in this component.
+		if ( exists($method->{'linkedData'}) ) {
+		    my $linkedDataName = $method->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    $functionCode .= "    propertyList => getElementsByTagName(componentDefinition,'".$methodName."')\n";
+		    if ( $linkedData->{'rank'} == 0 ) {
+			$functionCode .= "    if (getLength(propertyList) > 1) call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','scalar property must have precisely one value')\n";
+			$functionCode .= "    if (getLength(propertyList) == 1) then\n";
+			$functionCode .= "      property => item(propertyList,0)\n";
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
+			    }
+			    else {
+				$functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%value%builder(property)\n";
+			    }
+			}
+			$functionCode .= "    end if\n";
+		    } elsif ( $linkedData->{'rank'} == 1 ) {
+			my @gsr = ( "value" );
+			push
+			    (
+			     @gsr,
+			     "rate",
+			     "scale"
+			    )
+			    if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "logical" ] ) {
+				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[getLength(propertyList)])\n"
+				    foreach ( @gsr );
+				$functionCode .= "      do i=1,getLength(propertyList)\n";
+				$functionCode .= "        property => item(propertyList,i-1)\n";
+				$functionCode .= "        call extractDataContent(property,self%".$linkedDataName."%value(i))\n";
+				$functionCode .= "      end do\n";
+			    }
+			    else {
+				$functionCode .= "      allocate(self%".$linkedDataName."%".$_."(getLength(propertyList)))\n"
+				    foreach ( @gsr );
+				$functionCode .= "      do i=1,getLength(propertyList)\n";
+				$functionCode .= "        property => item(propertyList,i-1)\n";
+				$functionCode .= "        call self%".$linkedDataName."%value(i)%builder(property)\n";
+				$functionCode .= "      end do\n";
+			    }
+			}
+			$functionCode .= "    end if\n";
+		    }
+		}
+	    }
+	}
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Builder\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
+	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentID)."_Builder"},
+	    );
+    }
+}
+
 sub Generate_Implementation_Output_Functions {
     # Generate output functions for each component implementation.
     my $buildData = shift;
@@ -2850,6 +3231,20 @@ sub Generate_Implementation_Output_Functions {
 		    # Increment the counters.
 		    switch ( $type ) {
 			case ( [ "real", "integer" ] ) {
+			    # Insert metadata for SimDB.
+			    $functionCode .= "       !@ <outputProperty>\n";
+			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($methodName)."</name>\n";
+			    $functionCode .= "       !@   <datatype>".$type."</datatype>\n";
+			    if ( $rank == 0 ) {
+				$functionCode .= "       !@   <cardinality>0..1</cardinality>\n";
+			    } else {
+				$functionCode .= "       !@   <cardinality>0..*</cardinality>\n";
+			    }
+			    $functionCode .= "       !@   <description>".$method->{'output'}->{'comment'}."</description>\n";
+			    $functionCode .= "       !@   <label>???</label>\n";
+			    $functionCode .= "       !@   <outputType>nodeData</outputType>\n";
+			    $functionCode .= "       !@   <group>".$component->{'class'}."</group>\n";
+			    $functionCode .= "       !@ </outputProperty>\n";
 			    if ( $rank == 0 ) {
 				if ( exists($method->{'output'}->{'condition'}) ) {
 				    my $condition = $method->{'output'}->{'condition'};
@@ -2972,6 +3367,12 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%nameFromIndex(count,name)\n";
+	    $functionCode .= "    if (count <= 0) return\n";
+	}
 	# Iterate over properties.
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};
@@ -3080,7 +3481,14 @@ sub Generate_Implementation_Serialization_Functions {
 	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=0\n";
+	# If this component is an extension, get the count of the extended type.
+	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=";
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+	} else {
+	    $functionCode .= "0\n";
+	}
 	# Initialize a count of scalar properties.
 	my $scalarPropertyCount = 0;
 	# Iterate over properties.
@@ -3145,6 +3553,16 @@ sub Generate_Implementation_Serialization_Functions {
 	    $functionCode .= "    implicit none\n";
 	    my $serializationCode;
 	    my $needCount = 0;
+	    # If this component is an extension, call serialization on the extended type.
+	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+		$serializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+		$serializationCode .= " if (count > 0) then\n";
+		$serializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serialize".ucfirst($content)."s(array)\n";
+		$serializationCode .= "  offset=offset+count\n";
+		$serializationCode .= " end if\n";
+		$needCount = 1;
+	    }
 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 		my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    	# Check if this method has any linked data in this component.
@@ -3237,6 +3655,16 @@ sub Generate_Implementation_Serialization_Functions {
 	    $functionCode .= "    implicit none\n";
 	    my $deserializationCode;
 	    $needCount = 0;
+	    # If this component is an extension, call deserialization on the extended type.
+	    if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+		my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+		$deserializationCode .= " count=self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%serializeCount()\n";
+		$deserializationCode .= " if (count > 0) then\n";
+		$deserializationCode .= "  call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%deserialize".ucfirst($content)."s(array)\n";
+		$deserializationCode .= "  offset=offset+count\n";
+		$deserializationCode .= " end if\n";
+		$needCount = 1;
+	    }
 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    	my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    	# Check if this method has any linked data in this component.
@@ -3408,10 +3836,10 @@ sub Generate_Component_Get_Functions {
     	$functionCode .= "       if (present(instance)) instanceActual=instance\n";
     	$functionCode .= "       autoCreateActual=.false.\n";
     	$functionCode .= "       if (present(autoCreate)) autoCreateActual=autoCreate\n";
-	$functionCode .= "       if (allocated(self%component".ucfirst($componentClassName).")) then\n";
+	$functionCode .= "       if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
 	# If we are allowed to autocreate the component and it still has generic type then deallocate it to
 	# force it to be created later.
-	$functionCode .= "         if (autoCreateActual.and.same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "         if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
 	$functionCode .= "       end if\n";
     	$functionCode .= "       if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
     	$functionCode .= "         if (autoCreateActual) then\n";
@@ -3587,80 +4015,6 @@ sub Generate_Component_Creation_Functions {
 		 variables  => [ "i" ]
 	     }
 	    );
-	# Generate value initialization code.
-	my $initializeCode;
-	my %requiredComponents;
-    	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $buildData->{'components'}->{$componentID};
-	    $initializeCode .= "    do i=1,size(self%component".ucfirst($componentClassName).")\n";
-	    $initializeCode .= "      select type (component => self%component".ucfirst($componentClassName)."(i))\n";
-	    $initializeCode .= "    class is (nodeComponent".$componentID.")\n";
- 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
-		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		    # Set to a class default value if available.
-		    if ( exists($method->{'classDefault'}) ) {
-			my $default = $method->{'classDefault'}->{'code'};
-			while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
-			    $requiredComponents{$1} = 1;
-			    $default =~ s/self([a-zA-Z]+)Component\s*%//;
-			}
-			$default = $method->{'classDefault'}->{'code'};
-			$default =~ s/self\s*%/component%/g;
-			if ( exists($method->{'classDefault'}->{'count'}) ) {
-			    my @gsr = ( "value" );
-			    push
-				(
-				 @gsr,
-				 "rate",
-				 "scale"
-				)
-				if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
-			    foreach ( @gsr ) {
-				$initializeCode .= "           call Alloc_Array(component%".padLinkedData($linkedDataName,[0,0])."%".$_.",[".$method->{'classDefault'}->{'count'}."])\n";
-			    }
-			}
-			$initializeCode .= "            component%".padLinkedData($linkedDataName,[0,0])."%value=".$default."\n";
-		    } else {
-			# Set to null.
-			switch ( $linkedData->{'type'} ) {
-			    case ( "real"    ) {
-				if ( $linkedData->{'rank'} == 0 ) {
-				    $initializeCode .= "            component%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
-				} else {
-				    $initializeCode .= "            call Alloc_Array(component%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
-				}
-			    }
-			    case ( "integer" ) {
-				$initializeCode .= "            component%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
-			    }
-			    case ( "logical" ) {
-				$initializeCode .= "            component%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
-			    }
-			    else {
-				$initializeCode .= "       call component%".padLinkedData($linkedDataName,[0,0])."%value%reset()\n";			    
-			    }
-			}
-		    }
-		}
-	    }
-	    $initializeCode .= "    end select\n";
-	    $initializeCode .= "    end do\n";
-	}
-	# Add pointers for each required component.
-	push(
-	    @dataContent,
-	    {
-		intrinsic  => "class",
-		type       => "nodeComponent".ucfirst($_),
-		attributes => [ "pointer" ],
-		variables  => [ "self".ucfirst($_)."Component" ]
-	    }
-	    )
-	    foreach ( keys(%requiredComponents) );
 	# Generate function code.
 	my $functionCode;
     	$functionCode .= "  subroutine ".$componentClassName."CreateLinked(self,template)\n";
@@ -3668,23 +4022,6 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    use Galacticus_Display\n";
 	$functionCode .= "    use String_Handling\n";
-	# Insert any required modules.
-	my %requiredModules;
-    	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
-	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
-	    my $component = $buildData->{'components'}->{$componentID};
- 	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
-		if ( exists($method->{'classDefault'}) && exists($method->{'classDefault'}->{'modules'}) ) {
-		    foreach ( @{$method->{'classDefault'}->{'modules'}} ) {
-			$requiredModules{$_} = 1;
-		    }
-		}
-	    }
-	}
-	foreach ( keys(%requiredModules) ) {
-	    $functionCode .= "    use ".$_."\n";
-	}
     	$functionCode .= "    implicit none\n";
  	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    if (Galacticus_Verbosity_Level() >= verbosityInfo) then\n";
@@ -3701,12 +4038,9 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    type is (treeNode)\n";
 	$functionCode .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
 	$functionCode .= "        self%component".ucfirst($componentClassName)."(i)%hostNode => self\n";
+	$functionCode .= "        call self%component".ucfirst($componentClassName)."(i)%initialize()\n";
 	$functionCode .= "      end do\n";
     	$functionCode .= "    end select\n";
-	foreach my $requiredComponent ( keys(%requiredComponents) ) {
-	    $functionCode .= "     self".$requiredComponent."Component => self%".lc($requiredComponent)."()\n";
-	}
-	$functionCode .= $initializeCode;
     	$functionCode .= "    return\n";
     	$functionCode .= "  end subroutine ".$componentClassName."CreateLinked\n\n";
 	# Insert into the function list.
@@ -3769,7 +4103,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
 	foreach ( "uniqueIdValue", "indexValue" );
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." => self%".$_."\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee");
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "event" );
     $functionCode .= "    if (.not.skipFormationNodeActual) targetNode%formationNode => self%formationNode\n";
     # Loop over all component classes
     if ( $workaround == 1 ) {
@@ -4603,7 +4937,7 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    ! Ensure pointers are nullified.\n";
     $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
-	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" );
+	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
     foreach ( @{$buildData->{'componentClassList'}} ) {
     	$functionCode .= "    allocate(self%".padComponentClass("component".ucfirst($_),[9,14])."(1))\n";
     }
@@ -4616,10 +4950,11 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    ! Assign index if supplied.\n";
     $functionCode .= "    if (present(index)) call self%indexSet(index)\n";
     $functionCode .= "    ! Assign a unique ID.\n";
-    $functionCode .= "    !\$omp atomic\n";
+    $functionCode .= "    !\$omp critical(UniqueID_Assign)\n";
     $functionCode .= "    uniqueIDCount=uniqueIDCount+1\n";
     $functionCode .= "    if (uniqueIDCount <= 0) call Galacticus_Error_Report('treeNodeInitialize','ran out of unique ID numbers')\n";
     $functionCode .= "    self%uniqueIdValue=uniqueIDCount\n";
+    $functionCode .= "    !\$omp end critical(UniqueID_Assign)\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeInitialize\n";	
     # Insert into the function list.
@@ -4640,6 +4975,16 @@ sub Generate_Tree_Node_Destruction_Function {
 	     type       => "treeNode",
 	     attributes => [ "intent(inout)" ],
 	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeEvent",
+	     attributes => [ "pointer" ],
+	     variables  => [ "thisEvent", "pairEvent", "lastEvent", "nextEvent" ]
+	 },
+	 {
+	     intrinsic  => "logical",
+	     variables  => [ "pairMatched" ]
 	 }
 	);
     # Create the function code.
@@ -4651,8 +4996,115 @@ sub Generate_Tree_Node_Destruction_Function {
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
      	$functionCode .= "    call self%".padComponentClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
+    # Remove any events attached to the node, along with their paired event in other nodes.
+    $functionCode .= "    ! Iterate over all attached events.\n";
+    $functionCode .= "    thisEvent => self%event\n";
+    $functionCode .= "    do while (associated(thisEvent))\n";
+    $functionCode .= "        ! Locate the paired event and remove it.\n";
+    $functionCode .= "        pairEvent => thisEvent%node%event\n";
+    $functionCode .= "        lastEvent => thisEvent%node%event\n";
+    $functionCode .= "        ! Iterate over all events.\n";
+    $functionCode .= "        pairMatched=.false.\n";
+    $functionCode .= "        do while (associated(pairEvent).and..not.pairMatched)\n";
+    $functionCode .= "           ! Match the paired event ID with the current event ID.\n";
+    $functionCode .= "           if (pairEvent%ID == thisEvent%ID) then\n";
+    $functionCode .= "              pairMatched=.true.\n";
+    $functionCode .= "              if (associated(pairEvent,thisEvent%node%event)) then\n";
+    $functionCode .= "                 thisEvent%node  %event => pairEvent%next\n";
+    $functionCode .= "                 lastEvent       => thisEvent%node %event\n";
+    $functionCode .= "              else\n";
+    $functionCode .= "                 lastEvent%next  => pairEvent%next\n";
+    $functionCode .= "              end if\n";
+    $functionCode .= "              nextEvent => pairEvent%next\n";
+    $functionCode .= "              deallocate(pairEvent)\n";
+    $functionCode .= "              pairEvent => nextEvent\n";
+    $functionCode .= "           else\n";
+    $functionCode .= "              lastEvent => pairEvent\n";
+    $functionCode .= "              pairEvent => pairEvent%next\n";
+    $functionCode .= "           end if\n";
+    $functionCode .= "        end do\n";
+    $functionCode .= "        if (.not.pairMatched) call Galacticus_Error_Report('treeNodeDestroy','unable to find paired event')\n";
+    $functionCode .= "        nextEvent => thisEvent%next\n";
+    $functionCode .= "        deallocate(thisEvent)\n";
+    $functionCode .= "        thisEvent => nextEvent\n";
+    $functionCode .= "    end do\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine treeNodeDestroy\n";	
+    # Insert into the function list.
+    push(
+	@{$buildData->{'code'}->{'functions'}},
+	$functionCode
+	);
+}
+
+sub Generate_Tree_Node_Builder_Function {
+    # Generate a tree node builder function.
+    my $buildData = shift;
+    # Specify data content.
+    my @dataContent =
+	(
+	 {
+	     intrinsic  => "class",
+	     type       => "treeNode",
+	     attributes => [ "intent(inout)" ],
+	     variables  => [ "self" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "node",
+	     attributes => [ "intent(in   )", "pointer" ],
+	     variables  => [ "nodeDefinition" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "node",
+	     attributes => [ "pointer" ],
+	     variables  => [ "componentDefinition" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "nodeList",
+	     attributes => [ "pointer" ],
+	     variables  => [ "componentList" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i", "j", "componentCount" ]
+	 }
+	);
+    # Create the function code.
+    my $functionCode;
+    $functionCode .= "  subroutine Tree_Node_Component_Builder(self,nodeDefinition)\n";
+    $functionCode .= "    !% Build components in a {\\tt treeNode} object given an XML definition.\n";
+    $functionCode .= "    use FoX_Dom\n";
+    $functionCode .= "    implicit none\n";
+    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= "    select type (self)\n";
+    $functionCode .= "    type is (treeNode)\n";
+    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
+	$functionCode .= "    componentCount=0\n";
+	$functionCode .= "    do i=0,getLength(componentList)-1\n";
+	$functionCode .= "      componentDefinition => item(componentList,i)\n";
+	$functionCode .= "      if (getNodeName(componentDefinition) == '".$componentClass."') componentCount=componentCount+1\n";
+	$functionCode .= "    end do\n";
+	$functionCode .= "    if (componentCount > 0) then\n";
+	$functionCode .= "      if (allocated(self%component".ucfirst($componentClass).")) deallocate(self%component".ucfirst($componentClass).")\n";
+	$functionCode .= "      allocate(self%component".ucfirst($componentClass)."(componentCount),source=default".ucfirst($componentClass)."Component)\n";
+	$functionCode .= "      j=0\n";
+	$functionCode .= "      do i=0,getLength(componentList)-1\n";
+	$functionCode .= "        componentDefinition => item(componentList,i)\n";
+	$functionCode .= "        if (getNodeName(componentDefinition) == '".$componentClass."') then\n";
+	$functionCode .= "          j=j+1\n";
+	$functionCode .= "          call self%component".ucfirst($componentClass)."(j)%builder(componentDefinition)\n";
+	$functionCode .= "          self%component".ucfirst($componentClass)."(j)%hostNode => self\n";
+	$functionCode .= "        end if\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
+    }
+    $functionCode .= "    end select\n";
+    $functionCode .= "    return\n";
+    $functionCode .= "  end subroutine Tree_Node_Component_Builder\n";	
     # Insert into the function list.
     push(
 	@{$buildData->{'code'}->{'functions'}},
@@ -5057,6 +5509,91 @@ sub Generate_Component_Class_Dump_Functions {
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 	    {type => "procedure", name => "dump", function => "Node_Component_".ucfirst($componentClassName)."_Dump"},
+	    );
+    }
+}
+
+sub Generate_Component_Class_Initializor_Functions {
+    # Generate initializor for each component class.
+    my $buildData = shift;
+    # Iterate over component classes.
+    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	# Initialize function code.
+	my $functionCode;
+	# Initialize data content.
+	my @dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     }
+	    );
+	# Generate initializor function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Initializor(self)\n";
+	$functionCode .= "    !% Initialize a generic ".$componentClassName." component.\n";
+	$functionCode .= "    use Galacticus_Error\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Initializor','can not initialize a generic component')\n";
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Initializor\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentClassName)."_Initializor"},
+	    );
+    }
+}
+
+sub Generate_Component_Class_Builder_Functions {
+    # Generate builder for each component class.
+    my $buildData = shift;
+    # Iterate over component classes.
+    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	# Initialize function code.
+	my $functionCode;
+	# Initialize data content.
+	my @dataContent =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "intent(in   )", "pointer" ],
+		 variables  => [ "componentDefinition" ]
+	     }
+	    );
+	# Generate dump function.
+	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Builder(self,componentDefinition)\n";
+	$functionCode .= "    !% Build a generic ".$componentClassName." component.\n";
+	$functionCode .= "    use FoX_DOM\n";
+	$functionCode .= "    use Galacticus_Error\n";
+	$functionCode .= "    implicit none\n";
+	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Builder','can not build a generic component')\n";
+	$functionCode .= "    return\n";
+	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Builder\n";
+	# Insert into the function list.
+	push(
+	    @{$buildData->{'code'}->{'functions'}},
+	    $functionCode
+	    );
+	# Insert a type-binding for this function into the implementation type.
+	push(
+	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder"},
 	    );
     }
 }
@@ -5528,6 +6065,11 @@ sub Generate_ODE_Initialization_Functions {
 	$functionCode .= "    !% Initialize rates in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepRatesInitialize()\n";
+	}
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};	    
 	    if ( exists($method->{'linkedData'}) ) {
@@ -5572,6 +6114,11 @@ sub Generate_ODE_Initialization_Functions {
 	$functionCode .= "    !% Initialize scales in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	# If this component is an extension, first call on the extended type.
+	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
+	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
+	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepScalesInitialize()\n";
+	}
 	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
 	    my $method = $component->{'methods'}->{'method'}->{$methodName};
 	    if ( exists($method->{'linkedData'}) ) {

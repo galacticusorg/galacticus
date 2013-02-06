@@ -171,14 +171,14 @@ sub Get_Dataset {
 
     foreach my $dataSetName ( @dataNames ) {
     	unless ( exists($dataBlock->{'dataSets'}->{$dataSetName}) ) {
-    	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "volumeWeight" ) {
+    	    if ( exists($dataBlock->{'dataSetsAvailable'}->{$dataSetName}) || $dataSetName eq "mergerTreeWeight" ) {
      		# Dataset exists in the output file, so simply read it.
      		my $data     = pdl [];
      		my $dataTree = pdl [];
 		# Read data.
 		if ( $dataBlock->{'tree'} eq "all" ) { 
 		    # All trees are to be read - grab the complete datasets.
-		    if ( $dataSetName eq "volumeWeight" ) {
+		    if ( $dataSetName eq "mergerTreeWeight" ) {
 			my $mergerTreeWeight = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeWeight")->get;
 			my $mergerTreeCount  = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
 			for (my $i=0;$i<nelem($mergerTreeWeight);++$i) {
@@ -193,7 +193,7 @@ sub Get_Dataset {
 			my $mergerTreeIndex = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeIndex")->get;
 			my $mergerTreeCount = $dataBlock->{'hdf5File'}->dataset("Outputs/Output".$dataBlock->{'output'}."/mergerTreeCount")->get;
 			for(my $i=0;$i<nelem($mergerTreeCount);++$i) {
-			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))));
+			    $dataTree = $dataTree->append($mergerTreeIndex->(($i))*ones($mergerTreeCount->(($i))->sclr()));
 			}
 		    }
 		} else {
@@ -213,7 +213,7 @@ sub Get_Dataset {
 			my $treeWeight     = $mergerTreeWeight    ->index($treeIndex)->squeeze;
 			my $treeEndIndex   = $treeStartIndex+$treeCount-1;
 			if ( $treeCount > 0 ) {
-			    if ( $dataSetName eq "volumeWeight" ) {
+			    if ( $dataSetName eq "mergerTreeWeight" ) {
 				$data = $data->append($treeWeight*ones($treeCount->list));
 			    } else {
 				# Read the dataset.

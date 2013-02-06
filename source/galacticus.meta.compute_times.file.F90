@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -52,6 +52,8 @@ contains
        !@ <inputParameter>
        !@   <name>timePerTreeFitFileName</name>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
        !@   <description>
        !@    The name of the file which contains fit coefficients for the time per tree fitting function.
        !@   </description>

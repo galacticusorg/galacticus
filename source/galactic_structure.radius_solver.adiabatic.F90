@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -198,6 +198,7 @@ contains
     double precision,                           intent(in)    :: specificAngularMomentum
     procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
     procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
+    character(len=14)                                         :: label
     type(varying_string)                                      :: message
     double precision                                          :: radius,velocity,virialRadius,angularMomentumC&
          &,angularMomentumCPrimed ,radiusInitial,haloMassInitial,darkMatterMassFinal,darkMatterVelocitySquared&
@@ -283,7 +284,19 @@ contains
        ! Catch unphysical states.
        if (radius <= 0.0d0) then
           message='radius has reached zero for node '
-          message=message//thisNode%index()
+          message=message//thisNode%index()//' - report follows:'//char(10)
+          write (label,'(e12.6)') specificAngularMomentum
+          message=message//'  specific angular momentum:    '//label//char(10)
+          write (label,'(e12.6)') velocity
+          message=message//'  rotation velocity:            '//label//char(10)
+          write (label,'(e12.6)') sqrt(darkMatterVelocitySquared)
+          message=message//'   -> dark matter contribution: '//label//char(10)
+          write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
+          message=message//'   -> baryonic contribution:    '//label//char(10)
+          write (label,'(e12.6)') haloMassInitial
+          message=message//'  initial halo mass enclosed:   '//label//char(10)
+          write (label,'(e12.6)') haloFraction
+          message=message//'  halo fraction:                '//label
           call Galacticus_Error_Report('Galactic_Structure_Radii_Adiabatic::Solve_For_Radius',message)
        end if
 

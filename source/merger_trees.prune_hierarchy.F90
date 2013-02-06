@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -22,13 +22,13 @@ module Merger_Trees_Prune_Hierarchy
   implicit none
   private
   public :: Merger_Tree_Prune_Hierarchy
-  
+
   ! Flag indicating if module is initialized.
   logical :: pruneHierarchyModuleInitialized=.false.
- 
+
   ! Depth below which hierarchy should be pruned.
   integer :: mergerTreePruneHierarchyAtDepth
-  
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -40,10 +40,11 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type(mergerTree), intent(in) :: thisTree
-    type(treeNode),   pointer    :: thisNode,nextNode,destroyNode,previousNode,workNode
-    logical                      :: didPruning
-    integer                      :: hierarchyDepth
+    type(mergerTree), intent(in), target :: thisTree
+    type(treeNode),   pointer            :: thisNode,nextNode,previousNode,workNode
+    type(mergerTree), pointer            :: currentTree
+    logical                              :: didPruning
+    integer                              :: hierarchyDepth
 
     ! Check if module is initialized.
     if (.not.pruneHierarchyModuleInitialized) then
@@ -69,55 +70,54 @@ contains
 
     ! Prune tree if necessary.
     if (mergerTreePruneHierarchyAtDepth > 0) then
-       didPruning=.true.
-       do while (didPruning)
-          didPruning=.false.
-          ! Get root node of the tree.       
-          thisNode => thisTree%baseNode
-          ! Walk the tree, pruning hierarchy.
-          do while (associated(thisNode))
-             ! Record the parent node to which we will return.
-             previousNode => thisNode%parent
+       ! Iterate over trees.
+       currentTree => thisTree
+       do while (associated(currentTree))
+          didPruning=.true.
+          do while (didPruning)
+             didPruning=.false.
+             ! Get root node of the tree.       
+             thisNode => currentTree%baseNode
+             ! Walk the tree, pruning hierarchy.
+             do while (associated(thisNode))
+                ! Record the parent node to which we will return.
+                previousNode => thisNode%parent
 
-             ! Find the depth in the hierarchy.
-             hierarchyDepth=0
-             workNode => thisNode
-             do while (associated(workNode))
-                ! Increment hierarchy depth if this node is not the main progenitor.
-                if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
-                workNode => workNode%parent
-             end do
-
-             ! Prune if this node is sufficiently deep in the hierarchy.
-             if (hierarchyDepth >= mergerTreePruneHierarchyAtDepth) then
-                didPruning=.true.
-                ! Decouple from other nodes.
-                if (thisNode%isPrimaryProgenitorOf(previousNode)) then
-                   previousNode%firstChild => thisNode%sibling
-                else
-                   nextNode => previousNode%firstChild
-                   do while (.not.associated(nextNode%sibling,thisNode))
-                      nextNode => nextNode%sibling
-                   end do
-                   nextNode%sibling => thisNode%sibling
-                end if
-                ! Should call the "destroyBranch" method on "thisTree" here, but seems to cause a compiler crash under gFortran
-                ! v4.4. So, instead, do the branch destroy manually.
-                nextNode => thisNode
-                do while (associated(nextNode))
-                   destroyNode => nextNode
-                   call destroyNode%walkBranch(thisNode,nextNode)
-                   call destroyNode%destroy
+                ! Find the depth in the hierarchy.
+                hierarchyDepth=0
+                workNode => thisNode
+                do while (associated(workNode))
+                   ! Increment hierarchy depth if this node is not the main progenitor.
+                   if (.not.workNode%isPrimaryProgenitor().and.associated(workNode%parent)) hierarchyDepth=hierarchyDepth+1
+                   workNode => workNode%parent
                 end do
-                ! Return to parent node.
-                thisNode => previousNode
-             end if
-             call thisNode%walkTree(thisNode)
+
+                ! Prune if this node is sufficiently deep in the hierarchy.
+                if (hierarchyDepth >= mergerTreePruneHierarchyAtDepth) then
+                   didPruning=.true.
+                   ! Decouple from other nodes.
+                   if (thisNode%isPrimaryProgenitorOf(previousNode)) then
+                      previousNode%firstChild => thisNode%sibling
+                   else
+                      nextNode => previousNode%firstChild
+                      do while (.not.associated(nextNode%sibling,thisNode))
+                         nextNode => nextNode%sibling
+                      end do
+                      nextNode%sibling => thisNode%sibling
+                   end if
+                   call currentTree%destroyBranch(thisNode)
+                   ! Return to parent node.
+                   thisNode => previousNode
+                end if
+                call thisNode%walkTree(thisNode)
+             end do
           end do
+          ! Move to the next tree.
+          currentTree => currentTree%nextTree
        end do
     end if
 
     return
   end subroutine Merger_Tree_Prune_Hierarchy
-  
+
 end module Merger_Trees_Prune_Hierarchy

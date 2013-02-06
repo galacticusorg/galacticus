@@ -63,7 +63,7 @@ $dataBlock->{'store'} = 0;
 &HDF5::Count_Trees($dataBlock);
 &HDF5::Select_Output($dataBlock,0.1);
 $dataBlock->{'tree'} = "all";
-&HDF5::Get_Dataset($dataBlock,['volumeWeight'
+&HDF5::Get_Dataset($dataBlock,['mergerTreeWeight'
 			      ,'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'
 			      ,'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'
@@ -79,7 +79,7 @@ my $radius           = $halfRadiiTable->interpND(transpose(cat($indexRadius,$ind
 $radius          *= 1000.0*$dataSets->{'diskRadius'};
 my $morphology       = $dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}/($dataSets->{'diskLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'}+$dataSets->{'spheroidLuminositiesStellar:SDSS_r:observed:z0.1000:dustAtlas'});
 my $magnitude        = $dataSets->{'magnitudeTotal:SDSS_r:observed:z0.1000:dustAtlas:AB'};
-my $weight           = $dataSets->{'volumeWeight'};
+my $weight           = $dataSets->{'mergerTreeWeight'};
 
 # Initialize chi^2 accumulator.
 my $chiSquared = 0.0;

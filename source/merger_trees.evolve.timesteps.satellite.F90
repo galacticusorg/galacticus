@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -37,21 +37,27 @@ contains
   !# <timeStepsTask>
   !#  <unitName>Merger_Tree_Timestep_Satellite</unitName>
   !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report)
+  subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the time at which the node merges.
     use Galacticus_Nodes
     use Evolve_To_Time_Reports
     use Merger_Trees_Evolve_Timesteps_Template
     use Input_Parameters
+    use ISO_Varying_String
+    use String_Handling
+    use ISO_Varying_String
     implicit none
-    type     (treeNode                     ), intent(inout), pointer :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer :: End_Of_Timestep_Task
-    double precision,                         intent(inout)          :: timeStep
-    logical,                                  intent(in)             :: report
-    type     (treeNode                     ),                pointer :: hostNode
-    class    (nodeComponentBasic           ),                pointer :: thisBasicComponent,hostBasicComponent
-    class    (nodeComponentSatellite       ),                pointer :: thisSatelliteComponent
-    double precision                                                 :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum,mergeTargetTimeOffsetMaximum
+    type     (treeNode                     ), intent(inout), pointer           :: thisNode
+    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
+    double precision,                         intent(inout)                    :: timeStep
+    logical,                                  intent(in)                       :: report
+    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
+    type     (varying_string               ), intent(inout),          optional :: lockType  
+    type     (treeNode                     ),                pointer           :: hostNode
+    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent,hostBasicComponent
+    class    (nodeComponentSatellite       ),                pointer           :: thisSatelliteComponent
+    double precision                                                           :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum&
+         &,mergeTargetTimeOffsetMaximum
 
     ! Initialize the module.
     if (.not.mergerTimestepsInitialized) then
@@ -120,6 +126,8 @@ contains
        ! Set return value if our timestep is smaller than current one. Do not set an end of timestep task in this case - we want
        ! to wait for the merge target to catch up before triggering a merger.
        if (timeStepAllowed <= timeStep) then
+          if (present(lockNode)) lockNode => hostNode
+          if (present(lockType)) lockType =  "satellite (host)"
           timeStep=timeStepAllowed
           End_Of_Timestep_Task => null()
        end if
@@ -127,8 +135,10 @@ contains
     else
        ! Set return value if our timestep is smaller than current one.
        if (timeUntilMerging <= timeStep) then
+          if (present(lockNode)) lockNode => hostNode
+          if (present(lockType)) lockType =  "satellite (self)"
           timeStep=timeUntilMerging
-          ! Trigger a merger event only if the target no has no children. If it has children, we need to wait for them to be
+          ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
           ! evolved before merging.
           if (.not.associated(hostNode%firstChild)) then
              End_Of_Timestep_Task => Satellite_Merger_Process
@@ -136,21 +146,35 @@ contains
              End_Of_Timestep_Task => null()
           end if
        end if
-       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep)
-     end if
+       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep,hostNode%index())
+    end if
     return
   end subroutine Merger_Tree_Timestep_Satellite
 
-  subroutine Satellite_Merger_Process(thisTree,thisNode)
+  subroutine Satellite_Merger_Process(thisTree,thisNode,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
     use Merger_Trees
     use Galacticus_Nodes
+    use Merger_Trees_Evolve_Deadlock_Status
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
     !# <include directive="satelliteMergerTask" type="moduleUse">
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(in)             :: thisTree
-    type(treeNode),   intent(inout), pointer :: thisNode
+    type   (mergerTree    ), intent(in   )          :: thisTree
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: deadlockStatus
+    type   (varying_string)                         :: message
+
+    ! Report if necessary.
+    ! Report if necessary.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Satellite node ['
+       message=message//thisNode%index()//'] is being merged'
+       call Galacticus_Display_Message(message)
+    end if
 
     ! Allow arbitrary routines to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
@@ -162,7 +186,11 @@ contains
     call thisNode%removeFromHost  ()
     call thisNode%removeFromMergee()
     call thisNode%destroy         ()
+    deallocate(thisNode)
     thisNode => null()
+
+    ! The tree was changed, so mark that it is not deadlocked.
+    deadlockStatus=isNotDeadlocked
     return
   end subroutine Satellite_Merger_Process
 

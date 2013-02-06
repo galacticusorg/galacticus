@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -54,6 +54,8 @@ contains
        !@   <name>excursionSetFirstCrossingMethod</name>
        !@   <defaultValue>linearBarrier</defaultValue>
        !@   <attachedTo>module</attachedTo>
+       !@   <type>string</type>
+       !@   <cardinality>0..1</cardinality>
        !@   <description>
        !@     The name of the method to be used for calculations of first crossing distributions for excursion sets.
        !@   </description>

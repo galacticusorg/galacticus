@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -72,6 +72,7 @@ contains
   subroutine Cooling_Radius_Simple_Initialize(coolingRadiusMethod,Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get)
     !% Initializes the ``simple'' cooling radius module.
     use ISO_Varying_String
+    use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: coolingRadiusMethod
     procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
@@ -82,6 +83,15 @@ contains
        ! Get a count of the number of abundances and chemicals properties.
        abundancesCount=Abundances_Property_Count()
        chemicalsCount =Chemicals_Property_Count ()
+       ! Check that required components are gettable.
+       if     (                                                                                  &
+            &  .not.(                                                                            &
+            &         defaultHotHaloComponent%       massIsGettable() .and.                      &
+            &         defaultHotHaloComponent% abundancesIsGettable() .and.                      &
+            &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                      &
+            &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  chemicalsCount == 0) &
+            &       )                                                                            &
+            & ) call Galacticus_Error_Report('Cooling_Radius_Simple_Initialize','this method requires that the "mass", "abundances", "outerRadius", and "chemicals" (if any chemicals are being used) properties of the hot halo are gettable')
     end if
     return
   end subroutine Cooling_Radius_Simple_Initialize
@@ -107,15 +117,16 @@ contains
   double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
     !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Hot_Halo_Temperature_Profile
     use Hot_Halo_Density_Profile
     use Cooling_Times
     use Cooling_Times_Available
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: virialRadius,coolingRadius,coolingTimeAvailable ,coolingTimeAvailableIncreaseRate&
-         &,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope ,coolingTimeTemperatureLogSlope
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                                               :: outerRadius,coolingRadius,coolingTimeAvailable &
+         &,coolingTimeAvailableIncreaseRate ,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
+         &,coolingTimeTemperatureLogSlope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -124,15 +135,18 @@ contains
     if (.not.coolingRadiusGrowthRateComputed) then
        ! Flag that cooling radius is now computed.
        coolingRadiusGrowthRateComputed=.true.
-       
-       ! Get the virial radius.
-       virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+ 
+       ! Get node components.
+       thisHotHaloComponent => thisNode%hotHalo()
+
+       ! Get the outer radius.
+       outerRadius=thisHotHaloComponent%outerRadius()
        
        ! Get the cooling radius.
        coolingRadius=Cooling_Radius_Simple(thisNode)
        
-       ! Check if cooling radius has reached virial radius.
-       if (coolingRadius >= virialRadius) then
+       ! Check if cooling radius has reached the outer radius.
+       if (coolingRadius >= outerRadius) then
           coolingRadiusGrowthRateStored=0.0d0
        else
           ! Get the time available for cooling in thisNode.
@@ -174,19 +188,19 @@ contains
   double precision function Cooling_Radius_Simple(thisNode)
     !% Return the cooling radius in the simple model.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     use Root_Finder
     use FGSL
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    double precision,        parameter              :: zeroRadius=0.0d0
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
+    double precision                      , parameter              :: zeroRadius=0.0d0
+    type            (fgsl_function       ), save                   :: rootFunction
+    type            (fgsl_root_fsolver   ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type(c_ptr)                                     :: parameterPointer
-    double precision                                :: virialRadius 
+    double precision                      , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type            (c_ptr               )                         :: parameterPointer
+    double precision                                               :: outerRadius 
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
@@ -212,18 +226,21 @@ contains
           Cooling_Radius_Simple=coolingRadiusStored
          return
        end if
+
+       ! Get node components.
+       thisHotHaloComponent => thisNode%hotHalo()
        
-       ! Check if cooling time at halo virial radius is reached.
-       virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-       if (Cooling_Radius_Root(virialRadius,parameterPointer) < 0.0d0) then
-          ! Cooling time available exceeds cooling time at virial radius, return virial radius.
-          coolingRadiusStored=virialRadius
+       ! Check if cooling time at hot halo outer radius is reached.
+       outerRadius=thisHotHaloComponent%outerRadius()
+       if (Cooling_Radius_Root(outerRadius,parameterPointer) < 0.0d0) then
+          ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
+          coolingRadiusStored=outerRadius
           Cooling_Radius_Simple=coolingRadiusStored
           return
        end if
        
-       ! Cooling radius is between zero and virial radii. Search for the virial radius.
-       coolingRadiusStored=Root_Find(zeroRadius,virialRadius,Cooling_Radius_Root,parameterPointer,rootFunction,rootFunctionSolver &
+       ! Cooling radius is between zero and outer radii. Search for the cooling radius.
+       coolingRadiusStored=Root_Find(zeroRadius,outerRadius,Cooling_Radius_Root,parameterPointer,rootFunction,rootFunctionSolver &
             &,toleranceAbsolute,toleranceRelative)
        Cooling_Radius_Simple=coolingRadiusStored
     else
@@ -236,7 +253,6 @@ contains
     !% Initialize the abundances, chemical properties and radiation field for {\tt thisNode} for use in cooling radius
     !% calculations.
     use Chemical_Reaction_Rates_Utilities
-    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer     :: thisNode
     class(nodeComponentHotHalo),                pointer     :: thisHotHaloComponent
@@ -255,7 +271,7 @@ contains
        ! Scale all chemical masses by their mass in atomic mass units to get a number density.
        call chemicalMasses%massToNumber(chemicalDensities)
        ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))
+       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(thisHotHaloComponent%outerRadius())
        ! Convert to number density.
        chemicalDensities=chemicalDensities*massToDensityConversion
     end if

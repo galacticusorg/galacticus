@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -66,6 +66,8 @@ contains
           !@   <name>excursionSetBarrierMethod</name>
           !@   <defaultValue>criticalOverdensity</defaultValue>
           !@   <attachedTo>module</attachedTo>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
           !@   <description>
           !@     The name of the method to be used for calculations of excursion set barriers.
           !@   </description>
@@ -96,6 +98,8 @@ contains
           !@   <name>excursionSetBarrierRemapMethods</name>
           !@   <defaultValue>null</defaultValue>
           !@   <attachedTo>module</attachedTo>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
           !@   <description>
           !@     The name of the method to be used for remapping excursion set barriers.
           !@   </description>
@@ -135,6 +139,8 @@ contains
           !@   <name>excursionSetBarrierRatesRemapMethods</name>
           !@   <defaultValue>null</defaultValue>
           !@   <attachedTo>module</attachedTo>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
           !@   <description>
           !@     The name of the method to be used for remapping excursion set barriers for rate calculations.
           !@   </description>

@@ -519,7 +519,7 @@ The following are standard datasets in the {\tt haloTrees} group.
  \item [{\tt expansionFactor}] The expansion factor (normalized to unity at the present day) at which this node is identified (note that only one of the {\tt expansionFactor}, {\tt redshift} and {\tt time} datasets is required, since they are simply related, but multiple \emph{can} be present);
  \item [{\tt descendentIndex}] The {\tt nodeIndex} of the descendent of this node in the merger tree, or $-1$ if there is no descendent;
  \item [{\tt halfMassRadius}] The radius containing half the mass of the node;
- \item [{\tt hostIndex}] The {\tt nodeIndex} of the node which hosts this node;
+ \item [{\tt hostIndex}] The {\tt nodeIndex} of the node which hosts this node. For nodes that are self-hosting (i.e. that are not subhalos inside another halo), the value of {\tt hostIndex} should be set equal to the node's own {\tt nodeIndex};
  \item [{\tt nodeIndex}] An ID number for the node, unique at least within each tree. If nodes are able to move from one tree to another, the ID must be unique within all trees. No other constraints are placed on {\tt nodeIndex} (e.g. it \emph{does not} have to be monotonically increasing within the file for example);
  \item [{\tt nodeMass}] The mass of the node;
  \item [{\tt position}] The three dimensional position of this node;
