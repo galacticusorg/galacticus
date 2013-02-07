@@ -50,7 +50,7 @@ module Node_Component_Black_Hole_Simple
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.black_hole.simple.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   !# </component>
   
   ! Seed mass for black holes.

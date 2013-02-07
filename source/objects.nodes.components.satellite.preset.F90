@@ -71,7 +71,7 @@ module Node_Component_Satellite_Preset
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.satellite.preset.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.satellite.preset.bound_functions.inc</functions>
   !# </component>
 
 contains

@@ -167,7 +167,7 @@ module Node_Component_Hot_Halo_Standard
   !#     <isVirtual>yes</isVirtual>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.hot_halo.standard.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>
   !# </component>
 
   ! Internal count of abundances and chemicals.

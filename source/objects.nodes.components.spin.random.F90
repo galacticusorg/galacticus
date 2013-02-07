@@ -46,7 +46,7 @@ module Node_Component_Spin_Random
   !#     <getFunction bindsTo="component">SpinRandomSpinGrowthRate</getFunction>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.spin.random.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.spin.random.bound_functions.inc</functions>
   !# </component>
 
   ! Record of whether the module has been initialized.

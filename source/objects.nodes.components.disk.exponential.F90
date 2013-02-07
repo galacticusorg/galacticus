@@ -132,7 +132,7 @@ module Node_Component_Disk_Exponential
   !#  <bindings>
   !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" bindsTo="component" />
   !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.exponential.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.disk.exponential.bound_functions.inc</functions>
   !# </component>
 
   ! Internal count of abundances.

@@ -50,7 +50,7 @@ module Node_Component_Disk_Very_Simple
   !#  <bindings>
   !#   <binding method="attachPipe" function="Node_Component_Disk_Very_Simple_Attach_Pipe" type="void" bindsTo="component" />
   !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.very_simple.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
   !# </component>
 
   ! Record of whether this module has been initialized.

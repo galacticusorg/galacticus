@@ -38,7 +38,7 @@ module Node_Component_Formation_Times_Cole2000
   !#     <getFunction bindsTo="component">FormationTimeCole2000FormationTime</getFunction>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.formation_times.Cole2000.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.formation_times.Cole2000.bound_functions.inc</functions>
   !# </component>
 
   ! Record of whether this module has been initialized.
