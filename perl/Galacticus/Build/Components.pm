@@ -38,7 +38,7 @@ my $verbosityLevel                      = 1;
 # Switch to control gfortran workarounds.
 my $workaround                          = 1;
 
-# Records of the longest component and method names.
+# Records of the longest component and property names.
 my $classNameLengthMax                  = 0;
 my $implementationNameLengthMax         = 0;
 my $fullyQualifiedNameLengthMax         = 0;
@@ -84,7 +84,7 @@ sub Components_Generate_Output {
 	    \&Distribute_Class_Defaults                              ,
 	    # Set defaults for unspecified attributes.
 	    \&Set_Default_Attributes                                 ,
-	    # Construct linked data for component methods.
+	    # Construct linked data for component properties.
 	    \&Construct_Linked_Data                                  ,
 	    # Generate the nodeComponent type.
 	    \&Generate_Node_Component_Type                           ,
@@ -223,7 +223,7 @@ sub Get_Type {
 }
 
 sub Get_Suffix {
-    # Returns the suffix for a method.
+    # Returns the suffix for a property.
     my $propertyType = shift;
     # Determine the suffix to use.
     my $suffix = "";
@@ -247,7 +247,7 @@ sub Get_Suffix {
 	    $suffix = "_Kepler_Orbit";
 	}
 	else {
-	    die("Build_Include_File.pl: unrecognized method type");
+	    die("Build_Include_File.pl: unrecognized property type");
 	}
     }
     return $suffix;
@@ -539,7 +539,7 @@ sub Distribute_Class_Defaults {
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		# Get the method.
+		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check for class defaults.
 		if ( exists($property->{'classDefault'}) ) {
@@ -589,7 +589,7 @@ sub Distribute_Class_Defaults {
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		# Get the method.
+		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Set class default if available.
 		$property->{'classDefault'} = $classDefaults{$componentID.$propertyName}
@@ -603,22 +603,22 @@ sub Distribute_Class_Defaults {
 }
 
 sub Construct_Linked_Data {
-    # Generates linked data for component methods.
+    # Generates linked data for component properties.
     my $buildData = shift;
 
     # Iterate over all component implementations.
     foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
-	# Iterate over all methods belonging to this component.	
+	# Iterate over all properties belonging to this component.	
 	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
 	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentID}->{'properties'}->{'property'}}) ) {
 		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
-		# Record the longest method name.
+		# Record the longest property name.
 		$propertyNameLengthMax = length($propertyName) if (length($propertyName) > $propertyNameLengthMax);
 		# Check for a pre-defined linkedData element.
 		my $linkedDataName;
 		if ( exists($property->{'linkedData'}) ) {		    
 		    # A linkedData element has been explicitly declared, write an informational message.
-		    print " -> INFO: linkedData can be created automatically for ".$propertyName." method of the ".lcfirst($componentID)." component\n";
+		    print " -> INFO: linkedData can be created automatically for ".$propertyName." property of the ".lcfirst($componentID)." component\n";
 		    # Get the name of the linked data and the data itself.
 		    $linkedDataName = $property->{'linkedData'};
 		    my $linkedData  = $buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName};
@@ -631,7 +631,7 @@ sub Construct_Linked_Data {
 		} else {
 		    # No linkedData element is explicitly declared. Therefore, we must have type, and rank specified.
 		    foreach my $requiredElement ( "type", "rank" ) {
-			die("No ".$requiredElement." was specified for ".$propertyName." method of the ".lcfirst($componentID)." component")
+			die("No ".$requiredElement." was specified for ".$propertyName." property of the ".lcfirst($componentID)." component")
 			    unless ( exists($property->{$requiredElement}) );
 		    }
 		    # If no isVirtual element is present, assume "no" by default.
@@ -644,10 +644,10 @@ sub Construct_Linked_Data {
 			rank        => $property->{'rank'      }                 ,
 			isEvolvable => $property->{'attributes'}->{'isEvolvable'}
 		    };
-		    # Unless this method is virtual, create a linked data object for it.
+		    # Unless this property is virtual, create a linked data object for it.
 		    unless ( $property->{'isVirtual'} eq "yes" ) {
 			# Write a message.
-			print " -> Creating linked data object for ".$propertyName." method of the ".lcfirst($componentID)." component\n";
+			print " -> Creating linked data object for ".$propertyName." property of the ".lcfirst($componentID)." component\n";
 			# Create the linked data name.
 			$linkedDataName = $propertyName."Data";
 			# Create the linked data object.
@@ -733,11 +733,11 @@ sub Set_Default_Attributes{
 	# If a create function is specified, set it to be non-deferred by default.
 	$component->{'createFunction'}->{'isDeferred'} = "false"
 	    if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    # Get the method.
+	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Add the method's name.
+	    # Add the property's name.
 	    $property->{'name'} = $propertyName;
 	    # Binding.
 	    $property->{'attributes'}->{'bindsTo'} = "component"
@@ -873,7 +873,7 @@ sub Generate_Component_Classes{
     # Iterate over all component classes.
     my %classGetDefaults;
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
-	# Define a hash to record which methods have already been created.
+	# Define a hash to record which properties have already been created.
 	my %propertiesCreated;
 
 	# Create a list for type-bound functions.
@@ -883,11 +883,11 @@ sub Generate_Component_Classes{
     	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$componentClass}->{'members'}} ) {
 	    # Construct a fully-qualified name for this implementation.
 	    my $componentName = ucfirst($componentClass).ucfirst($implementationName);
-	    # Iterate over methods beloning to this implementation.
+	    # Iterate over properties beloning to this implementation.
 	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentName}->{'properties'}->{'property'}}) ) {
-		# Get the method.
+		# Get the property.
 		my $property = $buildData->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
-		# Create functions to set/get/evolve each method as necessary.
+		# Create functions to set/get/evolve each property as necessary.
 		if ( 
 		       $property->{'attributes'}->{'isGettable' } eq "true"
 		    || $property->{'attributes'}->{'isSettable' } eq "true"
@@ -896,17 +896,17 @@ sub Generate_Component_Classes{
 		{
 		    # Name of function being processed.
 		    my $functionName;
-		    # Get a fully-qualified type identfier for this method.
+		    # Get a fully-qualified type identfier for this property.
 		    (my $intrinsic,my $type,my $attributes) = &dataObjectPrimitiveName($property);
 		    $type .= $property->{'rank'}."InOut";
 		    # Record the null bindings needed.
-		    $buildData->{'nullMethods'}->{$componentClass}->{"Integer0In"} =
+		    $buildData->{'nullProperties'}->{$componentClass}->{"Integer0In"} =
 		    {
 			type   => "integer",
 			rank   => 0        ,
 			intent => "in"
 		    };
-		    $buildData->{'nullMethods'}->{$componentClass}->{$type       } = 
+		    $buildData->{'nullProperties'}->{$componentClass}->{$type       } = 
 		    {
 			type   => $property->{'type'},
 			rank   => $property->{'rank'},
@@ -973,7 +973,7 @@ sub Generate_Component_Classes{
 				    {type => "procedure", name => $functionName, function => $boundTo}
 				    );
 			    }
-			    # Create a "scale" function unless this is a virtual method.
+			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
 				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type}
@@ -987,7 +987,7 @@ sub Generate_Component_Classes{
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $_->{'property'}, function => $_->{'nullFunction'}}
+				{type => "procedure", name => $_->{'method'}, function => $_->{'nullFunction'}}
 				)
 				if ( $_->{'bindsTo'} eq "componentClass" );
 			}
@@ -1072,13 +1072,13 @@ sub Generate_Implementations {
     	    foreach ( @{$component->{'bindings'}->{'binding'}} ) {
 		push(
 		    @typeBoundFunctions,
-		    {type => "procedure", name => $_->{'property'}, function => $_->{'function'}},
+		    {type => "procedure", name => $_->{'method'}, function => $_->{'function'}},
 		    );
 	    }
 	}
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    # Get the method.
+	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
@@ -1154,7 +1154,7 @@ sub Generate_Deferred_Procedure_Pointers {
 		   exists($component->{'createFunction'})
 		&&        $component->{'createFunction'}->{'isDeferred'} eq "true"
 	    );
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
@@ -1189,8 +1189,8 @@ sub Generate_Deferred_Procedure_Pointers {
 				variables  => [ $componentClassName.ucfirst($propertyName).ucfirst($_)."IsAttachedValue=.false." ]
 			    },
 			    );
-			# Add the required null method to the list.
-			$buildData->{'nullMethods'}->{$selfType}->{$dataType."InOut"} =
+			# Add the required null property to the list.
+			$buildData->{'nullProperties'}->{$selfType}->{$dataType."InOut"} =
 			{
 			    type   => $property->{'type'},
 			    rank   => $property->{'rank'},
@@ -2460,7 +2460,7 @@ sub Generate_Implementation_Dump_Functions {
 	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method has any linked data in this component.
+		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -2547,7 +2547,7 @@ sub Generate_Implementation_Dump_Functions {
 		if ( exists($component->{'extends'}) );
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method has any linked data in this component.
+		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -2627,7 +2627,7 @@ sub Generate_Implementation_Dump_Functions {
 		if ( exists($component->{'extends'}) );
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method has any linked data in this component.
+		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -2859,7 +2859,7 @@ sub Generate_Implementation_Builder_Functions {
 		if ( exists($component->{'extends'}) );
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method has any linked data in this component.
+		# Check if this property has any linked data in this component.
 		if ( exists($property->{'linkedData'}) ) {
 		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -2936,7 +2936,7 @@ sub Generate_Implementation_Output_Functions {
 	my %modulesRequired;
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Check if this method is to be output.
+	    # Check if this property is to be output.
 	    if ( exists($property->{'output'}) ) {
 		if ( exists($property->{'output'}->{'modules'}) ) {
 		    my $moduleList = $property->{'output'}->{'modules'};
@@ -3046,12 +3046,12 @@ sub Generate_Implementation_Output_Functions {
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method is to be output.
+		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
-		    # Check if this method has any linked data in this component.
+		    # Check if this property has any linked data in this component.
 		    if ( exists($property->{'linkedData'}) ) {
 			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -3209,13 +3209,13 @@ sub Generate_Implementation_Output_Functions {
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method is to be output.
+		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
 		    my $object;
-		    # Check if this method has any linked data in this component.
+		    # Check if this property has any linked data in this component.
 		    if ( exists($property->{'linkedData'}) ) {
 			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -3376,7 +3376,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this method has any linked data in this component.
+   	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
@@ -3494,7 +3494,7 @@ sub Generate_Implementation_Serialization_Functions {
 	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this method has any linked data in this component.
+   	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
 		my $linkedDataName = $property->{'linkedData'};
@@ -3565,7 +3565,7 @@ sub Generate_Implementation_Serialization_Functions {
 	    }
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    	# Check if this method has any linked data in this component.
+	    	# Check if this property has any linked data in this component.
 	    	if ( exists($property->{'linkedData'}) ) {
 	    	    my $linkedDataName = $property->{'linkedData'};
 	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -3667,7 +3667,7 @@ sub Generate_Implementation_Serialization_Functions {
 	    }
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    	my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    	# Check if this method has any linked data in this component.
+	    	# Check if this property has any linked data in this component.
 	    	if ( exists($property->{'linkedData'}) ) {
 	    	    # For each linked datum count if necessary.
 	    	    my $linkedDataName = $property->{'linkedData'};
@@ -4292,7 +4292,7 @@ sub Generate_Deferred_Function_Attacher {
 }
 
 sub Generate_Deferred_GSR_Function {
-    # Generate function to get/set/rate the value of a method via a deferred function.
+    # Generate function to get/set/rate the value of a property via a deferred function.
     my $buildData = shift;
     # Record bindings already made.
     my %bindings;
@@ -4300,9 +4300,9 @@ sub Generate_Deferred_GSR_Function {
     foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
 	# Get the component.
 	my $component = $buildData->{'components'}->{$componentID};
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-	    # Get the method.
+	    # Get the property.
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Get the component fully-qualified and class names.
 	    my $componentClassName = $component->{'class'             };
@@ -4311,11 +4311,11 @@ sub Generate_Deferred_GSR_Function {
 	    unless ( $property->{'attributes'}->{'isDeferred'} eq "" ) {
 		# Function code data.
 		my $functionCode;
-		# Get the name of the method.
+		# Get the name of the property.
 		my $propertyName = $property->{'name'};
 		# Get properties of the data type needed.
 		(my $dataDefinition, my $label) = &Data_Object_Definition($property,matchOnly => 1);
-		# Identify methods with a deferred get function to be built.
+		# Identify properties with a deferred get function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
 		    $property->{'attributes' }->{'isGettable'} eq "true" &&
@@ -4357,7 +4357,7 @@ sub Generate_Deferred_GSR_Function {
 		}
 		# Add an "intent(in)" attribute to the data definition for set and rate functions.
 		push(@{$dataDefinition->{'attributes'}},"intent(in   )");
-		# Identify methods with a deferred set function to be built.
+		# Identify properties with a deferred set function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred'} =~ m/set/
 		    && $property->{'attributes' }->{'isSettable'} eq "true" 
@@ -4395,7 +4395,7 @@ sub Generate_Deferred_GSR_Function {
 		    # Generate an attacher function.
 		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"set");		  
 		}
-		# Identify methods with a deferred rate function to be built.
+		# Identify properties with a deferred rate function to be built.
 		if (
 		    $property->{'attributes' }->{'isDeferred' } =~ m/rate/
 		    && $property->{'attributes' }->{'isEvolvable'} eq "true" 
@@ -4457,7 +4457,7 @@ sub Generate_Deferred_GSR_Function {
 }
 
 sub Generate_GSR_Functions {
-    # Generate functions to get/set/rate the value of a method directly.
+    # Generate functions to get/set/rate the value of a property directly.
     my $buildData = shift;
     # Initialize function code.
     my $functionCode;
@@ -4471,10 +4471,10 @@ sub Generate_GSR_Functions {
 	my $component = $buildData->{'components'}->{$componentID};
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-	    # Handle cases where a get function is explicitly specified for a non-deferred virtual method.
+	    # Handle cases where a get function is explicitly specified for a non-deferred virtual property.
 	    if (
 		$property->{'attributes' }->{'isGettable'} eq "true"      &&
 		$property->{'getFunction'}->{'build'     } eq "false"     &&
@@ -4487,7 +4487,7 @@ sub Generate_GSR_Functions {
 		    {type => "procedure", name => $propertyName, function => $property->{'getFunction'}->{'content'}}
 		    );
 	    }
-	    # Handle cases where a set function is explicitly specified for a non-deferred virtual method.
+	    # Handle cases where a set function is explicitly specified for a non-deferred virtual property.
 	    if (
 		$property->{'attributes' }->{'isSettable'} eq "true"      &&
 		$property->{'setFunction'}->{'build'     } eq "false"     &&
@@ -4500,7 +4500,7 @@ sub Generate_GSR_Functions {
 		    {type => "procedure", name => $propertyName."Set", function => $property->{'setFunction'}->{'content'}}
 		    );	
 	    }
-   	    # Check if this method has any linked data in this component.
+   	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# Get the linked data.
 		my $linkedDataName = $property->{'linkedData'};
@@ -5798,7 +5798,7 @@ sub Generate_Component_Class_Output_Functions {
 	    my $component    = $buildData->{'components'}->{$componentID};
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method is to be output.
+		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
 		    if ( exists($property->{'output'}->{'modules'}) ) {
 			my $moduleList = $property->{'output'}->{'modules'};
@@ -5838,7 +5838,7 @@ sub Generate_Component_Class_Output_Functions {
 	    my $outputsFound = 0;
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
-		# Check if this method is to be output.
+		# Check if this property is to be output.
 		if ( exists($property->{'output'}) ) {
 		    # Add conditional statement if necessary.
 		    if ( $outputsFound == 0 ) {
@@ -5848,7 +5848,7 @@ sub Generate_Component_Class_Output_Functions {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
-		    # Check if this method has any linked data in this component.
+		    # Check if this property has any linked data in this component.
 		    if ( exists($property->{'linkedData'}) ) {
 			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
@@ -5990,10 +5990,10 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	# Iterate over methods.
+	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
-   	    # Check if this method has any linked data in this component.
+   	    # Check if this property has any linked data in this component.
 	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum deallocate if necessary.
 		my $linkedDataName = $property->{'linkedData'};
@@ -6164,9 +6164,9 @@ sub Generate_Null_Binding_Functions {
     # Generate null binding functions.
     my $buildData = shift;
     # Iterate over component classes.
-    foreach my $componentClassName ( keys(%{$buildData->{'nullMethods'}}) ) {
+    foreach my $componentClassName ( keys(%{$buildData->{'nullProperties'}}) ) {
 	# Get the null functions required for this component class.
-	my $componentClass = $buildData->{'nullMethods'}->{$componentClassName};
+	my $componentClass = $buildData->{'nullProperties'}->{$componentClassName};
 	# Iterate over required null functions for this component class.
 	foreach my $nullFunctionName ( keys(%{$componentClass}) ) {
 	    # Get the null function definition.
@@ -6280,7 +6280,7 @@ sub Generate_Component_Class_Default_Value_Functions {
     my $buildData = shift;
     # Iterate over component classes.
     foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
-	# Initialize hash to track which method have been created already.
+	# Initialize hash to track which property have been created already.
 	my %propertiesCreated;
 	# Iterate over implementations in this class.
     	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
@@ -6289,7 +6289,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
-		# Get the method.
+		# Get the property.
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Get the linked data.
 		my $linkedData;
@@ -6311,12 +6311,12 @@ sub Generate_Component_Class_Default_Value_Functions {
 			variables   => [ "self" ]
 		    }
 		    );
-		# Skip if this method has already been created.
+		# Skip if this property has already been created.
 		unless ( exists($propertiesCreated{$propertyName}) ) {
 		    # Generate code for "isGettable" function.
 		    my $functionCode;
 		    $functionCode  = "   logical function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable()\n";
-		    $functionCode .= "     !% Returns true if the {\\tt ".$propertyName."} method is gettable for the {\\tt ".$componentClassName."} component class.\n\n"; 
+		    $functionCode .= "     !% Returns true if the {\\tt ".$propertyName."} property is gettable for the {\\tt ".$componentClassName."} component class.\n\n"; 
 		    $functionCode .= "     implicit none\n";
 		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
 		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
@@ -6342,7 +6342,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			);
 		    # Generate code for default value function.
 		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
-		    $functionCode .= "    !% Returns the default value for the {\\tt ".$propertyName."} method for the {\\tt ".$componentClassName."} component class.\n";
+		    $functionCode .= "    !% Returns the default value for the {\\tt ".$propertyName."} property for the {\\tt ".$componentClassName."} component class.\n";
 		    # Insert any required modules.
 		    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
 			foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
@@ -6436,7 +6436,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
 			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName)}
 			);
-		    # Record that this method has been created.
+		    # Record that this property has been created.
 		    $propertiesCreated{$propertyName} = 1;
 		}
 	    }

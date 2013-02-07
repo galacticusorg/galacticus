@@ -141,7 +141,7 @@ foreach my $currentFileName ( @filesToScan ) {
 		}
 		# Check if this directive matches that which we are currently processing.
 		if ( $xmlTag eq $buildData->{'directive'} ) {
-		    $buildData->{'currentDocument'} = eval{$xml->XMLin($xmlCode, ForceArray => ["data","method","binding"])};
+		    $buildData->{'currentDocument'} = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
 		    die("Build_Include_File.pl failed in ".$currentFileName." at line ".$lineNumber." with message:\n".$@)
 			if ( $@              );
 		    print Dumper($buildData->{'currentDocument'})

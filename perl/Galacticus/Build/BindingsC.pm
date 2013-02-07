@@ -80,18 +80,18 @@ sub CTemplate_Parse_Directive {
     # Construct a record of component classes.
     $buildData->{'componentClasses'}->{$className}->{'name'} = $className;
 
-    # Store all methods.
-    foreach my $methodName ( keys(%{$buildData->{'currentDocument'}->{'methods'}->{'method'}}) ) {
-	my $method = $buildData->{'currentDocument'}->{'methods'}->{'method'}->{$methodName};
-	if ( exists($buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}) ) {
+    # Store all properties.
+    foreach my $propertyName ( keys(%{$buildData->{'currentDocument'}->{'properties'}->{'property'}}) ) {
+	my $property = $buildData->{'currentDocument'}->{'properties'}->{'property'}->{$propertyName};
+	if ( exists($buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName}) ) {
 	    if (
-		exists($method->{$methodName}->{'attributes'}->{'isGettable'})          &&
-		       $method->{$methodName}->{'attributes'}->{'isGettable'} eq "true" 
+		exists($property->{$propertyName}->{'attributes'}->{'isGettable'})          &&
+		       $property->{$propertyName}->{'attributes'}->{'isGettable'} eq "true" 
 		) {
-		$buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}->{'attributes'}->{'isGettable'} = "true"
+		$buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName}->{'attributes'}->{'isGettable'} = "true"
 	    }
 	} else {
-	    $buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName} = $method;
+	    $buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName} = $property;
 	}
     }
 }
@@ -127,17 +127,17 @@ sub CTemplate_Generate_Output {
 	$classDefinitions .= "   void *selfNode;\n";
 	$classDefinitions .= "public:\n";
 	$classDefinitions .= " nodeComponent".ucfirst($componentClassName)."(void *thisNode);\n";
-	# Create methods for scalar real methods.
-	foreach my $methodName ( keys(%{$componentClass->{'methods'}->{'method'}}) ) {
-	    my $method = $componentClass->{'methods'}->{'method'}->{$methodName};
+	# Create methods for scalar real properties.
+	foreach my $propertyName ( keys(%{$componentClass->{'properties'}->{'property'}}) ) {
+	    my $property = $componentClass->{'properties'}->{'property'}->{$propertyName};
 	    if (
-		$method->{'type'      }                 eq "real" &&
-		$method->{'rank'      }                 ==      0 &&
-		$method->{'attributes'}->{'isGettable'} eq "true"
+		$property->{'type'      }                 eq "real" &&
+		$property->{'rank'      }                 ==      0 &&
+		$property->{'attributes'}->{'isGettable'} eq "true"
 		) {
-		$classDefinitions .= "  double ".$methodName."() {return Node_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."(selfNode);}\n";
+		$classDefinitions .= "  double ".$propertyName."() {return Node_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."(selfNode);}\n";
 		# Insert an external declaration for the get function.
-		$externalDeclarations .= "  double Node_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."(void *selfNode);\n";
+		$externalDeclarations .= "  double Node_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."(void *selfNode);\n";
 	    }
 	}
 	$classDefinitions .= "};\n\n";
@@ -166,18 +166,18 @@ sub CInterface_Parse_Directive {
     # Construct a record of component classes.
     $buildData->{'componentClasses'}->{$className}->{'name'} = $className;
 
-    # Store all methods.
-    foreach my $methodName ( keys(%{$buildData->{'currentDocument'}->{'methods'}->{'method'}}) ) {
-	my $method = $buildData->{'currentDocument'}->{'methods'}->{'method'}->{$methodName};
-	if ( exists($buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}) ) {
+    # Store all properties.
+    foreach my $propertyName ( keys(%{$buildData->{'currentDocument'}->{'properties'}->{'property'}}) ) {
+	my $property = $buildData->{'currentDocument'}->{'properties'}->{'property'}->{$propertyName};
+	if ( exists($buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName}) ) {
 	    if (
-		exists($method->{$methodName}->{'attributes'}->{'isGettable'})          &&
-		       $method->{$methodName}->{'attributes'}->{'isGettable'} eq "true" 
+		exists($property->{$propertyName}->{'attributes'}->{'isGettable'})          &&
+		       $property->{$propertyName}->{'attributes'}->{'isGettable'} eq "true" 
 		) {
-		$buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName}->{'attributes'}->{'isGettable'} = "true"
+		$buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName}->{'attributes'}->{'isGettable'} = "true"
 	    }
 	} else {
-	    $buildData->{'componentClasses'}->{$className}->{'methods'}->{'method'}->{$methodName} = $method;
+	    $buildData->{'componentClasses'}->{$className}->{'properties'}->{'property'}->{$propertyName} = $property;
 	}
     }
 }
@@ -199,27 +199,27 @@ sub CInterface_Generate_Output {
     # Iterate over all component classes.
     foreach my $componentClassName ( keys(%{$buildData->{'componentClasses'}}) ) {
 	my $componentClass = $buildData->{'componentClasses'}->{$componentClassName};
-	# Create interfaces for scalar real methods.
-	foreach my $methodName ( keys(%{$componentClass->{'methods'}->{'method'}}) ) {
-	    my $method = $componentClass->{'methods'}->{'method'}->{$methodName};
+	# Create interfaces for scalar real properties.
+	foreach my $propertyName ( keys(%{$componentClass->{'properties'}->{'property'}}) ) {
+	    my $property = $componentClass->{'properties'}->{'property'}->{$propertyName};
 	    if (
-		$method->{'type'      }                 eq "real" &&
-		$method->{'rank'      }                 ==      0 &&
-		$method->{'attributes'}->{'isGettable'} eq "true"
+		$property->{'type'      }                 eq "real" &&
+		$property->{'rank'      }                 ==      0 &&
+		$property->{'attributes'}->{'isGettable'} eq "true"
 		) {
-		$buildData->{'content'} .= "function cNode_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."(cSelfNode) bind(c,name='Node_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."')\n";
+		$buildData->{'content'} .= "function cNode_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."(cSelfNode) bind(c,name='Node_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."')\n";
 		$buildData->{'content'} .= "  use, intrinsic :: ISO_C_Binding\n";
 		$buildData->{'content'} .= "  use Galacticus_Nodes\n";
 		$buildData->{'content'} .= "  implicit none\n";
-		$buildData->{'content'} .= "  real(c_double)          :: cNode_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."\n";
+		$buildData->{'content'} .= "  real(c_double)          :: cNode_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."\n";
 		$buildData->{'content'} .= "  type(c_ptr),    value   :: cSelfNode\n";
 		$buildData->{'content'} .= "  type(treeNode), pointer :: selfNode\n";
 		$buildData->{'content'} .= "  class(nodeComponent".ucfirst($componentClassName)."), pointer :: self\n\n";
 		$buildData->{'content'} .= "  call c_f_pointer(cSelfNode,selfNode)\n";
 		$buildData->{'content'} .= "  self => selfNode%".$componentClassName."()\n";
-		$buildData->{'content'} .= "  cNode_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."=self%".$methodName."()\n";
+		$buildData->{'content'} .= "  cNode_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."=self%".$propertyName."()\n";
 		$buildData->{'content'} .= "  return\n";
-		$buildData->{'content'} .= "end function cNode_Component_".ucfirst($componentClassName)."_".ucfirst($methodName)."\n\n";
+		$buildData->{'content'} .= "end function cNode_Component_".ucfirst($componentClassName)."_".ucfirst($propertyName)."\n\n";
 	    }
 	}
     }
