@@ -40,9 +40,26 @@ This section describes the internal structure of node components, and how a comp
 
 Each node in the merger tree consists of an arbitrary number of ``components'', each of which can actually be an array, allowing multiple components of a given class. Each component represents a specific class of object, which could be a dark matter halo, a galactic disk or a black hole etc. A component of each class may be of one or more differnt implementations of that component class. Component classes are extensions of the {\tt nodeComponent} base class, while each implementation is an extension of its component class (or, sometimes, of another implementation of that same class). Each component implementation type consists of a set of data\footnote{Data objects in components can be real, integer, boolean or of derived type. For derived types, currently {\tt history}, {\tt abundances}, {\tt chemicals}, and {\tt keplerOrbit} are supported. Adding additional derived types is possible, providing that the type supports the required methods for output, serialization, etc. Data objects can currently be scalar or rank-1 arrays.}, representing the properties (mass, size etc.) of the component, along with the rates of change (and ODE solver tolerances) for any properties which are evolvable. Additionally, each component contains a large number of methods (functions) which can be used to access its properties, query its interfaces and which are used internally to perform ODE evolution, output etc. The {\tt nodeComponent} base class and all classes derived from it are built automatically by {\tt Galacticus::Build::Components} at compile time (take a look in {\tt work/build/objects.nodes.components.Inc} if you want to see the generated code).
 
+\subsection{Extending Components}
+
+It is possible to create a component which extends an existing component (see the discussion of the {\tt extends} element in \S\ref{sec:ComponentDefinition}). This capability is intended to allow new properties to be added to a component without having to create a whole new copy of the component. It is \emph{not} intended to allow changes in the way in which the component is evolved through the halo hierarchy. (With the exception that rules to describe how the newly added properties will evolve through the halo hierarchy can be added of course.)
+
+A simple example of this extension capability can be found in the {\tt scaleShape} dark matter profile component (\S\ref{sec:DarkMatterProfileScaleShape}), which extends the {\tt scale} dark matter profile component (\S\ref{sec:DarkMatterProfileScale}). In this case, the {\tt scaleShape} component adds a new property, {\tt shape}, and specifies how it is to be initialized, evolved, output, and change by node promotion events. It \emph{does not} affect how the {\tt scale} property, inherited from the {\tt scale} dark matter profile component, is evolved.
+
 \subsection{Implementing a New Component}\label{sec:ComponentImplement}\index{components!implementing}
 
-Implementing a new component involves writing a module which contains a definition of the component and, if necessary, handles initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that a component module must perform are given below. Component definition itself takes the form of an embedded XML document. The following example illustrates such a document:
+Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below.
+
+By convention, a component's implementation is split into three files, although some components might not need all three files. These files are named as follows (with {\tt \textless component\textgreater} acting as a placeholder for the name of the component in question):
+\begin{description}
+ \item [{\tt objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree;
+ \item [{\tt objects.nodes.components.\textless component\textgreater.bound_functions.F90}] Contains functions which will be bound to the component object (i.e. the {\tt nodeComponent\textless Class\textgreater\textless Implementation\textgreater} class), and so will be available as type bound procedures. Generally, these functions will include any which get or set values of properties in the component, those which return information about its internal state (such as the density at some position in the component; see \S\ref{sec:GalacticComponentDensity}), and any other functions which we may want to be overridden by extensions to the component.
+ \item [{\tt objects.nodes.components.\textless component\textgreater.data.F90}] Contains any data which may need to be shared between the above two files. This might contain parameters which control some property of the component that is the same for all instances (e.g. if spheroids are modelled as S\'ersic profiles all with the same value of the S\'ersic index, that value might be placed into this file).
+\end{description}
+
+\subsubsection{Component Definition}\label{sec:ComponentDefinition}
+
+Component definition itself takes the form of an embedded XML document. The following example illustrates such a document:
 \begin{verbatim}
   !# <component>
   !#  <class>disk</class>
@@ -110,6 +127,7 @@ The elements of this document have the following meaning:
 \begin{description}
 \item [{\tt class}] \emph{[Required]} Specifies the component class of which this is an implementation.
 \item [{\tt name}] \emph{[Required]} Specifies the name of this specific implementation.
+\item [{\tt extends}] \emph{[Optional]} If present, this element must contain {\tt class} and {\tt name} elements which specify the type of component which should be extended. The component then automatically inherits all properties and type-bound functions of the extended type.
 \item [{\tt isDefault}] \emph{[Required]} Specifies whether or not this should be the default implementation of this class. Note that only one implementation of each class can be declared to be the default. If no implementation of a given class is declared to be the default then the (automatically generated) {\tt null} implementation will be made the default.
 \item [{\tt methods}] \emph{[Optional]} Contains an array of {\tt method} elements which specify the properties of this implementation. Each member {\tt method} has the following structure:
 \begin{description}
@@ -5103,7 +5121,7 @@ The {\tt deadlockStatus} argument should be set to {\tt isNotDeadlocked} (provid
 
 If the {\tt report} argument is {\tt true} then the function should report the value of {\tt timestep} prior to exiting. (This is used in reporting on timestepping criteri in deadlocked trees.) It is recommended that the report be made using the \hyperlink{merger_trees.evolve.timesteps.report.F90:evolve_to_time_reports:evolve_to_time_report}{\tt Evolve\_To\_Time\_Report()} function. Additionally, if the optional {\tt lockNode} and {\tt lockType} arguments are present then additional information can be supplied to aid in diagnosing deadlock conditions. If the current task is limiting the timestep then the {\tt lockNode} pointer should be set to point to whichever node is causing the limit (which may be {\tt thisNode} or some other node, e.g. a satellite of {\tt thisNode}, etc.), and {\tt lockType} should be set to a short description label identifying the type of limit.
 
-\subsubsection{Galactic Component Density}
+\subsubsection{Galactic Component Density}\label{sec:GalacticComponentDensity}
 
 The function {\tt Galactic\_Structure\_Density()} computes the density of material at a given position within a node. To have their density counted, each component must register a task using:
 \begin{verbatim}
