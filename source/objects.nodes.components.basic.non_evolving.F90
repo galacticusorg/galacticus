@@ -52,7 +52,7 @@ module Node_Component_Basic_Non_Evolving
   !#     <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.basic.non_evolving.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.basic.non_evolving.bound_functions.inc</functions>
   !# </component>
 
 contains

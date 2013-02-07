@@ -59,7 +59,7 @@ module Node_Component_Basic_Standard
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.basic.standard.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.basic.standard.bound_functions.inc</functions>
   !# </component>
 
 contains

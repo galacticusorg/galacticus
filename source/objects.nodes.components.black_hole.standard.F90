@@ -77,7 +77,7 @@ module Node_Component_Black_Hole_Standard
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.black_hole.standard.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>
   
   ! Accretion model parameters.

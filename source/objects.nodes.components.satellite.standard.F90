@@ -64,7 +64,7 @@ module Node_Component_Satellite_Standard
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.satellite.standard.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
   !# </component>
 
   ! Record of whether the module has been initialized.

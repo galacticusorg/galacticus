@@ -49,7 +49,7 @@ module Node_Component_Satellite_Very_Simple
   !#     <getFunction>Node_Component_Satellite_Very_Simple_Time_Of_Merging</getFunction>
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.satellite.very_simple.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.satellite.very_simple.bound_functions.inc</functions>
   !# </component>
 
   ! Flag indicating whether or not to reset satellite orbits on halo formation events.

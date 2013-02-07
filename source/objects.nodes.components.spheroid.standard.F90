@@ -146,7 +146,7 @@ module Node_Component_Spheroid_Standard
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.spheroid.standard.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>
 
   ! Internal count of abundances.

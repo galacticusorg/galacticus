@@ -54,7 +54,7 @@ module Node_Component_Position_Preset
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#   </method>
   !#  </methods>
-  !#  <functions>objects.nodes.components.position.preset.custom_methods.inc</functions>
+  !#  <functions>objects.nodes.components.position.preset.bound_functions.inc</functions>
   !# </component>
 
 contains
