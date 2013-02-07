@@ -39,113 +39,113 @@ module Node_Component_Spheroid_Standard
   !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
   !# <createFunction isDeferred="true" />
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>isInitialized</name>
   !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massStellar</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesGas</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>angularMomentum</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>radius</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaParsec" comment="Scale length of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Standard_Half_Mass_Radius</getFunction>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>velocity</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity at the scale length of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" makeGeneric="true" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Star formation rate of the standard spheroid."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>luminositiesStellar</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
   !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>stellarPropertiesHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>starFormationHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massGasSink</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>energyGasInput</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>
 

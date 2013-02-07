@@ -224,10 +224,10 @@ sub Get_Type {
 
 sub Get_Suffix {
     # Returns the suffix for a method.
-    my $methodType = shift;
+    my $propertyType = shift;
     # Determine the suffix to use.
     my $suffix = "";
-    switch ( $methodType ) {
+    switch ( $propertyType ) {
 	case ( "scalar"      ) {
 	    $suffix = "";
 	}
@@ -538,45 +538,45 @@ sub Distribute_Class_Defaults {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		# Get the method.
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check for class defaults.
-		if ( exists($method->{'classDefault'}) ) {
+		if ( exists($property->{'classDefault'}) ) {
 		    my $code;
-		    if ( ref($method->{'classDefault'}) && exists($method->{'classDefault'}->{'content'}) ) {
-			$code = $method->{'classDefault'}->{'content'};
+		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'content'}) ) {
+			$code = $property->{'classDefault'}->{'content'};
 		    } else {
-			$code = $method->{'classDefault'};
+			$code = $property->{'classDefault'};
 		    }
-		    if ( exists($classDefaults{$componentID.$methodName}) ) {
-			die("Distribute_Class_Defaults: inconsistent class defaults for ".$componentID." ".$method)
-			    unless ($code eq $classDefaults{$componentID.$methodName}->{'code'} );
+		    if ( exists($classDefaults{$componentID.$propertyName}) ) {
+			die("Distribute_Class_Defaults: inconsistent class defaults for ".$componentID." ".$property)
+			    unless ($code eq $classDefaults{$componentID.$propertyName}->{'code'} );
 		    } else {
-			$classDefaults{$componentID.$methodName}->{'code'} = $code;
+			$classDefaults{$componentID.$propertyName}->{'code'} = $code;
 		    }
-		    if ( ref($method->{'classDefault'}) && exists($method->{'classDefault'}->{'modules'}) ) {
-			my @requiredModules = split(/\s*,\s*/,$method->{'classDefault'}->{'modules'});
+		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
+			my @requiredModules = split(/\s*,\s*/,$property->{'classDefault'}->{'modules'});
 			push(
-			    @{$classDefaults{$componentID.$methodName}->{'modules'}},
+			    @{$classDefaults{$componentID.$propertyName}->{'modules'}},
 			    @requiredModules
 			    );
 		    }
-		    if ( ref($method->{'classDefault'}) && exists($method->{'classDefault'}->{'count'}) ) {
-			if ( exists($classDefaults{$componentID.$methodName}->{'count'}) ) {
-			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$method)
-				unless ($method->{'classDefault'}->{'count'} eq $classDefaults{$componentID.$methodName}->{'count'} );
+		    if ( ref($property->{'classDefault'}) && exists($property->{'classDefault'}->{'count'}) ) {
+			if ( exists($classDefaults{$componentID.$propertyName}->{'count'}) ) {
+			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$property)
+				unless ($property->{'classDefault'}->{'count'} eq $classDefaults{$componentID.$propertyName}->{'count'} );
 			} else {
-			    $classDefaults{$componentID.$methodName}->{'count'} = $method->{'classDefault'}->{'count'};
+			    $classDefaults{$componentID.$propertyName}->{'count'} = $property->{'classDefault'}->{'count'};
 			}
-		    } elsif ( $method->{'classDefault'} =~ m/^\[.*\]$/ ) {
-			my @splitDefault = split(/,/,$method->{'classDefault'});
+		    } elsif ( $property->{'classDefault'} =~ m/^\[.*\]$/ ) {
+			my @splitDefault = split(/,/,$property->{'classDefault'});
 			my $defaultCount = scalar(@splitDefault);
-			if ( exists($classDefaults{$componentID.$methodName}->{'count'}) ) {
-			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$method)
-				unless ( $defaultCount eq $classDefaults{$componentID.$methodName}->{'count'} );
+			if ( exists($classDefaults{$componentID.$propertyName}->{'count'}) ) {
+			    die("Distribute_Class_Defaults: inconsistent class default counts for ".$componentID." ".$property)
+				unless ( $defaultCount eq $classDefaults{$componentID.$propertyName}->{'count'} );
 			} else {
-			    $classDefaults{$componentID.$methodName}->{'count'} = $defaultCount
+			    $classDefaults{$componentID.$propertyName}->{'count'} = $defaultCount
 			}
 		    }
 		}
@@ -588,12 +588,12 @@ sub Distribute_Class_Defaults {
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		# Get the method.
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Set class default if available.
-		$method->{'classDefault'} = $classDefaults{$componentID.$methodName}
-		    if ( exists($classDefaults{$componentID.$methodName}) );
+		$property->{'classDefault'} = $classDefaults{$componentID.$propertyName}
+		    if ( exists($classDefaults{$componentID.$propertyName}) );
 	    }
 	}
     }
@@ -609,50 +609,50 @@ sub Construct_Linked_Data {
     # Iterate over all component implementations.
     foreach my $componentID ( @{$buildData->{'componentIdList'}} ) {
 	# Iterate over all methods belonging to this component.	
-	if ( exists($buildData->{'components'}->{$componentID}->{'methods'}) ) {
-	    foreach my $methodName ( keys(%{$buildData->{'components'}->{$componentID}->{'methods'}->{'method'}}) ) {
-		my $method = $buildData->{'components'}->{$componentID}->{'methods'}->{'method'}->{$methodName};
+	if ( exists($buildData->{'components'}->{$componentID}->{'properties'}) ) {
+	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentID}->{'properties'}->{'property'}}) ) {
+		my $property = $buildData->{'components'}->{$componentID}->{'properties'}->{'property'}->{$propertyName};
 		# Record the longest method name.
-		$propertyNameLengthMax = length($methodName) if (length($methodName) > $propertyNameLengthMax);
+		$propertyNameLengthMax = length($propertyName) if (length($propertyName) > $propertyNameLengthMax);
 		# Check for a pre-defined linkedData element.
 		my $linkedDataName;
-		if ( exists($method->{'linkedData'}) ) {		    
+		if ( exists($property->{'linkedData'}) ) {		    
 		    # A linkedData element has been explicitly declared, write an informational message.
-		    print " -> INFO: linkedData can be created automatically for ".$methodName." method of the ".lcfirst($componentID)." component\n";
+		    print " -> INFO: linkedData can be created automatically for ".$propertyName." method of the ".lcfirst($componentID)." component\n";
 		    # Get the name of the linked data and the data itself.
-		    $linkedDataName = $method->{'linkedData'};
+		    $linkedDataName = $property->{'linkedData'};
 		    my $linkedData  = $buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName};
 		    # Set the isEvolvable flag on the linked data.
-		    $linkedData->{'isEvolvable'} = $method->{'attributes'}->{'isEvolvable'};
+		    $linkedData->{'isEvolvable'} = $property->{'attributes'}->{'isEvolvable'};
 		    # Create a copy of the linked data.
-		    $method->{'data'} = $linkedData;
-		    $method->{'type'} = $linkedData->{'type'};
-		    $method->{'rank'} = $linkedData->{'rank'};
+		    $property->{'data'} = $linkedData;
+		    $property->{'type'} = $linkedData->{'type'};
+		    $property->{'rank'} = $linkedData->{'rank'};
 		} else {
 		    # No linkedData element is explicitly declared. Therefore, we must have type, and rank specified.
 		    foreach my $requiredElement ( "type", "rank" ) {
-			die("No ".$requiredElement." was specified for ".$methodName." method of the ".lcfirst($componentID)." component")
-			    unless ( exists($method->{$requiredElement}) );
+			die("No ".$requiredElement." was specified for ".$propertyName." method of the ".lcfirst($componentID)." component")
+			    unless ( exists($property->{$requiredElement}) );
 		    }
 		    # If no isVirtual element is present, assume "no" by default.
-		    $method->{'isVirtual'} = "no"
-			unless ( exists($method->{'isVirtual'}) );
+		    $property->{'isVirtual'} = "no"
+			unless ( exists($property->{'isVirtual'}) );
 		    # Copy the attributes to the data element.
-		    $method->{'data'} = 
+		    $property->{'data'} = 
 		    {
-			type        => $method->{'type'      }                 ,
-			rank        => $method->{'rank'      }                 ,
-			isEvolvable => $method->{'attributes'}->{'isEvolvable'}
+			type        => $property->{'type'      }                 ,
+			rank        => $property->{'rank'      }                 ,
+			isEvolvable => $property->{'attributes'}->{'isEvolvable'}
 		    };
 		    # Unless this method is virtual, create a linked data object for it.
-		    unless ( $method->{'isVirtual'} eq "yes" ) {
+		    unless ( $property->{'isVirtual'} eq "yes" ) {
 			# Write a message.
-			print " -> Creating linked data object for ".$methodName." method of the ".lcfirst($componentID)." component\n";
+			print " -> Creating linked data object for ".$propertyName." method of the ".lcfirst($componentID)." component\n";
 			# Create the linked data name.
-			$linkedDataName = $methodName."Data";
+			$linkedDataName = $propertyName."Data";
 			# Create the linked data object.
-			$method->{'linkedData'} = $linkedDataName;
-			$buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName} = $method->{'data'};
+			$property->{'linkedData'} = $linkedDataName;
+			$buildData->{'components'}->{$componentID}->{'content'}->{'data'}->{$linkedDataName} = $property->{'data'};
 		    }
 		}
 		# Record the longest linked data name.
@@ -734,76 +734,76 @@ sub Set_Default_Attributes{
 	$component->{'createFunction'}->{'isDeferred'} = "false"
 	    if ( exists($component->{'createFunction'}) && ! exists($component->{'createFunction'}->{'isDeferred'}) );
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    # Get the method.
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Add the method's name.
-	    $method->{'name'} = $methodName;
+	    $property->{'name'} = $propertyName;
 	    # Binding.
-	    $method->{'attributes'}->{'bindsTo'} = "component"
-		unless ( exists($method->{'attributes'}->{'bindsTo'}) );
+	    $property->{'attributes'}->{'bindsTo'} = "component"
+		unless ( exists($property->{'attributes'}->{'bindsTo'}) );
 	    # Auto-creation.
-	    $method->{'attributes'}->{'createIfNeeded'} = "false"
-		unless ( exists($method->{'attributes'}->{'createIfNeeded'}) );
+	    $property->{'attributes'}->{'createIfNeeded'} = "false"
+		unless ( exists($property->{'attributes'}->{'createIfNeeded'}) );
 	    # Deferred status.
-	    $method->{'attributes'}->{'isDeferred'} = ""
-		unless ( exists($method->{'attributes'}->{'isDeferred'}) );
+	    $property->{'attributes'}->{'isDeferred'} = ""
+		unless ( exists($property->{'attributes'}->{'isDeferred'}) );
 	    # Generic status.
-	    $method->{'attributes'}->{'makeGeneric'} = "false"
-		unless ( exists($method->{'attributes'}->{'makeGeneric'}) );
+	    $property->{'attributes'}->{'makeGeneric'} = "false"
+		unless ( exists($property->{'attributes'}->{'makeGeneric'}) );
 	    # isEvolable synonym.
-	    $method->{'attributes'}->{'isRatetable'} = $method->{'attributes'}->{'isEvolvable'};
+	    $property->{'attributes'}->{'isRatetable'} = $property->{'attributes'}->{'isEvolvable'};
 	    # Rate function.
-	    $method->{'rateFunction'} = $componentID.ucfirst($methodName)."Rate"
-		unless ( exists($method->{'rateFunction'}) );
+	    $property->{'rateFunction'} = $componentID.ucfirst($propertyName)."Rate"
+		unless ( exists($property->{'rateFunction'}) );
 	    # Get function.
-	    if ( exists($method->{'getFunction'}) ) {
+	    if ( exists($property->{'getFunction'}) ) {
 		# A getFunction element was specified.
-		if ( defined(reftype($method->{'getFunction'})) ) {
+		if ( defined(reftype($property->{'getFunction'})) ) {
 		    # The getFunction element contains structure, so simple set its bindsTo element if not already defined.
-		    $method->{'getFunction'}->{'bindsTo'} = "component"
-			unless ( exists($method->{'getFunction'}->{'bindsTo'}) );
+		    $property->{'getFunction'}->{'bindsTo'} = "component"
+			unless ( exists($property->{'getFunction'}->{'bindsTo'}) );
 		} else {
 		    # The getFunction element is simply the function name. Replace with a structure with default binding.
-		    $method->{'getFunction'} = 
+		    $property->{'getFunction'} = 
 		    {
-			content => $method->{'getFunction'},
+			content => $property->{'getFunction'},
 			bindsTo => "component"
 		    };
 		}
 		# Since getFunction was specified, we will not need to build a get function.
-		$method->{'getFunction'}->{'build'} = "false";
+		$property->{'getFunction'}->{'build'} = "false";
 	    } else {
 		# No getFunction element was specified, assign a default function and record that a get function must be built.
-		$method->{'getFunction'} = 
+		$property->{'getFunction'} = 
 		{
-		    content => lcfirst($componentID).ucfirst($methodName)."Get",
+		    content => lcfirst($componentID).ucfirst($propertyName)."Get",
 		    bindsTo => "component"                               ,
 		    build   => "true"
 		};
 	    }
 	    # Set function.
-	    if ( exists($method->{'setFunction'}) ) {
+	    if ( exists($property->{'setFunction'}) ) {
 		# A setFunction element was specified.
-		if ( defined(reftype($method->{'setFunction'})) ) {
+		if ( defined(reftype($property->{'setFunction'})) ) {
 		    # The setFunction element contains structure, so simple set its bindsTo element if not already defined.
-		    $method->{'setFunction'}->{'bindsTo'} = "component"
-			unless ( exists($method->{'setFunction'}->{'bindsTo'}) );
+		    $property->{'setFunction'}->{'bindsTo'} = "component"
+			unless ( exists($property->{'setFunction'}->{'bindsTo'}) );
 		} else {
 		    # The setFunction element is simply the function name. Replace with a structure with default binding.
-		    $method->{'setFunction'} = 
+		    $property->{'setFunction'} = 
 		    {
-			content => $method->{'setFunction'},
+			content => $property->{'setFunction'},
 			bindsTo => "component"
 		    };
 		}
 		# Since setFunction was specified, we will not need to build a set function.
-		$method->{'setFunction'}->{'build'} = "false";
+		$property->{'setFunction'}->{'build'} = "false";
 	    } else {
 		# No setFunction element was specified, assign a default function and record that a set function must be built.
-		$method->{'setFunction'} = 
+		$property->{'setFunction'} = 
 		{
-		    content => lcfirst($componentID).ucfirst($methodName)."Set",
+		    content => lcfirst($componentID).ucfirst($propertyName)."Set",
 		    bindsTo => "component"                               ,
 		    build   => "true"
 		};
@@ -874,7 +874,7 @@ sub Generate_Component_Classes{
     my %classGetDefaults;
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
 	# Define a hash to record which methods have already been created.
-	my %methodsCreated;
+	my %propertiesCreated;
 
 	# Create a list for type-bound functions.
 	my @typeBoundFunctions;
@@ -884,21 +884,21 @@ sub Generate_Component_Classes{
 	    # Construct a fully-qualified name for this implementation.
 	    my $componentName = ucfirst($componentClass).ucfirst($implementationName);
 	    # Iterate over methods beloning to this implementation.
-	    foreach my $methodName ( keys(%{$buildData->{'components'}->{$componentName}->{'methods'}->{'method'}}) ) {
+	    foreach my $propertyName ( keys(%{$buildData->{'components'}->{$componentName}->{'properties'}->{'property'}}) ) {
 		# Get the method.
-		my $method = $buildData->{'components'}->{$componentName}->{'methods'}->{'method'}->{$methodName};
+		my $property = $buildData->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
 		# Create functions to set/get/evolve each method as necessary.
 		if ( 
-		       $method->{'attributes'}->{'isGettable' } eq "true"
-		    || $method->{'attributes'}->{'isSettable' } eq "true"
-		    || $method->{'attributes'}->{'isEvolvable'} eq "true"
+		       $property->{'attributes'}->{'isGettable' } eq "true"
+		    || $property->{'attributes'}->{'isSettable' } eq "true"
+		    || $property->{'attributes'}->{'isEvolvable'} eq "true"
 		    )
 		{
 		    # Name of function being processed.
 		    my $functionName;
 		    # Get a fully-qualified type identfier for this method.
-		    (my $intrinsic,my $type,my $attributes) = &dataObjectPrimitiveName($method);
-		    $type .= $method->{'rank'}."InOut";
+		    (my $intrinsic,my $type,my $attributes) = &dataObjectPrimitiveName($property);
+		    $type .= $property->{'rank'}."InOut";
 		    # Record the null bindings needed.
 		    $buildData->{'nullMethods'}->{$componentClass}->{"Integer0In"} =
 		    {
@@ -908,29 +908,29 @@ sub Generate_Component_Classes{
 		    };
 		    $buildData->{'nullMethods'}->{$componentClass}->{$type       } = 
 		    {
-			type   => $method->{'type'},
-			rank   => $method->{'rank'},
+			type   => $property->{'type'},
+			rank   => $property->{'rank'},
 			intent => "inout"
 		    };
 		    # Create the "isSettable" function.
-		    $functionName = $methodName."IsSettable";
-		    unless ( exists($methodsCreated{$functionName}) ) {
+		    $functionName = $propertyName."IsSettable";
+		    unless ( exists($propertiesCreated{$functionName}) ) {
 			push(
 			    @typeBoundFunctions,
 			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False"}
 			    );
-			$methodsCreated{$functionName} = 1;
+			$propertiesCreated{$functionName} = 1;
 		    }
 		    # Handle set functions and related functions.
-		    unless ( $method->{'attributes'}->{'isSettable'} eq "false" ) {
+		    unless ( $property->{'attributes'}->{'isSettable'} eq "false" ) {
 			# Create a "set" function if one does not already exist.
-			$functionName = $methodName."Set";
-			unless ( exists($methodsCreated{$functionName}) ) {
+			$functionName = $propertyName."Set";
+			unless ( exists($propertiesCreated{$functionName}) ) {
 			    my $boundTo;
-			    if ( $method->{'setFunction'}->{'bindsTo'} eq "componentClass" )
+			    if ( $property->{'setFunction'}->{'bindsTo'} eq "componentClass" )
 			    {
 				# A setFunction was specified that binds to the component class, so bind to it here.
-				$boundTo = $method->{'setFunction'}->{'content'};
+				$boundTo = $property->{'setFunction'}->{'content'};
 			    } else {
 				# Create a binding to a null function here. 
 				$boundTo = $componentClass."NullBindingSet".$type;
@@ -939,32 +939,32 @@ sub Generate_Component_Classes{
 				@typeBoundFunctions,
 				{type => "procedure", name => $functionName, function => $boundTo}
 				);
-			    $methodsCreated{$functionName} = 1;
+			    $propertiesCreated{$functionName} = 1;
 			}
 		    }
 
 		    # Handle evolve functions.
-		    unless ( $method->{'attributes'}->{'isEvolvable'} eq "false" ) {
+		    unless ( $property->{'attributes'}->{'isEvolvable'} eq "false" ) {
 			# Create the "count" function.
-			$functionName = $methodName."Count";
-			unless ( exists($methodsCreated{$functionName}) ) {
+			$functionName = $propertyName."Count";
+			unless ( exists($propertiesCreated{$functionName}) ) {
 			    push(
 				@typeBoundFunctions,
 				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In"}
 				);
-			    $methodsCreated{$functionName} = 1;
+			    $propertiesCreated{$functionName} = 1;
 			}
 			# Create the "rate" function.
-			$functionName = $methodName."Rate";
-			unless (  exists($methodsCreated{$functionName}) ) {
+			$functionName = $propertyName."Rate";
+			unless (  exists($propertiesCreated{$functionName}) ) {
 			    unless ( 
-				   $method->{'attributes'}->{'isDeferred' } =~ m/rate/
-				&& $method->{'attributes'}->{'bindsTo'    } eq "top"
+				   $property->{'attributes'}->{'isDeferred' } =~ m/rate/
+				&& $property->{'attributes'}->{'bindsTo'    } eq "top"
 				) {
 				my $boundTo;
-				if ( $method->{'attributes'}->{'createIfNeeded'} eq "true" ) 
+				if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" ) 
 				{
-				    $boundTo = $componentClass.ucfirst($methodName)."Rate";
+				    $boundTo = $componentClass.ucfirst($propertyName)."Rate";
 				} else {
 				    $boundTo = $componentClass."NullBindingRate".$type;
 				}
@@ -976,10 +976,10 @@ sub Generate_Component_Classes{
 			    # Create a "scale" function unless this is a virtual method.
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $methodName."Scale", function => $componentClass."NullBindingSet".$type}
+				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type}
 				)
-				unless ( $method->{'isVirtual'} eq "true" );
-			    $methodsCreated{$functionName} = 1;
+				unless ( $property->{'isVirtual'} eq "true" );
+			    $propertiesCreated{$functionName} = 1;
 			}
 		    }
 		    # Add any bindings which bind at the component class level.
@@ -987,7 +987,7 @@ sub Generate_Component_Classes{
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $_->{'method'}, function => $_->{'nullFunction'}}
+				{type => "procedure", name => $_->{'property'}, function => $_->{'nullFunction'}}
 				)
 				if ( $_->{'bindsTo'} eq "componentClass" );
 			}
@@ -1072,18 +1072,18 @@ sub Generate_Implementations {
     	    foreach ( @{$component->{'bindings'}->{'binding'}} ) {
 		push(
 		    @typeBoundFunctions,
-		    {type => "procedure", name => $_->{'method'}, function => $_->{'function'}},
+		    {type => "procedure", name => $_->{'property'}, function => $_->{'function'}},
 		    );
 	    }
 	}
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    # Get the method.
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
-		{type => "procedure", pass => "nopass", name => $methodName."IsGettable", function => "Boolean_".ucfirst($method->{'attributes'}->{'isGettable'})},
-		{type => "procedure", pass => "nopass", name => $methodName."IsSettable", function => "Boolean_".ucfirst($method->{'attributes'}->{'isSettable'})}
+		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'})},
+		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'})}
 		);
 	}
 	# Create the type.
@@ -1155,25 +1155,25 @@ sub Generate_Deferred_Procedure_Pointers {
 		&&        $component->{'createFunction'}->{'isDeferred'} eq "true"
 	    );
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
-	    unless ( $method->{'attributes' }->{'isDeferred'} eq "" ) {
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
 		my $selfType = "generic";
 		$selfType = $component->{'class'}
-		    unless ( $method->{'attributes'}->{'bindsTo'} eq "top" );
-		(my $dataObject, my $label) = &Data_Object_Definition($method);
-		my $dataType = $label.$method->{'rank'};
+		    unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
+		(my $dataObject, my $label) = &Data_Object_Definition($property);
+		my $dataType = $label.$property->{'rank'};
 		# Iterate over attributes.
 		foreach ( "get", "set", "rate" ) {
 		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
 		    if (
-			   $method->{'attributes' }->{'isDeferred'} =~ m/$_/ 
-			&& $method->{'attributes' }->{'is'.ucfirst($_).'table'} eq "true"
-			&& ! exists($createdPointers{$componentClassName.ucfirst($methodName).$_})
+			   $property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
+			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'} eq "true"
+			&& ! exists($createdPointers{$componentClassName.ucfirst($propertyName).$_})
 			) {
 			# Construct the template function.
 			my $template = $selfType."NullBinding".ucfirst($_).$dataType."InOut";
-			$template = $componentID.ucfirst($methodName).ucfirst($_)
+			$template = $componentID.ucfirst($propertyName).ucfirst($_)
 			    if ( $_ eq "get" );
 			# Generate the procedure pointer and a boolean to indicate if is has been attached.
 			push(
@@ -1182,22 +1182,22 @@ sub Generate_Deferred_Procedure_Pointers {
 				intrinsic  => "procedure",
 				type       => $template,
 				attributes => [ "pointer" ],
-				variables  => [ $componentClassName.ucfirst($methodName).ucfirst($_)."Deferred" ]
+				variables  => [ $componentClassName.ucfirst($propertyName).ucfirst($_)."Deferred" ]
 			    },
 			    {
 				intrinsic  => "logical",
-				variables  => [ $componentClassName.ucfirst($methodName).ucfirst($_)."IsAttachedValue=.false." ]
+				variables  => [ $componentClassName.ucfirst($propertyName).ucfirst($_)."IsAttachedValue=.false." ]
 			    },
 			    );
 			# Add the required null method to the list.
 			$buildData->{'nullMethods'}->{$selfType}->{$dataType."InOut"} =
 			{
-			    type   => $method->{'type'},
-			    rank   => $method->{'rank'},
+			    type   => $property->{'type'},
+			    rank   => $property->{'rank'},
 			    intent => "inout"
 			};
 			# Record that this procedure pointer has been created.
-			$createdPointers{$componentClassName.ucfirst($methodName).$_} = 1;
+			$createdPointers{$componentClassName.ucfirst($propertyName).$_} = 1;
 		    }		    
 		}
 	    }
@@ -1508,13 +1508,13 @@ sub Generate_Initialization_Function {
 	    }
 	    $functionCode .= "    end if\n";
 	    # Insert code to read and parameters controlling outputs.
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check for output and output condition.
 		if (
-		    exists($method->{'output'}               )                       &&
-		    exists($method->{'output'}->{'condition'})                       &&
-		           $method->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
+		    exists($property->{'output'}               )                       &&
+		    exists($property->{'output'}->{'condition'})                       &&
+		           $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
 		    ) 
 		{
 		    my $parameterName = $1;
@@ -1523,7 +1523,7 @@ sub Generate_Initialization_Function {
 		    $functionCode .= "    !@   <defaultValue>false</defaultValue>\n";
 		    $functionCode .= "    !@   <attachedTo>module</attachedTo>\n";
 		    $functionCode .= "    !@   <description>\n";
-		    $functionCode .= "    !@    Specifies whether the {\\tt ".$methodName."} method of the {\\tt ".$implementationName."} implemention of the {\\tt ".$componentClass."} component class should be output.\n";
+		    $functionCode .= "    !@    Specifies whether the {\\tt ".$propertyName."} method of the {\\tt ".$implementationName."} implemention of the {\\tt ".$componentClass."} component class should be output.\n";
 		    $functionCode .= "    !@   </description>\n";
 		    $functionCode .= "    !@   <type>string</type>\n";
 		    $functionCode .= "    !@   <cardinality>1</cardinality>\n";
@@ -2458,21 +2458,21 @@ sub Generate_Implementation_Dump_Functions {
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
 		if ( exists($component->{'extends'}) );
 	    $functionCode .= "    call Galacticus_Display_Indent('".$component->{'class'}.": ".(" " x ($fullyQualifiedNameLengthMax-length($component->{'class'}))).$component->{'name'}."')\n";
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method has any linked data in this component.
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
 			    case ( [ "real", "integer", "logical" ] ) {
 				$functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."%value\n";
-				$functionCode .= "    message='".$methodName.": ".(" " x ($implementationPropertyNameLengthMax-length($methodName)))."'//label\n";
+				$functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 				$functionCode .= "    call Galacticus_Display_Message(message)\n";
 			    }
 			    else {
-				$functionCode .= "    message='".$methodName.":'\n";
+				$functionCode .= "    message='".$propertyName.":'\n";
 				$functionCode .= "    call Galacticus_Display_Indent(message)\n";
 				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dump()\n";
 				$functionCode .= "    call Galacticus_Display_Unindent('end')\n";
@@ -2483,7 +2483,7 @@ sub Generate_Implementation_Dump_Functions {
 			    case ( [ "real", "integer", "logical" ] ) {
 				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
 				$functionCode .= "       write (label,'(i3)') i\n";
-				$functionCode .= "       message='".$methodName.": ".(" " x ($implementationPropertyNameLengthMax-length($methodName)))." '//trim(label)\n";
+				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 				$functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."%value(i)\n";
 				$functionCode .= "       message=message//label\n";
 				$functionCode .= "       call Galacticus_Display_Message(message)\n";
@@ -2492,7 +2492,7 @@ sub Generate_Implementation_Dump_Functions {
 			    else {
 				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
 				$functionCode .= "       write (label,'(i3)') i\n";
-				$functionCode .= "       message='".$methodName.": ".(" " x ($implementationPropertyNameLengthMax-length($methodName)))." '//trim(label)\n";
+				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 				$functionCode .= "       call Galacticus_Display_Indent(message)\n";
 				$functionCode .= "       call self%".$linkedDataName."%value(i)%dump()\n";
 				$functionCode .= "       call Galacticus_Display_Unindent('end')\n";
@@ -2545,11 +2545,11 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method has any linked data in this component.
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
@@ -2625,11 +2625,11 @@ sub Generate_Implementation_Dump_Functions {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method has any linked data in this component.
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
@@ -2698,20 +2698,20 @@ sub Generate_Implementation_Initializor_Functions {
 	# Generate the initialization code.
 	my %requiredComponents;
 	my $initializeCode = "";
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
-	    if ( exists($method->{'linkedData'}) ) {
-		my $linkedDataName = $method->{'linkedData'};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		# Set to a class default value if available.
-		if ( exists($method->{'classDefault'}) ) {
-		    my $default = $method->{'classDefault'}->{'code'};
+		if ( exists($property->{'classDefault'}) ) {
+		    my $default = $property->{'classDefault'}->{'code'};
 		    while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
 			$requiredComponents{$1} = 1;
 			$default =~ s/self([a-zA-Z]+)Component\s*%//;
 		    }
-		    $default = $method->{'classDefault'}->{'code'};
-		    if ( exists($method->{'classDefault'}->{'count'}) ) {
+		    $default = $property->{'classDefault'}->{'code'};
+		    if ( exists($property->{'classDefault'}->{'count'}) ) {
 			my @gsr = ( "value" );
 			push
 			    (
@@ -2719,9 +2719,9 @@ sub Generate_Implementation_Initializor_Functions {
 			     "rate",
 			     "scale"
 			    )
-			    if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			foreach ( @gsr ) {
-			    $initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.",[".$method->{'classDefault'}->{'count'}."])\n";
+			    $initializeCode .= "           call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.",[".$property->{'classDefault'}->{'count'}."])\n";
 			}
 		    }
 		    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=".$default."\n";
@@ -2765,10 +2765,10 @@ sub Generate_Implementation_Initializor_Functions {
 	$functionCode .= "    use Memory_Management\n";
 	# Insert any required modules.
 	my %requiredModules;
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
-	    if ( exists($method->{'classDefault'}) && exists($method->{'classDefault'}->{'modules'}) ) {
-		foreach ( @{$method->{'classDefault'}->{'modules'}} ) {
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
+		foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
 		    $requiredModules{$_} = 1;
 		}
 	    }
@@ -2857,13 +2857,13 @@ sub Generate_Implementation_Builder_Functions {
 	    # Build the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%builder(componentDefinition)\n"
 		if ( exists($component->{'extends'}) );
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method has any linked data in this component.
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
-		    $functionCode .= "    propertyList => getElementsByTagName(componentDefinition,'".$methodName."')\n";
+		    $functionCode .= "    propertyList => getElementsByTagName(componentDefinition,'".$propertyName."')\n";
 		    if ( $linkedData->{'rank'} == 0 ) {
 			$functionCode .= "    if (getLength(propertyList) > 1) call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','scalar property must have precisely one value')\n";
 			$functionCode .= "    if (getLength(propertyList) == 1) then\n";
@@ -2885,7 +2885,7 @@ sub Generate_Implementation_Builder_Functions {
 			     "rate",
 			     "scale"
 			    )
-			    if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
 			switch ( $linkedData->{'type'} ) {
 			    case ( [ "real", "integer", "logical" ] ) {
@@ -2934,12 +2934,12 @@ sub Generate_Implementation_Output_Functions {
 	my $component = $buildData->{'components'}->{$componentID};
 	# Find modules required.
 	my %modulesRequired;
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if this method is to be output.
-	    if ( exists($method->{'output'}) ) {
-		if ( exists($method->{'output'}->{'modules'}) ) {
-		    my $moduleList = $method->{'output'}->{'modules'};
+	    if ( exists($property->{'output'}) ) {
+		if ( exists($property->{'output'}->{'modules'}) ) {
+		    my $moduleList = $property->{'output'}->{'modules'};
 		    $moduleList =~ s/^\s*//;
 		    $moduleList =~ s/\s*$//;
 		    my @modules = split(/\s*,\s*/,$moduleList);
@@ -2982,18 +2982,18 @@ sub Generate_Implementation_Output_Functions {
 	    );
 	# Find all derived types to be output.
 	my %outputTypes;
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Check if property is to be output.
-	    if ( exists($method->{'output'}) ) {
+	    if ( exists($property->{'output'}) ) {
 		# Get the type of this component.
 		my $type;
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    $type   = $linkedData->{'type'};
 		} else {
-		    $type = $method->{'type'};		
+		    $type = $property->{'type'};		
 		}
 		$outputTypes{$type} = 1
 		    unless ( $type eq "real" || $type eq "integer" );
@@ -3044,24 +3044,24 @@ sub Generate_Implementation_Output_Functions {
 		 real    => "double",
 		 integer => "integer"
 		);
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method is to be output.
-		if ( exists($method->{'output'}) ) {
+		if ( exists($property->{'output'}) ) {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
 		    # Check if this method has any linked data in this component.
-		    if ( exists($method->{'linkedData'}) ) {
-			my $linkedDataName = $method->{'linkedData'};
+		    if ( exists($property->{'linkedData'}) ) {
+			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $method->{'isVirtual'} eq "yes" && $method->{'attributes'}->{'isGettable'} eq "true" ) {
-			$rank = $method->{'rank'};
-			$type = $method->{'type'};
+		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+			$rank = $property->{'rank'};
+			$type = $property->{'type'};
 		    } else {
-			die("Generate_Implementation_Output_Functions(): can not output [".$methodName."]");
+			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }
 		    # Determine count.
 		    my $count;
@@ -3069,15 +3069,15 @@ sub Generate_Implementation_Output_Functions {
 			$count = 1;
 		    } elsif ( $rank ==1 ) {
 			die("Generate_Implementation_Output_Functions(): output of rank>0 objects requires a labels attribute")
-			    unless ( exists($method->{'output'}->{'labels'}) );	
-			if ( $method->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
+			    unless ( exists($property->{'output'}->{'labels'}) );	
+			if ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
 			    my $labelText = $1;
 			    $labelText    =~ s/^\s*//;
 			    $labelText    =~ s/\s*$//;
 			    my @labels    = split(/\s*,\s*/,$labelText);
 			    $count = scalar(@labels);
-			} elsif ( exists($method->{'output'}->{'count'}) ) {
-			    $count = $method->{'output'}->{'count'};
+			} elsif ( exists($property->{'output'}->{'count'}) ) {
+			    $count = $property->{'output'}->{'count'};
 			} else {
 			    die('Generate_Implementation_Output_Functions(): no method to determine output count of property');
 			}
@@ -3088,8 +3088,8 @@ sub Generate_Implementation_Output_Functions {
 		    switch ( $type ) {
 			case ( [ "real", "integer" ] ) {
 			    if ( $rank == 0 ) {
-				if ( exists($method->{'output'}->{'condition'}) ) {
-				    my $condition = $method->{'output'}->{'condition'};
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 				} elsif ( $count =~ m/^\d/ ) {
@@ -3098,8 +3098,8 @@ sub Generate_Implementation_Output_Functions {
 				    $functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 				}
 			    } elsif ( $rank == 1 ) {
-				if ( exists($method->{'output'}->{'condition'}) ) {
-				    my $condition = $method->{'output'}->{'condition'};
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $condition =~ s/\{i\}/i/g;
 				    $functionCode .= "    do i=1,".$count."\n";
@@ -3115,7 +3115,7 @@ sub Generate_Implementation_Output_Functions {
 			    }
 			}
 			else {
-			    $functionCode .= "    output".ucfirst($type)."=self%".$methodName."()\n";
+			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
 			    $functionCode .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
 			}
 		    }
@@ -3207,63 +3207,63 @@ sub Generate_Implementation_Output_Functions {
 		 real    => "double",
 		 integer => "integer"
 		);
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method is to be output.
-		if ( exists($method->{'output'}) ) {
+		if ( exists($property->{'output'}) ) {
 		    # Define rank, type and value.
 		    my $rank;
 		    my $type;
 		    my $object;
 		    # Check if this method has any linked data in this component.
-		    if ( exists($method->{'linkedData'}) ) {
-			my $linkedDataName = $method->{'linkedData'};
+		    if ( exists($property->{'linkedData'}) ) {
+			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
 			$object = "self%".$linkedDataName;
-		    } elsif ( $method->{'isVirtual'} eq "yes" && $method->{'attributes'}->{'isGettable'} eq "true" ) {
-			$rank = $method->{'rank'};
-			$type = $method->{'type'};
+		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+			$rank = $property->{'rank'};
+			$type = $property->{'type'};
 		    } else {
-			die("Generate_Implementation_Output_Functions(): can not output [".$methodName."]");
+			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Increment the counters.
 		    switch ( $type ) {
 			case ( [ "real", "integer" ] ) {
 			    # Insert metadata for SimDB.
 			    $functionCode .= "       !@ <outputProperty>\n";
-			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($methodName)."</name>\n";
+			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
 			    $functionCode .= "       !@   <datatype>".$type."</datatype>\n";
 			    if ( $rank == 0 ) {
 				$functionCode .= "       !@   <cardinality>0..1</cardinality>\n";
 			    } else {
 				$functionCode .= "       !@   <cardinality>0..*</cardinality>\n";
 			    }
-			    $functionCode .= "       !@   <description>".$method->{'output'}->{'comment'}."</description>\n";
+			    $functionCode .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
 			    $functionCode .= "       !@   <label>???</label>\n";
 			    $functionCode .= "       !@   <outputType>nodeData</outputType>\n";
 			    $functionCode .= "       !@   <group>".$component->{'class'}."</group>\n";
 			    $functionCode .= "       !@ </outputProperty>\n";
 			    if ( $rank == 0 ) {
-				if ( exists($method->{'output'}->{'condition'}) ) {
-				    my $condition = $method->{'output'}->{'condition'};
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $functionCode .= "    if (".$condition.") then\n";
 				}
 				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($methodName)."'\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$method->{'output'}->{'comment'  }."'\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$method->{'output'}->{'unitsInSI'}."\n";
+				$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'\n";
+				$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }."'\n";
+				$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";
 				$functionCode .= "    end if\n"
-				    if ( exists($method->{'output'}->{'condition'}) );
+				    if ( exists($property->{'output'}->{'condition'}) );
 			    } elsif ( $rank == 1 ) {
 				die("Generate_Implementation_Output_Functions(): output of rank>0 objects requires a labels attribute")
-				    unless ( exists($method->{'output'}->{'labels'}) );
+				    unless ( exists($property->{'output'}->{'labels'}) );
 
-				if ( $method->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
-				    if ( exists($method->{'output'}->{'condition'}) ) {
-					my $condition = $method->{'output'}->{'condition'};
+				if ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
+				    if ( exists($property->{'output'}->{'condition'}) ) {
+					my $condition = $property->{'output'}->{'condition'};
 					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 					$functionCode .= "    if (".$condition.") then\n";
 				    }
@@ -3273,29 +3273,29 @@ sub Generate_Implementation_Output_Functions {
 				    my @labels    = split(/\s*,\s*/,$labelText);
 				    foreach my $label ( @labels ) {
 					$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($methodName).$label."'\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$method->{'output'}->{'comment'  }." [".$label."]'\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$method->{'output'}->{'unitsInSI'}."\n";	
+					$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName).$label."'\n";
+					$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." [".$label."]'\n";
+					$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
 				    }
 				    $functionCode .= "    end if\n"
-					if ( exists($method->{'output'}->{'condition'}) );
-				} elsif ( exists($method->{'output'}->{'count'}) ) {
-				    my $count = $method->{'output'}->{'count' };
-				    my $label = $method->{'output'}->{'labels'};
+					if ( exists($property->{'output'}->{'condition'}) );
+				} elsif ( exists($property->{'output'}->{'count'}) ) {
+				    my $count = $property->{'output'}->{'count' };
+				    my $label = $property->{'output'}->{'labels'};
 				    $label =~ s/\{i\}/i/g;
 				    $functionCode .= "       do i=1,".$count."\n";
-				    if ( exists($method->{'output'}->{'condition'}) ) {
-					my $condition = $method->{'output'}->{'condition'};
+				    if ( exists($property->{'output'}->{'condition'}) ) {
+					my $condition = $property->{'output'}->{'condition'};
 					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 					$condition =~ s/\{i\}/i/g;
 					$functionCode .= "    if (".$condition.") then\n";
 				    }
 				    $functionCode .= "         ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($methodName)."'//".$label."\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$method->{'output'}->{'comment'  }." ['//".$label."//']'\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$method->{'output'}->{'unitsInSI'}."\n";	
+				    $functionCode .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'//".$label."\n";
+				    $functionCode .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." ['//".$label."//']'\n";
+				    $functionCode .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
 				    $functionCode .= "    end if\n"
-					if ( exists($method->{'output'}->{'condition'}) );
+					if ( exists($property->{'output'}->{'condition'}) );
 				    $functionCode .= "end do\n";
 				} else {
 				    die('Generate_Implementation_Output_Functions(): no method to determine output count of property');
@@ -3305,8 +3305,8 @@ sub Generate_Implementation_Output_Functions {
 			    }
 			}
 			else {
-			    $functionCode .= "    output".ucfirst($type)."=self%".$methodName."()\n";
-			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($methodName)."','".$method->{'output'}->{'comment'}."',".$method->{'output'}->{'unitsInSI'}.")\n";
+			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
+			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$property->{'output'}->{'unitsInSI'}.")\n";
 			}
 		    }
 		}
@@ -3374,12 +3374,12 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	    $functionCode .= "    if (count <= 0) return\n";
 	}
 	# Iterate over properties.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this method has any linked data in this component.
-	    if ( exists($method->{'linkedData'}) ) {
+	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
-		my $linkedDataName = $method->{'linkedData'};
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
@@ -3395,7 +3395,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
 			$functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%value)) count=count-size(self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
 		    }
 		    $functionCode .= "    if (count <= 0) then\n";
-		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$methodName."'\n";
+		    $functionCode .= "      name='".$component->{'class'}.":".$component->{'name'}.":".$propertyName."'\n";
 		    $functionCode .= "      return\n";
 		    $functionCode .= "    end if\n";
 		}
@@ -3492,12 +3492,12 @@ sub Generate_Implementation_Serialization_Functions {
 	# Initialize a count of scalar properties.
 	my $scalarPropertyCount = 0;
 	# Iterate over properties.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this method has any linked data in this component.
-	    if ( exists($method->{'linkedData'}) ) {
+	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum count if necessary.
-		my $linkedDataName = $method->{'linkedData'};
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $linkedData->{'isEvolvable'} eq "true" ) {
 		    if ( $linkedData->{'rank'} == 0 ) {
@@ -3563,11 +3563,11 @@ sub Generate_Implementation_Serialization_Functions {
 		$serializationCode .= " end if\n";
 		$needCount = 1;
 	    }
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    	# Check if this method has any linked data in this component.
-	    	if ( exists($method->{'linkedData'}) ) {
-	    	    my $linkedDataName = $method->{'linkedData'};
+	    	if ( exists($property->{'linkedData'}) ) {
+	    	    my $linkedDataName = $property->{'linkedData'};
 	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
 	    		if ( $linkedData->{'rank'} == 0 ) {
@@ -3665,12 +3665,12 @@ sub Generate_Implementation_Serialization_Functions {
 		$deserializationCode .= " end if\n";
 		$needCount = 1;
 	    }
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    	my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    	my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    	# Check if this method has any linked data in this component.
-	    	if ( exists($method->{'linkedData'}) ) {
+	    	if ( exists($property->{'linkedData'}) ) {
 	    	    # For each linked datum count if necessary.
-	    	    my $linkedDataName = $method->{'linkedData'};
+	    	    my $linkedDataName = $property->{'linkedData'};
 	    	    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 	    	    if ( $linkedData->{'isEvolvable'} eq "true" ) {
 	    		if ( $linkedData->{'rank'} == 0 ) {
@@ -4212,7 +4212,7 @@ sub Generate_Node_Move_Function {
 sub Generate_Deferred_Function_Attacher {
     # Generate functions to attach a function to a deferred method and to query the attachment state.
     my $component = shift;
-    my $method    = shift;
+    my $property    = shift;
     my $buildData = shift;
     my $gsr       = shift;
     my $gsrSuffix = "";
@@ -4221,15 +4221,15 @@ sub Generate_Deferred_Function_Attacher {
     # Get the component fully-qualified, class and metho names.
     my $componentClassName = $component->{'class'             };
     my $componentName      = $component->{'fullyQualifiedName'};
-    my $methodName         = $method->{'name'};
+    my $propertyName         = $property->{'name'};
     # Skip if this function was already created.
-    my $recordName = $componentClassName.$methodName.$gsr;
+    my $recordName = $componentClassName.$propertyName.$gsr;
     unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$recordName}) ) {
 	# Define the function name.
-	my $functionName = $componentClassName.ucfirst($methodName).ucfirst($gsr)."Function";
+	my $functionName = $componentClassName.ucfirst($propertyName).ucfirst($gsr)."Function";
 	# Define the data content.
 	my $type = "";
-	$type = $componentName.ucfirst($methodName).ucfirst($gsr)
+	$type = $componentName.ucfirst($propertyName).ucfirst($gsr)
 	    if ( $gsr eq "get" );
 	my @dataContent =
 	    (
@@ -4242,11 +4242,11 @@ sub Generate_Deferred_Function_Attacher {
 	# Construct the function code.
 	my $functionCode;
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
-	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$methodName."} property of the {\\tt ".$componentClassName."} component class.\n";
+	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($methodName).ucfirst($gsr)."Deferred       => deferredFunction\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttachedValue=  .true.\n";
+	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."Deferred       => deferredFunction\n";
+	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttachedValue=  .true.\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine ".$functionName."\n";
 	# Insert into the function list.
@@ -4256,21 +4256,21 @@ sub Generate_Deferred_Function_Attacher {
 	    );
 	# Bind this function to the relevant type.
 	if ( 
-	    ( $method->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
+	    ( $property->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
 	    (                                                    $gsr eq "rate"                   )
 	    ) {
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $methodName.$gsrSuffix."Function", function => $functionName}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName}
 		);
 	}
 	# Also create a function to return whether or not the deferred function has been attached.
-	$functionCode  = "  logical function ".$componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttached()\n";
-	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\tt ".$methodName."} property of the {\\tt ".$componentClassName."} component class has been attached.\n";
+	$functionCode  = "  logical function ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached()\n";
+	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class has been attached.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttached=".$componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttachedValue\n";
+	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached=".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttachedValue\n";
 	$functionCode .= "    return\n";
-	$functionCode .= "  end function ".$componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttached\n";
+	$functionCode .= "  end function ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached\n";
 	# Insert into the function list.
 	push(
 	    @{$buildData->{'code'}->{'functions'}},
@@ -4278,12 +4278,12 @@ sub Generate_Deferred_Function_Attacher {
 	    );
 	# Bind this function to the relevant type.
 	if ( 
-	    ( $method->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
+	    ( $property->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
 	    (                                                    $gsr eq "rate"                   )
 	    ) {
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $methodName.$gsrSuffix."IsAttached", function => $componentClassName.ucfirst($methodName).ucfirst($gsr)."IsAttached"}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached"}
 		);
 	}
 	# Record that these functions have now been created.
@@ -4301,29 +4301,29 @@ sub Generate_Deferred_GSR_Function {
 	# Get the component.
 	my $component = $buildData->{'components'}->{$componentID};
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    # Get the method.
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Get the component fully-qualified and class names.
 	    my $componentClassName = $component->{'class'             };
 	    my $componentName      = $component->{'fullyQualifiedName'};
 	    # Ignore non-deferred functions.
-	    unless ( $method->{'attributes'}->{'isDeferred'} eq "" ) {
+	    unless ( $property->{'attributes'}->{'isDeferred'} eq "" ) {
 		# Function code data.
 		my $functionCode;
 		# Get the name of the method.
-		my $methodName = $method->{'name'};
+		my $propertyName = $property->{'name'};
 		# Get properties of the data type needed.
-		(my $dataDefinition, my $label) = &Data_Object_Definition($method,matchOnly => 1);
+		(my $dataDefinition, my $label) = &Data_Object_Definition($property,matchOnly => 1);
 		# Identify methods with a deferred get function to be built.
 		if (
-		    $method->{'attributes' }->{'isDeferred'} =~ m/get/ &&
-		    $method->{'attributes' }->{'isGettable'} eq "true" &&
-		    $method->{'getFunction'}->{'build'     } eq "true"
+		    $property->{'attributes' }->{'isDeferred'} =~ m/get/ &&
+		    $property->{'attributes' }->{'isGettable'} eq "true" &&
+		    $property->{'getFunction'}->{'build'     } eq "true"
 		    )
 		{
 		    # Define data content of this function.
-		    @{$dataDefinition->{'variables'}} = ( $componentName.ucfirst($methodName)."Get" );
+		    @{$dataDefinition->{'variables'}} = ( $componentName.ucfirst($propertyName)."Get" );
 		    my @dataContent =
 			(
 			 $dataDefinition,
@@ -4335,13 +4335,13 @@ sub Generate_Deferred_GSR_Function {
 			 },
 			);
 		    # Construct the function code.
-		    $functionCode  = "  function ".$componentName.ucfirst($methodName)."Get(self)\n";
-		    $functionCode .= "    !% Get the value of the {\\tt ".$methodName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode  = "  function ".$componentName.ucfirst($propertyName)."Get(self)\n";
+		    $functionCode .= "    !% Get the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    ".$componentName.ucfirst($methodName)."Get=".$componentClassName.ucfirst($methodName)."GetDeferred(self)\n";
+		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentClassName.ucfirst($propertyName)."GetDeferred(self)\n";
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".$componentName.ucfirst($methodName)."Get\n";
+		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -4350,18 +4350,18 @@ sub Generate_Deferred_GSR_Function {
 		    # Bind this function to the relevant type.
 		    push(
 			@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
-			{type => "procedure", name => $methodName, function => $componentName.ucfirst($methodName)."Get"}
+			{type => "procedure", name => $propertyName, function => $componentName.ucfirst($propertyName)."Get"}
 			);
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$method,$buildData,"get");
+		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"get");
 		}
 		# Add an "intent(in)" attribute to the data definition for set and rate functions.
 		push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 		# Identify methods with a deferred set function to be built.
 		if (
-		    $method->{'attributes' }->{'isDeferred'} =~ m/set/
-		    && $method->{'attributes' }->{'isSettable'} eq "true" 
-		    && $method->{'setFunction'}->{'build'     } eq "true"
+		    $property->{'attributes' }->{'isDeferred'} =~ m/set/
+		    && $property->{'attributes' }->{'isSettable'} eq "true" 
+		    && $property->{'setFunction'}->{'build'     } eq "true"
 		    )
 		{
 		    @{$dataDefinition->{'variables'}} = ( "setValue" );
@@ -4375,13 +4375,13 @@ sub Generate_Deferred_GSR_Function {
 			     variables  => [ "self" ]
 			 },
 			);
-		    $functionCode  = "  subroutine ".$componentName.ucfirst($methodName)."Set(self,setValue)\n";
-		    $functionCode .= "    !% Set the value of the {\\tt ".$methodName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Set(self,setValue)\n";
+		    $functionCode .= "    !% Set the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    call ".$componentClassName.ucfirst($methodName)."SetDeferred(self,setValue)\n";
+		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentName.ucfirst($methodName)."Set\n\n";
+		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -4390,22 +4390,22 @@ sub Generate_Deferred_GSR_Function {
 		    # Bind this function to the relevant type.
 		    push(
 			@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentName)}->{'boundFunctions'}},
-			{type => "procedure", name => $methodName."Set", function => $componentName.ucfirst($methodName)."Set"}
+			{type => "procedure", name => $propertyName."Set", function => $componentName.ucfirst($propertyName)."Set"}
 			);
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$method,$buildData,"set");		  
+		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"set");		  
 		}
 		# Identify methods with a deferred rate function to be built.
 		if (
-		    $method->{'attributes' }->{'isDeferred' } =~ m/rate/
-		    && $method->{'attributes' }->{'isEvolvable'} eq "true" 
+		    $property->{'attributes' }->{'isDeferred' } =~ m/rate/
+		    && $property->{'attributes' }->{'isEvolvable'} eq "true" 
 		    )
 		{
 		    # Define data content of this function.
 		    @{$dataDefinition->{'variables'}} = ( "setValue" );
 		    my $type = "nodeComponent";
 		    $type .= ucfirst($componentName)
-			unless ( $method->{'attributes' }->{'bindsTo'} eq "top" );
+			unless ( $property->{'attributes' }->{'bindsTo'} eq "top" );
 		    my @dataContent =
 			(
 			 $dataDefinition,
@@ -4427,29 +4427,29 @@ sub Generate_Deferred_GSR_Function {
 			     variables  => [ "interruptProcedure" ]
 			 }
 			);
-		    $functionCode  = "  subroutine ".$componentName.ucfirst($methodName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-		    $functionCode .= "    !% Set the rate of the {\\tt ".$methodName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
+		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
+		    $functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    call ".$componentClassName.ucfirst($methodName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
+		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentName.ucfirst($methodName)."Rate\n\n";
+		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Rate\n\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
 			$functionCode
 			);
 		    # Bind this function to the relevant type.
-		    my $bindingName = $type.$methodName."Rate";
-		    unless ( exists($bindings{$bindingName}) && $method->{'attributes' }->{'bindsTo'} eq "top" ) {
+		    my $bindingName = $type.$propertyName."Rate";
+		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			push(
 			    @{$buildData->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $methodName."Rate", function => $componentName.ucfirst($methodName)."Rate"}
+			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate"}
 			    );
 			$bindings{$bindingName} = 1;
 		    }
 		    # Generate an attacher function.
-		    &Generate_Deferred_Function_Attacher($component,$method,$buildData,"rate");
+		    &Generate_Deferred_Function_Attacher($component,$property,$buildData,"rate");
 		}
 	    }
 	}
@@ -4472,54 +4472,54 @@ sub Generate_GSR_Functions {
 	# Get the parent class.
 	my $componentClassName = $component->{'class'};
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    # Handle cases where a get function is explicitly specified for a non-deferred virtual method.
 	    if (
-		$method->{'attributes' }->{'isGettable'} eq "true"      &&
-		$method->{'getFunction'}->{'build'     } eq "false"     &&
-		$method->{'getFunction'}->{'bindsTo'   } eq "component" &&
-		$method->{'attributes' }->{'isDeferred'} !~ m/get/
+		$property->{'attributes' }->{'isGettable'} eq "true"      &&
+		$property->{'getFunction'}->{'build'     } eq "false"     &&
+		$property->{'getFunction'}->{'bindsTo'   } eq "component" &&
+		$property->{'attributes' }->{'isDeferred'} !~ m/get/
 		) {
 		# No need to build the function - just insert a type-binding into the implementation type.
 		push(
 		    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		    {type => "procedure", name => $methodName, function => $method->{'getFunction'}->{'content'}}
+		    {type => "procedure", name => $propertyName, function => $property->{'getFunction'}->{'content'}}
 		    );
 	    }
 	    # Handle cases where a set function is explicitly specified for a non-deferred virtual method.
 	    if (
-		$method->{'attributes' }->{'isSettable'} eq "true"      &&
-		$method->{'setFunction'}->{'build'     } eq "false"     &&
-		$method->{'setFunction'}->{'bindsTo'   } eq "component" &&
-		$method->{'attributes' }->{'isDeferred'} !~ m/set/
+		$property->{'attributes' }->{'isSettable'} eq "true"      &&
+		$property->{'setFunction'}->{'build'     } eq "false"     &&
+		$property->{'setFunction'}->{'bindsTo'   } eq "component" &&
+		$property->{'attributes' }->{'isDeferred'} !~ m/set/
 		) {
 		# No need to build the function - just insert a type-binding into the implementation type.
 		push(
 		    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-		    {type => "procedure", name => $methodName."Set", function => $method->{'setFunction'}->{'content'}}
+		    {type => "procedure", name => $propertyName."Set", function => $property->{'setFunction'}->{'content'}}
 		    );	
 	    }
    	    # Check if this method has any linked data in this component.
-	    if ( exists($method->{'linkedData'}) ) {
+	    if ( exists($property->{'linkedData'}) ) {
 		# Get the linked data.
-		my $linkedDataName = $method->{'linkedData'};
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		# Create a "get" function if the property is gettable.
-		if ( $method->{'attributes'}->{'isGettable'} eq "true" ) {
+		if ( $property->{'attributes'}->{'isGettable'} eq "true" ) {
 		    # Skip get function creation if a custom function which binds at the component level has been specified.
 		    unless (
-			$method->{'getFunction'}->{'build'  } eq "false"     &&
-			$method->{'getFunction'}->{'bindsTo'} eq "component"
+			$property->{'getFunction'}->{'build'  } eq "false"     &&
+			$property->{'getFunction'}->{'bindsTo'} eq "component"
 			)
 		    {
 			# Determine the suffix for this function.
 			my $suffix = "";
 			$suffix = "Value"
-			    if ( $method->{'attributes' }->{'isDeferred'} =~ m/get/ );
+			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/get/ );
 			# Specify the data content.
 			(my $dataDefinition,my $label) = &Data_Object_Definition($linkedData);
-			push(@{$dataDefinition->{'variables'}},$componentID.ucfirst($methodName)."Get".$suffix);
+			push(@{$dataDefinition->{'variables'}},$componentID.ucfirst($propertyName)."Get".$suffix);
 			@dataContent = (
 			    $dataDefinition,
 			    {
@@ -4530,13 +4530,13 @@ sub Generate_GSR_Functions {
 			    }
 			    );
 			# Generate the code.
-			$functionCode  = "  function ".$componentID.ucfirst($methodName)."Get".$suffix."(self)\n";
-			$functionCode .= "    !% Return the {\\tt ".$methodName."} property of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode  = "  function ".$componentID.ucfirst($propertyName)."Get".$suffix."(self)\n";
+			$functionCode .= "    !% Return the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-			$functionCode .= "    ".$componentID.$methodName."Get".$suffix."=self%".$linkedDataName."%value\n";
+			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."%value\n";
 			$functionCode .= "    return\n";
-			$functionCode .= "  end function ".$componentID.ucfirst($methodName)."Get".$suffix."\n\n";
+			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
 			# Insert into the function list.
 			push(
 			    @{$buildData->{'code'}->{'functions'}},
@@ -4545,17 +4545,17 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $methodName.$suffix, function => $componentID.ucfirst($methodName)."Get".$suffix}
+			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix}
 			    );
 		    }
 		}
 		# Create a "set" method unless the property is not settable or a custom set function has been specified.
-		if ( $method->{'attributes' }->{'isSettable'} eq "true" ) {
-		    if ( $method->{'setFunction'}->{'build'} eq "true" ) {
+		if ( $property->{'attributes' }->{'isSettable'} eq "true" ) {
+		    if ( $property->{'setFunction'}->{'build'} eq "true" ) {
 			# Determine the suffix for this function.
 			my $suffix = "";
 			$suffix = "Value"
-			    if ( $method->{'attributes' }->{'isDeferred'} =~ m/set/ );
+			    if ( $property->{'attributes' }->{'isDeferred'} =~ m/set/ );
 			# Specify the data content.
 			(my $dataDefinition,my $label) = &Data_Object_Definition($linkedData,matchOnly => 1);
 			push(@{$dataDefinition->{'attributes'}},"intent(in   )");
@@ -4570,8 +4570,8 @@ sub Generate_GSR_Functions {
 			    }
 			    );
 			# Generate the function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($methodName)."Set".$suffix."(self,setValue)\n";
-			$functionCode .= "    !% Set the {\\tt ".$methodName."} property of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."(self,setValue)\n";
+			$functionCode .= "    !% Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    use Memory_Management\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
@@ -4579,7 +4579,7 @@ sub Generate_GSR_Functions {
 			# the correct size.
 			my @setContent = ( "value" );
 			push(@setContent,"rate","scale")
-			    if ( $method->{'attributes' }->{'isEvolvable'} eq "true" );
+			    if ( $property->{'attributes' }->{'isEvolvable'} eq "true" );
 			switch ( $linkedData->{'rank'} ) {
 			    case ( 0 ) {
 				$functionCode .= "    self%".$linkedDataName."%".pad($_,5)."=setValue\n"
@@ -4601,7 +4601,7 @@ sub Generate_GSR_Functions {
 			    }
 			}
 			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($methodName)."Set".$suffix."\n\n";
+			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Set".$suffix."\n\n";
 			# Insert into the function list.
 			push(
 			    @{$buildData->{'code'}->{'functions'}},
@@ -4610,12 +4610,12 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $methodName."Set".$suffix, function => $componentID.ucfirst($methodName)."Set".$suffix}
+			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix}
 			    );
 		    }
 		}
 		# Create "count", "rate" and "scale" functions if the property is evolvable.
-		if ( $method->{'attributes'}->{'isEvolvable'} eq "true" ) {
+		if ( $property->{'attributes'}->{'isEvolvable'} eq "true" ) {
 		    # Specify the "count" function data content.
 		    @dataContent = (
 			{
@@ -4626,24 +4626,24 @@ sub Generate_GSR_Functions {
 			}
 			);
 		    # Generate the "count" function code.
-		    $functionCode  = "  integer function ".$componentID.ucfirst($methodName)."Count(self)\n";
-		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\tt ".$methodName."} property of the {\\tt ".lcfirst($componentID)."} component implementation.\n";
+		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
+		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\tt ".$propertyName."} property of the {\\tt ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
 		    switch ( $linkedData->{'rank'} ) {
 			case ( 0 ) {
-			    $functionCode .= "    ".$componentID.$methodName."Count=1\n";
+			    $functionCode .= "    ".$componentID.$propertyName."Count=1\n";
 			}
 			case ( 1 ) {
 			    $functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
-			    $functionCode .= "    ".$componentID.$methodName."Count=size(self%".$linkedDataName."%value)\n";
+			    $functionCode .= "    ".$componentID.$propertyName."Count=size(self%".$linkedDataName."%value)\n";
 			    $functionCode .= "    else\n";
-			    $functionCode .= "    ".$componentID.$methodName."Count=0\n";
+			    $functionCode .= "    ".$componentID.$propertyName."Count=0\n";
 			    $functionCode .= "    end if\n";
 			}
 		    }
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".$componentID.ucfirst($methodName)."Count\n\n";
+		    $functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Count\n\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -4652,14 +4652,14 @@ sub Generate_GSR_Functions {
 		    # Insert a type-binding for this function into the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			{type => "procedure", name => $methodName."Count", function => $componentID.ucfirst($methodName)."Count"}
+			{type => "procedure", name => $propertyName."Count", function => $componentID.ucfirst($propertyName)."Count"}
 			);
 		    # Get the data content for remaining functions.
 		    (my $dataDefinition,my $label) = &Data_Object_Definition($linkedData,matchOnly => 1);
 		    push(@{$dataDefinition->{'variables' }},"setValue"     );
 		    push(@{$dataDefinition->{'attributes'}},"intent(in   )");
 		    # Skip rate function creation if the rate function is deferred.
-		    unless ( $method->{'attributes'}->{'isDeferred'} =~ m/rate/ ) {
+		    unless ( $property->{'attributes'}->{'isDeferred'} =~ m/rate/ ) {
 			# Specify the "rate" function data content.
 			@dataContent = (
 			    $dataDefinition,
@@ -4682,8 +4682,8 @@ sub Generate_GSR_Functions {
 			    }
 			    );
 			# Generate the rate function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($methodName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Accumulate to the {\\tt ".$methodName."} property rate of change of the {\\tt ".$componentID."} component implementation.\n";
+			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
+			$functionCode .= "    !% Accumulate to the {\\tt ".$propertyName."} property rate of change of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
 			if ( $linkedData->{'type'} eq "real" ) {
@@ -4692,7 +4692,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    call self%".$linkedDataName."%rate%increment(setValue)\n";
 			}
 			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($methodName)."Rate\n\n";
+			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Rate\n\n";
 			# Insert into the function list.
 			push(
 			    @{$buildData->{'code'}->{'functions'}},
@@ -4701,10 +4701,10 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $methodName."Rate", function => $componentID.ucfirst($methodName)."Rate"}
+			    {type => "procedure", name => $propertyName."Rate", function => $componentID.ucfirst($propertyName)."Rate"}
 			    );
 		    }
-		    if ( $method->{'attributes' }->{'makeGeneric'} eq "true" ) {
+		    if ( $property->{'attributes' }->{'makeGeneric'} eq "true" ) {
 			# Create a version of this rate function which binds to the top-level class, and so is suitable for
 			# attaching to inter-component pipes.
 			# Specify the data content.		
@@ -4741,15 +4741,15 @@ sub Generate_GSR_Functions {
 			    }
 			    );
 			# Generate the function code.
-			$functionCode  = "  subroutine ".$componentID.ucfirst($methodName)."RateGeneric(self,setValue,interrupt,interruptProcedure)\n";
-			$functionCode .= "    !% Set the rate of the {\\tt ".$methodName."} property of the {\\tt ".$componentID."} component via a generic {\\tt nodeComponent}.\n";
+			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."RateGeneric(self,setValue,interrupt,interruptProcedure)\n";
+			$functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component via a generic {\\tt nodeComponent}.\n";
 			$functionCode .= "    use Galacticus_Error\n"
-			    if ( $method->{'attributes'}->{'createIfNeeded'} eq "true" );
+			    if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" );
 			$functionCode .= "    implicit none\n";
 			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    thisNode => self%host()\n";
 			$functionCode .= "    this".ucfirst($componentClassName)." => thisNode%".$componentClassName."()\n";
-			if ( $method->{'attributes'}->{'createIfNeeded'} eq "true" ) {
+			if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" ) {
 			    $functionCode .= "    select type (this".ucfirst($componentClassName).")\n";
 			    $functionCode .= "    type is (nodeComponent".ucfirst($componentClassName).")\n";
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
@@ -4784,24 +4784,24 @@ sub Generate_GSR_Functions {
 				    }
 				}
 			    }
-			    $functionCode .= "      if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentID.ucfirst($methodName)."RateGeneric','interrupt required, but optional arguments missing')\n";
+			    $functionCode .= "      if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentID.ucfirst($propertyName)."RateGeneric','interrupt required, but optional arguments missing')\n";
 			    $functionCode .= "      interrupt=.true.\n";
 			    $functionCode .= "      interruptProcedure => ".$componentClassName."CreateByInterrupt\n";
 			    $functionCode .= "      return\n";
 			    $functionCode .= "    end select\n";
 			}
-			$functionCode .= "    call this".ucfirst($componentClassName)."%".$methodName."Rate(setValue,interrupt,interruptProcedure)\n";
+			$functionCode .= "    call this".ucfirst($componentClassName)."%".$propertyName."Rate(setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    return\n";
-			$functionCode .= "  end subroutine ".$componentID.ucfirst($methodName)."RateGeneric\n\n";
+			$functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."RateGeneric\n\n";
 			# Insert into the function list.
 			push(
 			    @{$buildData->{'code'}->{'functions'}},
 			    $functionCode
 			    );
 		    }
-		    if ( $method->{'attributes' }->{'createIfNeeded'} eq "true" ) {
+		    if ( $property->{'attributes' }->{'createIfNeeded'} eq "true" ) {
 			# Create a version of this rate function which binds to the component class, and so can auto-create the component as needed.
-			my $label = $componentClassName.ucfirst($methodName);
+			my $label = $componentClassName.ucfirst($propertyName);
 			unless ( exists($classRatesCreated{$label}) ) {
 			    $classRatesCreated{$label} = 1;
 			    # Specify the data content.		
@@ -4826,8 +4826,8 @@ sub Generate_GSR_Functions {
 				}
 				);
 			    # Generate the function code.
-			    $functionCode  = "  subroutine ".$componentClassName.ucfirst($methodName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
-			    $functionCode .= "    !% Accept a rate set for the {\\tt ".$methodName."} property of the {\\tt ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
+			    $functionCode  = "  subroutine ".$componentClassName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
+			    $functionCode .= "    !% Accept a rate set for the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
 			    $functionCode .= "    use Galacticus_Error\n";
 			    $functionCode .= "    implicit none\n";
 			    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
@@ -4863,11 +4863,11 @@ sub Generate_GSR_Functions {
 				    }
 				}
 			    }
-			    $functionCode .= "    if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentClassName.ucfirst($methodName)."Rate','interrupt required, but optional arguments missing')\n";
+			    $functionCode .= "    if (.not.(present(interrupt).and.present(interruptProcedure))) call Galacticus_Error_Report('".$componentClassName.ucfirst($propertyName)."Rate','interrupt required, but optional arguments missing')\n";
 			    $functionCode .= "    interrupt=.true.\n";
 			    $functionCode .= "    interruptProcedure => ".$componentClassName."CreateByInterrupt\n";
 			    $functionCode .= "    return\n";
-			    $functionCode .= "  end subroutine ".$componentClassName.ucfirst($methodName)."Rate\n\n";
+			    $functionCode .= "  end subroutine ".$componentClassName.ucfirst($propertyName)."Rate\n\n";
 			    # Insert into the function list.
 			    push(
 				@{$buildData->{'code'}->{'functions'}},
@@ -4886,13 +4886,13 @@ sub Generate_GSR_Functions {
 			}
 			);
 		    # Generate a function to set the "scale".
-		    $functionCode  = "  subroutine ".$componentID.ucfirst($methodName)."Scale(self,setValue)\n";
-		    $functionCode .= "    !% Set the {\\tt ".$methodName."} property scale of the {\\tt ".$componentID."} component implementation.\n";
+		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Scale(self,setValue)\n";
+		    $functionCode .= "    !% Set the {\\tt ".$propertyName."} property scale of the {\\tt ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
  		    $functionCode .= "    self%".$linkedDataName."%scale=setValue\n";
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end subroutine ".$componentID.ucfirst($methodName)."Scale\n\n";
+		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -4901,7 +4901,7 @@ sub Generate_GSR_Functions {
 		    # Insert a type-binding for this function into the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			{type => "procedure", name => $methodName."Scale", function => $componentID.ucfirst($methodName)."Scale"}
+			{type => "procedure", name => $propertyName."Scale", function => $componentID.ucfirst($propertyName)."Scale"}
 			);
 		}
 	    }
@@ -5228,10 +5228,10 @@ sub Generate_Component_Assignment_Function {
 	$functionCode .= "    type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
 	$functionCode .= "       select type (from)\n";
 	$functionCode .= "       type is (nodeComponent".padFullyQualified($componentName,[0,0]).")\n";
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
-	    if ( exists($method->{'linkedData'}) ) {
-		my $linkedDataName = $method->{'linkedData'};		
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};		
 		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."%value=from%".padLinkedData($linkedDataName,[0,0])."%value\n";
 	    }
 	}
@@ -5759,18 +5759,18 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $buildData->{'components'}->{$componentID};
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if property is to be output.
-		if ( exists($method->{'output'}) ) {
+		if ( exists($property->{'output'}) ) {
 		    # Get the type of this component.
 		    my $type;
-		    if ( exists($method->{'linkedData'}) ) {
-			my $linkedDataName = $method->{'linkedData'};
+		    if ( exists($property->{'linkedData'}) ) {
+			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$type   = $linkedData->{'type'};
 		    } else {
-			$type = $method->{'type'};		
+			$type = $property->{'type'};		
 		    }
 		    $outputTypes{$type} = 1
 			unless ( $type eq "real" || $type eq "integer" );
@@ -5796,12 +5796,12 @@ sub Generate_Component_Class_Output_Functions {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component    = $buildData->{'components'}->{$componentID};
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method is to be output.
-		if ( exists($method->{'output'}) ) {
-		    if ( exists($method->{'output'}->{'modules'}) ) {
-			my $moduleList = $method->{'output'}->{'modules'};
+		if ( exists($property->{'output'}) ) {
+		    if ( exists($property->{'output'}->{'modules'}) ) {
+			my $moduleList = $property->{'output'}->{'modules'};
 			$moduleList =~ s/^\s*//;
 			$moduleList =~ s/\s*$//;
 			my @modules = split(/\s*,\s*/,$moduleList);
@@ -5836,10 +5836,10 @@ sub Generate_Component_Class_Output_Functions {
 		);
 	    $activeCheck .= ") then\n";
 	    my $outputsFound = 0;
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Check if this method is to be output.
-		if ( exists($method->{'output'}) ) {
+		if ( exists($property->{'output'}) ) {
 		    # Add conditional statement if necessary.
 		    if ( $outputsFound == 0 ) {
 			$functionCode .= $activeCheck;
@@ -5849,16 +5849,16 @@ sub Generate_Component_Class_Output_Functions {
 		    my $rank;
 		    my $type;
 		    # Check if this method has any linked data in this component.
-		    if ( exists($method->{'linkedData'}) ) {
-			my $linkedDataName = $method->{'linkedData'};
+		    if ( exists($property->{'linkedData'}) ) {
+			my $linkedDataName = $property->{'linkedData'};
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $method->{'isVirtual'} eq "yes" && $method->{'attributes'}->{'isGettable'} eq "true" ) {
-			$rank = $method->{'rank'};
-			$type = $method->{'type'};
+		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+			$rank = $property->{'rank'};
+			$type = $property->{'type'};
 		    } else {
-			die("Generate_Component_Class_Output_Functions(): can not output [".$methodName."]");
+			die("Generate_Component_Class_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Determine count.
 		    my $count;
@@ -5866,15 +5866,15 @@ sub Generate_Component_Class_Output_Functions {
 			$count = 1;
 		    } elsif ( $rank ==1 ) {
 			die("Generate_Component_Class_Output_Functions(): output of rank>0 objects requires a labels attribute")
-			    unless ( exists($method->{'output'}->{'labels'}) );	
-			if ( $method->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
+			    unless ( exists($property->{'output'}->{'labels'}) );	
+			if ( $property->{'output'}->{'labels'} =~ m/^\[(.*)\]$/ ) {
 			    my $labelText = $1;
 			    $labelText    =~ s/^\s*//;
 			    $labelText    =~ s/\s*$//;
 			    my @labels    = split(/\s*,\s*/,$labelText);
 			    $count = scalar(@labels);
-			} elsif ( exists($method->{'output'}->{'count'}) ) {
-			    $count = $method->{'output'}->{'count'};
+			} elsif ( exists($property->{'output'}->{'count'}) ) {
+			    $count = $property->{'output'}->{'count'};
 			} else {
 			    die('Generate_Component_Class_Output_Functions(): no method to determine output size for rank-1 property');
 			}
@@ -5885,24 +5885,24 @@ sub Generate_Component_Class_Output_Functions {
 		    switch ( $type ) {
 			case ( [ "real", "integer" ] ) {
 			    if ( $rank == 0 ) {
-				if ( exists($method->{'output'}->{'condition'}) ) {
-				    my $condition = $method->{'output'}->{'condition'};
+				if ( exists($property->{'output'}->{'condition'}) ) {
+				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $functionCode .= "    if (".$condition.") then\n";
 				}
 				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$methodName."()\n";
+				$functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=self%".$propertyName."()\n";
 				$functionCode .= "    end if\n"
-				    if ( exists($method->{'output'}->{'condition'}) );
+				    if ( exists($property->{'output'}->{'condition'}) );
 			    } else {
-				if ( exists($method->{'output'}->{'condition'}) ) {
+				if ( exists($property->{'output'}->{'condition'}) ) {
 				    die("Generate_Component_Class_Output_Functions(): conditions for rank>1 properties not supported")
 					unless ( $rank == 1 );
-				    my $condition = $method->{'output'}->{'condition'};
+				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $condition =~ s/\{i\}/i/g;
-				    $functionCode .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$methodName."()\n";
-				    $functionCode .= "    do i=1,".$method->{'output'}->{'count'}."\n";
+				    $functionCode .= "    outputRank1".ucfirst($typeMap{$type})."=self%".$propertyName."()\n";
+				    $functionCode .= "    do i=1,".$property->{'output'}->{'count'}."\n";
 				    $functionCode .= "      if (".$condition.") then\n";
 				    $functionCode .= "        ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
 				    $functionCode .= "        ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property)=outputRank1".ucfirst($typeMap{$type})."(i)\n";
@@ -5910,13 +5910,13 @@ sub Generate_Component_Class_Output_Functions {
 				    $functionCode .= "    end do\n";
 				    $functionCode .= "    deallocate(outputRank1".ucfirst($typeMap{$type}).")\n";
 				} else {
-				    $functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$methodName."(),[".$count."])\n";
+				    $functionCode .= "       ".$typeMap{$type}."Buffer(".$typeMap{$type}."BufferCount,".$typeMap{$type}."Property+1:".$typeMap{$type}."Property+".$count.")=reshape(self%".$propertyName."(),[".$count."])\n";
 				    $functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+".$count."\n";
 				}
 			    }
 			}
 			else {
-			    $functionCode .= "      output".ucfirst($type)."=self%".$methodName."()\n";
+			    $functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
 			    $functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
 			}
 		    }
@@ -5991,12 +5991,12 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
 	# Iterate over methods.
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
    	    # Check if this method has any linked data in this component.
-	    if ( exists($method->{'linkedData'}) ) {
+	    if ( exists($property->{'linkedData'}) ) {
 		# For each linked datum deallocate if necessary.
-		my $linkedDataName = $method->{'linkedData'};
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		switch ( $linkedData->{'type'} ) {
 		    case ( "real"    ) {
@@ -6011,7 +6011,7 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		    else {
 			my @contents = ( "value" );
 			push(@contents,"rate ","scale")
-			    if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%".$_."%destroy()\n"
 			    foreach ( @contents );
 		    }
@@ -6019,7 +6019,7 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		if ( $linkedData->{'rank'} > 0 ) {
 		    my @contents = ( "value" );
 		    push(@contents,"rate ","scale")
-			if ( $method->{'attributes'}->{'isEvolvable'} eq "true" );
+			if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 		    $functionCode .= "    if (allocated(self%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%".$_.")\n"
 			foreach ( @contents );
 		}
@@ -6070,10 +6070,10 @@ sub Generate_ODE_Initialization_Functions {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
 	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepRatesInitialize()\n";
 	}
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};	    
-	    if ( exists($method->{'linkedData'}) ) {
-		my $linkedDataName = $method->{'linkedData'};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};	    
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
 		    switch ( $linkedData->{'type'} ) {
@@ -6119,10 +6119,10 @@ sub Generate_ODE_Initialization_Functions {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
 	    $functionCode .= "    call self%nodeComponent".ucfirst($extends->{'class'}).ucfirst($extends->{'name'})."%odeStepScalesInitialize()\n";
 	}
-	foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
-	    my $method = $component->{'methods'}->{'method'}->{$methodName};
-	    if ( exists($method->{'linkedData'}) ) {
-		my $linkedDataName = $method->{'linkedData'};
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		if ( $component->{'content'}->{'data'}->{$linkedDataName}->{'isEvolvable'} eq "true" ) {
 		    switch ( $linkedData->{'type'} ) {
@@ -6281,27 +6281,27 @@ sub Generate_Component_Class_Default_Value_Functions {
     # Iterate over component classes.
     foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
 	# Initialize hash to track which method have been created already.
-	my %methodsCreated;
+	my %propertiesCreated;
 	# Iterate over implementations in this class.
     	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
 	    my $component   = $buildData->{'components'}->{$componentID};
 	    # Iterate over the properties of this implementation.
-	    foreach my $methodName ( keys(%{$component->{'methods'}->{'method'}}) ) {
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		# Get the method.
-		my $method = $component->{'methods'}->{'method'}->{$methodName};
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Get the linked data.
 		my $linkedData;
-		if ( exists($method->{'linkedData'}) ) {
-		    my $linkedDataName = $method->{'linkedData'};
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
 		    $linkedData = $component->{'content'}->{'data'}->{$linkedDataName};
 		} else {
-		    $linkedData = $method;
+		    $linkedData = $property;
 		}
 		# Specify required data content.
 		(my $dataDefinition, my $label ) = &Data_Object_Definition($linkedData);
-		push(@{$dataDefinition->{'variables' }},ucfirst($componentClassName).ucfirst($methodName));
+		push(@{$dataDefinition->{'variables' }},ucfirst($componentClassName).ucfirst($propertyName));
 		my @dataContent = (
 		    $dataDefinition,
 		    {
@@ -6312,24 +6312,24 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    }
 		    );
 		# Skip if this method has already been created.
-		unless ( exists($methodsCreated{$methodName}) ) {
+		unless ( exists($propertiesCreated{$propertyName}) ) {
 		    # Generate code for "isGettable" function.
 		    my $functionCode;
-		    $functionCode  = "   logical function ".ucfirst($componentClassName).ucfirst($methodName)."IsGettable()\n";
-		    $functionCode .= "     !% Returns true if the {\\tt ".$methodName."} method is gettable for the {\\tt ".$componentClassName."} component class.\n\n"; 
+		    $functionCode  = "   logical function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable()\n";
+		    $functionCode .= "     !% Returns true if the {\\tt ".$propertyName."} method is gettable for the {\\tt ".$componentClassName."} component class.\n\n"; 
 		    $functionCode .= "     implicit none\n";
-		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($methodName)."IsGettable=.false.\n";
+		    $functionCode .= "     ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.false.\n";
 		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
 			my $component2   = $buildData->{'components'}->{$component2ID};
-			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) ".ucfirst($componentClassName).ucfirst($methodName)."IsGettable=.true.\n"
+			$functionCode .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable=.true.\n"
 			    if (
-				exists($component2->{'methods'}->{'method'}->{$methodName}                  ) && 
-				exists($component2->{'methods'}->{'method'}->{$methodName}->{'classDefault'})
+				exists($component2->{'properties'}->{'property'}->{$propertyName}                  ) && 
+				exists($component2->{'properties'}->{'property'}->{$propertyName}->{'classDefault'})
 			    );
 		    }
 		    $functionCode .= "     return\n";
-		    $functionCode .= "   end function ".ucfirst($componentClassName).ucfirst($methodName)."IsGettable\n";
+		    $functionCode .= "   end function ".ucfirst($componentClassName).ucfirst($propertyName)."IsGettable\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -6338,14 +6338,14 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $methodName."IsGettable", function => ucfirst($componentClassName).ucfirst($methodName)."IsGettable"}
+			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable"}
 			);
 		    # Generate code for default value function.
-		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($methodName)."(self)\n";
-		    $functionCode .= "    !% Returns the default value for the {\\tt ".$methodName."} method for the {\\tt ".$componentClassName."} component class.\n";
+		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
+		    $functionCode .= "    !% Returns the default value for the {\\tt ".$propertyName."} method for the {\\tt ".$componentClassName."} component class.\n";
 		    # Insert any required modules.
-		    if ( exists($method->{'classDefault'}) && exists($method->{'classDefault'}->{'modules'}) ) {
-			foreach ( @{$method->{'classDefault'}->{'modules'}} ) {
+		    if ( exists($property->{'classDefault'}) && exists($property->{'classDefault'}->{'modules'}) ) {
+			foreach ( @{$property->{'classDefault'}->{'modules'}} ) {
 			    $functionCode .= "    use ".$_."\n";
 			}
 		    }
@@ -6356,12 +6356,12 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    foreach my $componentName2 ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 			my $component2ID = ucfirst($componentClassName).ucfirst($componentName2);
 			my $component2   = $buildData->{'components'}->{$component2ID};
-			if ( exists($component2->{'methods'}->{'method'}->{$methodName}) ) {
-			    my $method2 = $component2->{'methods'}->{'method'}->{$methodName};
-			    if ( exists($method2->{'classDefault'}) ) {
+			if ( exists($component2->{'properties'}->{'property'}->{$propertyName}) ) {
+			    my $property2 = $component2->{'properties'}->{'property'}->{$propertyName};
+			    if ( exists($property2->{'classDefault'}) ) {
 				$defaultLines .= "     if (nodeComponent".ucfirst($component2ID)."IsActive) then\n";
 				my %selfComponents;
-				my $default = $method2->{'classDefault'}->{'code'};
+				my $default = $property2->{'classDefault'}->{'code'};
 				while ( $default =~ m/self([a-zA-Z]+)Component\s*%/ ) {
 				    $selfComponents{$1} = 1;
 				    $requiredComponents{$1} = 1;
@@ -6371,9 +6371,9 @@ sub Generate_Component_Class_Default_Value_Functions {
 				foreach my $selfComponent ( keys(%selfComponents) ) {
 				    $defaultLines .= "     self".$selfComponent."Component => selfNode%".lc($selfComponent)."()\n";
 				}
-				$defaultLines .= "       call Alloc_Array(".ucfirst($componentClassName).ucfirst($methodName).",[".$method2->{'classDefault'}->{'count'}."])\n"
-				    if ( exists($method2->{'classDefault'}->{'count'}) );
-				$defaultLines .= "       ".ucfirst($componentClassName).ucfirst($methodName)."=".$method2->{'classDefault'}->{'code'}."\n";
+				$defaultLines .= "       call Alloc_Array(".ucfirst($componentClassName).ucfirst($propertyName).",[".$property2->{'classDefault'}->{'count'}."])\n"
+				    if ( exists($property2->{'classDefault'}->{'count'}) );
+				$defaultLines .= "       ".ucfirst($componentClassName).ucfirst($propertyName)."=".$property2->{'classDefault'}->{'code'}."\n";
 				$defaultLines .= "       return\n";
 				$defaultLines .= "     end if\n";
 			    }
@@ -6408,24 +6408,24 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
 			    case ( "real"    ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($methodName)."=0.0d0\n";
+				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
 			    }
 			    case ( "integer" ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($methodName)."=0\n";
+				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0\n";
 			    }
 			    case ( "logical" ) {
-				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($methodName)."=.false.\n";
+				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=.false.\n";
 			    }
 			    else {
-				$functionCode .= "     call ".ucfirst($componentClassName).ucfirst($methodName)."%reset()\n";
+				$functionCode .= "     call ".ucfirst($componentClassName).ucfirst($propertyName)."%reset()\n";
 			    }
 			}
 		    } else {
-			$functionCode .= "    ".ucfirst($componentClassName).ucfirst($methodName)."=null".$label.$linkedData->{'rank'}."d\n";
+			$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=null".$label.$linkedData->{'rank'}."d\n";
 		    }
 		    # Close the function.
 		    $functionCode .= "    return\n";
-		    $functionCode .= "  end function ".ucfirst($componentClassName).ucfirst($methodName)."\n";
+		    $functionCode .= "  end function ".ucfirst($componentClassName).ucfirst($propertyName)."\n";
 		    # Insert into the function list.
 		    push(
 			@{$buildData->{'code'}->{'functions'}},
@@ -6434,10 +6434,10 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $methodName, function => ucfirst($componentClassName).ucfirst($methodName)}
+			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName)}
 			);
 		    # Record that this method has been created.
-		    $methodsCreated{$methodName} = 1;
+		    $propertiesCreated{$propertyName} = 1;
 		}
 	    }
 	}

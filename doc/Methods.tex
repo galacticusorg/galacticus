@@ -65,57 +65,58 @@ Component definition itself takes the form of an embedded XML document. The foll
   !#  <class>disk</class>
   !#  <name>exponential</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>isInitialized</name>
   !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massStellar</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>coolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>luminositiesStellar</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
   !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
-  !#   </method>
+  !#   </property>
+  !#  </properties>
   !#  <bindings>
   !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" bindsTo="component" />
   !#  </bindings>
@@ -129,7 +130,7 @@ The elements of this document have the following meaning:
 \item [{\tt name}] \emph{[Required]} Specifies the name of this specific implementation.
 \item [{\tt extends}] \emph{[Optional]} If present, this element must contain {\tt class} and {\tt name} elements which specify the type of component which should be extended. The component then automatically inherits all properties and type-bound functions of the extended type.
 \item [{\tt isDefault}] \emph{[Required]} Specifies whether or not this should be the default implementation of this class. Note that only one implementation of each class can be declared to be the default. If no implementation of a given class is declared to be the default then the (automatically generated) {\tt null} implementation will be made the default.
-\item [{\tt methods}] \emph{[Optional]} Contains an array of {\tt method} elements which specify the properties of this implementation. Each member {\tt method} has the following structure:
+\item [{\tt properties}] \emph{[Optional]} Contains an array of {\tt property} elements which specify the properties of this implementation. Each member {\tt property} has the following structure:
 \begin{description}
 \item [{\tt name}] \emph{[Required]} The name of the property. 
 \item [{\tt type}] \emph{[Required]} The type (one of {\tt real}, {\tt integer}, {\tt logical}, {\tt history}, {\tt abundances}, {\tt chemicals}, or {\tt keplerOrbit} at present) of the property.

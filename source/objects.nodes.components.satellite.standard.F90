@@ -30,8 +30,8 @@ module Node_Component_Satellite_Standard
   !#  <class>satellite</class>
   !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mergeTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -39,8 +39,8 @@ module Node_Component_Satellite_Standard
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Standard_Merge_Time</getFunction>
   !#     <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>timeOfMerging</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -48,22 +48,22 @@ module Node_Component_Satellite_Standard
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Standard_Time_Of_Merging</getFunction>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>boundMass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>selfBasicComponent%mass()</classDefault>
   !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>virialOrbit</name>
   !#     <type>keplerOrbit</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
   !# </component>
 

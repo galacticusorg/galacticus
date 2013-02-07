@@ -29,21 +29,21 @@ module Node_Component_Spin_Preset
   !#  <class>spin</class>
   !#  <name>preset</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>spin</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !# </component>
 
 contains

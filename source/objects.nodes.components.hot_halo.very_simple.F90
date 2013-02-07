@@ -31,29 +31,29 @@ module Node_Component_Hot_Halo_Very_Simple
   !#  <class>hotHalo</class>
   !#  <name>verySimple</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !# </component>
 
   ! Quantities stored to avoid repeated computation.

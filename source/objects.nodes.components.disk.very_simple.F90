@@ -31,22 +31,22 @@ module Node_Component_Disk_Very_Simple
   !#  <class>disk</class>
   !#  <name>verySimple</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>massStellar</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <bindings>
   !#   <binding method="attachPipe" function="Node_Component_Disk_Very_Simple_Attach_Pipe" type="void" bindsTo="component" />
   !#  </bindings>

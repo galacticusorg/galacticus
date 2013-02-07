@@ -36,99 +36,99 @@ module Node_Component_Disk_Exponential
   !#  <class>disk</class>
   !#  <name>exponential</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>isInitialized</name>
   !#     <type>logical</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massStellar</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massGas</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesGas</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>angularMomentum</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>radius</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="megaparsec" comment="Radial scale length in the exponential disk."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>halfMassRadius</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>velocity</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="kilo" comment="Circular velocity of the exponential disk at scale length."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>starFormationRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>luminositiesStellar</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
   !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>stellarPropertiesHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>starFormationHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <bindings>
   !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" type="void" bindsTo="component" />
   !#  </bindings>

@@ -29,23 +29,23 @@ module Node_Component_Spin_Random
   !#  <class>spin</class>
   !#  <name>random</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>spin</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Spin parameter of the node."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>spinGrowthRate</name>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
   !#     <getFunction bindsTo="component">SpinRandomSpinGrowthRate</getFunction>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.spin.random.bound_functions.inc</functions>
   !# </component>
 

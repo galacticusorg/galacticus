@@ -31,21 +31,21 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#  <class>darkMatterProfile</class>
   !#  <name>scale</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>scale</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>scaleGrowthRate</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !# </component>
 
   ! Parameters of the method.

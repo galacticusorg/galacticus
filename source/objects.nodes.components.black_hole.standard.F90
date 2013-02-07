@@ -32,16 +32,16 @@ module Node_Component_Black_Hole_Standard
   !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
   !#  <output instances="first"/>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <classDefault>defaultBlackHoleComponent%massSeed()</classDefault>
   !#     <output unitsInSI="massSolar" comment="Mass of the black hole."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>spin</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -49,34 +49,34 @@ module Node_Component_Black_Hole_Standard
   !#     <getFunction>Node_Component_Black_Hole_Standard_Spin</getFunction>
   !#     <classDefault>self%spinSeed()</classDefault>
   !#     <output unitsInSI="0.0d0" comment="Spin of the black hole."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>radialPosition</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>tripleInteractionTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massSeed</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>spinSeed</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>
   
