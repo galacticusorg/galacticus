@@ -29,8 +29,8 @@ module Node_Component_Satellite_Very_Simple
   !#  <class>satellite</class>
   !#  <name>verySimple</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mergeTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -38,8 +38,8 @@ module Node_Component_Satellite_Very_Simple
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Very_Simple_Merge_Time</getFunction>
   !#     <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>timeOfMerging</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
@@ -47,8 +47,8 @@ module Node_Component_Satellite_Very_Simple
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Very_Simple_Time_Of_Merging</getFunction>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.satellite.very_simple.bound_functions.inc</functions>
   !# </component>
 

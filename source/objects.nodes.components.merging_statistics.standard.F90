@@ -29,32 +29,32 @@ module Node_Component_Merging_Statistics_Standard
   !#  <class>mergingStatistics</class>
   !#  <name>standard</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>galaxyMajorMergerTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="gigaYear" comment="Time since the last major merger."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>nodeMajorMergerTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="gigaYear" comment="Time since the last node major merger."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>nodeFormationTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="gigaYear" comment="Formation time of the node."/>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !# </component>
 
   ! Parameters controlling the statistics gathered.

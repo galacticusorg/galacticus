@@ -29,15 +29,15 @@ module Node_Component_Formation_Times_Cole2000
   !#  <class>formationTime</class>
   !#  <name>Cole2000</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>formationTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">FormationTimeCole2000FormationTime</getFunction>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.formation_times.Cole2000.bound_functions.inc</functions>
   !# </component>
 

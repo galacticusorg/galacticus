@@ -28,8 +28,8 @@ module Node_Component_Position_Preset
   !#  <class>position</class>
   !#  <name>preset</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>position</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
@@ -37,8 +37,8 @@ module Node_Component_Position_Preset
   !#     <getFunction bindsTo="component">PositionPresetPosition</getFunction>
   !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>velocity</name>
   !#     <type>real</type>
   !#     <rank>1</rank>
@@ -46,14 +46,14 @@ module Node_Component_Position_Preset
   !#     <getFunction bindsTo="component">PositionPresetVelocity</getFunction>
   !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node."/>
   !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>positionHistory</name>
   !#     <type>history</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.position.preset.bound_functions.inc</functions>
   !# </component>
 

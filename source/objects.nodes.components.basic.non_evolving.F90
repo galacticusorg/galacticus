@@ -29,29 +29,29 @@ module Node_Component_Basic_Non_Evolving
   !#  <class>basic</class>
   !#  <name>nonEvolving</name>
   !#  <isDefault>no</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="massSolar" comment="Total mass of the node, assuming univeral baryon fraction."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>time</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>timeLastIsolated</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <getFunction bindsTo="component">BasicNonEvolvingTimeLastIsolated</getFunction>
   !#     <output unitsInSI="gigaYear" comment="Time at which node was last an isolated halo."/>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.basic.non_evolving.bound_functions.inc</functions>
   !# </component>
 

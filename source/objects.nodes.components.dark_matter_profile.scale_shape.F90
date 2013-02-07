@@ -34,21 +34,21 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   !#   <class>darkMatterProfile</class>
   !#   <name>scale</name>
   !#  </extends>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>shape</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="0.0d0" comment="Shape parameter of the dark matter profile."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>shapeGrowthRate</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !# </component>
 
   ! Flag indicating whether scale radius and shape data should be output when full merger trees are output.

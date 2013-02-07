@@ -34,139 +34,139 @@ module Node_Component_Hot_Halo_Standard
   !#  <class>hotHalo</class>
   !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
-  !#  <methods>
-  !#   <method>
+  !#  <properties>
+  !#   <property>
   !#     <name>mass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas in the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>abundances</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the hot phase of the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>chemicals</name>
   !#     <type>chemicals</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>angularMomentum</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of gas in the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowedMass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of outflowed gas in the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowedAngularMomentum</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum of outflowed gas in the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowedAbundances</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of metals in the outflowed phase of the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outflowingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>unaccretedMass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of gas that failed to accrete into the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>outerRadius</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
   !#     <output unitsInSI="megaParsec" comment="Outer radius of the hot halo."/>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>strippedMass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>strippedAbundances</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>hotHaloCoolingMass</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>hotHaloCoolingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>hotHaloCoolingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>massSink</name>
   !#     <attributes isSettable="true" isGettable="false" isEvolvable="false" />
   !#     <setFunction>Node_Component_Hot_Halo_Standard_Mass_Sink</setFunction>
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#   <method>
+  !#   </property>
+  !#   <property>
   !#     <name>heatSource</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
   !#     <isVirtual>yes</isVirtual>
-  !#   </method>
-  !#  </methods>
+  !#   </property>
+  !#  </properties>
   !#  <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>
   !# </component>
 
