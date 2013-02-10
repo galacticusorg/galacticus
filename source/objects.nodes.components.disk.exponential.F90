@@ -157,7 +157,7 @@ module Node_Component_Disk_Exponential
        &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
   double precision                            :: scaleLengthFactor,diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
   logical                                     :: scaleLengthFactorSet=.false.
-  type(table1DLogarithmicLinear)                    :: rotationCurveTable
+  type(table1DLogarithmicLinear)              :: rotationCurveTable
 
 
   ! Tabulation of the exponential disk rotation curve gradient.
@@ -167,7 +167,7 @@ module Node_Component_Disk_Exponential
   double precision, parameter                 :: rotationCurveGradientHalfRadiusMinimumDefault=1.0d-6,rotationCurveGradientHalfRadiusMaximumDefault=10.0d0
   double precision                            :: rotationCurveGradientHalfRadiusMinimum=rotationCurveGradientHalfRadiusMinimumDefault&
        &,rotationCurveGradientHalfRadiusMaximum=rotationCurveGradientHalfRadiusMaximumDefault
-  type(table1DLogarithmicLinear)                    :: rotationCurveGradientTable
+  type(table1DLogarithmicLinear)              :: rotationCurveGradientTable
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -993,7 +993,7 @@ contains
      double precision             :: x
 
      ! For small half-radii, use a series expansion for a more accurate result.
-     if (halfRadius == 0.0d0) then
+     if (halfRadius <= 0.0d0) then
         Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=0.0d0
         return
      else if (halfRadius < halfRadiusSmall) then
@@ -1034,7 +1034,7 @@ contains
      
      ! Interpolate in the tabulated function.
      !$omp critical(Exponential_Disk_Rotation_Curve_Interpolate)
-Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable%interpolate(halfRadius)
+     Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors=rotationCurveTable%interpolate(halfRadius)
      !$omp end critical(Exponential_Disk_Rotation_Curve_Interpolate)
      
      return
