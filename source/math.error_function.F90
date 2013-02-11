@@ -27,6 +27,7 @@ contains
 
   double precision function Error_Function(argument)
     !% Computes the error function.
+    use FGSL
     implicit none
     double precision, intent(in) :: argument
 
@@ -36,6 +37,7 @@ contains
 
   double precision function Error_Function_Complementary(argument)
     !% Computes the complementary error function.
+    use FGSL
     implicit none
     double precision, intent(in) :: argument
 
