@@ -19,6 +19,8 @@ sub Get_Host_Node_Mass {
     my$nodeMassDataSet;
     if ( $dataSetName =~ m/^hostNodeMass([\d\.]*)$/ ) {
 	$nodeMassDataSet = "nodeMass".$1;
+	# For the usual, total virial mass, switch the dataset to "basicMass".
+	$nodeMassDataSet =~ s/^nodeMass$/basicMass/;
     } else {
 	die("Get_Host_Node_Mass: dataset name is not recognized");
     }
