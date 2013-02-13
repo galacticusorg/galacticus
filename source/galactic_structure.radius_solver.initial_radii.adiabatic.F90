@@ -113,6 +113,11 @@ contains
 
     ! Get the virial radius of the node.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
+    ! Check for a radius beyond the virial radius. Assume no adiabatic contraction in such cases.
+    if (radius > virialRadius) then
+       Galactic_Structure_Radius_Initial_Adiabatic=radius
+       return
+    end if
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
