@@ -187,11 +187,43 @@ The structure of each merger tree can optionally be dumped to a file suitable fo
 
 \section{Most Massive Progenitor}
 
-Setting {\tt [outputMostMassiveProgenitor]}$=${\tt true} causes the property {\tt isMostMassiveProgenitor} to be output. This propert will be $1$ for the most massive progenitor node in a tree at each output time and $0$ for all other nodes.
+Setting {\tt [outputMostMassiveProgenitor]}$=${\tt true} causes the property {\tt isMostMassiveProgenitor} to be output. This property will be $1$ for the most massive progenitor node in a tree at each output time and $0$ for all other nodes.
+
+\section{Rotation Curve}\index{rotation curve!outputting}\index{outputs!rotation curve}
+
+Setting {\tt [outputRotationCurveData]}$=${\tt true} causes the rotation curve of the node to be output at specified radii. The radii and types of rotation curve to output is specified by the {\tt outputRotationCurveRadii} parameter. This parameter's value can contain multiple entries. Each entry is of the form:
+\begin{verbatim}
+  radiusType:componentType:massType:loading?:radius
+\end{verbatim}
+The elements of this colon-separated specifier determine the radius at which the rotation curve is computed, which components/mass types should be counted, and whether baryonic loading of the halo should be accounted for. The elements have the following meaning:
+\begin{description}
+ \item [{\tt radius}] the numerical value of the radius at which to compute the rotation curve (with units specified by the {\tt radiusType} element);
+ \item [{\tt radiusType}] specifies the units of the {\tt radius} element---valid options are {\tt diskRadius}, {\tt diskHalfMassRadius}, {\tt spheroidRadius}, {\tt spheroidHalfMassRadius}, {\tt darkMatterScaleRadius}, {\tt virialRadius}, just {\tt radius} (which implies radii are given in units of Mpc), {\tt galacticMassFraction\{\textless fraction\textgreater\}}, or \newline {\tt galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final two form specify a radius containing a fixed {\tt \textless fraction\textgreater} of the galactic mass or light respectively (for the case of galactic light, {\tt \textless luminosity\textgreater} specifies the band, e.g. {\tt SDSS\_r:rest:z0.0000});
+ \item [{\tt componentType}] specifies which components of the node should be counted---allowed values are {\tt all}, {\tt disk}, {\tt spheroid}, {\tt hotHalo}, {\tt darkHalo}, and {\tt blackHole};
+ \item [{\tt massType}] specifies which types of mass should be counted---allowed values are {\tt all}, {\tt dark}, {\tt baryonic}, {\tt galactic}, {\tt gaseous}, {\tt stellar}, and {\tt blackHole};
+ \item [{\tt loading?}] option should be either {\tt loaded} or {\tt unloaded}, and specifies whether the effect of baryonic loading (i.e. adiabatic contraction) should be included in the calculation of the rotation curve.
+\end{description}
+
 
 \section{Star Formation Rates}\index{star formation rate!outputting}\index{outputs!star formation rate}
 
 By default the star formation rate in each galaxy is \emph{not} output. However, setting {\tt [diskOutputStarFormationRate]} to true will cause the current star formation rate in the disk of each galaxy to be output as {\tt diskStarFormationRate} (in units of $M_\odot$/Gyr). The {\tt [spheroidOutputStarFormationRate]} has the same effect for the spheroid component.
+
+\section{Velocity Dispersion}\index{velocity dispersion!outputting}\index{outputs!velocity dispersion}
+
+Setting {\tt [outputVelocityDispersionData]}$=${\tt true} causes the velocity dispersion of the node to be output at specified radii, for specified components. The radii, components and type of velocity dispersion to output are specified by the {\tt outputVelocityDispersionRadii} parameter. This parameter's value can contain multiple entries. Each entry is of the form:
+\begin{verbatim}
+  radiusType:componentType:massType:loading?:direction:radius
+\end{verbatim}
+The elements of this colon-separated specifier determine the radius at which the velocity dispersion is computed, which component/mass type the velocity dispersion should be computed for, whether baryonic loading of the halo should be accounted for, and for which direction the velocity dispersion should be computed. The elements have the following meaning:
+\begin{description}
+ \item [{\tt radius}] the numerical value of the radius at which to compute the velocity dispersion (with units specified by the {\tt radiusType} element);
+ \item [{\tt radiusType}] specifies the units of the {\tt radius} element---valid options are {\tt diskRadius}, {\tt diskHalfMassRadius}, {\tt spheroidRadius}, {\tt spheroidHalfMassRadius}, {\tt darkMatterScaleRadius}, {\tt virialRadius}, just {\tt radius} (which implies radii are given in units of Mpc), {\tt galacticMassFraction\{\textless fraction\textgreater\}}, or \newline {\tt galacticLightFraction\{\textless fraction\textgreater\}\{\textless luminosity\textgreater\}}, where the final two form specify a radius containing a fixed {\tt \textless fraction\textgreater} of the galactic mass or light respectively (for the case of galactic light, {\tt \textless luminosity\textgreater} specifies the band, e.g. {\tt SDSS\_r:rest:z0.0000});
+ \item [{\tt componentType}] specifies which component of the node the velocity dispersion should be computed for---allowed values are {\tt all}, {\tt disk}, {\tt spheroid}, {\tt hotHalo}, {\tt darkHalo}, and {\tt blackHole}\footnote{Note that attempting to compute the velocity dispersion for a black hole or disk for example won't make any sense.};
+ \item [{\tt massType}] specifies which type of mass the velocity dispersion should be computed for---allowed values are {\tt all}, {\tt dark}, {\tt baryonic}, {\tt galactic}, {\tt gaseous}, {\tt stellar}, and {\tt blackHole};
+ \item [{\tt loading?}] option should be either {\tt loaded} or {\tt unloaded}, and specifies whether the effect of baryonic loading (i.e. adiabatic contraction) should be included in the calculation of the velocity dispersion;
+ \item [{\tt direction}] should be one of {\tt radial} (computes the radial component of velocity dispersion), {\tt lineOfSight\{\textless luminosity\textgreater\}} (computes the line-of-sight velocity dispersion), or {\tt lineOfSightInteriorAverage\{\textless luminosity\textgreater\}} (computes the line-of-sight velocity dispersion averaged interior to the given radius)---in the latter two cases {\tt \{\textless luminosity\textgreater\}} specifies which band should be used to weight the velocity dispersion, alternatively setting {\tt \{\textless luminosity\textgreater\}}$=${\tt mass} (or just leaving off this specifier entirely) will use mass weighting instead.
+\end{description}
 
 \section{Virial Quantities}\index{virial}
 

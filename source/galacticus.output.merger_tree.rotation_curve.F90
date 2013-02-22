@@ -15,16 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles outputting of node virial data to the \glc\ output file.
+!% Contains a module which handles outputting of rotation curve data to the \glc\ output file.
 
 module Galacticus_Output_Trees_Rotation_Curve
-  !% Handles outputting of node virial data to the \glc\ output file.
+  !% Handles outputting of rotation curve data to the \glc\ output file.
   use ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Output_Tree_Rotation_Curve, Galacticus_Output_Tree_Rotation_Curve_Property_Count, Galacticus_Output_Tree_Rotation_Curve_Names
 
-  ! Flag indicating whether or not virial information is to be output.
+  ! Flag indicating whether or not rotation curve information is to be output.
   logical                                            :: outputRotationCurveData
 
   ! Flag indicating whether or not this module has been initialized.
@@ -34,9 +34,9 @@ module Galacticus_Output_Trees_Rotation_Curve
   integer                                            :: radiiCount
   type radiusSpecifier
      type            (varying_string) :: name
-     integer                          :: type,mass,component
+     integer                          :: type,mass,component,weightBy,weightByIndex
      logical                          :: loaded
-     double precision                 :: value
+     double precision                 :: value,fraction
   end type radiusSpecifier
   type   (radiusSpecifier), dimension(:), allocatable :: radii
   type   (varying_string ), dimension(:), allocatable :: outputRotationCurveRadii
@@ -49,20 +49,25 @@ module Galacticus_Output_Trees_Rotation_Curve
   integer                 , parameter                 :: radiusTypeSpheroidRadius        =4
   integer                 , parameter                 :: radiusTypeDiskHalfMassRadius    =5
   integer                 , parameter                 :: radiusTypeSpheroidHalfMassRadius=6
+  integer                 , parameter                 :: radiusTypeGalacticMassFraction  =7
+  integer                 , parameter                 :: radiusTypeGalacticLightFraction =8
 
 contains
 
   subroutine Galacticus_Output_Tree_Rotation_Curve_Initialize
-    !% Initializes the module by determining whether or not virial data should be output.
+    !% Initializes the module by determining whether or not rotation curve data should be output.
     use Input_Parameters
     use Galacticus_Error
     use String_Handling
     use Galacticus_Nodes
     use Memory_Management
     use Galactic_Structure_Options
+    use Stellar_Population_Properties_Luminosities
     implicit none
     type     (varying_string), dimension(5) :: radiusDefinition
-    character(len=20        )               :: radiusLabel
+    type     (varying_string), dimension(3) :: fractionDefinition
+    type     (varying_string)               :: valueDefinition
+    character(len=20        )               :: radiusLabel,fractionLabel
     integer                                 :: i
 
     if (.not.outputRotationCurveDataInitialized) then
@@ -110,7 +115,19 @@ contains
              darkMatterScaleRadiusIsNeeded =.false.
              do i=1,radiiCount
                 radii(i)%name=outputRotationCurveRadii(i)
-                call String_Split_Words(radiusDefinition,char(outputRotationCurveRadii(i)),':')
+                call String_Split_Words(radiusDefinition,char(outputRotationCurveRadii(i)),':',bracketing="{}")
+                ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction (and filter
+                ! for light fractions).
+                valueDefinition=radiusDefinition(1)
+                if (extract(valueDefinition,1,21) == 'galacticLightFraction') then
+                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')                   
+                   radiusDefinition(1)='galacticLightFraction'
+                end if
+                if (extract(valueDefinition,1,20) == 'galacticMassFraction' ) then
+                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')                   
+                   radiusDefinition(1)='galacticMassFraction'
+                end if
+                ! Parse the radius definition.
                 select case (char(radiusDefinition(1)))
                 case ('radius'                )
                    radii(i)%type=radiusTypeRadius
@@ -157,6 +174,18 @@ contains
                         &                              'Galacticus_Output_Tree_Rotation_Curve_Initialize', &
                         &                              'spheroid half-mass radius is not gettable'         &
                         &                             )
+                case ('galacticMassFraction'  )
+                   radii(i)%type=radiusTypeGalacticMassFraction
+                   fractionLabel=fractionDefinition(2)
+                   read (fractionLabel,*) radii(i)%fraction
+                   radii(i)%weightBy     =weightByMass
+                   radii(i)%weightByIndex=weightIndexNull
+                case ('galacticLightFraction' )
+                   radii(i)%type=radiusTypeGalacticLightFraction
+                   fractionLabel=fractionDefinition(2)
+                   read (fractionLabel,*) radii(i)%fraction
+                   radii(i)%weightBy      =weightByLuminosity
+                   radii(i)%weightByIndex=Stellar_Population_Luminosities_Index(fractionDefinition(3))
                 case default
                    call Galacticus_Error_Report('Galacticus_Output_Tree_Rotation_Curve_Initialize','unrecognized radius specifier')
                 end select
@@ -255,6 +284,8 @@ contains
     use Kind_Numbers
     use Galactic_Structure_Rotation_Curves
     use Dark_Matter_Halo_Scales
+    use Galactic_Structure_Options
+    use Galactic_Structure_Enclosed_Masses
     implicit none
     double precision                                , intent(in   )          :: time
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -281,20 +312,32 @@ contains
           ! Find the radius.
           radius=radii(i)%value
           select case (radii(i)%type)
-          case (radiusTypeRadius                )
+          case   (radiusTypeRadius                )
              ! Nothing to do.
-          case (radiusTypeVirialRadius          )
+          case   (radiusTypeVirialRadius          )
              radius=radius*radiusVirial
-          case (radiusTypeDarkMatterScaleRadius )
+          case   (radiusTypeDarkMatterScaleRadius )
              radius=radius*thisDarkMatterProfile%         scale()
-          case (radiusTypeDiskRadius            )
+          case   (radiusTypeDiskRadius            )
              radius=radius*thisDisk             %        radius()
-          case (radiusTypeSpheroidRadius        )
+          case   (radiusTypeSpheroidRadius        )
              radius=radius*thisSpheroid         %        radius()
-          case (radiusTypeDiskHalfMassRadius    )
+          case   (radiusTypeDiskHalfMassRadius    )
              radius=radius*thisDisk             %halfMassRadius()
-          case (radiusTypeSpheroidHalfMassRadius)
+          case   (radiusTypeSpheroidHalfMassRadius)
              radius=radius*thisSpheroid         %halfMassRadius()
+          case   (radiusTypeGalacticMassFraction ,  &
+               &  radiusTypeGalacticLightFraction )
+             radius= radius                                   &
+                  & *Galactic_Structure_Radius_Enclosing_Mass &
+                  &  (                                        &
+                  &   thisNode                             ,  &
+                  &   fractionalMass=radii(i)%fraction     ,  &
+                  &   massType      =massTypeGalactic      ,  &
+                  &   componentType =componentTypeAll      ,  &
+                  &   weightBy      =radii(i)%weightBy     ,  &
+                  &   weightIndex   =radii(i)%weightByIndex   &
+                  &  )
           end select
           ! Store the rotation curve.
           doubleProperty=doubleProperty+1
@@ -304,7 +347,7 @@ contains
                &                                                                           radius                          , &
                &                                                                           componentType=radii(i)%component, &
                &                                                                           massType=radii(i)%mass          , &
-               &                                                                           haloLoaded=radii(i)%loaded        &
+               &                                                                           haloLoaded   =radii(i)%loaded     &
                &                                                                          )
        end do
     end if
