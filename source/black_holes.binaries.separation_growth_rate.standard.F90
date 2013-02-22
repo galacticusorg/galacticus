@@ -135,15 +135,15 @@ contains
             &                                                                                                    thisNode,                        &
             &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
             &                                                              thisSpheroidComponent %radius        (        )*outerRadiusMultiplier, &
-            &                                                              massTypeStellar                                                      , &
-            &                                                              componentTypeSpheroid                                                  &
+            &                                                              componentTypeSpheroid                                                , &
+            &                                                              massTypeStellar                                                        &
             &                                                             )
        velocityDispersionDarkMatter=Galactic_Structure_Velocity_Dispersion(                                                                       &
             &                                                                                                    thisNode,                        &
             &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
             &                                                              Dark_Matter_Halo_Virial_Radius       (thisNode)*outerRadiusMultiplier, &
-            &                                                              massTypeDark                                                         , &
-            &                                                              componentTypeDarkHalo                                                  &
+            &                                                              componentTypeDarkHalo                                                , &
+            &                                                              massTypeDark                                                           &
             &                                                             )
     else
        velocityDispersionSpheroid  =thisSpheroidComponent%velocity  (        )
