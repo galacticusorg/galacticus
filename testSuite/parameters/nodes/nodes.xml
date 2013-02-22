@@ -8,4 +8,8 @@
     <name>treeNodeMethodSpheroid</name>
     <value>standard</value>
   </parameter>
+  <parameter>
+    <name>treeNodeMethodBlackHole</name>
+    <value>standard</value>
+  </parameter>
 </parameters>
