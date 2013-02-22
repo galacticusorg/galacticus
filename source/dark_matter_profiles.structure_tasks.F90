@@ -110,30 +110,50 @@ contains
   !# <densityTask>
   !#  <unitName>Dark_Matter_Profile_Density_Task</unitName>
   !# </densityTask>
-  double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,haloLoaded)
+  double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Galacticus_Error
+    use Galactic_Structure_Initial_Radii
+    use Cosmological_Parameters
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: componentType,massType
+    integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)              :: positionSpherical(3)
     logical         , intent(in),    optional :: haloLoaded
-    
+    logical                                   :: haloLoadedActual
+    double precision                          :: radiusInitial,radiusJacobian,darkMatterFraction
+
+    ! Return zero if the component and mass type is not matched.    
     Dark_Matter_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
-
-    if (present(haloLoaded)) then
-       if (haloLoaded) call Galacticus_Error_Report('Dark_Matter_Profile_Density_Task','dark matter density not available for&
-            & baryon-loaded halos')
+    if (.not.(weightBy      == weightByMass                                                )) return
+    ! Determine the dark matter fraction.
+    darkMatterFraction=(Omega_Matter()-Omega_b())/Omega_Matter()
+    ! Determine if we need to account for halo loading (a.k.a. adiabatic contraction, a.k.a. baryonic pinching).
+    haloLoadedActual=.true.
+    if (present(haloLoaded)) haloLoadedActual=haloLoaded
+    if (haloLoadedActual) then
+       ! Halo loading is to be accounted for - get the initial radius in the dark matter halo, and the Jacobian.
+       radiusInitial = Galactic_Structure_Radius_Initial           (thisNode,positionSpherical(1))
+       radiusJacobian= Galactic_Structure_Radius_Initial_Derivative(thisNode,positionSpherical(1)) &
+            &         *(radiusInitial/positionSpherical(1))**2
+    else
+       ! Halo loading is not to be accounted for. The radius to use is simply the radius we were given.
+       radiusInitial =positionSpherical(1)
+       radiusJacobian=1.0d0
     end if
-
-    Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density(thisNode,positionSpherical(1))
+    ! Return the mass within the initial radius.
+    Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density(thisNode,radiusInitial)
+    ! Account for the Jacobian.
+    Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density_Task*radiusJacobian
+    ! Scale to account for just the dark component.
+    Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density_Task*darkMatterFraction
     return
   end function Dark_Matter_Profile_Density_Task
-
+  
   !# <rotationCurveGradientTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
@@ -164,7 +184,7 @@ contains
 
     positionSpherical=[radius,0.0d0,0.0d0]
     componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
-    componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,componentType                             ,massType,haloLoaded)
+    componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
     if (componentMass ==0.0d0 .or. componentDensity == 0.0d0) return
     Dark_Matter_Profile_Rotation_Curve_Gradient_Task=           &
          &                   gravitationalConstantGalacticus    &

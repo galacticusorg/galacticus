@@ -167,7 +167,7 @@ contains
     if (.not.(weightBy      == weightByMass                                                                                )) return
 
     ! Return the enclosed mass.
-    Hot_Halo_Profile_Enclosed_Mass_Task=Hot_Halo_Enclosed_Mass(thisNode,radius)
+    Hot_Halo_Profile_Enclosed_Mass_Task=max(Hot_Halo_Enclosed_Mass(thisNode,radius),0.0d0)
     return
   end function Hot_Halo_Profile_Enclosed_Mass_Task
 
@@ -229,21 +229,22 @@ contains
   !# <densityTask>
   !#  <unitName>Hot_Halo_Profile_Density_Task</unitName>
   !# </densityTask>
-  double precision function Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,haloLoaded)
+  double precision function Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: componentType,massType
+    integer,          intent(in)              :: componentType,massType,weightBy,weightIndex
     double precision, intent(in)              :: positionSpherical(3)
     logical,          intent(in)   , optional :: haloLoaded
     
     Hot_Halo_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
+    if (.not.(weightBy      == weightByMass                                                                                )) return
 
-    Hot_Halo_Profile_Density_Task=Hot_Halo_Density(thisNode,positionSpherical(1))
+    Hot_Halo_Profile_Density_Task=max(Hot_Halo_Density(thisNode,positionSpherical(1)),0.0d0)
     return
   end function Hot_Halo_Profile_Density_Task
 

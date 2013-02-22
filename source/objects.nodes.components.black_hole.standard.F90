@@ -353,6 +353,8 @@ contains
              interruptProcedure => Node_Component_Black_Hole_Standard_Create
              return
           end if
+          ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.
+          if (thisBlackHoleComponent%mass() <= 0.0d0 .and. massAccretionRate < 0.0d0) cycle
           ! Add the accretion to the black hole.
           call thisBlackHoleComponent%massRate(massAccretionRate)    
           ! Remove the accreted mass from the spheroid component.

@@ -869,11 +869,11 @@ module Galacticus_Nodes
     return
   end function Node_Component_Enclosed_Mass_Null
 
-  double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,haloLoaded)
+  double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% A null implementation of the density in a component. Always returns zero.
     implicit none
     class           (nodeComponent), intent(inout)               :: self
-    integer                        , intent(in   )               :: componentType,massType
+    integer                        , intent(in   )               :: componentType,massType,weightBy,weightIndex
     double precision               , intent(in   ), dimension(3) :: positionSpherical
     logical                        , intent(in   ), optional     :: haloLoaded
     

@@ -31,7 +31,7 @@ module Galactic_Structure_Densities
  
 contains
 
-  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
+  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Nodes
@@ -45,9 +45,9 @@ contains
     !# </include>
     implicit none
     type            (treeNode         ), intent(inout), pointer  :: thisNode
-    integer                            , intent(in),    optional :: componentType,massType,coordinateSystem
-    logical                            , intent(in),    optional :: haloLoaded
-    double precision                   , intent(in)              :: position(3)
+    integer                            , intent(in   ), optional :: componentType,massType,coordinateSystem,weightBy,weightIndex
+    logical                            , intent(in   ), optional :: haloLoaded
+    double precision                   , intent(in   )           :: position(3)
     procedure       (Component_Density),                pointer  :: componentDensityFunction
     integer                                                      :: coordinateSystemActual
     double precision                                             :: componentDensity
@@ -86,11 +86,23 @@ contains
     else
        haloLoadedShared=.true.
     end if
+    ! Determine which weighting to use.
+    if (present(weightBy)) then
+       weightByShared=weightBy
+       select case (weightByShared)
+       case (weightByLuminosity)
+          if (.not.present(weightIndex)) call Galacticus_Error_Report('Galactic_Structure_Density','weightIndex should be specified for luminosity weighting')
+          weightIndexShared=weightIndex
+       end select
+    else
+       weightByShared=weightByMass
+    end if
+
     ! Call routines to supply the densities for all components.
     componentDensityFunction => Component_Density
     Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation)
     !# <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionSphericalShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
     include 'galactic_structure.density.tasks.inc'
     !# </include>
@@ -104,7 +116,7 @@ contains
     class(nodeComponent), intent(inout) :: component
  
     Component_Density=component%density(positionSphericalShared,componentTypeShared&
-         &,massTypeShared,haloLoadedShared)
+         &,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
     return
   end function Component_Density
 
