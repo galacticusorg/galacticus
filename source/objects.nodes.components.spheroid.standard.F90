@@ -1131,7 +1131,7 @@ use kind_numbers
     componentMass    =thisSpheroid%enclosedMass(radius           ,componentType,massType, &
          & weightByMass,weightIndexNull,haloLoaded)
     componentDensity=Node_Component_Spheroid_Standard_Density      (thisNode,positionSpherical,componentType,massType, &
-         &                              haloLoaded)
+         & weightByMass,weightIndexNull,haloLoaded)
     if (componentMass == 0.0d0 .or. componentDensity == 0.0d0) return
     Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=  &
          &                  gravitationalConstantGalacticus    &
@@ -1183,14 +1183,14 @@ use kind_numbers
   !# <densityTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Density</unitName>
   !# </densityTask>
-  double precision function Node_Component_Spheroid_Standard_Density(thisNode,positionSpherical,componentType,massType,haloLoaded)
+  double precision function Node_Component_Spheroid_Standard_Density(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for an standard spheroid.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Coordinates
     implicit none
     type (treeNode             ),   intent(inout), pointer  :: thisNode
-    integer                     ,   intent(in   )           :: componentType,massType
+    integer                     ,   intent(in   )           :: componentType,massType,weightBy,weightIndex
     double precision            ,   intent(in   )           :: positionSpherical(3)
     logical                     ,   intent(in   ), optional :: haloLoaded
     class(nodeComponentSpheroid),                  pointer  :: thisSpheroidComponent
@@ -1205,13 +1205,22 @@ use kind_numbers
        class is (nodeComponentSpheroidStandard)
 
        if (thisSpheroidComponent%radius() <= 0.0d0) return
-       select case (massType)
-       case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-          Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
-       case (massTypeGaseous)
-          Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()
-       case (massTypeStellar)
-          Node_Component_Spheroid_Standard_Density=                                thisSpheroidComponent%massStellar()
+       select case (weightBy)
+       case (weightByMass      )
+          select case (massType)
+          case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+             Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
+          case (massTypeGaseous)
+             Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()
+          case (massTypeStellar)
+             Node_Component_Spheroid_Standard_Density=                                thisSpheroidComponent%massStellar()
+          end select
+       case (weightByLuminosity)
+          select case (massType)
+          case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+             luminositiesSpheroid=thisSpheroidComponent%luminositiesStellar()
+             Node_Component_Spheroid_Standard_Density=luminositiesSpheroid(weightIndex)
+          end select
        end select
        ! Return if density is zero.
        if (Node_Component_Spheroid_Standard_Density <= 0.0d0) then

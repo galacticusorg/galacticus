@@ -194,17 +194,23 @@ contains
        ! Compute Bessel factors.
        do iPoint=1,rotationCurveGradientPointsCount
           x=rotationCurveGradientTable%x(iPoint)
-          call rotationCurveGradientTable%populate(                                                 &
-               &                                    x**2                                            &
-               &                                   *( x                                             &
-               &                                     *  Bessel_Function_I0(x)*Bessel_Function_K0(x) &
-               &                                     +x**2                                          &
-               &                                     *( Bessel_Function_I1(x)*Bessel_Function_K0(x) &
-               &                                       -Bessel_Function_I0(x)*Bessel_Function_K1(x) &
-               &                                      )                                             &
-               &                                    ),                                              &
-               &                                   iPoint                                           &
-               &                                  )
+          call rotationCurveGradientTable%populate                                           &
+               &  (                                                                          &
+               &    2.0d0                                                                    &
+               &   *x                                                                        &
+               &   *(                                                                        &
+               &      Bessel_Function_I0(x)*Bessel_Function_K0(x)                            &
+               &     -Bessel_Function_I1(x)*Bessel_Function_K1(x)                            &
+               &    )                                                                        &
+               &   +x**2                                                                     &
+               &   *(                                                                        &
+               &        Bessel_Function_I1(x)                         *Bessel_Function_K0(x) &
+               &     -  Bessel_Function_K1(x)                         *Bessel_Function_I0(x) &
+               &     -( Bessel_Function_I0(x)-Bessel_Function_I1(x)/x)*Bessel_Function_K1(x) &
+               &     -(-Bessel_Function_K0(x)-Bessel_Function_K1(x)/x)*Bessel_Function_I1(x) &
+               &    ),                                                                       &
+               &   iPoint                                                                    &
+               &  )
        end do
        
        ! Flag that the rotation curve is now initialized.

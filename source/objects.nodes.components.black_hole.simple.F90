@@ -250,7 +250,7 @@ contains
        if (restMassAccretionRate <= 0.0d0) return
 
        ! Find the rate of increase in mass of the black hole.
-       massAccretionRate=restMassAccretionRate*(1.0d0-blackHoleHeatingEfficiency-blackHoleWindEfficiency)
+       massAccretionRate=restMassAccretionRate*max((1.0d0-blackHoleHeatingEfficiency-blackHoleWindEfficiency),0.0d0)
 
        ! Get the black hole component.
        thisBlackHoleComponent => thisNode%blackHole()

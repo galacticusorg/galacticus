@@ -92,14 +92,15 @@ double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,rad
   return
 end function Node_Component_Disk_Exponential_Enclosed_Mass
 
-double precision function Node_Component_Disk_Exponential_Density(self,positionSpherical,componentType,massType,haloLoaded)
+double precision function Node_Component_Disk_Exponential_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
   !% Computes the density at a given position for an exponential disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
   use Coordinate_Systems
+  use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType
+  integer                                       , intent(in   )           :: componentType,massType,weightBy,weightIndex
   double precision                              , intent(in   )           :: positionSpherical(3)
   logical                                       , intent(in   ), optional :: haloLoaded
   double precision                              , parameter               :: diskHeightToRadiusRatio=0.1d0
@@ -110,14 +111,23 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   ! Return immediately if disk component is not requested.    
   Node_Component_Disk_Exponential_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
-  ! Determine mass type.
-  select case (massType)
-  case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-     Node_Component_Disk_Exponential_Density=self%massGas()+self%massStellar()
-  case (massTypeGaseous)
-     Node_Component_Disk_Exponential_Density=self%massGas()
-  case (massTypeStellar)
-     Node_Component_Disk_Exponential_Density=                            self%massStellar()
+  ! Determine mass/luminosity type.
+  select case (weightBy)
+  case (weightByMass      )
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+        Node_Component_Disk_Exponential_Density=self%massGas()+self%massStellar()
+     case (massTypeGaseous)
+        Node_Component_Disk_Exponential_Density=self%massGas()
+     case (massTypeStellar)
+        Node_Component_Disk_Exponential_Density=               self%massStellar()
+     end select
+  case (weightByLuminosity)
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+        luminositiesDisk=self%luminositiesStellar()
+        Node_Component_Disk_Exponential_Density=luminositiesDisk(weightIndex)
+     end select
   end select
   ! Skip further calculation if mass or radius is zero.
   if (Node_Component_Disk_Exponential_Density > 0.0d0 .and. self%radius() > 0.0d0) then
