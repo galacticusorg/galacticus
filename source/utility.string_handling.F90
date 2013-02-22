@@ -84,14 +84,15 @@ contains
     return
   end function String_Count_Words
 
-  subroutine String_Split_Words_VarString(words,inputString,separator)
+  subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
     type(varying_string), intent(out), dimension(:) :: words
     character(len=*),     intent(in)                :: inputString
     character(len=*),     intent(in),  optional     :: separator
+    character(len=2),     intent(in),  optional     :: bracketing
     logical                                         :: inWord
-    integer                                         :: iCharacterStart,iCharacter,iWord
+    integer                                         :: iCharacterStart,iCharacter,iWord,inBracket
     type(varying_string)                            :: separatorActual
 
     ! Decide what separator to use.
@@ -101,16 +102,24 @@ contains
        separatorActual=charactersWhiteSpace
     end if
 
+    words=""
     inWord=.false.
     iWord=0
+    inBracket=0
     do iCharacter=1,len_trim(inputString)
+       if (present(bracketing)) then
+          if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1
+          if (inputString(iCharacter:iCharacter) == bracketing(2:2)) inBracket=inBracket-1
+       end if
        if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
-          if (inWord) then
-             iWord=iWord+1
-             words(iWord)=inputString(iCharacterStart:iCharacter-1)
-             if (iWord == size(words)) return
+          if (inBracket == 0) then
+             if (inWord) then
+                iWord=iWord+1
+                words(iWord)=inputString(iCharacterStart:iCharacter-1)
+                if (iWord == size(words)) return
+             end if
+             inWord=.false.
           end if
-          inWord=.false.
        else
           if (.not.inWord) iCharacterStart=iCharacter
           inWord=.true.
@@ -123,14 +132,15 @@ contains
     return
   end subroutine String_Split_Words_VarString
 
-  subroutine String_Split_Words_Char(words,inputString,separator)
+  subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
     character(len=*), intent(out), dimension(:) :: words
     character(len=*), intent(in)                :: inputString
     character(len=*), intent(in),  optional     :: separator
+    character(len=2), intent(in),  optional     :: bracketing
     logical                                     :: inWord
-    integer                                     :: iCharacterStart,iCharacter,iWord
+    integer                                     :: iCharacterStart,iCharacter,iWord,inBracket
     type(varying_string)                        :: separatorActual
 
     ! Decide what separator to use.
@@ -140,16 +150,24 @@ contains
        separatorActual=charactersWhiteSpace
     end if
 
+    words=""
     inWord=.false.
     iWord=0
+    inBracket=0
     do iCharacter=1,len_trim(inputString)
+       if (present(bracketing)) then
+          if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1
+          if (inputString(iCharacter:iCharacter) == bracketing(2:2)) inBracket=inBracket-1
+       end if
        if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
-          if (inWord) then
-             iWord=iWord+1
-             words(iWord)=inputString(iCharacterStart:iCharacter-1)
-             if (iWord == size(words)) return
+          if (inBracket == 0) then
+             if (inWord) then
+                iWord=iWord+1
+                words(iWord)=inputString(iCharacterStart:iCharacter-1)
+                if (iWord == size(words)) return
+             end if
+             inWord=.false.
           end if
-          inWord=.false.
        else
           if (.not.inWord) iCharacterStart=iCharacter
           inWord=.true.
