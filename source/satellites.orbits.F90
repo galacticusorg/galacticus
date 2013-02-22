@@ -42,14 +42,18 @@ contains
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),          pointer, intent(inout) :: hostNode
-    type(keplerOrbit),                intent(inout) :: thisOrbit
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type            (treeNode         ), pointer  , intent(inout) :: hostNode
+    type            (keplerOrbit      ),            intent(inout) :: thisOrbit
+    double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type            (fgsl_function    ), save                     :: rootFunction
+    type            (fgsl_root_fsolver), save                     :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                     :: parameterPointer
-    double precision                                :: radiusMinimum,radiusMaximum
+    type            (c_ptr)                                       :: parameterPointer
+    type            (keplerOrbit      )                           :: currentOrbit
+    double precision                                              :: radiusMinimum,radiusMaximum
+
+    ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
+    currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
 
     orbitalEnergyInternal=thisOrbit%energy()
     if (orbitalEnergyInternal >= 0.0d0) then
@@ -92,23 +96,28 @@ contains
     use FGSL
     use Kepler_Orbits
     implicit none
-    type(treeNode),          pointer, intent(inout) :: hostNode
-    type(keplerOrbit),                intent(inout) :: thisOrbit
-    double precision,                 intent(  out) :: radius,velocity
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
+    type            (treeNode         ), pointer  , intent(inout) :: hostNode
+    type            (keplerOrbit      ),            intent(inout) :: thisOrbit
+    double precision                   ,            intent(  out) :: radius,velocity
+    double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    type            (fgsl_function    ), save                     :: rootFunction
+    type            (fgsl_root_fsolver), save                     :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                     :: parameterPointer
-    double precision                                :: radiusMinimum,radiusMaximum
+    type            (c_ptr            )                           :: parameterPointer
+    type            (keplerOrbit      )                           :: currentOrbit
+    double precision                                              :: radiusMinimum,radiusMaximum
+
+    ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
+    currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
 
     ! Extract the orbital energy and angular momentum.
-    orbitalEnergyInternal         =  thisOrbit%energy         ()
-    orbitalAngularMomentumInternal=  thisOrbit%angularMomentum()
+    orbitalEnergyInternal         =  currentOrbit%energy         ()
+    orbitalAngularMomentumInternal=  currentOrbit%angularMomentum()
     ! Set a pointer to the host node.
     activeNode                    => hostNode
-    ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the current radius of the orbit.
-    radiusMinimum=thisOrbit%radius()
+    ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the current
+    ! radius of the orbit.
+    radiusMinimum=currentOrbit%radius()
     radiusMaximum=radiusMinimum
 
     ! Catch orbits which are close to being circular.
@@ -144,5 +153,33 @@ contains
     Pericenter_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Pericenter_Solver
+
+  function Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,currentHost)
+    !% Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
+    !% halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
+    !% defined to be $\Phi(r_{\rm vir}) = - V_{\rm vir}^2$ then the specific energy transforms as:
+    !% \begin{equation}
+    !% e \rightarrow e + V^2_{\rm vir,0} + \Phi(r_{\rm vir,0}),
+    !% \end{equation}
+    !% where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
+    !% current halo.
+    use Galactic_Structure_Potentials
+    use Numerical_Constants_Physical
+    use Kepler_Orbits
+    implicit none
+    type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
+    type            (keplerOrbit), intent(inout)          :: thisOrbit
+    type            (treeNode   ), intent(inout), pointer :: currentHost
+    double precision                                      :: radiusVirialOriginal,velocityVirialOriginal,potentialHost
+
+    ! Compute the properties of the initial orbit, and the current potential.
+    radiusVirialOriginal  =gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%velocityScale()**2
+    velocityVirialOriginal=                                                     thisOrbit%velocityScale()
+    potentialHost=Galactic_Structure_Potential(currentHost,radiusVirialOriginal)
+    ! Create a new orbit with an adjusted energy.
+    Satellite_Orbit_Convert_To_Current_Potential=thisOrbit
+    call Satellite_Orbit_Convert_To_Current_Potential%energySet(thisOrbit%energy()+velocityVirialOriginal**2+potentialHost)
+    return
+  end function Satellite_Orbit_Convert_To_Current_Potential
 
 end module Satellite_Orbits
