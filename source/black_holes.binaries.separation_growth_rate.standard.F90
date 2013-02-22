@@ -135,12 +135,14 @@ contains
             &                                                                                                    thisNode,                        &
             &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
             &                                                              thisSpheroidComponent %radius        (        )*outerRadiusMultiplier, &
+            &                                                              massTypeStellar                                                      , &
             &                                                              componentTypeSpheroid                                                  &
             &                                                             )
        velocityDispersionDarkMatter=Galactic_Structure_Velocity_Dispersion(                                                                       &
             &                                                                                                    thisNode,                        &
             &                                                              thisBlackHoleComponent%radialPosition(        ),                       &
             &                                                              Dark_Matter_Halo_Virial_Radius       (thisNode)*outerRadiusMultiplier, &
+            &                                                              massTypeDark                                                         , &
             &                                                              componentTypeDarkHalo                                                  &
             &                                                             )
     else
