@@ -980,12 +980,25 @@ Selected with {\tt galacticStructureRadiusSolverInitialRadiusMethod}$=${\tt adia
 Given the final radius, $r_{\rm f}$, the corresponding initial radius, $r_{\rm i}$, is found by solving:
 \begin{equation}
 f_{\rm i} M_{\rm total,0}(\bar{r}_{\rm i}) r_{\rm i} = f_{\rm f} M_{\rm total,0}(\bar{r}_{\rm i}) r_{\rm f} + V^2_{\rm b}(\bar{r}_{\rm f}) \bar{r}_{\rm f} r_{\rm f}/ {\rm G},
+ \label{eq:adiabaticContractionGnedinSolution}
 \end{equation}
 where $M_{\rm total,0}(r)$ is the initial total matter profile, $V_{\rm b}(r)$ is the baryonic contribution to the rotation curve, $f_{\rm i}$, is the fraction of mass within the virial radius compared to the node mass\footnote{In \protect\glc\ the ``node mass'' refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that $f_{\rm i}<1$.}, $f_{\rm f}=(\Omega_{\rm M}-\Omega_{\rm b})/\Omega_{\rm M}+M_{\rm satellite, baryonic}/M_{\rm total}$, $M_{\rm satellite, baryonic}$ is the baryonic mass in any satellite halos, $M_{\rm total}$ is the node mass, and
 \begin{equation}
 {\bar{r} \over r_{\rm vir}} = A \left({r \over r_{\rm vir}}\right)^\omega,
 \end{equation}
 where $r_{\rm vir}$ is the virial radius. Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.
+
+The derivative, ${\rm d} r_{\rm f}/{\rm d}d_{\rm i}\equiv r^\prime_{\rm i}$ is found by taking the derivative of eqn.~(\ref{eq:adiabaticContractionGnedinSolution}) to give:
+\begin{eqnarray}
+ &   & f_{\rm i} M_{\rm total,0}(\bar{r}_{\rm i}) r^\prime_{\rm i} + f_{\rm i} 4 \pi \bar{r}_{\rm i}^2 \rho_{\rm total,0}(\bar{r}_{\rm i}) {{\rm d} \bar{r}_{\rm i}\over{\rm d} r_{\rm i}} r_{\rm i} r^\prime_{\rm i} \nonumber \\
+ & = & f_{\rm f} M_{\rm total,0}(\bar{r}_{\rm i}) +  f_{\rm i} 4 \pi \bar{r}_{\rm i}^2 \rho_{\rm total,0}(\bar{r}_{\rm i}) {{\rm d} \bar{r}_{\rm i}\over{\rm d} r_{\rm i}} r_{\rm f} r^\prime_{\rm i} \nonumber \\
+ & + & V^2_{\rm b}(\bar{r}_{\rm f}) \bar{r}_{\rm f} / {\rm G} +  V^2_{\rm b}(\bar{r}_{\rm f}) {{\rm d}\bar{r}_{\rm f}\over {\rm d} r_{\rm f}} r_{\rm f}/ {\rm G} +  {{\rm d}V^2_{\rm b}\over{\rm d} \bar{r}_{\rm f}}(\bar{r}_{\rm f}) {{\rm d}\bar{r}_{\rm f}\over {\rm d} r_{\rm f}} \bar{r}_{\rm f} r_{\rm f}/ {\rm G},
+\end{eqnarray}
+where
+\begin{equation}
+ {{\rm d}\bar{r} \over {\rm d} r} = A \left({r \over r_{\rm vir}}\right)^{\omega-1},
+\end{equation}
+and which can then be solved numerically for $r^\prime_{\rm i}$.
 
 \section{Galaxy Merging}\index{galaxy!merging}\index{merging!galaxy}
 

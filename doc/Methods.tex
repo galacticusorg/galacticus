@@ -2416,16 +2416,19 @@ Additional methods for computing the initial radius in the dark matter profile w
 \end{verbatim}
 Here, {\tt Galactic\_Structure\_Initial\_Radii\_Adiabatic\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get)
+  subroutine Method_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
     implicit none
     type(varying_string),          intent(in)    :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(),          pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get
+    procedure(),          pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get
     
-    if (galacticStructureRadiusSolverInitialRadiusMethod == 'myMethod') Galactic_Structure_Radius_Initial_Get => My_Method_Do_Procedure
+    if (galacticStructureRadiusSolverInitialRadiusMethod == 'myMethod') then
+       Galactic_Structure_Radius_Initial_Get            => My_Method_Get
+       Galactic_Structure_Radius_Initial_Derivative_Get => My_Method_Derivative_Get
+    end if
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt galacticStructureRadiusSolverInitialRadiusMethod} input parameter. The procedure pointer {\tt Galactic\_Structure\_Radius\_Initial\_Get} must be set to point to a function which computes the initial radius in the dark matter halo given the final radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt galacticStructureRadiusSolverInitialRadiusMethod} input parameter. The procedure pointers {\tt Galactic\_Structure\_Radius\_Initial\_Get} and {\tt Galactic\_Structure\_Radius\_Initial\_Derivative\_Get} must be set to point to functions which compute the initial radius in the dark matter halo given the final radius, and the deriative of this quantity with respect to the final radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The initial radius function must have the form:
 \begin{verbatim}
@@ -2440,6 +2443,20 @@ The initial radius function must have the form:
  end function Radius_Initial_Get
 \end{verbatim}
 The function must return the initial radius in the dark matter halo of {\tt thisNode} corresponding to the final {\tt radius} after accounting for the effects of adiabatic contraction.
+
+The initial radius derivative function must have the form:
+\begin{verbatim}
+ double precision function Radius_Initial_Derivative_Get(thisNode,radius)
+    implicit none
+    type            (treeNode), intent(in   ), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+    .
+    .
+    .
+    return
+ end function Radius_Initial_Derivative_Get
+\end{verbatim}
+The function must return the derivative with respect to the final {\tt radius} of initial radius in the dark matter halo of {\tt thisNode} corresponding to the final {\tt radius} after accounting for the effects of adiabatic contraction.
 
 Currently defined initial radius methods are:
 \begin{description}
@@ -5134,9 +5151,9 @@ The function {\tt Galactic\_Structure\_Density()} computes the density of materi
 \end{verbatim}
 where {\tt Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType)
+ double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,coordinateSystem,componentType
+    integer,          intent(in)              :: massType,coordinateSystem,componentType,weightBy,weightIndex
     double precision, intent(in)              :: radius
     logical         , intent(in),    optional :: haloLoaded
     .
@@ -5145,7 +5162,12 @@ where {\tt Density\_Procedure} is the name of a function with the following temp
     return
  end function Density_Procedure
 \end{verbatim}
-If {\tt componentType} is a match to the component then the function should return the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
+If {\tt componentType} is a match to the component then the function should return the density of the component matching type {\tt massType} at {\tt position} for {\tt thisNode}. {\tt componentType} and {\tt massType} can take one of the values described in \S\ref{sec:ComponentMassTypes}. In the above ``density'' can actually refer to different quantities depending on the values of {\tt weightBy} (and {\tt weightIndex}):
+\begin{description}
+\item [{\tt weightByMass}] The actual mass should be returned (the value of {\tt weightIndex} is irrelevant);
+\item [{\tt weightByLuminosity}] The {\tt weightIndex}$^{\rm th}$ luminosity should be returned.
+\end{description}
+If {\tt haloLoaded}$=${\tt true} (which should be the default if this option is not present), then the effects of baryonic loading on the halo profile should be taken into account where necessary. Otherwise, the effects of baryonic loading should be ignored.
 
 \subsubsection{Galactic Component Enclosed Mass}
 

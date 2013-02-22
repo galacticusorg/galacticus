@@ -24,16 +24,17 @@ module Galactic_Structure_Initial_Radii
   use Galacticus_Nodes
   implicit none
   private
-  public :: Galactic_Structure_Radius_Initial
+  public :: Galactic_Structure_Radius_Initial, Galactic_Structure_Radius_Initial_Derivative
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                               :: moduleInitialized=.false.
+  logical                                                          :: moduleInitialized=.false.
 
   ! Name of cooling rate available method used.
-  type     (varying_string                   )          :: galacticStructureRadiusSolverInitialRadiusMethod
+  type     (varying_string                              )          :: galacticStructureRadiusSolverInitialRadiusMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Galactic_Structure_Radius_Initial), pointer :: Galactic_Structure_Radius_Initial_Get => null()
+  procedure(Galactic_Structure_Radius_Initial           ), pointer :: Galactic_Structure_Radius_Initial_Get            => null()
+  procedure(Galactic_Structure_Radius_Initial_Derivative), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get => null()
 
 contains
 
@@ -64,11 +65,23 @@ contains
           call Get_Input_Parameter('galacticStructureRadiusSolverInitialRadiusMethod',galacticStructureRadiusSolverInitialRadiusMethod,defaultValue='adiabatic')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="galacticStructureRadiusSolverInitialRadiusMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get</functionArgs>
+          !#  <functionArgs>galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get</functionArgs>
           include 'galactic_structure.radius_solver.initial_radii.inc'
           !# </include>
-          if (.not.associated(Galactic_Structure_Radius_Initial_Get)) &
-               & call Galacticus_Error_Report('Galactic_Structure_Radius_Initial_Initialize','method '//char(galacticStructureRadiusSolverInitialRadiusMethod)//' is unrecognized')
+          if     (                                                                                      &
+               &  .not.                                                                                 &
+               &       (                                                                                &
+               &         associated(Galactic_Structure_Radius_Initial_Get           )                   &
+               &        .and.                                                                           &
+               &         associated(Galactic_Structure_Radius_Initial_Derivative_Get)                   &
+               &       )                                                                                &
+               & )                                                                                      &
+               & call Galacticus_Error_Report(                                                          &
+               &                              'Galactic_Structure_Radius_Initial_Initialize'          , &
+               &                              'method '                                                 &
+               &                              //char(galacticStructureRadiusSolverInitialRadiusMethod)  &
+               &                              //' is unrecognized'                                      &
+               &                             )
           moduleInitialized=.true.
        end if
        !$omp end critical(Galactic_Structure_Radius_Initial_Initialization) 
@@ -89,5 +102,19 @@ contains
     Galactic_Structure_Radius_Initial=Galactic_Structure_Radius_Initial_Get(thisNode,radius)
     return
   end function Galactic_Structure_Radius_Initial
+
+  double precision function Galactic_Structure_Radius_Initial_Derivative(thisNode,radius)
+    !% Find the derivative of the initial radius in the dark matter halo of {\tt thisNode} with respect to the final radius
+    !% corresponding to the given final {\tt radius}.
+    implicit none
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
+    ! Ensure that the module is initialized.
+    call Galactic_Structure_Radius_Initial_Initialize()
+    ! Get the initial radius.
+    Galactic_Structure_Radius_Initial_Derivative=Galactic_Structure_Radius_Initial_Derivative_Get(thisNode,radius)
+    return
+  end function Galactic_Structure_Radius_Initial_Derivative
   
 end module Galactic_Structure_Initial_Radii

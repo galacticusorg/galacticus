@@ -33,26 +33,27 @@ module Galactic_Structure_Initial_Radii_Adiabatic
   ! Module scope quantities used in solving the initial radius root function.
   integer                   , parameter :: componentType=componentTypeAll,massType=massTypeBaryonic,weightBy=weightByMass,weightIndex=weightIndexNull
   logical                   , parameter :: haloLoaded=.false.
-  double precision                      :: radiusShared,baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean&
-       &,virialRadius
+  double precision                      :: radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial
   type            (treeNode), pointer   :: activeNode
-  !$omp threadprivate(radiusShared,baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,activeNode)
+  !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode)
 
 contains
 
   !# <galacticStructureRadiusSolverInitialRadiusMethod>
   !#  <unitName>Galactic_Structure_Initial_Radii_Adiabatic_Initialize</unitName>
   !# </galacticStructureRadiusSolverInitialRadiusMethod>
-  subroutine Galactic_Structure_Initial_Radii_Adiabatic_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get)
+  subroutine Galactic_Structure_Initial_Radii_Adiabatic_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
     !% Initializes the ``adiabatic'' initial radii module.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ),          intent(in   ) :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get
+    procedure(double precision), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get&
+         &,Galactic_Structure_Radius_Initial_Derivative_Get
     
     if (galacticStructureRadiusSolverInitialRadiusMethod == 'adiabatic') then
-       Galactic_Structure_Radius_Initial_Get => Galactic_Structure_Radius_Initial_Adiabatic
+       Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Adiabatic
+       Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Adiabatic
        ! Get parameters of the model.
        !@ <inputParameter>
        !@   <name>adiabaticContractionGnedinA</name>
@@ -80,21 +81,21 @@ contains
     return
   end subroutine Galactic_Structure_Initial_Radii_Adiabatic_Initialize
 
-  double precision function Galactic_Structure_Radius_Initial_Adiabatic(thisNode,radius)
-    !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
-    !% \cite{gnedin_response_2004}.
+  subroutine Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors)
+    !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
+    !% algorithm of \cite{gnedin_response_2004}.
     use Dark_Matter_Profiles
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Physical
-    use Root_Finder
-    use FGSL
-    use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
     use Cosmological_Parameters
     use Galactic_Structure_Options
+    use Numerical_Constants_Physical
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.modules.inc'
+    !# </include>
+    !# <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="moduleUse">
+    !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
+    include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve_gradient.tasks.modules.inc'
     !# </include>
     !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
@@ -103,26 +104,18 @@ contains
     implicit none
     type            (treeNode                ), pointer, intent(inout) :: thisNode
     double precision                          ,          intent(in   ) :: radius
+    logical                                   ,          intent(in   ) :: computeGradientFactors    
     type            (treeNode                ), pointer                :: currentNode
-    type            (fgsl_function           ), save                   :: rootFunction
-    type            (fgsl_root_fsolver       ), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
     class           (nodeComponentBasic      ), pointer                :: thisBasic
     double precision                          , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
     procedure       (Component_Enclosed_Mass ), pointer                :: componentEnclosedMass
     procedure       (Component_Rotation_Curve), pointer                :: componentRotationCurve
-    double precision                                                   :: radiusMinimum,radiusMaximum,rotationCurveSquared&
-         &,componentVelocity,componentMass,baryonicMassTotal,baryonicMassSelfTotal
+    double precision                                                   :: rotationCurveSquared ,rotationCurveSquaredGradient&
+         &,componentVelocitySquaredGradient,baryonicMassTotal,baryonicMassSelfTotal,componentMass,componentVelocity
     integer                                                            :: componentType,massType
-    type            (c_ptr                   )                         :: parameterPointer
 
     ! Get the virial radius of the node.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-    ! Check for a radius beyond the virial radius. Assume no adiabatic contraction in such cases.
-    if (radius > virialRadius) then
-       Galactic_Structure_Radius_Initial_Adiabatic=radius
-       return
-    end if
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
@@ -133,11 +126,24 @@ contains
     rotationCurveSquared=currentNode%mapDouble0(componentRotationCurve,reductionSummation)
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
     !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Task</exclude>
-    !#  <functionArgs>currentNode,radiusFinalMean,massType,componentType,.false.</functionArgs>
+    !#  <functionArgs>currentNode,radiusFinalMean,massType,componentType,haloLoaded</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.inc'
     !# </include>
     baryonicFinalTerm=rotationCurveSquared*radiusFinalMean*radiusFinal/gravitationalConstantGalacticus
+    ! Compute the baryonic contribution to the rotation curve.
+    if (computeGradientFactors) then
+       rotationCurveSquaredGradient=0.0d0
+       massType                    =massTypeBaryonic
+       componentType               =componentTypeAll
+       !# <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentVelocitySquaredGradient">
+       !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</exclude>
+       !#  <functionArgs>thisNode,radiusFinalMean,massType,componentType,haloLoaded</functionArgs>
+       !#  <onReturn>rotationCurveSquaredGradient=rotationCurveSquaredGradient+componentVelocitySquaredGradient</onReturn>
+       include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve_gradient.tasks.inc'
+       !# </include>
+       baryonicFinalTermDerivative=rotationCurveSquaredGradient*Adiabatic_Solver_Mean_Orbital_Radius_Derivative(radiusFinal)*radiusFinalMean*radiusFinal/gravitationalConstantGalacticus
+    end if
     ! Compute the initial baryonic contribution from this halo, and any satellites.
     baryonicMassTotal=0.0d0
     currentNode => thisNode
@@ -178,6 +184,28 @@ contains
     initialMassFraction=(Omega_Matter()-Omega_B())/Omega_Matter()+                   baryonicMassSelfTotal /thisBasic%mass()
     ! Store the current node.
     activeNode => thisNode
+    return
+  end subroutine Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors
+
+  double precision function Galactic_Structure_Radius_Initial_Adiabatic(thisNode,radius)
+    !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
+    !% \cite{gnedin_response_2004}.
+    use Root_Finder
+    use FGSL
+    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    type            (treeNode         ), pointer, intent(inout) :: thisNode
+    double precision                   ,          intent(in   ) :: radius
+    type            (fgsl_function    ), save                   :: rootFunction
+    type            (fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    double precision                   , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision                                            :: radiusMinimum,radiusMaximum
+    type            (c_ptr            )                         :: parameterPointer
+
+    ! Compute the various factors needed by this calculation.
+    call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.false.)
     ! Choose suitable minimum and maximum radii.
     radiusMinimum=radius
     radiusMaximum=virialRadius
@@ -205,6 +233,58 @@ contains
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic
 
+  double precision function Galactic_Structure_Radius_Initial_Derivative_Adiabatic(thisNode,radius)
+    !% Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
+    !% \cite{gnedin_response_2004}.
+    use Root_Finder
+    use FGSL
+    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    type            (treeNode         ), pointer, intent(inout) :: thisNode
+    double precision                   ,          intent(in   ) :: radius
+    type            (fgsl_function    ), save                   :: rootFunction
+    type            (fgsl_root_fsolver), save                   :: rootFunctionSolver
+    !$omp threadprivate(rootFunction,rootFunctionSolver)
+    double precision                   , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision                                            :: radiusDerivativeMinimum,radiusDerivativeMaximum
+    type            (c_ptr            )                         :: parameterPointer
+
+    ! Compute the various factors needed by this calculation.
+    call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.true.)
+    ! Compute initial radius, and derivatives of initial and final mean radii.
+    radiusFinal                    =                                                         radius
+    radiusInitial                  =Galactic_Structure_Radius_Initial_Adiabatic    (thisNode,radius       )
+    radiusInitialMeanSelfDerivative=Adiabatic_Solver_Mean_Orbital_Radius_Derivative(         radiusInitial)
+    radiusFinalMeanSelfDerivative  =Adiabatic_Solver_Mean_Orbital_Radius_Derivative(         radius       )    
+    ! Choose suitable minimum and maximum radii.
+    radiusDerivativeMinimum=1.0d0
+    radiusDerivativeMaximum=1.0d0
+    ! Decrease minimum derivative as necessary
+    do while (Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusDerivativeMinimum,parameterPointer) > 0.0d0)
+       radiusDerivativeMinimum=0.5d0*radiusDerivativeMinimum
+       ! Catch cases where the gradient falls below zero (which should never happen).
+       if (radiusDerivativeMinimum <= 0.0d0) call Galacticus_Error_Report('Galactic_Structure_Radius_Initial_Derivative_Adiabatic','gradient has reached zero [should not happen]')
+    end do
+    ! Decrease maximum derivative as necessary
+    do while (Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusDerivativeMaximum,parameterPointer) < 0.0d0)
+       radiusDerivativeMaximum=2.0d0*radiusDerivativeMaximum
+    end do
+    ! Find the solution for initial radius.
+    Galactic_Structure_Radius_Initial_Derivative_Adiabatic=                         &
+         & Root_Find(                                                               &
+         &           radiusDerivativeMinimum                                      , &
+         &           radiusDerivativeMaximum                                      , &
+         &           Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver, &
+         &           parameterPointer                                             , &
+         &           rootFunction                                                 , &
+         &           rootFunctionSolver                                           , &
+         &           toleranceAbsolute                                            , &
+         &           toleranceRelative                                              &
+         &          )
+    return
+  end function Galactic_Structure_Radius_Initial_Derivative_Adiabatic
+
   function Galactic_Structure_Radius_Initial_Adiabatic_Solver(radiusInitial,parameterPointer) bind(c)
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     use, intrinsic :: ISO_C_Binding
@@ -230,6 +310,50 @@ contains
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic_Solver
 
+  function Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusInitialDerivative,parameterPointer) bind(c)
+    !% Root function used in finding the derivative of the initial radius in the dark matter halo when solving for adiabatic
+    !% contraction.
+    use, intrinsic :: ISO_C_Binding
+    use Dark_Matter_Profiles
+    use Numerical_Constants_Math
+    implicit none
+    real            (c_double), value :: radiusInitialDerivative
+    type            (c_ptr   ), value :: parameterPointer
+    real            (c_double)        :: Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver
+    double precision                  :: darkMatterMassInitial,darkMatterDensityInitial,radiusInitialMean
+
+    ! Find the initial mean orbital radius.
+    radiusInitialMean       =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
+    ! Get the mass of dark matter inside the initial radius.
+    darkMatterMassInitial   =Dark_Matter_Profile_Enclosed_Mass   (activeNode,radiusInitialMean)
+    ! Get the mass of dark matter inside the initial radius.
+    darkMatterDensityInitial=Dark_Matter_Profile_Density         (activeNode,radiusInitialMean)
+    ! Compute the root function.
+    Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver= &
+         & darkMatterMassInitial                                   &
+         & *(                                                      &
+         &    initialMassFraction*radiusInitialDerivative          &
+         &   -darkMatterFraction                                   &
+         &  )                                                      &
+         & +(                                                      &
+         &    initialMassFraction*radiusInitial                    &
+         &   -darkMatterFraction *radiusFinal                      &
+         &  )                                                      &
+         &  *4.0d0                                                 &
+         &  *Pi                                                    &
+         &  *radiusInitialMean**2                                  &
+         &  *darkMatterDensityInitial                              &
+         &  *radiusInitialMeanSelfDerivative                       &
+         &  *radiusInitialDerivative                               &
+         &  -baryonicFinalTerm                                     &
+         &  *(                                                     &
+         &     1.0d0                        /radiusFinal           &
+         &    +radiusFinalMeanSelfDerivative/radiusFinalMean       &
+         &   )                                                     &
+         &  -baryonicFinalTermDerivative
+    return
+  end function Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver
+
   double precision function Adiabatic_Solver_Mean_Orbital_Radius(radius)
     !% Returns the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
     !% \cite{gnedin_response_2004}.
@@ -242,6 +366,18 @@ contains
          &                               *(radius/virialRadius)**adiabaticContractionGnedinOmega
     return
   end function Adiabatic_Solver_Mean_Orbital_Radius
+
+  double precision function Adiabatic_Solver_Mean_Orbital_Radius_Derivative(radius)
+    !% Returns the derivative of the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
+    !% \cite{gnedin_response_2004}.
+    implicit none
+    double precision, intent(in) :: radius
+    
+    Adiabatic_Solver_Mean_Orbital_Radius_Derivative=                                             &
+         &                        adiabaticContractionGnedinA                                    &
+         &                       *(radius/virialRadius)**(adiabaticContractionGnedinOmega-1.0d0)
+    return
+  end function Adiabatic_Solver_Mean_Orbital_Radius_Derivative
 
   double precision function Component_Enclosed_Mass(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
