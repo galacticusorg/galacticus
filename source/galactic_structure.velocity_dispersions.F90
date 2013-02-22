@@ -31,7 +31,7 @@ module Galactic_Structure_Velocity_Dispersions
   integer                 :: componentTypeGlobal,massTypeGlobal
   type(treeNode), pointer :: activeNode
   logical                 :: haloLoadedActual
-  !$omp threadprivate(componentTypeGlobal,activeNode)
+  !$omp threadprivate(massTypeGlobal,componentTypeGlobal,activeNode,haloLoadedActual)
 
 contains
 
@@ -42,11 +42,12 @@ contains
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
+    use Galactic_Structure_Enclosed_Masses
     type(treeNode),   intent(inout), pointer  :: thisNode  
     double precision, intent(in)              :: radius,radiusOuter
     integer,          intent(in)              :: componentType,massType
     logical,          intent(in),    optional :: haloLoaded
-    double precision                          :: densityVelocityVariance,componentDensity
+    double precision                          :: densityVelocityVariance,componentDensity,massTotal
     type(c_ptr)                               :: parameterPointer
     type(fgsl_function)                       :: integrandFunction
     type(fgsl_integration_workspace)          :: integrationWorkspace
@@ -54,15 +55,21 @@ contains
     activeNode         => thisNode
     componentTypeGlobal=  componentType
     massTypeGlobal     =  massType
-    haloLoadedActual   =.true.
+    haloLoadedActual   =  .true.
     if (present(haloLoaded)) haloLoadedActual=haloLoaded
+    ! Find the total mass.
+    massTotal=Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentType,massType=massType)
+    ! Return with zero dispersion if the component is massless.
+    if (massTotal <= 0.0d0) then
+       Galactic_Structure_Velocity_Dispersion=0.0d0
+       return
+    end if
+    ! Integrate the Jeans equation.
     densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand,parameterPointer&
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
-
     ! Get the density at this radius.
     componentDensity=Galactic_Structure_Density(thisNode,[radius,0.0d0,0.0d0],componentType=componentType,massType=massType)
-
     ! Check for zero density.
     if (componentDensity <= 0.0d0) then
        Galactic_Structure_Velocity_Dispersion=0.0d0
@@ -84,10 +91,23 @@ contains
     real(c_double), value :: radius
     type(c_ptr),    value :: parameterPointer
 
-    Velocity_Dispersion_Integrand= gravitationalConstantGalacticus                                                                     &
-         &                        *Galactic_Structure_Enclosed_Mass(activeNode, radius                                               ) &
-         &                        /radius**2                                                                                           &
-         &                        *Galactic_Structure_Density      (activeNode,[radius,0.0d0,0.0d0],componentType=componentTypeGlobal,massType=massTypeGlobal,haloLoaded=haloLoadedActual)
+    if (radius == 0.0d0) then
+       Velocity_Dispersion_Integrand=0.0d0
+    else
+       Velocity_Dispersion_Integrand= gravitationalConstantGalacticus                                     &
+            &                        *Galactic_Structure_Enclosed_Mass(                                   &
+            &                                                          activeNode                       , &
+            &                                                          radius                             &
+            &                                                         )                                   &
+            &                        /radius**2                                                           &
+            &                        *Galactic_Structure_Density      (                                   &
+            &                                                          activeNode                       , &
+            &                                                          [radius,0.0d0,0.0d0]             , &
+            &                                                          componentType=componentTypeGlobal, &
+            &                                                          massType=massTypeGlobal          , &
+            &                                                          haloLoaded=haloLoadedActual        &
+            &                                                         )
+    end if
     return
   end function Velocity_Dispersion_Integrand
 
