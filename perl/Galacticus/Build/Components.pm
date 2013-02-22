@@ -818,23 +818,29 @@ sub Generate_Node_Component_Type{
     # Define type-bound functions.
     my @typeBoundFunctions = 
 	(
-	 {type => "procedure", name => "type"                   , function => "Node_Component_Generic_Type"            },
-	 {type => "procedure", name => "host"                   , function => "Node_Component_Host_Node"               },
-	 {type => "procedure", name => "destroy"                , function => "Node_Component_Generic_Destroy"         },
-	 {type => "procedure", name => "serializeCount"         , function => "Node_Component_Serialize_Count_Zero"    },
-	 {type => "procedure", name => "serializeValues"        , function => "Node_Component_Serialize_Null"          },
-	 {type => "procedure", name => "serializeRates"         , function => "Node_Component_Serialize_Null"          },
-	 {type => "procedure", name => "serializeScales"        , function => "Node_Component_Serialize_Null"          },
-	 {type => "procedure", name => "deserializeValues"      , function => "Node_Component_Deserialize_Null"        },
-	 {type => "procedure", name => "deserializeRates"       , function => "Node_Component_Deserialize_Null"        },
-	 {type => "procedure", name => "deserializeScales"      , function => "Node_Component_Deserialize_Null"        },
-	 {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_ODE_Step_Initialize_Null"},
-	 {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_ODE_Step_Initialize_Null"},
-	 {type => "procedure", name => "dump"                   , function => "Node_Component_Dump_Null"               },
-	 {type => "procedure", name => "dumpRaw"                , function => "Node_Component_Dump_Raw_Null"           },
-	 {type => "procedure", name => "outputCount"            , function => "Node_Component_Output_Count_Null"       },
-	 {type => "procedure", name => "outputNames"            , function => "Node_Component_Output_Names_Null"       },
-	 {type => "procedure", name => "output"                 , function => "Node_Component_Output_Null"             }
+	 {type => "procedure", name => "type"                   , function => "Node_Component_Generic_Type"                 },
+	 {type => "procedure", name => "host"                   , function => "Node_Component_Host_Node"                    },
+	 {type => "procedure", name => "destroy"                , function => "Node_Component_Generic_Destroy"              },
+	 {type => "procedure", name => "serializeCount"         , function => "Node_Component_Serialize_Count_Zero"         },
+	 {type => "procedure", name => "serializeValues"        , function => "Node_Component_Serialize_Null"               },
+	 {type => "procedure", name => "serializeRates"         , function => "Node_Component_Serialize_Null"               },
+	 {type => "procedure", name => "serializeScales"        , function => "Node_Component_Serialize_Null"               },
+	 {type => "procedure", name => "deserializeValues"      , function => "Node_Component_Deserialize_Null"             },
+	 {type => "procedure", name => "deserializeRates"       , function => "Node_Component_Deserialize_Null"             },
+	 {type => "procedure", name => "deserializeScales"      , function => "Node_Component_Deserialize_Null"             },
+	 {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_ODE_Step_Initialize_Null"     },
+	 {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_ODE_Step_Initialize_Null"     },
+	 {type => "procedure", name => "dump"                   , function => "Node_Component_Dump_Null"                    },
+	 {type => "procedure", name => "dumpRaw"                , function => "Node_Component_Dump_Raw_Null"                },
+	 {type => "procedure", name => "outputCount"            , function => "Node_Component_Output_Count_Null"            },
+	 {type => "procedure", name => "outputNames"            , function => "Node_Component_Output_Names_Null"            },
+	 {type => "procedure", name => "output"                 , function => "Node_Component_Output_Null"                  },
+	 {type => "procedure", name => "enclosedMass"           , function => "Node_Component_Enclosed_Mass_Null"           },
+	 {type => "procedure", name => "density"                , function => "Node_Component_Density_Null"                 },
+	 {type => "procedure", name => "surfaceDensity"         , function => "Node_Component_Surface_Density_Null"         },
+	 {type => "procedure", name => "potential"              , function => "Node_Component_Potential_Null"               },
+	 {type => "procedure", name => "rotationCurve"          , function => "Node_Component_Rotation_Curve_Null"          },
+	 {type => "procedure", name => "rotationCurveGradient"  , function => "Node_Component_Rotation_Curve_Gradient_Null" }
 	);
     # Specify the data content.
     my @dataContent =
@@ -1606,9 +1612,13 @@ sub Generate_Map_Functions {
 	 },
 	 {
 	     intrinsic  => "procedure",
-	     type       => "",
+	     type       => "Node_Component_Null_Void0_InOut",
 	     attributes => [ "pointer" ],
 	     variables  => [ "mapFunction" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
 	 }
 	);
     my $functionCode;
@@ -1617,7 +1627,11 @@ sub Generate_Map_Functions {
     $functionCode .= "    implicit none\n";
     $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
-     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[19,0]).")) call mapFunction(self%component".padComponentClass(ucfirst($_),[19,0]).")\n";
+     	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[19,0]).")) then\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[19,0]).")\n";
+	$functionCode .= "        call mapFunction(self%component".padComponentClass(ucfirst($_),[19,0])."(i))\n";
+	$functionCode .= "      end do\n";
+	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine mapComponentsVoid\n\n";
@@ -1643,7 +1657,7 @@ sub Generate_Map_Functions {
 	 },
 	 {
 	     intrinsic  => "procedure",
-	     type       => "double precision",
+	     type       => "Node_Component_Null_Double0_InOut",
 	     attributes => [ "pointer" ],
 	     variables  => [ "mapFunction" ]
 	 },
@@ -1655,6 +1669,10 @@ sub Generate_Map_Functions {
 	 {
 	     intrinsic  => "double precision",
 	     variables  => [ "componentValue" ]
+	 },
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
 	 }
 	);
     $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction)\n";
@@ -1669,13 +1687,15 @@ sub Generate_Map_Functions {
     $functionCode .= "    end select\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
-     	$functionCode .= "      componentValue=mapFunction(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
-     	$functionCode .= "      select case (reduction)\n";
-     	$functionCode .= "      case (reductionSummation)\n";
-     	$functionCode .= "        mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
-     	$functionCode .= "      case (reductionProduct  )\n";
-     	$functionCode .= "        mapComponentsDouble0=mapComponentsDouble0*componentValue\n";
-     	$functionCode .= "      end select\n";
+	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[0,0]).")\n";
+     	$functionCode .= "        componentValue=mapFunction(self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
+     	$functionCode .= "        select case (reduction)\n";
+     	$functionCode .= "        case (reductionSummation)\n";
+     	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0+componentValue\n";
+     	$functionCode .= "        case (reductionProduct  )\n";
+     	$functionCode .= "          mapComponentsDouble0=mapComponentsDouble0*componentValue\n";
+     	$functionCode .= "        end select\n";
+	$functionCode .= "      end do\n";
      	$functionCode .= "    end if\n";
     }
     $functionCode .= "    return\n";

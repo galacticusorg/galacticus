@@ -154,7 +154,7 @@ contains
     real(c_double)        :: Ram_Pressure_Stripping_Radius_Solver
     double precision      :: enclosedMass,hotHaloDensity,gravitationalBindingForce
 
-    enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,massType=massTypeAll,componentType=componentTypeAll)
+    enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,componentType=componentTypeAll,massType=massTypeAll)
     hotHaloDensity           =Hot_Halo_Density(satelliteNode,radius)
     gravitationalBindingForce=ramPressureStrippingFormFactor*gravitationalConstantGalacticus*enclosedMass*hotHaloDensity/radius
     if (gravitationalBindingForce >= 0.0d0) then

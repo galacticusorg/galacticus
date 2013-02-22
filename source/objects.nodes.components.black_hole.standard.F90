@@ -77,6 +77,9 @@ module Node_Component_Black_Hole_Standard
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </property>
   !#  </properties>
+  !#  <bindings>
+  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
+  !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>
   
@@ -828,8 +831,8 @@ contains
        ! Set the position.
        position=[accretionRadius,0.0d0,0.0d0]
        ! Get density of gas at the galactic center.
-       gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical,massType&
-            &=massTypeGaseous,componentType=componentTypeSpheroid)
+       gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical,componentType&
+            &=componentTypeSpheroid,massType =massTypeGaseous)
        ! Check if we have a non-negligible gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Get the spheroid component.
@@ -844,8 +847,8 @@ contains
              ! Set the position.
              position=[jeansLength,0.0d0,0.0d0]
              ! Get density of gas at the galactic center.
-             gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical,massType&
-                  &=massTypeGaseous,componentType=componentTypeSpheroid)
+             gasDensity=Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical,componentType&
+                  &=componentTypeSpheroid,massType =massTypeGaseous)
           end if
           ! Compute the accretion rate.
           accretionRateSpheroid=bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
@@ -879,7 +882,7 @@ contains
        end select             
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
        gasDensity=hotModeFraction*Galactic_Structure_Density(thisNode,position,coordinateSystem=coordinateSystemCylindrical&
-            &,massType=massTypeGaseous,componentType=componentTypeHotHalo)
+            &,componentType=componentTypeHotHalo,massType=massTypeGaseous)
        ! Check if we have a non-zero gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Compute the accretion rate.

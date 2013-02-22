@@ -247,7 +247,7 @@ contains
                &,toleranceAbsolute,toleranceRelative)
           
           ! Compute the mass enclosed in this radius.
-          enclosedMass=Galactic_Structure_Enclosed_Mass(thisNode,radius,massType=massTypeSelected,componentType=componentTypeAll,haloLoaded=outputDensityContrastHaloLoaded)
+          enclosedMass=Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
           
           ! Store the resulting radius and mass.
           doubleProperty=doubleProperty+1
@@ -272,8 +272,8 @@ contains
     real(c_double)        :: enclosedMass
     
     ! Solve for the radius enclosing the specified density contrast.
-    enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeSelected,componentType&
-         &=componentTypeAll,haloLoaded=outputDensityContrastHaloLoaded)
+    enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType&
+         &=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
     Mean_Density_Contrast_Root=3.0d0*enclosedMass/4.0d0/Pi/radius**3/(referenceDensity &
          &/Expansion_Factor(activeBasicComponent%time())**3)-meanDensityContrastTarget
     return

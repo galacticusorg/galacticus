@@ -50,3 +50,24 @@ double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
   Node_Component_Black_Hole_Simple_Seed_Mass=blackHoleSeedMass
   return
 end function Node_Component_Black_Hole_Simple_Seed_Mass
+
+double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  use Galactic_Structure_Options
+  implicit none
+  class            (nodeComponentBlackHoleSimple), intent(inout)           :: self
+  integer                                        , intent(in   )           :: componentType,massType,weightBy,weightIndex
+  double precision                               , intent(in   )           :: radius
+  logical                                        , intent(in   ), optional :: haloLoaded
+
+  ! Set zero enclosed mass by default.
+  Node_Component_Black_Hole_Simple_Enclosed_Mass=0.0d0
+  ! Return the black hole mass only if massType and componentType are of black hole type.
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(weightBy      == weightByMass                                                 )) return
+  if (      radius        <  0.0d0                                                         ) return
+  ! Return the mass of the black hole.
+  Node_Component_Black_Hole_Simple_Enclosed_Mass=self%mass()
+  return
+end function Node_Component_Black_Hole_Simple_Enclosed_Mass

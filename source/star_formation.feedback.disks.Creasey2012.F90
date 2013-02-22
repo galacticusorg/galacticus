@@ -165,10 +165,10 @@ contains
 
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
+         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Get stellar surface density.
     surfaceDensityStar=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,massType=massTypeStellar,componentType=componentTypeDisk)
+         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the gas fraction.
     gasFraction=surfaceDensityGas/(surfaceDensityGas+surfaceDensityStar)
     ! Convert gas surface density to correct units.

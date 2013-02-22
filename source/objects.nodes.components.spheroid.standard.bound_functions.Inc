@@ -30,3 +30,48 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
   end select
   return
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius
+
+double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  !% Computes the mass within a given radius for an standard spheroid.
+  use Node_Component_Spheroid_Standard_Data
+  use Galactic_Structure_Options
+  implicit none
+  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
+  integer                                        , intent(in   )           :: componentType,massType,weightBy,weightIndex
+  double precision                               , intent(in   )           :: radius
+  logical                                        , intent(in   ), optional :: haloLoaded
+  double precision                                                         :: fractionalRadius,spheroidRadius
+
+  ! Return if the spheroid component is not selected.
+  Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
+  ! Get the total mass.
+  select case (weightBy)
+  case (weightByMass      )
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+        Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()+self%massStellar()
+     case (massTypeGaseous)
+        Node_Component_Spheroid_Standard_Enclosed_Mass=self%massGas()
+     case (massTypeStellar)
+        Node_Component_Spheroid_Standard_Enclosed_Mass=               self%massStellar()
+     end select
+  case (weightByLuminosity)
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
+        luminositiesSpheroid=self%luminositiesStellar()
+        Node_Component_Spheroid_Standard_Enclosed_Mass       =luminositiesSpheroid(weightIndex)
+     end select
+  end select
+  ! Return if total mass was requested.  
+  if (radius                                         >= radiusLarge) return
+  ! Return if mass is zero.
+  if (Node_Component_Spheroid_Standard_Enclosed_Mass <=       0.0d0) return
+  ! Compute actual mass.
+  spheroidRadius=self%radius()
+  if (spheroidRadius > 0.0d0) then
+     fractionalRadius=radius/spheroidRadius
+     Node_Component_Spheroid_Standard_Enclosed_Mass   =Node_Component_Spheroid_Standard_Enclosed_Mass*spheroidMassDistribution%massEnclosedBySphere(fractionalRadius)
+  end if
+return
+end function Node_Component_Spheroid_Standard_Enclosed_Mass

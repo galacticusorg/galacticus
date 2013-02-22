@@ -204,8 +204,8 @@ contains
     densityStellar= Galactic_Structure_Density(thisNode                                             , &
          &                                     [thisBlackHoleComponent%radialPosition(),0.0d0,0.0d0], &
          &                                     coordinateSystem=coordinateSystemCylindrical         , &
-         &                                     massType        =massTypeStellar                     , &
-         &                                     componentType   =componentTypeSpheroid                 &
+         &                                     componentType   =componentTypeSpheroid               , &
+         &                                     massType        =massTypeStellar                       &
          &                                    )                                                       &
          &         *stellarDensityFractionRemaining
     ! Compute the hardening rate due to strong scattering of individual stars.

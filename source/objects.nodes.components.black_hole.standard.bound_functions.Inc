@@ -79,3 +79,25 @@ double precision function Node_Component_Black_Hole_Standard_Spin(self)
   end if
   return
 end function Node_Component_Black_Hole_Standard_Spin
+
+double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy&
+     &,weightIndex ,haloLoaded)
+  !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  use Galactic_Structure_Options
+  implicit none
+  class           (nodeComponentBlackHoleStandard), intent(inout)           :: self
+  integer                                         , intent(in   )           :: componentType,massType,weightBy,weightIndex
+  double precision                                , intent(in   )           :: radius
+  logical                                         , intent(in   ), optional :: haloLoaded
+  
+  ! Set zero enclosed mass by default.
+  Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
+  ! Return if mass is not to be counted, or if radius is negative.
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(weightBy      == weightByMass                                                 )) return
+  if (      radius        <  0.0d0                                                         ) return
+  ! Set the mass if the black hole is at the galactic center.
+  if (self%radialPosition() <= 0.0d0) Node_Component_Black_Hole_Standard_Enclosed_Mass=self%mass()
+  return
+end function Node_Component_Black_Hole_Standard_Enclosed_Mass

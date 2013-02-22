@@ -203,7 +203,7 @@ contains
     end if
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
+         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Compute the star formation rate surface density.
     Star_Formation_Rate_Surface_Density_Disk_KS=                             &
          &  starFormationKennicuttSchmidtNormalization                                      &

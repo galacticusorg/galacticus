@@ -31,7 +31,7 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
-  double precision function Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
+  double precision function Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
@@ -39,7 +39,7 @@ contains
     use Galactic_Structure_Initial_Radii
     implicit none
     type            (treeNode          ), intent(inout), pointer  :: thisNode
-    integer                             , intent(in   )           :: massType,componentType,weightBy,weightIndex
+    integer                             , intent(in   )           :: componentType,massType,weightBy,weightIndex
     double precision                    , intent(in   )           :: radius
     logical                             , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBasic), pointer                 :: thisBasicComponent
@@ -83,13 +83,13 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
-  double precision function Dark_Matter_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Dark_Matter_Profile_Rotation_Curve_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve at a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: radius
     logical         , intent(in),    optional :: haloLoaded
     double precision                          :: componentMass
@@ -99,7 +99,7 @@ contains
 
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull&
+       componentMass=Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull&
             &,haloLoaded)
        if (componentMass > 0.0d0) Dark_Matter_Profile_Rotation_Curve_Task=sqrt(gravitationalConstantGalacticus*componentMass)&
             &/sqrt(radius)
@@ -110,14 +110,14 @@ contains
   !# <densityTask>
   !#  <unitName>Dark_Matter_Profile_Density_Task</unitName>
   !# </densityTask>
-  double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,massType,componentType,haloLoaded)
+  double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     use Galacticus_Error
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: positionSpherical(3)
     logical         , intent(in),    optional :: haloLoaded
     
@@ -137,7 +137,7 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
-  double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient for the dark matter.
     use Galacticus_Nodes
     use Galactic_Structure_Options
@@ -147,7 +147,7 @@ contains
     use Galacticus_Error
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: radius
     logical         , intent(in)   , optional :: haloLoaded
     double precision                          :: positionSpherical(3),componentMass,componentDensity
@@ -163,8 +163,8 @@ contains
     end if
 
     positionSpherical=[radius,0.0d0,0.0d0]
-    componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
-    componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,massType,componentType                             ,haloLoaded)
+    componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+    componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,componentType                             ,massType,haloLoaded)
     if (componentMass ==0.0d0 .or. componentDensity == 0.0d0) return
     Dark_Matter_Profile_Rotation_Curve_Gradient_Task=           &
          &                   gravitationalConstantGalacticus    &

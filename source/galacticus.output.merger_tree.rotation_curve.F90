@@ -302,8 +302,8 @@ contains
                &                                         Galactic_Structure_Rotation_Curve(                                  &
                &                                                                           thisNode                        , &
                &                                                                           radius                          , &
-               &                                                                           massType=radii(i)%mass          , &
                &                                                                           componentType=radii(i)%component, &
+               &                                                                           massType=radii(i)%mass          , &
                &                                                                           haloLoaded=radii(i)%loaded        &
                &                                                                          )
        end do

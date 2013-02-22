@@ -50,12 +50,14 @@ A simple example of this extension capability can be found in the {\tt scaleShap
 
 Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below.
 
-By convention, a component's implementation is split into three files, although some components might not need all three files. These files are named as follows (with {\tt \textless component\textgreater} acting as a placeholder for the name of the component in question):
+By convention, a component's implementation is split into three or four files, although some components might not need all of these files. These files are named as follows (with {\tt \textless component\textgreater} acting as a placeholder for the name of the component in question):
 \begin{description}
- \item [{\tt objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree;
+ \item [{\tt objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree (ODE rates, behavior during mergers, etc.);
  \item [{\tt objects.nodes.components.\textless component\textgreater.bound\_functions.F90}] Contains functions which will be bound to the component object (i.e. the {\tt nodeComponent\textless Class\textgreater\textless Implementation\textgreater} class), and so will be available as type bound procedures. Generally, these functions will include any which get or set values of properties in the component, those which return information about its internal state (such as the density at some position in the component; see \S\ref{sec:GalacticComponentDensity}), and any other functions which we may want to be overridden by extensions to the component.
  \item [{\tt objects.nodes.components.\textless component\textgreater.data.F90}] Contains any data which may need to be shared between the above two files. This might contain parameters which control some property of the component that is the same for all instances (e.g. if spheroids are modelled as S\'ersic profiles all with the same value of the S\'ersic index, that value might be placed into this file).
+ \item [{\tt objects.nodes.components.\textless component\textgreater.structure.F90}] Contains any functions which implement the structure (e.g. density, rotation curve) of the component and which cannot be placed in {\tt objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} due to dependencies on modules which in turn depend on the {\tt Galacticus\_Nodes} module.
 \end{description}
+In general, {\tt objects.nodes.components.\textless component\textgreater.F90} is the place for the component definition and functions which process the component during tree evolution (including output), while {\tt objects.nodes.components.\textless component\textgreater.bound\_functions.Inc} is intended for functions which record or report the internal state of the component.
 
 \subsubsection{Component Definition}\label{sec:ComponentDefinition}
 
@@ -5132,7 +5134,7 @@ The function {\tt Galactic\_Structure\_Density()} computes the density of materi
 \end{verbatim}
 where {\tt Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Density_Procedure(thisNode,position,coordinateSystem,massType,componentType)
+ double precision function Density_Procedure(thisNode,position,coordinateSystem,componentType,massType)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,coordinateSystem,componentType
     double precision, intent(in)              :: radius
@@ -5155,7 +5157,7 @@ The function {\tt Galactic\_Structure\_Enclosed\_Mass()} computes the mass withi
 \end{verbatim}
 where {\tt Enclosed\_Mass\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Enclosed_Mass_Procedure(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
+ double precision function Enclosed_Mass_Procedure(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
     double precision, intent(in)              :: radius
@@ -5184,7 +5186,7 @@ The function {\tt Galactic\_Structure\_Rotation\_Curve()} computes the rotation 
 \end{verbatim}
 where {\tt Rotation\_Curve\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Rotation_Curve_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+ double precision function Rotation_Curve_Procedure(thisNode,radius,componentType,massType,haloLoaded)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType
     double precision, intent(in)              :: radius
@@ -5207,7 +5209,7 @@ The function {\tt Galactic\_Structure\_Rotation\_Curve\_Gradient()} computes the
 \end{verbatim}
 where {\tt Rotation\_Curve\_Gradient\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+ double precision function Rotation_Curve_Gradient_Procedure(thisNode,radius,componentType,massType,haloLoaded)
     type(treeNode),   intent(inout), pointer  :: thisNode
     integer,          intent(in)              :: massType,componentType
     double precision, intent(in)              :: radius
@@ -5230,7 +5232,7 @@ The function {\tt Galactic\_Structure\_Potential()} computes the potential at a 
 \end{verbatim}
 where {\tt Potential\_Task} is the name of a function with the following template
 \begin{verbatim}
- double precision function Potential_Procedure(thisNode,radius,massType,componentType,haloLoaded)
+ double precision function Potential_Procedure(thisNode,radius,componentType,massType,haloLoaded)
     type(treeNode),   intent(inout), pointer   :: thisNode
     integer,          intent(in),    optional  :: componentType  
     double precision, intent(in)               :: radius
@@ -5252,7 +5254,7 @@ The function {\tt Galactic\_Structure\_Surface\_Density()} computes the surface 
 \end{verbatim}
 where {\tt Surface\_Density\_Procedure} is the name of a function with the following template
 \begin{verbatim}
- double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,massType,componentType,haloLoaded)
+ double precision function Surface_Density_Procedure(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
     type(treeNode),   intent(inout), pointer     :: thisNode
     integer,          intent(in)                 :: massType,coordinateSystem,componentType
     double precision, intent(in),    dimension(3):: position

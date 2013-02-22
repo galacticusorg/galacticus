@@ -22,18 +22,21 @@ module Galactic_Structure_Initial_Radii_Adiabatic
   !% Implements calculations of initial radius in the dark matter halo using the adiabatic contraction algorithm of
   !% \cite{gnedin_response_2004}.
   use Galacticus_Nodes
+  use Galactic_Structure_Options
   implicit none
   private
   public :: Galactic_Structure_Initial_Radii_Adiabatic_Initialize
 
   ! Parameters of the adiabatic contraction algorithm.
-  double precision                    :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega
+  double precision                      :: adiabaticContractionGnedinA,adiabaticContractionGnedinOmega
 
   ! Module scope quantities used in solving the initial radius root function.
-  double precision                    :: baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean&
+  integer                   , parameter :: componentType=componentTypeAll,massType=massTypeBaryonic,weightBy=weightByMass,weightIndex=weightIndexNull
+  logical                   , parameter :: haloLoaded=.false.
+  double precision                      :: radiusShared,baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean&
        &,virialRadius
-  type            (treeNode), pointer :: activeNode
-  !$omp threadprivate(baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,activeNode)
+  type            (treeNode), pointer   :: activeNode
+  !$omp threadprivate(radiusShared,baryonicFinalTerm,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,activeNode)
 
 contains
 
@@ -98,18 +101,20 @@ contains
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode          ), pointer, intent(inout) :: thisNode
-    double precision                    ,          intent(in   ) :: radius
-    type            (treeNode          ), pointer                :: currentNode
-    type            (fgsl_function     ), save                   :: rootFunction
-    type            (fgsl_root_fsolver ), save                   :: rootFunctionSolver
+    type            (treeNode                ), pointer, intent(inout) :: thisNode
+    double precision                          ,          intent(in   ) :: radius
+    type            (treeNode                ), pointer                :: currentNode
+    type            (fgsl_function           ), save                   :: rootFunction
+    type            (fgsl_root_fsolver       ), save                   :: rootFunctionSolver
     !$omp threadprivate(rootFunction,rootFunctionSolver)
-    class           (nodeComponentBasic), pointer                :: thisBasic
-    double precision                    , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision                                             :: radiusMinimum,radiusMaximum,rotationCurveSquared&
+    class           (nodeComponentBasic      ), pointer                :: thisBasic
+    double precision                          , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    procedure       (Component_Enclosed_Mass ), pointer                :: componentEnclosedMass
+    procedure       (Component_Rotation_Curve), pointer                :: componentRotationCurve
+    double precision                                                   :: radiusMinimum,radiusMaximum,rotationCurveSquared&
          &,componentVelocity,componentMass,baryonicMassTotal,baryonicMassSelfTotal
-    integer                                                      :: massType,componentType
-    type            (c_ptr             )                         :: parameterPointer
+    integer                                                            :: componentType,massType
+    type            (c_ptr                   )                         :: parameterPointer
 
     ! Get the virial radius of the node.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
@@ -121,13 +126,14 @@ contains
     ! Store the final radius and its orbit-averaged mean.
     radiusFinal    =                                     radius
     radiusFinalMean=Adiabatic_Solver_Mean_Orbital_Radius(radius)
+    radiusShared   =radiusFinalMean
     ! Compute the baryonic contribution to the rotation curve.
-    rotationCurveSquared=0.0d0
-    massType            =massTypeBaryonic
-    componentType       =componentTypeAll
+    currentNode            => thisNode
+    componentRotationCurve => Component_Rotation_Curve
+    rotationCurveSquared=currentNode%mapDouble0(componentRotationCurve,reductionSummation)
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
     !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Task</exclude>
-    !#  <functionArgs>thisNode,radiusFinalMean,massType,componentType,.false.</functionArgs>
+    !#  <functionArgs>currentNode,radiusFinalMean,massType,componentType,.false.</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.inc'
     !# </include>
@@ -136,9 +142,11 @@ contains
     baryonicMassTotal=0.0d0
     currentNode => thisNode
     do while (associated(currentNode))
+       componentEnclosedMass => Component_Enclosed_Mass
+       baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation)
        !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
        !#  <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
-       !#  <functionArgs>currentNode,virialRadius,massType,componentType,weightByMass,weightIndexNull,.false.</functionArgs>
+       !#  <functionArgs>currentNode,virialRadius,massType,componentType,weightBy,weightIndex,haloLoaded</functionArgs>
        !#  <onReturn>baryonicMassTotal=baryonicMassTotal+componentMass</onReturn>
        include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.inc'
        !# </include>
@@ -234,5 +242,30 @@ contains
          &                               *(radius/virialRadius)**adiabaticContractionGnedinOmega
     return
   end function Adiabatic_Solver_Mean_Orbital_Radius
+
+  double precision function Component_Enclosed_Mass(component)
+    !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
+    !% profile.
+    implicit none
+    class  (nodeComponent), intent(inout) :: component
+ 
+    select type (component)
+    class is (nodeComponentDarkMatterProfile)
+       Component_Enclosed_Mass=0.0d0
+    class default
+       Component_Enclosed_Mass=component%enclosedMass(virialRadius,componentType ,massType,weightBy,weightIndex,haloLoaded)
+    end select
+    return
+  end function Component_Enclosed_Mass
+    
+  double precision function Component_Rotation_Curve(component)
+    !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
+    use Galacticus_Nodes
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+ 
+    Component_Rotation_Curve=component%rotationCurve(radiusShared,componentType,massType,haloLoaded)**2
+    return
+  end function Component_Rotation_Curve
 
 end module Galactic_Structure_Initial_Radii_Adiabatic

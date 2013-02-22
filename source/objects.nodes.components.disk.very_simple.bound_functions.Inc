@@ -33,3 +33,39 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   call hotHalo%hotHaloCoolingMassRateFunction(DiskVerySimpleMassGasRateGeneric)
   return
 end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
+
+double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  !% Computes the mass within a given radius for an very simple disk.
+  use Galactic_Structure_Options
+  use Galacticus_Error
+  implicit none
+  class           (nodeComponentDiskVerySimple), intent(inout)           :: self
+  integer                                      , intent(in   )           :: componentType,massType,weightBy,weightIndex
+  double precision                             , intent(in   )           :: radius
+  logical                                      , intent(in   ), optional :: haloLoaded
+
+  ! Return zero mass if the mass and component types do not match.  
+  Node_Component_Disk_Very_Simple_Enclosed_Mass=0.0d0
+  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
+  ! Determine mass contributed.
+  select case (weightBy)
+  case (weightByMass      )
+     select case (massType)
+     case (massTypeAll,massTypeBaryonic,massTypeGalactic)
+        Node_Component_Disk_Very_Simple_Enclosed_Mass=self%massGas()+self%massStellar()
+     case (massTypeGaseous)
+        Node_Component_Disk_Very_Simple_Enclosed_Mass=self%massGas()
+     case (massTypeStellar)
+        Node_Component_Disk_Very_Simple_Enclosed_Mass=               self%massStellar()
+     end select
+  case default
+     call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not track luminosity')
+  end select
+  ! Return if no mass.
+  if (Node_Component_Disk_Very_Simple_Enclosed_Mass <=       0.0d0) return
+  ! Return if the total mass was requested.
+  if (radius                                        >= radiusLarge) return
+  ! Otherwise we have an error.
+  call Galacticus_Error_Report('Node_Component_Disk_Very_Simple_Enclosed_Mass','this component does not specify a mass profile')
+  return
+end function Node_Component_Disk_Very_Simple_Enclosed_Mass
