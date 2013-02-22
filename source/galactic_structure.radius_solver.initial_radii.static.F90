@@ -30,16 +30,19 @@ contains
   !#  <unitName>Galactic_Structure_Initial_Radii_Static_Initialize</unitName>
   !# </galacticStructureRadiusSolverInitialRadiusMethod>
   subroutine Galactic_Structure_Initial_Radii_Static_Initialize(galacticStructureRadiusSolverInitialRadiusMethod&
-       &,Galactic_Structure_Radius_Initial_Get)
+       &,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
     !% Initializes the ``static'' initial radii module.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ),          intent(in   ) :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get
+    procedure(double precision), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get&
+         &,Galactic_Structure_Radius_Initial_Derivative_Get
     
-    if (galacticStructureRadiusSolverInitialRadiusMethod == 'static') Galactic_Structure_Radius_Initial_Get => &
-         & Galactic_Structure_Radius_Initial_Static
+    if (galacticStructureRadiusSolverInitialRadiusMethod == 'static') then
+       Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Static
+       Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Static
+    end if
     return
   end subroutine Galactic_Structure_Initial_Radii_Static_Initialize
 
@@ -52,5 +55,15 @@ contains
     Galactic_Structure_Radius_Initial_Static=radius
     return
   end function Galactic_Structure_Radius_Initial_Static
+
+  double precision function Galactic_Structure_Radius_Initial_Derivative_Static(thisNode,radius)
+    !% Compute the derivative of the initial radius in the dark matter halo assuming the halo is static.
+    implicit none
+    type            (treeNode), pointer, intent(inout) :: thisNode
+    double precision          ,          intent(in   ) :: radius
+
+    Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0
+    return
+  end function Galactic_Structure_Radius_Initial_Derivative_Static
 
 end module Galactic_Structure_Initial_Radii_Static
