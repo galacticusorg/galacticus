@@ -49,6 +49,7 @@ contains
   
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_Atomic_CIE_Cloudy_Initialize</unitName>
+  !#  <methodName>atomicCIECloudy</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_Atomic_CIE_Cloudy_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.

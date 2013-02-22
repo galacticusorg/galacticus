@@ -35,6 +35,10 @@ module Cooling_Functions
 
 contains
 
+  !# <include directive="coolingFunctionMethods" type="methodNames" function="Cooling_Function_Not_Matched" methodRank="1" >
+  include 'cooling.cooling_function.methodNames.inc'
+  !# </include>
+
   subroutine Cooling_Function_Initialize
     !% Initialize the cooling function module.
     use Galacticus_Error
@@ -72,7 +76,10 @@ contains
           !#  <functionArgs>coolingFunctionMethods,coolingFunctionsMatched</functionArgs>
           include 'cooling.cooling_function.inc'
           !# </include>
-          if (coolingFunctionsMatched /= coolingFunctionsCount) call Galacticus_Error_Report('Cooling_Function_Initialize','number of cooling functions matched does not equal number specified - check that entries in [coolingFunctionMethods] are correct')
+          if (coolingFunctionsMatched /= coolingFunctionsCount) then
+             call Cooling_Function_Not_Matched(coolingFunctionMethods)
+             call Galacticus_Error_Report('Cooling_Function_Initialize','number of cooling functions matched does not equal number specified - check that entries in [coolingFunctionMethods] are correct')
+          end if
           coolingFunctionInitialized=.true.
        end if
        !$omp end critical(Cooling_Function_Initialization) 

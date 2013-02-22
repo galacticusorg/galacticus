@@ -33,6 +33,7 @@ contains
   
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CMB_Compton_Initialize</unitName>
+  !#  <methodName>CMBCompton</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
