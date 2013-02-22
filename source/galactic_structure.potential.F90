@@ -29,6 +29,12 @@ module Galactic_Structure_Potentials
   private
   public :: Galactic_Structure_Potential
 
+  ! Module scope variables used in mapping over components.
+  integer          :: componentTypeShared,massTypeShared
+  logical          :: haloLoadedShared
+  double precision :: radiusShared
+  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
+
 contains
 
   double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded)
@@ -42,39 +48,54 @@ contains
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: componentType,massType
-    logical,          intent(in),    optional :: haloLoaded
-    double precision, intent(in)              :: radius
-    integer                                   :: componentTypeActual,massTypeActual
-    double precision                          :: componentPotential
+    type            (treeNode           ), intent(inout), pointer  :: thisNode
+    integer                              , intent(in),    optional :: componentType,massType
+    logical                              , intent(in),    optional :: haloLoaded
+    double precision                     , intent(in)              :: radius
+    procedure       (Component_Potential),                pointer  :: componentPotentialFunction
+    double precision                                               :: componentPotential
 
     ! Determine which component type to use.
     if (present(componentType)) then
-       componentTypeActual=componentType
+       componentTypeShared=componentType
     else
-       componentTypeActual=componentTypeAll
+       componentTypeShared=componentTypeAll
     end if
     ! Determine which mass type to use.
     if (present(massType)) then
-       massTypeActual     =massType
+       massTypeShared     =massType
     else
-       massTypeActual     =massTypeAll
+       massTypeShared     =massTypeAll
     end if
-
-    ! Initialize to zero potential.
-    Galactic_Structure_Potential=0.0d0
-    
+    ! Determine whether halo loading is to be used.
+    if (present(haloLoaded)) then
+       haloLoadedShared=haloLoaded
+    else
+       haloLoadedShared=.true.
+    end if
+    ! Store the radius.
+    radiusShared=radius    
     ! Call routines to supply the potential for all components.
+    componentPotentialFunction => Component_Potential
+    Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation)
     !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
-    !#  <functionArgs>thisNode,radius,componentTypeActual,massTypeActual,haloLoaded</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
     include 'galactic_structure.potential.tasks.inc'
     !# </include>
-
     return
   end function Galactic_Structure_Potential
-  
+        
+  double precision function Component_Potential(component)
+    !% Unary function returning the potential in a component. Suitable for mapping over components.
+    use Galacticus_Nodes
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+    
+    Component_Potential=component%potential(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared)
+    return
+  end function Component_Potential
+
 end module Galactic_Structure_Potentials
     
     

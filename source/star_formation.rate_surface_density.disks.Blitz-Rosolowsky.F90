@@ -214,15 +214,15 @@ contains
     end if
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
+         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Get stellar surface density.
     surfaceDensityStar=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-         &=coordinateSystemCylindrical,massType=massTypeStellar,componentType=componentTypeDisk)
+         &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the pressure ratio that Blitz & Rosolowsky use to compute the molecular fraction.
     pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas &
          &*dsqrt(surfaceDensityStar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
          &/diskScaleRadius))/pressureCharacteristicBlitzRosolowsky
-   ! Compute the molecular fraction, limited to 100% molecular.
+    ! Compute the molecular fraction, limited to 100% molecular.
     if (pressureRatio >= 1.0d0) then
        molecularFraction=1.0d0
     else

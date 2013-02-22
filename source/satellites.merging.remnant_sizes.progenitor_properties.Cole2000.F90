@@ -297,22 +297,22 @@ contains
     select case (activeGasMovesTo)
     case (movesToSpheroid)
        Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGaseous,componentType=componentTypeSpheroid) &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGaseous,componentType=componentTypeDisk    )
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid                         ) &
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeGaseous)
     case (doesNotMove    )
        Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGaseous,componentType=componentTypeSpheroid)
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
   
     ! Account for gas mass.
     select case (activeStarsMoveTo)
     case (movesToSpheroid)
        Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeStellar,componentType=componentTypeSpheroid) &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeStellar,componentType=componentTypeDisk    )
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid                         ) &
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeDisk    ,massType=massTypeStellar)
     case (doesNotMove    )
        Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
-            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeStellar,componentType=componentTypeSpheroid)
+            &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeStellar)
     end select
     return
   end function Half_Mass_Radius_Root_Cole2000

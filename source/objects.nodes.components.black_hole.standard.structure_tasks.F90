@@ -24,48 +24,15 @@ module Node_Component_Black_Hole_Standard_Structure_Tasks
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Black_Hole_Standard_Enclosed_Mass, Node_Component_Black_Hole_Standard_Rotation_Curve         , &
+  public :: Node_Component_Black_Hole_Standard_Rotation_Curve         , &
        &    Node_Component_Black_Hole_Standard_Potential    , Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient
   
 contains
 
-  !# <enclosedMassTask>
-  !#  <unitName>Node_Component_Black_Hole_Standard_Enclosed_Mass</unitName>
-  !# </enclosedMassTask>
-  double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightBy,weightIndex&
-       &,haloLoaded)
-    !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
-    use Galactic_Structure_Options
-    implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: massType,componentType,weightBy,weightIndex
-    double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
-
-    ! Set zero enclosed mass by default.
-    Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
-    ! Return the black hole mass only if massType and componentType are of black hole type.
-    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
-    ! Get the black hole component and check that it is of the standard class.
-    thisBlackHoleComponent => thisNode%blackHole(instance=1)
-    select type (thisBlackHoleComponent)
-    class is (nodeComponentBlackHoleStandard)
-       if (radius >= 0.0d0) then
-          select case (weightBy)
-          case (weightByMass)
-             Node_Component_Black_Hole_Standard_Enclosed_Mass=thisBlackHoleComponent%mass()
-          end select
-       end if
-    end select
-    return
-  end function Node_Component_Black_Hole_Standard_Enclosed_Mass
-
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve</unitName>
   !# </rotationCurveTask>
-  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
     !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
     use Galacticus_Nodes
@@ -75,7 +42,7 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: massType,componentType
+    integer                                 , intent(in   )           :: componentType,massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
@@ -90,7 +57,7 @@ contains
        ! Check if the radius exceeds the gravitational radius.
        if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
           ! Radius is larger than the gravitational radius - compute the rotation speed.
-          componentMass=Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass &
+          componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass &
                &,weightIndexNull,haloLoaded)
           if (componentMass > 0.0d0) Node_Component_Black_Hole_Standard_Rotation_Curve=dsqrt(gravitationalConstantGalacticus&
                &*componentMass/radius)
@@ -128,7 +95,7 @@ contains
     class is (nodeComponentBlackHoleStandard)
        if (Black_Hole_Gravitational_Radius(thisBlackHoleComponent) <=0.0d0) return
        ! Computes the potential - limit the radius to the gravitational radius to avoid divergent potentials.
-       componentMass=Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass&
+       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass&
             &,weightIndexNull,haloLoaded)
        Node_Component_Black_Hole_Standard_Potential=-gravitationalConstantGalacticus*componentMass/max(radius &
             &,Black_Hole_Gravitational_Radius(thisBlackHoleComponent))
@@ -139,8 +106,8 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient</unitName>
   !# </rotationCurveGradientTask>
-  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(thisNode,radius,massType,componentType &
-       &,haloLoaded)
+  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(thisNode,radius,componentType &
+       &,massType,haloLoaded)
     !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian 
     !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
     use Galacticus_Nodes
@@ -150,7 +117,7 @@ contains
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: massType,componentType
+    integer                                 , intent(in   )           :: componentType,massType
     double precision                        , intent(in   )           :: radius
     logical                                 , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
@@ -165,7 +132,7 @@ contains
     thisBlackHoleComponent => thisNode%blackHole(instance=1)
     select type (thisBlackHoleComponent)
     class is (nodeComponentBlackHoleStandard)
-       componentMass=Node_Component_Black_Hole_Standard_Enclosed_Mass(thisNode,radius,massType,componentType,weightByMass,weightIndexNull&
+       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull&
             &,haloLoaded)
        if (componentMass == 0.0d0) return       
        if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then

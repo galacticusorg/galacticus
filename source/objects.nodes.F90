@@ -841,6 +841,94 @@ module Galacticus_Nodes
     return
   end function Node_Component_Host_Node
 
+  subroutine Node_Component_Null_Void0_InOut(self)
+    !% A null {\tt void} function for rank 0 {\tt nodeComponent} arrays.
+    implicit none
+    class(nodeComponent), intent(inout) :: self                        
+
+    return
+  end subroutine Node_Component_Null_Void0_InOut
+
+  double precision function Node_Component_Null_Double0_InOut(self)
+    !% A null {\tt double} function for rank 0 {\tt nodeComponent} arrays..
+    implicit none
+    class(nodeComponent), intent(inout) :: self                        
+
+    return
+  end function Node_Component_Null_Double0_InOut
+
+  double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+    !% A null implementation of the enclosed mass in a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)           :: self
+    integer                        , intent(in   )           :: componentType,massType,weightBy,weightIndex
+    double precision               , intent(in   )           :: radius
+    logical                        , intent(in   ), optional :: haloLoaded
+    
+    Node_Component_Enclosed_Mass_Null=0.0d0
+    return
+  end function Node_Component_Enclosed_Mass_Null
+
+  double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,haloLoaded)
+    !% A null implementation of the density in a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)               :: self
+    integer                        , intent(in   )               :: componentType,massType
+    double precision               , intent(in   ), dimension(3) :: positionSpherical
+    logical                        , intent(in   ), optional     :: haloLoaded
+    
+    Node_Component_Density_Null=0.0d0
+    return
+  end function Node_Component_Density_Null
+
+  double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,haloLoaded)
+    !% A null implementation of the surface density in a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)               :: self
+    integer                        , intent(in   )               :: componentType,massType
+    double precision               , intent(in   ), dimension(3) :: positionCylindrical
+    logical                        , intent(in   ), optional     :: haloLoaded
+    
+    Node_Component_Surface_Density_Null=0.0d0
+    return
+  end function Node_Component_Surface_Density_Null
+
+  double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
+    !% A null implementation of the gravitational potential in a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)           :: self
+    integer                        , intent(in   )           :: componentType,massType
+    double precision               , intent(in   )           :: radius
+    logical                        , intent(in   ), optional :: haloLoaded
+    
+    Node_Component_Potential_Null=0.0d0
+    return
+  end function Node_Component_Potential_Null
+
+  double precision function Node_Component_Rotation_Curve_Null(self,radius,componentType,massType,haloLoaded)
+    !% A null implementation of the rotation curve due to a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)           :: self
+    integer                        , intent(in   )           :: componentType,massType
+    double precision               , intent(in   )           :: radius
+    logical                        , intent(in   ), optional :: haloLoaded
+    
+    Node_Component_Rotation_Curve_Null=0.0d0
+    return
+  end function Node_Component_Rotation_Curve_Null
+
+  double precision function Node_Component_Rotation_Curve_Gradient_Null(self,radius,componentType,massType,haloLoaded)
+    !% A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
+    implicit none
+    class           (nodeComponent), intent(inout)           :: self
+    integer                        , intent(in   )           :: componentType,massType
+    double precision               , intent(in   )           :: radius
+    logical                        , intent(in   ), optional :: haloLoaded
+    
+    Node_Component_Rotation_Curve_Gradient_Null=0.0d0
+    return
+  end function Node_Component_Rotation_Curve_Gradient_Null
+  
   ! Simple Boolean functions.
   logical function Boolean_False()
     !% Returns Boolean false always.

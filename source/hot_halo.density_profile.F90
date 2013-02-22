@@ -150,13 +150,13 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>Hot_Halo_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
-  double precision function Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightBy,weightIndex,haloLoaded)
+  double precision function Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Cosmological_Parameters
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType,weightBy,weightIndex
+    integer,          intent(in)              :: componentType,massType,weightBy,weightIndex
     double precision, intent(in)              :: radius
     logical         , intent(in)   , optional :: haloLoaded
 
@@ -174,13 +174,13 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Task</unitName>
   !# </rotationCurveTask>
-  double precision function Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Hot_Halo_Profile_Rotation_Curve_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: radius
     logical         , intent(in   ), optional :: haloLoaded
     double precision                          :: componentMass
@@ -190,7 +190,7 @@ contains
 
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
+       componentMass=Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
        if (componentMass > 0.0d0) Hot_Halo_Profile_Rotation_Curve_Task=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
     end if
     return
@@ -199,14 +199,14 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>Hot_Halo_Profile_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
-  double precision function Hot_Halo_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Hot_Halo_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: radius
     logical,          intent(in),    optional :: haloLoaded
     double precision                          :: componentMass,componentDensity
@@ -216,7 +216,7 @@ contains
 
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,massType,componentType,weightByMass,weightIndexNull,haloLoaded)
+       componentMass=Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
        if (componentMass > 0.0d0) then
           componentDensity=Hot_Halo_Density(thisNode,radius)
           Hot_Halo_Profile_Rotation_Curve_Gradient_Task=gravitationalConstantGalacticus*(-componentMass/radius**2+4.0d0*Pi*radius&
@@ -229,13 +229,13 @@ contains
   !# <densityTask>
   !#  <unitName>Hot_Halo_Profile_Density_Task</unitName>
   !# </densityTask>
-  double precision function Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,massType,componentType,haloLoaded)
+  double precision function Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     implicit none
     type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in)              :: massType,componentType
+    integer,          intent(in)              :: componentType,massType
     double precision, intent(in)              :: positionSpherical(3)
     logical,          intent(in)   , optional :: haloLoaded
     

@@ -219,11 +219,12 @@ contains
          &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar                                    ) &
          &                                      *thisTree%volumeWeight
     historyDiskStellarDensity       (timeIndex)= historyDiskStellarDensity       (timeIndex)                                                               &
-         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeDisk    ) &
+         &                                      +  Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeDisk    ,massType=massTypeStellar) &
          &                                      *thisTree%volumeWeight
     historySpheroidStellarDensity   (timeIndex)= historySpheroidStellarDensity   (timeIndex)                                                               &
-         &                                        +Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,componentType=componentTypeSpheroid) &
+         &                                        +Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeSpheroid,massType=massTypeStellar) &
          &                                      *thisTree%volumeWeight
+
     ! Hot gas density.
     hotGasMass                                 =   Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeHotHalo                          )
     historyHotGasDensity            (timeIndex)= historyHotGasDensity            (timeIndex)                                                               &

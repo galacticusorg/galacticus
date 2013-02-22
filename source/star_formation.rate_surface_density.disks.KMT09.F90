@@ -179,7 +179,7 @@ contains
     else
        ! Get gas surface density.
        surfaceDensityGas=Galactic_Structure_Surface_Density(thisNode,[radius,0.0d0,0.0d0],coordinateSystem&
-            &=coordinateSystemCylindrical,massType=massTypeGaseous,componentType=componentTypeDisk)
+            &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
        ! Compute the molecular fraction.
        if (metallicityRelativeToSolar > 0.0d0) then
           sigmaMolecularComplex=sigmaMolecularComplexNormalization*surfaceDensityGas

@@ -123,8 +123,7 @@ contains
     satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
     hostMass        =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic                                    )
     hostGasMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous                                     )
-    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,componentType=componentTypeSpheroid)
-
+    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,componentType=componentTypeSpheroid,massType=massTypeGalactic)
     ! Decide if the mass ratio is large enough to trigger a major merger.
     mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
 

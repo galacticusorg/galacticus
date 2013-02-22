@@ -26,9 +26,15 @@ module Galactic_Structure_Surface_Densities
   private
   public :: Galactic_Structure_Surface_Density
 
+  ! Module scope variables used in mapping over components.
+  integer                        :: componentTypeShared,massTypeShared
+  logical                        :: haloLoadedShared
+  double precision, dimension(3) :: positionCylindricalShared
+  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared)
+
 contains
 
-  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,massType,componentType,haloLoaded)
+  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
@@ -38,12 +44,13 @@ contains
     include 'galactic_structure.surface_density.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: massType,componentType,coordinateSystem
-    logical,          intent(in),    optional :: haloLoaded
-    double precision, intent(in)              :: position(3)
-    integer                                   :: massTypeActual,coordinateSystemActual,componentTypeActual
-    double precision                          :: positionCylindrical(3),componentDensity
+    type            (treeNode                 ), intent(inout), pointer  :: thisNode
+    integer                                    , intent(in   ), optional :: componentType,massType,coordinateSystem
+    logical                                    , intent(in   ), optional :: haloLoaded
+    double precision                           , intent(in   )           :: position(3)
+    procedure       (Component_Surface_Density),                pointer  :: componentSurfaceDensityFunction
+    integer                                                              :: coordinateSystemActual
+    double precision                                                     :: componentDensity
 
     ! Determine position in cylindrical coordinate system to use.
     if (present(coordinateSystem)) then
@@ -53,40 +60,52 @@ contains
     end if
     select case (coordinateSystemActual)
     case (coordinateSystemSpherical)
-       positionCylindrical=Coordinates_Spherical_To_Cylindrical (position)
+       positionCylindricalShared=Coordinates_Spherical_To_Cylindrical (position)
     case (coordinateSystemCylindrical)
-       positionCylindrical=position
+       positionCylindricalShared=position
     case (coordinateSystemCartesian)
-       positionCylindrical=Coordinates_Cartesian_To_Cylindrical(position)
+       positionCylindricalShared=Coordinates_Cartesian_To_Cylindrical(position)
     case default
        call Galacticus_Error_Report('Galactic_Structure_Surface_Density','unknown coordinate system type')
     end select
-
     ! Determine which mass type to use.
     if (present(massType)) then
-       massTypeActual=massType
+       massTypeShared=massType
     else
-       massTypeActual=massTypeAll
+       massTypeShared=massTypeAll
     end if
-
     ! Determine which component type to use.
     if (present(componentType)) then
-       componentTypeActual=componentType
+       componentTypeShared=componentType
     else
-       componentTypeActual=componentTypeAll
+       componentTypeShared=componentTypeAll
     end if
-
-    ! Initialize to zero surface density.
-    Galactic_Structure_Surface_Density=0.0d0
-
+    ! Determine whether halo loading is to be used.
+    if (present(haloLoaded)) then
+       haloLoadedShared=haloLoaded
+    else
+       haloLoadedShared=.true.
+    end if
     ! Call routines to supply the densities for all components.
+    componentSurfaceDensityFunction => Component_Surface_Density
+    Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation)
     !# <include directive="surfaceDensityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionCylindrical,massTypeActual,componentTypeActual,haloLoaded</functionArgs>
+    !#  <functionArgs>thisNode,positionCylindricalShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Surface_Density=Galactic_Structure_Surface_Density+componentDensity</onReturn>
     include 'galactic_structure.surface_density.tasks.inc'
     !# </include>
-
     return
   end function Galactic_Structure_Surface_Density
-  
+      
+  double precision function Component_Surface_Density(component)
+    !% Unary function returning the surface density in a component. Suitable for mapping over components.
+    use Galacticus_Nodes
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+ 
+    Component_Surface_Density=component%surfaceDensity(positionCylindricalShared,componentTypeShared&
+         &,massTypeShared,haloLoadedShared)
+    return
+  end function Component_Surface_Density
+
 end module Galactic_Structure_Surface_Densities

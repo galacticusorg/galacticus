@@ -28,15 +28,15 @@ module Galactic_Structure_Rotation_Curve_Gradients
   private
   public :: Galactic_Structure_Rotation_Curve_Gradient
 
-  ! Variables used in root finding.
-  integer                  :: massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot
-  double precision         :: massRoot
-  type(treeNode),  pointer :: activeNode
-  !$omp threadprivate(massRoot,massTypeRoot,componentTypeRoot,weightByRoot,weightIndexRoot,activeNode)
+  ! Module scope variables used in mapping over components.
+  integer                              :: componentTypeShared,massTypeShared
+  logical                              :: haloLoadedShared
+  double precision                     :: radiusShared
+  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
 
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,massType,componentType,haloLoaded)
+  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,componentType,massType,haloLoaded)
     !% Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     use Galacticus_Error
     use Galactic_Structure_Rotation_Curves
@@ -48,32 +48,39 @@ contains
     include 'galactic_structure.rotation_curve.gradient.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode),   intent(inout), pointer  :: thisNode
-    integer,          intent(in),    optional :: componentType,massType  
-    logical,          intent(in),    optional :: haloLoaded
-    double precision, intent(in)              :: radius
-    integer                                   :: massTypeActual,componentTypeActual  
-    double precision                          :: componentRotationCurveGradient
+    type            (treeNode                         ), intent(inout), pointer  :: thisNode
+    integer                                            , intent(in   ), optional :: componentType,massType  
+    logical                                            , intent(in   ), optional :: haloLoaded
+    double precision                                   , intent(in   )           :: radius
+    procedure       (Component_Rotation_Curve_Gradient),                pointer  :: componentRotationCurveGradientFunction
+    double precision                                                             :: componentRotationCurveGradient
 
     ! Determine which component type to use.
     if (present(componentType)) then
-       componentTypeActual=componentType
+       componentTypeShared=componentType
     else
-       componentTypeActual=componentTypeAll
+       componentTypeShared=componentTypeAll
     end if
     ! Determine which mass type to use
     if (present(massType)) then
-       massTypeActual=massType
+       massTypeShared=massType
     else
-       massTypeActual=massTypeAll
+       massTypeShared=massTypeAll
     end if
-    ! Initialize to zero gradient.
-    Galactic_Structure_Rotation_Curve_Gradient=0.0d0
-    
+    ! Determine whether halo loading is to be used.
+    if (present(haloLoaded)) then
+       haloLoadedShared=haloLoaded
+    else
+       haloLoadedShared=.true.
+    end if
+    ! Store the radius.
+    radiusShared=radius
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
     ! d(V^2)/dr so that they can be summed directly.
+    componentRotationCurveGradientFunction => Component_Rotation_Curve_Gradient
+    Galactic_Structure_Rotation_Curve_Gradient=thisNode%mapDouble0(componentRotationCurveGradientFunction,reductionSummation)
     !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
-    !#  <functionArgs>thisNode,radius,massTypeActual,componentTypeActual,haloLoaded</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
     !# </include>
@@ -81,10 +88,20 @@ contains
     ! Convert the summed d(V^2)/dr to dV/dr.
     Galactic_Structure_Rotation_Curve_Gradient= 0.5d0                                                                              &
          &                                     *Galactic_Structure_Rotation_Curve_Gradient                                         &
-         &                                     /Galactic_Structure_Rotation_Curve         (thisNode,radius,massType,componentType)
-
+         &                                     /Galactic_Structure_Rotation_Curve         (thisNode,radius,componentType,massType)
     return
   end function Galactic_Structure_Rotation_Curve_Gradient
+
+  double precision function Component_Rotation_Curve_Gradient(component)
+    !% Unary function returning the gradient of the squared rotation curve in a component. Suitable for mapping over components.
+    use Galacticus_Nodes
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+ 
+    Component_Rotation_Curve_Gradient=component%rotationCurveGradient(radiusShared,componentTypeShared&
+         &,massTypeShared,haloLoadedShared)
+    return
+  end function Component_Rotation_Curve_Gradient
 
 end module Galactic_Structure_Rotation_Curve_Gradients
     
