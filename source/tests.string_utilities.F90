@@ -24,7 +24,7 @@ program Test_String_Utilities
   use String_Handling
   use Kind_Numbers
   implicit none
-  character(len=10),    dimension(3) :: words
+  character(len=20),    dimension(3) :: words
   type(varying_string), dimension(3) :: myStrings
   type(varying_string)               :: myString1,myString2
 
@@ -42,20 +42,22 @@ program Test_String_Utilities
   call Assert("count words: 'one two three' [comma separated]",String_Count_Words("one,two,three"                          ,separator=","),3)
 
   ! Test word splitting.
-  call String_Split_Words(words,"one"                                                  )
+  call String_Split_Words(words,"one"                                                    )
   call Assert("split words: 'one'"                            ,words(1:1),["one"                  ])
-  call String_Split_Words(words,"one two three"                                        )
+  call String_Split_Words(words,"one two three"                                          )
   call Assert("split words: 'one two three'"                  ,words(1:3),["one  ","two  ","three"])
-  call String_Split_Words(words,"one"//char( 0)//"two"//char( 0)//"three"              )
+  call String_Split_Words(words,"one"//char( 0)//"two"//char( 0)//"three"                )
   call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
-  call String_Split_Words(words,"one"//char(10)//"two"//char(10)//"three"              )
+  call String_Split_Words(words,"one"//char(10)//"two"//char(10)//"three"                )
   call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
-  call String_Split_Words(words,"one"//char(13)//"two"//char(13)//"three"              )
+  call String_Split_Words(words,"one"//char(13)//"two"//char(13)//"three"                )
   call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
-  call String_Split_Words(words,"one"//char( 9)//"two"//char( 9)//"three"              )
+  call String_Split_Words(words,"one"//char( 9)//"two"//char( 9)//"three"                )
   call Assert("split words: 'one two three' [null separated]" ,words(1:3),["one  ","two  ","three"])
-  call String_Split_Words(words,"one,two,three"                          ,separator=",")
+  call String_Split_Words(words,"one,two,three"                          ,separator=","  )
   call Assert("split words: 'one two three' [comma separated]",words(1:3),["one  ","two  ","three"])
+  call String_Split_Words(words,"one (two and a half) three"             ,bracketing="()")
+  call Assert("split words: 'one (two and a half) three' [with bracketing]",words(1:3),["one             ","(two and a half)","three           "])
 
   ! Test concatenation of varying strings.
   myString1='test'
