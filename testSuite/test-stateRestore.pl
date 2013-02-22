@@ -10,16 +10,16 @@ use PDL::NiceSlice;
 
 # Run full model and a restored state model.
 system("export OMP_NUM_THREADS=1; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"   );
-die("FAIL: failed to run store model")
+die("FAILED: failed to run store model")
     unless ( $? == 0 );
 system("export OMP_NUM_THREADS=1; cd ..; Galacticus.exe testSuite/parameters/state/retrieve.xml");
-die("FAIL: failed to run retrieve model")
+die("FAILED: failed to run retrieve model")
     unless ( $? == 0 );
 
 # Open both output files.
-die("FAIL: stateStore.hdf5 file is missing")
+die("FAILED: stateStore.hdf5 file is missing")
     unless ( -e "outputs/stateRetrieve.hdf5" );
-die("FAIL: stateRetrieve.hdf5 file is missing")
+die("FAILED: stateRetrieve.hdf5 file is missing")
     unless ( -e "outputs/stateStore.hdf5" );
 my $store    = new PDL::IO::HDF5("outputs/stateStore.hdf5"   );
 my $retrieve = new PDL::IO::HDF5("outputs/stateRetrieve.hdf5");
@@ -34,7 +34,7 @@ my $retrieveTreeSize = $retrieve->group('Outputs')->group('Output1')->dataset('m
 
 # Check that the number of nodes is the same.
 unless ( $storeTreeSize == $retrieveTreeSize ) {
-    print "FAIL: number of nodes in output changed after state retrieve\n";
+    print "FAILED: number of nodes in output changed after state retrieve\n";
     exit;
 }
 
@@ -46,7 +46,7 @@ foreach my $dataset ( @datasets ) {
     my $storeDataset    = $storeData   ->dataset($dataset)->get()->(-$storeTreeSize:-1);
     my $retrieveDataset = $retrieveData->dataset($dataset)->get();
     my $equal = all($storeDataset == $retrieveDataset);
-    print "FAIL: dataset '".$dataset."' changed after state retrieve\n"
+    print "FAILED: dataset '".$dataset."' changed after state retrieve\n"
 	unless ( $equal == 1 );
 }
 
