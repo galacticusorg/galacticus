@@ -28,14 +28,14 @@ module Galactic_Structure_Velocity_Dispersions
   public :: Galactic_Structure_Velocity_Dispersion
   
   ! Module scoped variables used in integrations.
-  integer                 :: componentTypeGlobal
+  integer                 :: componentTypeGlobal,massTypeGlobal
   type(treeNode), pointer :: activeNode
   logical                 :: haloLoadedActual
   !$omp threadprivate(componentTypeGlobal,activeNode)
 
 contains
 
-  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,haloLoaded)
+  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType,haloLoaded)
     !% Returns the velocity dispersion of the specified {\tt componentType} in {\tt thisNode} at the given {\tt radius}.
     use FGSL
     use, intrinsic :: ISO_C_Binding
@@ -44,7 +44,7 @@ contains
     use Galactic_Structure_Densities
     type(treeNode),   intent(inout), pointer  :: thisNode  
     double precision, intent(in)              :: radius,radiusOuter
-    integer,          intent(in)              :: componentType
+    integer,          intent(in)              :: componentType,massType
     logical,          intent(in),    optional :: haloLoaded
     double precision                          :: densityVelocityVariance,componentDensity
     type(c_ptr)                               :: parameterPointer
@@ -53,6 +53,7 @@ contains
 
     activeNode         => thisNode
     componentTypeGlobal=  componentType
+    massTypeGlobal     =  massType
     haloLoadedActual   =.true.
     if (present(haloLoaded)) haloLoadedActual=haloLoaded
     densityVelocityVariance=Integrate(radius,radiusOuter,Velocity_Dispersion_Integrand,parameterPointer&
@@ -60,7 +61,7 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
 
     ! Get the density at this radius.
-    componentDensity=Galactic_Structure_Density(thisNode,[radius,0.0d0,0.0d0],componentType=componentType)
+    componentDensity=Galactic_Structure_Density(thisNode,[radius,0.0d0,0.0d0],componentType=componentType,massType=massType)
 
     ! Check for zero density.
     if (componentDensity <= 0.0d0) then
@@ -86,7 +87,7 @@ contains
     Velocity_Dispersion_Integrand= gravitationalConstantGalacticus                                                                     &
          &                        *Galactic_Structure_Enclosed_Mass(activeNode, radius                                               ) &
          &                        /radius**2                                                                                           &
-         &                        *Galactic_Structure_Density      (activeNode,[radius,0.0d0,0.0d0],componentType=componentTypeGlobal,haloLoaded=haloLoadedActual)
+         &                        *Galactic_Structure_Density      (activeNode,[radius,0.0d0,0.0d0],componentType=componentTypeGlobal,massType=massTypeGlobal,haloLoaded=haloLoadedActual)
     return
   end function Velocity_Dispersion_Integrand
 
