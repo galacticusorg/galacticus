@@ -3325,8 +3325,11 @@ sub Generate_Implementation_Output_Functions {
 			    }
 			}
 			else {
-			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
-			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$property->{'output'}->{'unitsInSI'}.")\n";
+			    my $unitsInSI = "0.0d0";
+			    $unitsInSI = $property->{'output'}->{'unitsInSI'}
+			        if ( exists($property->{'output'}->{'unitsInSI'}) );
+			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
+			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
 			}
 		    }
 		}
@@ -5648,6 +5651,12 @@ sub Generate_Component_Class_Output_Functions {
 		 intrinsic  => "integer",
 		 attributes => ["intent(in   )" ],
 		 variables  => [ "instance" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "allocatable" ],
+		 variables  => [ "selfDefault" ]
 	     }
 	    );
 	undef($functionCode);
@@ -5655,7 +5664,9 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "    !% Increment the count of properties to output for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    call default".ucfirst($componentClassName)."Component%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n";
+	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
+	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
+	$functionCode .= "    call selfDefault%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output_Count\n";
 	# Insert into the function list.
@@ -5702,6 +5713,12 @@ sub Generate_Component_Class_Output_Functions {
 		 intrinsic  => "integer",
 		 attributes => ["intent(in   )" ],
 		 variables  => [ "instance" ]
+	     },
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($componentClassName),
+		 attributes => [ "allocatable" ],
+		 variables  => [ "selfDefault" ]
 	     }
 	    );
 	undef($functionCode);
@@ -5709,7 +5726,9 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "    !% Establish property names for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    call default".ucfirst($componentClassName)."Component%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
+	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
+	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
+	$functionCode .= "    call selfDefault%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Output_Names\n";
 	# Insert into the function list.
