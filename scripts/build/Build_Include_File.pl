@@ -14,6 +14,7 @@ use Scalar::Util 'reftype';
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::ModuleUse;
+require Galacticus::Build::MethodNames;
 require Galacticus::Build::Labels;
 require Galacticus::Build::FunctionCall;
 require Galacticus::Build::Components;

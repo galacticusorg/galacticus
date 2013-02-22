@@ -69,6 +69,7 @@ contains
 
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CIE_File_Initialize</unitName>
+  !#  <methodName>cieFromFile</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_CIE_File_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``CIE cooling function from file'' module.

@@ -65,6 +65,7 @@ contains
   
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_Molecular_Hydrogen_GP_Initialize</unitName>
+  !#  <methodName>molecularHydrogenGalliPalla</methodName>
   !# </coolingFunctionMethods>
   subroutine Cooling_Function_Molecular_Hydrogen_GP_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``molecular hydrogen Galli \& Palla'' cooling function module.
