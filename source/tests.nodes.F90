@@ -102,28 +102,10 @@ program Test_Nodes
      class default
      call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
   end select
-
-!!  ! Create custom spheroid component in thisNode.
-!!  call thisNode%spheroidCreate(sourceSpheroidStandard)
-
-!!  ! Get the spheroid component - assert that it has the expected type.
-!!  thisComponent => thisNode%spheroid()
-!!  call Assert('Created custom spheroid component has type "nodeComponent:spheroid:Standard"',char(thisComponent%type()),'nodeComponent:spheroid:Standard')
-
-!!  ! Test setting and getting of 1-D arrays, with allocation, in a custom component.
-!!  select type  (thisComponent)
-!!     class is (nodeComponentSpheroid)
-!!     call thisComponent%massStellarSet([1.0d0,3.0d0,-12.3d0])
-!!     propertyArray=thisComponent%massStellar()
-!!     call Assert('1D array property get/set consistency [custom spheroid]',propertyArray,[1.0d0,3.0d0,-12.3d0])
-!!     call Assert('1D array property size                [custom spheroid]',thisComponent%massStellarCount(),3)
-!!     class default
-!!     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
-!!  end select
   
   ! Get the basic component from the spheroid component - assert that it has the expected type.
-  hostNode => thisComponent%host()
-  thisComponent => hostNode%basic()
+  hostNode      => thisComponent%host ()
+  thisComponent => hostNode     %basic()
   call Assert('Basic component retrieved via spheroid component has type "nodeComponent:basic:standard"',char(thisComponent%type()),'nodeComponent:basic:standard')
 
   ! Get the tree node from the basic component - assert that it has the expected type.
@@ -162,34 +144,8 @@ program Test_Nodes
   ! Check that we can create and retrieve instances of a component.
   thisComponent => thisNode%basic(instance=2)
 
-!!  ! Create a black hole component - assert that it has the expected type.
-!!  call thisNode%blackHoleCreate()
-!!  thisComponent => thisNode%blackHole()
-!!  call Assert('Black hole component has type "nodeComponent:blackHole:standard"',char(thisComponent%type()),'nodeComponent:blackHole:standard')
-
-!!  ! Set property in this black hole which is inherited from parent class, and test that it is recovered correctly.
-!!  select type  (thisComponent)
-!!     class is (nodeComponentBlackHole)
-!!     call thisComponent%massSet(1.0d6)
-!!     call Assert('Property inherited from parent can get/set consistently',thisComponent%mass(),1.0d6)
-!!     class default
-!!     call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
-!!  end select
-
   ! Execute an example  task.
-!!  call Test_Node_Task(thisNode)
-
-  !!Tree-walk routines.
-
-  !!C-bindings for all methods (get/set/evolve).
-
-  !!Use F2003 constructor functions once the patch is into gfortran.
-
-  !!Set/get abundances/history/orbit/chemicals.
-
-  !!Class arrays.
-
-  !!Finalization routines.
+  call Test_Node_Task(thisNode)
 
   ! Finalize the objects module. (Not strictly necessary, but it cleans up some allocations which otherwise get reported by
   ! Valgrind.)

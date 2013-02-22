@@ -20,60 +20,63 @@
 module Test_Nodes_Tasks
   !% Implements a simple test of mapping a function over all components in a \gls{node}.
   private
-!  public :: Test_Node_Task
+  public :: Test_Node_Task
   
   ! Records of which components have been seen in a test of function mapping.
-!  logical :: componentBasicStandardSeen    =.false.
-!  logical :: componentBlackHoleStandardSeen=.false.
+  logical :: componentBasicStandardSeen    =.false.
+  logical :: componentBlackHoleStandardSeen=.false.
 
 contains
   
-  ! subroutine Test_Node_Task(thisNode)
-  !   !% Implements simple tests of mapping functions over all components in a \gls{node}.
-  !   use Galacticus_Nodes
-  !   use Unit_Tests
-  !   implicit none
-  !   type(treeNode),              intent(inout) :: thisNode
-  !   procedure(),                 pointer       :: myFuncVoid    => testVoidFunc
-  !   procedure(double precision), pointer       :: myFuncDouble0 => testFuncDouble0
-  !   class(nodeComponent), pointer :: thisComponent
-  !   double precision                           :: mapResult
+  subroutine Test_Node_Task(thisNode)
+    !% Implements simple tests of mapping functions over all components in a \gls{node}.
+    use Galacticus_Nodes
+    use Unit_Tests
+    implicit none
+    type            (treeNode        ), intent(inout) :: thisNode
+    procedure       (                ), pointer       :: myFuncVoid    => testVoidFunc
+    procedure       (double precision), pointer       :: myFuncDouble0 => testFuncDouble0
+    class           (nodeComponent   ), pointer       :: thisComponent
+    double precision                                  :: mapResult
 
-  !   ! Map a void function (subroutine) over all components.
-  !   call thisNode%mapVoid(myFuncVoid)
-  !   call Assert('Map void function over all components',all([componentBasicStandardSeen,componentBlackHoleStandardSeen]),.true.)
+    ! Create a black hole component.
+    thisComponent => thisNode%blackHole(autoCreate=.true.)
 
-  !   ! Map a scalar double function over all components, with summation reduction
-  !   mapResult=thisNode%mapDouble0(myFuncDouble0,reduction=reductionSummation)
-  !   thisComponent => thisNode%blackHole()
-  !   select type (thisComponent)
-  !   class is (nodeComponentBlackHole)
-  !      call Assert('Summation reduction map over all components',thisComponent%mass(),mapResult)
-  !   end select
-  !   return
-  ! end subroutine Test_Node_Task
+    ! Map a void function (subroutine) over all components.
+    call thisNode%mapVoid(myFuncVoid)
+    call Assert('Map void function over all components',all([componentBasicStandardSeen,componentBlackHoleStandardSeen]),.true.)
 
-  ! subroutine testVoidFunc(component)
-  !   !% A simple void function used in testing mapping over a function over all components.
-  !   use Galacticus_Nodes
-  !   use ISO_Varying_String
-  !   implicit none
-  !   class(nodeComponent), intent(inout) :: component
+    ! Map a scalar double function over all components, with summation reduction
+    mapResult=thisNode%mapDouble0(myFuncDouble0,reduction=reductionSummation)
+    select type (thisComponent)
+    class is (nodeComponentBlackHole)
+       call Assert('Summation reduction map over all components',thisComponent%mass(),mapResult)
+    end select
+    return
+  end subroutine Test_Node_Task
 
-  !   if (component%type() == "nodeComponent:basic:standard"    ) componentBasicStandardSeen    =.true.
-  !   if (component%type() == "nodeComponent:blackHole:standard") componentBlackHoleStandardSeen=.true.    
-  !   return
-  ! end subroutine testVoidFunc
+  subroutine testVoidFunc(component)
+    !% A simple void function used in testing mapping over a function over all components.
+    use Galacticus_Nodes
+    use ISO_Varying_String
+    implicit none
+    class(nodeComponent), intent(inout) :: component
 
-  ! double precision function testFuncDouble0(component)
-  !   !% A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
-  !   !% components.
-  !   use Galacticus_Nodes
-  !   implicit none
-  !   class(nodeComponent), intent(inout) :: component
+    if (component%type() == "nodeComponent:basic:standard"    ) componentBasicStandardSeen    =.true.
+    if (component%type() == "nodeComponent:blackHole:standard") componentBlackHoleStandardSeen=.true.    
+    return
+  end subroutine testVoidFunc
 
-  !   testFuncDouble0=component%enclosedMass()
-  !   return
-  ! end function testFuncDouble0
+  double precision function testFuncDouble0(component)
+    !% A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
+    !% components.
+    use Galacticus_Nodes
+    use Galactic_Structure_Options
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+
+    testFuncDouble0=component%enclosedMass(radiusLarge,componentTypeAll,massTypeAll,weightByMass,weightIndexNull)
+    return
+  end function testFuncDouble0
 
 end module Test_Nodes_Tasks
