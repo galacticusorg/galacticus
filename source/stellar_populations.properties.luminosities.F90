@@ -20,7 +20,7 @@ module Stellar_Population_Properties_Luminosities
   implicit none
   private
   public :: Stellar_Population_Luminosities_Count, Stellar_Population_Luminosities_Get, Stellar_Population_Luminosities_Name,&
-       & Stellar_Population_Luminosities_Output_Count, Stellar_Population_Luminosities_Output
+       & Stellar_Population_Luminosities_Output_Count, Stellar_Population_Luminosities_Output, Stellar_Population_Luminosities_Index
 
   ! Flag specifying if module has been initialized.
   logical                                         :: luminositiesInitialized=.false.
@@ -82,6 +82,24 @@ contains
     Stellar_Population_Luminosities_Name=luminosityName(index)
     return
   end function Stellar_Population_Luminosities_Name
+
+  integer function Stellar_Population_Luminosities_Index(name)
+    !% Return the index of and specified entry in the luminosity list given its name.
+    use Galacticus_Error
+    use ISO_Varying_String
+    implicit none
+    type   (varying_string), intent(in   ) :: name
+    integer                                :: i
+    
+    do i=1,luminosityCount
+       if (name == luminosityName(i)) then
+          Stellar_Population_Luminosities_Index=i
+          return
+       end if
+    end do
+    call Galacticus_Error_Report('Stellar_Population_Luminosities_Index','unmatched name')
+    return
+  end function Stellar_Population_Luminosities_Index
   
   function Stellar_Population_Luminosities_Get(imfSelected,time,abundancesStellar)
     !% Return the luminosity in each requested band for a stellar population of $1M_\odot$ with the specified {\tt abundancesStellar} and
