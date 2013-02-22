@@ -78,6 +78,18 @@ module Kepler_Orbits
      !@     <description>Destroys an orbit.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>output</method>
+     !@     <description>Store a {\tt keplerOrbit} object in the output buffers.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputCount</method>
+     !@     <description>Specify the count of a {\tt keplerOrbit} object for output.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputNames</method>
+     !@     <description>Specify the names of a {\tt keplerOrbit} object properties for output.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>isDefined</method>
      !@     <description>Returns true if an orbit is fully defined.</description>
      !@   </objectMethod>
@@ -189,6 +201,9 @@ module Kepler_Orbits
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
+     procedure :: output                => Kepler_Orbits_Output
+     procedure :: outputCount           => Kepler_Orbits_Output_Count
+     procedure :: outputNames           => Kepler_Orbits_Output_Names
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
      procedure :: propagate             => Kepler_Orbits_Propagate
@@ -226,6 +241,75 @@ contains
     ! Nothing to do.
     return
   end subroutine Kepler_Orbits_Destroy
+
+  subroutine Kepler_Orbits_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount&
+       &,doubleBuffer,time)
+    !% Store a {\tt keplerOrbit} object in the output buffers.
+    use Kind_Numbers
+    implicit none
+    class           (keplerOrbit   )                 , intent(inout) :: self
+    double precision                                 , intent(in   ) :: time
+    integer                                          , intent(inout) :: integerProperty,integerBufferCount&
+    &,doubleProperty,doubleBufferCount
+    integer         (kind=kind_int8), dimension(:,:), intent(inout) :: integerBuffer
+    double precision                , dimension(:,:), intent(inout) :: doubleBuffer
+
+    if (self%isDefined()) then
+       doubleBuffer(doubleBufferCount,doubleProperty+1)=self%energy         ()
+       doubleBuffer(doubleBufferCount,doubleProperty+2)=self%angularMomentum()
+       doubleBuffer(doubleBufferCount,doubleProperty+3)=self%velocityScale  ()
+       doubleBuffer(doubleBufferCount,doubleProperty+4)=self%hostMass       ()
+    else
+       doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+4)=0.0d0
+    end if
+    doubleProperty=doubleProperty+4
+    return
+  end subroutine Kepler_Orbits_Output
+
+  subroutine Kepler_Orbits_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
+    !% Increment the output count to account for a {\tt keplerOrbit} object.
+    implicit none
+    class           (keplerOrbit), intent(in   ) :: self
+    integer                      , intent(inout) :: integerPropertyCount,doublePropertyCount
+    double precision             , intent(in   ) :: time                                    
+
+    doublePropertyCount=doublePropertyCount+4
+    return
+  end subroutine Kepler_Orbits_Output_Count
+  
+  subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
+       &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
+    !% Assign names to output buffers for a {\tt keplerOrbit} object.
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Astronomical
+    implicit none
+    class           (keplerOrbit)              , intent(in   ) :: self
+    double precision                           , intent(in   ) :: time
+    integer                                    , intent(inout) :: integerProperty,doubleProperty
+    character       (len=*      ), dimension(:), intent(inout) :: integerPropertyNames,integerPropertyComments,doublePropertyNames,doublePropertyComments
+    double precision             , dimension(:), intent(inout) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    character       (len=*      )              , intent(in   ) :: prefix,comment
+    double precision                           , intent(in   ) :: unitsInSI
+    integer                                                    :: iElement
+
+    doubleProperty=doubleProperty+1
+    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
+    doublePropertyComments(doubleProperty)=trim(comment)//' [specific energy]'
+    doublePropertyUnitsSI (doubleProperty)=kilo**2
+    doubleProperty=doubleProperty+1
+    doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificAngularMomentum'
+    doublePropertyComments(doubleProperty)=trim(comment)//' [specific angular momentum]'
+    doublePropertyUnitsSI (doubleProperty)=kilo*megaParsec
+    doubleProperty=doubleProperty+1
+    doublePropertyNames   (doubleProperty)=trim(prefix)//'VelocityScale'
+    doublePropertyComments(doubleProperty)=trim(comment)//' [velocity scale]'
+    doublePropertyUnitsSI (doubleProperty)=kilo
+    doubleProperty=doubleProperty+1
+    doublePropertyNames   (doubleProperty)=trim(prefix)//'HostMass'
+    doublePropertyComments(doubleProperty)=trim(comment)//' [host mass]'
+    doublePropertyUnitsSI (doubleProperty)=massSolar
+    return
+  end subroutine Kepler_Orbits_Output_Names
 
   subroutine Kepler_Orbits_Builder(self,keplerOrbitDefinition)
     !% Build a {\tt keplerOrbit} object from the given XML {\tt keplerOrbitDefinition}.
