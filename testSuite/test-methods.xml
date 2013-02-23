@@ -727,4 +727,22 @@
     </parameter> 
   </parameters>
 
+  <!-- Hot halo ram pressure forces -->
+  <parameters>
+    <parameter>
+      <name>hotHaloRamPressureForceMethod</name>
+      <value>Font2008</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+
+  <!-- Disk ram pressure mass loss rates -->
+  <parameters>
+    <parameter>
+      <name>ramPressureStrippingMassLossRateDisksMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+
 </parameterGrid>
