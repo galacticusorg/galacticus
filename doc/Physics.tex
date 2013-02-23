@@ -1167,6 +1167,22 @@ Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt growingCore}, t
 
 Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
 
+\section{Hot Halo Ram Pressure Force}\label{sec:HotHaloRamPressureForce}\index{hot halo!ram pressure force}\index{ram pressure force!hot halo}
+
+The algorithm to be used when determining the ram pressure force due to the hot halo is selected via the {\tt hotHaloRamPressureForceMethod} parameter.
+
+\subsection{Null}
+
+Selected with {\tt hotHaloRamPressureForceMethod}$=${\tt null} this method assumes a zero ram pressure force due to the hot halo.
+
+\subsection{Font et al. (2008)}
+
+Selected with {\tt hotHaloRamPressureForceMethod}$=${\tt Font2008} this method computes the ram pressure force using the algorithm of \cite{font_colours_2008}. Specifically, the ram pressure force is
+\begin{equation}
+\mathcal{F}_{\rm ram, hot, host} = \rho_{\rm hot, host}(r_{\rm peri}) v^2(r_{\rm peri}),
+\end{equation}
+where $\rho_{\rm hot, host}(r)$ is the hot halo density profile of the node's host halo, $v(r)$ is the orbital velocity of the node in that host, and $r_{\rm peri}$ is the pericentric radius of the node's orbit.
+
 \section{Hot Halo Ram Pressure Stripping Radius}\label{sec:HotHaloRamPressureStrip}\index{hot halo!ram pressure stripping}\index{ram pressure stripping!hot halo}
 
 The algorithm to be used when determining the radius to which the hot halo is stripped by ram pressure forces is selected via the {\tt hotHaloRamPressureStrippingMethod} parameter.
@@ -1175,14 +1191,14 @@ The algorithm to be used when determining the radius to which the hot halo is st
 
 Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt virialRadius} this method sets the ram pressure stripping radius equal to the virial radius of the halo. The effectively results in no ram pressure stripping.
 
-
 \subsection{Font et al. (2008)}
 
 Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this method computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}. Specifically, the radius, $r_{\rm rp}$, is computed as the solution of
 \begin{equation}
-\alpha_{\rm rp} {{\rm G} M_{\rm satellite}(r_{\rm rp}) \rho_{\rm hot, satellite}(r_{\rm rp}) \over r_{\rm rp} } = \rho_{\rm hot, host}(r_{\rm per}) V_{\rm peri}^2,
+\alpha_{\rm rp} {{\rm G} M_{\rm satellite}(r_{\rm rp}) \rho_{\rm hot, satellite}(r_{\rm rp}) \over r_{\rm rp} } = \mathcal{F}_{\rm ram, hot, host},
 \end{equation}
-where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\rho_{\rm hot}(r)$ is the hot halo density profile of the specified component at radius $r$, $r_{\rm peri}$ is the pericentric radius of the satellite's orbit in its host halo, with $V_{\rm peri}$ being the orbital velocity at that location. The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
+where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_{\rm ram, hot, host}$ is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
+
 
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
@@ -1544,6 +1560,22 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null met
 \subsection{Hydrogen Network}\index{hydrogen!chemical}
 
 Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
+
+\section{Ram Pressure Induced Mass Loss Rates in Disks}
+
+The methods for computing ram pressure induced rates of mass loss in disks are selected via the {\tt ramPressureStrippingMassLossRateDisksMethod} parameter.
+
+\subsection{Simple}
+
+Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt simple} this method computes the mass loss rate to be:
+\begin{equation}
+ \dot{M}_{\rm gas, disk} = \hbox{min}\left({\mathcal{F}_{\rm hot, host} \over 2 \pi {\rm G} \Sigma_{\rm gas}(r_{\rm half}) \Sigma_{\rm total}(r_{\rm half})}, R_{\rm maximum}\right) {M_{\rm gas, disk} \over \tau_{\rm dyn, disk}},
+\end{equation}
+where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_{\rm gas}(r)$ is the gas surface density in the disk, $\Sigma_{\rm total}(r)$ is the total surface density in the disk, $r_{\rm half}$ is the disk half-mass radius, $M_{\rm gas, disk}$ is the total gas mass in the disk, $\tau_{\rm dyn, disk} = r_{\rm disk}/v_{\rm disk}$ is the dynamical time in the disk, and $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum]} controls the maximum allowed rate of mass loss.
+
+\subsection{Null}
+
+Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt null} this method assumes zero mass loss rate always.
 
 \section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}
 
