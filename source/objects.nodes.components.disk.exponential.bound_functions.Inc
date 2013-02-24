@@ -157,6 +157,7 @@ double precision function Node_Component_Disk_Exponential_Potential(self,radius,
   integer                                       , intent(in   )           :: componentType,massType
   double precision                              , intent(in   )           :: radius
   logical                                       , intent(in   ), optional :: haloLoaded
+  double precision                              , parameter               :: radiusLimitPointMass=500.0d0
   double precision                                                        :: halfRadius,correctionSmallRadius,componentMass
   
   ! Return immediately if disk component is not requested.    
@@ -167,31 +168,37 @@ double precision function Node_Component_Disk_Exponential_Potential(self,radius,
   ! Get the relevant mass of the disk.
   componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
   if (componentMass <= 0.0d0) return
-  ! Compute the potential. If the radius is lower than the height then approximate the disk mass as being spherically distributed.
-  if (radius > heightToRadialScaleDisk*self%radius()) then
-     halfRadius           =radius/2.0d0/self%radius()
-     correctionSmallRadius=0.0d0
+  ! If the radius is sufficiently large, treat the disk as a point mass.
+  if (radius > radiusLimitPointMass*self%radius()) then
+     Node_Component_Disk_Exponential_Potential=-gravitationalConstantGalacticus*componentMass/radius
   else
-     halfRadius           =heightToRadialScaleDisk/2.0d0
-     correctionSmallRadius=-Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(heightToRadialScaleDisk)&
-          &/heightToRadialScaleDisk/self%radius()
-     if (radius > 0.0d0) correctionSmallRadius=correctionSmallRadius&
-          &+Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(radius/self%radius())/radius          
-     correctionSmallRadius=-correctionSmallRadius*gravitationalConstantGalacticus*componentMass
+     ! Radius is sufficiently small to use the full calculation.
+     ! Compute the potential. If the radius is lower than the height then approximate the disk mass as being spherically distributed.
+     if (radius > heightToRadialScaleDisk*self%radius()) then
+        halfRadius           =radius/2.0d0/self%radius()
+        correctionSmallRadius=0.0d0
+     else
+        halfRadius           =heightToRadialScaleDisk/2.0d0
+        correctionSmallRadius=-Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(heightToRadialScaleDisk)&
+             &/heightToRadialScaleDisk/self%radius()
+        if (radius > 0.0d0) correctionSmallRadius=correctionSmallRadius&
+             &+Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(radius/self%radius())/radius          
+        correctionSmallRadius=-correctionSmallRadius*gravitationalConstantGalacticus*componentMass
+     end if
+     ! Compute the potential including the correction to small radii.
+     Node_Component_Disk_Exponential_Potential=            &
+          &             -0.5d0                             &
+          &             *gravitationalConstantGalacticus   &
+          &             *componentMass                     &
+          &             /self%radius()                     & 
+          &             *(                                 &
+          &                Bessel_Function_I0(halfRadius)  &
+          &               *Bessel_Function_K1(halfRadius)  &
+          &               -Bessel_Function_I1(halfRadius)  &
+          &               *Bessel_Function_K0(halfRadius)  &
+          &              )                                 &
+          &             + correctionSmallRadius
   end if
-  ! Compute the potential including the correction to small radii.
-  Node_Component_Disk_Exponential_Potential=            &
-       &             -0.5d0                             &
-       &             *gravitationalConstantGalacticus   &
-       &             *componentMass                     &
-       &             /self%radius()        & 
-       &             *(                                 &
-       &                Bessel_Function_I0(halfRadius)  &
-       &               *Bessel_Function_K1(halfRadius)  &
-       &               -Bessel_Function_I1(halfRadius)  &
-       &               *Bessel_Function_K0(halfRadius)  &
-       &              )                                 &
-       &             + correctionSmallRadius
   return
 end function Node_Component_Disk_Exponential_Potential
 

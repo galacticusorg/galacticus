@@ -1171,10 +1171,10 @@ use kind_numbers
        ! Compute if a spheroid is present.
        componentMass=thisSpheroidComponent%enclosedMass(radiusLarge,componentType,massType,weightByMass&
             &,weightIndexNull,haloLoaded)
-       if (componentMass > 0.0d0) then
+       if (componentMass > 0.0d0 .and. thisSpheroidComponent%radius() > 0.0d0) then
           position=[radius/thisSpheroidComponent%radius(),0.0d0,0.0d0]
           Node_Component_Spheroid_Standard_Potential=(gravitationalConstantGalacticus*componentMass&
-               &/thisSpheroidComponent%radius()) *spheroidMassDistribution%potential(position)
+               &/thisSpheroidComponent%radius())*spheroidMassDistribution%potential(position)
        end if
     end select
     return
