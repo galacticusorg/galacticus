@@ -71,7 +71,9 @@ contains
     if (present(haloLoaded)) then
        haloLoadedShared=haloLoaded
     else
-       haloLoadedShared=.true.
+       ! Note that the default option is currently false, as adiabatic contraction effects on the dark matter potential are not
+       ! accounted for.
+       haloLoadedShared=.false.
     end if
     ! Store the radius.
     radiusShared=radius    
