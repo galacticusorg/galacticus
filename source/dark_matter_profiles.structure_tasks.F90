@@ -178,10 +178,6 @@ contains
     if (.not.(     massType == massTypeAll      .or.      massType == massTypeDark         )) return
     if (radius <= 0.0d0) return
 
-    if (present(haloLoaded)) then
-       if (haloLoaded) call Galacticus_Error_Report('Dark_Matter_Profile_Rotation_Curve_Gradient_Task','dark matter rotation curve gradient not available for baryon-loaded halos')
-    end if
-
     positionSpherical=[radius,0.0d0,0.0d0]
     componentMass   =Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
     componentDensity=Dark_Matter_Profile_Density_Task      (thisNode,positionSpherical,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
