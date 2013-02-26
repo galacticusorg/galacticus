@@ -163,10 +163,6 @@ contains
     use Galactic_Structure_Initial_Radii
     use ISO_Varying_String
     use String_Handling
-
-!! AJB HACK
-use kind_numbers
-
     implicit none
     type(treeNode),                    pointer, intent(inout) :: thisNode
     double precision,                           intent(in)    :: specificAngularMomentum
@@ -262,10 +258,6 @@ use kind_numbers
     ! Set the component size to new radius and velocity.
     call Radius_Set  (thisNode,radius  )
     call Velocity_Set(thisNode,velocity)
-
-!! AJB HACK
-if (thisnode%index()==6000070000148_kind_int8) write (0,*) iterationCount,activeComponentCount,radius,velocity,darkMatterVelocitySquared,baryonicVelocitySquared
- 
     return
   end subroutine Solve_For_Radius
 
