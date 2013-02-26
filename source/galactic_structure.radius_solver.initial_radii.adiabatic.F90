@@ -206,6 +206,11 @@ contains
 
     ! Compute the various factors needed by this calculation.
     call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.false.)
+    ! Return radius unchanged if larger than the virial radius.
+    if (radius >= virialRadius) then
+       Galactic_Structure_Radius_Initial_Adiabatic=radius
+       return
+    end if
     ! Choose suitable minimum and maximum radii.
     radiusMinimum=radius
     radiusMaximum=virialRadius
@@ -252,6 +257,11 @@ contains
 
     ! Compute the various factors needed by this calculation.
     call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.true.)
+    ! Return unit derivative if radius is larger than the virial radius.
+    if (radius >= virialRadius) then
+       Galactic_Structure_Radius_Initial_Derivative_Adiabatic=1.0d0
+       return
+    end if
     ! Compute initial radius, and derivatives of initial and final mean radii.
     radiusFinal                    =                                                         radius
     radiusInitial                  =Galactic_Structure_Radius_Initial_Adiabatic    (thisNode,radius       )
