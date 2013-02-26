@@ -183,7 +183,7 @@ contains
     type (treeNode                      ), pointer       :: selfNode,hostNode
 
     selfNode => self%host()
-    if (selfNode%isSatellite().or..not.selfNode%isPrimaryProgenitor()) then
+    if (selfNode%isSatellite().or..not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent)) then
        if (satelliteOrbitStoreOrbitalParameters) then
           Node_Component_Satellite_Standard_Virial_Orbit=self%virialOrbitValue()
        else
