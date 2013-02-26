@@ -3135,8 +3135,15 @@ sub Generate_Implementation_Output_Functions {
 			    }
 			}
 			else {
+			    if ( exists($property->{'output'}->{'condition'}) ) {
+				my $condition = $property->{'output'}->{'condition'};
+				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				$functionCode .= "    if (".$condition.") then\n";
+			    }
 			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";
 			    $functionCode .= "    call output".ucfirst($type)."%outputCount(integerPropertyCount,doublePropertyCount,time)\n";
+			    $functionCode .= "    end if\n"
+				if ( exists($property->{'output'}->{'condition'}) );
 			}
 		    }
 		}
@@ -3327,9 +3334,16 @@ sub Generate_Implementation_Output_Functions {
 			else {
 			    my $unitsInSI = "0.0d0";
 			    $unitsInSI = $property->{'output'}->{'unitsInSI'}
-			        if ( exists($property->{'output'}->{'unitsInSI'}) );
+			    if ( exists($property->{'output'}->{'unitsInSI'}) );
+			    if ( exists($property->{'output'}->{'condition'}) ) {
+				my $condition = $property->{'output'}->{'condition'};
+				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				$functionCode .= "    if (".$condition.") then\n";
+			    }
 			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
 			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
+			    $functionCode .= "    end if\n"
+				if ( exists($property->{'output'}->{'condition'}) );
 			}
 		    }
 		}
@@ -5955,8 +5969,15 @@ sub Generate_Component_Class_Output_Functions {
 			    }
 			}
 			else {
+			    if ( exists($property->{'output'}->{'condition'}) ) {
+				my $condition = $property->{'output'}->{'condition'};
+				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
+				$functionCode .= "    if (".$condition.") then\n";
+			    }
 			    $functionCode .= "      output".ucfirst($type)."=self%".$propertyName."()\n";
 			    $functionCode .= "      call output".ucfirst($type)."%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
+			    $functionCode .= "    end if\n"
+				if ( exists($property->{'output'}->{'condition'}) );			 
 			}
 		    }
 		}
