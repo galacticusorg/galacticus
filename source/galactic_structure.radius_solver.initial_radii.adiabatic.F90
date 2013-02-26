@@ -102,17 +102,18 @@ contains
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                ), pointer, intent(inout) :: thisNode
-    double precision                          ,          intent(in   ) :: radius
-    logical                                   ,          intent(in   ) :: computeGradientFactors    
-    type            (treeNode                ), pointer                :: currentNode
-    class           (nodeComponentBasic      ), pointer                :: thisBasic
-    double precision                          , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    procedure       (Component_Enclosed_Mass ), pointer                :: componentEnclosedMass
-    procedure       (Component_Rotation_Curve), pointer                :: componentRotationCurve
-    double precision                                                   :: rotationCurveSquared ,rotationCurveSquaredGradient&
-         &,componentVelocitySquaredGradient,baryonicMassTotal,baryonicMassSelfTotal,componentMass,componentVelocity
-    integer                                                            :: componentType,massType
+    type            (treeNode                         ), pointer, intent(inout) :: thisNode
+    double precision                                   ,          intent(in   ) :: radius
+    logical                                            ,          intent(in   ) :: computeGradientFactors    
+    type            (treeNode                         ), pointer                :: currentNode
+    class           (nodeComponentBasic               ), pointer                :: thisBasic
+    double precision                                   , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    procedure       (Component_Enclosed_Mass          ), pointer                :: componentEnclosedMass
+    procedure       (Component_Rotation_Curve         ), pointer                :: componentRotationCurve
+    procedure       (Component_Rotation_Curve_Gradient), pointer                :: componentRotationCurveGradient
+    double precision                                                            :: rotationCurveSquared &
+         &,rotationCurveSquaredGradient ,componentVelocitySquaredGradient,baryonicMassTotal,baryonicMassSelfTotal,componentMass&
+         &,componentVelocity
 
     ! Get the virial radius of the node.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
@@ -126,19 +127,18 @@ contains
     rotationCurveSquared=currentNode%mapDouble0(componentRotationCurve,reductionSummation)
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
     !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Task</exclude>
-    !#  <functionArgs>currentNode,radiusFinalMean,massType,componentType,haloLoaded</functionArgs>
+    !#  <functionArgs>currentNode,radiusFinalMean,componentType,massType,haloLoaded</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.inc'
     !# </include>
     baryonicFinalTerm=rotationCurveSquared*radiusFinalMean*radiusFinal/gravitationalConstantGalacticus
     ! Compute the baryonic contribution to the rotation curve.
     if (computeGradientFactors) then
-       rotationCurveSquaredGradient=0.0d0
-       massType                    =massTypeBaryonic
-       componentType               =componentTypeAll
+       componentRotationCurveGradient => Component_Rotation_Curve_Gradient
+       rotationCurveSquaredGradient   =currentNode%mapDouble0(componentRotationCurveGradient,reductionSummation)
        !# <include directive="rotationCurveGradientTask" name="radiusSolverRotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentVelocitySquaredGradient">
        !#  <exclude>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</exclude>
-       !#  <functionArgs>thisNode,radiusFinalMean,massType,componentType,haloLoaded</functionArgs>
+       !#  <functionArgs>thisNode,radiusFinalMean,componentType,massType,haloLoaded</functionArgs>
        !#  <onReturn>rotationCurveSquaredGradient=rotationCurveSquaredGradient+componentVelocitySquaredGradient</onReturn>
        include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve_gradient.tasks.inc'
        !# </include>
@@ -152,7 +152,7 @@ contains
        baryonicMassTotal=baryonicMassTotal+currentNode%mapDouble0(componentEnclosedMass,reductionSummation)
        !# <include directive="enclosedMassTask" name="radiusSolverEnclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
        !#  <exclude>Dark_Matter_Profile_Enclosed_Mass_Task</exclude>
-       !#  <functionArgs>currentNode,virialRadius,massType,componentType,weightBy,weightIndex,haloLoaded</functionArgs>
+       !#  <functionArgs>currentNode,virialRadius,componentType,massType,weightBy,weightIndex,haloLoaded</functionArgs>
        !#  <onReturn>baryonicMassTotal=baryonicMassTotal+componentMass</onReturn>
        include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.inc'
        !# </include>
@@ -400,8 +400,28 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
  
-    Component_Rotation_Curve=component%rotationCurve(radiusShared,componentType,massType,haloLoaded)**2
+    select type (component)
+    class is (nodeComponentDarkMatterProfile)
+       Component_Rotation_Curve=0.0d0
+    class default
+       Component_Rotation_Curve=component%rotationCurve(radiusShared,componentType,massType,haloLoaded)**2
+    end select
     return
   end function Component_Rotation_Curve
+    
+  double precision function Component_Rotation_Curve_Gradient(component)
+    !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
+    use Galacticus_Nodes
+    implicit none
+    class(nodeComponent), intent(inout) :: component
+ 
+    select type (component)
+    class is (nodeComponentDarkMatterProfile)
+       Component_Rotation_Curve_Gradient=0.0d0
+    class default
+       Component_Rotation_Curve_Gradient=component%rotationCurveGradient(radiusShared,componentType,massType,haloLoaded)
+    end select
+    return
+  end function Component_Rotation_Curve_Gradient
 
 end module Galactic_Structure_Initial_Radii_Adiabatic
