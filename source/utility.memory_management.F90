@@ -221,7 +221,6 @@ contains
        return
     else
        call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] not present or unreadable: can be made using Find_Executable_Size.pl')
-       close (unitNumber)
        return
     endif
   end subroutine Code_Memory_Usage
