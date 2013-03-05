@@ -36,7 +36,7 @@ module Node_Component_Merging_Statistics_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="gigaYear" comment="Time since the last major merger."/>
+  !#     <output unitsInSI="gigaYear" comment="Time of the last major merger."/>
   !#   </property>
   !#   <property>
   !#     <name>nodeMajorMergerTime</name>
@@ -44,7 +44,7 @@ module Node_Component_Merging_Statistics_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="gigaYear" comment="Time since the last node major merger."/>
+  !#     <output unitsInSI="gigaYear" comment="Time of the last node major merger."/>
   !#   </property>
   !#   <property>
   !#     <name>nodeFormationTime</name>
