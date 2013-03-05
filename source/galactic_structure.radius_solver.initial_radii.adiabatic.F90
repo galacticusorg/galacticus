@@ -179,9 +179,9 @@ contains
     baryonicMassTotal    =max(baryonicMassTotal    ,0.0d0)
     ! Compute the dark matter fraction.
     thisBasic => thisNode%basic()
-    darkMatterFraction =(Omega_Matter()-Omega_B())/Omega_Matter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass()
+    darkMatterFraction =min((Omega_Matter()-Omega_B())/Omega_Matter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass(),1.0d0)
     ! Compute the initial mass fraction.
-    initialMassFraction=(Omega_Matter()-Omega_B())/Omega_Matter()+                   baryonicMassSelfTotal /thisBasic%mass()
+    initialMassFraction=min((Omega_Matter()-Omega_B())/Omega_Matter()+                   baryonicMassSelfTotal /thisBasic%mass(),1.0d0)
     ! Store the current node.
     activeNode => thisNode
     return
