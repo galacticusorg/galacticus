@@ -52,7 +52,7 @@ module Kepler_Orbits
    contains
      ! Orbit methods.
      !@ <objectMethods>
-     !@   <object>orbit</object>
+     !@   <object>keplerOrbit</object>
      !@   <objectMethod>
      !@     <method>builder</method>
      !@     <description>Build a Kepler orbit from an XML definition.</description>
