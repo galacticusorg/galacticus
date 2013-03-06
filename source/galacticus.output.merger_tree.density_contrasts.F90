@@ -205,50 +205,49 @@ contains
     use Root_Finder
     use FGSL
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
-    type(fgsl_function),     save                   :: rootFunction
-    type(fgsl_root_fsolver), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    type(c_ptr)                                     :: parameterPointer
-    integer                                         :: iDensity
-    double precision                                :: radius,radiusMinimum,radiusMaximum,enclosedMass
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
+    double precision                , intent(inout)          :: doubleBuffer(:,:)
+    double precision                , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    type            (rootFinder    ), save                   :: finder
+    !$omp threadprivate(finder)
+    integer                                                  :: iDensity
+    double precision                                         :: radius,radiusMinimum,radiusMaximum,enclosedMass
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
-
     ! Store property data if we are outputting density contrast data.
     if (outputDensityContrastData) then
-
+       ! Initialize our root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandUpward            =2.0d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+          call finder%rootFunction(Mean_Density_Contrast_Root         )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       end if       
        ! Make the node and basic component available to the root finding routine.
        activeNode           => thisNode
        activeBasicComponent => thisNode%basic()
-       
        ! Loop over all requested densities.
        do iDensity=1,densityContrastCount
           meanDensityContrastTarget=outputDensityContrastValues(iDensity)
-          
-          ! Find suitable minimum and maximum radii that bound the sought root.
-          radiusMinimum=Dark_Matter_Halo_Virial_Radius(thisNode)
-          radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
-          do while (Mean_Density_Contrast_Root(radiusMinimum,parameterPointer) < 0.0d0)
-             radiusMinimum=0.5d0*radiusMinimum
-          end do
-          do while (Mean_Density_Contrast_Root(radiusMaximum,parameterPointer) > 0.0d0)
-             radiusMaximum=2.0d0*radiusMaximum
-          end do
-
           ! Locate the root.
-          radius=Root_Find(radiusMinimum,radiusMaximum,Mean_Density_Contrast_Root,parameterPointer,rootFunction,rootFunctionSolver &
-               &,toleranceAbsolute,toleranceRelative)
-          
+          radius=finder%find(rootGuess=Dark_Matter_Halo_Virial_Radius(thisNode))
           ! Compute the mass enclosed in this radius.
-          enclosedMass=Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
-          
+          enclosedMass=Galactic_Structure_Enclosed_Mass(                                               &
+               &                                        thisNode                                     , &
+               &                                        radius                                       , &
+               &                                        componentType=componentTypeAll               , &
+               &                                        massType     =massTypeSelected               , &
+               &                                        haloLoaded   =outputDensityContrastHaloLoaded  &
+               &                                       )
           ! Store the resulting radius and mass.
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=radius
@@ -259,17 +258,15 @@ contains
     return
   end subroutine Galacticus_Output_Tree_Density_Contrast
 
-  function Mean_Density_Contrast_Root(radius,parameterPointer) bind(c)
+  double precision function Mean_Density_Contrast_Root(radius)
     !% Root function used in finding the radius that encloses a given density contrast.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
-    real(c_double)        :: Mean_Density_Contrast_Root
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: enclosedMass
+    double precision, intent(in   ) :: radius
+    double precision                :: enclosedMass
     
     ! Solve for the radius enclosing the specified density contrast.
     enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType&

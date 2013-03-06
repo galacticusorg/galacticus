@@ -190,16 +190,13 @@ contains
     use Galacticus_Nodes
     use Cooling_Times_Available
     use Root_Finder
-    use FGSL
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
     double precision                      , parameter              :: zeroRadius=0.0d0
-    type            (fgsl_function       ), save                   :: rootFunction
-    type            (fgsl_root_fsolver   ), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
     double precision                      , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (c_ptr               )                         :: parameterPointer
+    type            (rootFinder          ), save                   :: finder
+    !$omp threadprivate(finder)
     double precision                                               :: outerRadius 
 
     ! Check if node differs from previous one for which we performed calculations.
@@ -220,9 +217,9 @@ contains
        call Cooling_Radius_Solver_Initialize(thisNode)
        
        ! Check if cooling time at halo center is reached.
-       if (Cooling_Radius_Root(zeroRadius,parameterPointer) > 0.0d0) then
+       if (Cooling_Radius_Root(zeroRadius) > 0.0d0) then
           ! Cooling time at halo center exceeds the time available, return zero radius.
-          coolingRadiusStored=zeroRadius
+          coolingRadiusStored  =zeroRadius
           Cooling_Radius_Simple=coolingRadiusStored
          return
        end if
@@ -232,7 +229,7 @@ contains
        
        ! Check if cooling time at hot halo outer radius is reached.
        outerRadius=thisHotHaloComponent%outerRadius()
-       if (Cooling_Radius_Root(outerRadius,parameterPointer) < 0.0d0) then
+       if (Cooling_Radius_Root(outerRadius) < 0.0d0) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           coolingRadiusStored=outerRadius
           Cooling_Radius_Simple=coolingRadiusStored
@@ -240,8 +237,11 @@ contains
        end if
        
        ! Cooling radius is between zero and outer radii. Search for the cooling radius.
-       coolingRadiusStored=Root_Find(zeroRadius,outerRadius,Cooling_Radius_Root,parameterPointer,rootFunction,rootFunctionSolver &
-            &,toleranceAbsolute,toleranceRelative)
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(Cooling_Radius_Root                )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       end if
+       coolingRadiusStored=finder%find(rootRange=[zeroRadius,outerRadius])
        Cooling_Radius_Simple=coolingRadiusStored
     else
        Cooling_Radius_Simple=coolingRadiusStored
@@ -281,27 +281,22 @@ contains
     return
   end subroutine Cooling_Radius_Solver_Initialize
   
-  function Cooling_Radius_Root(radius,parameterPointer) bind(c)
+  double precision function Cooling_Radius_Root(radius)
     !% Root function which evaluates the difference between the cooling time at {\tt radius} and the time available for cooling.
     use Cooling_Times
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     implicit none
-    real(c_double)          :: Cooling_Radius_Root
-    real(c_double),   value :: radius
-    type(c_ptr),      value :: parameterPointer
-    double precision        :: coolingTime,density,temperature
+    double precision, intent(in   ) :: radius
+    double precision                :: coolingTime,density,temperature
 
     ! Compute density, temperature and abundances.
     density    =Hot_Halo_Density    (activeNode,radius)
     temperature=Hot_Halo_Temperature(activeNode,radius)
-
     ! Compute the cooling time at the specified radius.
     coolingTime=Cooling_Time(temperature,density,gasAbundances,chemicalDensities,radiation)
-
     ! Return the difference between cooling time and time available.
     Cooling_Radius_Root=coolingTime-coolingTimeAvailable
-
     return
   end function Cooling_Radius_Root
 

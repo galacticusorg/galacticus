@@ -85,7 +85,7 @@ contains
             &=0.1d0)
        !@ <inputParameter>
        !@   <name>generalizedPressSchechterMinimumMass</name>
-       !@   <defaultValue>0</defaultValue>
+       !@   <defaultValue>1.0d6</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The minimum mass to used in computing subresolution accretion rates when constructing merger trees using the generalized Press-Schechter branching algorithm.
@@ -94,7 +94,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('generalizedPressSchechterMinimumMass',generalizedPressSchechterMinimumMass,defaultValue &
-            &=0.0d0)
+            &=1.0d6)
        !@ <inputParameter>
        !@   <name>generalizedPressSchechterSmoothAccretion</name>
        !@   <defaultValue>true</defaultValue>
@@ -136,25 +136,21 @@ contains
     !% {\tt probability}. Typically, {\tt probabilityFraction} is found by multiplying {\tt
     !% Generalized\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
-    use, intrinsic :: ISO_C_Binding
     use ISO_Varying_String
     use Root_Finder
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    double precision,        intent(in) :: haloMass,deltaCritical,massResolution,probability
-    type(fgsl_function),     save       :: rootFunction
-    type(fgsl_root_fsolver), save       :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    double precision,        parameter  :: smallProbabilityFraction=1.0d-3
-    type(c_ptr)                         :: parameterPointer
-    type(varying_string)                :: message
-    character(len=26)                   :: label
+    double precision                , intent(in   ) :: haloMass,deltaCritical,massResolution,probability
+    double precision                , parameter     :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
+    double precision                , parameter     :: smallProbabilityFraction=1.0d-3
+    type            (varying_string)                :: message
+    character       (len=26        )                :: label
+    type            (rootFinder    ), save          :: finder
+    !$omp threadprivate(finder)
 
     ! Ensure excursion set calculations have sufficient range in sigma.
     call Excursion_Sets_Maximum_Sigma_Test()
-    
     ! Initialize global variables.
     parentHaloMass        =haloMass
     parentSigma           =sigma_CDM(haloMass)
@@ -162,22 +158,26 @@ contains
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
     call Compute_Common_Factors
-
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(Generalized_Press_Schechter_Branch_Mass_Root)
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative         )
+    end if
     ! Check that the root is bracketed.
-    if     (                                                                                 &
-         &     Generalized_Press_Schechter_Branch_Mass_Root(massResolution,parameterPointer) &
-         &    *Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) &
-         &  >=                                                                               &
-         &    0.0d0                                                                          &
+    if     (                                                                &
+         &     Generalized_Press_Schechter_Branch_Mass_Root(massResolution) &
+         &    *Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass) &
+         &  >=                                                              &
+         &    0.0d0                                                         &
          & ) then
        ! Warn about this situation.
        if (Galacticus_Verbosity_Level() >= verbosityWarn) then
           message="halo branching mass root is not bracketed in Generalized_Press_Schechter_Branch_Mass()"
           call Galacticus_Display_Message(message,verbosityWarn)
-          write (label,'(e12.6,a1,e12.6)') massResolution,":",Generalized_Press_Schechter_Branch_Mass_Root(massResolution,parameterPointer)
+          write (label,'(e12.6,a1,e12.6)') massResolution,":",Generalized_Press_Schechter_Branch_Mass_Root(massResolution)
           message=" => massMinimum:rootFunction(massMinimum) = "//trim(label)
           call Galacticus_Display_Message(message,verbosityWarn)
-          write (label,'(e12.6,a1,e12.6)') 0.5d0*haloMass,":",Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer)
+          write (label,'(e12.6,a1,e12.6)') 0.5d0*haloMass,":",Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass)
           message=" => massMaximum:rootFunction(massMaximum) = "//trim(label)
           call Galacticus_Display_Message(message,verbosityWarn)
           write (label,'(e12.6)') probability
@@ -185,10 +185,10 @@ contains
           call Galacticus_Display_Message(message,verbosityWarn)
        end if
        ! If the root function is positive at half of the parent halo mass then we have a binary split.
-       if (Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) >= 0.0d0) then
+       if (Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass) >= 0.0d0) then
           ! Check that we are sufficiently close to zero. If we're not, it might indicate a problem.
           if     (                                                                                     &
-               &   Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer)       &
+               &   Generalized_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass)                        &
                &  >                                                                                    &
                &   probability*smallProbabilityFraction                                                &
                & ) call Galacticus_Error_Report(                                                       &
@@ -200,21 +200,19 @@ contains
           return
        end if
     end if
-
-    Generalized_Press_Schechter_Branch_Mass=Root_Find(massResolution,0.5d0*haloMass,Generalized_Press_Schechter_Branch_Mass_Root&
-         &,parameterPointer,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+    ! Find the branch mass.
+    Generalized_Press_Schechter_Branch_Mass=finder%find(rootRange=[massResolution,0.5d0*haloMass])
     return
   end function Generalized_Press_Schechter_Branch_Mass
-
-  function Generalized_Press_Schechter_Branch_Mass_Root(massMaximum,parameterPointer) bind(c)
+  
+  double precision function Generalized_Press_Schechter_Branch_Mass_Root(massMaximum)
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    real(c_double)                         :: Generalized_Press_Schechter_Branch_Mass_Root
-    real(c_double),                  value :: massMaximum
-    type(c_ptr),                     value :: parameterPointer
-    type(fgsl_function)                    :: integrandFunction
-    type(fgsl_integration_workspace)       :: integrationWorkspace
+    double precision                            , intent(in   ) :: massMaximum
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    type            (c_ptr                     )                :: parameterPointer
 
     Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand_Generalized,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&

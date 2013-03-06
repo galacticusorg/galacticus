@@ -105,17 +105,16 @@ contains
     use Tables
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)                               :: time
-    integer,                 intent(in)                               :: calculationType
-    class(table),            intent(inout), allocatable               :: deltaTable
-    type(fgsl_function),     save                                     :: rootFunction
-    type(fgsl_root_fsolver), save                                     :: rootFunctionSolver
-    double precision,        parameter                                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    integer                                                           :: iTime,deltaTableNumberPoints
-    type(c_ptr)                                                       :: parameterPointer
-    double precision                                                  :: epsilonPerturbation,epsilonPerturbationMinimum &
+    double precision            , intent(in)                               :: time
+    integer                     , intent(in)                               :: calculationType
+    class           (table     ), intent(inout), allocatable               :: deltaTable
+    double precision            , parameter                                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
+    type            (rootFinder), save                                     :: finder
+    !$omp threadprivate(finder) 
+    integer                                                                :: iTime,deltaTableNumberPoints
+    double precision                                                       :: epsilonPerturbation,epsilonPerturbationMinimum &
          &,epsilonPerturbationMaximum,aExpansionNow,normalization,eta,radiusMaximum,radiiRatio
-    double complex                                                    :: a,b,c,d,Delta
+    double complex                                                         :: a,b,c,d,Delta
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -157,8 +156,11 @@ contains
           tNow                 =deltaTable%x(iTime)
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
-          epsilonPerturbation=Root_Find(epsilonPerturbationMinimum,epsilonPerturbationMaximum,collapseRoot,parameterPointer &
-               &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(collapseRoot                       )
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          end if
+          epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
           normalization=Linear_Growth_Factor(tNow,normalize=normalizeMatterDominated)/Linear_Growth_Factor(tNow)/aExpansionNow
           select case (calculationType)
@@ -198,10 +200,8 @@ contains
     return
   end subroutine Make_Table
 
-  function collapseRoot(epsilonPerturbation,parameterPointer) bind(c)
-    real(c_double), value   :: epsilonPerturbation
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: collapseRoot
+  double precision function collapseRoot(epsilonPerturbation)
+    double precision, intent(in   ) :: epsilonPerturbation
 
     ! Evaluate the root function.
     collapseRoot=tCollapse(epsilonPerturbation)-tNow
@@ -211,12 +211,12 @@ contains
     !% Find the maximum radius of a perturbation with initial curvature {\tt epsilonPerturbation}.
     use Root_Finder
     implicit none
-    double precision,        intent(in) :: epsilonPerturbation
-    type(fgsl_function),     save       :: rootFunction
-    type(fgsl_root_fsolver), save       :: rootFunctionSolver
-    double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    type(c_ptr)                         :: parameterPointer
-    double precision                    :: aMaximumLow,aMaximumHigh
+    double precision            , intent(in) :: epsilonPerturbation
+    double precision            , parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
+    type            (rootFinder), save       :: finder
+    !$omp threadprivate(finder) 
+    double precision                         :: aMaximumLow,aMaximumHigh
+
 
     if (OmegaDE == 0.0d0) then
        ! No cosmological constant - simple analytic solution.
@@ -226,27 +226,29 @@ contains
        epsilonPerturbationShared=epsilonPerturbation
        aMaximumLow=-OmegaM/epsilonPerturbationShared
        aMaximumHigh=(OmegaM/2.0d0/OmegaDE)**(1.0d0/3.0d0)
-       if (aMaximumRoot(aMaximumHigh,parameterPointer)>0.0d0) then
+       if      (aMaximumRoot(aMaximumHigh) > 0.0d0) then
           ! If the root function is not negative at aMaximumHigh it is due to rounding errors in the calculation of aMaximumHigh
           ! which implies that aMaximumHigh is very close to the actual root.
           Perturbation_Maximum_Radius=aMaximumHigh          
-       else if (aMaximumRoot(aMaximumLow,parameterPointer) < 0.0d0)  then
+       else if (aMaximumRoot(aMaximumLow ) < 0.0d0)  then
           ! If the root function is not positive at aMaximumLow it is due to rounding errors in the calculation of aMaximumLow
           ! which implies that aMaximumLow is very close to the actual root.
           Perturbation_Maximum_Radius=aMaximumLow
        else
-          Perturbation_Maximum_Radius=Root_Find(aMaximumLow,aMaximumHigh,aMaximumRoot,parameterPointer &
-               &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(aMaximumRoot                       )
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          end if
+          Perturbation_Maximum_Radius=finder%find(rootRange=[aMaximumLow,aMaximumHigh])
        end if
     end if
     return
   end function Perturbation_Maximum_Radius
 
-  function aMaximumRoot(aMaximum,parameterPointer) bind(c)
+  double precision function aMaximumRoot(aMaximum)
     !% Root function for maximum expansion radius.
-    real(c_double), value   :: aMaximum
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: aMaximumRoot
+    double precision, intent(in   ) :: aMaximum
 
     ! Evaluate the root function.
     aMaximumRoot=OmegaM/aMaximum+epsilonPerturbationShared+OmegaDE*aMaximum**2

@@ -115,18 +115,14 @@ contains
 
   double precision function Critical_Overdensity_Collapsing_Mass(time,aExpansion,collapsing)
     !% Return the mass scale just collapsing at the given cosmic time.
-    use FGSL
     use Root_Finder
     use Cosmology_Functions
     implicit none
-    double precision,        intent(in), optional :: aExpansion,time
-    logical,                 intent(in), optional :: collapsing
-    double precision,        parameter            :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,massGuess=1.0d13
-    type(fgsl_function),     save                 :: rootFunction
-    type(fgsl_root_fsolver), save                 :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                              :: massMinimum,massMaximum
-    type(c_ptr)                                   :: parameterPointer
+    double precision            , intent(in), optional :: aExpansion,time
+    logical                     , intent(in), optional :: collapsing
+    double precision            , parameter            :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,massGuess=1.0d13
+    type            (rootFinder), save                 :: finder
+    !$omp threadprivate(finder) 
 
     ! Get the critical overdensity for collapse at this epoch.
     if (present(time)) then
@@ -134,28 +130,26 @@ contains
     else
        collapseTime=Cosmology_Age(aExpansion,collapsing)
     end if
-    
     ! Find mass at which the root-variance (sigma) equals this critical overdensity.
-    massMinimum=massGuess
-    do while (Collapsing_Mass_Root(massMinimum,parameterPointer) <= 0.0d0)
-       massMinimum=0.5d0*massMinimum
-    end do
-    massMaximum=massGuess
-    do while (Collapsing_Mass_Root(massMaximum,parameterPointer) >= 0.0d0)
-       massMaximum=2.0d0*massMaximum
-    end do
-    Critical_Overdensity_Collapsing_Mass=Root_Find(massMinimum,massMaximum,Collapsing_Mass_Root,parameterPointer,rootFunction&
-         &,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-    
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(Collapsing_Mass_Root               )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
+    end if
+    Critical_Overdensity_Collapsing_Mass=finder%find(rootGuess=massGuess)
     return
   end function Critical_Overdensity_Collapsing_Mass
 
-  function Collapsing_Mass_Root(mass,parameterPointer) bind(c)
+  double precision function Collapsing_Mass_Root(mass)
     !% Function used in finding the mass of halo just collapsing at a given cosmic epoch.
     use Power_Spectrum
-    real(c_double)          :: Collapsing_Mass_Root
-    real(c_double), value   :: mass
-    type(c_ptr),    value   :: parameterPointer
+    double precision, intent(in   ) :: mass
     
     Collapsing_Mass_Root=sigma_CDM(mass)-Critical_Overdensity_for_Collapse(time=collapseTime,mass=mass)
     return

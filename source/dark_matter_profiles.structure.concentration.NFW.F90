@@ -85,54 +85,50 @@ contains
     use FGSL
     use Virial_Density_Contrast
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    double precision,          parameter              :: fitParameterNuHalf=0.47693628d0
-    double precision,          parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type(fgsl_function),       save                   :: rootFunction
-    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity,collapseTime&
-         &,collapseExpansionFactor,expansionFactor,collapseOverdensity,concentrationMinimum,concentrationMaximum
-    type(c_ptr)                                       :: parameterPointer
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , parameter              :: fitParameterNuHalf=0.47693628d0
+    double precision                    , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
+    class           (nodeComponentBasic),                pointer :: thisBasicComponent
+    type            (rootFinder        ), save                   :: finder
+    !$omp threadprivate(finder)
+    double precision                                             :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity &
+         &,collapseTime ,collapseExpansionFactor,expansionFactor,collapseOverdensity
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
-
+    thisBasicComponent         => thisNode%basic()
     ! Get the properties of the node.
     nodeMass                   =thisBasicComponent%mass()
     nodeTime                   =thisBasicComponent%time()
     expansionFactor            =Expansion_Factor(nodeTime)
-
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =nfw96ConcentrationF*nodeMass
-
     ! Find the time of collapse for this progenitor.
     collapseCriticalOverdensity=dsqrt(2.0d0*fitParameterNuHalf**2*(sigma_CDM(collapseMass)**2-sigma_CDM(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
     collapseTime               =Time_of_Collapse(collapseCriticalOverdensity)
-    collapseExpansionFactor    =Expansion_Factor(collapseTime)
-
+    collapseExpansionFactor    =Expansion_Factor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =nfw96ConcentrationC*(expansionFactor/collapseExpansionFactor)**3
-
     ! Find the ratio of this overdensity to that at for the present node.
     targetValue                =collapseOverdensity/Halo_Virial_Density_Contrast(nodeTime)
-
-    ! Solve for the corresponding concentration.
-    concentrationMinimum= 1.0d0
-    concentrationMaximum=20.0d0
-    Dark_Matter_Profile_Concentration_NFW1996=Root_Find(concentrationMinimum,concentrationMaximum,NFW_Concentration_Function_Root,parameterPointer &
-            &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rangeExpand (                                               &
+            &                   rangeExpandDownward=0.5d0                    , &
+            &                   rangeExpandUpward  =2.0d0                    , &
+            &                   rangeExpandType    =rangeExpandMultiplicative  &
+            &                  )
+       call finder%rootFunction(NFW_Concentration_Function_Root    )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    end if
+    ! Find the concentration.
+    Dark_Matter_Profile_Concentration_NFW1996=finder%find(rootRange=[1.0d0,20.0d0])
     return
   end function Dark_Matter_Profile_Concentration_NFW1996
   
-  function NFW_Concentration_Function_Root(concentration,parameterPointer) bind(c)
+  double precision function NFW_Concentration_Function_Root(concentration)
     !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double), value   :: concentration
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: NFW_Concentration_Function_Root
+    double precision, intent(in   ) :: concentration
     
     NFW_Concentration_Function_Root=concentration**3/(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-targetValue
     return

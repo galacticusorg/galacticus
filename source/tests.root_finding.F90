@@ -26,48 +26,54 @@ program Test_Root_Finding
   use Test_Root_Finding_Functions
   use, intrinsic :: ISO_C_Binding
   implicit none
-  type(fgsl_function)     :: rootFunction
-  type(fgsl_root_fsolver) :: rootFunctionSolver
-  logical                 :: rootFunctionReset
-  type(c_ptr)             :: parameterPointer
-  double precision        :: xRoot,xMinimum,xMaximum
+  type            (rootFinder)               :: finder
+  double precision                           :: xRoot,xGuess
+  double precision            , dimension(2) :: xRange
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Root finding")
 
   ! Test root finding.
-  xMinimum=-1.0d0
-  xMaximum= 1.0d0
-  rootFunctionReset=.true.
-  xRoot=Root_Find(xMinimum,xMaximum,Root_Function_1,parameterPointer &
-       &,rootFunction,rootFunctionSolver,reset=rootFunctionReset,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-6)
+  xRange=[-1.0d0,+1.0d0]
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rootFunction(Root_Function_1)
+  xRoot=finder%find(rootRange=xRange)
   call Assert('root of f(x)=x',xRoot,0.0d0,absTol=1.0d-6,relTol=1.0d-6)
-  call Root_Find_Done(rootFunction,rootFunctionSolver)
 
-  xMinimum=-1.0d0
-  xMaximum= 1.0d0
-  rootFunctionReset=.true.
-  xRoot=Root_Find(xMinimum,xMaximum,Root_Function_2,parameterPointer &
-       &,rootFunction,rootFunctionSolver,reset=rootFunctionReset,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-6)
-  call Assert('root of f(x)=x²-5x+1 in range -1<x< 1',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
-  call Root_Find_Done(rootFunction,rootFunctionSolver)
+  xRange=[-1.0d0,+1.0d0]
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rootFunction(Root_Function_2)
+  xRoot=finder%find(rootRange=xRange)
+  call Assert('root of f(x)=x² - 5x + 1 in range -1 < x <  1',xRoot,0.5d0*(5.0d0-sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
 
-  xMinimum= 2.0d0
-  xMaximum=10.0d0
-  rootFunctionReset=.true.
-  xRoot=Root_Find(xMinimum,xMaximum,Root_Function_2,parameterPointer &
-       &,rootFunction,rootFunctionSolver,reset=rootFunctionReset,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-6)
-  call Assert('root of f(x)=x²-5x+1 in range  2<x<10',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
-  call Root_Find_Done(rootFunction,rootFunctionSolver)
+  xRange=[2.0d0,10.0d0]
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rootFunction(Root_Function_2)
+  xRoot=finder%find(rootRange=xRange)
+  call Assert('root of f(x)=x² - 5x + 1 in range  2 < x < 10',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
+  
+  xRange=[-1.0d0,+1.0d0]
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rootFunction(Root_Function_3)
+  xRoot=finder%find(rootRange=xRange)
+  call Assert('root of f(x)=x × exp(-x) + 1',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
 
-  xMinimum=-1.0d0
-  xMaximum= 1.0d0
-  rootFunctionReset=.true.
-  xRoot=Root_Find(xMinimum,xMaximum,Root_Function_3,parameterPointer &
-       &,rootFunction,rootFunctionSolver,reset=rootFunctionReset,toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-6)
-  call Assert('root of f(x)=x*exp(-x)+1',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
-  call Root_Find_Done(rootFunction,rootFunctionSolver)
+  ! Test with root bracketing.
+  xGuess=0.0d0
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive)
+  call finder%rootFunction(Root_Function_3)
+  xRoot=finder%find(rootGuess=xGuess)
+  call Assert('root of f(x)=x × exp(-x) + 1; with bracketing',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
 
+  ! Test with root bracketing and limit.
+  xGuess=0.0d0
+  call finder%tolerance(1.0d-6,1.0d-6)
+  call finder%rangeExpand(rangeExpandUpward=0.1d0,rangeExpandDownward=-0.1d0,rangeExpandType=rangeExpandAdditive,rangeUpwardLimit=1.0d0,rangeDownwardLimit=-5.0d0)
+  call finder%rootFunction(Root_Function_3)
+  xRoot=finder%find(rootGuess=xGuess)
+  call Assert('root of f(x)=x × exp(-x) + 1; with bracketing + limit',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
+  
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

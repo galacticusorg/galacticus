@@ -78,19 +78,14 @@ contains
     use Hot_Halo_Ram_Pressure_Forces
     use Hot_Halo_Density_Profile
     use Root_Finder
-    use FGSL
-    use, intrinsic :: ISO_C_Binding
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    type (fgsl_function         ), save                   :: rootFunction
-    type (fgsl_root_fsolver     ), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision             , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision             , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
-    type (c_ptr                 )                         :: parameterPointer
-
-    double precision                                      :: virialRadius,radiusMinimum,radiusMaximum
-
+    type            (treeNode  ), intent(inout), pointer :: thisNode
+    double precision            , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    double precision            , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
+    type            (rootFinder), save                   :: finder
+    !$omp threadprivate(finder) 
+    double precision                                     :: virialRadius
+ 
     ! Get the virial radius of the satellite.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
     ! Test whether thisNode is a satellite.
@@ -104,25 +99,33 @@ contains
 
        ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the
        ! current radius of the orbit.
-       if      (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(                               virialRadius,parameterPointer) >= 0.0d0) then
+       if      (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(                               virialRadius) >= 0.0d0) then
           ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
           ! virial radius as the stripping radius in this case.
           Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=virialRadius
-       else if (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radiusSmallestOverRadiusVirial*virialRadius,parameterPointer) <= 0.0d0) then
+       else if (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radiusSmallestOverRadiusVirial*virialRadius) <= 0.0d0) then
           ! The ram pressure force can strip to (essentially) arbitrarily small radii.
           Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=0.0d0
        else
-          radiusMinimum=virialRadius
-          radiusMaximum=virialRadius
-          do while (Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radiusMinimum,parameterPointer) <= 0.0d0 .and. radiusMinimum > radiusSmallestOverRadiusVirial*virialRadius)
-             radiusMinimum=0.5d0*radiusMinimum
-          end do
-          if (radiusMinimum > radiusSmallestOverRadiusVirial*virialRadius) then
-             ! Solve for the pericentric radius.
-             Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=Root_Find(radiusMinimum,radiusMaximum,Hot_Halo_Ram_Pressure_Stripping_Radius_Solver&
-                  &,parameterPointer,rootFunction,rootFunctionSolver ,toleranceAbsolute,toleranceRelative)
-          else
+          ! Solver for the ram pressure stripping radius.
+          if (.not.finder%isInitialized()) then
+             call finder%rootFunction(Hot_Halo_Ram_Pressure_Stripping_Radius_Solver)
+             call finder%tolerance   (toleranceAbsolute,toleranceRelative          )
+          end if
+          if (                                                                                                &
+               &   Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radiusSmallestOverRadiusVirial*virialRadius) &
+               &  <=                                                                                          &
+               &   0.0d0                                                                                      &
+               & ) then
              Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=0.0d0
+          else
+             call finder%rangeExpand(                                                                           &
+                  &                  rangeExpandDownward          =0.5d0                                      , &
+                  &                  rangeExpandType              =rangeExpandMultiplicative                  , &
+                  &                  rangeDownwardLimit           =radiusSmallestOverRadiusVirial*virialRadius, &
+                  &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                &
+                  &                 )
+             Hot_Halo_Ram_Pressure_Stripping_Font2008_Get=finder%find(rootGuess=virialRadius)
           end if
        end if
     else
@@ -132,19 +135,16 @@ contains
     return
   end function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
   
-  function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radius,parameterPointer) bind(c)
+  double precision function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radius)
     !% Root function used in finding the ram pressure stripping radius.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: Hot_Halo_Ram_Pressure_Stripping_Radius_Solver
-    double precision      :: enclosedMass,hotHaloDensity,gravitationalBindingForce
+    double precision, intent(in   ) :: radius
+    double precision                :: enclosedMass,hotHaloDensity,gravitationalBindingForce
 
     enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,massType=massTypeAll,componentType=componentTypeAll)
     hotHaloDensity           =Hot_Halo_Density(satelliteNode,radius)

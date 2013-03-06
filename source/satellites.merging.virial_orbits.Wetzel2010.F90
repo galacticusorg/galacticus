@@ -101,24 +101,29 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type (keplerOrbit       )                         :: thisOrbit
-    type (treeNode          ), intent(inout), pointer :: thisNode,hostNode
-    logical,                   intent(in)             :: acceptUnboundOrbits
-    class(nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
-    double precision,          parameter              :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
-    double precision,          parameter              :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
-    double precision,          parameter              :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type(fgsl_interp),         save                   :: interpolationObject
-    type(fgsl_interp_accel),   save                   :: interpolationAccelerator
-    logical,                   save                   :: interpolationReset=.true.
+    type            (keplerOrbit       )                         :: thisOrbit
+    type            (treeNode          ), intent(inout), pointer :: thisNode,hostNode
+    logical                             , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic),                pointer :: thisBasicComponent,hostBasicComponent
+    double precision                    , parameter              :: toleranceAbsolute =0.0d0, toleranceRelative =1.0d-2
+    double precision                    , parameter              :: circularityMinimum=0.0d0, circularityMaximum=1.0d0
+    double precision                    , parameter              :: redshiftMaximum   =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0&
+         &+redshiftMaximum)
+    type            (fgsl_interp       ), save                   :: interpolationObject
+    type            (fgsl_interp_accel ), save                   :: interpolationAccelerator
+    logical                             , save                   :: interpolationReset=.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-    type(fgsl_function),       save                   :: rootFunction
-    type(fgsl_root_fsolver),   save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type(c_ptr)                                       :: parameterPointer
-    double precision                                  :: g1,R1,timeNode,massCharacteristic,expansionFactor&
+    type            (rootFinder        ), save                   :: finder
+    !$omp threadprivate(finder)
+    double precision                                             :: g1,R1,timeNode,massCharacteristic,expansionFactor &
          &,pericentricRadius,apocentricRadius,probabilityTotal,circularity,eccentricityInternal,radialScale
-    logical                                           :: foundOrbit
+    logical                                                      :: foundOrbit
+
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(Circularity_Root                   )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    end if
 
     ! Reset the orbit.
     call thisOrbit%reset()
@@ -167,9 +172,7 @@ contains
        
        ! Compute circularity by root finding in the cumulative probability distribution.
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
-       circularity=Root_Find(circularityMinimum,circularityMaximum,Circularity_Root,parameterPointer,rootFunction &
-            &,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
-       
+       circularity=finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
        eccentricityInternal=dsqrt(1.0-circularity**2)
        apocentricRadius    =pericentricRadius*(1.0d0+eccentricityInternal)/(1.0d0-eccentricityInternal)
@@ -186,12 +189,10 @@ contains
     return
   end function Virial_Orbital_Parameters_Wetzel2010
 
-  function Circularity_Root(circularity,parameterPointer) bind(c)
+  double precision function Circularity_Root(circularity)
     !% Function used in finding the circularity corresponding to a given cumulative probability.
-    real(c_double)          :: Circularity_Root
-    real(c_double), value   :: circularity
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: cumulativeProbability
+    double precision, intent(in   ) :: circularity
+    double precision                :: cumulativeProbability
 
     cumulativeProbability=Circularity_Cumulative_Probability(circularity)
     Circularity_Root=cumulativeProbability-uniformDeviate

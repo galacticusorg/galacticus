@@ -217,6 +217,8 @@ subroutine Sersic_Profile_Tabulate(radius)
   double precision                            , parameter            :: radiusMaximumToTabulate   =1000.0d0
   double precision                            , parameter            :: sersicCoefficientTolerance=1.0d-6
   double precision                            , parameter            :: sersicCoefficientGuess    =7.67d0
+  type            (rootFinder                ), save                 :: finder
+  !$omp threadprivate(finder)
   logical                                                            :: rebuildTable,tableHasSufficientExtent
   integer                                                            :: iRadius
   double precision                                                   :: deltaRadius,massPrevious,radiusInfinity,integrand&
@@ -224,8 +226,6 @@ subroutine Sersic_Profile_Tabulate(radius)
   type            (c_ptr                     )                       :: parameterPointer
   type            (fgsl_function             )                       :: integrandFunction
   type            (fgsl_integration_workspace)                       :: integrationWorkspace
-  type            (fgsl_function             )                       :: rootFunction
-  type            (fgsl_root_fsolver         )                       :: rootFunctionSolver
   
   ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.
   if (present(radius)) then
@@ -233,7 +233,6 @@ subroutine Sersic_Profile_Tabulate(radius)
   else
      radiusActual=dsqrt(sersicTableRadiusMinimum*sersicTableRadiusMaximum)
   end if
-
   !$omp critical (Sersic_Profile_Tabulation)
   ! Determine if the table must be rebuilt.
   if (sersicTableInitialized) then
@@ -243,9 +242,19 @@ subroutine Sersic_Profile_Tabulate(radius)
   else
      rebuildTable=.true.
   end if
-
   ! Rebuild the table if necessary.
   if (rebuildTable) then
+     ! Initialize our root finder.
+     if (.not.finder%isInitialized()) then
+        call finder%rootFunction   (Sersic_Coefficient_Root                                             )
+        call finder%tolerance      (toleranceAbsolute=0.0d0,toleranceRelative=sersicCoefficientTolerance)
+        call finder%markInitialized(                                                                    )
+        call finder%rangeExpand    (                                               &
+             &                      rangeExpandDownward=0.5d0                    , &
+             &                      rangeExpandUpward  =2.0d0                    , &
+             &                      rangeExpandType    =rangeExpandMultiplicative  &
+             &                     )
+        end if
      ! Try building the table until it has sufficient extent to encompass the requested radius.
      tableHasSufficientExtent=.false.
      do while (.not.tableHasSufficientExtent)
@@ -268,16 +277,7 @@ subroutine Sersic_Profile_Tabulate(radius)
         ! Create an array of logarithmically distributed radii.
         sersicTableRadius=Make_Range(sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTableCount,rangeType=rangeTypeLogarithmic)
         ! Compute the coefficient appearing in the Sérsic profile.
-        sersicCoefficientMinimum=sersicCoefficientGuess
-        sersicCoefficientMaximum=sersicCoefficientGuess
-        do while (Sersic_Coefficient_Root(sersicCoefficientMinimum,parameterPointer) <= 0.0d0)
-           sersicCoefficientMinimum=0.5d0*sersicCoefficientMinimum
-        end do
-        do while (Sersic_Coefficient_Root(sersicCoefficientMaximum,parameterPointer) >= 0.0d0)
-           sersicCoefficientMaximum=2.0d0*sersicCoefficientMaximum
-        end do
-        sersicCoefficient=Root_Find(sersicCoefficientMinimum,sersicCoefficientMaximum,Sersic_Coefficient_Root,parameterPointer&
-             &,rootFunction,rootFunctionSolver,toleranceRelative=sersicCoefficientTolerance)
+        sersicCoefficient=finder%find(rootGuess=sersicCoefficientGuess)
         ! Compute a suitably large approximation to infinite radius for use in integration.
         radiusInfinity=10.0d0*sersicTableRadiusMaximum
         ! Loop over radii and compute the inverse Abel integral required to get the 3D Sérsic profile.
@@ -353,13 +353,10 @@ subroutine Sersic_Profile_Tabulate(radius)
   return
 end subroutine Sersic_Profile_Tabulate
 
-function Sersic_Coefficient_Root(coefficient,parameterPointer) bind(c)
+double precision function Sersic_Coefficient_Root(coefficient)
   use Gamma_Functions
-  use, intrinsic :: ISO_C_Binding                             
   implicit none
-  real(c_double), value   :: coefficient
-  type(c_ptr),    value   :: parameterPointer
-  real(c_double)          :: Sersic_Coefficient_Root
+  double precision, intent(in   ) :: coefficient
   
   Sersic_Coefficient_Root=Gamma_Function_Incomplete(2.0d0*sersicProfileIndex,coefficient)-0.5d0
 end function Sersic_Coefficient_Root

@@ -26,14 +26,15 @@ module Modified_Press_Schechter_Branching
   public :: Modified_Press_Schechter_Branching_Initialize
   
   ! Parent halo shared variables.
-  double precision :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor
+  double precision             :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek, &
+       & probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor
   !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor)
 
   ! Parameters of the merger rate modification function.
-  double precision :: modifiedPressSchechterG0,modifiedPressSchechterGamma1,modifiedPressSchechterGamma2
+  double precision             :: modifiedPressSchechterG0,modifiedPressSchechterGamma1,modifiedPressSchechterGamma2
 
   ! Accuracy parameter to ensure that merger rate function (which is correct to 1st order) is sufficiently accurate.
-  double precision :: modifiedPressSchechterFirstOrderAccuracy
+  double precision             :: modifiedPressSchechterFirstOrderAccuracy
 
   ! Precomputed numerical factors.
   double precision, parameter  :: sqrtTwoOverPi=dsqrt(2.0d0/Pi)
@@ -123,12 +124,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Root_Finder
     implicit none
-    double precision,        intent(in) :: haloMass,deltaCritical,massResolution,probability
-    type(fgsl_function),     save       :: rootFunction
-    type(fgsl_root_fsolver), save       :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision,        parameter  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    type(c_ptr)                         :: parameterPointer
+    double precision            , intent(in   ) :: haloMass,deltaCritical,massResolution,probability
+    double precision            , parameter     :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
+    type            (rootFinder), save          :: finder
+    !$omp threadprivate(finder)
 
     ! Initialize global variables.
     parentHaloMass        =haloMass
@@ -137,33 +136,35 @@ contains
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
     call Compute_Common_Factors
-
     ! Check the sign of the root function at half the halo mass.
-    if (Modified_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass,parameterPointer) >= 0.0d0) then
+    if (Modified_Press_Schechter_Branch_Mass_Root(0.5d0*haloMass) >= 0.0d0) then
        ! The root function is zero, or very close to it (which can happen due to rounding errors
        ! occasionally). Therefore we have an almost perfect binary split.
        Modified_Press_Schechter_Branch_Mass=0.5d0*haloMass
     else
+       ! Initialize our root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(Modified_Press_Schechter_Branch_Mass_Root)
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative      )
+       end if
        ! Split is not binary - seek the actual mass of the smaller progenitor.
-       Modified_Press_Schechter_Branch_Mass=Root_Find(massResolution,0.5d0*haloMass,Modified_Press_Schechter_Branch_Mass_Root&
-            &,parameterPointer,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+       Modified_Press_Schechter_Branch_Mass=finder%find(rootRange=[massResolution,0.5d0*haloMass])
     end if
     return
   end function Modified_Press_Schechter_Branch_Mass
 
-  function Modified_Press_Schechter_Branch_Mass_Root(massMaximum,parameterPointer) bind(c)
+  double precision function Modified_Press_Schechter_Branch_Mass_Root(massMaximum)
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    real(c_double)                         :: Modified_Press_Schechter_Branch_Mass_Root
-    real(c_double),                  value :: massMaximum
-    type(c_ptr),                     value :: parameterPointer
-    type(fgsl_function)                    :: integrandFunction
-    type(fgsl_integration_workspace)       :: integrationWorkspace
+    double precision                            , intent(in   ) :: massMaximum
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    type(c_ptr)                                                 :: parameterPointer
 
-    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass,massMaximum&
-         &,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
-         &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
+    Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass&
+         &,massMaximum ,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+         &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Modified_Press_Schechter_Branch_Mass_Root

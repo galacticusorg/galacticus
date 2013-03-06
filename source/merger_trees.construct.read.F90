@@ -1606,88 +1606,70 @@ contains
     !% Assign scale radii to nodes.
     use Root_Finder
     use Dark_Matter_Halo_Scales
-    use, intrinsic :: ISO_C_Binding
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type     (nodeData                      ), intent(inout), dimension(:) :: nodes
-    type     (treeNodeList                  ), intent(inout), dimension(:) :: nodeList
-    type     (fgsl_function                 ), save                        :: rootFunction
-    type     (fgsl_root_fsolver             ), save                        :: rootFunctionSolver
-    double precision                         , parameter                   :: toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-9,scaleRadiusMaximumAllowed=100.0d0
-    logical                                  , save                        :: excessiveScaleRadiiReported=.false.
-    class    (nodeComponentBasic            ), pointer                     :: thisBasicComponent
-    class    (nodeComponentDarkMatterProfile), pointer                     :: thisDarkMatterProfileComponent
-    type     (c_ptr                         )                              :: parameterPointer
-    integer                                                                :: iNode
-    integer  (kind=kind_int8                )                              :: iIsolatedNode
-    double precision                                                       :: radiusMinimum,radiusMaximum,radiusScale
-    logical                                                                :: excessiveScaleRadii,excessiveHalfMassRadii
-    character(len=50                        )                              :: message
+    type            (nodeData                      ), intent(inout), dimension(:) :: nodes
+    type            (treeNodeList                  ), intent(inout), dimension(:) :: nodeList
+    double precision                                , parameter                   :: toleranceAbsolute=1.0d-9,toleranceRelative&
+         &=1.0d-9,scaleRadiusMaximumAllowed=100.0d0
+    logical                                         , save                        :: excessiveScaleRadiiReported=.false.
+    class           (nodeComponentBasic            ), pointer                     :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile), pointer                     :: thisDarkMatterProfileComponent
+    integer                                                                       :: iNode
+    integer         (kind=kind_int8                )                              :: iIsolatedNode
+    double precision                                                              :: radiusScale
+    logical                                                                       :: excessiveScaleRadii,excessiveHalfMassRadii
+    type            (rootFinder                    ), save                        :: finder
+    !$omp threadprivate(finder)
 
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(Half_Mass_Radius_Root              )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    end if
     excessiveScaleRadii   =.false.
     excessiveHalfMassRadii=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-          
           ! Check if the node is sufficiently massive.
           thisBasicComponent => nodeList(iIsolatedNode)%node%basic()
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
-             
              ! Get the dark matter profile component.
              thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
-
              ! Check if we have scale radii read directly from file.
              if (haveScaleRadii) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
-
              else
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
-
                 ! Set the active node and target half mass radius.
                 activeNode                       => nodeList(iIsolatedNode)%node
                 activeDarkMatterProfileComponent => activeNode%darkMatterProfile()
                 activeBasicComponent             => activeNode%basic            ()
                 halfMassRadius                   =  nodes(iNode)%halfMassRadius
-
-                ! Find minimum and maximum scale radii such that the target half-mass radius is bracketed.
-                radiusMinimum=halfMassRadius
-                radiusMaximum=halfMassRadius
-                do while (Half_Mass_Radius_Root(radiusMinimum,parameterPointer) <= 0.0d0)
-                   radiusMinimum=0.5d0*radiusMinimum
-                end do
-                do while (Half_Mass_Radius_Root(radiusMaximum,parameterPointer) >= 0.0d0)
-                   if (radiusMaximum > scaleRadiusMaximumAllowed*Dark_Matter_Halo_Virial_Radius(activeNode)) then
-                      write (message,'(a,i10,a)') 'node ',activeNode%index(),' has unphysical scale-radius:'
-                      call Galacticus_Display_Message(trim(message))
-                      write (message,'(a,e12.6,a)') ' half mass radius = ',halfMassRadius                            ,' Mpc'
-                      call Galacticus_Display_Message(trim(message))
-                      write (message,'(a,e12.6,a)') '    virial radius = ',Dark_Matter_Halo_Virial_Radius(activeNode),' Mpc'
-                      call Galacticus_Display_Message(trim(message))
-                      call Galacticus_Error_Report('Assign_Scale_Radii','scale radius greatly exceeds virial radius - this seems unphysical')
-                   end if
-                   radiusMaximum=2.0d0*radiusMaximum
-                end do
-
                 ! Solve for the scale radius.
-                radiusScale=Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root,parameterPointer &
-                     &,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+                call finder%rangeExpand    (                                                                           &
+                     &                      rangeExpandDownward          =0.5d0                                      , &
+                     &                      rangeExpandUpward            =2.0d0                                      , &
+                     &                      rangeUpwardLimit             = scaleRadiusMaximumAllowed                   &
+                     &                                                    *Dark_Matter_Halo_Virial_Radius(activeNode), &
+                     &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive              , &
+                     &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative              , &
+                     &                      rangeExpandType              =rangeExpandMultiplicative                    &
+                     &                     )
+                radiusScale=finder%find(rootGuess=halfMassRadius)
                 call thisDarkMatterProfileComponent%scaleSet(radiusScale)
-
                 ! Check for scale radii exceeding the virial radius.
                 if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
-
                 ! Check for half-mass radii exceeding the virial radius.
                 if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
              end if
-
           end if
        end if
     end do
-
     ! Report warning on excessive scale radii if not already done.
     if (excessiveScaleRadii.and..not.excessiveScaleRadiiReported) then
        excessiveScaleRadiiReported=.true.
@@ -1733,14 +1715,12 @@ contains
     return
   end subroutine Assign_Spin_Parameters
 
-  function Half_Mass_Radius_Root(radius,parameterPointer) bind(c)
+  double precision function Half_Mass_Radius_Root(radius)
     !% Function used to find scale radius of dark matter halos given their half-mass radius.
     use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     implicit none
-    real(c_double)        :: Half_Mass_Radius_Root
-    real(c_double), value :: radius
-    type(c_ptr)           :: parameterPointer
+    double precision, intent(in   ) :: radius
 
     ! Set scale radius to current guess.
     call activeDarkMatterProfileComponent%scaleSet(radius)

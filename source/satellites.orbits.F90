@@ -36,21 +36,16 @@ contains
   
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
     !% Solves for the equivalent circular orbit radius for {\tt thisOrbit} in {\tt hostNode}.
-    use, intrinsic :: ISO_C_Binding
     use Root_Finder
-    use FGSL
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode         ), pointer  , intent(inout) :: hostNode
     type            (keplerOrbit      ),            intent(inout) :: thisOrbit
     double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (fgsl_function    ), save                     :: rootFunction
-    type            (fgsl_root_fsolver), save                     :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type            (c_ptr)                                       :: parameterPointer
+    type            (rootFinder       ), save                     :: finder
+    !$omp threadprivate(finder) 
     type            (keplerOrbit      )                           :: currentOrbit
-    double precision                                              :: radiusMinimum,radiusMaximum
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
@@ -61,28 +56,27 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
     else
        activeNode => hostNode
-       radiusMinimum=Dark_Matter_Halo_Virial_Radius(hostNode)
-       radiusMaximum=radiusMinimum
-       do while (Equivalent_Circular_Orbit_Solver(radiusMinimum,parameterPointer) >= 0.0d0)
-          radiusMinimum=0.5d0*radiusMinimum
-       end do
-       do while (Equivalent_Circular_Orbit_Solver(radiusMaximum,parameterPointer) <= 0.0d0)
-          radiusMaximum=2.0d0*radiusMaximum
-       end do
-       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=Root_Find(radiusMinimum,radiusMaximum,Equivalent_Circular_Orbit_Solver&
-            &,parameterPointer ,rootFunction,rootFunctionSolver,toleranceAbsolute,toleranceRelative)
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =2.0d0                        , &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end if
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=Dark_Matter_Halo_Virial_Radius(hostNode))
     end if
     return
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
-  function Equivalent_Circular_Orbit_Solver(radius,parameterPointer) bind(c)
+  double precision function Equivalent_Circular_Orbit_Solver(radius)
     !% Root function used in finding equivalent circular orbits.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     implicit none
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: Equivalent_Circular_Orbit_Solver
+    double precision, intent(in   ) :: radius
 
     Equivalent_Circular_Orbit_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0&
          &*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
@@ -91,64 +85,53 @@ contains
 
   subroutine Satellite_Orbit_Pericenter_Phase_Space_Coordinates(hostNode,thisOrbit,radius,velocity)
     !% Solves for the pericentric radius and velocity of {\tt thisOrbit} in {\tt hostNode}.
-    use, intrinsic :: ISO_C_Binding
     use Root_Finder
-    use FGSL
     use Kepler_Orbits
     implicit none
     type            (treeNode         ), pointer  , intent(inout) :: hostNode
     type            (keplerOrbit      ),            intent(inout) :: thisOrbit
     double precision                   ,            intent(  out) :: radius,velocity
     double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (fgsl_function    ), save                     :: rootFunction
-    type            (fgsl_root_fsolver), save                     :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    type            (c_ptr            )                           :: parameterPointer
+    type            (rootFinder       ), save                     :: finder
+    !$omp threadprivate(finder) 
     type            (keplerOrbit      )                           :: currentOrbit
-    double precision                                              :: radiusMinimum,radiusMaximum
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
-
     ! Extract the orbital energy and angular momentum.
     orbitalEnergyInternal         =  currentOrbit%energy         ()
     orbitalAngularMomentumInternal=  currentOrbit%angularMomentum()
     ! Set a pointer to the host node.
     activeNode                    => hostNode
-    ! Find the radial range within which the pericenter must lie. The pericenter must be smaller than (or equal to) the current
-    ! radius of the orbit.
-    radiusMinimum=currentOrbit%radius()
-    radiusMaximum=radiusMinimum
-
     ! Catch orbits which are close to being circular.
-    if      (Pericenter_Solver(radiusMinimum,parameterPointer) == 0.0d0) then
+    if      (Pericenter_Solver(currentOrbit%radius()) == 0.0d0) then
        ! Orbit is at pericenter.
-       radius=radiusMinimum
-    else if (Pericenter_Solver(radiusMinimum,parameterPointer) >  0.0d0) then
+       radius=currentOrbit%radius()
+    else if (Pericenter_Solver(currentOrbit%radius()) >  0.0d0) then
        ! No solution exists, assume a circular orbit.
-       radius=radiusMinimum
+       radius=currentOrbit%radius()
     else
-       ! Find the pericenter of the orbit.
-       do while (Pericenter_Solver(radiusMinimum,parameterPointer) <= 0.0d0)
-          radiusMinimum=0.5d0*radiusMinimum
-       end do
-       ! Solve for the pericentric radius.
-       radius=Root_Find(radiusMinimum,radiusMaximum,Pericenter_Solver,parameterPointer,rootFunction,rootFunctionSolver&
-            &,toleranceAbsolute,toleranceRelative)
+       if (.not.finder%isInitialized()) then
+          call finder%rootFunction(Pericenter_Solver                  )
+          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+       end if
+       radius=finder%find(rootGuess=currentOrbit%radius())
     end if
     ! Get the orbital velocity at this radius.
     velocity=orbitalAngularMomentumInternal/radius
     return
   end subroutine Satellite_Orbit_Pericenter_Phase_Space_Coordinates
 
-  function Pericenter_Solver(radius,parameterPointer) bind(c)
+  double precision function Pericenter_Solver(radius)
     !% Root function used in finding orbital pericentric radius.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     implicit none
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: Pericenter_Solver
+    double precision, intent(in   ) :: radius
 
     Pericenter_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
