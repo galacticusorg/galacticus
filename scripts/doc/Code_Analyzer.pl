@@ -110,7 +110,7 @@ sub processFile {
     chomp($fileName);
 
     # Check if this is a Fortran or C++ source file.
-    if ( $fileName =~ m/\.[fF]90$/ || $fileName =~ m/\.cpp$/ ) {
+    if ( ( $fileName =~ m/\.[fF]90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
 
 	# Initialize the unitIdList array and the units hash.
 	undef(@unitIdList);
