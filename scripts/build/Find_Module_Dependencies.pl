@@ -118,7 +118,7 @@ foreach $srcdir ( @sourcedirs ) {
 		close(infile);
 
 		# Create a rule for the module list file if needed.
-		if (defined(@allmods)) {
+		if ( @allmods ) {
 		    $mname = $fname;
 		    $mname =~ s/\.[fFt90]+$/\.m/;
 		    print outfile ".$workDir$base$mname:\n";
