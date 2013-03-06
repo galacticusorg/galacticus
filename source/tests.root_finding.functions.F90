@@ -26,29 +26,23 @@ module Test_Root_Finding_Functions
 
 contains
 
-  function Root_Function_1(x,parameterPointer) bind(c)
+  double precision function Root_Function_1(x)
     !% Function for root finding unit tests.
-    real(c_double)          :: Root_Function_1
-    real(c_double), value   :: x
-    type(c_ptr),    value   :: parameterPointer
-   
+    double precision, intent(in   ) :: x
+
     Root_Function_1=x
   end function Root_Function_1
 
-  function Root_Function_2(x,parameterPointer) bind(c)
+  double precision function Root_Function_2(x)
     !% Function for root finding unit tests.
-    real(c_double)          :: Root_Function_2
-    real(c_double), value   :: x
-    type(c_ptr),    value   :: parameterPointer
+    double precision, intent(in   ) :: x
    
     Root_Function_2=x**2-5.0d0*x+1.0d0
   end function Root_Function_2
 
-  function Root_Function_3(x,parameterPointer) bind(c)
+  double precision function Root_Function_3(x)
     !% Function for root finding unit tests.
-    real(c_double)          :: Root_Function_3
-    real(c_double), value   :: x
-    type(c_ptr),    value   :: parameterPointer
+    double precision, intent(in   ) :: x
    
     Root_Function_3=x*exp(-x)+1.0d0
   end function Root_Function_3

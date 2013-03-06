@@ -195,15 +195,22 @@ contains
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode         ), pointer, intent(inout) :: thisNode
-    double precision                   ,          intent(in   ) :: radius
-    type            (fgsl_function    ), save                   :: rootFunction
-    type            (fgsl_root_fsolver), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision                                            :: radiusMinimum,radiusMaximum
-    type            (c_ptr            )                         :: parameterPointer
+    type            (treeNode  ), pointer, intent(inout) :: thisNode
+    double precision            ,          intent(in   ) :: radius
+    double precision            , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    type            (rootFinder), save                   :: finder
+    !$omp threadprivate(finder)
 
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandDownward=0.5d0                                  , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandType    =rangeExpandMultiplicative                &
+            &                  )
+       call finder%rootFunction(Galactic_Structure_Radius_Initial_Adiabatic_Solver)
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative               )
+    end if
     ! Compute the various factors needed by this calculation.
     call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.false.)
     ! Return radius unchanged if larger than the virial radius.
@@ -211,30 +218,13 @@ contains
        Galactic_Structure_Radius_Initial_Adiabatic=radius
        return
     end if
-    ! Choose suitable minimum and maximum radii.
-    radiusMinimum=radius
-    radiusMaximum=virialRadius
-    ! Decrease minimum radius as necessary
-    do while (Galactic_Structure_Radius_Initial_Adiabatic_Solver(radiusMinimum,parameterPointer) > 0.0d0)
-       radiusMinimum=0.5d0*radiusMinimum
-    end do
     ! Check that solution is within bounds.
-    if (Galactic_Structure_Radius_Initial_Adiabatic_Solver(radiusMaximum,parameterPointer) < 0.0d0) then
+    if (Galactic_Structure_Radius_Initial_Adiabatic_Solver(virialRadius) < 0.0d0) then
        Galactic_Structure_Radius_Initial_Adiabatic=virialRadius
        return
     end if
     ! Find the solution for initial radius.
-    Galactic_Structure_Radius_Initial_Adiabatic=                         &
-         & Root_Find(                                                    &
-         &           radiusMinimum                                     , &
-         &           radiusMaximum                                     , &
-         &           Galactic_Structure_Radius_Initial_Adiabatic_Solver, &
-         &           parameterPointer                                  , &
-         &           rootFunction                                      , &
-         &           rootFunctionSolver                                , &
-         &           toleranceAbsolute                                 , &
-         &           toleranceRelative                                   &
-         &          )
+    Galactic_Structure_Radius_Initial_Adiabatic=finder%find(rootRange=[radius,virialRadius])
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic
 
@@ -246,15 +236,25 @@ contains
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode         ), pointer, intent(inout) :: thisNode
-    double precision                   ,          intent(in   ) :: radius
-    type            (fgsl_function    ), save                   :: rootFunction
-    type            (fgsl_root_fsolver), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision                                            :: radiusDerivativeMinimum,radiusDerivativeMaximum
-    type            (c_ptr            )                         :: parameterPointer
+    type            (treeNode  ), pointer, intent(inout) :: thisNode
+    double precision            ,          intent(in   ) :: radius
+    double precision            , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
+    type            (rootFinder), save                   :: finder
+    !$omp threadprivate(finder)
 
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeDownwardLimit           =0.0d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
+       call finder%rootFunction(Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver)
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative                          )
+    end if
     ! Compute the various factors needed by this calculation.
     call Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors=.true.)
     ! Return unit derivative if radius is larger than the virial radius.
@@ -266,44 +266,18 @@ contains
     radiusFinal                    =                                                         radius
     radiusInitial                  =Galactic_Structure_Radius_Initial_Adiabatic    (thisNode,radius       )
     radiusInitialMeanSelfDerivative=Adiabatic_Solver_Mean_Orbital_Radius_Derivative(         radiusInitial)
-    radiusFinalMeanSelfDerivative  =Adiabatic_Solver_Mean_Orbital_Radius_Derivative(         radius       )    
-    ! Choose suitable minimum and maximum radii.
-    radiusDerivativeMinimum=1.0d0
-    radiusDerivativeMaximum=1.0d0
-    ! Decrease minimum derivative as necessary
-    do while (Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusDerivativeMinimum,parameterPointer) > 0.0d0)
-       radiusDerivativeMinimum=0.5d0*radiusDerivativeMinimum
-       ! Catch cases where the gradient falls below zero (which should never happen).
-       if (radiusDerivativeMinimum <= 0.0d0) call Galacticus_Error_Report('Galactic_Structure_Radius_Initial_Derivative_Adiabatic','gradient has reached zero [should not happen]')
-    end do
-    ! Decrease maximum derivative as necessary
-    do while (Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusDerivativeMaximum,parameterPointer) < 0.0d0)
-       radiusDerivativeMaximum=2.0d0*radiusDerivativeMaximum
-    end do
+    radiusFinalMeanSelfDerivative  =Adiabatic_Solver_Mean_Orbital_Radius_Derivative(         radius       )
     ! Find the solution for initial radius.
-    Galactic_Structure_Radius_Initial_Derivative_Adiabatic=                         &
-         & Root_Find(                                                               &
-         &           radiusDerivativeMinimum                                      , &
-         &           radiusDerivativeMaximum                                      , &
-         &           Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver, &
-         &           parameterPointer                                             , &
-         &           rootFunction                                                 , &
-         &           rootFunctionSolver                                           , &
-         &           toleranceAbsolute                                            , &
-         &           toleranceRelative                                              &
-         &          )
+    Galactic_Structure_Radius_Initial_Derivative_Adiabatic=finder%find(rootGuess=1.0d0)
     return
   end function Galactic_Structure_Radius_Initial_Derivative_Adiabatic
 
-  function Galactic_Structure_Radius_Initial_Adiabatic_Solver(radiusInitial,parameterPointer) bind(c)
+  double precision function Galactic_Structure_Radius_Initial_Adiabatic_Solver(radiusInitial)
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     implicit none
-    real            (c_double), value :: radiusInitial
-    type            (c_ptr   ), value :: parameterPointer
-    real            (c_double)        :: Galactic_Structure_Radius_Initial_Adiabatic_Solver
-    double precision                  :: darkMatterMassInitial,radiusInitialMean
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: darkMatterMassInitial,radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean    =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
@@ -320,17 +294,14 @@ contains
     return
   end function Galactic_Structure_Radius_Initial_Adiabatic_Solver
 
-  function Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusInitialDerivative,parameterPointer) bind(c)
+  double precision function Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver(radiusInitialDerivative)
     !% Root function used in finding the derivative of the initial radius in the dark matter halo when solving for adiabatic
     !% contraction.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     use Numerical_Constants_Math
     implicit none
-    real            (c_double), value :: radiusInitialDerivative
-    type            (c_ptr   ), value :: parameterPointer
-    real            (c_double)        :: Galactic_Structure_Radius_Initial_Derivative_Adiabatic_Solver
-    double precision                  :: darkMatterMassInitial,darkMatterDensityInitial,radiusInitialMean
+    double precision, intent(in   ) :: radiusInitialDerivative
+    double precision                :: darkMatterMassInitial,darkMatterDensityInitial,radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean       =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )

@@ -22,14 +22,15 @@ module Satellite_Merging_Remnant_Progenitors_Properties_Cole2000
   !% Implements calculations of progenitor properties for merger remnant calculations using the algorithm of
   !% \cite{cole_hierarchical_2000}.
   use Galacticus_Nodes
+  use Root_Finder
   implicit none
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init
 
   ! Module global variables used in root finding.
-  type(treeNode), pointer :: activeNode
-  integer                 :: activeGasMovesTo,activeStarsMoveTo
-  double precision        :: activeHalfMass
+  type            (treeNode  ), pointer :: activeNode
+  integer                               :: activeGasMovesTo,activeStarsMoveTo
+  double precision                      :: activeHalfMass
   !$omp threadprivate(activeNode,activeGasMovesTo,activeStarsMoveTo,activeHalfMass)
 
 contains
@@ -71,28 +72,37 @@ contains
        &,satelliteSpheroidMass ,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor&
        &,remnantSpheroidMass ,remnantSpheroidGasMass)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
-    use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Radii
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Satellite_Merging_Mass_Movements_Descriptors
     use Numerical_Constants_Physical
     use Galacticus_Error
-    use Root_Finder
-    use FGSL
     implicit none
-    type (treeNode             ), intent(inout), pointer :: satelliteNode,hostNode
-    double precision            , intent(  out)          :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass&
-         &,hostSpheroidMassPreMerger ,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
-    class(nodeComponentDisk    ),                pointer :: hostDiskComponent    ,satelliteDiskComponent
-    class(nodeComponentSpheroid),                pointer :: hostSpheroidComponent,satelliteSpheroidComponent
-    type (fgsl_function        ), save                   :: rootFunction
-    type (fgsl_root_fsolver    ), save                   :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                     :: radiusMinimum,radiusMaximum,satelliteSpheroidHalfMassRadius &
-         &,hostSpheroidHalfMassRadius,satelliteDiskHalfMassRadius,hostDiskHalfMassRadius,satelliteSpheroidDarkMatterFactor &
-         &,hostSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,hostDiskDarkMatterFactor,componentMass
-    type (c_ptr                )                         :: parameterPointer
+    type            (treeNode             ), intent(inout), pointer :: satelliteNode,hostNode
+    double precision                       , intent(  out)          :: satelliteMass,hostMass,satelliteSpheroidMass&
+         &,hostSpheroidMass ,hostSpheroidMassPreMerger ,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
+         &,remnantSpheroidGasMass
+    class           (nodeComponentDisk    ),                pointer :: hostDiskComponent    ,satelliteDiskComponent
+    class           (nodeComponentSpheroid),                pointer :: hostSpheroidComponent,satelliteSpheroidComponent
+    type            (rootFinder           ), save                   :: finder
+    !$omp threadprivate(finder)
+    double precision                                                :: satelliteSpheroidHalfMassRadius &
+         &,hostSpheroidHalfMassRadius ,satelliteDiskHalfMassRadius,hostDiskHalfMassRadius,satelliteSpheroidDarkMatterFactor &
+         &,hostSpheroidDarkMatterFactor ,satelliteDiskDarkMatterFactor,hostDiskDarkMatterFactor,componentMass
+
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(Half_Mass_Radius_Root_Cole2000                  )
+       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
+    end if
 
     ! Get the disk and spheroid components of host and satellite.
     hostDiskComponent          =>      hostNode%disk    ()
@@ -227,19 +237,13 @@ contains
        activeGasMovesTo =  thisHostGasMovesTo
        activeStarsMoveTo=  thisHostStarsMoveTo
        activeHalfMass   =  0.0d0
-       activeHalfMass   =  0.5d0*Half_Mass_Radius_Root_Cole2000(radiusLarge,parameterPointer)
-       radiusMinimum    =  Galactic_Structure_Radius_Enclosing_Mass(activeNode,fractionalMass=0.50d0,massType=massTypeGalactic)
-       radiusMaximum    =  radiusMinimum
-       do while (Half_Mass_Radius_Root_Cole2000(radiusMinimum,parameterPointer) >= 0.0d0)
-          radiusMinimum=0.5d0*radiusMinimum
-       end do
-       do while (Half_Mass_Radius_Root_Cole2000(radiusMaximum,parameterPointer) <= 0.0d0)
-          radiusMaximum=2.0d0*radiusMaximum
-       end do
-       !$omp critical (Cole2000_Remnant_Size_Root_Find)
-       hostRadius        =  Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root_Cole2000,parameterPointer,rootFunction&
-            &,rootFunctionSolver,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
-       !$omp end critical (Cole2000_Remnant_Size_Root_Find)
+       activeHalfMass   =  0.5d0*Half_Mass_Radius_Root_Cole2000(radiusLarge)
+       hostRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+            &                                                                    activeNode                     , &
+            &                                                                    fractionalMass=0.50d0          , &
+            &                                                                    massType      =massTypeGalactic  &
+            &                                                                   )                                 &
+            &                )       
     else
        hostRadius=0.0d0
     end if
@@ -248,17 +252,13 @@ contains
        activeGasMovesTo =  thisMergerGasMovesTo
        activeStarsMoveTo=  thisMergerStarsMoveTo
        activeHalfMass   =  0.0d0
-       activeHalfMass   =  0.50d0*Half_Mass_Radius_Root_Cole2000(radiusLarge,parameterPointer)
-       radiusMinimum    =  Galactic_Structure_Radius_Enclosing_Mass(activeNode,fractionalMass=0.50d0,massType=massTypeGalactic)
-       radiusMaximum    =  radiusMinimum
-       do while (Half_Mass_Radius_Root_Cole2000(radiusMinimum,parameterPointer) >= 0.0d0)
-          radiusMinimum=0.5d0*radiusMinimum
-       end do
-       do while (Half_Mass_Radius_Root_Cole2000(radiusMaximum,parameterPointer) <= 0.0d0)
-          radiusMaximum=2.0d0*radiusMaximum
-       end do
-       satelliteRadius   =  Root_Find(radiusMinimum,radiusMaximum,Half_Mass_Radius_Root_Cole2000,parameterPointer,rootFunction&
-            &,rootFunctionSolver,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+       activeHalfMass   =  0.50d0*Half_Mass_Radius_Root_Cole2000(radiusLarge)
+       satelliteRadius=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+            &                                                                         activeNode                     , &
+            &                                                                         fractionalMass=0.50d0          , &
+            &                                                                         massType      =massTypeGalactic  &
+            &                                                                        )                                 &
+            &                     )
     else
        satelliteRadius=0.0d0
     end if
@@ -279,16 +279,13 @@ contains
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000
 
-  function Half_Mass_Radius_Root_Cole2000(radius,parameterPointer) bind(c)
+  double precision function Half_Mass_Radius_Root_Cole2000(radius)
     !% Function used in root finding for progenitor galaxy half-mass radii.
-    use, intrinsic :: ISO_C_Binding
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    real(c_double), value   :: radius
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: Half_Mass_Radius_Root_Cole2000
+    double precision, intent(in   ) :: radius
 
     ! Initialize enclosed mass to negative of the half mass.
     Half_Mass_Radius_Root_Cole2000=-activeHalfMass

@@ -76,23 +76,19 @@ contains
     !% Return the radius enclosing a given mass (or fractional mass) in {\tt thisNode}.
     use Galacticus_Error
     use Root_Finder
-    use FGSL
     use Dark_Matter_Halo_Scales
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode
-    integer,                 intent(in),    optional :: componentType,massType,weightBy,weightIndex
-    double precision,        intent(in),    optional :: mass,fractionalMass
-    logical,                 intent(in),    optional :: haloLoaded
-    type(fgsl_function),     save                    :: rootFunction
-    type(fgsl_root_fsolver), save                    :: rootFunctionSolver
-    !$omp threadprivate(rootFunction,rootFunctionSolver)
-    double precision                                 :: radiusMinimum,radiusMaximum
-    type(c_ptr)                                      :: parameterPointer
-    type(varying_string)                             :: message
-    character(len=11)                                :: massLabel
+    type            (treeNode      ), intent(inout), pointer  :: thisNode
+    integer                         , intent(in   ), optional :: componentType,massType,weightBy,weightIndex
+    double precision                , intent(in   ), optional :: mass,fractionalMass
+    logical                         , intent(in   ), optional :: haloLoaded
+    type            (rootFinder    ), save                    :: finder
+    !$omp threadprivate(finder)
+    type            (varying_string)                          :: message
+    character       (len=11        )                          :: massLabel
 
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
@@ -114,26 +110,28 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
        return
     end if
-
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rangeExpand (                                                           &
+            &                   rangeExpandUpward          =2.0d0                        , &
+            &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive, &
+            &                   rangeExpandType            =rangeExpandMultiplicative      &
+            &                  )
+       call finder%rootFunction(Enclosed_Mass_Root                              )
+       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+    end if
     ! Solve for the radius.
     activeNode => thisNode
-    radiusMinimum=0.0d0
-    if (Enclosed_Mass_Root(radiusMinimum,parameterPointer) >= 0.0d0) then
+    if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
        message='Enclosed mass in galaxy (ID='
-       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,radiusMinimum,componentTypeShared,massTypeShared,haloLoaded=haloLoadedShared)
+       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,haloLoaded=haloLoadedShared)
        message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
        write (massLabel,'(e10.4)') massRoot
        message=message//') at zero radius (was seeking '//trim(massLabel)
        message=message//') - expect a crash.'
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
-    radiusMaximum=Dark_Matter_Halo_Virial_Radius(thisNode)
-    do while (Enclosed_Mass_Root(radiusMaximum,parameterPointer) <= 0.0d0)
-       radiusMaximum=radiusMaximum*2.0d0
-    end do
-    Galactic_Structure_Radius_Enclosing_Mass=Root_Find(radiusMinimum,radiusMaximum,Enclosed_Mass_Root,parameterPointer&
-         &,rootFunction,rootFunctionSolver,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
-    
+    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootRange=[0.0d0,Dark_Matter_Halo_Virial_Radius(thisNode)])
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
@@ -176,11 +174,9 @@ contains
     return
   end subroutine Galactic_Structure_Enclosed_Mass_Defaults
 
-  function Enclosed_Mass_Root(radius,parameterPointer) bind(c)
+  double precision function Enclosed_Mass_Root(radius)
     !% Root function used in solving for the radius that encloses a given mass.
-    real(c_double), value   :: radius
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: Enclosed_Mass_Root
+    double precision, intent(in   ) :: radius
    
     ! Evaluate the root function.
     Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,componentTypeShared,massTypeShared,weightByShared&
