@@ -84,8 +84,7 @@ contains
     implicit none
     class(nodeComponentBasic), pointer :: thisBasicComponent
     integer                            :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput
-    double precision                   :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,criticalOverdensity&
-         &,characteristicMass
+    double precision                   :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum
     type (mergerTree        )          :: thisTree
 
     ! Get the requested output redshifts.
@@ -179,7 +178,7 @@ contains
     call thisTree%createNode(thisTree%baseNode)
 
     ! Get the basic component.
-    thisBasicComponent => thisTree%baseNode%basic()
+    thisBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
 
     ! Loop over all output times.
     do iOutput=1,outputCount
@@ -242,7 +241,6 @@ contains
 
     ! Close the outputs group.
     call outputsGroup%close()
-
 
     ! Write mass function datasets.
     massFunctionGroup=haloMassFunctionOutputFile%openGroup('haloMassFunctions','Group containing datasets relating to&
