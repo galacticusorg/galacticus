@@ -22,7 +22,7 @@ opendir(dirHndl,$sourceDir);
 while ( $fileName = readdir(dirHndl) ) {
 
     # Find Fortran 90 and C++ source files.
-    if ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) {
+    if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
 
 	# Get a printable file name.
 	($fileNamePrint = $fileName) =~ s/_/\\_/g;

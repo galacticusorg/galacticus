@@ -28,7 +28,7 @@ close(iHndl);
 my %parametersListed;
 opendir(sDir,"source");
 while ( my $fileName = readdir(sDir) ) {
-    if ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) {
+    if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ ) {
 	(my $objectFile = $fileName) =~ s/\.[a-zA-Z0-9]+$/\.o/;
 	# Open the file and scan for parameters.
 	my $xmlBuffer;
