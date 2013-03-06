@@ -246,14 +246,13 @@ subroutine Sersic_Profile_Tabulate(radius)
   if (rebuildTable) then
      ! Initialize our root finder.
      if (.not.finder%isInitialized()) then
-        call finder%rootFunction   (Sersic_Coefficient_Root                                             )
-        call finder%tolerance      (toleranceAbsolute=0.0d0,toleranceRelative=sersicCoefficientTolerance)
-        call finder%markInitialized(                                                                    )
-        call finder%rangeExpand    (                                               &
-             &                      rangeExpandDownward=0.5d0                    , &
-             &                      rangeExpandUpward  =2.0d0                    , &
-             &                      rangeExpandType    =rangeExpandMultiplicative  &
-             &                     )
+        call finder%rootFunction(Sersic_Coefficient_Root                                             )
+        call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=sersicCoefficientTolerance)
+        call finder%rangeExpand (                                               &
+             &                   rangeExpandDownward=0.5d0                    , &
+             &                   rangeExpandUpward  =2.0d0                    , &
+             &                   rangeExpandType    =rangeExpandMultiplicative  &
+             &                  )
         end if
      ! Try building the table until it has sufficient extent to encompass the requested radius.
      tableHasSufficientExtent=.false.
