@@ -112,8 +112,16 @@ contains
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
 
     ! Compute the stability estimator for this node.
-    stabilityEstimator=max(stabilityThreshold,velocityBoostFactor*thisDiskComponent%velocity()/dsqrt(gravitationalConstantGalacticus*diskMass&
-         &/thisDiskComponent%radius()))
+    stabilityEstimator=max(&
+         &                  stabilityIsolatedDisk               , &
+         &                  velocityBoostFactor                   &
+         &                 *thisDiskComponent      %velocity()    &
+         &                 /sqrt(                                 &
+         &                        gravitationalConstantGalacticus &
+         &                       *diskMass                        &
+         &                       /thisDiskComponent%radius  ()    &
+         &                      )                                 &
+         &                )
     
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
