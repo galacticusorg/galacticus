@@ -25,18 +25,20 @@ module Pseudo_Random
   private
   public :: Pseudo_Random_Get, Pseudo_Random_Free, Pseudo_Random_Store, Pseudo_Random_Retrieve
   
-  logical           :: Seed_Is_Set=.false.
-  integer(c_size_t) :: randomSeedC
+  logical            :: Seed_Is_Set=.false.
+  integer            :: randomSeed
+  integer(fgsl_long) :: randomSeedC=-1
+  !$omp threadprivate(randomSeedC)
 
 contains
 
   double precision function Pseudo_Random_Get(pseudoSequenceObject,reset)
     !% Returns a scalar giving a pseudo-random number.
     use Input_Parameters
+    !$ use OMP_Lib
     implicit none
     type(fgsl_rng), intent(inout)           :: pseudoSequenceObject
     logical,        intent(inout), optional :: reset
-    integer                                 :: randomSeed
     logical                                 :: resetActual
 
     ! Determine if we need to reset.
@@ -61,14 +63,18 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('randomSeed',randomSeed,defaultValue=219)
-       randomSeedC=randomSeed
+!       randomSeedC=randomSeed
        Seed_Is_Set=.true.
     end if
     !$omp end critical (Pseudo_Random_Get)
     
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
-       randomSeed=randomSeed+1
+       if (randomSeedC < 0) then
+          randomSeedC=randomSeed 
+          !$ randomSeedC=randomSeedC+omp_get_thread_num()
+       end if
+       randomSeedC=randomSeedC+1
        call FGSL_RNG_Set(pseudoSequenceObject,randomSeedC)
     end if
     Pseudo_Random_Get=FGSL_RNG_Uniform(pseudoSequenceObject)

@@ -25,19 +25,21 @@ module Gaussian_Random
   private
   public :: Gaussian_Random_Get, Gaussian_Random_Free
   
-  logical           :: Seed_Is_Set=.false.
-  integer(c_size_t) :: gaussianRandomSeedC
+  logical            :: Seed_Is_Set=.false.
+  integer            :: gaussianRandomSeed
+  integer(fgsl_long) :: gaussianRandomSeedC=-1
+  !$omp threadprivate(gaussianRandomSeedC)
 
 contains
 
   double precision function Gaussian_Random_Get(pseudoSequenceObject,width,reset)
     !% Returns a Gaussian random deviate.
     use Input_Parameters
+    !$ use OMP_Lib
     implicit none
     type(fgsl_rng),   intent(inout)           :: pseudoSequenceObject
     double precision, intent(in)              :: width
     logical,          intent(inout), optional :: reset
-    integer                                   :: gaussianRandomSeed
     logical                                   :: resetActual
 
     ! Determine if we need to reset.
@@ -62,14 +64,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('gaussianRandomSeed',gaussianRandomSeed,defaultValue=843)
-       gaussianRandomSeedC=gaussianRandomSeed
        Seed_Is_Set=.true.
     end if
     !$omp end critical (Gaussian_Random_Get)
     
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
-       gaussianRandomSeed=gaussianRandomSeed+1
+       if (gaussianRandomSeedC < 0) then
+          gaussianRandomSeedC=gaussianRandomSeed 
+          !$ gaussianRandomSeedC=gaussianRandomSeedC+omp_get_thread_num()
+       end if
+       gaussianRandomSeedC=gaussianRandomSeedC+1
        call FGSL_RNG_Set(pseudoSequenceObject,gaussianRandomSeedC)
     end if
     Gaussian_Random_Get=FGSL_Ran_Gaussian(pseudoSequenceObject,width)
