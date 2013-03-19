@@ -622,10 +622,10 @@ contains
     use Memory_Management
     implicit none
     class    (nodeComponentSpheroidStandard),          intent(inout)           :: self
-    type     (history                       ),          intent(in   )           :: rate
-    logical                                  ,          intent(inout), optional :: interrupt
-    procedure(                              ), pointer, intent(inout), optional :: interruptProcedure
-    type     (history                       )                                   :: starFormationHistory
+    type     (history                      ),          intent(in   )           :: rate
+    logical                                 ,          intent(inout), optional :: interrupt
+    procedure(                             ), pointer, intent(inout), optional :: interruptProcedure
+    type     (history                      )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.
     starFormationHistory=self%starFormationHistory()
@@ -649,7 +649,7 @@ contains
        return
     end if
     ! Adjust the rate.
-    call starFormationHistory%increment(rate)
+    starFormationHistory=starFormationHistory+rate
     call self%starFormationHistorySet(starFormationHistory)
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate
@@ -885,8 +885,8 @@ use kind_numbers
              ! Also add stellar properties histories.
              historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
              historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
-             call historyDisk    %addRates(historySpheroid    )
-             call historySpheroid%reset   (                   )
+             call historyDisk    %increment(historySpheroid    )
+             call historySpheroid%reset    (                   )
              call hostDiskComponent    %stellarPropertiesHistorySet(historyDisk    )
              call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
              ! Also add star formation histories.
@@ -926,8 +926,8 @@ use kind_numbers
              ! Also add stellar properties histories.
              historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
              historySpheroid=hostSpheroidComponent%stellarPropertiesHistory()
-             call historySpheroid%addRates(historyDisk)
-             call historyDisk    %reset   (           )
+             call historySpheroid%increment(historyDisk)
+             call historyDisk    %reset    (           )
              call hostSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
              call hostDiskComponent    %stellarPropertiesHistorySet( historyDisk   )
              ! Also add star formation histories.
@@ -1009,8 +1009,8 @@ use kind_numbers
                 ! Also add stellar properties histories.
                 historySpheroid=thisSpheroidComponent%stellarPropertiesHistory()
                 thisHistory    =hostDiskComponent    %stellarPropertiesHistory()
-                call thisHistory    %addRates(historySpheroid    )
-                call historySpheroid%reset   (                   )
+                call thisHistory    %increment(historySpheroid    )
+                call historySpheroid%reset    (                   )
                 call hostDiskComponent    %stellarPropertiesHistorySet(thisHistory    )
                 call thisSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)
                 ! Also add star formation histories.
@@ -1035,7 +1035,7 @@ use kind_numbers
                 ! Also add stellar properties histories.
                 historySpheroid=thisSpheroidComponent%stellarPropertiesHistory()
                 thisHistory    =hostSpheroidComponent%stellarPropertiesHistory()
-                call thisHistory%addRates(historySpheroid)
+                call thisHistory%increment(historySpheroid)
                 call historySpheroid%reset()
                 call hostSpheroidComponent%stellarPropertiesHistorySet(thisHistory    )
                 call thisSpheroidComponent%stellarPropertiesHistorySet(historySpheroid)

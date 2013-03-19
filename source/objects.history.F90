@@ -73,11 +73,7 @@ module Histories
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>increment</method>
-     !@     <description>Increments a history.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>addRates</method>
-     !@     <description>Adds two histories.</description>
+     !@     <description>Adds two histories, possibly with different time series.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>combine</method>
@@ -108,13 +104,12 @@ module Histories
      procedure :: dump       => History_Dump
      procedure :: dumpRaw    => History_Dump_Raw
      procedure :: readRaw    => History_Read_Raw
-     procedure :: increment  => History_Increment
      procedure :: create     => History_Create
      procedure :: clone      => History_Clone
      procedure :: destroy    => History_Destroy
      procedure :: trim       => History_Trim
      procedure :: extend     => History_Extend
-     procedure :: addRates   => History_Add_Rates
+     procedure :: increment  => History_Increment
      procedure :: combine    => History_Combine
      procedure :: reset      => History_Reset
      procedure :: setToUnity => History_Set_To_Unity
@@ -393,18 +388,6 @@ contains
     return
   end function History_Add
 
-  subroutine History_Increment(self,increment)
-    !% Increment a history.
-    use Galacticus_Error
-    implicit none
-    class(history), intent(inout) :: self
-    class(history), intent(in   ) :: increment
-
-    if (any(shape(self%data) /= shape(increment%data))) call Galacticus_Error_Report('History_Increment','mismatch in history object shape')
-    self%data=self%data+increment%data
-    return
-  end subroutine History_Increment
-
   function History_Subtract(history1,history2)
     !% Subtract two history objects.
     use Galacticus_Error
@@ -520,7 +503,7 @@ contains
     return
   end subroutine History_Trim
 
-   subroutine History_Add_Rates(thisHistory,addHistory)
+   subroutine History_Increment(thisHistory,addHistory)
      !% Adds the data in {\tt addHistory} to that in {\tt thisHistory}. This function is designed for histories that track
      !% instantaneous rates. The rates in {\tt addHistory} are interpolated to the times in {\tt thisHistory} and added to the
      !% rates in {\tt thisHistory}.
@@ -592,7 +575,7 @@ contains
      end select
 
      return
-   end subroutine History_Add_Rates
+   end subroutine History_Increment
 
    subroutine History_Combine(thisHistory,combineHistory)
      !% Combines the data in {\tt combineHistory} with that in {\tt thisHistory}. This function is designed for histories that
