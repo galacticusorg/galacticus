@@ -811,8 +811,8 @@ contains
           ! Also add stellar properties histories.
           thisHistory=thisDiskComponent    %stellarPropertiesHistory()
           hostHistory=hostDiskComponent    %stellarPropertiesHistory()
-          call hostHistory%addRates(thisHistory)
-          call thisHistory%reset   (           )
+          call hostHistory%increment(thisHistory)
+          call thisHistory%reset    (           )
           call hostDiskComponent%stellarPropertiesHistorySet(hostHistory)
           call thisDiskComponent%stellarPropertiesHistorySet(thisHistory)
           ! Also add star formation histories.
@@ -840,8 +840,8 @@ contains
           ! Also add stellar properties histories.
           thisHistory=thisDiskComponent    %stellarPropertiesHistory()
           hostHistory=hostSpheroidComponent%stellarPropertiesHistory()
-          call hostHistory%addRates(thisHistory)
-          call thisHistory%reset   (           )
+          call hostHistory%increment(thisHistory)
+          call thisHistory%reset    (           )
           call hostSpheroidComponent%stellarPropertiesHistorySet(hostHistory)
           call thisDiskComponent    %stellarPropertiesHistorySet(thisHistory)
           ! Also add star formation histories.
