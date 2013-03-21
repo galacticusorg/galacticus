@@ -15,7 +15,7 @@ use Stats::Histograms;
 print "Progenitor_Mass_Function.pl is running: will create a plot of progenitor mass functions from Galacticus...\n";
 
 # Specify name of Galacticus output file to be used.
-$galacticusOutput = tests/progenitorMassFunction/"progenitorMassFunctionTest.hdf5";
+$galacticusOutput = "tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5";
 
 # Hubble constant.
 $h0 = 0.73;
