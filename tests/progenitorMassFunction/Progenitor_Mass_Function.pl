@@ -53,7 +53,7 @@ foreach $massFunction ( @{$data->{'massFunction'}} ) {
 
 # Run Galacticus to generate the data.
 print "  -> Running Galacticus to generate merger trees...\n";
-system("Galacticus.exe tests/Progenitor_Mass_Function_Parameters.xml");
+system("Galacticus.exe tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
 
 # Create data structure to read the results.
 $dataSet{'file'} = $galacticusOutput;
@@ -64,8 +64,7 @@ $treesCount = $#{$dataSet{'mergerTreesAvailable'}}+1;
 print "  -> Found ".$treesCount." trees: processing.......\n";
 
 # Loop through trees.
-#for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
-for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
+for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
     $dataSet{'tree'} = $iTree;
     # Loop over outputs.
     for ($iOutput=$outputCount;$iOutput>0;--$iOutput) {
