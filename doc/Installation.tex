@@ -137,6 +137,14 @@ In addition to the tools listed in \S\ref{sec:requirementsEssential} a typical i
  make install
 \end{verbatim}
 
+\item [poppler] \href{http://poppler.freedesktop.org/}{poppler} is a set of tools for working with PDF files. We use v0.22.2 and recommend the following build sequence. 
+\begin{verbatim}
+ ./configure
+ make
+ make check
+ make install
+\end{verbatim}
+
   \item [\href{http://perldoc.perl.org/IO/Compress/Bzip2.html}{{\tt IO::Compress::Bzip2}}] This module provides the {\tt bzip2} compression tool in Perl. On Fedora the following (as root) will install {\tt IO::Compress::Bzip2}:
 \begin{verbatim}
 yum install perl-Compress-Bzip2
@@ -400,6 +408,16 @@ tar xvfz mercurial-2.4.1.tar.gz
 cd mercurial-2.4.1
 setenv PREFIX /your/install/path
 make
+make install
+
+! Install Poppler:
+
+wget "http://poppler.freedesktop.org/poppler-0.22.2.tar.gz"
+tar xvfz poppler-0.22.2.tar.gz
+cd poppler-0.22.2
+./configure --prefix=/your/install/path
+make
+make check
 make install
 
 ! Install Perl local::lib for local installs of modules:
