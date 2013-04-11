@@ -58,7 +58,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="darkMatterHaloBiasMethod" type="moduleUse">
-    include 'structure_formation.CDM.halo_bias.modules.inc'
+    include 'structure_formation.halo_bias.modules.inc'
     !# </include>
     implicit none
 
@@ -80,7 +80,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="darkMatterHaloBiasMethod" type="functionCall" functionType="void">
           !#  <functionArgs>darkMatterHaloBiasMethod,Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get</functionArgs>
-          include 'structure_formation.CDM.halo_bias.inc'
+          include 'structure_formation.halo_bias.inc'
           !# </include>
           if (.not.(associated(Dark_Matter_Halo_Bias_Get).and.associated(Dark_Matter_Halo_Bias_Node_Get))) call&
                & Galacticus_Error_Report('Dark_Matter_Halo_Bias_Initialize','method '//char(darkMatterHaloBiasMethod)//' is unrecognized')

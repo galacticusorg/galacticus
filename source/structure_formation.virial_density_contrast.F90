@@ -53,7 +53,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="virialDensityContrastMethod" type="moduleUse">
-    include 'structure_formation.CDM.virial_overdensity.modules.inc'
+    include 'structure_formation.virial_overdensity.modules.inc'
     !# </include>
     implicit none
     double precision, intent(in) :: time
@@ -77,7 +77,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="virialDensityContrastMethod" type="functionCall" functionType="void">
           !#  <functionArgs>virialDensityContrastMethod,Virial_Density_Contrast_Tabulate</functionArgs>
-          include 'structure_formation.CDM.virial_overdensity.inc'
+          include 'structure_formation.virial_overdensity.inc'
           !# </include>
           if (.not.associated(Virial_Density_Contrast_Tabulate)) call Galacticus_Error_Report('Virial_Density_Contrast_Initialize','method ' &
                &//char(virialDensityContrastMethod)//' is unrecognized')

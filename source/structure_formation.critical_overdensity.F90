@@ -72,7 +72,7 @@ contains
     use Array_Utilities
     use Memory_Management
     !# <include directive="criticalOverdensityMethod" type="moduleUse">
-    include 'structure_formation.CDM.critical_overdensity.modules.inc'
+    include 'structure_formation.critical_overdensity.modules.inc'
     !# </include>
     implicit none
     double precision, intent(in) :: time
@@ -95,7 +95,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="criticalOverdensityMethod" type="functionCall" functionType="void">
           !#  <functionArgs>criticalOverdensityMethod,Critical_Overdensity_Tabulate</functionArgs>
-          include 'structure_formation.CDM.critical_overdensity.inc'
+          include 'structure_formation.critical_overdensity.inc'
           !# </include>
           if (.not.associated(Critical_Overdensity_Tabulate)) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
                &//char(criticalOverdensityMethod)//' is unrecognized')
@@ -313,7 +313,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="criticalOverdensityMassScalingMethod" type="moduleUse">
-    include 'structure_formation.CDM.critical_overdensity.mass_scaling.modules.inc'
+    include 'structure_formation.critical_overdensity.mass_scaling.modules.inc'
     !# </include>
     implicit none
 
@@ -335,7 +335,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="criticalOverdensityMassScalingMethod" type="functionCall" functionType="void">
           !#  <functionArgs>criticalOverdensityMassScalingMethod,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get</functionArgs>
-          include 'structure_formation.CDM.critical_overdensity.mass_scaling.inc'
+          include 'structure_formation.critical_overdensity.mass_scaling.inc'
           !# </include>
           if (.not.(associated(Critical_Overdensity_Mass_Scaling_Get).and.associated(Critical_Overdensity_Mass_Scaling_Gradient_Get))) call Galacticus_Error_Report('Critical_Overdensity_Initialize','method ' &
                &//char(criticalOverdensityMassScalingMethod)//' is unrecognized')

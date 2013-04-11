@@ -41,7 +41,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="powerSpectrumWindowFunctionMethod" type="moduleUse">
-    include 'structure_formation.CDM.power_spectrum.variance.window_function.modules.inc'
+    include 'structure_formation.power_spectrum.variance.window_function.modules.inc'
     !# </include>
     implicit none
 
@@ -64,7 +64,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="powerSpectrumWindowFunctionMethod" type="functionCall" functionType="void">
           !#  <functionArgs>powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get</functionArgs>
-          include 'structure_formation.CDM.power_spectrum.variance.window_function.inc'
+          include 'structure_formation.power_spectrum.variance.window_function.inc'
           !# </include>
           if (.not.associated(Power_Spectrum_Window_Function_Get)) call Galacticus_Error_Report('Power_Spectrum_Window_Functions_Initialize'&
                &,'method '//char(powerSpectrumWindowFunctionMethod)//' is unrecognized')
