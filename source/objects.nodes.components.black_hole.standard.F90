@@ -78,7 +78,7 @@ module Node_Component_Black_Hole_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
+  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" description="Compute the mass enclosed within a radius for the standard black hole component." bindsTo="component"/>
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>
