@@ -147,7 +147,7 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Standard_Enclosed_Mass" bindsTo="component" />
+  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Standard_Enclosed_Mass" description="Compute the mass enclosed within a radius in the standard spheroid component." bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>

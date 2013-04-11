@@ -3,10 +3,10 @@
 package Component;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
- $galacticusPath = "./";
+    $galacticusPath = "./";
 }
 unshift(@INC, $galacticusPath."perl"); 
 use strict;
@@ -60,7 +60,7 @@ sub Components_Parse_Directive {
 
     # Construct an ID for this component.
     my $componentID = ucfirst($buildData->{'currentDocument'}->{'class'}).ucfirst($buildData->{'currentDocument'}->{'name'});
-		
+    
     # Store a copy of the component's defining document.
     $buildData->{'components'}->{$componentID} = $buildData->{'currentDocument'};
 
@@ -593,7 +593,7 @@ sub Distribute_Class_Defaults {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
 		# Set class default if available.
 		$property->{'classDefault'} = $classDefaults{$componentID.$propertyName}
-		    if ( exists($classDefaults{$componentID.$propertyName}) );
+		if ( exists($classDefaults{$componentID.$propertyName}) );
 	    }
 	}
     }
@@ -818,29 +818,144 @@ sub Generate_Node_Component_Type{
     # Define type-bound functions.
     my @typeBoundFunctions = 
 	(
-	 {type => "procedure", name => "type"                   , function => "Node_Component_Generic_Type"                 },
-	 {type => "procedure", name => "host"                   , function => "Node_Component_Host_Node"                    },
-	 {type => "procedure", name => "destroy"                , function => "Node_Component_Generic_Destroy"              },
-	 {type => "procedure", name => "serializeCount"         , function => "Node_Component_Serialize_Count_Zero"         },
-	 {type => "procedure", name => "serializeValues"        , function => "Node_Component_Serialize_Null"               },
-	 {type => "procedure", name => "serializeRates"         , function => "Node_Component_Serialize_Null"               },
-	 {type => "procedure", name => "serializeScales"        , function => "Node_Component_Serialize_Null"               },
-	 {type => "procedure", name => "deserializeValues"      , function => "Node_Component_Deserialize_Null"             },
-	 {type => "procedure", name => "deserializeRates"       , function => "Node_Component_Deserialize_Null"             },
-	 {type => "procedure", name => "deserializeScales"      , function => "Node_Component_Deserialize_Null"             },
-	 {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_ODE_Step_Initialize_Null"     },
-	 {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_ODE_Step_Initialize_Null"     },
-	 {type => "procedure", name => "dump"                   , function => "Node_Component_Dump_Null"                    },
-	 {type => "procedure", name => "dumpRaw"                , function => "Node_Component_Dump_Raw_Null"                },
-	 {type => "procedure", name => "outputCount"            , function => "Node_Component_Output_Count_Null"            },
-	 {type => "procedure", name => "outputNames"            , function => "Node_Component_Output_Names_Null"            },
-	 {type => "procedure", name => "output"                 , function => "Node_Component_Output_Null"                  },
-	 {type => "procedure", name => "enclosedMass"           , function => "Node_Component_Enclosed_Mass_Null"           },
-	 {type => "procedure", name => "density"                , function => "Node_Component_Density_Null"                 },
-	 {type => "procedure", name => "surfaceDensity"         , function => "Node_Component_Surface_Density_Null"         },
-	 {type => "procedure", name => "potential"              , function => "Node_Component_Potential_Null"               },
-	 {type => "procedure", name => "rotationCurve"          , function => "Node_Component_Rotation_Curve_Null"          },
-	 {type => "procedure", name => "rotationCurveGradient"  , function => "Node_Component_Rotation_Curve_Gradient_Null" }
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "type"                                                                                                 ,
+	     function    => "Node_Component_Generic_Type"                                                                          ,
+	     description => "Return the type of a generic {\\tt nodeComponent} object."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "host"                                                                                                 ,
+	     function    => "Node_Component_Host_Node"                                                                             ,
+	     description => "Return a pointer to the host {\\tt treeNode} object of a {\\tt nodeComponent} object."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "destroy"                                                                                              ,
+	     function    => "Node_Component_Generic_Destroy"                                                                       ,
+	     description => "Destroy a {\\tt nodComponent} object."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "serializeCount"                                                                                       ,
+	     function    => "Node_Component_Serialize_Count_Zero"                                                                  ,
+	     description => "Return a count of the number of evolvable quantities to be evolved in a {\\tt nodeComponent} object."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "serializeValues"                                                                                      ,
+	     function    => "Node_Component_Serialize_Null"                                                                        ,
+	     description => "Serialize the evolvable quantities of a {\\tt nodeComponent} object to an array."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "serializeRates"                                                                                       ,
+	     function    => "Node_Component_Serialize_Null"                                                                        ,
+	     description => "Serialize the evolvable rates of a {\\tt nodeComponent} object to an array."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "serializeScales"                                                                                      ,
+	     function    => "Node_Component_Serialize_Null"                                                                        ,
+	     description => "Serialize the evolvable scales of a {\\tt nodeComponent} object to an array."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "deserializeValues"                                                                                    ,
+	     function    => "Node_Component_Deserialize_Null"                                                                      ,
+	     description => "Deserialize the evolvable quantities of a {\\tt nodeComponent} object from an array."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "deserializeRates"                                                                                     ,
+	     function    => "Node_Component_Deserialize_Null"                                                                      ,
+	     description => "Deserialize the evolvable rates of a {\\tt nodeComponent} object from an array."          
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "deserializeScales"                                                                                    ,
+	     function    => "Node_Component_Deserialize_Null"                                                                      ,
+	     description => "Deserialize the evolvable scales of a {\\tt nodeComponent} object from an array."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "odeStepRatesInitialize"                                                                               ,
+	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
+	     description => "Initialize rates for evolvable properties in a {\\tt nodeComponent}."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "odeStepScalesInitialize"                                                                              ,
+	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
+	     description => "Initialize scales for evolvable properties in a {\\tt nodeComponent}."          
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "dump"                                                                                                 ,
+	     function    => "Node_Component_Dump_Null"                                                                             ,
+	     description => "Generate an ASCII dump of a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "dumpRaw"                                                                                              ,
+	     function    => "Node_Component_Dump_Raw_Null"                                                                         ,
+	     description => "Generate a binary dump of a {\\tt nodeComponent} object (null implementation)."                   
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "outputCount"                                                                                          ,
+	     function    => "Node_Component_Output_Count_Null"                                                                     ,
+	     description => "Compute a count of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "outputNames"                                                                                          ,
+	     function    => "Node_Component_Output_Names_Null"                                                                     ,
+	     description => "Generate names of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "output"                                                                                               ,
+	     function    => "Node_Component_Output_Null"                                                                           ,
+	     description => "Generate values of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "enclosedMass"                                                                                         ,
+	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
+	     description => "Compute the mass enclosed within a radius in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "density"                                                                                              ,
+	     function    => "Node_Component_Density_Null"                                                                          ,
+	     description => "Compute the density in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "surfaceDensity"                                                                                       ,
+	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
+	     description => "Compute the surface density in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "potential"                                                                                            ,
+	     function    => "Node_Component_Potential_Null"                                                                        ,
+	     description => "Compute the gravitational potential in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "rotationCurve"                                                                                        ,
+	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
+	     description => "Compute the rotation curve in a {\\tt nodeComponent} object (null implementation)."
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
+	     name        => "rotationCurveGradient"                                                                                ,
+	     function    => "Node_Component_Rotation_Curve_Gradient_Null"                                                          ,
+	     description => "Compute the rotation curve gradient in a {\\tt nodeComponent} object (null implementation)."
+	 }
 	);
     # Specify the data content.
     my @dataContent =
@@ -875,7 +990,7 @@ sub Generate_Node_Component_Type{
 sub Generate_Component_Classes{
     # Generate object types for each component class.
     my $buildData = shift;
- 
+    
     # Iterate over all component classes.
     my %classGetDefaults;
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -895,7 +1010,7 @@ sub Generate_Component_Classes{
 		my $property = $buildData->{'components'}->{$componentName}->{'properties'}->{'property'}->{$propertyName};
 		# Create functions to set/get/evolve each property as necessary.
 		if ( 
-		       $property->{'attributes'}->{'isGettable' } eq "true"
+		    $property->{'attributes'}->{'isGettable' } eq "true"
 		    || $property->{'attributes'}->{'isSettable' } eq "true"
 		    || $property->{'attributes'}->{'isEvolvable'} eq "true"
 		    )
@@ -923,7 +1038,7 @@ sub Generate_Component_Classes{
 		    unless ( exists($propertiesCreated{$functionName}) ) {
 			push(
 			    @typeBoundFunctions,
-			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False"}
+			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component is settable (null implementation)."}
 			    );
 			$propertiesCreated{$functionName} = 1;
 		    }
@@ -943,7 +1058,7 @@ sub Generate_Component_Classes{
 			    }
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $boundTo}
+				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -956,7 +1071,7 @@ sub Generate_Component_Classes{
 			unless ( exists($propertiesCreated{$functionName}) ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In"}
+				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -964,7 +1079,7 @@ sub Generate_Component_Classes{
 			$functionName = $propertyName."Rate";
 			unless (  exists($propertiesCreated{$functionName}) ) {
 			    unless ( 
-				   $property->{'attributes'}->{'isDeferred' } =~ m/rate/
+				$property->{'attributes'}->{'isDeferred' } =~ m/rate/
 				&& $property->{'attributes'}->{'bindsTo'    } eq "top"
 				) {
 				my $boundTo;
@@ -976,13 +1091,13 @@ sub Generate_Component_Classes{
 				}
 				push(
 				    @typeBoundFunctions,
-				    {type => "procedure", name => $functionName, function => $boundTo}
+				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
 				    );
 			    }
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type}
+				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
 				)
 				unless ( $property->{'isVirtual'} eq "true" );
 			    $propertiesCreated{$functionName} = 1;
@@ -993,7 +1108,7 @@ sub Generate_Component_Classes{
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $_->{'method'}, function => $_->{'nullFunction'}}
+				{type => "procedure", name => $_->{'method'}, function => $_->{'nullFunction'}, description => $_->{'description'}}
 				)
 				if ( $_->{'bindsTo'} eq "componentClass" );
 			}
@@ -1067,10 +1182,10 @@ sub Generate_Implementations {
 	# Add binding for deferred create function set function.
 	push(
 	    @typeBoundFunctions,
-	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet"}
+	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet", description => "Set the function used to create {\\tt ".$componentID."} components."}
 	    )
 	    if ( 
-	    	   exists($component->{'createFunction'})
+		exists($component->{'createFunction'})
 		&&        $component->{'createFunction'}->{'isDeferred'} eq "true" 
 	    );
      	# If this component has bindings defined, scan through them and create an appropriate method.
@@ -1078,7 +1193,7 @@ sub Generate_Implementations {
     	    foreach ( @{$component->{'bindings'}->{'binding'}} ) {
 		push(
 		    @typeBoundFunctions,
-		    {type => "procedure", name => $_->{'method'}, function => $_->{'function'}},
+		    {type => "procedure", name => $_->{'method'}, function => $_->{'function'}, description => $_->{'description'}},
 		    );
 	    }
 	}
@@ -1088,8 +1203,8 @@ sub Generate_Implementations {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
-		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'})},
-		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'})}
+		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'}), description => "Return whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component is gettable."},
+		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'}), description => "Return whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component is settable."}
 		);
 	}
 	# Create the type.
@@ -1121,7 +1236,7 @@ sub Generate_Active_Implementation_Records{
 	    is_sep => 1,
 	    body   => "=.false."
 	}
-    );
+	);
     # Iterate over all component implementations.
     foreach ( @{$buildData->{'componentIdList'}} ) {
 	$recordTable->add("nodeComponent".$_."IsActive");
@@ -1157,7 +1272,7 @@ sub Generate_Deferred_Procedure_Pointers {
 	    }
 	    )
 	    if (
-		   exists($component->{'createFunction'})
+		exists($component->{'createFunction'})
 		&&        $component->{'createFunction'}->{'isDeferred'} eq "true"
 	    );
 	# Iterate over properties.
@@ -1166,14 +1281,14 @@ sub Generate_Deferred_Procedure_Pointers {
 	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
 		my $selfType = "generic";
 		$selfType = $component->{'class'}
-		    unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
+		unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
 		(my $dataObject, my $label) = &Data_Object_Definition($property);
 		my $dataType = $label.$property->{'rank'};
 		# Iterate over attributes.
 		foreach ( "get", "set", "rate" ) {
 		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
 		    if (
-			   $property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
+			$property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
 			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'} eq "true"
 			&& ! exists($createdPointers{$componentClassName.ucfirst($propertyName).$_})
 			) {
@@ -1266,7 +1381,7 @@ sub Generate_Default_Component_Sources{
 	{
 	    align  => "left"
 	}
-    );
+	);
     # Iterate over all component implementations.
     foreach ( @{$buildData->{'componentClassList'}} ) {
 	$recordTable->add(ucfirst($_),ucfirst($_)."Component");
@@ -1290,7 +1405,7 @@ sub Generate_Default_Component_Sources{
 	{
 	    align  => "left"
 	}
-    );
+	);
     # Iterate over all component implementations.
     foreach ( @{$buildData->{'componentClassList'}} ) {
 	$recordTable->add(ucfirst($_),ucfirst($_)."Class");
@@ -1315,32 +1430,158 @@ sub Generate_Tree_Node_Object {
     # Define bound functions.
     my @typeBoundFunctions = 
 	(
-	 {type => "procedure", name => "type"                     , function => "Tree_Node_Type"                          },
-	 {type => "procedure", name => "index"                    , function => "Tree_Node_Index"                         },
-	 {type => "procedure", name => "indexSet"                 , function => "Tree_Node_Index_Set"                     },
-	 {type => "procedure", name => "uniqueID"                 , function => "Tree_Node_Unique_ID"                     },
-	 {type => "procedure", name => "uniqueIDSet"              , function => "Tree_Node_Unique_ID_Set"                 },
-	 {type => "procedure", name => "initialize"               , function => "treeNodeInitialize"                      },
-	 {type => "procedure", name => "destroy"                  , function => "treeNodeDestroy"                         },
-	 {type => "procedure", name => "componentBuilder"         , function => "Tree_Node_Component_Builder"             },
-	 {type => "procedure", name => "removeFromHost"           , function => "Tree_Node_Remove_From_Host"              },
-	 {type => "procedure", name => "removeFromMergee"         , function => "Tree_Node_Remove_From_Mergee"            },
-	 {type => "procedure", name => "isPrimaryProgenitor"      , function => "Tree_Node_Is_Primary_Progenitor"         },
-	 {type => "procedure",                                    , function => "Tree_Node_Is_Primary_Progenitor_Of_Index"},
-	 {type => "procedure",                                    , function => "Tree_Node_Is_Primary_Progenitor_Of_Node" },
-	 {type => "generic"  , name => "isPrimaryProgenitorOf"    , function => ["Tree_Node_Is_Primary_Progenitor_Of_Index","Tree_Node_Is_Primary_Progenitor_Of_Node"]},
-	 {type => "procedure", name => "isOnMainBranch"           , function => "Tree_Node_Is_On_Main_Branch"             },
-	 {type => "procedure", name => "isSatellite"              , function => "Tree_Node_Is_Satellite"                  },
-	 {type => "procedure", name => "lastSatellite"            , function => "Tree_Node_Get_Last_Satellite"            },
-	 {type => "procedure", name => "earliestProgenitor"       , function => "Tree_Node_Get_Earliest_Progenitor"       },
-	 {type => "procedure", name => "mergesWith"               , function => "Tree_Node_Merges_With_Node"              },
-	 {type => "procedure", name => "walkBranch"               , function => "Tree_Node_Walk_Branch"                   },
-	 {type => "procedure", name => "walkBranchWithSatellites" , function => "Tree_Node_Walk_Branch_With_Satellites"   },
-	 {type => "procedure", name => "walkTree"                 , function => "Tree_Node_Walk_Tree"                     },
-	 {type => "procedure", name => "walkTreeUnderConstruction", function => "Tree_Node_Walk_Tree_Under_Construction"  },
-	 {type => "procedure", name => "walkTreeWithSatellites"   , function => "Tree_Node_Walk_Tree_With_Satellites"     },
-	 {type => "procedure", name => "createEvent"              , function => "Tree_Node_Create_Event"                  },
-	 {type => "procedure", name => "removePairedEvent"        , function => "Tree_Node_Remove_Paired_Event"           }
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "type"                                                                                                            ,
+	     function    => "Tree_Node_Type"                                                                                                  ,
+	     description => "Return the type of this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "index"                                                                                                           ,
+	     function    => "Tree_Node_Index"                                                                                                 ,
+	     description => "Return the index of this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "indexSet"                                                                                                        ,
+	     function    => "Tree_Node_Index_Set"                                                                                             ,
+	     description => "Set the index of this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "uniqueID"                                                                                                        ,
+	     function    => "Tree_Node_Unique_ID"                                                                                             ,
+	     description => "Return the unique identifier for this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "uniqueIDSet"                                                                                                     ,
+	     function    => "Tree_Node_Unique_ID_Set"                                                                                         ,
+	     description => "Set the unique identifier for this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "initialize"                                                                                                      ,
+	     function    => "treeNodeInitialize"                                                                                              ,
+	     description => "Initialize this node (assigns a unique identifier, creates generic components)."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "destroy"                                                                                                         ,
+	     function    => "treeNodeDestroy"                                                                                                 ,
+	     description => "Destroy this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "componentBuilder"                                                                                                ,
+	     function    => "Tree_Node_Component_Builder"             ,
+	     description => "Build components in this node given an XML description of their properties."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "removeFromHost"                                                                                                  ,
+	     function    => "Tree_Node_Remove_From_Host"                                                                                      ,
+	     description => "Remove this node from the satellite population of its host halo."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "removeFromMergee"                                                                                                ,
+	     function    => "Tree_Node_Remove_From_Mergee"                                                                                    ,
+	     description => "Remove this node from the list of mergees associated with its merge target."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "isPrimaryProgenitor"                                                                                             ,
+	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
+	     description => "Return true if this node is the primary progenitor of its descendent, false otherwise."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     function    => "Tree_Node_Is_Primary_Progenitor_Of_Index"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     function    => "Tree_Node_Is_Primary_Progenitor_Of_Node" 
+	 },
+	 {
+	     type        => "generic"                                                                                                         ,
+	     name        => "isPrimaryProgenitorOf"                                                                                           ,
+	     function    => ["Tree_Node_Is_Primary_Progenitor_Of_Index","Tree_Node_Is_Primary_Progenitor_Of_Node"]                            ,
+	     description => "Return true is this node is the primary progenitor of the specified (by index or pointer) node, false otherwise."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "isOnMainBranch"                                                                                                  ,
+	     function    => "Tree_Node_Is_On_Main_Branch"                                                                                     ,
+	     description => "Return true if this node is on the main branch of its tree, false otherwise."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "isSatellite"                                                                                                     ,
+	     function    => "Tree_Node_Is_Satellite"                                                                                          ,
+	     description => "Return true if this node is a satellite, false otherwise."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "lastSatellite"                                                                                                   ,
+	     function    => "Tree_Node_Get_Last_Satellite"                                                                                    ,
+	     description => "Return a pointer to the last satellite in the list of satellites beloning to this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "earliestProgenitor"                                                                                              ,
+	     function    => "Tree_Node_Get_Earliest_Progenitor"                                                                               ,
+	     description => "Return a pointer to the earliest progenitor (along the main branch) of this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "mergesWith"                                                                                                      ,
+	     function    => "Tree_Node_Merges_With_Node"                                                                                      ,
+	     description => "Return a pointer to the node with which this node will merge."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "walkBranch"                                                                                                      ,
+	     function    => "Tree_Node_Walk_Branch"                                                                                           ,
+	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "walkBranchWithSatellites"                                                                                        ,
+	     function    => "Tree_Node_Walk_Branch_With_Satellites"                                                                           ,
+	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "walkTree"                                                                                                        ,
+	     function    => "Tree_Node_Walk_Tree"                                                                                             ,
+	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "walkTreeUnderConstruction"                                                                                       ,
+	     function    => "Tree_Node_Walk_Tree_Under_Construction"                                                                          ,
+	     description => "Return a pointer to the next node when performing a walk of a tree under construction."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "walkTreeWithSatellites"                                                                                          ,
+	     function    => "Tree_Node_Walk_Tree_With_Satellites"                                                                             ,
+	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "createEvent"                                                                                                     ,
+	     function    => "Tree_Node_Create_Event"                                                                                          ,
+	     description => "Create a {\\tt nodeEvent} object in this node."
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     name        => "removePairedEvent"                                                                                               ,
+	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
+	     description => "Remove a paired {\\tt nodeEvent} from this node."
+	 }
 	);
     # Add data content.
     my @dataContent =
@@ -1372,11 +1613,11 @@ sub Generate_Tree_Node_Object {
 	push(
 	    @dataContent,
 	    {
-	     intrinsic  => "class",
-	     type       => "nodeComponent".ucfirst($_),
-	     attributes => [ "allocatable", "dimension(:)" ],
-	     variables  => [ "component".ucfirst($_) ],
-	     comment    => "A generic ".$_." object."
+		intrinsic  => "class",
+		type       => "nodeComponent".ucfirst($_),
+		attributes => [ "allocatable", "dimension(:)" ],
+		variables  => [ "component".ucfirst($_) ],
+		comment    => "A generic ".$_." object."
 	    }
 	    );
     }
@@ -1388,7 +1629,8 @@ sub Generate_Tree_Node_Object {
 	boundFunctions => \@typeBoundFunctions,
 	dataContent    => \@dataContent
     };
-    push(@{$buildData->{'typesOrder'}},"treeNode");
+    push(@{$buildData->{'typesOrder'}
+	 },"treeNode");
 }
 
 sub Generate_Node_Event_Object {
@@ -1520,7 +1762,7 @@ sub Generate_Initialization_Function {
 		if (
 		    exists($property->{'output'}               )                       &&
 		    exists($property->{'output'}->{'condition'})                       &&
-		           $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
+		    $property->{'output'}->{'condition'} =~ m/\[\[([^\]]+)\]\]/
 		    ) 
 		{
 		    my $parameterName = $1;
@@ -1823,7 +2065,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "      end do\n";
 	$functionCode .= "    end if\n";
     }
-     $functionCode .= "    return\n";
+    $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Node_Dump_Raw\n";
     # Insert into the function list.
     push(
@@ -1835,7 +2077,7 @@ sub Generate_Node_Dump_Function {
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "dumpRaw", function => "Node_Dump_Raw"}
 	);
-   # Create a function for doing a raw (binary) read.
+    # Create a function for doing a raw (binary) read.
     @dataContent =
 	(
 	 {
@@ -1897,7 +2139,7 @@ sub Generate_Node_Dump_Function {
 	$functionCode .= "       allocate(self%component".padComponentClass(ucfirst($_),[0,0])."(1))\n";
 	$functionCode .= "    end if\n";
     }
-     $functionCode .= "    return\n";
+    $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Node_Read_Raw\n";
     # Insert into the function list.
     push(
@@ -2024,7 +2266,7 @@ sub Generate_Node_Output_Functions {
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
 	{type => "procedure", name => "outputNames", function => "Node_Output_Names"}
 	);
-  # Create an output function.
+    # Create an output function.
     @dataContent =
 	(
 	 {
@@ -2496,7 +2738,7 @@ sub Generate_Implementation_Dump_Functions {
 				$functionCode .= "    call Galacticus_Display_Indent(message)\n";
 				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%dump()\n";
 				$functionCode .= "    call Galacticus_Display_Unindent('end')\n";
-				}
+			    }
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			switch ( $linkedData->{'type'} ) {
@@ -3048,7 +3290,7 @@ sub Generate_Implementation_Output_Functions {
 	    if (
 		exists($component->{'output'}               )           &&
 		exists($component->{'output'}->{'instances'})           &&
-		       $component->{'output'}->{'instances'} eq "first"
+		$component->{'output'}->{'instances'} eq "first"
 		) {
 		$functionCode .= "    if (instance == 1) then\n";
 		$checkAdded = 1;
@@ -3224,7 +3466,7 @@ sub Generate_Implementation_Output_Functions {
 	    if (
 		exists($component->{'output'}               )           &&
 		exists($component->{'output'}->{'instances'})           &&
-		       $component->{'output'}->{'instances'} eq "first"
+		$component->{'output'}->{'instances'} eq "first"
 		) {
 		$functionCode .= "    if (instance == 1) then\n";
 		$checkAdded = 1;
@@ -3566,7 +3808,7 @@ sub Generate_Implementation_Serialization_Functions {
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
 	    {type => "procedure", name => "serializeCount", function => "Node_Component_".ucfirst($componentID)."_Count"}
-	);
+	    );
 	# Iterate over content types.
 	foreach my $content ( "value", "scale", "rate" ) {
 	    # Specify data content for serialization functions.
@@ -3635,7 +3877,7 @@ sub Generate_Implementation_Serialization_Functions {
 				if ( $debugging == 1 );
 	    		    $serializationCode .= "       array(offset:offset+count-1)=reshape(self%".padLinkedData($linkedDataName,[0,0])."%".$content.",[count])\n";
 			    $serializationCode .= "       if (any(array(offset:offset+count-1) <= 0.0d0)) write (0,*) 'DEBUG -> Node_Component_".ucfirst($componentID)."_Serialize_".ucfirst($content)."s: non-positive scale found for ".$linkedDataName."'\n"
-					if ( $content eq "scale" && $debugging == 1 );
+				if ( $content eq "scale" && $debugging == 1 );
 	    		    $serializationCode .= "       offset=offset+count\n";
 	    		    $serializationCode .= "    end if\n";
 			    $needCount = 1;
@@ -3934,11 +4176,11 @@ sub Generate_Component_Get_Functions {
 		$functionCode .= "    type is (nodeComponent".padFullyQualified(ucfirst($componentID),[0,0]).")\n";
 		my $createFunction = $component->{'createFunction'};
 		$createFunction = $component->{'createFunction'}->{'content'}
-		    if ( exists($component->{'createFunction'}->{'content'}) );
+		if ( exists($component->{'createFunction'}->{'content'}) );
 		$createFunction = $componentID."CreateFunction"
 		    if (
 			exists($component->{'createFunction'}->{'isDeferred'}          ) &&
-		      	       $component->{'createFunction'}->{'isDeferred'} eq "true"
+			$component->{'createFunction'}->{'isDeferred'} eq "true"
 		    );
 		$functionCode .= "       call ".$createFunction."(".$componentClassName.")\n";
 	    }
@@ -3959,7 +4201,7 @@ sub Generate_Component_Get_Functions {
 	    if (
 		exists($component->{'createFunction'}                           ) && 
 		exists($component->{'createFunction'}->{'isDeferred'}           ) &&
-		       $component->{'createFunction'}->{'isDeferred'} eq "true"
+		$component->{'createFunction'}->{'isDeferred'} eq "true"
 		) {
 		$functionCode  = "   subroutine ".$componentID."CreateFunctionSet(createFunction)\n";
 		$functionCode .= "     !% Set the create function for the {\\tt ".$componentID."} component.\n";
@@ -4218,7 +4460,7 @@ sub Generate_Node_Move_Function {
     $functionCode .= "    !% Move components from {\\tt self} to {\\tt targetNode}.\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
-     # Loop over all component classes
+    # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
@@ -4797,10 +5039,10 @@ sub Generate_GSR_Functions {
 				    }
 				    case ( "integer" ) {
 					die('integer should not be evolvable')
-					}
+				    }
 				    case ( "logical" ) {
 					die('logical should not be evolvable')
-					}
+				    }
 				    else {
 					$functionCode .= "   if (setValue%isZero()) return\n";
 				    }
@@ -4812,10 +5054,10 @@ sub Generate_GSR_Functions {
 				    }
 				    case ( "integer" ) {
 					die('integer should not be evolvable')
-					}
+				    }
 				    case ( "logical" ) {
 					die('logical should not be evolvable')
-					}
+				    }
 				    else {
 					die('auto-create of rank>0 objects not supported');
 				    }
@@ -5885,7 +6127,7 @@ sub Generate_Component_Class_Output_Functions {
 		if (
 		    exists($component->{'output'}               )           &&
 		    exists($component->{'output'}->{'instances'})           &&
-		           $component->{'output'}->{'instances'} eq "first"
+		    $component->{'output'}->{'instances'} eq "first"
 		);
 	    $activeCheck .= ") then\n";
 	    my $outputsFound = 0;
@@ -6236,7 +6478,7 @@ sub Generate_Null_Binding_Functions {
 	    # Build a label describing the intrinsic type of the data.
 	    my $intrinsicType = $dataDefinition->{'intrinsic'};
 	    $intrinsicType .= $dataDefinition->{'type'}
-	        if ( exists($dataDefinition->{'type'}) );
+	    if ( exists($dataDefinition->{'type'}) );
 	    # Append rank to the label for this data.
 	    $label .= $nullFunction->{'rank'};
 	    # Extract the intent of the function.
@@ -6309,7 +6551,7 @@ sub Generate_Null_Binding_Functions {
 	    push(@{$dataDefinition->{'attributes'}},"allocatable")
 		if ( $nullFunction->{'rank'} > 0 );
 	    @{$dataDefinition->{'variables'}} = $componentClassName."NullBinding".$label.$intent;
-	     @dataContent =
+	    @dataContent =
 		(
 		 $dataDefinition,
 		 {
@@ -6318,7 +6560,7 @@ sub Generate_Null_Binding_Functions {
 		     attributes => [ "intent(".$intent.")" ],
 		     variables  => [ "self" ]
 		 },
-	
+		 
 		);
 	    $functionCode  = "  function ".$componentClassName."NullBinding".$label.$intent."(self)\n";
 	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
@@ -6506,6 +6748,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 
 sub Bound_Function_Table {
     # Get the list of type-bound functions.
+    my $objectName         = shift;
     my @typeBoundFunctions = @{$_[0]};
     # Create a text table object suitable for type-bound function definitions.
     my $table =  Text::Table->new(
@@ -6534,13 +6777,13 @@ sub Bound_Function_Table {
 	{
 	    align  => "left"
 	}
-       );
+	);
     # Iterate over type-bound functions and insert them into the table.
     foreach ( @typeBoundFunctions ) {
 	# Determine pass status.
 	my $pass = "";
 	$pass = ", ".$_->{'pass'}
-	    if ( exists($_->{'pass'}) );
+	if ( exists($_->{'pass'}) );
 	# Determine the connector to use.
 	my $connector = "";
 	$connector = " => "
@@ -6548,7 +6791,7 @@ sub Bound_Function_Table {
 	# Determine the name to use.
 	my $name = "";
 	$name = $_->{'name'}
-	    if ( exists($_->{'name'}) );
+	if ( exists($_->{'name'}) );
 	# Add a row to the table.
 	if ( defined(reftype($_->{'function'})) && reftype($_->{'function'}) eq "ARRAY" ) {
 	    # Multiple functions specified. List them, one per row.
@@ -6571,8 +6814,28 @@ sub Bound_Function_Table {
 	    $table->add($_->{'type'},$pass," :: ",$name,$connector,$_->{'function'},"");
 	}
     }
+    # Add any descriptions.
+    my $description;
+    my $methodCount = 0;
+    foreach ( @typeBoundFunctions ) {
+	if ( exists($_->{'description'}) ) {
+	    ++$methodCount;
+	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$_->{'description'}."</description>\n     !@  </objectMethod>\n";
+	}
+
+    }
+    if ( $methodCount == 1 ) {
+	$description =~ s/(\!\@\s+\<method\>)/!@   <object>$objectName<\/object>\n     $1/;
+    } elsif ( $methodCount > 1 ) {
+	$description = "     !@ <objectMethods>\n     !@  <object>".$objectName."</object>\n".$description."     !@ </objectMethods>\n";
+    }
+    # Construct final product.
+    my $product = "";
+    $product .= $description
+	if ( defined($description) );
+    $product .= $table;
     # Return the table.
-    return $table;
+    return $product;
 }
 
 sub Insert_Type_Definitions {
@@ -6600,8 +6863,8 @@ sub Insert_Type_Definitions {
 	# Generate and insert a type-bound function table.
 	if ( exists($type->{'boundFunctions'}) ) {
 	    $buildData->{'content'} .= "   contains\n";
-	    my $boundFunctionTable = &Bound_Function_Table($type->{'boundFunctions'});   
-	    $buildData->{'content'} .= $boundFunctionTable->table();
+	    my $boundFunctionTable = &Bound_Function_Table($type->{'name'},$type->{'boundFunctions'});   
+	    $buildData->{'content'} .= $boundFunctionTable;
 	}
 	# Insert the type closing.
 	$buildData->{'content'} .= "  end type ".$type->{'name'}."\n\n";
@@ -6642,11 +6905,11 @@ sub Format_Variable_Defintions {
 		    if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
 			foreach my $otherAttribute ( sort(keys(%attributes)) ) {
 			    ++$attributes{$otherAttribute}->{'column'}
-			       if (
-				   $attributes{$otherAttribute}->{'column'} >= $columnCount &&
-				   $attributes{$otherAttribute}->{'count' } > 1             &&
-				   $otherAttribute ne $attributeName
-				   );
+			    if (
+				$attributes{$otherAttribute}->{'column'} >= $columnCount &&
+				$attributes{$otherAttribute}->{'count' } > 1             &&
+				$otherAttribute ne $attributeName
+				);
 			}
 			$attributes{$attributeName}->{'column'} = $columnCount;
 		    }
@@ -6659,7 +6922,7 @@ sub Format_Variable_Defintions {
     }
     foreach ( keys(%attributes) ) {
 	$columnCountMaximum = $attributes{$_}->{'column'}
-	    if ( $attributes{$_}->{'column'} > $columnCountMaximum);
+	if ( $attributes{$_}->{'column'} > $columnCountMaximum);
     }
     ++$columnCountMaximum;
     my @attributeColumns;
@@ -6667,7 +6930,7 @@ sub Format_Variable_Defintions {
     # Construct indentation.
     my $indent = "    ";
     $indent = " " x $options{'indent'}
-        if ( exists($options{'indent'}) );
+    if ( exists($options{'indent'}) );
     # Create a table for data content.
     my $dataTable = Text::Table->new
 	(

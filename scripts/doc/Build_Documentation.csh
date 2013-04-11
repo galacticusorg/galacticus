@@ -3,6 +3,13 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
+# Ensure that nodeComponent and treeNode objects are built.
+make work/build/objects.nodes.components.Inc;
+if ( $? != 0 ) then
+ echo Failed to build work/build/objects.nodes.components.Inc
+ exit 1
+endif
+
 # Extract source code data.
 scripts/doc/Extract_Data.pl source doc/data
 if ( $? != 0 ) then
