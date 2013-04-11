@@ -124,7 +124,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="transferFunctionMethod" type="moduleUse">
-    include 'structure_formation.CDM.transfer_function.modules.inc'
+    include 'structure_formation.transfer_function.modules.inc'
     !# </include>
     implicit none
     double precision, intent(in) :: logWavenumber
@@ -145,7 +145,7 @@ contains
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="transferFunctionMethod" type="functionCall" functionType="void">
        !#  <functionArgs>transferFunctionMethod,Transfer_Function_Tabulate</functionArgs>
-       include 'structure_formation.CDM.transfer_function.inc'
+       include 'structure_formation.transfer_function.inc'
        !# </include>
        if (.not.associated(Transfer_Function_Tabulate)) call Galacticus_Error_Report('Transfer_Function_Initialize','method '&
             &//char(transferFunctionMethod)//' is unrecognized')

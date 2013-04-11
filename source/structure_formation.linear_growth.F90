@@ -69,7 +69,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="linearGrowthMethod" type="moduleUse">
-    include 'structure_formation.CDM.linear_growth.modules.inc'
+    include 'structure_formation.linear_growth.modules.inc'
     !# </include>
     implicit none
     double precision, intent(in) :: time
@@ -90,7 +90,7 @@ contains
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="linearGrowthMethod" type="functionCall" functionType="void">
        !#  <functionArgs>linearGrowthMethod,Linear_Growth_Tabulate</functionArgs>
-       include 'structure_formation.CDM.linear_growth.inc'
+       include 'structure_formation.linear_growth.inc'
        !# </include>
        if (.not.associated(Linear_Growth_Tabulate)) call Galacticus_Error_Report('Linear_Growth_Initialize','method ' &
             &//char(linearGrowthMethod)//' is unrecognized')

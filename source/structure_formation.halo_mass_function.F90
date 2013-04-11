@@ -39,7 +39,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="haloMassFunctionMethod" type="moduleUse">
-    include 'structure_formation.CDM.halo_mass_function.modules.inc'
+    include 'structure_formation.halo_mass_function.modules.inc'
     !# </include>
     implicit none
 
@@ -61,7 +61,7 @@ contains
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="haloMassFunctionMethod" type="functionCall" functionType="void">
           !#  <functionArgs>haloMassFunctionMethod,Halo_Mass_Function_Differential_Get</functionArgs>
-          include 'structure_formation.CDM.halo_mass_function.inc'
+          include 'structure_formation.halo_mass_function.inc'
           !# </include>
           if (.not.associated(Halo_Mass_Function_Differential_Get)) call Galacticus_Error_Report('Halo_Mass_Function_Initialize','method '&
                &//char(haloMassFunctionMethod)//' is unrecognized')

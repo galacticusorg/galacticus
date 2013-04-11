@@ -122,7 +122,7 @@ contains
     use Galacticus_Error
     use Input_Parameters
     !# <include directive="powerSpectrumMethod" type="moduleUse">
-    include 'structure_formation.CDM.power_spectrum.primordial.modules.inc'
+    include 'structure_formation.power_spectrum.primordial.modules.inc'
     !# </include>
     implicit none
     double precision, intent(in) :: logWavenumber
@@ -143,7 +143,7 @@ contains
        ! Include file that makes calls to all available method initialization routines.
        !# <include directive="powerSpectrumMethod" type="functionCall" functionType="void">
        !#  <functionArgs>powerSpectrumMethod,Power_Spectrum_Tabulate</functionArgs>
-       include 'structure_formation.CDM.power_spectrum.inc'
+       include 'structure_formation.power_spectrum.inc'
        !# </include>
        if (.not.associated(Power_Spectrum_Tabulate)) call Galacticus_Error_Report('Power_Spectrum_Initialize','method '&
             &//char(powerSpectrumMethod)//' is unrecognized')
