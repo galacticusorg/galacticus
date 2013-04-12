@@ -102,7 +102,7 @@ contains
           Galactic_Structure_Radius_Enclosing_Mass=radiusLarge
           return
        end if
-       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared,haloLoaded=haloLoadedShared)
+       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared,haloLoaded=haloLoadedShared)
     else
        call Galacticus_Error_Report('Galactic_Structure_Radius_Enclosing_Mass','either mass or fractionalMass must be specified')
     end if
@@ -124,7 +124,7 @@ contains
     activeNode => thisNode
     if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
        message='Enclosed mass in galaxy (ID='
-       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,haloLoaded=haloLoadedShared)
+       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoaded=haloLoadedShared)
        message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
        write (massLabel,'(e10.4)') massRoot
        message=message//') at zero radius (was seeking '//trim(massLabel)
