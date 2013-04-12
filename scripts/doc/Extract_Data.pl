@@ -29,6 +29,8 @@ closedir(dirHndl);
 foreach my $fileName ( @fileNames ) {
     # Get a printable file name.
     ($fileNamePrint = $fileName) =~ s/_/\\_/g;
+    (my $leafName = $fileName) =~ s/^source\///;
+    (my $leafNamePrint = $leafName) =~ s/_/\\_/g;
 
     # Open the file.
     open(fileHndl,$fileName);
@@ -106,7 +108,7 @@ foreach my $fileName ( @fileNames ) {
 			    $attachedAt = $#programUnits;
 			}
 
-			$attachedLink = $fileName.":";
+			$attachedLink = $leafName.":";
 			for($iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
 			    if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
 				$unitName = lc($1);
@@ -130,7 +132,7 @@ foreach my $fileName ( @fileNames ) {
 			}
 			$attachedTo =~ s/_/\\_/g;
 			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			$buffer .= "{\\bf File:} \\hyperlink{".$fileName."}{{\\tt ".$fileNamePrint."}}\\\\\n";
+			$buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
 			$buffer .= "{\\bf Default value:} ";
 			if ( exists($contents->{'defaultValue'}) ) {
 			    $buffer .= $contents->{'defaultValue'};
