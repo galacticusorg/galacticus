@@ -298,4 +298,13 @@
   </parameters>
 
 
+  <!-- Satellite orbits -->
+  <parameters>
+    <parameter>
+      <name>outputSatellitePericenterData</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
+
+
 </parameterGrid>
