@@ -30,7 +30,7 @@ program Tests_Excursion_Sets
   use Galacticus_Display
   use Galacticus_Error
   use Numerical_Ranges
-  use Power_Spectrum
+  use Power_Spectra
   use Numerical_Constants_Math
   use IO_HDF5
   implicit none
@@ -87,15 +87,15 @@ program Tests_Excursion_Sets
   ! Loop over masses.
   do iMass=1,massCount
      wavenumber              (iMass)=(3.0d0*haloMass(iMass)/4.0d0/Pi/Critical_Density()/Omega_Matter())**(-1.0d0/3.0d0)
-     powerSpectrum           (iMass)=Power_Spectrum_CDM                       (wavenumber   (iMass))
-     variance                (iMass)=sigma_CDM                                (     haloMass(iMass))**2
+     powerSpectrum           (iMass)=Power_Spectrum                           (wavenumber   (iMass))
+     variance                (iMass)=Cosmological_Mass_Root_Variance          (     haloMass(iMass))**2
      barrier                 (iMass)=Excursion_Sets_Barrier                   (variance(iMass),time)
      firstCrossingProbability(iMass)=Excursion_Sets_First_Crossing_Probability(variance(iMass),time)
      haloMassFunction        (iMass)=Halo_Mass_Function_Differential          (time,haloMass(iMass))
 
      ! Compute halo branching rates.
      do jMass=1,iMass-1
-        varianceProgenitor=sigma_CDM(haloMass(jMass))**2
+        varianceProgenitor=Cosmological_Mass_Root_Variance(haloMass(jMass))**2
         firstCrossingRate(iMass,jMass)=Excursion_Sets_First_Crossing_Rate(variance(iMass),varianceProgenitor,time)
      end do
 

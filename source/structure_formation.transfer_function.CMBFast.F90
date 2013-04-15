@@ -53,7 +53,7 @@ contains
     !% Build a transfer function using {\sc CMBFast}.
     use FoX_wxml
     use System_Command
-    use Transfer_Function_File
+    use Transfer_Functions_File
     use Input_Parameters
     use Cosmological_Parameters
     use Numerical_Constants_Astronomical

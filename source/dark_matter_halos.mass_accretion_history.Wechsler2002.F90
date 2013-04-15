@@ -112,7 +112,7 @@ contains
   double precision function Expansion_Factor_At_Formation(haloMass)
     !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
     use Cosmology_Functions
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: haloMass
@@ -123,7 +123,7 @@ contains
     haloMassCharacteristic=haloMassFraction*haloMass
 
     ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-    sigmaCharacteristic=sigma_CDM(haloMassCharacteristic)
+    sigmaCharacteristic=Cosmological_Mass_Root_Variance(haloMassCharacteristic)
 
     ! Get the time at which this equals the critical overdensity for collapse.
     formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)

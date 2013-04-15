@@ -17,7 +17,7 @@
 
 !% Contains a module which reads a tabulated transfer function from a file.
 
-module Transfer_Function_File
+module Transfer_Functions_File
   !% Implements reading of a tabulated transfer function from a file.
   use ISO_Varying_String
   implicit none
@@ -271,4 +271,4 @@ contains
     return
   end subroutine Transfer_Function_File_Read
   
-end module Transfer_Function_File
+end module Transfer_Functions_File

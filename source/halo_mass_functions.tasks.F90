@@ -75,7 +75,7 @@ contains
     use Numerical_Ranges
     use Input_Parameters
     use Critical_Overdensity
-    use Power_Spectrum
+    use Power_Spectra
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions
     use Linear_Growth
@@ -201,7 +201,7 @@ contains
                &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput)&
                &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_sigma            (iMass,iOutput)=sigma_CDM(haloMassFunction_Mass(iMass,iOutput))
+          haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias              (thisTree%baseNode)
           haloMassFunction_virialVelocity   (iMass,iOutput)=Dark_Matter_Halo_Virial_Velocity   (thisTree%baseNode)

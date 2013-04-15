@@ -240,6 +240,10 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 	valgrind => 0
     },
     {
+	name     => "tests.power_spectrum.exe",                  # Power spectrum.
+	valgrind => 0
+    },
+    {
 	name     => "tests.bug745815.exe",                       # Regresssions.
 	valgrind => 0
     },

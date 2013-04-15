@@ -78,7 +78,7 @@ contains
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{navarro_structure_1996}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
-    use Power_Spectrum
+    use Power_Spectra
     use Cosmology_Functions
     use Critical_Overdensity
     use Root_Finder
@@ -103,7 +103,7 @@ contains
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =nfw96ConcentrationF*nodeMass
     ! Find the time of collapse for this progenitor.
-    collapseCriticalOverdensity=dsqrt(2.0d0*fitParameterNuHalf**2*(sigma_CDM(collapseMass)**2-sigma_CDM(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
+    collapseCriticalOverdensity=dsqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
     collapseTime               =Time_of_Collapse(collapseCriticalOverdensity)
     collapseExpansionFactor    =Expansion_Factor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.

@@ -46,7 +46,7 @@ contains
  double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
     !% Compute the Press-Schechter halo mass function.
     use Numerical_Constants_Math
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     use Cosmological_Parameters
     use Excursion_Sets_First_Crossings
@@ -54,8 +54,8 @@ contains
     double precision, intent(in) :: time,mass
     double precision             :: variance,alpha
 
-    alpha   =abs(sigma_CDM_Logarithmic_Derivative(mass))
-    variance=sigma_CDM(mass)**2
+    alpha   =abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
+    variance=Cosmological_Mass_Root_Variance(mass)**2
     Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&
          &*Excursion_Sets_First_Crossing_Probability(variance,time)
     return

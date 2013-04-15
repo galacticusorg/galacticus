@@ -148,10 +148,10 @@ contains
 
   double precision function Collapsing_Mass_Root(mass)
     !% Function used in finding the mass of halo just collapsing at a given cosmic epoch.
-    use Power_Spectrum
+    use Power_Spectra
     double precision, intent(in   ) :: mass
     
-    Collapsing_Mass_Root=sigma_CDM(mass)-Critical_Overdensity_for_Collapse(time=collapseTime,mass=mass)
+    Collapsing_Mass_Root=Cosmological_Mass_Root_Variance(mass)-Critical_Overdensity_for_Collapse(time=collapseTime,mass=mass)
     return
   end function Collapsing_Mass_Root
 

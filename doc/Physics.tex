@@ -90,7 +90,18 @@ where
 \end{equation}
 where $n_{\rm s}=${\tt powerSpectrumIndex} is the power spectrum index at wavenumber $k_{\rm ref}=${\tt powerSpectrumReferenceWavenumber} and $\d n / \d \ln k=${\tt powerSpectrumRunning} describes the running of this index with wavenumber.
 
-\subsection{Power Spectrum Variance Window Function}\index{power spectrum!variance}\index{power spectrum!window function}
+\subsection{Cosmological Mass Root Variance}
+
+The method used to compute the root variance of the cosmological mass field, $\sigma(M)$, is selected via the {\tt cosmologicalMassVarianceMethod} parameter.
+\subsubsection{Filtered Power Spectrum}
+
+Selected via {\tt cosmologicalMassVarianceMethod}$=${\tt filteredPowerSpectrum}, this method computes the mass root variance using:
+\begin{equation}
+ \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 {\rm d}k
+\end{equation}
+where $P(k)$ is the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}), $T(k)$ is the transfer function (see \S\ref{sec:TransferFunction}), and $W(k)$ is the power spectrum variance window function (see \S\ref{sec:PowerSpectrumWindowFunctionPhysics}).
+
+\subsection{Power Spectrum Variance Window Function}\label{sec:PowerSpectrumWindowFunctionPhysics}\index{power spectrum!variance}\index{power spectrum!window function}
 
 The functional form of the window function used in computing the variance of the power spectrum is selected via the {\tt powerSpectrumWindowFunctionMethod} parameter. Note that when computing the normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is \emph{always} used (as per the definition of $\sigma_8$).
 

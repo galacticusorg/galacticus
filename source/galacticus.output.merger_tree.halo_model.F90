@@ -225,7 +225,7 @@ contains
     use Galacticus_HDF5
     use Numerical_Ranges
     use Memory_Management
-    use Power_Spectrum
+    use Power_Spectra
     use Numerical_Constants_Astronomical
     implicit none
     double precision, allocatable, dimension(:) :: powerSpectrum
@@ -259,7 +259,7 @@ contains
 
        ! Compute power spectrum at each wavenumber.
        do iWavenumber=1,wavenumberCount
-          powerSpectrum(iWavenumber)=Power_Spectrum_CDM(wavenumber(iWavenumber))
+          powerSpectrum(iWavenumber)=Power_Spectrum(wavenumber(iWavenumber))
        end do
 
        ! Store the power spectrum

@@ -49,7 +49,7 @@ contains
     use Cosmological_Parameters
     use Cosmology_Functions
     use Dates_and_Times
-    use Power_Spectrum
+    use Power_Spectra
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Numerical_Interpolation
