@@ -15,12 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module Transfer_Function
+module Transfer_Functions
   use ISO_Varying_String
   use FGSL
   implicit none
   private
-  public :: Transfer_Function_CDM, Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
+  public :: Transfer_Function, Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
   logical                                        :: transferFunctionInitialized=.false., tablesInitialized=.false.
@@ -48,8 +48,8 @@ module Transfer_Function
   
 contains
 
-  double precision function Transfer_Function_CDM(wavenumber)
-    !% Return the CDM transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
+  double precision function Transfer_Function(wavenumber)
+    !% Return the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: wavenumber
@@ -77,14 +77,14 @@ contains
     !$omp end critical(Transfer_Function_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Transfer_Function_CDM=dexp(Interpolate(transferFunctionNumberPoints,transferFunctionLogWavenumber,transferFunctionLogT &
+    Transfer_Function=exp(Interpolate(transferFunctionNumberPoints,transferFunctionLogWavenumber,transferFunctionLogT &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation,interpolationType=fgsl_interp_cspline))
 
     return
-  end function Transfer_Function_CDM
+  end function Transfer_Function
 
   double precision function Transfer_Function_Logarithmic_Derivative(wavenumber)
-    !% Return the logarithmic derivative of the CDM transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
+    !% Return the logarithmic derivative of the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
     double precision, intent(in) :: wavenumber
@@ -175,4 +175,4 @@ contains
     return
   end subroutine Transfer_Function_State_Retrieve
   
-end module Transfer_Function
+end module Transfer_Functions

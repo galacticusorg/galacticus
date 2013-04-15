@@ -15,12 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module Primordial_Power_Spectrum
+module Primordial_Power_Spectra
   use ISO_Varying_String
   use FGSL
   implicit none
   private
-  public :: Primordial_Power_Spectrum_CDM, Primordial_Power_Spectrum_Logarithmic_Derivative,&
+  public :: Primordial_Power_Spectrum, Primordial_Power_Spectrum_Logarithmic_Derivative,&
        & Primordial_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
@@ -49,7 +49,7 @@ module Primordial_Power_Spectrum
   
 contains
 
-  double precision function Primordial_Power_Spectrum_CDM(wavenumber)
+  double precision function Primordial_Power_Spectrum(wavenumber)
     !% Return the CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
@@ -77,11 +77,11 @@ contains
     !$omp end critical(Power_Spectrum_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Primordial_Power_Spectrum_CDM=dexp(Interpolate(powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP &
+    Primordial_Power_Spectrum=dexp(Interpolate(powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation))
 
     return
-  end function Primordial_Power_Spectrum_CDM
+  end function Primordial_Power_Spectrum
 
   double precision function Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber)
     !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
@@ -173,4 +173,4 @@ contains
     return
   end subroutine Primordial_Power_Spectrum_State_Retrieve
   
-end module Primordial_Power_Spectrum
+end module Primordial_Power_Spectra

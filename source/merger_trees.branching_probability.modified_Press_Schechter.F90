@@ -19,7 +19,7 @@
 
 module Modified_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in modified Press-Schechter theory.
-  use Power_Spectrum
+  use Power_Spectra
   use Numerical_Constants_Math
   implicit none
   private
@@ -131,7 +131,7 @@ contains
 
     ! Initialize global variables.
     parentHaloMass        =haloMass
-    parentSigma           =sigma_CDM(haloMass)
+    parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
     parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
@@ -179,8 +179,8 @@ contains
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
-       parentSigma        =sigma_CDM(      haloMass)
-       parentHalfMassSigma=sigma_CDM(0.5d0*haloMass)
+       parentSigma        =Cosmological_Mass_Root_Variance(      haloMass)
+       parentHalfMassSigma=Cosmological_Mass_Root_Variance(0.5d0*haloMass)
        Modified_Press_Schechter_Branching_Maximum_Step=modifiedPressSchechterFirstOrderAccuracy*dsqrt(2.0d0&
             &*(parentHalfMassSigma**2-parentSigma**2))
     else
@@ -204,7 +204,7 @@ contains
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        parentHaloMass=haloMass
-       parentSigma=sigma_CDM(haloMass)
+       parentSigma=Cosmological_Mass_Root_Variance(haloMass)
        parentDelta=deltaCritical
        call Compute_Common_Factors
        massMinimum=massResolution
@@ -232,11 +232,11 @@ contains
 
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass=haloMass
-    parentSigma   =sigma_CDM(haloMass)
+    parentSigma   =Cosmological_Mass_Root_Variance(haloMass)
     parentDelta   =deltaCritical
     call Compute_Common_Factors
     if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =sigma_CDM(massResolution)
+       resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
        massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
@@ -261,7 +261,7 @@ contains
     type(c_ptr),    value   :: parameterPointer
     real(c_double)          :: childSigma,childAlpha
 
-    call sigma_CDM_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
   end function Branching_Probability_Integrand

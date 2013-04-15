@@ -46,7 +46,7 @@ contains
   double precision function Halo_Mass_Function_Sheth_Tormen_Differential(time,mass)
     !% Compute the Sheth-Tormen halo mass function.
     use Numerical_Constants_Math
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     use Cosmological_Parameters
     implicit none
@@ -55,9 +55,9 @@ contains
     double precision             :: nu,nuPrime,alpha
 
     ! Compute the mass function.
-    nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/sigma_CDM(mass))**2
+    nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
     nuPrime=a*nu
-    alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
+    alpha=dabs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
     Halo_Mass_Function_Sheth_Tormen_Differential=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
          &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
     return

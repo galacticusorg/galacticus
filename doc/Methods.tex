@@ -1467,6 +1467,51 @@ Currently defined cooling time methods are:
  \item [\hyperlink{cooling.cooling_time.simple.F90:cooling_times_simple:cooling_time_simple}{{\tt simple}}] Compute the cooling time as the ratio of the gas thermal energy density to the volume rate of radiative energy loss. The gas is assumed to have an effective number of degrees of freedom specified by the {\tt coolingTimeSimpleDegreesOfFreedom} parameter.
 \end{description}
 
+\subsubsection{Cosmological Mass Root Variance}
+
+Additional methods for computing the cosmological mass root variance, $\sigma(M)$, can be added using the {\tt cosmologicalMassVarianceMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt filteredPowerSpectrum} method is described by a directive:
+\begin{verbatim}
+  !# <cosmologicalMassVarianceMethod>
+  !#  <unitName>Cosmological_Mass_Variance_Filtered_Power_Spectrum_Initialize</unitName>
+  !# </cosmologicalMassVarianceMethod>
+\end{verbatim}
+Here, {\tt Cosmological\_Mass\_Variance\_Filtered\_Power\_Spectrum\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(cosmologicalMassVarianceMethod,Cosmological_Mass_Variance_Tabulate)
+    implicit none
+    type     (varying_string),          intent(in   ) :: cosmologicalMassVarianceMethod
+    procedure(               , pointer, intent(inout) :: Cosmological_Mass_Variance_Tabulate
+    
+    if (cosmologicalMassVarianceMethod == 'myMethod') then
+       Cosmological_Mass_Variance_Tabulate => My_Method_Tabulate
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt cosmologicalMassVarianceMethod} input parameter. The procedure pointer {\tt Cosmological\_Mass\_Variance\_Tabulate} must be set to point to a function which populates a {\tt table1D} object with a tabulation of $\sigma(M)$. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The tabulation function must have the form:
+\begin{verbatim}
+   subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum(mass,massNormalization,sigmaNormalization,sigmaTable)
+    implicit none
+    double precision         , intent(in   )              :: mass,massNormalization
+    double precision         , intent(inout)              :: sigmaNormalization
+    class           (table1D), intent(inout), allocatable :: sigmaTable
+    .
+    .
+    return
+   end subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum
+\end{verbatim}
+The function should allocate {\tt sigmaTable} to a suitable type of {\tt table1D} object and populate it with a tabulation of $\sigma(M)$ which includes the given {\tt mass}. On input, the required normalization of $\sigma(M)$ at mass {\tt massNormalization} is given by {\tt sigmaNormalization}. The function should divide this value by the unnormalized value of $\sigma(M)$---this is used to normalize the cosmological power spectrum.
+
+Currently defined cosmological mass root variance methods are:
+\begin{description}
+ \item [{\tt filteredPowerSpectrum}] The mass root variance is found by integrating over the transferred linear power spectrum multiplied by the selected window function (see \S\ref{sec:PowerSpectrumWindowFunction}).
+\end{description}
+
 \subsubsection{Cosmology}\label{sec:CosmologyMethods}
 
 Additional methods for cosmology can be added using the {\tt cosmologyMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt matter-lambda} method is described by a directive:
@@ -3694,7 +3739,7 @@ Currently defined population III supernovae methods are:
  \item [{\tt Heger-Woosley2002}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
 \end{description}
 
-\subsubsection{Power Spectrum Variance Window Function}
+\subsubsection{Power Spectrum Variance Window Function}\label{sec:PowerSpectrumWindowFunction}
 
 Additional methods for the window function used to compute variance from the power spectrum can be added using the {\tt powerSpectrumWindowFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt topHat} method is described by a directive:
 \begin{verbatim}

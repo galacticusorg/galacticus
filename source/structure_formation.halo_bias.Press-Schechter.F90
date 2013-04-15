@@ -45,7 +45,7 @@ contains
   double precision function Dark_Matter_Halo_Bias_Node_Press_Schechter(thisNode)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Critical_Overdensity
-    use Power_Spectrum
+    use Power_Spectra
     use Galacticus_Nodes
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
@@ -61,14 +61,14 @@ contains
   double precision function Dark_Matter_Halo_Bias_Press_Schechter(mass,time)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Critical_Overdensity
-    use Power_Spectrum
+    use Power_Spectra
     implicit none
     double precision, intent(in) :: mass,time
     double precision             :: deltaCritical,sigma,nu
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
-    sigma        =sigma_CDM(mass)
+    sigma        =Cosmological_Mass_Root_Variance(mass)
     nu           =deltaCritical/sigma
     
     ! Compute halo bias.

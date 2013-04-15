@@ -49,7 +49,7 @@ contains
 
   double precision function Excursion_Sets_Barrier_Critical_Overdensity(variance,time)
     !% Return a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: variance,time
@@ -60,7 +60,7 @@ contains
        Excursion_Sets_Barrier_Critical_Overdensity=Critical_Overdensity_for_Collapse(time=time          )
     else
        ! Get the halo mass corresponding to this variance.
-       mass=Mass_from_Sigma(dsqrt(variance))
+       mass=Mass_from_Cosmolgical_Root_Variance(sqrt(variance))
        ! Return the critical overdensity at this time at the computed mass scale.
        Excursion_Sets_Barrier_Critical_Overdensity=Critical_Overdensity_for_Collapse(time=time,mass=mass)
     end if
@@ -69,7 +69,7 @@ contains
 
   double precision function Excursion_Sets_Barrier_Gradient_Critical_Overdensity(variance,time)
     !% Return the gradient of a critical overdensity barrier for excursion set calculations at the given {\tt variance}.
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     double precision, intent(in) :: variance,time
@@ -80,9 +80,9 @@ contains
        Excursion_Sets_Barrier_Gradient_Critical_Overdensity=0.0d0
     else
        ! Get the halo mass corresponding to this variance.
-       mass=Mass_from_Sigma(dsqrt(variance))
+       mass=Mass_from_Cosmolgical_Root_Variance(sqrt(variance))
        ! Get the logarithmic slope of sigma(M).
-       alpha=sigma_CDM_Logarithmic_Derivative(mass)
+       alpha=Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass)
        ! Return the critical overdensity at this time at the computed mass scale.
        Excursion_Sets_Barrier_Gradient_Critical_Overdensity=(0.5d0*mass/variance/alpha)*Critical_Overdensity_for_Collapse(time=time,mass=mass)&
             &*Critical_Overdensity_Mass_Scaling_Gradient(mass)/Critical_Overdensity_Mass_Scaling(mass)

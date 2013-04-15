@@ -58,11 +58,11 @@ contains
     use Galacticus_Error
     use FoX_wxml
     use Numerical_Comparison
-    use Primordial_Power_Spectrum
+    use Primordial_Power_Spectra
     use System_Command
     use ISO_Varying_String
     use Galacticus_Input_Paths
-    use Power_Spectrum
+    use Power_Spectra
     use Input_Parameters
     use File_Utilities
     use Memory_Management

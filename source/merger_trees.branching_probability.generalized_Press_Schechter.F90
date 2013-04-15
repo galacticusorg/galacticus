@@ -20,7 +20,7 @@
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
   use FGSL
-  use Power_Spectrum
+  use Power_Spectra
   use Numerical_Constants_Math
   implicit none
   private
@@ -121,7 +121,7 @@ contains
     !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
     if (.not.excursionSetsTested) then
        presentTime    =Cosmology_Age(1.0d0)
-       sigmaMaximum   =sigma_CDM(generalizedPressSchechterMinimumMass)
+       sigmaMaximum   =Cosmological_Mass_Root_Variance(generalizedPressSchechterMinimumMass)
        varianceMaximum=sigmaMaximum**2
        testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
        testResult     =Excursion_Sets_First_Crossing_Rate       (0.5d0*varianceMaximum,varianceMaximum,presentTime)
@@ -153,7 +153,7 @@ contains
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Initialize global variables.
     parentHaloMass        =haloMass
-    parentSigma           =sigma_CDM(haloMass)
+    parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
     parentDelta           =deltaCritical
     probabilityMinimumMass=massResolution
     probabilitySeek       =probability
@@ -248,7 +248,7 @@ contains
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        parentHaloMass           =haloMass
-       parentSigma              =sigma_CDM(haloMass)
+       parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
        parentDelta              =deltaCritical
        call Compute_Common_Factors
        massMinimum=massResolution
@@ -283,7 +283,7 @@ contains
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass           =haloMass
-    parentSigma              =sigma_CDM(haloMass)
+    parentSigma              =Cosmological_Mass_Root_Variance(haloMass)
     parentDelta              =deltaCritical
     call Compute_Common_Factors
     
@@ -296,7 +296,7 @@ contains
     end if
 
     if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =sigma_CDM(massResolution)
+       resolutionSigma       =Cosmological_Mass_Root_Variance(massResolution)
        massResolutionPrevious=massResolution
     end if
     resolutionSigmaOverParentSigma=resolutionSigma/parentSigma
@@ -322,7 +322,7 @@ contains
     type(c_ptr),    value   :: parameterPointer
     real(c_double)          :: childSigma,childAlpha
 
-    call sigma_CDM_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
   end function Branching_Probability_Integrand_Generalized
@@ -337,7 +337,7 @@ contains
     real(c_double)          :: childSigma,childAlpha
 
     if (childHaloMass>0.0d0) then
-       call sigma_CDM_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
+       call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
        Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
             &/parentHaloMass)
     else

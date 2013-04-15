@@ -48,7 +48,7 @@ contains
     !% \end{equation}
     !% where $\nu=\delta_{\rm c}(t)/\sigma(M)$ is the peak height of the halo.
     use Galacticus_Nodes
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
@@ -59,7 +59,7 @@ contains
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the shape parameter.
-    nu=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())/sigma_CDM(thisBasicComponent%mass())
+    nu=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())/Cosmological_Mass_Root_Variance(thisBasicComponent%mass())
     if (nu < nuMaximum) then
        Dark_Matter_Profile_Shape_Gao2008=0.155d0+0.0095d0*nu**2
     else

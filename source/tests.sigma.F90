@@ -21,7 +21,7 @@ program Tests_Sigma
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Power_Spectrum
+  use Power_Spectra
   use Numerical_Ranges
   use Cosmological_Parameters
   use Numerical_Constants_Math
@@ -48,15 +48,15 @@ program Tests_Sigma
 
   ! Check that converting from mass to sigma and back to mass gives consistent answers.
   do iMass=1,massCount
-     sigma        (iMass)=sigma_CDM      (mass (iMass))
-     massFromSigma(iMass)=Mass_from_Sigma(sigma(iMass))
+     sigma        (iMass)=Cosmological_Mass_Root_Variance    (mass (iMass))
+     massFromSigma(iMass)=Mass_from_Cosmolgical_Root_Variance(sigma(iMass))
   end do
   call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3) 
 
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0/Little_H_0()
   mass8=4.0d0*Pi*Critical_Density()*Omega_Matter()*radius8**3/3.0d0
-  sigma8=sigma_CDM(mass8)
+  sigma8=Cosmological_Mass_Root_Variance(mass8)
   call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6) 
 
   ! Close the input parameter file.

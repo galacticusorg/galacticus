@@ -66,7 +66,7 @@ contains
     !% \cite{zhao_accurate_2009}.
     use ODE_Solver
     use Galacticus_Error
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     type (treeNode          ), intent(inout), pointer :: baseNode
@@ -88,7 +88,7 @@ contains
     ! Calculate quantities which remain fixed through the ODE.
 
     ! Get sigma(M) and its logarithmic derivative.
-    call sigma_CDM_Plus_Logarithmic_Derivative(baseMass,sigmaObserved,dSigmadMassLogarithmicObserved)
+    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(baseMass,sigmaObserved,dSigmadMassLogarithmicObserved)
 
     ! Compute sigma proxy.
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
@@ -117,7 +117,7 @@ contains
 
   function growthRateODEs(mass,nowTime,dNowTimedMass,parameterPointer) bind(c)
     !% System of differential equations to solve for the growth rate.
-    use Power_Spectrum
+    use Power_Spectra
     use Critical_Overdensity
     implicit none
     integer(c_int)                           :: growthRateODEs
@@ -136,7 +136,7 @@ contains
     end if
 
     ! Get sigma(M) and its logarithmic derivative.
-    call sigma_CDM_Plus_Logarithmic_Derivative(mass,sigmaNow,dSigmadMassLogarithmicNow)
+    call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(mass,sigmaNow,dSigmadMassLogarithmicNow)
 
     ! Compute sigma proxy.
     sNow=sigmaNow*10.0d0**dSigmadMassLogarithmicNow ! Equation 8 from Zhao et al. (2009).

@@ -62,7 +62,7 @@ contains
     use Memory_Management
     use Numerical_Ranges
     use Input_Parameters
-    use Power_Spectrum
+    use Power_Spectra
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none
@@ -120,13 +120,13 @@ contains
     ! Loop over all halo wavenumberes.
     do iWavenumber=1,powerSpectraCount
        ! Compute power spectrum.
-       powerSpectrum_Power        (iWavenumber)=Power_Spectrum_CDM(powerSpectrum_Wavenumber(iWavenumber))
+       powerSpectrum_Power        (iWavenumber)=Power_Spectrum(powerSpectrum_Wavenumber(iWavenumber))
        ! Compute corresponding mass scale.
        powerSpectrum_Mass         (iWavenumber)=4.0d0*Pi*Omega_Matter()*Critical_Density()/3.0d0/powerSpectrum_Wavenumber(iWavenumber)**3
        ! Compute fluctuation on this mass scale.
-       powerSpectrum_sigma        (iWavenumber)=sigma_CDM                       (powerSpectrum_Mass(iWavenumber))
+       powerSpectrum_sigma        (iWavenumber)=Cosmological_Mass_Root_Variance                       (powerSpectrum_Mass(iWavenumber))
        ! Compute gradient of mass fluctuations.
-       powerSpectrum_sigmaGradient(iWavenumber)=sigma_CDM_Logarithmic_Derivative(powerSpectrum_Mass(iWavenumber))
+       powerSpectrum_sigmaGradient(iWavenumber)=Cosmological_Mass_Root_Variance_Logarithmic_Derivative(powerSpectrum_Mass(iWavenumber))
     end do
 
     return

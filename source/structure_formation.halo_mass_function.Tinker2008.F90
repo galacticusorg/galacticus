@@ -98,7 +98,7 @@ contains
   double precision function Halo_Mass_Function_Differential_Tinker2008(time,mass)
     !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
     use Numerical_Constants_Math
-    use Power_Spectrum
+    use Power_Spectra
     use Virial_Density_Contrast
     use Cosmological_Parameters
     use Cosmology_Functions
@@ -146,8 +146,8 @@ contains
     end if
 
     ! Compute the mass function.    
-    sigma=sigma_CDM(mass)*growthFactor
-    alpha=dabs(sigma_CDM_Logarithmic_Derivative(mass))
+    sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
+    alpha=dabs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
     Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return

@@ -185,7 +185,7 @@ contains
   double precision function Dark_Matter_Profile_Concentration_Prada2011(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{prada_halo_2011}.
     use Galacticus_Nodes
-    use Power_Spectrum
+    use Power_Spectra
     use Cosmology_Functions
     use Cosmological_Parameters
     use Linear_Growth
@@ -198,7 +198,7 @@ contains
     massNode  =thisBasicComponent%mass()
     timeNode  =thisBasicComponent%time()
     x         =(Omega_DE()/Omega_Matter())**(1.0d0/3.0d0)*Expansion_Factor(timeNode)
-    sigmaPrime=B1(x)*sigma_CDM(massNode)*Linear_Growth_Factor(timeNode)
+    sigmaPrime=B1(x)*Cosmological_Mass_Root_Variance(massNode)*Linear_Growth_Factor(timeNode)
     Dark_Matter_Profile_Concentration_Prada2011=B0(x)*C(sigmaPrime)
     return
   end function Dark_Matter_Profile_Concentration_Prada2011
