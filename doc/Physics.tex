@@ -164,6 +164,10 @@ Selected via {\tt powerSpectrumNonlinearMethod}$=${\tt CosmicEmu}, this method u
 
 The functional form of the cold dark matter transfer function is selected via the {\tt transferFunctionMethod} parameter. The power spectrum is computed from the specified transfer function and the primordial power spectrum (see \S\ref{sec:PrimordialPowerSpectrum}) and normalized to a value of $\sigma_8$ specified by {\tt [sigma\_8]}.
 
+\subsubsection{Null}
+
+Selected with {\tt transferFunctionMethod}$=${\tt null}, this method assumes $T(k)=1$ for all $k$.
+
 \subsubsection{BBKS}
 
 Selected with {\tt transferFunctionMethod}$=${\tt BBKS}, this method uses the fitting function of \cite{bardeen_statistics_1986} to compute the \gls{cdm} transfer function. The BBKS warm dark matter transfer function\index{transfer function!warm dark matter}\index{warm dark matter!transfer function} can be used by specifying the appropriate streaming length (in Mpc) via the {\tt [transferFunctionWDMFreeStreamingLength]} parameter.
