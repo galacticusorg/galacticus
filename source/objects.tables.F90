@@ -26,6 +26,15 @@ module Tables
   type, abstract :: table
      !% Basic table type.
    contains
+     !@ <objectMethods>
+     !@   <object>table</object>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <description>Destroy the table.</description>
+     !@   </objectMethod>
+     !@ </objectMethods> 
      procedure(Table_Destroy), deferred :: destroy
   end type table
 
@@ -44,11 +53,69 @@ module Tables
      double precision, allocatable, dimension(:  ) :: xv
      double precision, allocatable, dimension(:,:) :: yv
    contains
+     !@ <objectMethods>
+     !@   <object>table1D</object>
+     !@   <objectMethod>
+     !@     <method>interpolate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
+     !@     <description>Interpolate to {\tt x} in the {\tt table}$^{\rm th}$ table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolateGradient</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x,\intzero\ [table]</arguments>
+     !@     <description>Interpolate the gradient to {\tt x} in the {\tt table}$^{\rm th}$ table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reverse</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} reversedSelf,\intzero\ [table]</arguments>
+     !@     <description>Reverse the table (i.e. swap $x$ and $y$ components) and return in {\tt reversedSelf}. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isMonotonic</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\enum\ [directionDecreasing|directionIncreasing],\logicalzero\ [allowEqual],\intzero\ [table]</arguments>
+     !@     <description>Return true if the table $y$-values are monotonic. Optionally, the direction of monotonicity can be specified via the {\tt direction} argument---by default either direction is allowed. By default consecutive equal values are considered non-monotonic. This behavior can be changed via the optional {\tt allowEqual} argument. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the size (i.e. number of $x$-values) in the table.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>x</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ i</arguments>
+     !@     <description>Return the {\tt i}$^{\rm th}$ $x$-value.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>y</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
+     !@     <description>Return the {\tt i}$^{\rm th}$ $y$-value. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>xs</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\intzero\ i</arguments>
+     !@     <description>Return an array of all $x$-values.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>ys</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
+     !@     <description>Return an array of all $y$-values. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
+     !@   </objectMethod>
+     !@ </objectMethods> 
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
      procedure                                 :: destroy             => Table_1D_Destroy
      procedure                                 :: reverse             => Table_1D_Reverse
      procedure                                 :: isMonotonic         => Table1D_Is_Monotonic
+     procedure                                 :: size                => Table1D_Size
      procedure                                 :: x                   => Table1D_X
      procedure                                 :: y                   => Table1D_Y
      procedure                                 :: xs                  => Table1D_Xs
@@ -72,6 +139,21 @@ module Tables
      type   (fgsl_interp_accel) :: accelerator
      logical                    :: reset
    contains
+     !@ <objectMethods>
+     !@   <object>table1DGeneric</object>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ x,\intzero\ [tableCount]</arguments>
+     !@     <description>Create the object with the specified {\tt x} values, and with {\tt tableCount} tables.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>populate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
+     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: create              => Table_Generic_1D_Create
      procedure :: destroy             => Table_Generic_1D_Destroy
      procedure ::                        Table_Generic_1D_Populate
@@ -86,6 +168,21 @@ module Tables
      double precision :: inverseDeltaX,xPrevious,yPrevious,dxPrevious,dyPrevious
      integer          :: tablePrevious,dTablePrevious
    contains
+     !@ <objectMethods>
+     !@   <object>table1DLinearLinear</object>
+     !@   <objectMethod>
+     !@     <type>\void</type>
+     !@     <method>create</method>
+     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
+     !@     <description>Create the object with $x$-values spanning the range {\tt xMinimum} to {\tt xMaximum} in {\tt xCount} steps, and with {\tt tableCount} tables.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>populate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
+     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@   </objectMethod>
+     !@ </objectMethods> 
      procedure :: create              => Table_Linear_1D_Create
      procedure ::                        Table_Linear_1D_Populate
      procedure ::                        Table_Linear_1D_Populate_Single
@@ -111,6 +208,21 @@ module Tables
      double precision                              :: deltaX,inverseDeltaX
      double precision                              :: xPrevious,yPrevious,dxPrevious,dyPrevious,aPrevious,bPrevious,cPrevious,dPrevious
    contains
+     !@ <objectMethods>
+     !@   <object>table1DLinearCSpline</object>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ xMinimum,\doublezero\ xMaximum,\intzero xCount,\intzero [tableCount]</arguments>
+     !@     <description>Create the object with $x$-values spanning the range {\tt xMinimum} to {\tt xMaximum} in {\tt xCount} steps, and with {\tt tableCount} tables.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>populate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero|\doubleone\ y,\intzero\ [i],\intzero\ [table]</arguments>
+     !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: create              => Table_Linear_CSpline_1D_Create
      procedure ::                        Table_Linear_CSpline_1D_Populate
      procedure ::                        Table_Linear_CSpline_1D_Populate_Single
@@ -245,6 +357,16 @@ contains
     Table1D_Is_Monotonic=Array_Is_Monotonic(self%yv(:,tableActual),direction,allowEqual)
     return
   end function Table1D_Is_Monotonic
+
+  integer function Table1D_Size(self)
+    !% Return the size of a 1D table.
+    use Array_Utilities
+    implicit none
+    class  (table1D), intent(in   ) :: self
+
+    Table1D_Size=self%xCount
+    return
+  end function Table1D_Size
 
   subroutine Table_Generic_1D_Create(self,x,tableCount)
     !% Create a 1-D generic table.
