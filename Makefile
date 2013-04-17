@@ -101,7 +101,7 @@ vpath %.cpp source
 ./work/build/%.Inc : ./source/%.Inc
 	cp -f ./source/$*.Inc ./work/build/$*.Inc
 ./work/build/%.inc : ./work/build/%.Inc Makefile
-	$(PREPROCESSOR) -C $< -o ./work/build/$*.tmp
+	$(PREPROCESSOR) -nostdinc -C $< -o ./work/build/$*.tmp
 	mv -f ./work/build/$*.tmp ./work/build/$*.inc
 
 # Dependency files (*.d) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
