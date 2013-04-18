@@ -34,8 +34,11 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: hotHaloDensityMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Get,Hot_Halo_Density_Log_Slope_Get&
-         &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Density_Radial_Moment_Get
+    procedure(Hot_Halo_Density_Null_Get), pointer, intent(inout) :: Hot_Halo_Density_Get
+    procedure(Hot_Halo_Density_Null_Log_Slope_Get), pointer, intent(inout) :: Hot_Halo_Density_Log_Slope_Get
+    procedure(Hot_Halo_Density_Null_Enclosed_Mass_Get), pointer, intent(inout) :: Hot_Halo_Enclosed_Mass_Get
+    procedure(Hot_Halo_Density_Null_Rotation_Normalization_Get), pointer, intent(inout) :: Hot_Halo_Profile_Rotation_Normalization_Get
+    procedure(Hot_Halo_Density_Null_Radial_Moment_Get), pointer, intent(inout) :: Hot_Halo_Density_Radial_Moment_Get
     
     if (hotHaloDensityMethod == 'null') then
        Hot_Halo_Density_Get                        => Hot_Halo_Density_Null_Get

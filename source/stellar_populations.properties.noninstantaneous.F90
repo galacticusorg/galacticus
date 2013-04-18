@@ -50,9 +50,10 @@ contains
     use Abundances_Structure
     implicit none
     type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
-    procedure(integer),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get&
-         &,Stellar_Population_Properties_History_Create_Do,Stellar_Population_Properties_Scales_Get
+    procedure(Stellar_Population_Properties_History_Count_Noninstantaneous),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
+    procedure(Stellar_Population_Properties_Rates_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get
+    procedure(Stellar_Population_Properties_History_Create_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_History_Create_Do
+    procedure(Stellar_Population_Properties_Scales_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_Scales_Get
     
     if (stellarPopulationPropertiesMethod == 'noninstantaneous') then
        Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Noninstantaneous    

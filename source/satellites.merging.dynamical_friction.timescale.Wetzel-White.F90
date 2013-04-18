@@ -35,19 +35,21 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: satelliteMergingMethod
-    procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
+    procedure(Satellite_Time_Until_Merging_Wetzel_White), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
     if (satelliteMergingMethod == 'Wetzel-White2010') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Wetzel_White
     return
   end subroutine Satellite_Time_Until_Merging_Wetzel_White_Initialize
 
-  double precision function Satellite_Time_Until_Merging_Wetzel_White(thisNode)
+  double precision function Satellite_Time_Until_Merging_Wetzel_White(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
     use Galacticus_Nodes
     use Dynamical_Friction_Timescale_Utilities
     use Cosmology_Functions
+    use Kepler_Orbits
     implicit none
     type (treeNode          ), pointer, intent(inout) :: thisNode
+    type (keplerOrbit),                 intent(inout) :: thisOrbit
     type (treeNode          ), pointer                :: hostNode
     class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
     double precision,          parameter              :: timeScaleNormalization=0.2d0 ! C_dyn from Wetzel & White (2010).

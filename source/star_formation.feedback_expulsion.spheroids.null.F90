@@ -36,7 +36,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackSpheroidsMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
+    procedure(Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
     
     if (starFormationExpulsiveFeedbackSpheroidsMethod == 'null') Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null
      

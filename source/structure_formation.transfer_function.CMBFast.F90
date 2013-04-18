@@ -41,8 +41,8 @@ contains
   subroutine Transfer_Function_CMBFast_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
     !% Initializes the ``transfer function from CMBFast'' module.
     implicit none
-    type(varying_string),          intent(in)    :: transferFunctionMethod
-    procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string                ),          intent(in   ) :: transferFunctionMethod
+    procedure(Transfer_Function_CMBFast_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
     
     if (transferFunctionMethod == 'CMBFast') Transfer_Function_Tabulate => Transfer_Function_CMBFast_Make
     return

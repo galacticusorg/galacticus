@@ -40,8 +40,9 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ),          intent(in   ) :: accretionDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
-         &,Accretion_Disk_Jet_Power_Get
+    procedure(Accretion_Disk_Radiative_Efficiency_Eddington), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get
+    procedure(Black_Hole_Spin_Up_Rate_Eddington), pointer, intent(inout) :: Black_Hole_Spin_Up_Rate_Get
+    procedure(Accretion_Disk_Jet_Power_Eddington), pointer, intent(inout) :: Accretion_Disk_Jet_Power_Get
     
     if (accretionDisksMethod == 'eddingtonLimited') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Eddington

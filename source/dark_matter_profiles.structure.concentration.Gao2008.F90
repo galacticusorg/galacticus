@@ -33,8 +33,8 @@ contains
     !% Initializes the ``Gao2008'' halo concentration module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: darkMatterConcentrationMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    type     (varying_string                           ),          intent(in   ) :: darkMatterConcentrationMethod
+    procedure(Dark_Matter_Profile_Concentration_Gao2008), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
     
     if (darkMatterConcentrationMethod == 'Gao2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
     return

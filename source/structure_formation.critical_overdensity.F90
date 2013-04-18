@@ -21,7 +21,7 @@ module Critical_Overdensity
   !% Implements the critical linear theory overdensity for halo collapse.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Tables
+  use Tables, only : table1D
   implicit none
   private
   public :: Critical_Overdensity_for_Collapse, Critical_Overdensity_for_Collapse_Time_Gradient, Time_of_Collapse,&
@@ -48,9 +48,9 @@ module Critical_Overdensity
   procedure(Critical_Overdensity_Tabulate_Template), pointer :: Critical_Overdensity_Tabulate => null()
   abstract interface
      subroutine Critical_Overdensity_Tabulate_Template(time,deltaCritTable)
-       import table
-       double precision       , intent(in   ) :: time
-       class           (table), intent(inout) :: deltaCritTable
+       import table1D
+       double precision         , intent(in   )              :: time
+       class           (table1D), intent(inout), allocatable :: deltaCritTable
      end subroutine Critical_Overdensity_Tabulate_Template
   end interface
 

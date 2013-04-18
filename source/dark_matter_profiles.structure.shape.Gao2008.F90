@@ -33,7 +33,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterShapeMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
+    procedure(Dark_Matter_Profile_Shape_Gao2008), pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
     
     if (darkMatterShapeMethod == 'Gao2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
   

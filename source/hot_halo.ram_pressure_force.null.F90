@@ -35,7 +35,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in   ) :: hotHaloRamPressureForceMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Force_Get
+    procedure(Hot_Halo_Ram_Pressure_Force_Null_Get), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Force_Get
     
     if (hotHaloRamPressureForceMethod == 'null') Hot_Halo_Ram_Pressure_Force_Get => Hot_Halo_Ram_Pressure_Force_Null_Get
     return

@@ -38,7 +38,7 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ),          intent(in   ) :: ramPressureStrippingMassLossRateDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
+    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple), pointer, intent(inout) :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
     
     if (ramPressureStrippingMassLossRateDisksMethod == 'simple') then
        Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple

@@ -37,8 +37,10 @@ contains
     use Memory_Management
     implicit none
     type(varying_string),          intent(in)    :: starFormationHistoriesMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do&
-         &,Star_Formation_History_Record_Do,Star_Formation_History_Output_Do
+    procedure(Star_Formation_History_Create_Null),          pointer, intent(inout) :: Star_Formation_History_Create_Do
+    procedure(Star_Formation_History_Scales_Null),          pointer, intent(inout) :: Star_Formation_History_Scales_Do
+    procedure(Star_Formation_History_Record_Null),          pointer, intent(inout) :: Star_Formation_History_Record_Do
+    procedure(Star_Formation_History_Output_Null),          pointer, intent(inout) :: Star_Formation_History_Output_Do
     
     if (starFormationHistoriesMethod == 'null') then
        ! Associate procedure pointers.

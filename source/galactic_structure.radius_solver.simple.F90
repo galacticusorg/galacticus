@@ -42,7 +42,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: galacticStructureRadiusSolverMethod
-    procedure(),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Solve_Simple),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
     
     if (galacticStructureRadiusSolverMethod == 'simple') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple

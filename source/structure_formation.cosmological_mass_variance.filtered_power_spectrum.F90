@@ -42,8 +42,8 @@ contains
     !% Initializes the $\sigma(M)$ calculation for the ``filtered power spectrum'' method.
     use ISO_Varying_String
     implicit none
-    type     (varying_string),          intent(in   ) :: cosmologicalMassVarianceMethod
-    procedure(              ), pointer, intent(inout) :: Cosmological_Mass_Variance_Tabulate
+    type     (varying_string                                             ),          intent(in   ) :: cosmologicalMassVarianceMethod
+    procedure(Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate), pointer, intent(inout) :: Cosmological_Mass_Variance_Tabulate
     
     if (cosmologicalMassVarianceMethod == 'filteredPowerSpectrum') Cosmological_Mass_Variance_Tabulate =>&
          & Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate

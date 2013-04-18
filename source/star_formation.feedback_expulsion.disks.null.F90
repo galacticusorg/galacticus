@@ -34,7 +34,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+    procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
     
     if (starFormationExpulsiveFeedbackDisksMethod == 'null') Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null
      

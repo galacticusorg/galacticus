@@ -33,7 +33,7 @@ module Galacticus_Nodes
   use Numerical_Constants_Astronomical
   use Numerical_Constants_Physical
   private
-  public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize
+  public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Interrupt_Procedure_Template
   !! <gfortran4.8> workaround
   public :: assignment(=)
   

@@ -45,7 +45,7 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingRemnantProgenitorPropertiesMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
+    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Cole2000),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
     
     if (satelliteMergingRemnantProgenitorPropertiesMethod == 'Cole2000') then
        Satellite_Merging_Remnant_Progenitor_Properties_Get =>&

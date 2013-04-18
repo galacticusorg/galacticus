@@ -73,7 +73,7 @@ contains
     use Numerical_Constants_Physical
     implicit none
     type     (varying_string  ),          intent(in   ) :: starFormationRateSurfaceDensityDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_BR), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
     
     if (starFormationRateSurfaceDensityDisksMethod == 'Blitz-Rosolowsky2006') then
        Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_BR

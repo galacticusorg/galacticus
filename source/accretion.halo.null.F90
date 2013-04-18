@@ -39,10 +39,14 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
-         &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
-    procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get &
-         &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Accreted_Mass_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Mass_Get 
+    procedure(Halo_Baryonic_Failed_Accretion_Rate_Null_Get), pointer, intent(inout) ::  Halo_Baryonic_Failed_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Failed_Accreted_Mass_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Failed_Accreted_Mass_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Abundances_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get 
+    procedure(Halo_Baryonic_Accreted_Abundances_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Abundances_Get 
+    procedure(Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
+    procedure(Halo_Baryonic_Accreted_Chemicals_Null_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Chemicals_Get
 
     if (accretionHalosMethod == 'null') then
        ! Set pointers to our implementations of accretion functions.

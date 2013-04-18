@@ -44,7 +44,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: satelliteMergingMethod
-    procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
+    procedure(Satellite_Time_Until_Merging_Lacey_Cole_Tormen), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
     if (satelliteMergingMethod == 'Lacey-Cole+Tormen') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole_Tormen
     return

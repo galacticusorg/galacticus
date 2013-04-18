@@ -57,8 +57,10 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: starFormationHistoriesMethod
-    procedure(),          pointer, intent(inout) :: Star_Formation_History_Create_Do,Star_Formation_History_Scales_Do&
-         &,Star_Formation_History_Record_Do ,Star_Formation_History_Output_Do
+    procedure(Star_Formation_History_Create_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Create_Do
+    procedure(Star_Formation_History_Scales_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Scales_Do
+    procedure(Star_Formation_History_Record_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Record_Do 
+    procedure(Star_Formation_History_Output_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Output_Do
     
     if (starFormationHistoriesMethod == 'metallicitySplit') then
        ! Associate procedure pointers.

@@ -34,7 +34,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
+    procedure(Satellite_Merging_Remnant_Size_Null),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
     
     if (satelliteMergingRemnantSizeMethod == 'null') Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Null
     return

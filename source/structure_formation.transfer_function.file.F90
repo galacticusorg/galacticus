@@ -57,8 +57,8 @@ contains
     !% Initializes the ``transfer function from file'' module.
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: transferFunctionMethod
-    procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string             ),          intent(in   ) :: transferFunctionMethod
+    procedure(Transfer_Function_File_Read), pointer, intent(inout) :: Transfer_Function_Tabulate
     
     if (transferFunctionMethod == 'file') then
        Transfer_Function_Tabulate => Transfer_Function_File_Read

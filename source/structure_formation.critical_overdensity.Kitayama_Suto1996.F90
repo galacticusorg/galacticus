@@ -40,8 +40,8 @@ contains
     use Galacticus_Error
     use Cosmological_Parameters
    implicit none
-    type(varying_string),          intent(in)    :: criticalOverdensityMethod
-    procedure(),          pointer, intent(inout) :: Critical_Overdensity_Contrast_Tabulate
+    type     (varying_string                        ),          intent(in   ) :: criticalOverdensityMethod
+    procedure(Critical_Overdensity_Kitayama_Suto1996), pointer, intent(inout) :: Critical_Overdensity_Contrast_Tabulate
     
     if (criticalOverdensityMethod == 'Kitayama-Suto1996') then
        Critical_Overdensity_Contrast_Tabulate => Critical_Overdensity_Kitayama_Suto1996
@@ -58,9 +58,9 @@ contains
     use Linear_Growth
     use Tables
     implicit none
-    double precision       , intent(in   )              :: time
-    class           (table), intent(inout), allocatable :: deltaTable
-    integer                                             :: iTime,deltaTableNumberPoints
+    double precision         , intent(in   )              :: time
+    class           (table1D), intent(inout), allocatable :: deltaTable
+    integer                                               :: iTime,deltaTableNumberPoints
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)

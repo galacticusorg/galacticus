@@ -37,8 +37,8 @@ contains
     !% Initializes the ``null transfer function'' module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string),          intent(in   ) :: transferFunctionMethod
-    procedure(              ), pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string             ),          intent(in   ) :: transferFunctionMethod
+    procedure(Transfer_Function_Null_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
     
     if (transferFunctionMethod == 'null') Transfer_Function_Tabulate => Transfer_Function_Null_Make
     return

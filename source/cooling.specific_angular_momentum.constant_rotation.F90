@@ -55,7 +55,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: coolingSpecificAngularMomentumMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
+    procedure(Cooling_Specific_Angular_Momentum_Constant_Rotation), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
     type(varying_string)                                :: inputOption    
 
     if (coolingSpecificAngularMomentumMethod == 'constantRotation') then

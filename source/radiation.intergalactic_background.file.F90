@@ -65,7 +65,8 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type(varying_string),          intent(in)    :: radiationIntergalacticBackgroundMethod
-    procedure(),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do
+    procedure(Radiation_IGB_File_Set),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do
+    procedure(Radiation_IGB_File_Flux),          pointer, intent(inout) :: Radiation_Flux_Intergalactic_Background_Do
     type(Node),           pointer                :: doc,thisSpectrum,thisWavelength,thisDatum
     type(NodeList),       pointer                :: spectraList,datumList,wavelengthList
     integer                                      :: ioErr,iSpectrum,jSpectrum,iWavelength,fileFormatVersion

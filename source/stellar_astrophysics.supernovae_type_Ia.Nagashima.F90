@@ -48,12 +48,13 @@ contains
     use Memory_Management
     use Galacticus_Input_Paths
     implicit none
-    type(varying_string),                 intent(in)    :: supernovaeIaMethod
-    procedure(double precision), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
-    type(Node),                  pointer                :: doc,thisIsotope,thisYield,thisAtom
-    type(NodeList),              pointer                :: isotopesList,propertyList
-    integer                                             :: iIsotope,ioErr,atomicNumber,atomicIndex
-    double precision                                    :: isotopeYield
+    type            (varying_string                   ),          intent(in   ) :: supernovaeIaMethod
+    procedure       (SNeIa_Cumulative_Number_Nagashima), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get
+    procedure       (SNeIa_Cumulative_Yield_Nagashima ), pointer, intent(inout) :: SNeIa_Cumulative_Yield_Get
+    type            (Node                             ), pointer                :: doc,thisIsotope,thisYield,thisAtom
+    type            (NodeList                         ), pointer                :: isotopesList,propertyList
+    integer                                                                     :: iIsotope,ioErr,atomicNumber,atomicIndex
+    double precision                                                            :: isotopeYield
 
     if (supernovaeIaMethod == 'Nagashima') then
        ! Set up pointers to our procedures.

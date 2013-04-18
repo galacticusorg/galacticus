@@ -66,7 +66,8 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in   ) :: coolingRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
+    procedure(Cooling_Radius_Isothermal), pointer, intent(inout) :: Cooling_Radius_Get
+    procedure(Cooling_Radius_Growth_Rate_Isothermal), pointer, intent(inout) :: Cooling_Radius_Growth_Rate_Get
     
     if (coolingRadiusMethod == 'isothermal') then
        Cooling_Radius_Get             => Cooling_Radius_Isothermal

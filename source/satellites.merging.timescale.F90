@@ -85,7 +85,7 @@ contains
     use Kepler_Orbits
     implicit none
     type(treeNode   ), intent(inout), pointer :: thisNode
-    type(keplerOrbit), intent(in   )          :: thisOrbit
+    type(keplerOrbit), intent(inout)          :: thisOrbit
 
     ! Initialize the module.
     call Satellite_Merging_Timescales_Initialize

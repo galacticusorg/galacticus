@@ -40,7 +40,7 @@ contains
     use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
-    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    procedure(Virial_Orbital_Parameters_Benson2005), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     
     if (virialOrbitsMethod == 'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
     return

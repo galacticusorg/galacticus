@@ -95,18 +95,29 @@ contains
     use ISO_Varying_String
     use ODE_Solver
     implicit none
-    type(varying_string),                 intent(in)    :: cosmologyMethod
-    procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
-    procedure(logical),          pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get
-    procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
-         &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
-         &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
-         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get
-    double precision,            parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
-    double precision,            parameter              :: omegaTolerance=1.0d-9
-    double precision                                    :: cubicTerm1,cubicTerm5,cubicTerm9,cubicTerm21Squared,cubicTerm21 &
-         &,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower,Omega_Dominant
-    type(c_ptr)                                         :: parameterPointer
+    type            (varying_string                                    ),          intent(in   )  :: cosmologyMethod
+    procedure       (Early_Time_Density_Scaling_Matter_Lambda          ), pointer, intent(inout) :: Early_Time_Density_Scaling_Get
+    procedure       (Expansion_Factor_Is_Valid_Matter_Lambda           ), pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get
+    procedure       (Cosmic_Time_Is_Valid_Matter_Lambda                ), pointer, intent(inout) :: Cosmic_Time_Is_Valid_Get
+    procedure       (Cosmology_Age_Matter_Lambda                       ), pointer, intent(inout) :: Cosmology_Age_Get 
+    procedure       (Expansion_Factor_Matter_Lambda                    ), pointer, intent(inout) :: Expansion_Factor_Get
+    procedure       (Hubble_Parameter_Matter_Lambda                    ), pointer, intent(inout) :: Hubble_Parameter_Get 
+    procedure       (Omega_Matter_Total_Matter_Lambda                  ), pointer, intent(inout) :: Omega_Matter_Total_Get
+    procedure       (Omega_Dark_Energy_Matter_Lambda                   ), pointer, intent(inout) :: Omega_Dark_Energy_Get 
+    procedure       (Expansion_Rate_Matter_Lambda                      ), pointer, intent(inout) :: Expansion_Rate_Get
+    procedure       (Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda), pointer, intent(inout) :: Epoch_of_Matter_Dark_Energy_Equality_Get 
+    procedure       (Epoch_of_Matter_Domination_Matter_Lambda          ), pointer, intent(inout) :: Epoch_of_Matter_Domination_Get 
+    procedure       (Epoch_of_Matter_Curvature_Equality_Matter_Lambda  ), pointer, intent(inout) :: Epoch_of_Matter_Curvature_Equality_Get
+    procedure       (CMB_Temperature_Matter_Lambda                     ), pointer, intent(inout) :: CMB_Temperature_Get
+    procedure       (Comoving_Distance_Matter_Lambda                   ), pointer, intent(inout) :: Comoving_Distance_Get
+    procedure       (Time_From_Comoving_Distance_Matter_Lambda         ), pointer, intent(inout) :: Time_From_Comoving_Distance_Get
+    procedure       (Comoving_Distance_Conversion_Matter_Lambda        ), pointer, intent(inout) :: Comoving_Distance_Conversion_Get
+    double precision                                                    , parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
+    double precision                                                    , parameter              :: omegaTolerance=1.0d-9
+    double precision                                                                             :: cubicTerm1,cubicTerm5&
+         &,cubicTerm9,cubicTerm21Squared,cubicTerm21 ,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower&
+         &,Omega_Dominant
+    type            (c_ptr                                             )                         :: parameterPointer
 
     ! Check if our method is selected.
     if (cosmologyMethod == 'matter-lambda') then

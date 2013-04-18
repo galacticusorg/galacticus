@@ -62,7 +62,7 @@ module Cosmology_Functions
 
   abstract interface
      double precision function Cosmology_Double_Function_Optional_Integer_Template(inputParameter)
-       integer, intent(in) :: inputParameter
+       integer, intent(in   ), optional :: inputParameter
      end function Cosmology_Double_Function_Optional_Integer_Template
   end interface
 

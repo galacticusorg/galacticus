@@ -52,8 +52,8 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: linearGrowthMethod
-    procedure(),          pointer, intent(inout) :: Linear_Growth_Tabulate
+    type     (varying_string                      ),          intent(in   ) :: linearGrowthMethod
+    procedure(Linear_Growth_Factor_Simple_Tabulate), pointer, intent(inout) :: Linear_Growth_Tabulate
     
     if (linearGrowthMethod == 'simple') Linear_Growth_Tabulate => Linear_Growth_Factor_Simple_Tabulate
     return

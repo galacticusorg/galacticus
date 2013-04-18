@@ -39,7 +39,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
-    procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
+    procedure(Black_Hole_Binary_Initial_Radius_Spheroid_Size), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
     
     if (blackHoleBinaryInitialRadiiMethod == 'spheroidRadiusFraction') then
        Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Spheroid_Size

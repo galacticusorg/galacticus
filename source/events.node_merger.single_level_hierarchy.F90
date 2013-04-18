@@ -33,7 +33,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: nodeMergersMethod
-    procedure(),          pointer, intent(inout) :: Events_Node_Merger_Do
+    procedure(Events_Node_Merger_Do_SLH),          pointer, intent(inout) :: Events_Node_Merger_Do
 
     if (nodeMergersMethod == 'singleLevelHierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
 

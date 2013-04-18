@@ -37,7 +37,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string  ),          intent(in   ) :: coolingSpecificAngularMomentumMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
+    procedure(Cooling_Specific_Angular_Momentum_Mean), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
 
     if (coolingSpecificAngularMomentumMethod == 'mean') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Mean

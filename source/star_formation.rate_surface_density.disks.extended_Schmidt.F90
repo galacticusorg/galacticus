@@ -71,7 +71,7 @@ contains
     use Numerical_Constants_Prefixes
     implicit none
     type     (varying_string  ),          intent(in   ) :: starFormationRateSurfaceDensityDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_ExSchmidt), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
     
     if (starFormationRateSurfaceDensityDisksMethod == 'extendedSchmidt') then
        Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_ExSchmidt

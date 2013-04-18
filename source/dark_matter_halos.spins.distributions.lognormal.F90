@@ -45,7 +45,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Spin_Sample_Get
+    procedure(Halo_Spin_Distribution_Lognormal), pointer, intent(inout) :: Halo_Spin_Sample_Get
     
     if (haloSpinDistributionMethod == 'lognormal') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal

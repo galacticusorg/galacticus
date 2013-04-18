@@ -79,8 +79,9 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: accretionDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get,Black_Hole_Spin_Up_Rate_Get&
-         &,Accretion_Disk_Jet_Power_Get
+    procedure(Accretion_Disk_Radiative_Efficiency_ADAF), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get
+    procedure(Black_Hole_Spin_Up_Rate_ADAF), pointer, intent(inout) :: Black_Hole_Spin_Up_Rate_Get
+    procedure(Accretion_Disk_Jet_Power_ADAF), pointer, intent(inout) :: Accretion_Disk_Jet_Power_Get
 
     if (accretionDisksMethod == 'ADAF') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_ADAF

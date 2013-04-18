@@ -46,9 +46,9 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: virialDensityContrastMethod
-    procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
-    type(varying_string)                         :: virialDensityContrastFixedType
+    type     (varying_string      ),          intent(in   ) :: virialDensityContrastMethod
+    procedure(Virial_Density_Fixed), pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
+    type     (varying_string      )                         :: virialDensityContrastFixedType
 
     if (virialDensityContrastMethod == 'fixed') then
        ! Return a pointer to our tabulation function.
@@ -96,10 +96,10 @@ contains
     use Numerical_Ranges
     use Tables
     implicit none
-    double precision       , intent(in   )              :: time
-    class           (table), intent(inout), allocatable :: deltaVirialTable
-    integer                                             :: iTime,deltaTableNumberPoints
-    double precision                                    :: densityContrast
+    double precision         , intent(in   )              :: time
+    class           (table1D), intent(inout), allocatable :: deltaVirialTable
+    integer                                               :: iTime,deltaTableNumberPoints
+    double precision                                      :: densityContrast
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)

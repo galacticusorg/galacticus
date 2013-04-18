@@ -39,7 +39,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterAccretionHistoryMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
+    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
     
     if (darkMatterAccretionHistoryMethod == 'Wechsler2002') then
        ! Set procedure pointers.

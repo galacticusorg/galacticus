@@ -76,7 +76,7 @@ contains
     use Numerical_Constants_Prefixes
     implicit none
     type     (varying_string  ),          intent(in   ) :: starFormationRateSurfaceDensityDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
+    procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09), pointer, intent(inout) :: Star_Formation_Rate_Surface_Density_Disk_Get
     logical                                             :: molecularFractionFastKMT09
     
     if (starFormationRateSurfaceDensityDisksMethod == 'KMT09') then

@@ -433,9 +433,9 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     implicit none
-    class    (nodeComponentSpheroidStandard),          intent(inout) :: self
-    logical                                 ,          intent(inout) :: interrupt
-    procedure(                             ), pointer, intent(inout) :: interruptProcedure
+    class    (nodeComponentSpheroid),          intent(inout) :: self
+    logical                                 ,          intent(inout), optional :: interrupt
+    procedure(Interrupt_Procedure_Template), pointer, intent(inout), optional :: interruptProcedure
     double precision                        ,          intent(in   ) :: rate
     double precision                                                 :: gasMass,stellarMass
 
@@ -465,9 +465,9 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     implicit none
-    class    (nodeComponentSpheroidStandard),          intent(inout) :: self
-    logical                                 ,          intent(inout) :: interrupt
-    procedure(                             ), pointer, intent(inout) :: interruptProcedure
+    class    (nodeComponentSpheroid),          intent(inout) :: self
+    logical                                 ,          intent(inout), optional :: interrupt
+    procedure(Interrupt_Procedure_Template), pointer, intent(inout), optional :: interruptProcedure
     double precision                        ,          intent(in   ) :: rate
     class    (nodeComponentHotHalo         ), pointer                :: selfHotHaloComponent
     type     (treeNode                     ), pointer                :: selfNode
@@ -624,7 +624,7 @@ contains
     class    (nodeComponentSpheroidStandard),          intent(inout)           :: self
     type     (history                      ),          intent(in   )           :: rate
     logical                                 ,          intent(inout), optional :: interrupt
-    procedure(                             ), pointer, intent(inout), optional :: interruptProcedure
+    procedure(Interrupt_Procedure_Template ), pointer, intent(inout), optional :: interruptProcedure
     type     (history                      )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.
@@ -1320,8 +1320,8 @@ use kind_numbers
     type     (treeNode             ), pointer, intent(inout) :: thisNode
     logical                         ,          intent(  out) :: componentActive
     double precision                ,          intent(  out) :: specificAngularMomentum
-    procedure(                     ), pointer, intent(  out) :: Radius_Set,Velocity_Set
-    procedure(double precision     ), pointer, intent(  out) :: Radius_Get,Velocity_Get
+    procedure(Node_Component_Spheroid_Standard_Radius_Solve_Set                     ), pointer, intent(  out) :: Radius_Set,Velocity_Set
+    procedure(Node_Component_Spheroid_Standard_Radius_Solve     ), pointer, intent(  out) :: Radius_Get,Velocity_Get
     class    (nodeComponentSpheroid), pointer                :: thisSpheroidComponent
     double precision                                         :: specificAngularMomentumMean,angularMomentum,spheroidMass
 
