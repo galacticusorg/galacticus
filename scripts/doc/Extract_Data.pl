@@ -151,7 +151,13 @@ foreach my $fileName ( @fileNames ) {
 		    }
 		    case ( "objectMethods" ) {
 			$object = $contents->{'object'};
-			foreach $method ( @{$contents->{'objectMethod'}} ) {
+			my @methods;
+			if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
+			    @methods = @{$contents->{'objectMethod'}};
+			} else {
+			    push(@methods,$contents->{'objectMethod'});
+			}
+			foreach $method ( @methods ) {
 			    $objects{$object}->{$method->{'method'}} = $method->{'description'};
 			}
 		    }
