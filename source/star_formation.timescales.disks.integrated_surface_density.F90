@@ -43,7 +43,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    procedure(Star_Formation_Timescale_Disk_Integrated_SD), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
     if (starFormationTimescaleDisksMethod == 'integratedSurfaceDensity') Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Integrated_SD
     return

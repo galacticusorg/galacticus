@@ -36,7 +36,6 @@ program Test_Nodes
   double precision                    , allocatable, dimension(:) :: propertyArray
   double precision                                                :: propertyValueGet
   type (varying_string               )                            :: parameterFile
-  type (nodeComponentSpheroidStandard)                            :: sourceSpheroidStandard
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.nodes.size')

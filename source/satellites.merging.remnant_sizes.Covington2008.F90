@@ -43,7 +43,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
+    procedure(Satellite_Merging_Remnant_Size_Covington2008),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
     
     if (satelliteMergingRemnantSizeMethod == 'Covington2008') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Covington2008

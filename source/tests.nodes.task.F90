@@ -34,8 +34,8 @@ contains
     use Unit_Tests
     implicit none
     type            (treeNode        ), intent(inout) :: thisNode
-    procedure       (                ), pointer       :: myFuncVoid    => testVoidFunc
-    procedure       (double precision), pointer       :: myFuncDouble0 => testFuncDouble0
+    procedure       (testVoidFunc                ), pointer       :: myFuncVoid    => testVoidFunc
+    procedure       (testFuncDouble0), pointer       :: myFuncDouble0 => testFuncDouble0
     class           (nodeComponent   ), pointer       :: thisComponent
     double precision                                  :: mapResult
 

@@ -57,7 +57,6 @@ contains
     use Merger_Trees
     use Merger_Trees_Initialize  
     use Merger_Trees_Dump
-    use Events_Interrupts
     use Galacticus_Error
     use Galacticus_Display
     use Input_Parameters
@@ -372,6 +371,7 @@ contains
 
   double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determine the time to which {\tt thisNode} should be evolved.
+    use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Tree_Timesteps
     use Cosmology_Functions
     use Input_Parameters
@@ -386,11 +386,11 @@ contains
     type(treeNode),            intent(inout), pointer           :: thisNode
     double precision,          intent(in)                       :: endTime
     type(treeNode),                           pointer           :: satelliteNode
-    procedure(),               intent(out),   pointer           :: End_Of_Timestep_Task
+    procedure(End_Of_Timestep_Task_Template),               intent(out),   pointer           :: End_Of_Timestep_Task
     logical,                   intent(in)                       :: report
     type(treeNode),            intent(out),   pointer, optional :: lockNode
     type(varying_string),      intent(out),            optional :: lockType  
-    procedure(),                              pointer           :: End_Of_Timestep_Task_Internal
+    procedure(End_Of_Timestep_Task_Template),                              pointer           :: End_Of_Timestep_Task_Internal
     class(nodeComponentBasic),                pointer           :: thisBasicComponent,parentBasicComponent,satelliteBasicComponent,siblingBasicComponent
     class(nodeComponentSatellite),            pointer           :: satelliteSatelliteComponent
     type(nodeEvent),                          pointer           :: thisEvent

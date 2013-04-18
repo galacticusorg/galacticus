@@ -63,16 +63,18 @@ contains
     use Atomic_Data
     use Galacticus_Input_Paths
     implicit none
-    type(varying_string),                 intent(in)    :: stellarAstrophysicsMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get &
-         &,Star_Lifetime_Get
-    type(Node),                  pointer                :: doc,thisStar,thisDatum
-    type(NodeList),              pointer                :: starList,propertyList
-    type(varying_string)                                :: stellarPropertiesFile
-    integer                                             :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount,iElement &
-         &,elementYieldCountMaximum,mapToIndex,fileFormatVersion
-    double precision                                    :: initialMass,metallicity
-    logical                                             :: starHasElements
+    type     (varying_string            ),          intent(in   ) :: stellarAstrophysicsMethod
+    procedure(Star_Ejected_Mass_File    ), pointer, intent(inout) :: Star_Ejected_Mass_Get
+    procedure(Star_Initial_Mass_File    ), pointer, intent(inout) :: Star_Initial_Mass_Get
+    procedure(Star_Metal_Yield_Mass_File), pointer, intent(inout) :: Star_Metal_Yield_Mass_Get 
+    procedure(Star_Lifetime_File        ), pointer, intent(inout) :: Star_Lifetime_Get
+    type     (Node                      ), pointer                :: doc,thisStar,thisDatum
+    type     (NodeList                  ), pointer                :: starList,propertyList
+    type     (varying_string            )                         :: stellarPropertiesFile
+    integer                                                       :: ioErr,iStar,lifetimeCount,ejectedMassCount,metalYieldCount&
+         &,iElement ,elementYieldCountMaximum,mapToIndex,fileFormatVersion
+    double precision                                              :: initialMass,metallicity
+    logical                                                       :: starHasElements
 
     ! Check if our method is selected.
     if (stellarAstrophysicsMethod == 'file') then

@@ -42,7 +42,7 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: satelliteMergingMassMovementsMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
+    procedure(Satellite_Merging_Mass_Movement_Baugh2005),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
     character(len=10)                            :: minorMergerGasMovesTo
 
     if (satelliteMergingMassMovementsMethod == 'Baugh2005') then

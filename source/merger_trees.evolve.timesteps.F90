@@ -39,7 +39,7 @@ contains
     implicit none
     type(treeNode),                           intent(inout),   pointer           :: thisNode
     double precision,                         intent(in)                         :: evolveToTime
-    procedure(),                              intent(out),     pointer           :: End_Of_Timestep_Task
+    procedure(End_Of_Timestep_Task_Template),                              intent(out),     pointer           :: End_Of_Timestep_Task
     logical,                                  intent(in)                         :: report
     type(treeNode),                           intent(inout),   pointer, optional :: lockNode
     type(varying_string),                     intent(inout),            optional :: lockType  

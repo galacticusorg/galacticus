@@ -65,12 +65,10 @@ contains
 
   subroutine Node_Component_Satellite_Very_Simple_Initialize()
     !% Initializes the tree node satellite orbit methods module.
-    use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
     use String_Handling
     implicit none
-    type(varying_string) :: satelliteMergingMethod,message
 
     ! Test whether module is already initialize.
     !$omp critical (Node_Component_Satellite_Very_Simple_Initialize)
@@ -148,7 +146,6 @@ contains
     type (treeNode              ), pointer, intent(inout) :: thisNode
     type (treeNode              ), pointer                :: hostNode
     class(nodeComponentSatellite), pointer                :: satelliteComponent
-    class(nodeComponentBasic    ), pointer                :: basicComponent
     logical                                               :: isNewSatellite
     double precision                                      :: mergeTime
     type (keplerOrbit           )                         :: thisOrbit

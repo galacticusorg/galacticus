@@ -51,8 +51,8 @@ contains
     !% Initializes the ``transfer function from Eisenstein \& Hu'' module.
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: transferFunctionMethod
-    procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string                      ),          intent(in   ) :: transferFunctionMethod
+    procedure(Transfer_Function_Eisenstein_Hu_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
     
     if (transferFunctionMethod == 'Eisenstein-Hu1999') then
        Transfer_Function_Tabulate => Transfer_Function_Eisenstein_Hu_Make

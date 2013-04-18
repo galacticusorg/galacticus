@@ -32,8 +32,8 @@ contains
     !% Initializes the ``null'' dark matter halo mass loss rate method.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: darkMatterHaloMassLossRateMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halos_Mass_Loss_Rate_Get
+    type     (varying_string                       ),          intent(in   ) :: darkMatterHaloMassLossRateMethod
+    procedure(Dark_Matter_Halos_Mass_Loss_Rate_Null), pointer, intent(inout) :: Dark_Matter_Halos_Mass_Loss_Rate_Get
     
     if (darkMatterHaloMassLossRateMethod == 'null') Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_Null
     return

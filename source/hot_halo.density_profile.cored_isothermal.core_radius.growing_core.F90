@@ -61,7 +61,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string  ),          intent(in   ) :: hotHaloCoredIsothermalCoreRadiiMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
+    procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core), pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
 
     if (hotHaloCoredIsothermalCoreRadiiMethod == 'growingCore') then
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core

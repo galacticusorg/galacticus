@@ -55,7 +55,7 @@ contains
     use Galacticus_Error
     implicit none    
     type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
     
     if (starFormationTimescaleDisksMethod == 'haloScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling

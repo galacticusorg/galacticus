@@ -201,20 +201,25 @@ contains
     use Kepler_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    class(nodeComponentSatelliteStandard), intent(inout) :: self
-    type (keplerOrbit                   ), intent(inout) :: thisOrbit
+    class(nodeComponentSatellite), intent(inout) :: self
+    type (keplerOrbit                   ), intent(in) :: thisOrbit
     type (treeNode                      ), pointer       :: selfNode
     double precision                                     :: mergeTime
-    
-    ! Ensure the orbit is defined.
-    call thisOrbit%assertIsDefined()
-    ! Get the node.
-    selfNode => self%host()
-    ! Store the orbit.
-    call self%virialOrbitSetValue(thisOrbit)
-    ! Update the stored time until merging to reflect the new orbit.
-    mergeTime=Satellite_Time_Until_Merging(selfNode,thisOrbit)
-    if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
+    type (keplerOrbit                   ) :: virialOrbit
+ 
+    select type (self)
+    class is (nodeComponentSatelliteStandard)
+       ! Ensure the orbit is defined.
+       call thisOrbit%assertIsDefined()
+       ! Get the node.
+       selfNode => self%host()
+       ! Update the stored time until merging to reflect the new orbit.
+       virialOrbit=thisOrbit
+       mergeTime=Satellite_Time_Until_Merging(selfNode,virialOrbit)
+       if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
+       ! Store the orbit.
+       call self%virialOrbitSetValue(thisOrbit)
+    end select
     return
   end subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set
 

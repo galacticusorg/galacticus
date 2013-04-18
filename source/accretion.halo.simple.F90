@@ -58,10 +58,14 @@ contains
     use Intergalactic_Medium_State
     implicit none
     type(varying_string),                 intent(in)    :: accretionHalosMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get,Halo_Baryonic_Accreted_Mass_Get &
-         &,Halo_Baryonic_Failed_Accretion_Rate_Get,Halo_Baryonic_Failed_Accreted_Mass_Get
-    procedure(),                 pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get &
-         &,Halo_Baryonic_Accreted_Abundances_Get ,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Accreted_Mass_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Mass_Get
+    procedure(Halo_Baryonic_Failed_Accretion_Rate_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Failed_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Failed_Accreted_Mass_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Failed_Accreted_Mass_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Abundances_Get
+    procedure(Halo_Baryonic_Accreted_Abundances_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Abundances_Get 
+    procedure(Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
+    procedure(Halo_Baryonic_Accreted_Chemicals_Simple_Get), pointer, intent(inout) :: Halo_Baryonic_Accreted_Chemicals_Get
     double precision                                    :: reionizationSuppressionOpticalDepth
 
     if (accretionHalosMethod == 'simple') then

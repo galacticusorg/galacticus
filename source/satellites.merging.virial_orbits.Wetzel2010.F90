@@ -59,7 +59,7 @@ contains
     use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
-    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    procedure(Virial_Orbital_Parameters_Wetzel2010), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     integer                                              :: iRadius
     double precision                                     :: x,xGamma2
     

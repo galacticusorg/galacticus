@@ -21,7 +21,6 @@ module Merger_Trees
   !% Defines the merger tree object type.
   use, intrinsic :: ISO_C_Binding
   use               Galacticus_Nodes
-  use               Events_Interrupts
   use               IO_HDF5
   use               ISO_Varying_String
   use               Kind_Numbers

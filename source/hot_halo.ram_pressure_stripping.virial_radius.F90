@@ -37,7 +37,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in   ) :: hotHaloRamPressureStrippingMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Stripping_Get
+    procedure(Hot_Halo_Ram_Pressure_Stripping_Virial_Radius), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Stripping_Get
     
     if (hotHaloRamPressureStrippingMethod == 'virialRadius') Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Virial_Radius
     return

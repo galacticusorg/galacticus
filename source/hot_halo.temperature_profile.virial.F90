@@ -33,10 +33,11 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),          intent(in)    :: hotHaloTemperatureMethod
-    procedure(double precision), pointer, intent(inout) :: Hot_Halo_Temperature_Get,Hot_Halo_Temperature_Logarithmic_Slope_Get
-    
+    procedure(Hot_Halo_Temperature_Virial_Get), pointer, intent(inout) :: Hot_Halo_Temperature_Get
+    procedure(Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get), pointer, intent(inout) :: Hot_Halo_Temperature_Logarithmic_Slope_Get
+
     if (hotHaloTemperatureMethod == 'virial') then
-       Hot_Halo_Temperature_Get => Hot_Halo_Temperature_Virial_Get
+       Hot_Halo_Temperature_Get                   => Hot_Halo_Temperature_Virial_Get
        Hot_Halo_Temperature_Logarithmic_Slope_Get => Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get
     end if
     return

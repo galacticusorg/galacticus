@@ -33,7 +33,8 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterHaloBiasMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Node_Get,Dark_Matter_Halo_Bias_Get
+    procedure(Dark_Matter_Halo_Bias_Node_Press_Schechter), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Node_Get
+    procedure(Dark_Matter_Halo_Bias_Press_Schechter), pointer, intent(inout) :: Dark_Matter_Halo_Bias_Get
 
     if (darkMatterHaloBiasMethod == 'Press-Schechter') then
        Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_Press_Schechter

@@ -38,8 +38,9 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string  ),          intent(in   ) :: coolingTimeAvailableMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
-    
+    procedure(Cooling_Time_Available_Halo_Formation), pointer, intent(inout) :: Cooling_Time_Available_Get
+    procedure(Cooling_Time_Available_Increase_Rate_Halo_Formation), pointer, intent(inout) :: Cooling_Time_Available_Increase_Rate_Get
+
     if (coolingTimeAvailableMethod == 'haloFormation') then
        ! Set pointers to our implementation.
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation

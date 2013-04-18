@@ -40,7 +40,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in   ) :: starFormationFeedbackDisksMethod
-    procedure(double precision), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
     
     if (starFormationFeedbackDisksMethod == 'haloScaling') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling

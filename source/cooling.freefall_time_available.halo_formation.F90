@@ -39,8 +39,9 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),                 intent(in)    :: freefallTimeAvailableMethod
-    procedure(double precision), pointer, intent(inout) :: Freefall_Time_Available_Get,Freefall_Time_Available_Increase_Rate_Get
-    
+    procedure(Freefall_Time_Available_Halo_Formation), pointer, intent(inout) :: Freefall_Time_Available_Get
+    procedure(Freefall_Time_Available_Increase_Rate_Halo_Formation), pointer, intent(inout) :: Freefall_Time_Available_Increase_Rate_Get
+
     if (freefallTimeAvailableMethod == 'haloFormation') then
        ! Set pointers to our implementation.
        Freefall_Time_Available_Get               => Freefall_Time_Available_Halo_Formation

@@ -38,7 +38,7 @@ contains
     use Kepler_Orbits
     implicit none
     type(varying_string),                  intent(in)    :: virialOrbitsMethod
-    procedure(type(keplerOrbit)), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
+    procedure(Virial_Orbital_Parameters_Fixed), pointer, intent(inout) :: Virial_Orbital_Parameters_Get
     
     if (virialOrbitsMethod == 'fixed') then
        ! Return a pointer to our implementation.

@@ -35,7 +35,7 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: coolingRateMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Rate_Get
+    procedure(Cooling_Rate_Cole2000), pointer, intent(inout) :: Cooling_Rate_Get
     
     ! Return a pointer to our implementation.
     if (coolingRateMethod == 'Cole2000') Cooling_Rate_Get => Cooling_Rate_Cole2000

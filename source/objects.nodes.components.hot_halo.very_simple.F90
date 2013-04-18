@@ -128,7 +128,7 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     implicit none
-    class    (nodeComponentHotHaloVerySimple), intent(inout)                    :: self
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                         , intent(in  )                     :: rate
     logical                                  , intent(inout), optional          :: interrupt
     procedure(                              ), intent(inout), optional, pointer :: interruptProcedure

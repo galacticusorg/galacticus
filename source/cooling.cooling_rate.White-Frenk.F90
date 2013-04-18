@@ -40,7 +40,7 @@ contains
     use Galacticus_Error
     implicit none
     type     (varying_string      ),          intent(in   ) :: coolingRateMethod
-    procedure(double precision    ), pointer, intent(inout) :: Cooling_Rate_Get
+    procedure(Cooling_Rate_White_Frenk    ), pointer, intent(inout) :: Cooling_Rate_Get
 
     if (coolingRateMethod == 'White-Frenk1991') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk

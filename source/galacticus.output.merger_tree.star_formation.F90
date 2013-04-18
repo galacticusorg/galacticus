@@ -75,7 +75,7 @@ module Galacticus_Output_Star_Formation_Histories
        import treeNode, history, abundances, kind_int8
        type(treeNode),          intent(inout), pointer :: thisNode
        logical,                 intent(in)             :: nodePassesFilter
-       type(history),           intent(in)             :: thisHistory
+       type(history),           intent(inout)          :: thisHistory
        integer,                 intent(in)             :: iOutput
        integer(kind=kind_int8), intent(in)             :: treeIndex
        character(len=*),        intent(in)             :: componentLabel

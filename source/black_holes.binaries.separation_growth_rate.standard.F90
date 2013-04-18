@@ -47,7 +47,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: blackHoleBinarySeparationGrowthRateMethod
-    procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Separation_Growth_Rate_Get
+    procedure(Black_Hole_Binary_Separation_Growth_Rate_Standard), pointer, intent(inout) :: Black_Hole_Binary_Separation_Growth_Rate_Get
 
     if (blackHoleBinarySeparationGrowthRateMethod == 'standard') then
        Black_Hole_Binary_Separation_Growth_Rate_Get => Black_Hole_Binary_Separation_Growth_Rate_Standard

@@ -190,6 +190,8 @@ sub Components_Generate_Output {
 	    \&Generate_Node_Event_Interface                          ,
 	    # Generate required null binding functions.
 	    \&Generate_Null_Binding_Functions                        ,
+	    # Insert interrupt procedure interface.
+	    \&Insert_Interrupt_Interface                             ,
 	    # Insert the "contains" line.
 	    \&Insert_Contains
 	);
@@ -4531,7 +4533,12 @@ sub Generate_Deferred_Function_Attacher {
 	# Define the function name.
 	my $functionName = $componentClassName.ucfirst($propertyName).ucfirst($gsr)."Function";
 	# Define the data content.
-	my $type = "";
+	my $selfType = "generic";
+	$selfType = $component->{'class'}
+	   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
+	(my $dataObject, my $label) = &Data_Object_Definition($property);
+	my $dataType = $label.$property->{'rank'};
+	my $type = $selfType."NullBinding".ucfirst($gsr).$dataType."InOut";
 	$type = $componentName.ucfirst($propertyName).ucfirst($gsr)
 	    if ( $gsr eq "get" );
 	my @dataContent =
@@ -4725,7 +4732,7 @@ sub Generate_Deferred_GSR_Function {
 			 },
 			 {
 			     intrinsic  => "procedure",
-			     type       => "",
+			     type       => "Interrupt_Procedure_Template",
 			     attributes => [ "pointer", "optional", "intent(inout)" ],
 			     variables  => [ "interruptProcedure" ]
 			 }
@@ -4979,7 +4986,7 @@ sub Generate_GSR_Functions {
 			    },
 			    {
 				intrinsic  => "procedure",
-				type       => "",
+				type       => "Interrupt_Procedure_Template",
 				attributes => [ "optional", "intent(inout)", "pointer" ],
 				variables  => [ "interruptProcedure" ]
 			    }
@@ -5026,7 +5033,7 @@ sub Generate_GSR_Functions {
 			    },
 			    {
 				intrinsic  => "procedure",
-				type       => "",
+				type       => "Interrupt_Procedure_Template",
 				attributes => [ "optional", "intent(inout)", "pointer" ],
 				variables  => [ "interruptProcedure" ]
 			    },
@@ -5123,7 +5130,7 @@ sub Generate_GSR_Functions {
 				},
 				{
 				    intrinsic  => "procedure",
-				    type       => "",
+				    type       => "Interrupt_Procedure_Template",
 				    attributes => [ "optional", "intent(inout)", "pointer" ],
 				    variables  => [ "interruptProcedure" ]
 				}
@@ -6554,7 +6561,7 @@ sub Generate_Null_Binding_Functions {
 		 },
 		 {
 		     intrinsic  => "procedure",
-		     type       => "", 
+		     type       => "Interrupt_Procedure_Template", 
 		     attributes => [ "intent(inout)", "optional", "pointer" ],
 		     variables  => [ "interruptProcedure" ]
 		 }
@@ -6893,6 +6900,19 @@ sub Insert_Type_Definitions {
 	# Insert the type closing.
 	$buildData->{'content'} .= "  end type ".$type->{'name'}."\n\n";
     }
+}
+
+sub Insert_Interrupt_Interface {
+    # Insert the interrupt procedure interface.
+    my $buildData = shift;
+
+    $buildData->{'content'} .= "! Procedure template for interrupt routines.\n";
+    $buildData->{'content'} .= "abstract interface\n";
+    $buildData->{'content'} .= "   subroutine Interrupt_Procedure_Template(thisNode)\n";
+    $buildData->{'content'} .= "     import treeNode\n";
+    $buildData->{'content'} .= "     type(treeNode), pointer, intent(inout) :: thisNode\n";
+    $buildData->{'content'} .= "   end subroutine Interrupt_Procedure_Template\n";
+    $buildData->{'content'} .= "end interface\n\n";  
 }
 
 sub Insert_Contains {

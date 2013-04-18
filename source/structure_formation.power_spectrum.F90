@@ -46,7 +46,7 @@ module Power_Spectra
      subroutine Cosmological_Mass_Variance_Tabulate_Template(mass,massNormalization,sigmaNormalization,sigmaTable)
        import table1D
        double precision         , intent(in   )              :: mass,massNormalization
-       double precision         , intent(  out)              :: sigmaNormalization
+       double precision         , intent(inout)              :: sigmaNormalization
        class           (table1D), intent(inout), allocatable :: sigmaTable
      end subroutine Cosmological_Mass_Variance_Tabulate_Template
   end interface

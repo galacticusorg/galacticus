@@ -40,10 +40,11 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: coolingTimeAvailableMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Time_Available_Get,Cooling_Time_Available_Increase_Rate_Get
+    procedure(Cooling_Time_Available_WF), pointer, intent(inout) :: Cooling_Time_Available_Get
+    procedure(Cooling_Time_Available_Increase_Rate_WF), pointer, intent(inout) :: Cooling_Time_Available_Increase_Rate_Get
     
     if (coolingTimeAvailableMethod == 'White-Frenk1991') then
-       Cooling_Time_Available_Get => Cooling_Time_Available_WF
+       Cooling_Time_Available_Get               => Cooling_Time_Available_WF
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_WF
        !@ <inputParameter>
        !@   <name>coolingTimeAvailableAgeFactor</name>

@@ -463,8 +463,8 @@ contains
      class    (nodeComponentSpheroid), pointer                :: thisSpheroid
      class    (nodeComponentHotHalo ), pointer                :: thisHotHalo
     logical                         ,          intent(inout) :: interrupt
-    procedure(                     ), pointer, intent(inout) :: interruptProcedureReturn
-    procedure(                     ), pointer                :: interruptProcedure
+    procedure(Interrupt_Procedure_Template                     ), pointer, intent(inout) :: interruptProcedureReturn
+    procedure(Interrupt_Procedure_Template                     ), pointer                :: interruptProcedure
     type     (abundances           ), save                   :: fuelAbundances,stellarAbundancesRates,fuelAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     double precision                                         :: starFormationRate,stellarMassRate,fuelMassRate,fuelMass,massOutflowRate&
@@ -1006,8 +1006,8 @@ contains
     type     (treeNode         ), pointer, intent(inout) :: thisNode
     logical,                               intent(  out) :: componentActive
     double precision,                      intent(  out) :: specificAngularMomentum
-    procedure(double precision ), pointer, intent(  out) :: Radius_Get,Velocity_Get
-    procedure(                 ), pointer, intent(  out) :: Radius_Set,Velocity_Set
+    procedure(Node_Component_Disk_Exponential_Radius_Solve ), pointer, intent(  out) :: Radius_Get,Velocity_Get
+    procedure(Node_Component_Disk_Exponential_Radius_Solve_Set                 ), pointer, intent(  out) :: Radius_Set,Velocity_Set
     class    (nodeComponentDisk), pointer                :: thisDiskComponent
     double precision                                     :: specificAngularMomentumMean,angularMomentum,diskMass
 

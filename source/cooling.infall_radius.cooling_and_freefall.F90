@@ -36,8 +36,9 @@ contains
     use Chemical_Abundances_Structure
     implicit none
     type(varying_string),                 intent(in)    :: infallRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Infall_Radius_Get,Infall_Radius_Growth_Rate_Get
-    
+    procedure(Infall_Radius_Cooling_Freefall), pointer, intent(inout) :: Infall_Radius_Get
+    procedure(Infall_Radius_Growth_Rate_Cooling_Freefall), pointer, intent(inout) :: Infall_Radius_Growth_Rate_Get
+
     if (infallRadiusMethod == 'coolingAndFreefall') then
        Infall_Radius_Get             => Infall_Radius_Cooling_Freefall
        Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Freefall

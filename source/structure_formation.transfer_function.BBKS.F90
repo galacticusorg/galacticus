@@ -44,8 +44,8 @@ contains
     !% Initializes the ``transfer function from BBKS'' module.
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: transferFunctionMethod
-    procedure(),          pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string             ),          intent(in   ) :: transferFunctionMethod
+    procedure(Transfer_Function_BBKS_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
     
     if (transferFunctionMethod == 'BBKS') then
        ! Return a pointer to our tabulation function.

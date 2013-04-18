@@ -46,8 +46,8 @@ contains
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: criticalOverdensityMethod
-    procedure(),          pointer, intent(inout) :: Critical_Overdensity_Tabulate
+    type     (varying_string                         ),          intent(in   ) :: criticalOverdensityMethod
+    procedure(Spherical_Collapse_Critical_Overdensity), pointer, intent(inout) :: Critical_Overdensity_Tabulate
 
     if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
     return
@@ -60,8 +60,8 @@ contains
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: virialDensityContrastMethod
-    procedure(),          pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
+    type     (varying_string                            ),          intent(in   ) :: virialDensityContrastMethod
+    procedure(Spherical_Collapse_Virial_Density_Contrast), pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
 
     if (virialDensityContrastMethod == 'sphericalTopHat') Virial_Density_Contrast_Tabulate =>&
          & Spherical_Collapse_Virial_Density_Contrast
@@ -72,8 +72,8 @@ contains
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
-    double precision       , intent(in   )              :: time
-    class           (table), intent(inout), allocatable :: deltaCritTable
+    double precision         , intent(in   )              :: time
+    class           (table1D), intent(inout), allocatable :: deltaCritTable
 
     !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
@@ -86,8 +86,8 @@ contains
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
-    double precision       , intent(in   )              :: time
-    class           (table), intent(inout), allocatable :: deltaVirialTable
+    double precision         , intent(in   )              :: time
+    class           (table1D), intent(inout), allocatable :: deltaVirialTable
 
     !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
@@ -107,7 +107,7 @@ contains
     implicit none
     double precision            , intent(in)                               :: time
     integer                     , intent(in)                               :: calculationType
-    class           (table     ), intent(inout), allocatable               :: deltaTable
+    class           (table1D   ), intent(inout), allocatable               :: deltaTable
     double precision            , parameter                                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
     type            (rootFinder), save                                     :: finder
     !$omp threadprivate(finder) 

@@ -543,10 +543,10 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    class(nodeComponentHotHaloStandard),          intent(inout)           :: thisHotHaloComponent
+    class(nodeComponentHotHalo),          intent(inout)           :: thisHotHaloComponent
     double precision                   ,          intent(in   )           :: rate
     logical                            ,          intent(inout), optional :: interrupt
-    procedure()                        , pointer, intent(inout), optional :: interruptProcedure
+    procedure(Interrupt_Procedure_Template)                        , pointer, intent(inout), optional :: interruptProcedure
     type (treeNode                    ), pointer                          :: thisNode
     double precision                                                      :: massHeatingRate,inputMassHeatingRate,excessMassHeatingRate
     
@@ -597,7 +597,7 @@ contains
     type (treeNode            ), pointer, intent(inout)           :: thisNode
     double precision           ,          intent(in   )           :: massRate
     logical                    ,          intent(inout), optional :: interrupt
-    procedure()                , pointer, intent(inout), optional :: interruptProcedure
+    procedure(Interrupt_Procedure_Template)                , pointer, intent(inout), optional :: interruptProcedure
     type (treeNode            ), pointer                          :: coolingFromNode
     class(nodeComponentHotHalo), pointer                          :: thisHotHaloComponent,coolingFromHotHaloComponent
     type (abundances          ), save                             :: abundancesCoolingRate
@@ -730,44 +730,50 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
     implicit none
-    class    (nodeComponentHotHaloStandard), intent(inout)                    :: self
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                       , intent(in  )                     :: rate
     logical                                , intent(inout), optional          :: interrupt
-    procedure(                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type     (treeNode                    ),                          pointer :: selfNode
     double precision                                                          :: strippedOutflowFraction
 
-    ! Get the host node.
-    selfNode => self%host()    
-    if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
-       strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
-       call self% strippedMassRate(rate*       strippedOutflowFraction )
-    else
-       strippedOutflowFraction=0.0d0
-    end if
-    ! Funnel the outflow gas into the outflowed and stripped reservoirs in the computed proportions.
-    call    self%outflowedMassRate(rate*(1.0d0-strippedOutflowFraction))
+    select type (self)
+    class is (nodeComponentHotHaloStandard)
+       ! Get the host node.
+       selfNode => self%host()    
+       if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
+          strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
+          call self% strippedMassRate(rate*       strippedOutflowFraction )
+       else
+          strippedOutflowFraction=0.0d0
+       end if
+       ! Funnel the outflow gas into the outflowed and stripped reservoirs in the computed proportions.
+       call    self%outflowedMassRate(rate*(1.0d0-strippedOutflowFraction))
+    end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas angular momentum from a galaxy and deposit it into the outflowed reservoir.
     implicit none
-    class    (nodeComponentHotHaloStandard), intent(inout)                    :: self
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                       , intent(in  )                     :: rate
     logical                                , intent(inout), optional          :: interrupt
-    procedure(                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type     (treeNode                    ),                          pointer :: selfNode
     double precision                                                          :: strippedOutflowFraction
 
-    ! Get the host node.
-    selfNode => self%host()    
-    if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
-       strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
-    else
-       strippedOutflowFraction=0.0d0
-    end if
-    call    self%outflowedAngularMomentumRate(rate*(1.0d0-strippedOutflowFraction)/(1.0d0-hotHaloAngularMomentumLossFraction))
+    select type (self)
+    class is (nodeComponentHotHaloStandard)
+       ! Get the host node.
+       selfNode => self%host()    
+       if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
+          strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
+       else
+          strippedOutflowFraction=0.0d0
+       end if
+       call    self%outflowedAngularMomentumRate(rate*(1.0d0-strippedOutflowFraction)/(1.0d0-hotHaloAngularMomentumLossFraction))
+    end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate
 
@@ -775,22 +781,25 @@ contains
     !% Accept outflowing gas abundances from a galaxy and deposit it into the outflowed reservoir.
     use Abundances_Structure
     implicit none
-    class    (nodeComponentHotHaloStandard), intent(inout)                    :: self
+    class    (nodeComponentHotHalo), intent(inout)                    :: self
     type     (abundances                  ), intent(in  )                     :: rate
     logical                                , intent(inout), optional          :: interrupt
-    procedure(                            ), intent(inout), optional, pointer :: interruptProcedure
+    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
     type     (treeNode                    ),                          pointer :: selfNode
     double precision                                                          :: strippedOutflowFraction
 
-    ! Get the host node.
-    selfNode => self%host()    
-    if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
-       strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
-    call    self%strippedAbundancesRate(rate*       strippedOutflowFraction )
-    else
-       strippedOutflowFraction=0.0d0
-    end if
-    call    self%outflowedAbundancesRate(rate*(1.0d0-strippedOutflowFraction))
+    select type (self)
+    class is (nodeComponentHotHaloStandard)
+       ! Get the host node.
+       selfNode => self%host()    
+       if (selfNode%isSatellite().and.hotHaloTrackStrippedGas) then
+          strippedOutflowFraction=Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(selfNode,self)
+          call    self%strippedAbundancesRate(rate*       strippedOutflowFraction )
+       else
+          strippedOutflowFraction=0.0d0
+       end if
+       call    self%outflowedAbundancesRate(rate*(1.0d0-strippedOutflowFraction))
+    end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate
 
@@ -816,7 +825,7 @@ contains
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
     logical                    ,          intent(inout) :: interrupt
-    procedure()                , pointer, intent(inout) :: interruptProcedure
+    procedure(Interrupt_Procedure_Template)                , pointer, intent(inout) :: interruptProcedure
     class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
     class(nodeComponentBasic  ), pointer                :: thisBasicComponent
     double precision           , parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3

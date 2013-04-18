@@ -33,17 +33,19 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: satelliteMergingMethod
-    procedure(double precision), pointer, intent(inout) :: Satellite_Time_Until_Merging
+    procedure(Satellite_Time_Until_Merging_Preset), pointer, intent(inout) :: Satellite_Time_Until_Merging
 
     if (satelliteMergingMethod == 'preset') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Preset
     return
   end subroutine Satellite_Time_Until_Merging_Preset_Initialize
 
-  double precision function Satellite_Time_Until_Merging_Preset(thisNode)
+  double precision function Satellite_Time_Until_Merging_Preset(thisNode,thisOrbit)
     !% Return the timescale for merging satellites using the preset value.
     use Galacticus_Nodes
+    use Kepler_Orbits
     implicit none
     type (treeNode              ), pointer, intent(inout) :: thisNode
+    type (keplerOrbit),                 intent(inout) :: thisOrbit
     class(nodeComponentSatellite), pointer                :: thisSatelliteComponent
 
     ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.

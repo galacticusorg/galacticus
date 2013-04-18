@@ -38,11 +38,17 @@ contains
     use ISO_Varying_String
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterProfileMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
-         &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
-         &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
-         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get&
-         &,Dark_Matter_Profile_Freefall_Radius_Get,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
+    procedure(Dark_Matter_Profile_Density_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get
+    procedure(Dark_Matter_Profile_Energy_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get
+    procedure(Dark_Matter_Profile_Energy_Growth_Rate_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Growth_Rate_Get 
+    procedure(Dark_Matter_Profile_Rotation_Normalization_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Rotation_Normalization_Get
+    procedure(Radius_from_Specific_Angular_Momentum_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get 
+    procedure(Dark_Matter_Profile_Circular_Velocity_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Circular_Velocity_Get
+    procedure(Dark_Matter_Profile_Potential_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Potential_Get
+    procedure(Dark_Matter_Profile_Enclosed_Mass_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Enclosed_Mass_Get 
+    procedure(Dark_Matter_Profile_kSpace_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_kSpace_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Freefall_Radius_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal), pointer, intent(inout) :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
     
     if (darkMatterProfileMethod == 'isothermal') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Isothermal

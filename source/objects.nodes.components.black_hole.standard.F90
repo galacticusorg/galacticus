@@ -299,7 +299,7 @@ contains
     implicit none
     type     (treeNode              ), pointer, intent(inout) :: thisNode
     logical                          ,          intent(inout) :: interrupt
-    procedure(                      ), pointer, intent(inout) :: interruptProcedure
+    procedure(Interrupt_Procedure_Template                      ), pointer, intent(inout) :: interruptProcedure
     class    (nodeComponentBlackHole), pointer                :: thisBlackHoleComponent,centralBlackHoleComponent&
          &,binaryBlackHoleComponent
     class    (nodeComponentSpheroid ), pointer                :: thisSpheroidComponent

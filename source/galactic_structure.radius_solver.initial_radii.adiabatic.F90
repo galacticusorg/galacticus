@@ -48,8 +48,8 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ),          intent(in   ) :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get&
-         &,Galactic_Structure_Radius_Initial_Derivative_Get
+    procedure(Galactic_Structure_Radius_Initial_Adiabatic), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get
+    procedure(Galactic_Structure_Radius_Initial_Derivative_Adiabatic), pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Derivative_Get
     
     if (galacticStructureRadiusSolverInitialRadiusMethod == 'adiabatic') then
        Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Adiabatic

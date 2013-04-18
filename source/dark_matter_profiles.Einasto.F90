@@ -121,11 +121,17 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),                 intent(in)    :: darkMatterProfileMethod
-    procedure(double precision), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get,Dark_Matter_Profile_Energy_Get&
-         &,Dark_Matter_Profile_Energy_Growth_Rate_Get ,Dark_Matter_Profile_Rotation_Normalization_Get&
-         &,Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get ,Dark_Matter_Profile_Circular_Velocity_Get&
-         &,Dark_Matter_Profile_Potential_Get,Dark_Matter_Profile_Enclosed_Mass_Get ,Dark_Matter_Profile_kSpace_Get&
-         &,Dark_Matter_Profile_Freefall_Radius_Get ,Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
+    procedure(Dark_Matter_Profile_Density_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Density_Get
+    procedure(Dark_Matter_Profile_Energy_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Get
+    procedure(Dark_Matter_Profile_Energy_Growth_Rate_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Energy_Growth_Rate_Get
+    procedure(Dark_Matter_Profile_Rotation_Normalization_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Rotation_Normalization_Get
+    procedure(Radius_from_Specific_Angular_Momentum_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get
+    procedure(Dark_Matter_Profile_Circular_Velocity_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Circular_Velocity_Get
+    procedure(Dark_Matter_Profile_Potential_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Potential_Get
+    procedure(Dark_Matter_Profile_Enclosed_Mass_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Enclosed_Mass_Get
+    procedure(Dark_Matter_Profile_kSpace_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_kSpace_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Freefall_Radius_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto), pointer, intent(inout) :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
     
     if (darkMatterProfileMethod == 'Einasto') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Einasto

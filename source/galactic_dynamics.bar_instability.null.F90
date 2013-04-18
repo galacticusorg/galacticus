@@ -35,7 +35,7 @@ contains
     use Input_Parameters
     implicit none
     type(varying_string),                 intent(in)    :: barInstabilityMethod
-    procedure(double precision), pointer, intent(inout) :: Bar_Instability_Timescale_Get
+    procedure(Bar_Instability_Timescale_Null), pointer, intent(inout) :: Bar_Instability_Timescale_Get
     
     if (barInstabilityMethod == 'null') Bar_Instability_Timescale_Get => Bar_Instability_Timescale_Null
 

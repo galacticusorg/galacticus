@@ -75,10 +75,11 @@ contains
     use Galacticus_Error
     implicit none
     type(varying_string),          intent(in)    :: coolingRadiusMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Radius_Get,Cooling_Radius_Growth_Rate_Get
+    procedure(Cooling_Radius_Simple), pointer, intent(inout) :: Cooling_Radius_Get
+    procedure(Cooling_Radius_Growth_Rate_Simple), pointer, intent(inout) :: Cooling_Radius_Growth_Rate_Get
     
     if (coolingRadiusMethod == 'simple') then
-       Cooling_Radius_Get => Cooling_Radius_Simple
+       Cooling_Radius_Get             => Cooling_Radius_Simple
        Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Simple
        ! Get a count of the number of abundances and chemicals properties.
        abundancesCount=Abundances_Property_Count()
