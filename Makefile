@@ -70,11 +70,23 @@ vpath %.F90 source
 	for mod in $$mlist ; \
 	do \
 	 if [ -f $$mod~ ] ; then \
-	  if perl -w ./scripts/build/Compare_Module_Files.pl -compiler $(MODULETYPE) $$mod $$mod~ ; then \
-	   mv $$mod~ $$mod ; \
-	  else \
-	   rm $$mod~ ; \
-	  fi \
+	  file $$mod | grep -q ASCII ; \
+	  if [ $$? -eq 0 ]; then \
+	   if perl -w ./scripts/build/Compare_Module_Files.pl -compiler $(MODULETYPE) $$mod $$mod~ ; then \
+	    mv $$mod~ $$mod ; \
+	   else \
+	    rm $$mod~ ; \
+	   fi \
+	 else \
+	   gunzip -c $$mod > $$mod.gu ; \
+	   gunzip -c $$mod~ > $$mod~.gu ; \
+	   if perl -w ./scripts/build/Compare_Module_Files.pl -compiler $(MODULETYPE) $$mod.gu $$mod~.gu ; then \
+	    mv $$mod~ $$mod ; \
+	   else \
+	    rm $$mod~ ; \
+	   fi ; \
+	   rm $$mod.gu $$mod~.gu ; \
+          fi \
 	 fi \
 	done
 
