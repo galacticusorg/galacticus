@@ -20,6 +20,7 @@ use Sort::Topological qw(toposort);
 use Scalar::Util 'reftype';
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
+require File::Changes;
 require Galacticus::Build::Hooks;
 
 # Insert hooks for our functions.
@@ -209,10 +210,11 @@ sub Components_Generate_Output {
     }
 
     # Create a Makefile to specify dependencies on these include files.
-    open(makeFile,">./work/build/Makefile_Component_Includes");
-    print makeFile "./work/build/objects.nodes.components.Inc:".join("",map {" ./work/build/".$_} @includeDependencies)
+    open(makeFile,">./work/build/Makefile_Component_Includes.tmp");
+    print makeFile "./work/build/objects.nodes.o:".join("",map {" ./work/build/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
+    &File_Changes::Update("./work/build/Makefile_Component_Includes" ,"./work/build/Makefile_Component_Includes.tmp" );
 
 }
 
