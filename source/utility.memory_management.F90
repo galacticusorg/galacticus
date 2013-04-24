@@ -215,8 +215,15 @@ contains
     codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
     open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
     read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
+    line=adjustl(line)
     if (ioError == 0) then
-       read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage
+       if      (line(1:4) == "text"  ) then
+          read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage
+       else if (line(1:6) == "__TEXT") then
+          read (unitNumber,*) usedMemory%memoryType(memoryTypeCode)%usage
+       else
+          call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] format is not recognized')
+       end if
        close (unitNumber)
        return
     else
