@@ -257,14 +257,16 @@ contains
        remakeTable=.true.
     end if
     ! Tabulate the mass variance.
-    sigmaNormalization=sigma_8_Value
     if (present(mass)) then
        massActual=mass
     else
        massActual=massNormalization
     end if
     if (.not.remakeTable) remakeTable=(massActual < sigmaTable%x(1) .or. massActual > sigmaTable%x(-1))
-    if (remakeTable) call Cosmological_Mass_Variance_Tabulate(massActual,massNormalization,sigmaNormalization,sigmaTable)
+    if (remakeTable) then
+       sigmaNormalization=sigma_8_Value
+       call Cosmological_Mass_Variance_Tabulate(massActual,massNormalization,sigmaNormalization,sigmaTable)
+    end if
     !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     return
   end subroutine Initialize_Cosmological_Mass_Variance
