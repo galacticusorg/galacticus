@@ -53,11 +53,13 @@ contains
     !$omp critical (System_CPU_Read)
     System_Processor_Count=0
     open(newUnit=lUnit,file="/proc/cpuinfo",status='old',form='formatted',iostat=ioError)
-    do while (ioError == 0)
-       read (lUnit,'(a)',iostat=ioError) infoLine
-       if (ioError == 0 .and. infoLine(1:9) == "processor") System_Processor_Count=System_Processor_Count+1
-    end do
-    close(lUnit)
+    if (ioError == 0) then
+       do while (ioError == 0)
+          read (lUnit,'(a)',iostat=ioError) infoLine
+          if (ioError == 0 .and. infoLine(1:9) == "processor") System_Processor_Count=System_Processor_Count+1
+       end do
+       close(lUnit)
+    end if
     !$omp end critical (System_CPU_Read)
     return
   end function System_Processor_Count
