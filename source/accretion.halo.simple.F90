@@ -29,6 +29,9 @@ module Accretion_Halos_Simple
   ! Parameters controlling when accretion is suppressed.
   double precision :: reionizationSuppressionRedshift,reionizationSuppressionTime,reionizationSuppressionVelocity
 
+  ! Options controlling accretion.
+  logical          :: accretionHalosSimpleNegativeAccretionAllowed
+
   ! Index of Solar abundance pattern.
   integer          :: abundanceIndexSolar
 
@@ -122,6 +125,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("reionizationSuppressionVelocity",reionizationSuppressionVelocity,defaultValue=35.0d0)
+       !@ <inputParameter>
+       !@   <name>accretionHalosSimpleNegativeAccretionAllowed</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether negative accretion (mass loss) is allowed in the simple halo accretion model.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter("accretionHalosSimpleNegativeAccretionAllowed",accretionHalosSimpleNegativeAccretionAllowed,defaultValue=.true.)
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])
     end if
@@ -149,8 +163,13 @@ contains
        else
           thisHotHaloComponent => thisNode%hotHalo()
           Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
-          unaccretedMass=thisHotHaloComponent%unaccretedMass()
-          if (unaccretedMass > 0.0d0) then
+          ! Test for negative accretion.
+          if (.not.accretionHalosSimpleNegativeAccretionAllowed.and.thisBasicComponent%accretionRate() < 0.0d0) then
+             ! Accretion rate is negative, and not allowed. Return zero accretion rate.
+             Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
+          else
+             ! Return the standard accretion rate.
+             unaccretedMass=thisHotHaloComponent%unaccretedMass()
              growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Accretion_Rate_Simple_Get=Halo_Baryonic_Accretion_Rate_Simple_Get+unaccretedMass*growthRate
           end if
@@ -202,12 +221,13 @@ contains
           Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
        else
           thisHotHaloComponent => thisNode%hotHalo()
-          unaccretedMass=thisHotHaloComponent%unaccretedMass()
-          if (unaccretedMass > 0.0d0) then
+          ! Test for negative accretion.
+          if (.not.accretionHalosSimpleNegativeAccretionAllowed.and.thisBasicComponent%accretionRate() < 0.0d0) then
+             Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
+          else
+             unaccretedMass=thisHotHaloComponent%unaccretedMass()
              growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=-unaccretedMass*growthRate
-          else
-             Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
           end if
        end if
     end if
@@ -268,9 +288,9 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type(treeNode),                    intent(inout), pointer :: thisNode
+    type(treeNode          ), intent(inout), pointer :: thisNode
     type(chemicalAbundances), intent(inout)          :: accretionRateChemicals
-    double precision                                          :: massAccretionRate
+    double precision                                 :: massAccretionRate
 
     ! Return immediately if no chemicals are being tracked.
     if (chemicalsCount == 0) return
