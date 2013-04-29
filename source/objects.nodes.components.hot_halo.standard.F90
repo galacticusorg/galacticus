@@ -175,7 +175,7 @@ module Node_Component_Hot_Halo_Standard
 
   ! Configuration variables.
   logical                             :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow&
-       &,hotHaloOutflowAngularMomentumAlwaysGrows
+       &,hotHaloOutflowAngularMomentumAlwaysGrows,hotHaloNodeMergerLimitBaryonFraction
   integer                             :: hotHaloCoolingFromNode
   integer,          parameter         :: currentNode=0,formationNode=1
   double precision                    :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum,hotHaloOutflowStrippingEfficiency
@@ -359,6 +359,22 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('hotHaloAngularMomentumLossFraction',hotHaloAngularMomentumLossFraction,defaultValue=0.3d0)
+
+       ! Get option controlling limiting of baryon fraction during node mergers.
+       !@ <inputParameter>
+       !@   <name>hotHaloNodeMergerLimitBaryonFraction</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Controls whether the hot gas content of nodes should be limited to not exceed the universal baryon fraction at node
+       !@    merger events. If set to {\tt true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
+       !@    removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
+       !@    fraction where possible.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('hotHaloNodeMergerLimitBaryonFraction',hotHaloNodeMergerLimitBaryonFraction,defaultValue=.false.)
 
        ! Bind the outer radius get function.
        call hotHaloComponent%                  outerRadiusFunction(Node_Component_Hot_Halo_Standard_Outer_Radius              )
@@ -860,8 +876,10 @@ contains
           ! Get the basic component.
           thisBasicComponent => thisNode%basic()
           ! Apply accretion rates.
-          call thisHotHaloComponent%          massRate(      massAccretionRate)
-          call thisHotHaloComponent%unaccretedMassRate(failedMassAccretionRate)  
+          if (      massAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
+               & call thisHotHaloComponent%          massRate(      massAccretionRate)
+          if (failedMassAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
+               & call thisHotHaloComponent%unaccretedMassRate(failedMassAccretionRate)
 
           ! Next compute the cooling rate in this halo.
           call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
@@ -1083,11 +1101,16 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
+    use Galactic_Structure_Enclosed_Masses
+    use Galactic_Structure_Options
+    use Cosmological_Parameters
     implicit none
-    type (treeNode            ), pointer, intent(inout)     :: thisNode
-    type (treeNode            ), pointer                    :: parentNode
-    class(nodeComponentHotHalo), pointer                    :: thisHotHaloComponent,parentHotHaloComponent
-    class(nodeComponentSpin   ), pointer                    :: parentSpinComponent
+    type            (treeNode            ), pointer, intent(inout) :: thisNode
+    type            (treeNode            ), pointer                :: parentNode
+    class           (nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
+    class           (nodeComponentSpin   ), pointer                :: parentSpinComponent
+    class           (nodeComponentBasic  ), pointer                :: parentBasic
+    double precision                                               :: fractionRemove,baryonicMassMaximum,baryonicMassCurrent
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1169,6 +1192,25 @@ contains
           call   thisHotHaloComponent%               chemicalsSet(                                                   &
                &                                                   zeroChemicals                                     &
                &                                                 )
+          ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
+          ! some of the mass to the failed accretion reservoir.
+          if (hotHaloNodeMergerLimitBaryonFraction) then
+             parentBasic        => parentNode%basic()
+             baryonicMassMaximum=  parentBasic%mass()*Omega_b()/Omega_Matter()
+             baryonicMassCurrent=  Galactic_Structure_Enclosed_Mass(parentNode,radiusLarge,massType=massTypeBaryonic&
+                  &,componentType =componentTypeAll)
+             if (baryonicMassCurrent > baryonicMassMaximum .and. parentHotHaloComponent%mass() > 0.0d0) then
+                fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/parentHotHaloComponent%mass(),1.0d0)
+                call parentHotHaloComponent% unaccretedMassSet(                                                                &
+                     &                                          parentHotHaloComponent%unaccretedMass ()                       &
+                     &                                         +parentHotHaloComponent%mass           ()*       fractionRemove &
+                     &                                        )
+                call parentHotHaloComponent%           massSet( parentHotHaloComponent%mass           ()*(1.0d0-fractionRemove))
+                call parentHotHaloComponent%angularMomentumSet( parentHotHaloComponent%angularMomentum()*(1.0d0-fractionRemove))
+                call parentHotHaloComponent%     abundancesSet( parentHotHaloComponent%abundances     ()*(1.0d0-fractionRemove))
+                call parentHotHaloComponent%     chemicalsSet ( parentHotHaloComponent%chemicals      ()*(1.0d0-fractionRemove))
+             end if
+          end if
        end if
     end select
     return
