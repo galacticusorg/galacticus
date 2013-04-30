@@ -506,3 +506,118 @@ GALACTICUS_FCFLAGS += -fintrinsic-modules-path /your/install/path/finclude \
 
 It should then be possible to compile and run \glc.
 
+\section{Installing on Mac OS X}
+
+The following guidelines have been tested on a MacBook Pro, running Mac OS X V10.6.8. 
+
+\subsection{Update GNU compilers}
+
+It is likely that the default compiler is older than GCC v4.8 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\tt gcc}. For the case of MacPorts, this requires,
+
+\begin{verbatim}
+$ sudo port -v install gcc48 +gfortran
+\end{verbatim}
+
+and reset the default version of {\tt gcc} compilers by first listing available options
+
+\begin{verbatim}
+$ sudo port select --list gcc
+\end{verbatim}
+
+and then explicitly setting to {\tt mp-gcc48} by
+
+\begin{verbatim}
+$ sudo port select --set mp-gcc48
+\end{verbatim}
+
+\subsection{Installing HDF5, FoX and FGSL}
+
+Once you have installed the latest compiler suite, you will need to recompile your {\tt HDF5}, {\tt FoX} and {\tt FGSL} libraries. Download {\tt FoX} (for XML parsing) from
+
+\begin{verbatim}
+http://www1.gly.bris.ac.uk/~walker/FoX/source/FoX-4.1.2-full.tar.gz
+\end{verbatim}
+
+and run {\tt configure}
+
+\begin{verbatim}
+$ sudo ./configure --prefix=/opt/local
+\end{verbatim}
+
+i.e. install libraries in the same branch as the MacPorts distributiuon. Then do the usual
+
+\begin{verbatim}
+$ sudo make clean; sudo make; sudo make check; sudo make install
+\end{verbatim}
+
+Similarly download FGSL from
+
+\begin{verbatim}
+http://www.lrz.de/services/software/mathematik/gsl/fortran/
+\end{verbatim}
+
+and, assuming that you have downloaded GSL with MacPorts and they are installed in {\tt /opt/local/include} and {\tt /opt/local/lib}, run {\tt configure}
+
+\begin{verbatim}
+$ sudo ./configure --f90 gfortran --gsl /opt/local --prefix /opt/local
+\end{verbatim}
+
+i.e. install libraries in the same branch as the MacPorts distributiuon. Then do the usual
+
+\begin{verbatim}
+$ sudo make clean; sudo make; sudo make install
+\end{verbatim}
+
+Finally download the latest version of HDF5, configure
+
+\begin{verbatim}
+$ sudo ./configure --enable-fortran --prefix=/opt/local
+\end{verbatim}
+
+and do the usual
+
+\begin{verbatim}
+$ sudo make clean; sudo make; sudo make test; sudo make install
+\end{verbatim}
+
+This should ensure that the modules ({\tt hdf5.mod}, {\tt fox\_dom.mod}, \ldots) are compatible with the \glc\ build.
+
+\glc\ requires {\tt crypt.h} to install on linux-based systems; this is part of the GNU C library {\tt glibc}. However, {\tt glibc} has not been ported to Mac OS X and so this will not work properly. To get it working, edit {\tt source/utility.hashes.cryptographic.md5.c} and comment out {\tt \#include \textless crypt.h\textgreater}, replacing it with {\tt \#include \textless unistd.h\textgreater}.
+
+Note that you will need to amend the {\tt Makefile} so that \glc\ knows where these {\tt .mod} files are, which you can do by adding
+
+\begin{verbatim}
+FCFLAGS += -fintrinsic-modules-path /opt/local/include 
+	   -fintrinsic-modules-path /opt/local/include/gfortran
+	   -fintrinsic-modules-path /opt/local/finclude .
+\end{verbatim}
+
+You can also add
+
+\begin{verbatim}
+export GALACTICUS_FCFLAGS = "-L/opt/local/lib"
+\end{verbatim}
+
+You can also add
+
+to your {\tt .profile} (i.e. {\tt .bashrc}) file so that \glc\ knows where to find libraries (for FoX, {\tt libcrypt}, \ldots) during linking.
+
+\subsection{Installing Perl Modules}
+
+Follow the instructions in the previous section to download and install new {\tt perl} modules. You may need to upgrade CPAN using
+
+\begin{verbatim}
+$ sudo perl -MCPAN -e 'install Bundles::CPAN'
+\end{verbatim}
+
+before installation of certain modules (e.g. {\tt DateTime.pm}) would proceed correctly. To install {\tt PDF::Labels}, I found it necessary to
+
+\begin{verbatim}
+$ sudo perl -MCPAN -e 'install PDF::Create"
+\end{verbatim}
+
+and then
+
+\begin{verbatim}
+$ sudo perl -MCPAN -e 'install PDF::Labels"
+\end{verbatim}
