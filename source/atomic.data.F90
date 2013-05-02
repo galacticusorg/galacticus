@@ -47,9 +47,9 @@ module Atomic_Data
 
   ! Abundance pattern information.
   integer,          parameter                                   :: abundancePatternCount=1
-  character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                      &
-       &                                                            ["data/abundances/Solar_Composition.xml"], & 
-       &                                                           abundancePatternNames=                      &
+  character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                                   &
+       &                                                            ["data/abundances/Solar_Composition_Cloudy_08.00.xml"], & 
+       &                                                           abundancePatternNames=                                   &
        &                                                            ["solar"]
 
   ! Mass normalization options.

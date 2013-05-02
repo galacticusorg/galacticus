@@ -1,5 +1,4 @@
 <stars>
-  <fileFormat>1</fileFormat>
   <star>
     <initialMass>0.6</initialMass>
     <lifetime>28.19</lifetime>
@@ -1255,22 +1254,22 @@
   </star>
   <star>
     <initialMass>120</initialMass>
-    <lifetime>0.00310</lifetime>
+    <lifetime>0.00311</lifetime>
     <metallicity>0.05</metallicity>
     <source>Table 14 of Portinari, Chiosi &amp; Bressan (1998, A&amp;A, 334, 505)</source>
     <url>http://adsabs.harvard.edu/abs/1998A%26A...334..505P</url>
   </star>
   <star>
     <ejectedMass>7.65</ejectedMass>
-    <elementYieldMassC>0.0892353708621208</elementYieldMassC>
-    <elementYieldMassCa>0.00258480044257161</elementYieldMassCa>
-    <elementYieldMassFe>0.154739192151991</elementYieldMassFe>
-    <elementYieldMassMg>0.00547032703507433</elementYieldMassMg>
-    <elementYieldMassN>0.000740757222413946</elementYieldMassN>
-    <elementYieldMassNe>0.00912540312233166</elementYieldMassNe>
-    <elementYieldMassO>0.138730742588893</elementYieldMassO>
-    <elementYieldMassS>0.0137022899966494</elementYieldMassS>
-    <elementYieldMassSi>0.0306386014958511</elementYieldMassSi>
+    <elementYieldMassC>0.0891979624744077</elementYieldMassC>
+    <elementYieldMassCa>0.00258992526343743</elementYieldMassCa>
+    <elementYieldMassFe>0.15471310686468</elementYieldMassFe>
+    <elementYieldMassMg>0.00550861604469567</elementYieldMassMg>
+    <elementYieldMassN>0.000784405988540337</elementYieldMassN>
+    <elementYieldMassNe>0.00918713529254791</elementYieldMassNe>
+    <elementYieldMassO>0.138534484027403</elementYieldMassO>
+    <elementYieldMassS>0.0137429784555715</elementYieldMassS>
+    <elementYieldMassSi>0.0306905536859558</elementYieldMassSi>
     <initialMass>9</initialMass>
     <metalYieldMass>0.44489954</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1279,15 +1278,15 @@
   </star>
   <star>
     <ejectedMass>10.5</ejectedMass>
-    <elementYieldMassC>0.169360216869578</elementYieldMassC>
-    <elementYieldMassCa>0.00788913786235319</elementYieldMassCa>
-    <elementYieldMassFe>0.15664202844391</elementYieldMassFe>
-    <elementYieldMassMg>0.0289082920089255</elementYieldMassMg>
-    <elementYieldMassN>0.0010448550111564</elementYieldMassN>
-    <elementYieldMassNe>0.1075794984032</elementYieldMassNe>
-    <elementYieldMassO>0.669252758259265</elementYieldMassO>
-    <elementYieldMassS>0.0437658882306953</elementYieldMassS>
-    <elementYieldMassSi>0.0860784726413643</elementYieldMassSi>
+    <elementYieldMassC>0.169308872023697</elementYieldMassC>
+    <elementYieldMassCa>0.00789617193020824</elementYieldMassCa>
+    <elementYieldMassFe>0.156606225108385</elementYieldMassFe>
+    <elementYieldMassMg>0.0289608455515431</elementYieldMassMg>
+    <elementYieldMassN>0.00110476508231027</elementYieldMassN>
+    <elementYieldMassNe>0.107664228832909</elementYieldMassNe>
+    <elementYieldMassO>0.668983383763102</elementYieldMassO>
+    <elementYieldMassS>0.0438217351350981</elementYieldMassS>
+    <elementYieldMassSi>0.086149779568959</elementYieldMassSi>
     <initialMass>12</initialMass>
     <metalYieldMass>1.27042789</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1296,15 +1295,15 @@
   </star>
   <star>
     <ejectedMass>13.2</ejectedMass>
-    <elementYieldMassC>0.213194918350326</elementYieldMassC>
-    <elementYieldMassCa>0.0156737733126726</elementYieldMassCa>
-    <elementYieldMassFe>0.0954499786152009</elementYieldMassFe>
-    <elementYieldMassMg>0.0265589956683635</elementYieldMassMg>
-    <elementYieldMassN>0.00123388344259661</elementYieldMassN>
-    <elementYieldMassNe>0.0986877465640233</elementYieldMassNe>
-    <elementYieldMassO>1.40784123152593</elementYieldMassO>
-    <elementYieldMassS>0.11783140234716</elementYieldMassS>
-    <elementYieldMassSi>0.199721508463429</elementYieldMassSi>
+    <elementYieldMassC>0.213130370544076</elementYieldMassC>
+    <elementYieldMassCa>0.0156826161408332</elementYieldMassCa>
+    <elementYieldMassFe>0.0954049687076838</elementYieldMassFe>
+    <elementYieldMassMg>0.0266250629790827</elementYieldMassMg>
+    <elementYieldMassN>0.00130919896061862</elementYieldMassN>
+    <elementYieldMassNe>0.098794264818514</elementYieldMassNe>
+    <elementYieldMassO>1.40750258930219</elementYieldMassO>
+    <elementYieldMassS>0.117901609884123</elementYieldMassS>
+    <elementYieldMassSi>0.19981115145812</elementYieldMassSi>
     <initialMass>15</initialMass>
     <metalYieldMass>2.1760762</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1313,15 +1312,15 @@
   </star>
   <star>
     <ejectedMass>17.93</ejectedMass>
-    <elementYieldMassC>0.282899902425859</elementYieldMassC>
-    <elementYieldMassCa>0.0162643754163803</elementYieldMassCa>
-    <elementYieldMassFe>0.156388720952315</elementYieldMassFe>
-    <elementYieldMassMg>0.0755726357828605</elementYieldMassMg>
-    <elementYieldMassN>0.00184632917619373</elementYieldMassN>
-    <elementYieldMassNe>0.0991731124161316</elementYieldMassNe>
-    <elementYieldMassO>3.02696563865606</elementYieldMassO>
-    <elementYieldMassS>0.171770988188225</elementYieldMassS>
-    <elementYieldMassSi>0.339621715662825</elementYieldMassSi>
+    <elementYieldMassC>0.282812224989036</elementYieldMassC>
+    <elementYieldMassCa>0.0162763869246318</elementYieldMassCa>
+    <elementYieldMassFe>0.156327582494604</elementYieldMassFe>
+    <elementYieldMassMg>0.075662377213254</elementYieldMassMg>
+    <elementYieldMassN>0.00194863275484029</elementYieldMassN>
+    <elementYieldMassNe>0.0993177997118149</elementYieldMassNe>
+    <elementYieldMassO>3.02650564963547</elementYieldMassO>
+    <elementYieldMassS>0.171866353425934</elementYieldMassS>
+    <elementYieldMassSi>0.339743480730613</elementYieldMassSi>
     <initialMass>20</initialMass>
     <metalYieldMass>4.17034417</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1330,15 +1329,15 @@
   </star>
   <star>
     <ejectedMass>23.02</ejectedMass>
-    <elementYieldMassC>0.348578453365493</elementYieldMassC>
-    <elementYieldMassCa>-2.15377532028093e-05</elementYieldMassCa>
-    <elementYieldMassFe>-0.000345810021066316</elementYieldMassFe>
-    <elementYieldMassMg>0.129579703051949</elementYieldMassMg>
-    <elementYieldMassN>0.00279738536731621</elementYieldMassN>
-    <elementYieldMassNe>0.61521935135635</elementYieldMassNe>
-    <elementYieldMassO>3.14623740755507</elementYieldMassO>
-    <elementYieldMassS>-4.02408851368595e-06</elementYieldMassS>
-    <elementYieldMassSi>0.0116143276384958</elementYieldMassSi>
+    <elementYieldMassC>0.348465885903381</elementYieldMassC>
+    <elementYieldMassCa>-6.11639681965774e-06</elementYieldMassCa>
+    <elementYieldMassFe>-0.00042430457190286</elementYieldMassFe>
+    <elementYieldMassMg>0.129694920437764</elementYieldMassMg>
+    <elementYieldMassN>0.00292873106616975</elementYieldMassN>
+    <elementYieldMassNe>0.61540511273653</elementYieldMassNe>
+    <elementYieldMassO>3.14564683604063</elementYieldMassO>
+    <elementYieldMassS>0.000118413600948493</elementYieldMassS>
+    <elementYieldMassSi>0.0117706595883272</elementYieldMassSi>
     <initialMass>30</initialMass>
     <metalYieldMass>4.2534508</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1347,15 +1346,15 @@
   </star>
   <star>
     <ejectedMass>25.09</ejectedMass>
-    <elementYieldMassC>0.337451687834067</elementYieldMassC>
-    <elementYieldMassCa>-2.15505746246084e-05</elementYieldMassCa>
-    <elementYieldMassFe>-0.000303381556409812</elementYieldMassFe>
-    <elementYieldMassMg>0.0538419091908516</elementYieldMassMg>
-    <elementYieldMassN>0.00421318549808705</elementYieldMassN>
-    <elementYieldMassNe>0.270000821612981</elementYieldMassNe>
-    <elementYieldMassO>0.819762492726185</elementYieldMassO>
-    <elementYieldMassS>-0.000133463265890894</elementYieldMassS>
-    <elementYieldMassSi>-0.000221344897920986</elementYieldMassSi>
+    <elementYieldMassC>0.337328998102338</elementYieldMassC>
+    <elementYieldMassCa>-4.74250200717691e-06</elementYieldMassCa>
+    <elementYieldMassFe>-0.000388934479106984</elementYieldMassFe>
+    <elementYieldMassMg>0.053967487132211</elementYieldMassMg>
+    <elementYieldMassN>0.00435634203953948</elementYieldMassN>
+    <elementYieldMassNe>0.27020328699216</elementYieldMassNe>
+    <elementYieldMassO>0.819118815953926</elementYieldMassO>
+    <elementYieldMassS>-1.57581321591754e-08</elementYieldMassS>
+    <elementYieldMassSi>-5.09552966494608e-05</elementYieldMassSi>
     <initialMass>40</initialMass>
     <metalYieldMass>1.484367515</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1364,15 +1363,15 @@
   </star>
   <star>
     <ejectedMass>35.42</ejectedMass>
-    <elementYieldMassC>0.507824034240042</elementYieldMassC>
-    <elementYieldMassCa>-2.79749443285624e-05</elementYieldMassCa>
-    <elementYieldMassFe>-0.000378557382544262</elementYieldMassFe>
-    <elementYieldMassMg>-0.000312694956557835</elementYieldMassMg>
-    <elementYieldMassN>0.00665689823763424</elementYieldMassN>
-    <elementYieldMassNe>5.66466134624081e-05</elementYieldMassNe>
-    <elementYieldMassO>0.282022722927919</elementYieldMassO>
-    <elementYieldMassS>-0.000171403701787783</elementYieldMassS>
-    <elementYieldMassSi>-0.00028428562313118</elementYieldMassSi>
+    <elementYieldMassC>0.507650830959937</elementYieldMassC>
+    <elementYieldMassCa>-4.24668876421708e-06</elementYieldMassCa>
+    <elementYieldMassFe>-0.000499333967715</elementYieldMassFe>
+    <elementYieldMassMg>-0.000135414339461367</elementYieldMassMg>
+    <elementYieldMassN>0.00685899487765997</elementYieldMassN>
+    <elementYieldMassNe>0.000342470596346013</elementYieldMassNe>
+    <elementYieldMassO>0.281114032960863</elementYieldMassO>
+    <elementYieldMassS>1.6986522397725e-05</elementYieldMassS>
+    <elementYieldMassSi>-4.37435873783938e-05</elementYieldMassSi>
     <initialMass>60</initialMass>
     <metalYieldMass>0.795070796</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1381,15 +1380,15 @@
   </star>
   <star>
     <ejectedMass>67.94</ejectedMass>
-    <elementYieldMassC>0.71489200763039</elementYieldMassC>
-    <elementYieldMassCa>0.000483012035073898</elementYieldMassCa>
-    <elementYieldMassFe>-0.00110624643054933</elementYieldMassFe>
-    <elementYieldMassMg>0.716759558008229</elementYieldMassMg>
-    <elementYieldMassN>0.00904806690075862</elementYieldMassN>
-    <elementYieldMassNe>0.997243982239374</elementYieldMassNe>
-    <elementYieldMassO>13.9384922060509</elementYieldMassO>
-    <elementYieldMassS>0.00321223298985144</elementYieldMassS>
-    <elementYieldMassSi>0.00529661250040846</elementYieldMassSi>
+    <elementYieldMassC>0.714559782027615</elementYieldMassC>
+    <elementYieldMassCa>0.000528525803652148</elementYieldMassCa>
+    <elementYieldMassFe>-0.00133791106060297</elementYieldMassFe>
+    <elementYieldMassMg>0.717099604454461</elementYieldMassMg>
+    <elementYieldMassN>0.00943571358972948</elementYieldMassN>
+    <elementYieldMassNe>0.997792228467413</elementYieldMassNe>
+    <elementYieldMassO>13.9367492247872</elementYieldMassO>
+    <elementYieldMassS>0.00357358905510168</elementYieldMassS>
+    <elementYieldMassSi>0.00575800227762597</elementYieldMassSi>
     <initialMass>100</initialMass>
     <metalYieldMass>16.38371801</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1398,15 +1397,15 @@
   </star>
   <star>
     <ejectedMass>89.4</ejectedMass>
-    <elementYieldMassC>1.96448193791812</elementYieldMassC>
-    <elementYieldMassCa>-9.32262005356714e-05</elementYieldMassCa>
-    <elementYieldMassFe>-0.00139787210613939</elementYieldMassFe>
-    <elementYieldMassMg>0.86536774339028</elementYieldMassMg>
-    <elementYieldMassN>0.0134949569521316</elementYieldMassN>
-    <elementYieldMassNe>1.32639748354725</elementYieldMassNe>
-    <elementYieldMassO>19.1448929726075</elementYieldMassO>
-    <elementYieldMassS>-0.000583865921508407</elementYieldMassS>
-    <elementYieldMassSi>-0.000965147224955604</elementYieldMassSi>
+    <elementYieldMassC>1.96404477323033</elementYieldMassC>
+    <elementYieldMassCa>-3.33361370841617e-05</elementYieldMassCa>
+    <elementYieldMassFe>-0.00170271193432301</elementYieldMassFe>
+    <elementYieldMassMg>0.865815199267424</elementYieldMassMg>
+    <elementYieldMassN>0.0140050484150988</elementYieldMassN>
+    <elementYieldMassNe>1.32711890263448</elementYieldMassNe>
+    <elementYieldMassO>19.142599441183</elementYieldMassO>
+    <elementYieldMassS>-0.000108369421164409</elementYieldMassS>
+    <elementYieldMassSi>-0.000358019670006449</elementYieldMassSi>
     <initialMass>120</initialMass>
     <metalYieldMass>23.31080096</metalYieldMass>
     <metallicity>0.0004</metallicity>
@@ -1415,15 +1414,15 @@
   </star>
   <star>
     <ejectedMass>7.65</ejectedMass>
-    <elementYieldMassC>0.0856757086212077</elementYieldMassC>
-    <elementYieldMassCa>0.00355800442571612</elementYieldMassCa>
-    <elementYieldMassFe>0.166391921519914</elementYieldMassFe>
-    <elementYieldMassMg>0.00525327035074324</elementYieldMassMg>
-    <elementYieldMassN>0.00664047222413946</elementYieldMassN>
-    <elementYieldMassNe>0.0123520312233166</elementYieldMassNe>
-    <elementYieldMassO>0.149078525888926</elementYieldMassO>
-    <elementYieldMassS>0.0180228999664945</elementYieldMassS>
-    <elementYieldMassSi>0.0357860149585111</elementYieldMassSi>
+    <elementYieldMassC>0.0853016247440765</elementYieldMassC>
+    <elementYieldMassCa>0.00360925263437429</elementYieldMassCa>
+    <elementYieldMassFe>0.166131068646804</elementYieldMassFe>
+    <elementYieldMassMg>0.00563616044695668</elementYieldMassMg>
+    <elementYieldMassN>0.00707695988540337</elementYieldMassN>
+    <elementYieldMassNe>0.0129693529254791</elementYieldMassNe>
+    <elementYieldMassO>0.147115940274027</elementYieldMassO>
+    <elementYieldMassS>0.018429784555715</elementYieldMassS>
+    <elementYieldMassSi>0.0363055368595582</elementYieldMassSi>
     <initialMass>9</initialMass>
     <metalYieldMass>0.4820794</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1432,15 +1431,15 @@
   </star>
   <star>
     <ejectedMass>10.5</ejectedMass>
-    <elementYieldMassC>0.164634168695775</elementYieldMassC>
-    <elementYieldMassCa>0.00665137862353193</elementYieldMassCa>
-    <elementYieldMassFe>0.165420284439098</elementYieldMassFe>
-    <elementYieldMassMg>0.0372829200892554</elementYieldMassMg>
-    <elementYieldMassN>0.00894975011156396</elementYieldMassN>
-    <elementYieldMassNe>0.116798984032003</elementYieldMassNe>
-    <elementYieldMassO>0.689723282592644</elementYieldMassO>
-    <elementYieldMassS>0.0394588823069532</elementYieldMassS>
-    <elementYieldMassSi>0.0899847264136427</elementYieldMassSi>
+    <elementYieldMassC>0.164120720236968</elementYieldMassC>
+    <elementYieldMassCa>0.00672171930208236</elementYieldMassCa>
+    <elementYieldMassFe>0.165062251083849</elementYieldMassFe>
+    <elementYieldMassMg>0.0378084555154307</elementYieldMassMg>
+    <elementYieldMassN>0.00954885082310267</elementYieldMassN>
+    <elementYieldMassNe>0.117646288329089</elementYieldMassNe>
+    <elementYieldMassO>0.687029537631017</elementYieldMassO>
+    <elementYieldMassS>0.0400173513509814</elementYieldMassS>
+    <elementYieldMassSi>0.0906977956895897</elementYieldMassSi>
     <initialMass>12</initialMass>
     <metalYieldMass>1.3179718</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1449,15 +1448,15 @@
   </star>
   <star>
     <ejectedMass>13.18</ejectedMass>
-    <elementYieldMassC>0.231976924134316</elementYieldMassC>
-    <elementYieldMassCa>0.0137381305007763</elementYieldMassCa>
-    <elementYieldMassFe>0.120506604657839</elementYieldMassFe>
-    <elementYieldMassMg>0.0561936082644178</elementYieldMassMg>
-    <elementYieldMassN>0.0118701952828965</elementYieldMassN>
-    <elementYieldMassNe>0.135695202813505</elementYieldMassNe>
-    <elementYieldMassO>1.28774435872105</elementYieldMassO>
-    <elementYieldMassS>0.0952165779814898</elementYieldMassS>
-    <elementYieldMassSi>0.19121930420303</elementYieldMassSi>
+    <elementYieldMassC>0.23133242406888</elementYieldMassC>
+    <elementYieldMassCa>0.0138264248001377</elementYieldMassCa>
+    <elementYieldMassFe>0.120057187550965</elementYieldMassFe>
+    <elementYieldMassMg>0.0568532803517502</elementYieldMassMg>
+    <elementYieldMassN>0.0126222093189041</elementYieldMassN>
+    <elementYieldMassNe>0.136758771445466</elementYieldMassNe>
+    <elementYieldMassO>1.28436306742636</elementYieldMassO>
+    <elementYieldMassS>0.0959175896005652</elementYieldMassS>
+    <elementYieldMassSi>0.192114375922742</elementYieldMassSi>
     <initialMass>15</initialMass>
     <metalYieldMass>2.1429903</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1466,15 +1465,15 @@
   </star>
   <star>
     <ejectedMass>17.96</ejectedMass>
-    <elementYieldMassC>0.260047913312012</elementYieldMassC>
-    <elementYieldMassCa>0.019843158102727</elementYieldMassCa>
-    <elementYieldMassFe>0.1858769817644</elementYieldMassFe>
-    <elementYieldMassMg>0.0444208804574312</elementYieldMassMg>
-    <elementYieldMassN>0.0141985504765418</elementYieldMassN>
-    <elementYieldMassNe>0.0858220184014074</elementYieldMassNe>
-    <elementYieldMassO>2.91963517136799</elementYieldMassO>
-    <elementYieldMassS>0.197706050117417</elementYieldMassS>
-    <elementYieldMassSi>0.370210827275145</elementYieldMassSi>
+    <elementYieldMassC>0.259169671948185</elementYieldMassC>
+    <elementYieldMassCa>0.0199634741586094</elementYieldMassCa>
+    <elementYieldMassFe>0.18526457423485</elementYieldMassFe>
+    <elementYieldMassMg>0.0453197962911558</elementYieldMassMg>
+    <elementYieldMassN>0.0152232979793261</elementYieldMassN>
+    <elementYieldMassNe>0.0872713122276608</elementYieldMassNe>
+    <elementYieldMassO>2.91502758474791</elementYieldMassO>
+    <elementYieldMassS>0.198661298120345</elementYieldMassS>
+    <elementYieldMassSi>0.371430515293813</elementYieldMassSi>
     <initialMass>20</initialMass>
     <metalYieldMass>4.0961664</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1483,15 +1482,15 @@
   </star>
   <star>
     <ejectedMass>23.02</ejectedMass>
-    <elementYieldMassC>0.304770533654928</elementYieldMassC>
-    <elementYieldMassCa>-0.000180377532028093</elementYieldMassCa>
-    <elementYieldMassFe>-0.00338810021066316</elementYieldMassFe>
-    <elementYieldMassMg>0.126797030519491</elementYieldMassMg>
-    <elementYieldMassN>0.0254194536731621</elementYieldMassN>
-    <elementYieldMassNe>0.500725513563496</elementYieldMassNe>
-    <elementYieldMassO>2.99129227555073</elementYieldMassO>
-    <elementYieldMassS>-0.000560240885136859</elementYieldMassS>
-    <elementYieldMassSi>0.0183432763849577</elementYieldMassSi>
+    <elementYieldMassC>0.303644859033809</elementYieldMassC>
+    <elementYieldMassCa>-2.61639681965773e-05</elementYieldMassCa>
+    <elementYieldMassFe>-0.0041730457190286</elementYieldMassFe>
+    <elementYieldMassMg>0.12794920437764</elementYieldMassMg>
+    <elementYieldMassN>0.0267329106616975</elementYieldMassN>
+    <elementYieldMassNe>0.502583127365298</elementYieldMassNe>
+    <elementYieldMassO>2.98538656040629</elementYieldMassO>
+    <elementYieldMassS>0.000664136009484933</elementYieldMassS>
+    <elementYieldMassSi>0.019906595883272</elementYieldMassSi>
     <initialMass>30</initialMass>
     <metalYieldMass>3.9611748</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1500,15 +1499,15 @@
   </star>
   <star>
     <ejectedMass>27.4</ejectedMass>
-    <elementYieldMassC>0.344117335453737</elementYieldMassC>
-    <elementYieldMassCa>-0.00025740244906906</elementYieldMassCa>
-    <elementYieldMassFe>-0.00373135298749655</elementYieldMassFe>
-    <elementYieldMassMg>0.217997334328152</elementYieldMassMg>
-    <elementYieldMassN>0.0335377960054145</elementYieldMassN>
-    <elementYieldMassNe>0.732014072616846</elementYieldMassNe>
-    <elementYieldMassO>2.07389055743223</elementYieldMassO>
-    <elementYieldMassS>-0.00159967855137923</elementYieldMassS>
-    <elementYieldMassSi>-0.00265080916820845</elementYieldMassSi>
+    <elementYieldMassC>0.342777479475516</elementYieldMassC>
+    <elementYieldMassCa>-7.38467736136498e-05</elementYieldMassCa>
+    <elementYieldMassFe>-0.0046656495526231</elementYieldMassFe>
+    <elementYieldMassMg>0.219368731535505</elementYieldMassMg>
+    <elementYieldMassN>0.0351011635764774</elementYieldMassN>
+    <elementYieldMassNe>0.734225133354004</elementYieldMassNe>
+    <elementYieldMassO>2.06686116581808</elementYieldMassO>
+    <elementYieldMassS>-0.000142340284105684</elementYieldMassS>
+    <elementYieldMassSi>-0.000790037914784865</elementYieldMassSi>
     <initialMass>40</initialMass>
     <metalYieldMass>3.39088427</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1517,15 +1516,15 @@
   </star>
   <star>
     <ejectedMass>63.3</ejectedMass>
-    <elementYieldMassC>0.335595902708817</elementYieldMassC>
-    <elementYieldMassCa>-0.000597688869564653</elementYieldMassCa>
-    <elementYieldMassFe>-0.00868057095286611</elementYieldMassFe>
-    <elementYieldMassMg>0.367442746823797</elementYieldMassMg>
-    <elementYieldMassN>0.107681087815428</elementYieldMassN>
-    <elementYieldMassNe>0.489606846592934</elementYieldMassNe>
-    <elementYieldMassO>6.87303334362994</elementYieldMassO>
-    <elementYieldMassS>-0.00372502380665348</elementYieldMassS>
-    <elementYieldMassSi>-0.0061649350491823</elementYieldMassSi>
+    <elementYieldMassC>0.332500542000006</elementYieldMassC>
+    <elementYieldMassCa>-0.000173635064589198</elementYieldMassCa>
+    <elementYieldMassFe>-0.0108390006087972</elementYieldMassFe>
+    <elementYieldMassMg>0.37061097467874</elementYieldMassMg>
+    <elementYieldMassN>0.111292809247848</elementYieldMassN>
+    <elementYieldMassNe>0.494714881069651</elementYieldMassNe>
+    <elementYieldMassO>6.85679390971842</elementYieldMassO>
+    <elementYieldMassS>-0.000358253284083569</elementYieldMassS>
+    <elementYieldMassSi>-0.00186614598561613</elementYieldMassSi>
     <initialMass>100</initialMass>
     <metalYieldMass>8.1485696</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1534,15 +1533,15 @@
   </star>
   <star>
     <ejectedMass>84.8</ejectedMass>
-    <elementYieldMassC>0.0746097243239756</elementYieldMassC>
-    <elementYieldMassCa>-0.000674865973761178</elementYieldMassCa>
-    <elementYieldMassFe>-0.00911046472042727</elementYieldMassFe>
-    <elementYieldMassMg>-0.00748270251725138</elementYieldMassMg>
-    <elementYieldMassN>0.202138366615298</elementYieldMassN>
-    <elementYieldMassNe>-0.0073556146748695</elementYieldMassNe>
-    <elementYieldMassO>0.00345592227202049</elementYieldMassO>
-    <elementYieldMassS>-0.004121121940035</elementYieldMassS>
-    <elementYieldMassSi>-0.00679097144029477</elementYieldMassSi>
+    <elementYieldMassC>0.0704630167709399</elementYieldMassC>
+    <elementYieldMassCa>-0.000106781255563413</elementYieldMassCa>
+    <elementYieldMassFe>-0.0120020102942496</elementYieldMassFe>
+    <elementYieldMassMg>-0.00323837831347371</elementYieldMassMg>
+    <elementYieldMassN>0.206976818076105</elementYieldMassN>
+    <elementYieldMassNe>-0.000512623780310011</elementYieldMassNe>
+    <elementYieldMassO>-0.0182992751323532</elementYieldMassO>
+    <elementYieldMassS>0.000389180434592627</elementYieldMassS>
+    <elementYieldMassSi>-0.00103208814502761</elementYieldMassSi>
     <initialMass>120</initialMass>
     <metalYieldMass>0.2371366</metalYieldMass>
     <metallicity>0.004</metallicity>
@@ -1551,15 +1550,15 @@
   </star>
   <star>
     <ejectedMass>7.65</ejectedMass>
-    <elementYieldMassC>0.249759417242415</elementYieldMassC>
-    <elementYieldMassCa>0.00537600885143224</elementYieldMassCa>
-    <elementYieldMassFe>0.133783843039829</elementYieldMassFe>
-    <elementYieldMassMg>0.000886540701486485</elementYieldMassMg>
-    <elementYieldMassN>0.0107740444482789</elementYieldMassN>
-    <elementYieldMassNe>0.00490606244663321</elementYieldMassNe>
-    <elementYieldMassO>0.194727251777853</elementYieldMassO>
-    <elementYieldMassS>0.026145799932989</elementYieldMassS>
-    <elementYieldMassSi>0.0379720299170223</elementYieldMassSi>
+    <elementYieldMassC>0.249011249488153</elementYieldMassC>
+    <elementYieldMassCa>0.00547850526874858</elementYieldMassCa>
+    <elementYieldMassFe>0.133262137293608</elementYieldMassFe>
+    <elementYieldMassMg>0.00165232089391335</elementYieldMassMg>
+    <elementYieldMassN>0.0116470197708067</elementYieldMassN>
+    <elementYieldMassNe>0.00614070585095822</elementYieldMassNe>
+    <elementYieldMassO>0.190802080548054</elementYieldMassO>
+    <elementYieldMassS>0.02695956911143</elementYieldMassS>
+    <elementYieldMassSi>0.0390110737191165</elementYieldMassSi>
     <initialMass>9</initialMass>
     <metalYieldMass>0.6629721</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1568,15 +1567,15 @@
   </star>
   <star>
     <ejectedMass>10.52</ejectedMass>
-    <elementYieldMassC>0.155265856129439</elementYieldMassC>
-    <elementYieldMassCa>0.00713196249896303</elementYieldMassCa>
-    <elementYieldMassFe>0.150826931866536</elementYieldMassFe>
-    <elementYieldMassMg>0.0303585370169461</elementYieldMassMg>
-    <elementYieldMassN>0.0178424785092672</elementYieldMassN>
-    <elementYieldMassNe>0.110570493717462</elementYieldMassNe>
-    <elementYieldMassO>0.660505278261831</elementYieldMassO>
-    <elementYieldMassS>0.0423126555941234</elementYieldMassS>
-    <elementYieldMassSi>0.0903610136898137</elementYieldMassSi>
+    <elementYieldMassC>0.154237003217695</elementYieldMassC>
+    <elementYieldMassCa>0.00727291182055361</elementYieldMassCa>
+    <elementYieldMassFe>0.150109501219446</elementYieldMassFe>
+    <elementYieldMassMg>0.0314116099090155</elementYieldMassMg>
+    <elementYieldMassN>0.0190429622207695</elementYieldMassN>
+    <elementYieldMassNe>0.112268330137527</elementYieldMassNe>
+    <elementYieldMassO>0.655107526453011</elementYieldMassO>
+    <elementYieldMassS>0.0434317211832999</elementYieldMassS>
+    <elementYieldMassSi>0.0917898686960922</elementYieldMassSi>
     <initialMass>12</initialMass>
     <metalYieldMass>1.2633065</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1585,15 +1584,15 @@
   </star>
   <star>
     <ejectedMass>13.16</ejectedMass>
-    <elementYieldMassC>0.232017329530743</elementYieldMassC>
-    <elementYieldMassCa>0.0127770557496534</elementYieldMassCa>
-    <elementYieldMassFe>0.111026846327339</elementYieldMassFe>
-    <elementYieldMassMg>0.0469945196904003</elementYieldMassMg>
-    <elementYieldMassN>0.0224862122796537</elementYieldMassN>
-    <elementYieldMassNe>0.132414879973555</elementYieldMassNe>
-    <elementYieldMassO>1.26542220436556</elementYieldMassO>
-    <elementYieldMassS>0.0958382649827627</elementYieldMassS>
-    <elementYieldMassSi>0.198447047543531</elementYieldMassSi>
+    <elementYieldMassC>0.230730285393999</elementYieldMassC>
+    <elementYieldMassCa>0.0129533763838864</elementYieldMassCa>
+    <elementYieldMassFe>0.110129376050181</elementYieldMassFe>
+    <elementYieldMassMg>0.0483118618253464</elementYieldMassMg>
+    <elementYieldMassN>0.023987958063244</elementYieldMassN>
+    <elementYieldMassNe>0.134538789411583</elementYieldMassNe>
+    <elementYieldMassO>1.25866988366175</elementYieldMassO>
+    <elementYieldMassS>0.0972381607197934</elementYieldMassS>
+    <elementYieldMassSi>0.200234474528572</elementYieldMassSi>
     <initialMass>15</initialMass>
     <metalYieldMass>2.1150867</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1602,15 +1601,15 @@
   </star>
   <star>
     <ejectedMass>17.96</ejectedMass>
-    <elementYieldMassC>0.249147826624024</elementYieldMassC>
-    <elementYieldMassCa>0.019386316205454</elementYieldMassCa>
-    <elementYieldMassFe>0.1817539635288</elementYieldMassFe>
-    <elementYieldMassMg>0.0376417609148624</elementYieldMassMg>
-    <elementYieldMassN>0.0275701009530836</elementYieldMassN>
-    <elementYieldMassNe>0.0924580368028147</elementYieldMassNe>
-    <elementYieldMassO>2.78935894273598</elementYieldMassO>
-    <elementYieldMassS>0.190412100234834</elementYieldMassS>
-    <elementYieldMassSi>0.36442165455029</elementYieldMassSi>
+    <elementYieldMassC>0.24739134389637</elementYieldMassC>
+    <elementYieldMassCa>0.0196269483172189</elementYieldMassCa>
+    <elementYieldMassFe>0.1805291484697</elementYieldMassFe>
+    <elementYieldMassMg>0.0394395925823116</elementYieldMassMg>
+    <elementYieldMassN>0.0296195959586522</elementYieldMassN>
+    <elementYieldMassNe>0.0953566244553215</elementYieldMassNe>
+    <elementYieldMassO>2.78014376949582</elementYieldMassO>
+    <elementYieldMassS>0.192322596240691</elementYieldMassS>
+    <elementYieldMassSi>0.366861030587625</elementYieldMassSi>
     <initialMass>20</initialMass>
     <metalYieldMass>3.9489604</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1619,15 +1618,15 @@
   </star>
   <star>
     <ejectedMass>23.1</ejectedMass>
-    <elementYieldMassC>0.284403142261411</elementYieldMassC>
-    <elementYieldMassCa>-0.00041493405645951</elementYieldMassCa>
-    <elementYieldMassFe>-0.00679074846796863</elementYieldMassFe>
-    <elementYieldMassMg>0.124564848392724</elementYieldMassMg>
-    <elementYieldMassN>0.0460471204908814</elementYieldMassN>
-    <elementYieldMassNe>0.483387129740814</elementYieldMassNe>
-    <elementYieldMassO>2.98213170340763</elementYieldMassO>
-    <elementYieldMassS>-0.00176091784940586</elementYieldMassS>
-    <elementYieldMassSi>0.0195527962200281</elementYieldMassSi>
+    <elementYieldMassC>0.282143969042658</elementYieldMassC>
+    <elementYieldMassCa>-0.000105435070837614</elementYieldMassCa>
+    <elementYieldMassFe>-0.00836609523106522</elementYieldMassFe>
+    <elementYieldMassMg>0.126877204267895</elementYieldMassMg>
+    <elementYieldMassN>0.0486831636216517</elementYieldMassN>
+    <elementYieldMassNe>0.487115268647991</elementYieldMassNe>
+    <elementYieldMassO>2.97027922557648</elementYieldMassO>
+    <elementYieldMassS>0.000696345944318153</elementYieldMassS>
+    <elementYieldMassSi>0.0226903010341949</elementYieldMassSi>
     <initialMass>30</initialMass>
     <metalYieldMass>3.9270168</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1636,15 +1635,15 @@
   </star>
   <star>
     <ejectedMass>27.5</ejectedMass>
-    <elementYieldMassC>0.317983264596918</elementYieldMassC>
-    <elementYieldMassCa>-0.000467778638642274</elementYieldMassCa>
-    <elementYieldMassFe>-0.00735089103329599</elementYieldMassFe>
-    <elementYieldMassMg>-0.00330184715151917</elementYieldMassMg>
-    <elementYieldMassN>0.0627412434415255</elementYieldMassN>
-    <elementYieldMassNe>0.633962773500969</elementYieldMassNe>
-    <elementYieldMassO>2.11726348024718</elementYieldMassO>
-    <elementYieldMassS>-0.00298490220167364</elementYieldMassS>
-    <elementYieldMassSi>-0.00525381402377609</elementYieldMassSi>
+    <elementYieldMassC>0.315293772669831</elementYieldMassC>
+    <elementYieldMassCa>-9.93274652828739e-05</elementYieldMassCa>
+    <elementYieldMassFe>-0.00922630384650621</elementYieldMassFe>
+    <elementYieldMassMg>-0.000549042538219979</elementYieldMassMg>
+    <elementYieldMassN>0.0658793900257759</elementYieldMassN>
+    <elementYieldMassNe>0.638401034104752</elementYieldMassNe>
+    <elementYieldMassO>2.10315338759104</elementYieldMassO>
+    <elementYieldMassS>-5.9588161526008e-05</elementYieldMassS>
+    <elementYieldMassSi>-0.00151868924500611</elementYieldMassSi>
     <initialMass>40</initialMass>
     <metalYieldMass>3.1077066</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1653,15 +1652,15 @@
   </star>
   <star>
     <ejectedMass>54.31</ejectedMass>
-    <elementYieldMassC>7.26282563273668</elementYieldMassC>
-    <elementYieldMassCa>-0.000918138467805886</elementYieldMassCa>
-    <elementYieldMassFe>-0.013631305164302</elementYieldMassFe>
-    <elementYieldMassMg>0.164168264770945</elementYieldMassMg>
-    <elementYieldMassN>0.105075386011245</elementYieldMassN>
-    <elementYieldMassNe>0.479138411957732</elementYieldMassNe>
-    <elementYieldMassO>4.59869105935362</elementYieldMassO>
-    <elementYieldMassS>-0.00414354322083257</elementYieldMassS>
-    <elementYieldMassSi>0.0305835221952262</elementYieldMassSi>
+    <elementYieldMassC>7.25751413067995</elementYieldMassC>
+    <elementYieldMassCa>-0.000190480895982287</elementYieldMassCa>
+    <elementYieldMassFe>-0.0173350749783183</elementYieldMassFe>
+    <elementYieldMassMg>0.169604803627246</elementYieldMassMg>
+    <elementYieldMassN>0.111272940229087</elementYieldMassN>
+    <elementYieldMassNe>0.487903573171966</elementYieldMassNe>
+    <elementYieldMassO>4.57082490909344</elementYieldMassO>
+    <elementYieldMassS>0.001633686070819</elementYieldMassS>
+    <elementYieldMassSi>0.0379600540764988</elementYieldMassSi>
     <initialMass>60</initialMass>
     <metalYieldMass>12.612142</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1670,15 +1669,15 @@
   </star>
   <star>
     <ejectedMass>110.11</ejectedMass>
-    <elementYieldMassC>19.8145629114461</elementYieldMassC>
-    <elementYieldMassCa>-0.00177548566912366</elementYieldMassCa>
-    <elementYieldMassFe>-0.0251785676973171</elementYieldMassFe>
-    <elementYieldMassMg>0.0414924440053172</elementYieldMassMg>
-    <elementYieldMassN>0.292259004339868</elementYieldMassN>
-    <elementYieldMassNe>0.84179498509788</elementYieldMassNe>
-    <elementYieldMassO>8.79729254290972</elementYieldMassO>
-    <elementYieldMassS>-0.0106277084155013</elementYieldMassS>
-    <elementYieldMassSi>-0.0130616713511995</elementYieldMassSi>
+    <elementYieldMassC>19.80379418577</elementYieldMassC>
+    <elementYieldMassCa>-0.000300207170992627</elementYieldMassCa>
+    <elementYieldMassFe>-0.0326877206014109</elementYieldMassFe>
+    <elementYieldMassMg>0.0525146736769672</elementYieldMassMg>
+    <elementYieldMassN>0.304824143263207</elementYieldMassN>
+    <elementYieldMassNe>0.859565780555426</elementYieldMassNe>
+    <elementYieldMassO>8.74079573191454</elementYieldMassO>
+    <elementYieldMassS>0.00108524900124986</elementYieldMassS>
+    <elementYieldMassSi>0.00189376826299552</elementYieldMassSi>
     <initialMass>120</initialMass>
     <metalYieldMass>29.7171992</metalYieldMass>
     <metallicity>0.008</metallicity>
@@ -1687,15 +1686,15 @@
   </star>
   <star>
     <ejectedMass>7.69</ejectedMass>
-    <elementYieldMassC>0.0494961367954818</elementYieldMassC>
-    <elementYieldMassCa>0.0110360483880764</elementYieldMassCa>
-    <elementYieldMassFe>0.0436914225412685</elementYieldMassFe>
-    <elementYieldMassMg>-0.000380164054107493</elementYieldMassMg>
-    <elementYieldMassN>0.0303267525513937</elementYieldMassN>
-    <elementYieldMassNe>0.00420278438385929</elementYieldMassNe>
-    <elementYieldMassO>0.112936494827349</elementYieldMassO>
-    <elementYieldMassS>0.0572889547335572</elementYieldMassS>
-    <elementYieldMassSi>0.0680878791051965</elementYieldMassSi>
+    <elementYieldMassC>0.0476159374391821</elementYieldMassC>
+    <elementYieldMassCa>0.0112936292538159</elementYieldMassCa>
+    <elementYieldMassFe>0.0423803384927607</elementYieldMassFe>
+    <elementYieldMassMg>0.00154429662555349</elementYieldMassMg>
+    <elementYieldMassN>0.0325206022998379</elementYieldMassN>
+    <elementYieldMassNe>0.0073055320241401</elementYieldMassNe>
+    <elementYieldMassO>0.103072257325012</elementYieldMassO>
+    <elementYieldMassS>0.0593340151852604</elementYieldMassS>
+    <elementYieldMassSi>0.0706990708823548</elementYieldMassSi>
     <initialMass>9</initialMass>
     <metalYieldMass>0.3732713</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1704,15 +1703,15 @@
   </star>
   <star>
     <ejectedMass>10.56</ejectedMass>
-    <elementYieldMassC>0.138014734013041</elementYieldMassC>
-    <elementYieldMassCa>0.00935093250690342</elementYieldMassCa>
-    <elementYieldMassFe>0.102999144608036</elementYieldMassFe>
-    <elementYieldMassMg>0.0181598267345416</elementYieldMassMg>
-    <elementYieldMassN>0.0410873377038645</elementYieldMassN>
-    <elementYieldMassNe>0.10185386256093</elementYieldMassNe>
-    <elementYieldMassO>0.622620961037296</elementYieldMassO>
-    <elementYieldMassS>0.0543560938863933</elementYieldMassS>
-    <elementYieldMassSi>0.099860338537175</elementYieldMassSi>
+    <elementYieldMassC>0.135432821763038</elementYieldMassC>
+    <elementYieldMassCa>0.00970464563332844</elementYieldMassCa>
+    <elementYieldMassFe>0.101198748307354</elementYieldMassFe>
+    <elementYieldMassMg>0.0208025191633088</elementYieldMassMg>
+    <elementYieldMassN>0.0440999584247448</elementYieldMassN>
+    <elementYieldMassNe>0.106114592740562</elementYieldMassNe>
+    <elementYieldMassO>0.609075272087403</elementYieldMassO>
+    <elementYieldMassS>0.057164395364935</elementYieldMassS>
+    <elementYieldMassSi>0.103446058324794</elementYieldMassSi>
     <initialMass>12</initialMass>
     <metalYieldMass>1.1836137</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1721,15 +1720,15 @@
   </star>
   <star>
     <ejectedMass>13.13</ejectedMass>
-    <elementYieldMassC>0.226128878559776</elementYieldMassC>
-    <elementYieldMassCa>0.00899561967951154</elementYieldMassCa>
-    <elementYieldMassFe>0.0755182546120749</elementYieldMassFe>
-    <elementYieldMassMg>0.0242136860818685</elementYieldMassMg>
-    <elementYieldMassN>0.0499614871261118</elementYieldMassN>
-    <elementYieldMassNe>0.148600228733429</elementYieldMassNe>
-    <elementYieldMassO>1.16183478687686</elementYieldMassO>
-    <elementYieldMassS>0.0862148212810932</elementYieldMassS>
-    <elementYieldMassSi>0.199149265624347</elementYieldMassSi>
+    <elementYieldMassC>0.222918603195899</elementYieldMassC>
+    <elementYieldMassCa>0.00943541639825781</elementYieldMassCa>
+    <elementYieldMassFe>0.0732796936813976</elementYieldMassFe>
+    <elementYieldMassMg>0.0274995337702883</elementYieldMassMg>
+    <elementYieldMassN>0.0537072930034943</elementYieldMassN>
+    <elementYieldMassNe>0.153897897981399</elementYieldMassNe>
+    <elementYieldMassO>1.14499246718822</elementYieldMassO>
+    <elementYieldMassS>0.0897065824944694</elementYieldMassS>
+    <elementYieldMassSi>0.203607646383006</elementYieldMassSi>
     <initialMass>15</initialMass>
     <metalYieldMass>1.9747862</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1738,15 +1737,15 @@
   </star>
   <star>
     <ejectedMass>17.89</ejectedMass>
-    <elementYieldMassC>0.224077527603533</elementYieldMassC>
-    <elementYieldMassCa>0.0150227445595172</elementYieldMassCa>
-    <elementYieldMassFe>0.15550423267403</elementYieldMassFe>
-    <elementYieldMassMg>0.0527683049508474</elementYieldMassMg>
-    <elementYieldMassN>0.0654830673789901</elementYieldMassN>
-    <elementYieldMassNe>0.177812992539303</elementYieldMassNe>
-    <elementYieldMassO>2.60942686742019</elementYieldMassO>
-    <elementYieldMassS>0.144574954510187</elementYieldMassS>
-    <elementYieldMassSi>0.316127978828604</elementYieldMassSi>
+    <elementYieldMassC>0.219703435733026</elementYieldMassC>
+    <elementYieldMassCa>0.0156219801496445</elementYieldMassCa>
+    <elementYieldMassFe>0.152454129471455</elementYieldMassFe>
+    <elementYieldMassMg>0.0572453662719313</elementYieldMassMg>
+    <elementYieldMassN>0.0705868348691937</elementYieldMassN>
+    <elementYieldMassNe>0.185031218194001</elementYieldMassNe>
+    <elementYieldMassO>2.58647872581853</elementYieldMassO>
+    <elementYieldMassS>0.149332578890027</elementYieldMassS>
+    <elementYieldMassSi>0.322202649946076</elementYieldMassSi>
     <initialMass>20</initialMass>
     <metalYieldMass>3.752854</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1755,15 +1754,15 @@
   </star>
   <star>
     <ejectedMass>22.82</ejectedMass>
-    <elementYieldMassC>0.236324699827425</elementYieldMassC>
-    <elementYieldMassCa>-0.0010970189576197</elementYieldMassCa>
-    <elementYieldMassFe>-0.0166995757618013</elementYieldMassFe>
-    <elementYieldMassMg>0.103167731636576</elementYieldMassMg>
-    <elementYieldMassN>0.0986519112123284</elementYieldMassN>
-    <elementYieldMassNe>0.454044426481101</elementYieldMassNe>
-    <elementYieldMassO>2.88803455084007</elementYieldMassO>
-    <elementYieldMassS>-0.00555347893110841</elementYieldMassS>
-    <elementYieldMassSi>0.0166273603615845</elementYieldMassSi>
+    <elementYieldMassC>0.23074522657505</elementYieldMassC>
+    <elementYieldMassCa>-0.000332650250705017</elementYieldMassCa>
+    <elementYieldMassFe>-0.0205902048888429</elementYieldMassFe>
+    <elementYieldMassMg>0.108878549934347</elementYieldMassMg>
+    <elementYieldMassN>0.105162138944382</elementYieldMassN>
+    <elementYieldMassNe>0.463251799842767</elementYieldMassNe>
+    <elementYieldMassO>2.85876252225706</elementYieldMassO>
+    <elementYieldMassS>0.000515218013997861</elementYieldMassS>
+    <elementYieldMassSi>0.0243760464935419</elementYieldMassSi>
     <initialMass>30</initialMass>
     <metalYieldMass>3.7633666</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1772,15 +1771,15 @@
   </star>
   <star>
     <ejectedMass>37.94</ejectedMass>
-    <elementYieldMassC>2.91276511443701</elementYieldMassC>
-    <elementYieldMassCa>0.0115309071318102</elementYieldMassCa>
-    <elementYieldMassFe>0.0683264721997046</elementYieldMassFe>
-    <elementYieldMassMg>0.00396475627921478</elementYieldMassMg>
-    <elementYieldMassN>0.162184272015589</elementYieldMassN>
-    <elementYieldMassNe>0.334127911511524</elementYieldMassNe>
-    <elementYieldMassO>1.7384162655071</elementYieldMassO>
-    <elementYieldMassS>0.129770473678955</elementYieldMassS>
-    <elementYieldMassSi>0.257977390539812</elementYieldMassSi>
+    <elementYieldMassC>2.90348881228122</elementYieldMassC>
+    <elementYieldMassCa>0.012801728724288</elementYieldMassCa>
+    <elementYieldMassFe>0.0618580029148686</elementYieldMassFe>
+    <elementYieldMassMg>0.0134594296454485</elementYieldMassMg>
+    <elementYieldMassN>0.173008024870722</elementYieldMassN>
+    <elementYieldMassNe>0.349435875812207</elementYieldMassNe>
+    <elementYieldMassO>1.68974927320038</elementYieldMassO>
+    <elementYieldMassS>0.139860147741064</elementYieldMassS>
+    <elementYieldMassSi>0.270860175458588</elementYieldMassSi>
     <initialMass>40</initialMass>
     <metalYieldMass>5.602215</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1789,15 +1788,15 @@
   </star>
   <star>
     <ejectedMass>57.91</ejectedMass>
-    <elementYieldMassC>4.75095751389159</elementYieldMassC>
-    <elementYieldMassCa>0.0129470171851115</elementYieldMassCa>
-    <elementYieldMassFe>0.135285081841985</elementYieldMassFe>
-    <elementYieldMassMg>0.00313423922322953</elementYieldMassMg>
-    <elementYieldMassN>0.268464693790795</elementYieldMassN>
-    <elementYieldMassNe>0.347507573949193</elementYieldMassNe>
-    <elementYieldMassO>2.17271253282858</elementYieldMassO>
-    <elementYieldMassS>0.144017083045553</elementYieldMassS>
-    <elementYieldMassSi>0.298911193625739</elementYieldMassSi>
+    <elementYieldMassC>4.73679856139181</elementYieldMassC>
+    <elementYieldMassCa>0.0148867451350426</elementYieldMassCa>
+    <elementYieldMassFe>0.125411885840802</elementYieldMassFe>
+    <elementYieldMassMg>0.0176265042374255</elementYieldMassMg>
+    <elementYieldMassN>0.284985609126607</elementYieldMassN>
+    <elementYieldMassNe>0.370872998636925</elementYieldMassNe>
+    <elementYieldMassO>2.09842930867249</elementYieldMassO>
+    <elementYieldMassS>0.15941753177873</elementYieldMassS>
+    <elementYieldMassSi>0.318574927801972</elementYieldMassSi>
     <initialMass>60</initialMass>
     <metalYieldMass>8.10822</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1806,15 +1805,15 @@
   </star>
   <star>
     <ejectedMass>97.88</ejectedMass>
-    <elementYieldMassC>11.0980267580679</elementYieldMassC>
-    <elementYieldMassCa>0.0115762569863358</elementYieldMassCa>
-    <elementYieldMassFe>0.0841511623328171</elementYieldMassFe>
-    <elementYieldMassMg>0.0406458182553912</elementYieldMassMg>
-    <elementYieldMassN>0.555968830914229</elementYieldMassN>
-    <elementYieldMassNe>0.854201370024987</elementYieldMassNe>
-    <elementYieldMassO>3.44528749150857</elementYieldMassO>
-    <elementYieldMassS>0.113491142954562</elementYieldMassS>
-    <elementYieldMassSi>0.267747153032072</elementYieldMassSi>
+    <elementYieldMassC>11.0740951699021</elementYieldMassC>
+    <elementYieldMassCa>0.0148548025180102</elementYieldMassCa>
+    <elementYieldMassFe>0.0674633981367247</elementYieldMassFe>
+    <elementYieldMassMg>0.0651407742144571</elementYieldMassMg>
+    <elementYieldMassN>0.583892629792995</elementYieldMassN>
+    <elementYieldMassNe>0.893693819833918</elementYieldMassNe>
+    <elementYieldMassO>3.31973332158286</elementYieldMassO>
+    <elementYieldMassS>0.139521119159076</elementYieldMassS>
+    <elementYieldMassSi>0.300982972427164</elementYieldMassSi>
     <initialMass>100</initialMass>
     <metalYieldMass>16.427629</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1823,15 +1822,15 @@
   </star>
   <star>
     <ejectedMass>117.89</ejectedMass>
-    <elementYieldMassC>8.26610175121188</elementYieldMassC>
-    <elementYieldMassCa>0.0110883932991329</elementYieldMassCa>
-    <elementYieldMassFe>0.106041586916794</elementYieldMassFe>
-    <elementYieldMassMg>0.00537878539158225</elementYieldMassMg>
-    <elementYieldMassN>0.858221644120131</elementYieldMassN>
-    <elementYieldMassNe>0.633493660729931</elementYieldMassNe>
-    <elementYieldMassO>2.52252432421276</elementYieldMassO>
-    <elementYieldMassS>0.121712207222245</elementYieldMassS>
-    <elementYieldMassSi>0.27763876043064</elementYieldMassSi>
+    <elementYieldMassC>8.23727773273149</elementYieldMassC>
+    <elementYieldMassCa>0.0150371850107093</elementYieldMassCa>
+    <elementYieldMassFe>0.0859422763213984</elementYieldMassFe>
+    <elementYieldMassMg>0.0348813431972042</elementYieldMassMg>
+    <elementYieldMassN>0.891854016921702</elementYieldMassN>
+    <elementYieldMassNe>0.68105971005538</elementYieldMassNe>
+    <elementYieldMassO>2.37130261300984</elementYieldMassO>
+    <elementYieldMassS>0.153063595603427</elementYieldMassS>
+    <elementYieldMassSi>0.317669111355112</elementYieldMassSi>
     <initialMass>120</initialMass>
     <metalYieldMass>12.749848</metalYieldMass>
     <metallicity>0.02</metallicity>
@@ -1840,15 +1839,15 @@
   </star>
   <star>
     <ejectedMass>7.69</ejectedMass>
-    <elementYieldMassC>0.0529553419887046</elementYieldMassC>
-    <elementYieldMassCa>0.0122901209701911</elementYieldMassCa>
-    <elementYieldMassFe>0.0333285563531713</elementYieldMassFe>
-    <elementYieldMassMg>-0.00595041013526874</elementYieldMassMg>
-    <elementYieldMassN>0.0631729313784844</elementYieldMassN>
-    <elementYieldMassNe>-0.00335303904035178</elementYieldMassNe>
-    <elementYieldMassO>0.124519237068372</elementYieldMassO>
-    <elementYieldMassS>0.0632223868338931</elementYieldMassS>
-    <elementYieldMassSi>0.0723196977629913</elementYieldMassSi>
+    <elementYieldMassC>0.0482548435979552</elementYieldMassC>
+    <elementYieldMassCa>0.0129340731345397</elementYieldMassCa>
+    <elementYieldMassFe>0.0300508462319016</elementYieldMassFe>
+    <elementYieldMassMg>-0.00113925843611628</elementYieldMassMg>
+    <elementYieldMassN>0.0686575557495947</elementYieldMassN>
+    <elementYieldMassNe>0.00440383006035024</elementYieldMassNe>
+    <elementYieldMassO>0.09985864331253</elementYieldMassO>
+    <elementYieldMassS>0.0683350379631511</elementYieldMassS>
+    <elementYieldMassSi>0.078847677205887</elementYieldMassSi>
     <initialMass>9</initialMass>
     <metalYieldMass>0.4039673</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1857,15 +1856,15 @@
   </star>
   <star>
     <ejectedMass>10.51</ejectedMass>
-    <elementYieldMassC>0.145119979753093</elementYieldMassC>
-    <elementYieldMassCa>0.00788974920633402</elementYieldMassCa>
-    <elementYieldMassFe>0.0842109398272862</elementYieldMassFe>
-    <elementYieldMassMg>0.0143136787358031</elementYieldMassMg>
-    <elementYieldMassN>0.0822436210387348</elementYieldMassN>
-    <elementYieldMassNe>0.115337693067088</elementYieldMassNe>
-    <elementYieldMassO>0.680273885772249</elementYieldMassO>
-    <elementYieldMassS>0.0483200631500932</elementYieldMassS>
-    <elementYieldMassSi>0.0962827078659348</elementYieldMassSi>
+    <elementYieldMassC>0.138695761536347</elementYieldMassC>
+    <elementYieldMassCa>0.00876984507724477</elementYieldMassCa>
+    <elementYieldMassFe>0.0797312605848227</elementYieldMassFe>
+    <elementYieldMassMg>0.0208891279371155</elementYieldMassMg>
+    <elementYieldMassN>0.0897395120842965</elementYieldMassN>
+    <elementYieldMassNe>0.125939083736578</elementYieldMassNe>
+    <elementYieldMassO>0.646570005359518</elementYieldMassO>
+    <elementYieldMassS>0.0553075746414458</elementYieldMassS>
+    <elementYieldMassSi>0.105204562735224</elementYieldMassSi>
     <initialMass>12</initialMass>
     <metalYieldMass>1.262324</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1874,15 +1873,15 @@
   </star>
   <star>
     <ejectedMass>13.02</ejectedMass>
-    <elementYieldMassC>0.230113114784517</elementYieldMassC>
-    <elementYieldMassCa>0.0110663686647449</elementYieldMassCa>
-    <elementYieldMassFe>0.0755144088060196</elementYieldMassFe>
-    <elementYieldMassMg>0.000785261383459173</elementYieldMassMg>
-    <elementYieldMassN>0.0941335267292414</elementYieldMassN>
-    <elementYieldMassNe>0.0575312524960494</elementYieldMassNe>
-    <elementYieldMassO>1.30586508018598</elementYieldMassO>
-    <elementYieldMassS>0.114212675757775</elementYieldMassS>
-    <elementYieldMassSi>0.250663259411463</elementYieldMassSi>
+    <elementYieldMassC>0.222154663673001</elementYieldMassC>
+    <elementYieldMassCa>0.0121566491822766</elementYieldMassCa>
+    <elementYieldMassFe>0.0699648917996566</elementYieldMassFe>
+    <elementYieldMassMg>0.00893106048917633</elementYieldMassMg>
+    <elementYieldMassN>0.103419587758091</elementYieldMassN>
+    <elementYieldMassNe>0.0706644691008791</elementYieldMassNe>
+    <elementYieldMassO>1.26411203328077</elementYieldMassO>
+    <elementYieldMassS>0.122868945940212</elementYieldMassS>
+    <elementYieldMassSi>0.261715833188641</elementYieldMassSi>
     <initialMass>15</initialMass>
     <metalYieldMass>2.12543</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1891,15 +1890,15 @@
   </star>
   <star>
     <ejectedMass>17.62</ejectedMass>
-    <elementYieldMassC>0.240483800499477</elementYieldMassC>
-    <elementYieldMassCa>0.0113239182698007</elementYieldMassCa>
-    <elementYieldMassFe>0.0769112045439374</elementYieldMassFe>
-    <elementYieldMassMg>0.0837869666341437</elementYieldMassMg>
-    <elementYieldMassN>0.117400063054473</elementYieldMassN>
-    <elementYieldMassNe>0.322531879337972</elementYieldMassNe>
-    <elementYieldMassO>3.07222762771713</elementYieldMassO>
-    <elementYieldMassS>0.103868459819661</elementYieldMassS>
-    <elementYieldMassSi>0.252531999295697</elementYieldMassSi>
+    <elementYieldMassC>0.229713607827825</elementYieldMassC>
+    <elementYieldMassCa>0.012799397741299</elementYieldMassCa>
+    <elementYieldMassFe>0.0694010286874001</elementYieldMassFe>
+    <elementYieldMassMg>0.0948106978355827</elementYieldMassMg>
+    <elementYieldMassN>0.12996691369413</elementYieldMassN>
+    <elementYieldMassNe>0.340305095664938</elementYieldMassNe>
+    <elementYieldMassO>3.01572312030777</elementYieldMassO>
+    <elementYieldMassS>0.115583012862253</elementYieldMassS>
+    <elementYieldMassSi>0.26748947625068</elementYieldMassSi>
     <initialMass>20</initialMass>
     <metalYieldMass>4.261504</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1908,15 +1907,15 @@
   </star>
   <star>
     <ejectedMass>38.45</ejectedMass>
-    <elementYieldMassC>2.04151670994352</elementYieldMassC>
-    <elementYieldMassCa>0.00445060485095559</elementYieldMassCa>
-    <elementYieldMassFe>0.0391427817658566</elementYieldMassFe>
-    <elementYieldMassMg>-0.0121520506763437</elementYieldMassMg>
-    <elementYieldMassN>0.360221156892422</elementYieldMassN>
-    <elementYieldMassNe>0.737034804798241</elementYieldMassNe>
-    <elementYieldMassO>0.525906185341861</elementYieldMassO>
-    <elementYieldMassS>0.0297119341694655</elementYieldMassS>
-    <elementYieldMassSi>0.0715984888149567</elementYieldMassSi>
+    <elementYieldMassC>2.01801421798978</elementYieldMassC>
+    <elementYieldMassCa>0.00767036567269852</elementYieldMassCa>
+    <elementYieldMassFe>0.0227542311595082</elementYieldMassFe>
+    <elementYieldMassMg>0.0119037078194186</elementYieldMassMg>
+    <elementYieldMassN>0.387644278747973</elementYieldMassN>
+    <elementYieldMassNe>0.775819150301751</elementYieldMassNe>
+    <elementYieldMassO>0.40260321656265</elementYieldMassO>
+    <elementYieldMassS>0.0552751898157557</elementYieldMassS>
+    <elementYieldMassSi>0.104238386029435</elementYieldMassSi>
     <initialMass>40</initialMass>
     <metalYieldMass>3.754743</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1925,15 +1924,15 @@
   </star>
   <star>
     <ejectedMass>58.3</ejectedMass>
-    <elementYieldMassC>3.20716325590917</elementYieldMassC>
-    <elementYieldMassCa>0.000520683037989874</elementYieldMassCa>
-    <elementYieldMassFe>-0.0104493061911719</elementYieldMassFe>
-    <elementYieldMassMg>-0.022054474757629</elementYieldMassMg>
-    <elementYieldMassN>0.872170275600213</elementYieldMassN>
-    <elementYieldMassNe>0.69163924888784</elementYieldMassNe>
-    <elementYieldMassO>0.527452113275176</elementYieldMassO>
-    <elementYieldMassS>0.0129200458278242</elementYieldMassS>
-    <elementYieldMassSi>0.0632494641849668</elementYieldMassSi>
+    <elementYieldMassC>3.17152748787527</elementYieldMassC>
+    <elementYieldMassCa>0.00540266108500192</elementYieldMassCa>
+    <elementYieldMassFe>-0.0352985259662074</elementYieldMassFe>
+    <elementYieldMassMg>0.0144201863685853</elementYieldMassMg>
+    <elementYieldMassN>0.913750717841531</elementYieldMassN>
+    <elementYieldMassNe>0.750446201887961</elementYieldMassNe>
+    <elementYieldMassO>0.340493385581339</elementYieldMassO>
+    <elementYieldMassS>0.0516804568597804</elementYieldMassS>
+    <elementYieldMassSi>0.112739867503669</elementYieldMassSi>
     <initialMass>60</initialMass>
     <metalYieldMass>5.277886</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1942,15 +1941,15 @@
   </star>
   <star>
     <ejectedMass>98.32</ejectedMass>
-    <elementYieldMassC>3.02648822162932</elementYieldMassC>
-    <elementYieldMassCa>-0.00321863539802462</elementYieldMassCa>
-    <elementYieldMassFe>-0.0619971832712868</elementYieldMassFe>
-    <elementYieldMassMg>-0.0673896390766739</elementYieldMassMg>
-    <elementYieldMassN>1.47314334162972</elementYieldMassN>
-    <elementYieldMassNe>1.32710070241256</elementYieldMassNe>
-    <elementYieldMassO>0.141674276796146</elementYieldMassO>
-    <elementYieldMassS>-0.010974632833762</elementYieldMassS>
-    <elementYieldMassSi>0.0217075011778034</elementYieldMassSi>
+    <elementYieldMassC>2.96639030202223</elementYieldMassC>
+    <elementYieldMassCa>0.00501457354849724</elementYieldMassCa>
+    <elementYieldMassFe>-0.103904135042839</elementYieldMassFe>
+    <elementYieldMassMg>-0.0058769687176792</elementYieldMassMg>
+    <elementYieldMassN>1.54326665348506</elementYieldMassN>
+    <elementYieldMassNe>1.42627565299527</elementYieldMassNe>
+    <elementYieldMassO>-0.173622157283752</elementYieldMassO>
+    <elementYieldMassS>0.054392839081537</elementYieldMassS>
+    <elementYieldMassSi>0.105170562143409</elementYieldMassSi>
     <initialMass>100</initialMass>
     <metalYieldMass>5.737378</metalYieldMass>
     <metallicity>0.05</metallicity>
@@ -1959,20 +1958,284 @@
   </star>
   <star>
     <ejectedMass>118.32</ejectedMass>
-    <elementYieldMassC>2.90393033343349</elementYieldMassC>
-    <elementYieldMassCa>-0.00518581102821678</elementYieldMassCa>
-    <elementYieldMassFe>-0.0882285061499049</elementYieldMassFe>
-    <elementYieldMassMg>-0.0900343988563065</elementYieldMassMg>
-    <elementYieldMassN>1.72867463000029</elementYieldMassN>
-    <elementYieldMassNe>1.29288603650788</elementYieldMassNe>
-    <elementYieldMassO>0.329981005192432</elementYieldMassO>
-    <elementYieldMassS>-0.0229060064777331</elementYieldMassS>
-    <elementYieldMassSi>0.00196289197882116</elementYieldMassSi>
+    <elementYieldMassC>2.83160745052146</elementYieldMassC>
+    <elementYieldMassCa>0.00472217597902963</elementYieldMassCa>
+    <elementYieldMassFe>-0.138660061617867</elementYieldMassFe>
+    <elementYieldMassMg>-0.0160089802550427</elementYieldMassMg>
+    <elementYieldMassN>1.81306224451132</elementYieldMassN>
+    <elementYieldMassNe>1.41223489892596</elementYieldMassNe>
+    <elementYieldMassO>-0.0494522136880948</elementYieldMassO>
+    <elementYieldMassS>0.055758347438237</elementYieldMassS>
+    <elementYieldMassSi>0.102403792847926</elementYieldMassSi>
     <initialMass>120</initialMass>
     <metalYieldMass>5.91972</metalYieldMass>
     <metallicity>0.05</metallicity>
     <source>Table 10 of Portinari, Chiosi &amp; Bressan (1998, A&amp;A, 334, 505)</source>
     <url>http://adsabs.harvard.edu/abs/1998A%26A...334..505P</url>
+  </star>
+  <star>
+    <ejectedMass>2.314E-01</ejectedMass>
+    <elementYieldMassC>-2.884e-06</elementYieldMassC>
+    <elementYieldMassN>3.49808e-06</elementYieldMassN>
+    <elementYieldMassO>-6.94349e-08</elementYieldMassO>
+    <initialMass>0.817</initialMass>
+    <metalYieldMass>5.446451e-07</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>2.886E-01</ejectedMass>
+    <elementYieldMassC>-6.614e-06</elementYieldMassC>
+    <elementYieldMassN>7.94735e-06</elementYieldMassN>
+    <elementYieldMassO>-9.30333e-08</elementYieldMassO>
+    <initialMass>0.888</initialMass>
+    <metalYieldMass>1.2403167e-06</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>3.627E-01</ejectedMass>
+    <elementYieldMassC>-1.0896e-05</elementYieldMassC>
+    <elementYieldMassN>1.298436e-05</elementYieldMassN>
+    <elementYieldMassO>-1.26314e-07</elementYieldMassO>
+    <initialMass>0.966</initialMass>
+    <metalYieldMass>1.962046e-06</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>4.331E-01</ejectedMass>
+    <elementYieldMassC>-1.9896e-05</elementYieldMassC>
+    <elementYieldMassN>2.367332e-05</elementYieldMassN>
+    <elementYieldMassO>-1.67847e-07</elementYieldMassO>
+    <initialMass>1.046</initialMass>
+    <metalYieldMass>3.609473e-06</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>4.998E-01</ejectedMass>
+    <elementYieldMassC>-3.5065e-05</elementYieldMassC>
+    <elementYieldMassN>4.15534e-05</elementYieldMassN>
+    <elementYieldMassO>-2.3185e-07</elementYieldMassO>
+    <initialMass>1.131</initialMass>
+    <metalYieldMass>6.25655e-06</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>5.834E-01</ejectedMass>
+    <elementYieldMassC>0.003976732</elementYieldMassC>
+    <elementYieldMassN>6.25692e-05</elementYieldMassN>
+    <elementYieldMassO>0.00033226908</elementYieldMassO>
+    <initialMass>1.218</initialMass>
+    <metalYieldMass>0.00437157028</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>6.803E-01</ejectedMass>
+    <elementYieldMassC>0.017367748</elementYieldMassC>
+    <elementYieldMassN>5.57264e-05</elementYieldMassN>
+    <elementYieldMassO>0.00143544752</elementYieldMassO>
+    <initialMass>1.307</initialMass>
+    <metalYieldMass>0.01885892192</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>7.556E-01</ejectedMass>
+    <elementYieldMassC>0.024608244</elementYieldMassC>
+    <elementYieldMassN>6.61728e-05</elementYieldMassN>
+    <elementYieldMassO>0.0020332688</elementYieldMassO>
+    <initialMass>1.396</initialMass>
+    <metalYieldMass>0.0267076856</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>8.362E-01</ejectedMass>
+    <elementYieldMassC>0.029929518</elementYieldMassC>
+    <elementYieldMassN>8.27887e-05</elementYieldMassN>
+    <elementYieldMassO>0.0024732292</elementYieldMassO>
+    <initialMass>1.481</initialMass>
+    <metalYieldMass>0.0324855359</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>9.034E-01</ejectedMass>
+    <elementYieldMassC>0.036929739</elementYieldMassC>
+    <elementYieldMassN>0.0001179957</elementYieldMassN>
+    <elementYieldMassO>0.0030534024</elementYieldMassO>
+    <initialMass>1.564</initialMass>
+    <metalYieldMass>0.0401011371</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>9.695E-01</ejectedMass>
+    <elementYieldMassC>0.044899762</elementYieldMassC>
+    <elementYieldMassN>0.0001482345</elementYieldMassN>
+    <elementYieldMassO>0.003698467</elementYieldMassO>
+    <initialMass>1.647</initialMass>
+    <metalYieldMass>0.0487464635</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.033E+00</ejectedMass>
+    <elementYieldMassC>0.052259945</elementYieldMassC>
+    <elementYieldMassN>0.0001496943</elementYieldMassN>
+    <elementYieldMassO>0.004303339</elementYieldMassO>
+    <initialMass>1.729</initialMass>
+    <metalYieldMass>0.0567129783</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.089E+00</ejectedMass>
+    <elementYieldMassC>0.058989857</elementYieldMassC>
+    <elementYieldMassN>0.0001669551</elementYieldMassN>
+    <elementYieldMassO>0.004845038</elementYieldMassO>
+    <initialMass>1.800</initialMass>
+    <metalYieldMass>0.0640018501</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.171E+00</ejectedMass>
+    <elementYieldMassC>0.06401015</elementYieldMassC>
+    <elementYieldMassN>0.0002101074</elementYieldMassN>
+    <elementYieldMassO>0.005232594</elementYieldMassO>
+    <initialMass>1.900</initialMass>
+    <metalYieldMass>0.0694528514</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.250E+00</ejectedMass>
+    <elementYieldMassC>0.07106076</elementYieldMassC>
+    <elementYieldMassN>0.0002246583</elementYieldMassN>
+    <elementYieldMassO>0.005802362</elementYieldMassO>
+    <initialMass>2.000</initialMass>
+    <metalYieldMass>0.0770877803</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.420E+00</ejectedMass>
+    <elementYieldMassC>0.07899229</elementYieldMassC>
+    <elementYieldMassN>0.0003215557</elementYieldMassN>
+    <elementYieldMassO>0.006402755</elementYieldMassO>
+    <initialMass>2.200</initialMass>
+    <metalYieldMass>0.0857166007</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>1.690E+00</ejectedMass>
+    <elementYieldMassC>0.0806762</elementYieldMassC>
+    <elementYieldMassN>0.0004706219</elementYieldMassN>
+    <elementYieldMassO>0.006475216</elementYieldMassO>
+    <initialMass>2.500</initialMass>
+    <metalYieldMass>0.0876220379</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>2.034E+00</ejectedMass>
+    <elementYieldMassC>0.07806752</elementYieldMassC>
+    <elementYieldMassN>0.000613965</elementYieldMassN>
+    <elementYieldMassO>0.006211842</elementYieldMassO>
+    <initialMass>3.000</initialMass>
+    <metalYieldMass>0.084893327</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>2.505E+00</ejectedMass>
+    <elementYieldMassC>0.024286</elementYieldMassC>
+    <elementYieldMassN>0.031018887</elementYieldMassN>
+    <elementYieldMassO>0.0037178</elementYieldMassO>
+    <initialMass>3.500</initialMass>
+    <metalYieldMass>0.059022687</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>3.001E+00</ejectedMass>
+    <elementYieldMassC>0.0027199</elementYieldMassC>
+    <elementYieldMassN>0.044128802</elementYieldMassN>
+    <elementYieldMassO>0.00264041</elementYieldMassO>
+    <initialMass>4.000</initialMass>
+    <metalYieldMass>0.049489112</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>3.481E+00</ejectedMass>
+    <elementYieldMassC>0.001793</elementYieldMassC>
+    <elementYieldMassN>0.037068161</elementYieldMassN>
+    <elementYieldMassO>0.00142343</elementYieldMassO>
+    <initialMass>4.500</initialMass>
+    <metalYieldMass>0.040284591</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
+  </star>
+  <star>
+    <ejectedMass>3.960E+00</ejectedMass>
+    <elementYieldMassC>0.0019831</elementYieldMassC>
+    <elementYieldMassN>0.046998019</elementYieldMassN>
+    <elementYieldMassO>0.00125005</elementYieldMassO>
+    <initialMass>5.000</initialMass>
+    <metalYieldMass>0.050231169</metalYieldMass>
+    <metallicity>0.004</metallicity>
+    <source>Marigo (2001; A&amp;A; 370; 194)</source>
+    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
+    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
   </star>
   <star>
     <ejectedMass>2.788E-01</ejectedMass>
@@ -2522,270 +2785,6 @@
     <initialMass>5.000</initialMass>
     <metalYieldMass>0.01712423</metalYieldMass>
     <metallicity>0.019</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>2.314E-01</ejectedMass>
-    <elementYieldMassC>-2.884e-06</elementYieldMassC>
-    <elementYieldMassN>3.49808e-06</elementYieldMassN>
-    <elementYieldMassO>-6.94349e-08</elementYieldMassO>
-    <initialMass>0.817</initialMass>
-    <metalYieldMass>5.446451e-07</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>2.886E-01</ejectedMass>
-    <elementYieldMassC>-6.614e-06</elementYieldMassC>
-    <elementYieldMassN>7.94735e-06</elementYieldMassN>
-    <elementYieldMassO>-9.30333e-08</elementYieldMassO>
-    <initialMass>0.888</initialMass>
-    <metalYieldMass>1.2403167e-06</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>3.627E-01</ejectedMass>
-    <elementYieldMassC>-1.0896e-05</elementYieldMassC>
-    <elementYieldMassN>1.298436e-05</elementYieldMassN>
-    <elementYieldMassO>-1.26314e-07</elementYieldMassO>
-    <initialMass>0.966</initialMass>
-    <metalYieldMass>1.962046e-06</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>4.331E-01</ejectedMass>
-    <elementYieldMassC>-1.9896e-05</elementYieldMassC>
-    <elementYieldMassN>2.367332e-05</elementYieldMassN>
-    <elementYieldMassO>-1.67847e-07</elementYieldMassO>
-    <initialMass>1.046</initialMass>
-    <metalYieldMass>3.609473e-06</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>4.998E-01</ejectedMass>
-    <elementYieldMassC>-3.5065e-05</elementYieldMassC>
-    <elementYieldMassN>4.15534e-05</elementYieldMassN>
-    <elementYieldMassO>-2.3185e-07</elementYieldMassO>
-    <initialMass>1.131</initialMass>
-    <metalYieldMass>6.25655e-06</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>5.834E-01</ejectedMass>
-    <elementYieldMassC>0.003976732</elementYieldMassC>
-    <elementYieldMassN>6.25692e-05</elementYieldMassN>
-    <elementYieldMassO>0.00033226908</elementYieldMassO>
-    <initialMass>1.218</initialMass>
-    <metalYieldMass>0.00437157028</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>6.803E-01</ejectedMass>
-    <elementYieldMassC>0.017367748</elementYieldMassC>
-    <elementYieldMassN>5.57264e-05</elementYieldMassN>
-    <elementYieldMassO>0.00143544752</elementYieldMassO>
-    <initialMass>1.307</initialMass>
-    <metalYieldMass>0.01885892192</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>7.556E-01</ejectedMass>
-    <elementYieldMassC>0.024608244</elementYieldMassC>
-    <elementYieldMassN>6.61728e-05</elementYieldMassN>
-    <elementYieldMassO>0.0020332688</elementYieldMassO>
-    <initialMass>1.396</initialMass>
-    <metalYieldMass>0.0267076856</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>8.362E-01</ejectedMass>
-    <elementYieldMassC>0.029929518</elementYieldMassC>
-    <elementYieldMassN>8.27887e-05</elementYieldMassN>
-    <elementYieldMassO>0.0024732292</elementYieldMassO>
-    <initialMass>1.481</initialMass>
-    <metalYieldMass>0.0324855359</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>9.034E-01</ejectedMass>
-    <elementYieldMassC>0.036929739</elementYieldMassC>
-    <elementYieldMassN>0.0001179957</elementYieldMassN>
-    <elementYieldMassO>0.0030534024</elementYieldMassO>
-    <initialMass>1.564</initialMass>
-    <metalYieldMass>0.0401011371</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>9.695E-01</ejectedMass>
-    <elementYieldMassC>0.044899762</elementYieldMassC>
-    <elementYieldMassN>0.0001482345</elementYieldMassN>
-    <elementYieldMassO>0.003698467</elementYieldMassO>
-    <initialMass>1.647</initialMass>
-    <metalYieldMass>0.0487464635</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.033E+00</ejectedMass>
-    <elementYieldMassC>0.052259945</elementYieldMassC>
-    <elementYieldMassN>0.0001496943</elementYieldMassN>
-    <elementYieldMassO>0.004303339</elementYieldMassO>
-    <initialMass>1.729</initialMass>
-    <metalYieldMass>0.0567129783</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.089E+00</ejectedMass>
-    <elementYieldMassC>0.058989857</elementYieldMassC>
-    <elementYieldMassN>0.0001669551</elementYieldMassN>
-    <elementYieldMassO>0.004845038</elementYieldMassO>
-    <initialMass>1.800</initialMass>
-    <metalYieldMass>0.0640018501</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.171E+00</ejectedMass>
-    <elementYieldMassC>0.06401015</elementYieldMassC>
-    <elementYieldMassN>0.0002101074</elementYieldMassN>
-    <elementYieldMassO>0.005232594</elementYieldMassO>
-    <initialMass>1.900</initialMass>
-    <metalYieldMass>0.0694528514</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.250E+00</ejectedMass>
-    <elementYieldMassC>0.07106076</elementYieldMassC>
-    <elementYieldMassN>0.0002246583</elementYieldMassN>
-    <elementYieldMassO>0.005802362</elementYieldMassO>
-    <initialMass>2.000</initialMass>
-    <metalYieldMass>0.0770877803</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.420E+00</ejectedMass>
-    <elementYieldMassC>0.07899229</elementYieldMassC>
-    <elementYieldMassN>0.0003215557</elementYieldMassN>
-    <elementYieldMassO>0.006402755</elementYieldMassO>
-    <initialMass>2.200</initialMass>
-    <metalYieldMass>0.0857166007</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>1.690E+00</ejectedMass>
-    <elementYieldMassC>0.0806762</elementYieldMassC>
-    <elementYieldMassN>0.0004706219</elementYieldMassN>
-    <elementYieldMassO>0.006475216</elementYieldMassO>
-    <initialMass>2.500</initialMass>
-    <metalYieldMass>0.0876220379</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>2.034E+00</ejectedMass>
-    <elementYieldMassC>0.07806752</elementYieldMassC>
-    <elementYieldMassN>0.000613965</elementYieldMassN>
-    <elementYieldMassO>0.006211842</elementYieldMassO>
-    <initialMass>3.000</initialMass>
-    <metalYieldMass>0.084893327</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>2.505E+00</ejectedMass>
-    <elementYieldMassC>0.024286</elementYieldMassC>
-    <elementYieldMassN>0.031018887</elementYieldMassN>
-    <elementYieldMassO>0.0037178</elementYieldMassO>
-    <initialMass>3.500</initialMass>
-    <metalYieldMass>0.059022687</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>3.001E+00</ejectedMass>
-    <elementYieldMassC>0.0027199</elementYieldMassC>
-    <elementYieldMassN>0.044128802</elementYieldMassN>
-    <elementYieldMassO>0.00264041</elementYieldMassO>
-    <initialMass>4.000</initialMass>
-    <metalYieldMass>0.049489112</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>3.481E+00</ejectedMass>
-    <elementYieldMassC>0.001793</elementYieldMassC>
-    <elementYieldMassN>0.037068161</elementYieldMassN>
-    <elementYieldMassO>0.00142343</elementYieldMassO>
-    <initialMass>4.500</initialMass>
-    <metalYieldMass>0.040284591</metalYieldMass>
-    <metallicity>0.004</metallicity>
-    <source>Marigo (2001; A&amp;A; 370; 194)</source>
-    <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
-    <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
-  </star>
-  <star>
-    <ejectedMass>3.960E+00</ejectedMass>
-    <elementYieldMassC>0.0019831</elementYieldMassC>
-    <elementYieldMassN>0.046998019</elementYieldMassN>
-    <elementYieldMassO>0.00125005</elementYieldMassO>
-    <initialMass>5.000</initialMass>
-    <metalYieldMass>0.050231169</metalYieldMass>
-    <metallicity>0.004</metallicity>
     <source>Marigo (2001; A&amp;A; 370; 194)</source>
     <url>http://pleiadi.pd.astro.it/yields_m2k/yields_m2k.tar.gz</url>
     <url>http://adsabs.harvard.edu/abs/2001A%26A...370..194M</url>
