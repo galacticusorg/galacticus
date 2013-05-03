@@ -512,7 +512,7 @@
   </parameter>
   <parameter>
     <name>satelliteMergingRemnantSizeMethod</name>
-    <value>Covington2008</value>
+    <value>Cole2000</value>
   </parameter>
   <parameter>
     <name>majorMergerMassRatio</name>
