@@ -1,4 +1,5 @@
 <stars>
+  <fileFormat>1</fileFormat>
   <star>
     <initialMass>0.6</initialMass>
     <lifetime>28.19</lifetime>
@@ -1254,7 +1255,7 @@
   </star>
   <star>
     <initialMass>120</initialMass>
-    <lifetime>0.00311</lifetime>
+    <lifetime>0.00310</lifetime>
     <metallicity>0.05</metallicity>
     <source>Table 14 of Portinari, Chiosi &amp; Bressan (1998, A&amp;A, 334, 505)</source>
     <url>http://adsabs.harvard.edu/abs/1998A%26A...334..505P</url>
