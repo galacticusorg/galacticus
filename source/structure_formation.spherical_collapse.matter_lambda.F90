@@ -170,7 +170,7 @@ contains
                   &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
                   &                   iTime                                                                  &
                   &                  )
-          case (calculationDeltaVirial)
+         case (calculationDeltaVirial)
              ! Compute the maximum radius of the perturbation.
              radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
              ! Find the eta-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the

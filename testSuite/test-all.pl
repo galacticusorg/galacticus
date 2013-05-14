@@ -72,183 +72,223 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # necessary cause a crash).
 @executablesToRun = (
     {
-	name     => "tests.nodes.exe",                           # Tests of Galacticus nodes.
+	name     => "tests.nodes.exe",                                                    # Tests of Galacticus nodes.
 	valgrind => 0
     },
     {
-	name     => "tests.IO.HDF5.exe",                         # Tests of HDF5 IO routines.
+	name     => "tests.IO.HDF5.exe",                                                  # Tests of HDF5 IO routines.
 	valgrind => 0
     },
     {
-	name     => "tests.ODE_solver.exe",                      # Tests of ODE solver routines.
+	name     => "tests.ODE_solver.exe",                                               # Tests of ODE solver routines.
 	valgrind => 0
     },
     {
-	name     => "tests.arrays.exe",                          # Tests of array functions.
+	name     => "tests.arrays.exe",                                                   # Tests of array functions.
 	valgrind => 0
     },
     {
-	name     => "tests.meshes.exe",                          # Tests of mesh functions.
+	name     => "tests.meshes.exe",                                                   # Tests of mesh functions.
 	valgrind => 0
     },
     {
-	name     => "tests.comparisons.exe",                     # Tests of comparison functions.
+	name     => "tests.comparisons.exe",                                              # Tests of comparison functions.
 	valgrind => 0
     },
     {
-	name     => "tests.geometry.coordinate_systems.exe",     # Tests of coordinate system functions.
+	name     => "tests.geometry.coordinate_systems.exe",                              # Tests of coordinate system functions.
 	valgrind => 0
     },
     {
-	name     => "tests.hashes.exe",                          # Tests of hashing utilities.
+	name     => "tests.hashes.exe",                                                   # Tests of hashing utilities.
 	valgrind => 0
     },
     {
-	name     => "tests.hashes.perfect.exe",                  # Tests of perfect hashing utilities.
+	name     => "tests.hashes.perfect.exe",                                           # Tests of perfect hashing utilities.
 	valgrind => 0
     },
     {
-	name     => "tests.hashes.cryptographic.exe",            # Tests of cryptographic hashing utilities.
+	name     => "tests.hashes.cryptographic.exe",                                     # Tests of cryptographic hashing utilities.
 	valgrind => 0
     },
     {
-	name     => "tests.integration.exe",                     # Tests of integration functions.
+	name     => "tests.integration.exe",                                              # Tests of integration functions.
 	valgrind => 0
     },
     {
-	name     => "tests.tables.exe",                          # Tests of table functions.
+	name     => "tests.tables.exe",                                                   # Tests of table functions.
 	valgrind => 0
     },
     {
-	name     => "tests.interpolation.exe",                   # Tests of interpolation functions.
+	name     => "tests.interpolation.exe",                                            # Tests of interpolation functions.
+	valgrind => 0             
+    },
+    {
+	name     => "tests.interpolation.2D.exe",                                         # Tests of 2D interpolation function.
 	valgrind => 0
     },
     {
-	name     => "tests.interpolation.2D.exe",                # Tests of 2D interpolation function.
+	name     => "tests.make_ranges.exe",                                              # Tests of numerical range building functions.
 	valgrind => 0
     },
     {
-	name     => "tests.make_ranges.exe",                     # Tests of numerical range building functions.
+	name     => "tests.mass_distributions.exe",                                       # Tests of mass distributions.
 	valgrind => 0
     },
     {
-	name     => "tests.mass_distributions.exe",              # Tests of mass distributions.
+	name     => "tests.math_special_functions.exe",                                   # Tests of mathematical special functions.
 	valgrind => 0
     },
     {
-	name     => "tests.math_special_functions.exe",          # Tests of mathematical special functions.
+	name     => "tests.root_finding.exe",                                             # Tests of root finding functions.
 	valgrind => 0
     },
     {
-	name     => "tests.root_finding.exe",                    # Tests of root finding functions.
+	name     => "tests.search.exe",                                                   # Tests of searching functions.
 	valgrind => 0
     },
     {
-	name     => "tests.search.exe",                          # Tests of searching functions.
+	name     => "tests.sort.exe",                                                     # Tests of sorting functions.
 	valgrind => 0
     },
     {
-	name     => "tests.sort.exe",                            # Tests of sorting functions.
+	name     => "tests.string_utilities.exe",                                         # Tests of string handling utilities.
 	valgrind => 0
     },
     {
-	name     => "tests.string_utilities.exe",                # Tests of string handling utilities.
+	name     => "tests.vectors.exe",                                                  # Tests of vector functions.
 	valgrind => 0
     },
     {
-	name     => "tests.vectors.exe",                         # Tests of vector functions.
+	name     => "tests.cosmic_age.cosmological_constant.exe",                         # Tests of cosmic age calculations.
 	valgrind => 0
     },
     {
-	name     => "tests.cosmic_age.dark_energy.exe",          # Tests of cosmic age calculations.
+	name     => "tests.cosmic_age.EdS.exe",                                           # .
 	valgrind => 0
     },
     {
-	name     => "tests.cosmic_age.EdS.exe",                  # .
+	name     => "tests.cosmic_age.open.exe",                                          # .
 	valgrind => 0
     },
     {
-	name     => "tests.cosmic_age.open.exe",                 # .
+	name     => "tests.cosmic_age.dark_energy.cosmological_constant.exe",             # .
 	valgrind => 0
     },
     {
-	name     => "tests.spherical_collapse.open.exe",         # Tests of spherical collapse calculations.
+	name     => "tests.cosmic_age.dark_energy.omegaMinusOneThird.exe",                # .
 	valgrind => 0
     },
     {
-	name     => "tests.spherical_collapse.flat.exe",         # .
+	name     => "tests.cosmic_age.dark_energy.closed.exe",                            # .
 	valgrind => 0
     },
     {
-	name     => "tests.linear_growth.dark_energy.exe",       # Tests of linear growth factor.
+	name     => "tests.spherical_collapse.open.exe",                                  # Tests of spherical collapse calculations.
 	valgrind => 0
     },
     {
-	name     => "tests.linear_growth.EdS.exe",               # .
+	name     => "tests.spherical_collapse.flat.exe",                                  # .
 	valgrind => 0
     },
     {
-	name     => "tests.linear_growth.open.exe",              # .
+	name     => "tests.spherical_collapse.dark_energy.EdS.exe",                       # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.dark_energy.open.exe",                      # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.dark_energy.lambda.exe",                    # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe", # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe",       # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe",       # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.cosmological_constant.exe",                      # Tests of linear growth factor.
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.EdS.exe",                                        # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.linear_growth.open.exe",                                       # .
  	valgrind => 0
     },
     {
-	name     => "tests.halo_mass_function.Tinker.exe",       # Tests of dark matter halo mass functions.
+	name     => "tests.linear_growth.dark_energy.exe",                                # .
+	valgrind => 0
+    },
+    {
+	name     => "tests.halo_mass_function.Tinker.exe",                                # Tests of dark matter halo mass functions.
  	valgrind => 0
     },
     {
-	name     =>"tests.comoving_distance.dark_energy.exe",    # Tests of comoving distance calculations.
+	name     =>"tests.comoving_distance.dark_energy.exe",                             # Tests of comoving distance calculations.
  	valgrind => 0
     },
     {
-	name     =>"tests.comoving_distance.EdS.exe",            # .
+	name     =>"tests.comoving_distance.EdS.exe",                                     # .
 	valgrind => 0
     },
     {
-	name     => "tests.comoving_distance.open.exe",          # .
+	name     => "tests.comoving_distance.open.exe",                                   # .
 	valgrind => 0
     },
     {
-	name     => "tests.Zhao2009_algorithms.dark_energy.exe", # Tests of Zhao et al. (2009) algorithms.
+	name     => "tests.Zhao2009_algorithms.dark_energy.exe",                          # Tests of Zhao et al. (2009) algorithms.
 	valgrind => 0
     },
     {
-	name     => "tests.Zhao2009_algorithms.EdS.exe",         # .
+	name     => "tests.Zhao2009_algorithms.EdS.exe",                                  # .
 	valgrind => 0
     },
     {
-	name     => "tests.Zhao2009_algorithms.open.exe",        # .
+	name     => "tests.Zhao2009_algorithms.open.exe",                                 # .
 	valgrind => 0
     },
     {
-	name     => "tests.NFW96_concentration.dark_energy.exe", # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
+	name     => "tests.NFW96_concentration.dark_energy.exe",                          # Tests of Navarro, Frenk & White (1996) halo concentration algorithm.
 	valgrind => 0
     },
     {
-	name     => "tests.Prada2011_concentration.exe",         # Tests of Prada et al. (2011) halo concentration algorithm.
+	name     => "tests.Prada2011_concentration.exe",                                  # Tests of Prada et al. (2011) halo concentration algorithm.
 	valgrind => 0
     },
     {
-	name     => "tests.kepler_orbits.exe",                   # Keplerian orbital parameter conversions.
+	name     => "tests.kepler_orbits.exe",                                            # Keplerian orbital parameter conversions.
 	valgrind => 0
     },
     {
-	name     => "tests.abundances.exe",                      # Abundances objects.
+	name     => "tests.abundances.exe",                                               # Abundances objects.
 	valgrind => 0
     },
     {
-	name     => "tests.sigma.exe",                           # Sigma(M).
+	name     => "tests.sigma.exe",                                                    # Sigma(M).
 	valgrind => 0
     },
     {
-	name     => "tests.power_spectrum.exe",                  # Power spectrum.
+	name     => "tests.power_spectrum.exe",                                           # Power spectrum.
 	valgrind => 0
     },
     {
-	name     => "tests.bug745815.exe",                       # Regresssions.
+	name     => "tests.bug745815.exe",                                                # Regresssions.
 	valgrind => 0
     },
     {
-	name     => "tests.tree_branch_destroy.exe",             # Tests of merger tree walking.
+	name     => "tests.tree_branch_destroy.exe",                                      # Tests of merger tree walking.
 	valgrind => 1,
 	valgrindOptions => "--undef-value-errors=no"
     }

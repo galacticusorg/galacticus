@@ -745,4 +745,32 @@
     </parameter> 
   </parameters>
 
+  <!-- Dark energy cosmology -->
+  <parameters>
+    <parameter>
+      <name>cosmologyMethod</name>
+      <value>matter-darkEnergy</value>
+    </parameter>
+    <parameter>
+      <name>darkEnergyEquationOfStateOmega0</name>
+      <value>-0.8</value>
+    </parameter>
+    <parameter>
+      <name>darkEnergyEquationOfStateOmega0</name>
+      <value>0.1</value>
+    </parameter>
+    <parameter>
+      <name>criticalOverdensityMethod</name>
+      <value>sphericalTopHatDarkEnergy</value>
+    </parameter>
+    <parameter>
+      <name>virialDensityContrastMethod</name>
+      <value>sphericalTopHatDarkEnergy</value>
+    </parameter>
+    <parameter>
+      <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
+      <value>turnaround</value>
+    </parameter>
+  </parameters>
+
 </parameterGrid>
