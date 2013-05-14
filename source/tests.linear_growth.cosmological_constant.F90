@@ -15,9 +15,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-program Tests_Linear_Growth_Dark_Energy
-  !% Tests linear growth calculations for a dark energy Universe. Growth rates are compared to Figure 1 of Linder and Jenkins
-  !% (2003; MNRAS; 346; 573; http://adsabs.harvard.edu/abs/2003MNRAS.346..573L).
+program Tests_Linear_Growth_Cosmological_Constant
+  !% Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from
+  !% Andrew Hamilton's "growl" code available at: http://casa.colorado.edu/~ajsh/growl/
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
@@ -26,27 +26,29 @@ program Tests_Linear_Growth_Dark_Energy
   use Cosmological_Parameters
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(13) :: redshift              =[ 0.000000d0,  0.052632d0,  0.149425d0,  0.265823d0,  0.449275d0,  0.666667d0,  1.000000d0,  1.325580d0,  1.857140d0,  2.846150d0,  4.555560d0,  8.090910d0, 17.867900d0]
-  double precision, parameter, dimension(13) :: growthFactorDarkEnergy=[0.73d0, 0.75d0, 0.78d0, 0.81d0, 0.85d0, 0.88d0, 0.92d0, 0.94d0, 0.96d0, 0.98d0, 0.99d0, 1.00d0, 1.00d0]
-  type(varying_string)                       :: parameterFile
-  character(len=1024)                        :: message
-  integer                                    :: iExpansion
-  double precision                           :: linearGrowth,expansionFactor
+  double precision, parameter, dimension(8) :: redshift              =[0.000d0,1.0000d0,3.0000d0,9.0d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
+  double precision, parameter, dimension(8) :: growthFactorDarkEnergy=[0.7789810167707876d0,0.9531701355446482d0&
+       &,0.9934824792317063d0,0.9995762227500181d0,0.9999857599010360d0,0.9999995882349219d0,0.9999999844434028d0&
+       &,0.9999999995770291d0]
+  type(varying_string)                      :: parameterFile
+  character(len=1024)                       :: message
+  integer                                   :: iExpansion
+  double precision                          :: linearGrowth,expansionFactor
 
   ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.linear_growth.dark_energy.size')
+  call Code_Memory_Usage('tests.linear_growth.cosmological_constant.size')
 
   ! Begin unit tests.
-  call Unit_Tests_Begin_Group("Linear growth: dark energy cosmology")
+  call Unit_Tests_Begin_Group("Linear growth: cosmological constant cosmology")
 
   ! Test growth factor in a dark energy universe.
-  parameterFile='testSuite/parameters/linearGrowth/darkEnergy.xml'
+  parameterFile='testSuite/parameters/linearGrowth/cosmologicalConstant.xml'
   call Input_Parameters_File_Open(parameterFile)
   do iExpansion=1,size(redshift)
      expansionFactor=Expansion_Factor_From_Redshift(redshift(iExpansion))
      linearGrowth=Linear_Growth_Factor(aExpansion=expansionFactor,component=linearGrowthComponentDarkMatter,normalize=normalizeMatterDominated)/expansionFactor
-     write (message,'(a,f7.2,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
-    call Assert(trim(message),linearGrowth,growthFactorDarkEnergy(iExpansion),relTol=5.0d-3)
+     write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
+     call Assert(trim(message),linearGrowth,growthFactorDarkEnergy(iExpansion),relTol=1.0d-3)
   end do
   call Input_Parameters_File_Close  
 
@@ -54,4 +56,4 @@ program Tests_Linear_Growth_Dark_Energy
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
 
-end program Tests_Linear_Growth_Dark_Energy
+end program Tests_Linear_Growth_Cosmological_Constant

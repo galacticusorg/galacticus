@@ -89,58 +89,63 @@ contains
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get &
        &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get &
        &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get&
-       &,Comoving_Distance_Conversion_Get)
+       &,Comoving_Distance_Conversion_Get,Cosmology_Dark_Energy_Equation_Of_State_Get,Cosmology_Dark_Energy_Exponent_Get)
     !% Initialize the module.
     use Numerical_Comparison
     use ISO_Varying_String
     use ODE_Solver
+    use Galacticus_Error
     implicit none
-    type            (varying_string                                    ),          intent(in   )  :: cosmologyMethod
-    procedure       (Early_Time_Density_Scaling_Matter_Lambda          ), pointer, intent(inout) :: Early_Time_Density_Scaling_Get
-    procedure       (Expansion_Factor_Is_Valid_Matter_Lambda           ), pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get
-    procedure       (Cosmic_Time_Is_Valid_Matter_Lambda                ), pointer, intent(inout) :: Cosmic_Time_Is_Valid_Get
-    procedure       (Cosmology_Age_Matter_Lambda                       ), pointer, intent(inout) :: Cosmology_Age_Get 
-    procedure       (Expansion_Factor_Matter_Lambda                    ), pointer, intent(inout) :: Expansion_Factor_Get
-    procedure       (Hubble_Parameter_Matter_Lambda                    ), pointer, intent(inout) :: Hubble_Parameter_Get 
-    procedure       (Omega_Matter_Total_Matter_Lambda                  ), pointer, intent(inout) :: Omega_Matter_Total_Get
-    procedure       (Omega_Dark_Energy_Matter_Lambda                   ), pointer, intent(inout) :: Omega_Dark_Energy_Get 
-    procedure       (Expansion_Rate_Matter_Lambda                      ), pointer, intent(inout) :: Expansion_Rate_Get
-    procedure       (Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda), pointer, intent(inout) :: Epoch_of_Matter_Dark_Energy_Equality_Get 
-    procedure       (Epoch_of_Matter_Domination_Matter_Lambda          ), pointer, intent(inout) :: Epoch_of_Matter_Domination_Get 
-    procedure       (Epoch_of_Matter_Curvature_Equality_Matter_Lambda  ), pointer, intent(inout) :: Epoch_of_Matter_Curvature_Equality_Get
-    procedure       (CMB_Temperature_Matter_Lambda                     ), pointer, intent(inout) :: CMB_Temperature_Get
-    procedure       (Comoving_Distance_Matter_Lambda                   ), pointer, intent(inout) :: Comoving_Distance_Get
-    procedure       (Time_From_Comoving_Distance_Matter_Lambda         ), pointer, intent(inout) :: Time_From_Comoving_Distance_Get
-    procedure       (Comoving_Distance_Conversion_Matter_Lambda        ), pointer, intent(inout) :: Comoving_Distance_Conversion_Get
-    double precision                                                    , parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
-    double precision                                                    , parameter              :: omegaTolerance=1.0d-9
-    double precision                                                                             :: cubicTerm1,cubicTerm5&
+    type            (varying_string                                       ),          intent(in   ) :: cosmologyMethod
+    procedure       (Early_Time_Density_Scaling_Matter_Lambda             ), pointer, intent(inout) :: Early_Time_Density_Scaling_Get
+    procedure       (Expansion_Factor_Is_Valid_Matter_Lambda              ), pointer, intent(inout) :: Expansion_Factor_Is_Valid_Get
+    procedure       (Cosmic_Time_Is_Valid_Matter_Lambda                   ), pointer, intent(inout) :: Cosmic_Time_Is_Valid_Get
+    procedure       (Cosmology_Age_Matter_Lambda                          ), pointer, intent(inout) :: Cosmology_Age_Get 
+    procedure       (Expansion_Factor_Matter_Lambda                       ), pointer, intent(inout) :: Expansion_Factor_Get
+    procedure       (Hubble_Parameter_Matter_Lambda                       ), pointer, intent(inout) :: Hubble_Parameter_Get 
+    procedure       (Omega_Matter_Total_Matter_Lambda                     ), pointer, intent(inout) :: Omega_Matter_Total_Get
+    procedure       (Omega_Dark_Energy_Matter_Lambda                      ), pointer, intent(inout) :: Omega_Dark_Energy_Get 
+    procedure       (Expansion_Rate_Matter_Lambda                         ), pointer, intent(inout) :: Expansion_Rate_Get
+    procedure       (Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda   ), pointer, intent(inout) :: Epoch_of_Matter_Dark_Energy_Equality_Get 
+    procedure       (Epoch_of_Matter_Domination_Matter_Lambda             ), pointer, intent(inout) :: Epoch_of_Matter_Domination_Get 
+    procedure       (Epoch_of_Matter_Curvature_Equality_Matter_Lambda     ), pointer, intent(inout) :: Epoch_of_Matter_Curvature_Equality_Get
+    procedure       (CMB_Temperature_Matter_Lambda                        ), pointer, intent(inout) :: CMB_Temperature_Get
+    procedure       (Comoving_Distance_Matter_Lambda                      ), pointer, intent(inout) :: Comoving_Distance_Get
+    procedure       (Time_From_Comoving_Distance_Matter_Lambda            ), pointer, intent(inout) :: Time_From_Comoving_Distance_Get
+    procedure       (Comoving_Distance_Conversion_Matter_Lambda           ), pointer, intent(inout) :: Comoving_Distance_Conversion_Get
+    procedure       (Cosmology_Dark_Energy_Equation_Of_State_Matter_Lambda), pointer, intent(inout) :: Cosmology_Dark_Energy_Equation_Of_State_Get
+    procedure       (Cosmology_Dark_Energy_Exponent_Matter_Lambda         ), pointer, intent(inout) :: Cosmology_Dark_Energy_Exponent_Get
+    double precision                                                       , parameter              :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-9
+    double precision                                                       , parameter              :: omegaTolerance=1.0d-9
+    double precision                                                                                :: cubicTerm1,cubicTerm5&
          &,cubicTerm9,cubicTerm21Squared,cubicTerm21 ,cubicTerm25Cubed,cubicTerm25,aMaximum,aDominant,timeMaximum(1),densityPower&
          &,Omega_Dominant
-    type            (c_ptr                                             )                         :: parameterPointer
+    type            (c_ptr                                             )                            :: parameterPointer
 
     ! Check if our method is selected.
     if (cosmologyMethod == 'matter-lambda') then
        ! Set up procedure pointers.
-       Expansion_Factor_Is_Valid_Get            => Expansion_Factor_Is_Valid_Matter_Lambda
-       Cosmic_Time_Is_Valid_Get                 => Cosmic_Time_Is_Valid_Matter_Lambda
-       Cosmology_Age_Get                        => Cosmology_Age_Matter_Lambda
-       Expansion_Factor_Get                     => Expansion_Factor_Matter_Lambda
-       Hubble_Parameter_Get                     => Hubble_Parameter_Matter_Lambda
-       Early_Time_Density_Scaling_Get           => Early_Time_Density_Scaling_Matter_Lambda
-       Omega_Matter_Total_Get                   => Omega_Matter_Total_Matter_Lambda
-       Omega_Dark_Energy_Get                    => Omega_Dark_Energy_Matter_Lambda
-       Expansion_Rate_Get                       => Expansion_Rate_Matter_Lambda
-       Epoch_of_Matter_Dark_Energy_Equality_Get => Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda
-       Epoch_of_Matter_Curvature_Equality_Get   => Epoch_of_Matter_Curvature_Equality_Matter_Lambda
-       Epoch_of_Matter_Domination_Get           => Epoch_of_Matter_Domination_Matter_Lambda
-       CMB_Temperature_Get                      => CMB_Temperature_Matter_Lambda
-       Comoving_Distance_Get                    => Comoving_Distance_Matter_Lambda
-       Time_From_Comoving_Distance_Get          => Time_From_Comoving_Distance_Matter_Lambda
-       Comoving_Distance_Conversion_Get         => Comoving_Distance_Conversion_Matter_Lambda
+       Expansion_Factor_Is_Valid_Get               => Expansion_Factor_Is_Valid_Matter_Lambda
+       Cosmic_Time_Is_Valid_Get                    => Cosmic_Time_Is_Valid_Matter_Lambda
+       Cosmology_Age_Get                           => Cosmology_Age_Matter_Lambda
+       Expansion_Factor_Get                        => Expansion_Factor_Matter_Lambda
+       Hubble_Parameter_Get                        => Hubble_Parameter_Matter_Lambda
+       Early_Time_Density_Scaling_Get              => Early_Time_Density_Scaling_Matter_Lambda
+       Omega_Matter_Total_Get                      => Omega_Matter_Total_Matter_Lambda
+       Omega_Dark_Energy_Get                       => Omega_Dark_Energy_Matter_Lambda
+       Expansion_Rate_Get                          => Expansion_Rate_Matter_Lambda
+       Epoch_of_Matter_Dark_Energy_Equality_Get    => Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda
+       Epoch_of_Matter_Curvature_Equality_Get      => Epoch_of_Matter_Curvature_Equality_Matter_Lambda
+       Epoch_of_Matter_Domination_Get              => Epoch_of_Matter_Domination_Matter_Lambda
+       CMB_Temperature_Get                         => CMB_Temperature_Matter_Lambda
+       Comoving_Distance_Get                       => Comoving_Distance_Matter_Lambda
+       Time_From_Comoving_Distance_Get             => Time_From_Comoving_Distance_Matter_Lambda
+       Comoving_Distance_Conversion_Get            => Comoving_Distance_Conversion_Matter_Lambda
+       Cosmology_Dark_Energy_Equation_Of_State_Get => Cosmology_Dark_Energy_Equation_Of_State_Matter_Lambda
+       Cosmology_Dark_Energy_Exponent_Get          => Cosmology_Dark_Energy_Exponent_Matter_Lambda
 
-       ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion factor,
-       ! a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
+       ! Determine if this universe will collapse. We take the Friedmann equation, which gives H^2 as a function of expansion
+       ! factor, a, and solve for where H^2=0. If this has a real solution, then we have a collapsing universe.
        collapsingUniverse=.false.
        if (Values_Agree(Omega_K(),0.0d0,absTol=omegaTolerance)) then
           if (Values_Agree(Omega_DE(),0.0d0,absTol=omegaTolerance)) then
@@ -857,6 +862,24 @@ contains
     Comoving_Distance_Integrand=speedLight*gigaYear/megaParsec/Expansion_Factor_Matter_Lambda(time)
     return
   end function Comoving_Distance_Integrand
+
+  double precision function Cosmology_Dark_Energy_Equation_Of_State_Matter_Lambda(time,expansionFactor)
+    !% Return the dark energy equation of state.
+    implicit none
+    double precision, intent(in   ), optional :: time,expansionFactor
+
+    Cosmology_Dark_Energy_Equation_Of_State_Matter_Lambda=-1.0d0
+    return
+  end function Cosmology_Dark_Energy_Equation_Of_State_Matter_Lambda
+
+  double precision function Cosmology_Dark_Energy_Exponent_Matter_Lambda(time,expansionFactor)
+    !% Return the dark energy equation of state.
+    implicit none
+    double precision, intent(in   ), optional :: time,expansionFactor
+
+    Cosmology_Dark_Energy_Exponent_Matter_Lambda=0.0d0
+    return
+  end function Cosmology_Dark_Energy_Exponent_Matter_Lambda
 
   !# <galacticusStateStoreTask>
   !#  <unitName>Cosmology_Matter_Lambda_State_Store</unitName>

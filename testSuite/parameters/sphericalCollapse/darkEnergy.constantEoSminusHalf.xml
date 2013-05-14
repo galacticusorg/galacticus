@@ -1,0 +1,39 @@
+<!-- Parameter file used for testing dark energy spherical collapse calculations in a flat, ω=-1/2 universe model. -->
+<parameters>
+  <parameter>
+    <name>cosmologyMethod</name>
+    <value>matter-darkEnergy</value>
+  </parameter>
+  <parameter>
+    <name>darkEnergyEquationOfStateW0</name>
+    <value>-0.5</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.3</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.7</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>70.0</value>
+  </parameter>
+  <parameter>
+    <name>criticalOverdensityMethod</name>
+    <value>sphericalTopHatDarkEnergy</value>
+  </parameter>
+  <parameter>
+    <name>virialDensityContrastMethod</name>
+    <value>sphericalTopHatDarkEnergy</value>
+  </parameter>
+  <parameter>
+    <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
+    <value>virialization</value>
+  </parameter>
+</parameters>

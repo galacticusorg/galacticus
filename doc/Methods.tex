@@ -1526,7 +1526,8 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
        &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get  & 
        &,Omega_Matter_Get,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
        &,Epoch_of_Matter_Domination_Get,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get &
-       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion)
+       &,Comoving_Distance_Get,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion & 
+       &,Cosmology_Dark_Energy_Equation_Of_State_Get,Cosmology_Dark_Energy_Exponent_Get)
     implicit none
     type(varying_string),          intent(in)    :: cosmologyMethod
     procedure(),                 pointer, intent(inout) :: Early_Time_Density_Scaling_Get
@@ -1534,7 +1535,8 @@ Here, {\tt Cosmology\_Functions\_Matter\_Lambda\_Initialize} is the name of a su
     procedure(double precision), pointer, intent(inout) :: Cosmology_Age_Get ,Expansion_Factor_Get,Hubble_Parameter_Get &
          &,Omega_Matter_Total_Get,Omega_Dark_Energy_Get ,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get &
          &,Epoch_of_Matter_Domination_Get ,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get&
-         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get
+         &,Time_From_Comoving_Distance_Get,Comoving_Distance_Conversion_Get,Cosmology_Dark_Energy_Equation_Of_State_Get&
+         &,Cosmology_Dark_Energy_Exponent_Get
 
     if (cosmologyMethod == 'myMethod') then
        Procedure_Pointer_Get => My_Procedure
@@ -1647,7 +1649,7 @@ Should compute the epoch, {\tt aDominant}, before which the universe is dominate
     return
    end function My_Epoch_of_Matter_Domination
 \end{verbatim}
-Should return the epoch at which matte dominates the energy density of the universe by the specified factor.
+Should return the epoch at which matter dominates the energy density of the universe by the specified factor.
 
 \begin{verbatim}
    double precision function My_Omega_Matter(tCosmological,aExpansion,collapsingPhase)
@@ -1737,21 +1739,33 @@ Should return the comoving distance (in units of Mpc) to the given cosmic time (
 Should return the cosmic time (in units of Gyr) corresponding to the given comoving distance (in units of Mpc).
 
 \begin{verbatim}
-   double precision function My_Comoving_Distance_Conversion(output,distanceModulus,redshift)
+   double precision function My_Dark_Energy_Equation_Of_State(time,expansionFactor)
      implicit none
-     integer         , intent(in   ) :: output
-     double precision, intent(in   ) :: distanceModulus,redshift
+     double precision, intent(in   ), optional :: time,expansionFactor
      .
      .
      .
      return
-   end function My_Comoving_Distance_Conversion
+   end function My_Dark_Energy_Equation_Of_State
 \end{verbatim}
-Should convert between different measures of the cosmological distance to an object. Currently, the only option for {\tt output} is {\tt distanceTypeComoving}, such that the returned value must always be the comoving distance (in units of Mpc). At least one of {\tt distanceModulus} and {\tt redshift} must be supplied---the function mus derive comoving distance from that supplied value.
+Should return the dark energy equation of state (i.e. ``$w$'' in $P\propto \rho^w$) at the specified {\tt time}/{\tt expansionFactor}. At least one of {\tt time} and {\tt expansionFactor} must be supplied.
+
+\begin{verbatim}
+   double precision function My_Dark_Energy_Exponent(time,expansionFactor)
+     implicit none
+     double precision, intent(in   ), optional :: time,expansionFactor
+     .
+     .
+     .
+     return
+   end function My_Dark_Energy_Exponent
+\end{verbatim}
+Should return the exponent for the scaling of the dark energy density, $f(a)$, such that $\rho_{\rm DE}(a) = \rho_{\rm DE}(a=1) a^f(a)$ at the specified {\tt time}/{\tt expansionFactor}. At least one of {\tt time} and {\tt expansionFactor} must be supplied.
 
 Currently defined cosmology methods are:
 \begin{description}
  \item [{\tt matter-lambda}] Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.
+ \item [{\tt matter-darkEnergy}] Cosmological relations are computed assuming a universe that contains only matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$.
 \end{description}
 
 \subsubsection{Critical Overdensity for Halo Collapse}

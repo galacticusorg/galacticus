@@ -32,7 +32,7 @@ contains
 #ifdef PROFILE
        &,Error_Analyzer &
 #endif
-       &,yScale,errorHandler,algorithm,reset)
+       &,yScale,errorHandler,algorithm,reset,odeStatus)
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
@@ -49,6 +49,7 @@ contains
     logical,                     intent(inout), optional :: reset
     procedure(),                 pointer,       optional :: errorHandler
     type(fodeiv2_step_type),     intent(in   ), optional :: algorithm
+    integer                ,     intent(  out), optional :: odeStatus
 #ifdef PROFILE
     type(c_funptr),              intent(in)              :: Error_Analyzer
 #endif
@@ -111,6 +112,12 @@ contains
        case (FGSL_Failure)
           ! Generic failure - most likely a stepsize underflow.
           if (present(errorHandler)) call errorHandler()
+          ! If ODE status was requested, then return it instead of aborting.
+          if (present(odeStatus)) then
+             x0=x 
+             odeStatus=status
+             return
+          end if
           message='ODE integration failed with status '
           message=message//status//' [generic failure]'//char(10)
           message=message//' => most likely a stepsize underflow'
@@ -121,6 +128,12 @@ contains
        case default
           ! Some other error condition.
           if (present(errorHandler)) call errorHandler()
+          ! If ODE status was requested, then return it instead of aborting.
+          if (present(odeStatus)) then
+             x0=x 
+             odeStatus=status
+             return
+          end if
           message='ODE integration failed with status '
           message=message//status
           call Galacticus_Error_Report('ODEIV2_Solve',message)
@@ -128,6 +141,7 @@ contains
     end do
     ! Return the new value of x.
     x0=x
+    if (present(odeStatus)) odeStatus=status
     return
   end subroutine ODEIV2_Solve
   

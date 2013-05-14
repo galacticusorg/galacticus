@@ -26,9 +26,9 @@ module Cosmological_Parameters
   public :: Omega_b, Omega_Matter, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
 
   ! Stored values of cosmological parameters.
-  logical          :: Omega_b_Is_Set=.false., Omega_Matter_Is_Set=.false., Omega_DE_Is_Set=.false., Omega_Radiation_Is_Set=.false.,&
-       & Omega_K_Is_Set=.false., T_CMB_Is_Set=.false., H_0_Is_Set =.false., H_0_invGyr_Is_Set=.false., Critical_Density_Is_Set&
-       &=.false.
+  logical          :: Omega_b_Is_Set=.false., Omega_Matter_Is_Set=.false., Omega_DE_Is_Set=.false., Omega_Radiation_Is_Set&
+       &=.false., Omega_K_Is_Set=.false., T_CMB_Is_Set=.false., H_0_Is_Set =.false., H_0_invGyr_Is_Set=.false.,&
+       & Critical_Density_Is_Set =.false.
   double precision :: Omega_b_Value,Omega_Matter_Value,Omega_DE_Value,Omega_Radiation_Value,Omega_K_Value,T_CMB_Value,H_0_Value&
        &,H_0_invGyr_Value,Critical_Density_Value
 
