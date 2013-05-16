@@ -288,8 +288,13 @@ sub Launch_Models {
 		$parameters{'randomSeed'} = $randomSeed unless ( exists($parameters{'randomSeed'}) );
 		
 		# Set a state restore file.
-		(my $stateFile = $parameters{'galacticusOutputFileName'}) =~ s/\.hdf5//;
-		$parameters{'stateFileRoot'} = $stateFile;
+		my $useStateFile = "no";
+		$useStateFile = $modelsToRun->{'useStateFile'}
+		   if ( exists($modelsToRun->{'useStateFile'}) );
+		if ( $useStateFile eq "yes" ) {
+		    (my $stateFile = $parameters{'galacticusOutputFileName'}) =~ s/\.hdf5//;
+		    $parameters{'stateFileRoot'} = $stateFile;
+		}
 		
 		# Transfer parameters for this model from the array of model parameter hashes to the active hash.
 		foreach my $parameter ( keys(%{$parameterData}) ) {
@@ -453,14 +458,16 @@ sub Launch_Models {
 			print oHndl $scratchPath
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
 			print oHndl "galacticus_".$modelCounter."_".$$.".hdf5 ".$galacticusOutputDirectory."/galacticus.hdf5\n";
-			print oHndl "mv ";
-			print oHndl $scratchPath
-			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
-			print oHndl "galacticus_".$modelCounter."_".$$.".state* ".$galacticusOutputDirectory."/\n";
-			print oHndl "mv ";
-			print oHndl $scratchPath
-			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
-			print oHndl "galacticus_".$modelCounter."_".$$.".fgsl.state* ".$galacticusOutputDirectory."/\n";
+			if ( $useStateFile eq "yes" ) {
+			    print oHndl "mv ";
+			    print oHndl $scratchPath
+				if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			    print oHndl "galacticus_".$modelCounter."_".$$.".state* ".$galacticusOutputDirectory."/\n";
+			    print oHndl "mv ";
+			    print oHndl $scratchPath
+				if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
+			    print oHndl "galacticus_".$modelCounter."_".$$.".fgsl.state* ".$galacticusOutputDirectory."/\n";
+			}
 			print oHndl "mv core* ".$galacticusOutputDirectory."/\n";
 			close(oHndl);
 			
