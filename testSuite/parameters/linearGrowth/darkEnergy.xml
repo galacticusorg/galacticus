@@ -1,0 +1,26 @@
+<parameters>
+  <parameter>
+    <name>cosmologyMethod</name>
+    <value>matter-darkEnergy</value>
+  </parameter>
+  <parameter>
+    <name>linearGrowthMethod</name>
+    <value>simple</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.3</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.7</value>
+  </parameter>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0</value>
+  </parameter>
+  <parameter>
+    <name>darkEnergyEquationOfStateW0</name>
+    <value>-0.8</value>
+  </parameter>
+</parameters>
