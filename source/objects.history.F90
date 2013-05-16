@@ -649,7 +649,7 @@ contains
                  timeBegin=max(thisHistory%time(jPoint-1),combineHistory%time(iPoint-1))
               end if
               timeEnd     =min(thisHistory%time(jPoint  ),combineHistory%time(iPoint  ))
-              fractionContributed=(timeEnd-timeBegin)/(combineHistory%time(iPoint)-combineHistory%time(iPoint-1))
+              fractionContributed=max(0.0d0,(timeEnd-timeBegin)/(combineHistory%time(iPoint)-combineHistory%time(iPoint-1)))
               thisHistory%data(jPoint,:)=thisHistory%data(jPoint,:)+combineHistory%data(iPoint,:)*fractionContributed
            end do
         end do
