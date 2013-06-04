@@ -862,11 +862,12 @@ The scale dark matter profile implementation defines the following properties:
  \item [{\tt galaxyMajorMergerTime}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\tt mergingStatisticsGalaxyMajorMergerTime}];
  \item [{\tt nodeMajorMergerTime}] The time of the last major merger (as defined by the {\tt [nodeMajorMergerFraction]} parameter) between this \gls{node} and another, output as the time \emph{since} the last major merger [{\tt mergingStatisticsNodeMajorMergerTime}];
  \item [{\tt nodeFormationTime}] The time at which the \gls{node} is judged to have ``formed'', defined as the time at which its main branch progenitor had a mass equal to a fraction {\tt [nodeFormationMassFraction]} of the node's initial mass in the merger tree [{\tt mergingStatisticsNodeFormationTime}];
+ \item [{\tt nodeHierarchyLevel}] The depth of this node in the initial merger tree hierarchy. For example, a node on the main branch has level 0. A node which merges directly onto the main branch has level 1. A node that merges onto a node that merges directly onto the main branch has level 2, etc. [{\tt mergingStatisticsNodeHierarchyLevel}];
 \end{description}
 
 \subsubsection{Initialization}
 
-The times of the last mergers are stored each time a major merger occurrs and this \gls{component} is created (if necessary) the first time such a merger occurs. Formation times are computed during merger tree initialization.
+The times of the last mergers are stored each time a major merger occurrs and this \gls{component} is created (if necessary) the first time such a merger occurs. Formation times and hierarchy levels are computed during merger tree initialization.
 
 \subsubsection{Differential Evolution}
 
