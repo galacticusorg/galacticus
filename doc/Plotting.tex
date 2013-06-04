@@ -84,7 +84,8 @@ call Merger_Tree_Dump(                                    &
      &                edgeStyle          ='solid'       , &
      &                labelNodes         =.false.       , &
      &                scaleNodesByLogMass=.true.        , &
-     &                edgeLengthsToTimes =.true.          &
+     &                edgeLengthsToTimes =.true.        , &
+     &                path               ='/my/path'      &
      &               )
 \end{lstlisting}
 Here {\tt index} is the tree index (successive calls to \hyperlink{objects.merger_trees.dump.F90:merger_trees_dump:merger_tree_dump}{{\tt Merger\_Tree\_Dump}} with the same index will result in a sequence of output files---see below), and {\tt baseNode} is a pointer to the base node of the tree to be dumped. All other arguments are optional:
@@ -100,6 +101,7 @@ Here {\tt index} is the tree index (successive calls to \hyperlink{objects.merge
  \item [{\tt labelNodes}] Specifies whether or not nodes should be labelled (labels consist of the node ID followed by the redshift);
  \item [{\tt scaleNodesByLogMass}] If true, the size of nodes will be set to be proportional to the logarithm of the node mass;
  \item [{\tt edgeLengthsToTimes}] If true, the spacing between parent and child nodes will be proportional to the logarithmic time interval between them.
+ \item [{\tt path}] If present, write tree dumps into this directory. Otherwise, the current directory will be used.
 \end{description}
 All colors and styles are character strings and can be in any format understood by {\sc dot}. The tree structure will be dumped to file named {\tt mergerTreeDump:$\langle$ID$\rangle$:$\langle$N$\rangle$.gv} where {\tt $\langle$ID$\rangle$} is the index of the tree and {\tt $\langle$N$\rangle$} increasing incrementally from $1$ each time the same tree is consecutively dumped. These files can be processed using {\sc dot}. For example
 \begin{verbatim}
