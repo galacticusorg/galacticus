@@ -14,12 +14,21 @@ sub Histogram {
     $weights     = shift;
     if ( $#_ >= 1 ) {(%options) = @_};
 
-    # Compute bin size.
-    $binWidth = ($binCenters->index(nelem($binCenters)-1)-$binCenters->index(0))/(nelem($binCenters)-1);
-
-    # Compute bin ranges.
-    $binMinimum = $binCenters-0.5*$binWidth;
-    $binMaximum = $binCenters+0.5*$binWidth;
+    $binMinimum = pdl zeroes(nelem($binCenters));
+    $binMaximum = pdl zeroes(nelem($binCenters));
+    for($iBin=0;$iBin<nelem($binCenters);++$iBin) {
+	if ( $iBin == 0 ) {
+	    $binMinimum->(($iBin)) .= $binCenters->(($iBin))-0.5*($binCenters->(($iBin+1))-$binCenters->(($iBin)));
+	} else {
+	    $binMinimum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin-1)));
+	}
+	if ( $iBin == nelem($binCenters)-1 ) {
+	    $binMaximum->(($iBin)) .= $binCenters->(($iBin))+0.5*($binCenters->(($iBin))-$binCenters->(($iBin-1)));
+	} else {
+	    $binMaximum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin+1)));
+	}
+    }
+    $binWidth = $binMaximum-$binMinimum;
 
     # Create a PDL for histogram and errors.
     $histogram = pdl zeroes(nelem($binCenters));
@@ -46,7 +55,6 @@ sub Histogram {
 	for($iBin=0;$iBin<nelem($binCenters);++$iBin) {
 	    # Select properties in this bin.
 	    $weightsSelected = where($weights,$xValues >= $binMinimum->index($iBin) & $xValues < $binMaximum->index($iBin) );
-	    
 	    # Only compute results for cases where we have at least one entry.
 	    if ( nelem($weightsSelected) >= 1 ) {	
 		
