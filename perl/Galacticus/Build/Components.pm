@@ -2732,7 +2732,7 @@ sub Generate_Implementation_Dump_Functions {
 	my %formatLabel = 
 	    (
 	     real    => "'(e12.6)'",
-	     integer => "'(i)'",
+	     integer => "'(i8)'",
 	     logical => "*"
 	    );
 	# Generate dump function.
