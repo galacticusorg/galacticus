@@ -137,8 +137,9 @@ contains
     ! Specify that positions are periodic.
     call mergerTrees%setPositionsArePeriodic (.true. )
 
-    ! Specify that halo masses do not include subhalo contributions.
-    call mergerTrees%setIncludesSubhaloMasses(.false.)
+    ! Specify that halo masses do include subhalo contributions. (Note that the expectation is that masses of isolated halos have
+    ! been derived from something like the "m_tophat" column of the Millennium Database.)
+    call mergerTrees%setIncludesSubhaloMasses(.true. )
 
     ! Specify units system used.
     call mergerTrees%setUnits(unitsMass    ,unitsInSI=1.0d10*massSolar,hubbleExponent=-1,scaleFactorExponent=0,name="1e10 Msolar/h" )
