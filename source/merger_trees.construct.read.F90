@@ -437,6 +437,25 @@ contains
           call Galacticus_Error_Report("Merger_Tree_Read_Initialize",message)
        end if
 
+       ! Warn if subhalo promotions are allowed, but branch jumps are not.
+       if (mergerTreeReadAllowSubhaloPromotions.and..not.mergerTreeReadAllowBranchJumps) then
+          message='WARNING: allowing subhalo promotions while not allowed branch jumps can lead to deadlocking of trees.'//char(10)
+          message=message//'Be sure that your trees have no promotion events for subhalos which survive beyond the end of their original branch'//char(10)
+          message=message//'For example, without branch jumping, "a" in the following tree (in which "==>" indicates subhalo host) is stuck in "1", so it cannot evolve to become "b" causing the subhalo promotion "b" to "c" to be unreachable, resulting in a deadlock of the tree:'//char(10)//char(10)
+          message=message//' ---   -----'//char(10)
+          message=message//' |a|==>| 1 |'//char(10)
+          message=message//' ---   -----'//char(10)
+          message=message//'  |         '//char(10)
+          message=message//' ---   -----'//char(10)
+          message=message//' |b|==>| 2 |'//char(10)
+          message=message//' ---   -----'//char(10)
+          message=message//'  |      |  '//char(10)
+          message=message//' ---   -----'//char(10)
+          message=message//' |c|   | 3 |'//char(10)
+          message=message//' ---   -----'//char(10)
+          call Galacticus_Display_Message(message,verbosityWarn)
+       end if
+
        ! Perform sanity checks if subhalos are not included.
        if (treesHaveSubhalos == integerFalse) then
           if (mergerTreeReadPresetMergerTimes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false')
