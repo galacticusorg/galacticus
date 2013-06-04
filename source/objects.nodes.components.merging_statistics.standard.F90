@@ -54,6 +54,13 @@ module Node_Component_Merging_Statistics_Standard
   !#     <classDefault>-1.0d0</classDefault>
   !#     <output unitsInSI="gigaYear" comment="Formation time of the node."/>
   !#   </property>
+  !#   <property>
+  !#     <name>nodeHierarchyLevel</name>
+  !#     <type>integer</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#     <output unitsInSI="0.0d0" comment="Initial level of the node in the tree hierarchy."/>
+  !#   </property>
   !#  </properties>
   !# </component>
 
@@ -110,8 +117,10 @@ contains
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type (treeNode                      ), pointer, intent(inout) :: thisNode
-    class(nodeComponentMergingStatistics), pointer                :: thisMergingStatisticsComponent
+    type   (treeNode                      ), pointer, intent(inout) :: thisNode
+    type   (treeNode                      ), pointer                :: descendentNode
+    class  (nodeComponentMergingStatistics), pointer                :: thisMergingStatisticsComponent
+    integer                                                         :: hierarchyLevel
     
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -123,8 +132,15 @@ contains
     thisMergingStatisticsComponent => thisNode%mergingStatistics(autoCreate=.true.)
     select type (thisMergingStatisticsComponent)
     class is (nodeComponentMergingStatisticsStandard)
-       call thisMergingStatisticsComponent%galaxyMajorMergerTimeSet(-1.0d0)
-       call thisMergingStatisticsComponent%  nodeMajorMergerTimeSet(-1.0d0)
+       hierarchyLevel=0
+       descendentNode => thisNode
+       do while (.not.descendentNode%isOnMainBranch())
+          if (.not.descendentNode%isPrimaryProgenitor()) hierarchyLevel=hierarchyLevel+1
+          descendentNode => descendentNode%parent
+       end do
+       call thisMergingStatisticsComponent%   nodeHierarchyLevelSet(hierarchyLevel)
+       call thisMergingStatisticsComponent%galaxyMajorMergerTimeSet(        -1.0d0)
+       call thisMergingStatisticsComponent%  nodeMajorMergerTimeSet(        -1.0d0)
        call thisMergingStatisticsComponent%    nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
     end select
     return
