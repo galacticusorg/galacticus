@@ -42,6 +42,11 @@ module Galacticus_Nodes
      logical                                     :: value
   end type nodeDataLogicalScalar
 
+  type, private :: nodeDataIntegerScalar
+     !% Type describing a non-evolvable scalar integer property of a node component.
+     integer                                     :: value
+  end type nodeDataIntegerScalar
+
   type, private :: nodeDataDoubleScalarEvolvable
      !% Type describing an evolvable scalar double property of a node component.
      double precision                            :: value,rate,scale
