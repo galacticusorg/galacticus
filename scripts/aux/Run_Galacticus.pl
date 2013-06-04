@@ -308,8 +308,10 @@ sub Launch_Models {
 		undef(@parameterArray);
 		foreach my $name ( sort(keys(%parameters)) ) {
 		    unless ( $name eq "label" ) {
+			my $value = $parameters{$name};
+			$value =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g;
 			$parameterArray[++$#parameterArray]->{'name'}  = $name;
-			$parameterArray[  $#parameterArray]->{'value'} = $parameters{$name};
+			$parameterArray[  $#parameterArray]->{'value'} = $value;
 		    }
 		}
 		$data->{'parameter'} = \@parameterArray;
@@ -489,7 +491,6 @@ sub Launch_Models {
 	}
 
     }
-
 }
 
 sub Model_Finalize {
