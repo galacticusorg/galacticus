@@ -62,6 +62,9 @@ contains
     use Numerical_Interpolation
     use Kind_Numbers
     use Merger_Trees_Dump
+    use Galacticus_Output_Times
+    use Numerical_Comparison
+    use Arrays_Search
     implicit none
     type(mergerTree),          intent(inout), target       :: thisTree
     type(treeNode),            pointer                     :: thisNode,childNode,siblingNode,nextNode
@@ -71,7 +74,7 @@ contains
     type (mergerTree        ), pointer                     :: currentTree
     type(fgsl_interp_accel)                                :: interpolationAccelerator
     logical                                                :: interpolationReset
-    integer                                                :: iNow,iParent,iTime,allocErr,jTime
+    integer                                                :: iNow,iParent,iTime,allocErr
     double precision                                       :: timeNow,timeParent,massNow,massParent
     integer(kind=kind_int8)                                :: nodeIndex,firstNewNode
 
@@ -192,18 +195,29 @@ contains
                    mergerTreeRegridTimeGrid(iTime)=Time_of_Collapse(mergerTreeRegridTimeGrid(iTime))
                 end do
              case (mergerTreeRegridSpacingMillennium)
-                ! Use the timesteps used in the original Millennium Simulation as reported by Croton et al.
-                ! (2006; MNRAS; 365; 11; http://adsabs.harvard.edu/abs/2006MNRAS.365...11C).
+                ! Use the timesteps used in the original Millennium Simulation as reported by Croton et al.  (2006; MNRAS; 365;
+                ! 11; http://adsabs.harvard.edu/abs/2006MNRAS.365...11C). Note that we specifically use the redshifts for these
+                ! snapshots as reported by the Millennium Database using query: "select z from Snapshots..MR".
                 ! Check for consistent number of timesteps.
                 if (mergerTreeRegridCount /= 60) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','"millennium" grid spacing requires exactly 60 timesteps')
                 ! Convert expansion factors to time.
+                mergerTreeRegridTimeGrid=[                                                                         &
+                     &                    19.915688d0,18.243723d0,16.724525d0,15.343073d0,14.085914d0,12.940780d0, &
+                     &                    11.896569d0,10.943864d0,10.073462d0, 9.277915d0, 8.549912d0, 7.883204d0, &
+                     &                     7.272188d0, 6.711586d0, 6.196833d0, 5.723864d0, 5.288833d0, 4.888449d0, &
+                     &                     4.519556d0, 4.179469d0, 3.865683d0, 3.575905d0, 3.308098d0, 3.060419d0, &
+                     &                     2.831182d0, 2.618862d0, 2.422044d0, 2.239486d0, 2.070027d0, 1.912633d0, &
+                     &                     1.766336d0, 1.630271d0, 1.503636d0, 1.385718d0, 1.275846d0, 1.173417d0, &
+                     &                     1.077875d0, 0.988708d0, 0.905463d0, 0.827699d0, 0.755036d0, 0.687109d0, &
+                     &                     0.623590d0, 0.564177d0, 0.508591d0, 0.456577d0, 0.407899d0, 0.362340d0, &
+                     &                     0.319703d0, 0.279802d0, 0.242469d0, 0.207549d0, 0.174898d0, 0.144383d0, &
+                     &                     0.115883d0, 0.089288d0, 0.064493d0, 0.041403d0, 0.019933d0, 0.000000d0  &
+                     &                   ]
                 do iTime=1,mergerTreeRegridCount
-                   jTime=mergerTreeRegridCount-iTime
-                   mergerTreeRegridTimeGrid(iTime)=0.1d0**(dble(jTime)*(dble(jTime)+35.0d0)/4200.0d0)
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeRegridTimeGrid(iTime)))
                 end do
              end select
-
+             
           end if
 
           ! Flag that module is initialized.
@@ -430,6 +444,7 @@ contains
 
                 ! Destroy the node.
                 call thisNode%destroy()
+                deallocate(thisNode)
 
              end if
 
