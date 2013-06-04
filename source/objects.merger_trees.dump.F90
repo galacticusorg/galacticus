@@ -32,12 +32,13 @@ module Merger_Trees_Dump
 contains
 
   subroutine Merger_Tree_Dump(treeIndex,baseNode,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
-       &,highlightStyle ,edgeStyle ,labelNodes,scaleNodesByLogMass,edgeLengthsToTimes)
+       &,highlightStyle ,edgeStyle ,labelNodes,scaleNodesByLogMass,edgeLengthsToTimes,path)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}. Nodes
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
     use Galacticus_Nodes
+    use ISO_Varying_String
     implicit none
     integer(kind=kind_int8),   intent(in)                         :: treeIndex
     type(treeNode),            intent(in), pointer                :: baseNode
@@ -45,6 +46,7 @@ contains
     character(len=*),          intent(in),               optional :: backgroundColor,nodeColor,highlightColor,edgeColor,nodeStyle&
          &,highlightStyle,edgeStyle
     logical,                   intent(in),               optional :: labelNodes,scaleNodesByLogMass,edgeLengthsToTimes
+    type(varying_string),      intent(in),               optional :: path
     type(treeNode),                        pointer                :: thisNode
     class(nodeComponentBasic),             pointer                :: thisBasicComponent,parentBasicComponent
     logical                                                       :: labelNodesActual,scaleNodesByLogMassActual,edgeLengthsToTimesActual
@@ -53,6 +55,7 @@ contains
     character(len=  20)                                           :: color,style,treeIndexFormatted,outputCountFormatted&
          &,backgroundColorActual,nodeColorActual,highlightColorActual,edgeColorActual,nodeStyleActual,highlightStyleActual,edgeStyleActual
     character(len=1024)                                           :: fileName
+    type(varying_string)                                          :: fullFileName
 
     ! If the tree index differs from the previous one, then reset the output count.
     if (treeIndex /= treeIndexPrevious) then
@@ -125,12 +128,12 @@ contains
        timeMinimum    =thisBasicComponent%time()
        timeMaximum    =thisBasicComponent%time()
        do while (associated(thisNode))
+          thisBasicComponent => thisNode%basic()
           if (thisBasicComponent%mass() < nodeMassMinimum) nodeMassMinimum=thisBasicComponent%mass()
           if (thisBasicComponent%mass() > nodeMassMaximum) nodeMassMaximum=thisBasicComponent%mass()
           if (thisBasicComponent%time() < timeMinimum    ) timeMinimum    =thisBasicComponent%time()
           if (thisBasicComponent%time() > timeMaximum    ) timeMaximum    =thisBasicComponent%time()
           call thisNode%walkTreeWithSatellites(thisNode)
-          thisBasicComponent => thisNode%basic()
        end do
        nodeMassMinimum=dlog(nodeMassMinimum)
        nodeMassMaximum=dlog(nodeMassMaximum)
@@ -139,18 +142,24 @@ contains
     end if
 
     ! Open an output file and write the GraphViz opening.
-    write (treeIndexFormatted  ,'(i8)') treeIndex
-    write (outputCountFormatted,'(i8)') outputCount
+    write (treeIndexFormatted  ,'(i16)') treeIndex
+    write (outputCountFormatted,'(i08)') outputCount
     write (fileName,'(a,a,a,a,a)') 'mergerTreeDump:',trim(adjustl(treeIndexFormatted)),':',trim(adjustl(outputCountFormatted)),'.gv'
-    open(newunit=fileUnit,file=fileName,status='unknown',form='formatted')
+    if (present(path)) then
+       fullFileName=path//"/"//trim(fileName)
+    else
+       fullFileName=trim(fileName)
+    end if
+    open(newunit=fileUnit,file=char(fullFileName),status='unknown',form='formatted')
     write (fileUnit,'(a)'    ) 'digraph Tree {'
     write (fileUnit,'(a,a,a)') 'bgcolor=',trim(backgroundColorActual),';'
     write (fileUnit,'(a)'    ) 'size="8,11";'
 
     ! Loop over all nodes.
-    thisNode           => baseNode
-    thisBasicComponent => thisNode%basic()
+    thisNode => baseNode
     do while (associated(thisNode))
+       ! Get the basic component.
+       thisBasicComponent => thisNode%basic()
        ! Write each node, setting the node shape to a box for subhalos and a circle for halos. Node label consists of the node
        ! index plus the redshift, separated by a colon.
        ! Determine node color.
@@ -185,7 +194,7 @@ contains
        end if
 
        ! Set size of node if requested.
-       if (scaleNodesByLogMassActual) then
+       if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
           nodeMass=10.0d0*(dlog(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
           write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%index(),'" [width=',nodeMass,'];'
        end if
