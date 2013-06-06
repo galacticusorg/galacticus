@@ -288,6 +288,7 @@ contains
     !% Reset exponential disk structure calculations.
     use Galacticus_Nodes
     use Kind_Numbers
+    use Tables, only : table1d
     use Node_Component_Disk_Exponential_Data
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

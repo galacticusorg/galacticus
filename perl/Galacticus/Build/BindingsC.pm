@@ -41,8 +41,21 @@ sub CBinding_Parse_Directive {
     my $unitName = $buildData->{'currentDocument'}->{'unitName'};
 
     # Construct the code for the binding.
-    $buildData->{'cBinding'}->{'code'} .= "bind(c,name='".$unitName."') :: ".$unitName."\n"
-	if ( $buildData->{'codeType'} eq "c" );
+    if ( $buildData->{'codeType'} eq "c" ) {
+	$buildData->{'cBinding'}->{'code'} .= "interface\n";
+	$buildData->{'cBinding'}->{'code'} .= "   subroutine ".$unitName."(methodName";
+	for(my $i=0;$i<$buildData->{'pointerCount'};++$i) {
+	    $buildData->{'cBinding'}->{'code'} .= ",functionPointer".$i;
+	}
+	$buildData->{'cBinding'}->{'code'} .= ") bind(C, name=\"".$unitName."\")\n";
+	$buildData->{'cBinding'}->{'code'} .= "      use, intrinsic :: ISO_C_Binding\n";
+	$buildData->{'cBinding'}->{'code'} .= "      character(kind=c_char) :: methodName(*)\n";
+        for(my $i=0;$i<$buildData->{'pointerCount'};++$i) {
+	    $buildData->{'cBinding'}->{'code'} .= "      type     (     c_ptr ) :: functionPointer".$i."\n";
+	}
+	$buildData->{'cBinding'}->{'code'} .= "   end subroutine ".$unitName."\n";
+	$buildData->{'cBinding'}->{'code'} .= "end interface\n";
+    }
 
 }
 

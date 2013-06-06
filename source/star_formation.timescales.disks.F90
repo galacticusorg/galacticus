@@ -63,7 +63,7 @@ contains
     !# </include>
     implicit none
     type(c_funptr) :: cFunctionPointer=c_null_funptr
-    !# <include directive="starFormationTimescaleDisksMethod" type="cBinding">
+    !# <include directive="starFormationTimescaleDisksMethod" type="cBinding" pointerCount="1" >
     include 'star_formation.timescales.disks.cBinding.inc'
     !# </include>
 
