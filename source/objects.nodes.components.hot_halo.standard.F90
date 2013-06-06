@@ -838,6 +838,10 @@ contains
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
     use Hot_Halo_Density_Profile
+
+!! AJB HACK
+use kind_numbers
+
     implicit none
     type (treeNode            ), pointer, intent(inout) :: thisNode
     logical                    ,          intent(inout) :: interrupt
@@ -880,6 +884,9 @@ contains
                & call thisHotHaloComponent%          massRate(      massAccretionRate)
           if (failedMassAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
                & call thisHotHaloComponent%unaccretedMassRate(failedMassAccretionRate)
+
+!! AJB HACK
+if ( thisnode%isprogenitorof(5540507_kind_int8)) write (0,*) thisHotHaloComponent%mass() ,thisHotHaloComponent%mass(),thisbasiccomponent%time()
 
           ! Next compute the cooling rate in this halo.
           call Node_Component_Hot_Halo_Standard_Cooling_Rate(thisNode)
