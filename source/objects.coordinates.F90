@@ -39,10 +39,14 @@ module Coordinates
      !@   <objectMethod>
      !@     <method>toCartesian</method>
      !@     <description>Return the coordinates in a Cartesian system as a 3-element array.</description>
+     !@     <type>\textcolor{red}{\textless double(3)\textgreater} </type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>fromCartesian</method>
      !@     <description>Set the coordinates from a Cartesian system specified as a 3-element array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} x\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toCartesian   => Coordinates_Null_To
@@ -55,36 +59,40 @@ module Coordinates
      !@ <objectMethods>
      !@   <object>coordinateCartesian</object>
      !@   <objectMethod>
-     !@     <method>toCartesian</method>
-     !@     <description>Return the coordinates in a Cartesian system as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fromCartesian</method>
-     !@     <description>Set the coordinates from a Cartesian system specified as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>x</method>
      !@     <description>Get the $x$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>y</method>
      !@     <description>Get the $y$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>z</method>
      !@     <description>Get the $z$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>xSet</method>
      !@     <description>set the $x$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ x\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>ySet</method>
      !@     <description>set the $y$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ y\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>zSet</method>
      !@     <description>set the $z$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toCartesian   => Coordinates_Cartesian_To_Cartesian
@@ -103,36 +111,40 @@ module Coordinates
      !@ <objectMethods>
      !@   <object>coordinateSpherical</object>
      !@   <objectMethod>
-     !@     <method>toCartesian</method>
-     !@     <description>Return the coordinates in a Cartesian system as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fromCartesian</method>
-     !@     <description>Set the coordinates from a Cartesian system specified as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>r</method>
      !@     <description>Get the $r$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>theta</method>
      !@     <description>Get the $\theta$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>phi</method>
      !@     <description>Get the $\phi$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>rSet</method>
      !@     <description>set the $r$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ r\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>thetaSet</method>
      !@     <description>set the $\theta$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ theta\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>phiSet</method>
      !@     <description>set the $\phi$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ phi\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toCartesian   => Coordinates_Spherical_To_Cartesian
@@ -151,36 +163,40 @@ module Coordinates
      !@ <objectMethods>
      !@   <object>coordinateCylindrical</object>
      !@   <objectMethod>
-     !@     <method>toCartesian</method>
-     !@     <description>Return the coordinates in a Cartesian system as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>fromCartesian</method>
-     !@     <description>Set the coordinates from a Cartesian system specified as a 3-element array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>r</method>
      !@     <description>Get the $r$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>phi</method>
      !@     <description>Get the $\phi$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>z</method>
      !@     <description>Get the $z$-coordinate.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>rSet</method>
      !@     <description>set the $r$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ r\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>phiSet</method>
      !@     <description>set the $\phi$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ phi\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>zSet</method>
      !@     <description>set the $z$-coordinate.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: toCartesian   => Coordinates_Cylindrical_To_Cartesian

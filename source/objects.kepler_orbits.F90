@@ -56,142 +56,212 @@ module Kepler_Orbits
      !@   <objectMethod>
      !@     <method>builder</method>
      !@     <description>Build a Kepler orbit from an XML definition.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} keplerOrbitDefinition\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>dump</method>
      !@     <description>Dump an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>dumpRaw</method>
      !@     <description>Dump an orbit in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>readRaw</method>
      !@     <description>Read an orbit in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>rese</method>
+     !@     <method>reset</method>
      !@     <description>Resets an orbit to a null state.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>destroy</method>
      !@     <description>Destroys an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>output</method>
      !@     <description>Store a {\tt keplerOrbit} object in the output buffers.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>outputCount</method>
      !@     <description>Specify the count of a {\tt keplerOrbit} object for output.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>outputNames</method>
      !@     <description>Specify the names of a {\tt keplerOrbit} object properties for output.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDefined</method>
      !@     <description>Returns true if an orbit is fully defined.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>assertIsDefined</method>
      !@     <description>Asserts that an orbit is fully defined.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isBound</method>
      !@     <description>Returns true if the orbit is bound.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>propagte</method>
+     !@     <method>propagate</method>
      !@     <description>Propagates an orbit to a new position.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ velocityRadial\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>velocityRadialSet</method>
      !@     <description>Sets the radial velocity of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ newRadius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massesSet</method>
      !@     <description>Sets the masses of satellite and host objects.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ satelliteMass\argin, \doublezero\ hostMass\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusSet</method>
      !@     <description>Sets the radius of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusPericenterSet</method>
      !@     <description>Sets the pericenter radius of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusApocenterSet</method>
      !@     <description>Sets the apocenter radius of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>velocityTangentialSet</method>
      !@     <description>Sets the tangential velocity of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ velocityTangential\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>energySet</method>
      !@     <description>Sets the energy of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ energy\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>eccentricitySet</method>
      !@     <description>Sets the eccentricity of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ eccentricity\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>angularMomentumSet</method>
      !@     <description>Sets the angular momentum of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ angularMomentum\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>semiMajorAxisSet</method>
      !@     <description>Sets the semi-major axis of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ semiMajorAxis\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>hostMass</method>
      !@     <description>Returns the host mass of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>velocityScale</method>
      !@     <description>Returns the velocity scale of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>reducedMassSpecific</method>
+     !@     <method>specificReducedMass</method>
      !@     <description>Returns the specific reduced mass (i.e. the reduced mass per unit satellite mass, $\mu_{\rm s} = M_{\rm host}/(M_{\rm satellite}+M_{\rm host})$) of the orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radius</method>
      !@     <description>Returns the radius of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusPericenter</method>
      !@     <description>Returns the pericenter radius of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusApocenter</method>
      !@     <description>Returns the apocenter radius of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>velocityRadial</method>
      !@     <description>Returns the radial velocity of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>velocityTangential</method>
      !@     <description>Returns the tangential velocity of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>energy</method>
      !@     <description>Returns the energy of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>eccentricity</method>
      !@     <description>Returns the eccentricity of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>angularMomentum</method>
      !@     <description>Returns the angular momentum of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>semiMajorAxis</method>
      !@     <description>Returns the semi-major axis of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: builder               => Kepler_Orbits_Builder

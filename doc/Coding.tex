@@ -167,7 +167,15 @@ The usual embedded XML directives specifies that this function should be called 
 
 \section{Objects}
 
+\subsection{Enumerations}
+
+Enumerations are used to communicate options to many functions in \glc. All available enumerations, along with their members, are described below.
+
+\input{dataEnumerations}
+
 \subsection{Object Methods}
+
+The type of each method, and the type and names of its arguments are specified for each method of each object. Types are shown in red, enclosed by angle brackets, with a ``{\tt *}'' indicating a pointer. A {\tt \textless void\textgreater} type indicates a subroutine. Blue arrows after each argument show the argument intent: \textcolor{blue}{$\leftarrow$} implies {\tt intent(in)},  \textcolor{blue}{$\rightarrow$} implies {\tt intent(out)}, and \textcolor{blue}{$\leftrightarrow$} implies {\tt intent(inout)}.
 
 \input{dataMethods}
 

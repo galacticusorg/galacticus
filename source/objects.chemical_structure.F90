@@ -53,25 +53,31 @@ module Chemical_Structures
      !@   <objectMethod>
      !@     <method>retrieve</method>
      !@     <description>Get a chemical from the database.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} chemicalName\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>export</method>
      !@     <description>Write a chemical structure to a CML file.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} coutputFile\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>charge</method>
+     !@     <description>Return the charge of a chemical.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>mass</method>
+     !@     <description>Return the mass of a chemical in atomic mass units.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure                                        :: retrieve => Chemical_Database_Get
      procedure                                        :: export   => Chemical_Structure_Export
-     !@ <objectMethod>
-     !@   <object>chemicalStructure</object>
-     !@   <method>charge</method>
-     !@   <description>Return the charge of a chemical.</description>
-     !@ </objectMethod>
      procedure                                        :: charge   => Chemical_Structure_Charge
-      !@ <objectMethod>
-     !@   <object>chemicalStructure</object>
-     !@   <method>mass</method>
-     !@   <description>Return the mass of a chemical in atomic mass units.</description>
-     !@ </objectMethod>
      procedure                                        :: mass     => Chemical_Structure_Mass
   end type chemicalStructure
 
@@ -269,7 +275,6 @@ contains
     use Galacticus_Error
     implicit none
     class(chemicalStructure), intent(inout) :: thisChemical
-
     character(len=*),         intent(in)    :: chemicalName
 
     select type (thisChemical)

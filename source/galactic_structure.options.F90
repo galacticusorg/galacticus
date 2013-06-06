@@ -23,6 +23,18 @@ module Galactic_Structure_Options
   public
 
   ! Values used to represent different mass types.
+  !@ <enumeration>
+  !@  <name>massType</name>
+  !@  <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
+  !@  <entry label="massTypeUnknown"   />
+  !@  <entry label="massTypeAll"       />
+  !@  <entry label="massTypeDark"      />
+  !@  <entry label="massTypeBaryonic"  />
+  !@  <entry label="massTypeGalactic"  />
+  !@  <entry label="massTypeGaseous"   />
+  !@  <entry label="massTypeStellar"   />
+  !@  <entry label="massTypeBlackHole" />
+  !@ </enumeration>
   integer         , parameter                               :: massTypeCount    = 7
   integer         , parameter                               :: massTypeUnknown  =-1
   integer         , parameter                               :: massTypeAll      = 0
@@ -44,6 +56,17 @@ module Galactic_Structure_Options
        &                                                        ]
   
   ! Values used to represent different component types.
+  !@ <enumeration>
+  !@  <name>componentType</name>
+  !@  <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
+  !@  <entry label="componentTypeUnknown"   />
+  !@  <entry label="componentTypeAll"       />
+  !@  <entry label="componentTypeDisk"      />
+  !@  <entry label="componentTypeSpheroid"  />
+  !@  <entry label="componentTypeHotHalo"   />
+  !@  <entry label="componentTypeDarkHalo"  />
+  !@  <entry label="componentTypeBlackHole" />
+  !@ </enumeration>
   integer         , parameter                                    :: componentTypeCount    = 6
   integer         , parameter                                    :: componentTypeUnknown  =-1
   integer         , parameter                                    :: componentTypeAll      = 0
@@ -63,11 +86,24 @@ module Galactic_Structure_Options
        &                                                         ]
 
   ! Coordinate system options.
+  !@ <enumeration>
+  !@  <name>coordinateSystem</name>
+  !@  <description>Used to specify the coordinate system of the input coordinates in galactic structure functions.</description>
+  !@  <entry label="coordinateSystemSpherical"   />
+  !@  <entry label="coordinateSystemCylindrical" />
+  !@  <entry label="coordinateSystemCartesian"   />
+  !@ </enumeration>
   integer,          parameter :: coordinateSystemSpherical  =1
   integer,          parameter :: coordinateSystemCylindrical=2
   integer,          parameter :: coordinateSystemCartesian  =3
 
   ! Weighting options.
+  !@ <enumeration>
+  !@  <name>weightBy</name>
+  !@  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
+  !@  <entry label="weightByMass"       />
+  !@  <entry label="weightByLuminosity" />
+  !@ </enumeration>
   integer,          parameter :: weightByMass      =0
   integer,          parameter :: weightByLuminosity=1
   integer,          parameter :: weightIndexNull   =0

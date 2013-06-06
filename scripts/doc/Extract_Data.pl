@@ -1,99 +1,182 @@
 #!/usr/bin/env perl
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use lib './perl';
+use strict;
+use warnings;
 use Switch;
 use XML::Simple;
 use Data::Dumper;
+use LaTeX::Encode;
+require Fortran::Utils;
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
 # Andrew Benson 12-Mar-2010
 
 # Get source directory
 unless ($#ARGV == 1) {die 'Usage: Extract_Data.pl <sourceDir> <outputRoot>'};
-$sourceDir  = $ARGV[0];
-$outputRoot = $ARGV[1];
+my $sourceDir  = $ARGV[0];
+my $outputRoot = $ARGV[1];
+
+# Specify regex for derived-type declarations.
+my $derivedTypeOpenRegex  = "^\\s*type\\s*(,\\s*abstract\\s*|,\\s*public\\s*|,\\s*private\\s*|,\\s*extends\\s*\\([a-zA-Z0-9_]+\\)\\s*)*(::)??\\s*([a-z0-9_]+)\\s*\$";
+my $derivedTypeCloseRegex = "^\\s*end\\s+type\\s+([a-z0-9_]+)";
+
+# Specify regex for type-bound procedures.
+my $typeBoundRegex = "^\\s*(procedure|generic)\\s*(,\\s*nopass\\s*)*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z0-9_,\\s]+)\$";
 
 # Create XML object.
-$xml = new XML::Simple;
+my $xml = new XML::Simple;
 
 # Open the source directory.
 opendir(dirHndl,$sourceDir);
 # Read files from the source directory.
 my @fileNames = ( "work/build/objects.nodes.components.Inc" );
-while ( $fileName = readdir(dirHndl) ) {
+while ( my $fileName = readdir(dirHndl) ) {
     # Find Fortran 90 and C++ source files.
     push(@fileNames,$sourceDir."/".$fileName)
 	if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ );
 }
 closedir(dirHndl);
 
+# Initialize data hashes.
+my %parametersRead;
+my %parametersData;
+my %objects;
+my %enumerations;
+
 foreach my $fileName ( @fileNames ) {
     # Get a printable file name.
-    ($fileNamePrint = $fileName) =~ s/_/\\_/g;
-    (my $leafName = $fileName) =~ s/^source\///;
+    (my $fileNamePrint = $fileName) =~ s/_/\\_/g;
+    (my $leafName = $fileName) =~ s/^$sourceDir\///;
     (my $leafNamePrint = $leafName) =~ s/_/\\_/g;
 
     # Open the file.
-    open(fileHndl,$fileName);
+    open(my $fileHandle,$fileName);
 
     # Initialize the data directive buffer.
-    $dataDirective  = "";
-    $openingElement = "";
+    my $dataDirective  = "";
+    my $openingElement = "";
 
     # Initialize the program unit stack.
+    my @programUnits;
     undef(@programUnits);
 
+    # Initialize derived-type boolean.
+    my $inDerivedType = "";
+
     # Scan the file.
-    while ( $line = <fileHndl> ) {
+    until ( eof($fileHandle) ) {
+
+	my $rawLine;
+	my $processedLine;
+	my $bufferedComments;
+	if ( $fileName =~ m/\.(F90|Inc)$/ ) {
+	    &Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+	} else {
+	    $rawLine = <$fileHandle>;
+	}
 
 	# Check for entering, leaving program units.
-	if ( $line =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
-	    $moduleName = $1;
+	if ( $rawLine =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
+	    my $moduleName = $1;
 	    unless ( $moduleName eq "procedure" ) {$programUnits[++$#programUnits] = "module:".$moduleName};
 	}
-	if ( $line =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "program:".$1};
-	if ( $line =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "subroutine:".$2};
-	if ( $line =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "function:".$5};
-	if ( $line =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {--$#programUnits};
+	if ( $rawLine =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "program:".$1};
+	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "subroutine:".$2};
+	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "function:".$5};
+	if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {--$#programUnits};
 
-	# Check for parameter reading lines - used to check that all parameters are documented.
-	if ( $line =~ m/^\s*call\s+get_input_parameter\s*\(\s*[\"\']\s*(\w+)\s*[\"\']/i ) {
-	    $parametersRead{$1} .= $fileName." ";
+	# Check for derived-type definitions.
+	if ( defined($processedLine) ) {
+	    if ( $processedLine =~ m/$derivedTypeOpenRegex/i ) {
+		$inDerivedType = $3;
+		$objects{lc($inDerivedType)}->{'name'} = $inDerivedType;
+		if ( defined($1) ) {
+		    my $attributes = $1;
+		    if ( $attributes =~ m/extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+			$objects{lc($inDerivedType)}->{'extends'} = lc($1);
+		    }
+		}
+	    }
+	    if ( $processedLine =~ m/$derivedTypeCloseRegex/i ) {
+		$inDerivedType = "";
+	    }
 	}
 
+	# Check for type-bound procedures.
+	if ( $inDerivedType ne "" ) {
+	    if ( $processedLine =~ m/$typeBoundRegex/i ) {
+		my $method = lc($3);
+		$objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
+		    unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
+	    }
+	}
+
+	# Check for parameter reading lines - used to check that all parameters are documented.
+	if ( $rawLine =~ m/^\s*call\s+get_input_parameter\s*\(\s*[\"\']\s*(\w+)\s*[\"\']/i ) {
+	    $parametersRead{$1} .= $fileName." ";
+	}
+       
 	# Search for "!@".
-	$process = 0;
-	if ( $line =~ m/^\s*(\!|\/\/)\@\s/ ) {
+	my $process = 0;
+	if ( $rawLine =~ m/^\s*(\!|\/\/)\@\s/ ) {
 	    # Found directive - add it to the buffer.
-	    if ( $dataDirective eq "" && $line =~ m/<([^>]+)>/ ) {
+	    if ( $dataDirective eq "" && $rawLine =~ m/<([^>]+)>/ ) {
 		$openingElement = $1;
-	    } elsif ( $line =~ m/<\/$openingElement>/ ) {
+	    } elsif ( $rawLine =~ m/<\/$openingElement>/ ) {
 		$process = 1;
 	    }
-	    $line =~ s/^\s*(\!|\/\/)\@\s*//;
-	    $line =~ s/\s*$//;
-	    $dataDirective .= $line." ";
+	    $rawLine =~ s/^\s*(\!|\/\/)\@\s*//;
+	    $rawLine =~ s/\s*$//;
+	    $dataDirective .= $rawLine." ";
 	} elsif ( $dataDirective ne "" ) {
 	    $process = 1;
 	}
 	if ( $process == 1 ) {
 	    # Process a directive.
 	    $openingElement = "";
-	    $data = eval{$xml->XMLin($dataDirective, KeepRoot => 1)};
-	    $lineNumber = $.;
+	    my $data = eval{$xml->XMLin($dataDirective, KeepRoot => 1)};
+	    my $lineNumber = $.;
 	    die("Extract_Data.pl failed in file ".$fileName." at line ".$lineNumber." with message:\n".$@."and data \n".$dataDirective) if ($@);
 
 	    # Loop over all data types found.
-	    foreach $dataType ( keys(%{$data}) ) {
-		$contents = $data->{$dataType};
+	    foreach my $dataType ( keys(%{$data}) ) {
+		my $contents = $data->{$dataType};
 		switch ( $dataType ) {
+		    case ( "enumeration" ) {
+			foreach ( @{$contents->{'entry'}}) {
+			    push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
+			}
+			my $programUnitIndex = $#programUnits;
+			$programUnitIndex = -1 
+			    unless ( defined($programUnits[$programUnitIndex]) );
+			my $regEx = "^module";
+			until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
+				--$programUnitIndex
+			}
+			($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
+			$enumerations {$contents->{'name'}}->{'file'       } = $leafName;
+			$enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
+		    }
 		    case ( "inputParameter" ) {
-			($printName = $contents->{'name'}) =~ s/_/\\_/g;
-			$buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
+			(my $printName = $contents->{'name'}) =~ s/_/\\_/g;
+			my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
 			$buffer .= "{\\bf Attached to:} ";
+			my $attachedTo;
+			my $attachedAt;
 			if ( exists($contents->{'attachedTo'}) ) {
-			    $programUnitIndex = $#programUnits;
-			    $regEx = $contents->{'attachedTo'}.":";
-			    until ( $programUnits[$programUnitIndex] =~ m/$regEx/ || $programUnitIndex == -1 ) {
+			    my $programUnitIndex = $#programUnits;
+			    my $regEx = $contents->{'attachedTo'}.":";
+			    $programUnitIndex = -1 
+				unless ( defined($programUnits[$programUnitIndex]) );
+			    until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
 				--$programUnitIndex
 			    }
 			    if ( $programUnitIndex >= 0 ) {
@@ -108,19 +191,21 @@ foreach my $fileName ( @fileNames ) {
 			    $attachedAt = $#programUnits;
 			}
 
-			$attachedLink = $leafName.":";
-			for($iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
+			my $attachedLink = $leafName.":";
+			for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
 			    if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
-				$unitName = lc($1);
+				my $unitName = lc($1);
 				$unitName =~ s/\\_/_/g;
 				$attachedLink .= $unitName.":";
 			    }
 			}
 			$attachedLink =~ s/:$//;
 
+			my $targetPrefix;
+			my $targetSuffix;
 			if ( $attachedTo =~ m/:/ ) {
 			    $targetPrefix = "\\hyperlink{".$attachedLink."}{";
-			    $targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/\1/;
+			    $targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
 			    $targetPrefix =~ s/program:/prog:/;
 			    $targetPrefix =~ s/module:/mod:/;
 			    $targetPrefix =~ s/subroutine:/sub:/;
@@ -146,19 +231,29 @@ foreach my $fileName ( @fileNames ) {
 			$parametersData{$contents->{'name'}} = $buffer;
 		    }
 		    case ( "objectMethod" ) {
-			$object = $contents->{'object'};
-			$objects{$object}->{$contents->{'method'}} = $contents->{'description'};
+			my $object = lc($contents->{'object'});
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'description'} = $contents->{'description'};
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'arguments'  } = $contents->{'arguments'  }
+			   if ( exists($contents->{'arguments'}) );
+			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
+			   if ( exists($contents->{'type'}) );
 		    }
 		    case ( "objectMethods" ) {
-			$object = $contents->{'object'};
+			my $object = lc($contents->{'object'});
 			my @methods;
 			if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
 			    @methods = @{$contents->{'objectMethod'}};
 			} else {
 			    push(@methods,$contents->{'objectMethod'});
 			}
-			foreach $method ( @methods ) {
-			    $objects{$object}->{$method->{'method'}} = $method->{'description'};
+			foreach my $method ( @methods ) {
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'method'     } = $method->{'method'     };
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'description'} = $method->{'description'};
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'arguments'  } = $method->{'arguments'  }
+			       if ( exists($method->{'arguments'}) );
+			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
+			       if ( exists($method->{'type'}) );
 			}
 		    }
 		}
@@ -171,8 +266,28 @@ foreach my $fileName ( @fileNames ) {
     }
 
     # Close the file.
-    close(fileHndl);
+    close($fileHandle);
 
+}
+
+# Copy any methods inherited from parent classes.
+my $foundExtensions = 1;
+while ( $foundExtensions == 1 ) {
+    $foundExtensions = 0;
+    foreach my $object ( sort(keys(%objects)) ) {
+	if ( defined($objects{$object}->{'extends'}) ) {
+	    $foundExtensions = 1;
+	    my $parent = $objects{$object}->{'extends'};
+	    unless ( defined($objects{$parent}->{'extends'}) ) {
+		foreach my $method ( keys(%{$objects{$parent}->{'methods'}}) ) {
+		    if ( ( ! exists($objects{$object}->{'methods'}->{$method}) ) || $objects{$object}->{'methods'}->{$method}->{'description'} eq "UNDEFINED" ) {
+			$objects{$object}->{'methods'}->{$method} = $objects{$parent}->{'methods'}->{$method};
+		    }
+		}
+		undef($objects{$object}->{'extends'});
+	    }
+	}
+    }
 }
 
 # Open output files.
@@ -180,19 +295,44 @@ open(parametersHndl,">".$outputRoot."Parameters.tex");
 open(methodHndl    ,">".$outputRoot."Methods.tex");
 
 # Write parameter descriptions.
-@sortedParameters = sort { $parametersData{$a} cmp $parametersData{$b} } keys %parametersData;
-foreach $parameterName ( @sortedParameters ) {
+my @sortedParameters = sort { $parametersData{$a} cmp $parametersData{$b} } keys %parametersData;
+foreach my $parameterName ( @sortedParameters ) {
     print parametersHndl $parametersData{$parameterName};
 }
 
 # Write method descriptions.
-foreach $object ( sort(keys(%objects)) ) {
-    print methodHndl "\\subsubsection{{\\tt ".$object."}}\\label{sec:AutoMethods".ucfirst($object)."}\n\n";
-    print methodHndl "\\begin{description}\n";
-    foreach $method ( sort(keys(%{$objects{$object}})) ) {
-	print methodHndl "\\item[{\\tt ".$method."}] ".$objects{$object}->{$method}."\n";
+foreach my $object ( sort(keys(%objects)) ) {
+    my $hasEntries = 0;
+    foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
+	if ( $objects{$object}->{'methods'}->{$method}->{'description'} eq "UNDEFINED" ) {
+	    print "Warning: missing data for method ".$method." of ".$object." object\n";
+	} else {
+	    $hasEntries = 1;
+	}
     }
-    print methodHndl "\\end{description}\n";
+    if ( $hasEntries == 1 ) {
+	print methodHndl "\\subsubsection{\\large {\\tt ".$objects{$object}->{'name'}."}}\\label{sec:AutoMethods".ucfirst($objects{$object}->{'name'})."}\n\n";
+	print methodHndl "\\begin{description}\n";
+	foreach my $method ( sort(keys(%{$objects{$object}->{'methods'}})) ) {
+	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" ) {
+		print methodHndl "\\item[]{\\tt ";
+		if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
+		    print methodHndl $objects{$object}->{'methods'}->{$method}->{'type'}."\\ ";
+		} else {
+		    print "Warning: missing type for method ".$method." of ".$object." object\n";
+		}
+		print methodHndl $objects{$object}->{'methods'}->{$method}->{'method'}."(";
+		if ( exists($objects{$object}->{'methods'}->{$method}->{'arguments'}) ) {
+		    print methodHndl $objects{$object}->{'methods'}->{$method}->{'arguments'}
+		       unless ( UNIVERSAL::isa($objects{$object}->{'methods'}->{$method}->{'arguments'},"HASH") );
+		} else {
+		    print "Warning: missing arguments for method ".$method." of ".$object." object\n";
+		}
+		print methodHndl ")} ".$objects{$object}->{'methods'}->{$method}->{'description'}."\n";
+	    }
+	}
+	print methodHndl "\\end{description}\n";
+    }
 }
 
 # Close the output files.
@@ -200,10 +340,31 @@ close(parametersHndl);
 close(methodHndl);
 
 # Write warning messages about missing data.
-foreach $parameterRead ( keys(%parametersRead) ) {
+foreach my $parameterRead ( keys(%parametersRead) ) {
     unless ( exists($parametersData{$parameterRead}) ) {
 	print "Warning: missing data for input parameter [".$parameterRead."] in file ".$parametersRead{$parameterRead}."\n";
     }
 }
+
+# Construct enumeration documentation.
+open(oHndl,">".$outputRoot."Enumerations.tex");
+open(sHndl,">".$outputRoot."EnumerationSpecifiers.tex");
+foreach ( sort(keys(%enumerations)) ) {
+    print oHndl "\\subsubsection{\\large {\\tt ".$_."}}\\hypertarget{ht:AutoEnumerations".ucfirst($_)."}{}\\label{sec:AutoEnumerations".ucfirst($_)."}\\index{enumerations!".$_."\@{\\tt ".$_."}}\n\n";
+    print oHndl "\\begin{tabular}{rp{130mm}}\n";
+    print oHndl "Description: & ".$enumerations{$_}->{'description'}." \\\\\n";
+    print oHndl "Provided by: & {\\tt module} \\hyperlink{".$enumerations{$_}->{'file'}.":".lc($enumerations{$_}->{'module'})."}{\\tt ".latex_encode($enumerations{$_}->{'module'})."} \\\\\n";
+    my $first = 1;
+    foreach my $entry ( @{$enumerations{$_}->{'entry'}} ) {
+	print oHndl "Members:"
+	    if ( $first == 1 );
+	print oHndl " & {\\tt ".$entry."}\\\\\n";
+	$first = 0;
+    }
+    print oHndl "\\end{tabular}\n";
+    print sHndl "\\def\\enum".ucfirst($_)."{\\textcolor{red}{\\hyperlink{ht:AutoEnumerations".ucfirst($_)."}{\\textless ".$_."\\textgreater}}}\n";
+}
+close(oHndl);
+close(sHndl);
 
 exit;

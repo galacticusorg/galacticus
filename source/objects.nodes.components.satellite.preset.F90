@@ -35,7 +35,7 @@ module Node_Component_Satellite_Preset
   !#     <name>mergeTime</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Preset_Merge_Time</getFunction>
@@ -53,7 +53,7 @@ module Node_Component_Satellite_Preset
   !#     <name>boundMass</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction>SatellitePresetMergeBoundMass</getFunction>
   !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>

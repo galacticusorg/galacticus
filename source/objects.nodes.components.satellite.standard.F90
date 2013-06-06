@@ -44,7 +44,7 @@ module Node_Component_Satellite_Standard
   !#     <name>timeOfMerging</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Standard_Time_Of_Merging</getFunction>

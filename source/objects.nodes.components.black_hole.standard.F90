@@ -66,19 +66,21 @@ module Node_Component_Black_Hole_Standard
   !#     <name>massSeed</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Mass</getFunction>
   !#   </property>
   !#   <property>
   !#     <name>spinSeed</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Black_Hole_Standard_Seed_Spin</getFunction>
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" description="Compute the mass enclosed within a radius for the standard black hole component." bindsTo="component"/>
+  !#   <binding method="enclosedMass" function="Node_Component_Black_Hole_Standard_Enclosed_Mass" bindsTo="component"/>
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.standard.bound_functions.inc</functions>
   !# </component>

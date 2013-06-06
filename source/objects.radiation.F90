@@ -47,28 +47,32 @@ module Radiation_Structure
      !@   <objectMethod>
      !@     <method>define</method>
      !@     <description>Define the radiation components active in a given radiation object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intone\ radiationTypes\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDefined</method>
      !@     <description>Return true if the radiation component is defined, false otherwise.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>set</method>
      !@     <description>Set the radiation components in the radiation object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater thisNode}</arguments>
      !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: isDefined      => Radiation_Is_Defined
-     procedure :: define         => Radiation_Define
-     procedure :: set            => Radiation_Set
-     !@ <objectMethods>
-     !@   <object>radiationStructure</object>
      !@   <objectMethod>
      !@     <method>temperature</method>
      !@     <description>Return the temperature (in units of Kelvin) of the given radiation structure.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\intone\ [radiationType]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>flux</method>
      !@     <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ wavelength\argin, \intone\ [radiationType]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>integrateOverCrossSection</method>
@@ -76,12 +80,19 @@ module Radiation_Structure
      !@       Integrates the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation structure between
      !@       the wavelengths given in {\tt wavelengthRange} over a cross section specified by the function {\tt crossSectionFunction}.
      !@     </description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ wavelength\argin, \intone\ [radiationType]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>time</method>
      !@     <description>The cosmic time at which this radiation object was set.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: isDefined      => Radiation_Is_Defined
+     procedure :: define         => Radiation_Define
+     procedure :: set            => Radiation_Set
      procedure :: temperature               => Radiation_Temperature
      procedure :: flux                      => Radiation_Flux
      procedure :: integrateOverCrossSection => Radiation_Integrate_Over_Cross_Section

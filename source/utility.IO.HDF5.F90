@@ -70,64 +70,172 @@ module IO_HDF5
      logical                   :: chunkSizeSet,compressionLevelSet
      type(hdf5Object), pointer :: parentObject
    contains
-
-     ! Destroy methods.
-     !@ <objectMethod>
-     !@   <object>hdf5Object</object>
-     !@   <method>destroy</method>
-     !@   <description>Destroys the given object.</description>
-     !@ </objectMethod>
-     procedure :: destroy => IO_HDF5_Destroy  
-     ! Location methods.
-     !@ <objectMethod>
-     !@   <object>hdf5Object</object>
-     !@   <method>pathTo</method>
-     !@   <description>Returns the path to a given object.</description>
-     !@ </objectMethod>
-     procedure :: pathTo => IO_HDF5_Path_To
-     ! Open methods.
-     !@ <objectMethods>
-     !@   <object>hdf5Object</object>
-     !@   <objectMethod>
-     !@     <method>openFile</method>
-     !@     <description>Open an HDF5 file and return an appropriate HDF5 object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>openGroup</method>
-     !@     <description>Open an HDF5 group and return an appropriate HDF5 object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>openDataset</method>
-     !@     <description>Open an HDF5 dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>openAttribute</method>
-     !@     <description>Open an HDF5 attribute.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: openFile            => IO_HDF5_Open_File
-     procedure :: openGroup           => IO_HDF5_Open_Group
-     procedure :: openDataset         => IO_HDF5_Open_Dataset
-     procedure :: openAttribute       => IO_HDF5_Open_Attribute
-     ! Close methods.
-     !@ <objectMethod>
-     !@   <object>hdf5Object</object>
-     !@   <method>close</method>
-     !@   <description>Close an HDF5 object.</description>
-     !@ </objectMethod>
-     procedure :: close               => IO_HDF5_Close
-     ! Write methods.
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
      !@   <objectMethod>
      !@     <method>writeAttribute</method>
      !@     <description>Write an attribute to an HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))(|[:])) \textgreater} attributeValue\argin, \textcolor{red}{\textless character(len=*)\textgreater} [attributeName]\argin)</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>writeDataset</method>
      !@     <description>Write a dataset to an HDF5 group.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$\footnote{For {\tt double} datasets, up to 5-dimensional datasets are supported.}]) \textgreater} datasetValue\argin, \textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin), \textcolor{red}{\textless character(len=*)\textgreater} [commentText]\argin, \logicalzero [appendTo]\argin, \intzero [chunkSize]\argin, \intzero [compressionLevel]\argin, \textcolor{red}{\textless type(hdf5Object} [datasetReturned]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readAttribute</method>
+     !@     <description>Read an attribute from an HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [attributeName]\argin), \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$*]) \textgreater} attributeValue\argout, \logicalzero [allowPseudoScalar]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readAttributeStatic</method>
+     !@     <description>Read an attribute from an HDF5 object into a static array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [attributeName]\argin), \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$]) \textgreater} attributeValue\argout, \logicalzero [allowPseudoScalar]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readDataset</method>
+     !@     <description>Read a dataset from an HDF5 group into an allocatable array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin), \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$*]) \textgreater} datasetValue\argout, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readBegin]\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readCount]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readDatasetStatic</method>
+     !@     <description>Read a dataset from an HDF5 group into a static array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin, \textcolor{red}{\textless (integer|integer(kind=kind\_int8)|double|character(len=*)|type(varying\_string))[:$^{0-1}$]) \textgreater} datasetValue\argout, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readBegin]\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)[1]\textgreater} [readCount]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <description>Return the size of a dataset.</description>
+     !@     <type>\textcolor{red}{\textless integer(kind=HSIZE\_T)\textgreater}</type>
+     !@     <arguments>\intzero\ dim\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hasAttribute</method>
+     !@     <description>Check if an object has a named attribute.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [attributeName]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hasGroup</method>
+     !@     <description>Check if an object has a named group.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [groupName]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hasDataset</method>
+     !@     <description>Check if an object has a named dataset.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [datasetName]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>assertAttributeType</method>
+     !@     <description>Check the type and rank of an attribute.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless integer(kind=HID\_T)(:)\textgreater} attributeAssertedType\argin, \intzero\ attributeAssertedRank\argin, [matches]\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>assertDatasetType</method>
+     !@     <description>Check the type and rank of a dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless integer(kind=HID\_T)(:)\textgreater} datasetAssertedType\argin, \intzero\ datasetAssertedRank\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isReference</method>
+     !@     <description>Return true if a dataset is a reference.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isOpen</method>
+     !@     <description>Return true if an object is open.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createReference1D</method>
+     !@     <description>Create a reference to a 1D dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} toDataset\arginout, \textcolor{red}{\textless character(len=*)\textgreater} referenceName\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(1)\textgreater} referenceStart\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(1)\textgreater} referenceCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createReference2D</method>
+     !@     <description>Create a reference to a 2D dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} toDataset\arginout, \textcolor{red}{\textless character(len=*)\textgreater} referenceName\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(2)\textgreater} referenceStart\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(2)\textgreater} referenceCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createReference3D</method>
+     !@     <description>Create a reference to a 2D dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} toDataset\arginout, \textcolor{red}{\textless character(len=*)\textgreater} referenceName\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(3)\textgreater} referenceStart\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(3)\textgreater} referenceCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createReference4D</method>
+     !@     <description>Create a reference to a 2D dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} toDataset\arginout, \textcolor{red}{\textless character(len=*)\textgreater} referenceName\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(4)\textgreater} referenceStart\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(4)\textgreater} referenceCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createReference5D</method>
+     !@     <description>Create a reference to a 2D dataset.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)\textgreater} toDataset\arginout, \textcolor{red}{\textless character(len=*)\textgreater} referenceName\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(5)\textgreater} referenceStart\argin, \textcolor{red}{\textless integer(kind=HSIZE\_T)(5)\textgreater} referenceCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroy an HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>close</method>
+     !@     <description>Close an HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>pathTo</method>
+     !@     <description>Returns the path to a given object.</description>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>openFile</method>
+     !@     <description>Open an HDF5 file and return an appropriate HDF5 object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} [fileName], \logicalzero\ [overWrite]\argin, \logicalzero\ [readOnly]\argin, \logicalzero\ [objectsOverwritable]\argin, \intzero\ [chunkSize]\argin, \intzero\ [compressionLevel]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>openGroup</method>
+     !@     <description>Open an HDF5 group and return an appropriate HDF5 object.</description>
+     !@     <type>\textcolor{red}{\textless type(hdf5Object}</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} groupName\argin, \textcolor{red}{\textless character(len=*)\textgreater} [commentText]\argin, \logicalzero\ [overWrite]\argin, \logicalzero\ [objectsOverwritable]\argin, \intzero\ [chunkSize]\argin, \intzero\ [compressionLevel]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>openDataset</method>
+     !@     <description>Open an HDF5 dataset.</description>
+     !@     <type>\textcolor{red}{\textless type(hdf5Object}</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} datasetName\argin, \textcolor{red}{\textless character(len=*)\textgreater} [commentText]\argin, \intzero\ [datasetDataType]\argin,  \textcolor{red}{\textless integer(kind=HSIZE\_T)(:)\textgreater} [datasetDimensions]\argin, \logicalzero\ [isOverwritable]\argin, \logicalzero\ [appendTo]\argin, \textcolor{red}{\textless integer(kind=HID\_T)\textgreater} [useDataType]\argin, \intzero\ [chunkSize]\argin, \intzero\ [compressionLevel]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>openAttribute</method>
+     !@     <description>Open an HDF5 attribute.</description>
+     !@     <type>\textcolor{red}{\textless type(hdf5Object}</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} attributeName\argin, \intzero\ [attributeDataType]\argin,  \textcolor{red}{\textless integer(kind=HSIZE\_T)(:)\textgreater} [attributeDimensions]\argin, \logicalzero\ [isOverwritable]\argin, \textcolor{red}{\textless integer(kind=HID\_T)\textgreater} [useDataType]\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
+     procedure :: destroy             => IO_HDF5_Destroy  
+     procedure :: pathTo              => IO_HDF5_Path_To
+     procedure :: openFile            => IO_HDF5_Open_File
+     procedure :: openGroup           => IO_HDF5_Open_Group
+     procedure :: openDataset         => IO_HDF5_Open_Dataset
+     procedure :: openAttribute       => IO_HDF5_Open_Attribute
+     procedure :: close               => IO_HDF5_Close
      procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Write_Attribute_Integer_1D
      procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar
@@ -166,30 +274,6 @@ module IO_HDF5
           &                              IO_HDF5_Write_Dataset_Double_5D         , &
           &                              IO_HDF5_Write_Dataset_Character_1D      , &
           &                              IO_HDF5_Write_Dataset_VarString_1D
-     ! Read methods.
-     !@ <objectMethods>
-     !@   <object>hdf5Object</object>
-     !@   <objectMethod>
-     !@     <method>readAttribute</method>
-     !@     <description>Read an attribute from an HDF5 object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readAttributeStatic</method>
-     !@     <description>Read an attribute from an HDF5 object into a static array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readDataset</method>
-     !@     <description>Read a dataset from an HDF5 group into an allocatable array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readDatasetStatic</method>
-     !@     <description>Read a dataset from an HDF5 group into a static array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>size</method>
-     !@     <description>Return the size of a dataset.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
      procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
      procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Static
@@ -257,38 +341,6 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
      procedure :: size                => IO_HDF5_Dataset_Size
-     ! Check methods.
-     !@ <objectMethods>
-     !@   <object>hdf5Object</object>
-     !@   <objectMethod>
-     !@     <method>hasAttribute</method>
-     !@     <description>Check if an object has a named attribute.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hasGroup</method>
-     !@     <description>Check if an object has a named group.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hasDataset</method>
-     !@     <description>Check if an object has a named dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assertAttributeType</method>
-     !@     <description>Check the type and rank of an attribute.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>assertDatasetType</method>
-     !@     <description>Check the type and rank of a dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isReference</method>
-     !@     <description>Return true if a dataset is a reference.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>isOpen</method>
-     !@     <description>Return true if an object is open.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure :: hasAttribute        => IO_HDF5_Has_Attribute
      procedure :: hasGroup            => IO_HDF5_Has_Group
      procedure :: hasDataset          => IO_HDF5_Has_Dataset
@@ -296,39 +348,11 @@ module IO_HDF5
      procedure :: assertDatasetType   => IO_HDF5_Assert_Dataset_Type
      procedure :: isReference         => IO_HDF5_Is_Reference
      procedure :: isOpen              => IO_HDF5_Is_Open
-     !@ <objectMethods>
-     !@   <object>hdf5Object</object>
-     !@   <objectMethod>
-     !@     <method>createReference1D</method>
-     !@     <description>Create a reference to a 1D dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createReference2D</method>
-     !@     <description>Create a reference to a 2D dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createReference3D</method>
-     !@     <description>Create a reference to a 2D dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createReference4D</method>
-     !@     <description>Create a reference to a 2D dataset.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createReference5D</method>
-     !@     <description>Create a reference to a 2D dataset.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure :: createReference1D   => IO_HDF5_Create_Reference_Scalar_To_1D
      procedure :: createReference2D   => IO_HDF5_Create_Reference_Scalar_To_2D
      procedure :: createReference3D   => IO_HDF5_Create_Reference_Scalar_To_3D
      procedure :: createReference4D   => IO_HDF5_Create_Reference_Scalar_To_4D
      procedure :: createReference5D   => IO_HDF5_Create_Reference_Scalar_To_5D
-     !@ <objectMethod>
-     !@   <object>hdf5Object</object>
-     !@   <method>destroy</method>
-     !@   <description>Destroy an HDF5 object.</description>
-     !@ </objectMethod>
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.

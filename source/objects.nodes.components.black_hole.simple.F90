@@ -44,12 +44,13 @@ module Node_Component_Black_Hole_Simple
   !#     <name>massSeed</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <getFunction>Node_Component_Black_Hole_Simple_Seed_Mass</getFunction>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#     <binding method="enclosedMass" function="Node_Component_Black_Hole_Simple_Enclosed_Mass" description="Compute the mass enclosed within a radius for the simple black hole component." bindsTo="component" />
+  !#     <binding method="enclosedMass" function="Node_Component_Black_Hole_Simple_Enclosed_Mass" bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   !# </component>

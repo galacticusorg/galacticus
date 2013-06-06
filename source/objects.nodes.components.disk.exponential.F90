@@ -87,7 +87,7 @@ module Node_Component_Disk_Exponential
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Disk_Exponential_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
@@ -102,7 +102,7 @@ module Node_Component_Disk_Exponential
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[diskOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Disk star formation rate."/>
   !#   </property>
   !#   <property>
@@ -127,13 +127,13 @@ module Node_Component_Disk_Exponential
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="attachPipes"           function="Node_Component_Disk_Exponential_Attach_Pipes"            description="Attach pipes to the exponential disk component."                               type="void" bindsTo="component" />
-  !#   <binding method="enclosedMass"          function="Node_Component_Disk_Exponential_Enclosed_Mass"           description="Compute the mass enclosed within a radius for the exponential disk component."             bindsTo="component" />
-  !#   <binding method="density"               function="Node_Component_Disk_Exponential_Density"                 description="Compute the density for the exponential disk component."                                   bindsTo="component" />
-  !#   <binding method="potential"             function="Node_Component_Disk_Exponential_Potential"               description="Compute the gravitational potential for the exponential disk component."                   bindsTo="component" />
-  !#   <binding method="rotationCurve"         function="Node_Component_Disk_Exponential_Rotation_Curve"          description="Compute the rotation curve for the exponential disk component."                            bindsTo="component" />
-  !#   <binding method="rotationCurveGradient" function="Node_Component_Disk_Exponential_Rotation_Curve_Gradient" description="Compute the rotation curve gradient for the exponential disk component."                   bindsTo="component" />
-  !#   <binding method="surfaceDensity"        function="Node_Component_Disk_Exponential_Surface_Density"         description="Compute the surface density for the exponential disk component."                           bindsTo="component" />
+  !#   <binding method="attachPipes" function="Node_Component_Disk_Exponential_Attach_Pipes" description="Attach pipes to the exponential disk component." type="void" returnType="\void" arguments="" bindsTo="component" />
+  !#   <binding method="enclosedMass"          function="Node_Component_Disk_Exponential_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="density"               function="Node_Component_Disk_Exponential_Density"                 bindsTo="component" />
+  !#   <binding method="potential"             function="Node_Component_Disk_Exponential_Potential"               bindsTo="component" />
+  !#   <binding method="rotationCurve"         function="Node_Component_Disk_Exponential_Rotation_Curve"          bindsTo="component" />
+  !#   <binding method="rotationCurveGradient" function="Node_Component_Disk_Exponential_Rotation_Curve_Gradient" bindsTo="component" />
+  !#   <binding method="surfaceDensity"        function="Node_Component_Disk_Exponential_Surface_Density"         bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.disk.exponential.bound_functions.inc</functions>
   !# </component>

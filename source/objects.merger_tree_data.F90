@@ -26,6 +26,35 @@ module Merger_Tree_Data_Structure
   public :: mergerTreeData
 
   ! Property labels.
+  !@ <enumeration>
+  !@  <name>propertyType</name>
+  !@  <description>Used to specify properties in a {\tt mergerTreeData} structure.</description>
+  !@  <entry label="propertyTypeTreeIndex"              />
+  !@  <entry label="propertyTypeNodeIndex"              />
+  !@  <entry label="propertyTypeDescendentIndex"        />
+  !@  <entry label="propertyTypeHostIndex"              />
+  !@  <entry label="propertyTypeRedshift"               />
+  !@  <entry label="propertyTypeNodeMass"               />
+  !@  <entry label="propertyTypeParticleCount"          />
+  !@  <entry label="propertyTypePositionX"              />
+  !@  <entry label="propertyTypePositionY"              />
+  !@  <entry label="propertyTypePositionZ"              />
+  !@  <entry label="propertyTypeVelocityX"              />
+  !@  <entry label="propertyTypeVelocityY"              />
+  !@  <entry label="propertyTypeVelocityZ"              />
+  !@  <entry label="propertyTypeSpinX"                  />
+  !@  <entry label="propertyTypeSpinY"                  />
+  !@  <entry label="propertyTypeSpinZ"                  />
+  !@  <entry label="propertyTypeSpin"                   />
+  !@  <entry label="propertyTypeAngularMomentumX"       />
+  !@  <entry label="propertyTypeAngularMomentumY"       />
+  !@  <entry label="propertyTypeAngularMomentumZ"       />
+  !@  <entry label="propertyTypeAngularMomentum"        />
+  !@  <entry label="propertyTypeHalfMassRadius"         />
+  !@  <entry label="propertyTypeParticleIndex"          />
+  !@  <entry label="propertyTypeMostBoundParticleIndex" />
+  !@  <entry label="propertyTypeSnapshot"               />
+  !@ </enumeration>
   integer, parameter         :: propertyTypeNull                  = 1
   integer, parameter, public :: propertyTypeTreeIndex             = 2
   integer, parameter, public :: propertyTypeNodeIndex             = 3
@@ -92,6 +121,14 @@ module Merger_Tree_Data_Structure
        &                                            ]
 
   ! Units labels.
+  !@ <enumeration>
+  !@  <name>units</name>
+  !@  <description>Used to specify the type of units being stored in a {\tt mergerTreeData} structure.</description>
+  !@  <entry label="unitsMass"     />
+  !@  <entry label="unitsLength"   />
+  !@  <entry label="unitsTime"     />
+  !@  <entry label="unitsVelocity" />
+  !@ </enumeration>
   integer, parameter         :: unitTypeCount=4
   integer, parameter, public :: unitsMass    =1
   integer, parameter, public :: unitsLength  =2
@@ -106,6 +143,16 @@ module Merger_Tree_Data_Structure
   end type unitsMetaData
 
   ! Metadata labels.
+  !@ <enumeration>
+  !@  <name>metaDataType</name>
+  !@  <description>Used to specify the type of metadata being stored in a {\tt mergerTreeData} structure.</description>
+  !@  <entry label="metaDataGeneric"     />
+  !@  <entry label="metaDataCosmology"   />
+  !@  <entry label="metaDataSimulation"  />
+  !@  <entry label="metaDataGroupFinder" />
+  !@  <entry label="metaDataTreeBuilder" />
+  !@  <entry label="metaDataProvenance"  />
+  !@ </enumeration>
   integer, parameter         :: metaDataTypeCount  =6 
   integer, parameter, public :: metaDataGeneric    =1
   integer, parameter, public :: metaDataCosmology  =2
@@ -115,6 +162,13 @@ module Merger_Tree_Data_Structure
   integer, parameter, public :: metaDataProvenance =6
 
   ! Data types for metadata.
+  !@ <enumeration>
+  !@  <name>dataType</name>
+  !@  <description>Used to specify the type of data being stored in a {\tt mergerTreeData} structure metadata entry.</description>
+  !@  <entry label="dataTypeInteger" />
+  !@  <entry label="dataTypeDouble"  />
+  !@  <entry label="dataTypeText"    />
+  !@ </enumeration>
   integer, parameter         :: dataTypeNull       =0
   integer, parameter         :: dataTypeInteger    =1
   integer, parameter         :: dataTypeDouble     =2
@@ -129,14 +183,6 @@ module Merger_Tree_Data_Structure
      double precision     :: doubleAttribute
      type(varying_string) :: textAttribute
   end type treeMetaData
-
-  ! Labels for operators used in pruning conditions.
-  integer, parameter, public :: operatorEqual             =1
-  integer, parameter, public :: operatorNotEqual          =2
-  integer, parameter, public :: operatorGreaterThan       =3
-  integer, parameter, public :: operatorLessThan          =4
-  integer, parameter, public :: operatorGreaterThanOrEqual=5
-  integer, parameter, public :: operatorLessThanOrEqual   =6
 
   type mergerTreeData
      !% A structure that holds raw merger tree data.
@@ -163,6 +209,117 @@ module Merger_Tree_Data_Structure
      integer                                              :: metaDataCount=0
      type(treeMetaData),      allocatable, dimension(:)   :: metaData
    contains
+     !@ <objectMethods>
+     !@   <object>mergerTreeData</object>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <description>Reset the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>treeCountSet</method>
+     !@     <description>Set the total number of trees in the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ treeCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nodeCountSet</method>
+     !@     <description>Set the total number of nodes in the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ nodeCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>particleCountSet</method>
+     !@     <description>Set the total number of particles in the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ particleCount\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readASCII</method>
+     !@     <description>Read node data from an ASCII file into the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>inputFile\argin, [lineNumberStart]\argin, [lineNumberStop]\argin, [separator]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readParticlesASCII</method>
+     !@     <description>Read particle data from an ASCII file into the data structure</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} inputFile\argin, \intzero\ [lineNumberStart]\argin, \intzero\ [lineNumberStop]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [separator]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setProperty</method>
+     !@     <description>Set a node property in the data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumPropertyType\ propertyType\argin, \textcolor{red}{\textless integer(kind=kind\_int8)(:)|\doubleone\textgreater} property\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setPropertyColumn</method>
+     !@     <description>Set the column in an ASCII data file corresponding to a given node property.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumPropertyType\ propertyType\argin, columnNumber\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setParticlePropertyColumn</method>
+     !@     <description>Set the column in an ASCII data file corresponding to a given particle property.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumPropertyType\ propertyType\argin, \intzero\ columnNumber\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setParticleMass</method>
+     !@     <description>Set the mass of an N-body particle in the simulation from which the trees were derived.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ particleMass\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setSelfContained</method>
+     !@     <description>Specify if trees are self-contained (i.e. contain no cross-links to other trees).</description>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ areSelfContained\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setIncludesHubbleFlow</method>
+     !@     <description>Specify if velocities include the Hubble flow.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ includesHubbleFlow\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setPositionsArePeriodic</method>
+     !@     <description>Set if positions are periodic.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ isPeriodic\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setIncludesSubhaloMasses</method>
+     !@     <description>Set whether halo masses include the masses of the subhalos.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ includesSubhaloMasses\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setUnits</method>
+     !@     <description>Set the units used.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumMetaDataType\ unitType\argin, \doublezero\ unitsInSI\argin, \intzero\ [hubbleExponent]\argin, \intzero\ [scaleFactorExponent]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [name]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>addMetadata</method>
+     !@     <description>Add a metadatum to the tree data structure.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\enumMetaDataType\ metadataType\argin, \textcolor{red}{\textless character(len=*)\textgreater} label\argin, \textcolor{red}{\textless (\doublezero,\intzero,character(len=*))\textgreater} value\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>makeReferences</method>
+     !@     <description>Specify whether or not merger tree dataset references should be made.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\logicalzero\ makeReferences\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>export</method>
+     !@     <description>Export the tree data to an output file.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \textcolor{red}{\textless character(len=*)\textgreater} outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure                                            :: reset                     => Merger_Tree_Data_Structure_Reset
      procedure                                            :: treeCountSet              => Merger_Tree_Data_Structure_Set_Tree_Count
      procedure                                            :: nodeCountSet              => Merger_Tree_Data_Structure_Set_Node_Count

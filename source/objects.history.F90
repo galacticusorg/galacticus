@@ -29,7 +29,141 @@ module Histories
      double precision, allocatable, dimension(:,:) :: data
      integer                                       :: rangeType
    contains
-     ! Operators.
+     !@ <objectMethods>
+     !@   <object>history</object>
+     !@   <objectMethod>
+     !@     <method>add</method>
+     !@     <description>Addition operator.</description>
+     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} + \textcolor{red}{\textless type(history)\textgreater}</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>subtract</method>
+     !@     <description>Subtraction operator.</description>
+     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} - \textcolor{red}{\textless type(history)\textgreater}</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>divide</method>
+     !@     <description>Division operator.</description>
+     !@     <type>\textcolor{red}{\textless type(history)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} / \textcolor{red}{\textless type(history)\textgreater}</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isZero</method>
+     !@     <description>Returns true if the history is entirely zero.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>create</method>
+     !@     <description>Creates a history object with a specified range of times.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ historyCount\argin, \intzero\ timesCount\argin, \doublezero\ [timeBegin]\argin, \doublezero\ [timeEnd]\argin, \intzero\ [rangeType]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <description>Build a history object from an XML definition.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} historyDefinition\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dump</method>
+     !@     <description>Dump a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dumpRaw</method>
+     !@     <description>Dump a history object in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <description>Read a history object in binary.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>clone</method>
+     !@     <description>Clone a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroys a history object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyToClone\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>trim</method>
+     !@     <description>Removes any times in a history which have become outdated.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ currentTime\argin, \intzero\ [minimumPointsToRemove]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>increment</method>
+     !@     <description>Adds two histories, possibly with different time series.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} addHistory\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>combine</method>
+     !@     <description>Combines two histories.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} combineHistory\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>extend</method>
+     !@     <description>Extends the time range of a history to encompass the specified limits.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless double(2)\textgreater}\ [timeRange]\argin, \doubleone\ [times]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <description>Resets all entries in a history to zero.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setToUnity</method>
+     !@     <description>Set all entries in a history to unity.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exists</method>
+     !@     <description>Returns true if the given history has been created.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>timeSteps</method>
+     !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ timeSteps\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serializeCount</method>
+     !@     <description>Return a count of the number of properties in a serialized history object.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serialize</method>
+     !@     <description>Serialize a history object to an array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ historyArray\argout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>deserialize</method>
+     !@     <description>Deserialize a history object from an array.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ historyArray\argin</arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure                 :: add                    => History_Add
      procedure                 :: subtract               => History_Subtract
      procedure                 :: divide                 => History_Divide
@@ -37,69 +171,6 @@ module Histories
      generic                   :: operator(-)            => subtract
      generic                   :: operator(/)            => divide
      procedure                 :: isZero                 => History_Is_Zero
-     !@ <objectMethods>
-     !@   <object>history</object>
-     !@   <objectMethod>
-     !@     <method>create</method>
-     !@     <description>Creates a history object with a specified range of times.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>builder</method>
-     !@     <description>Build a history object from an XML definition.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dump</method>
-     !@     <description>Dump a history object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>dumpRaw</method>
-     !@     <description>Dump a history object in binary.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>readRaw</method>
-     !@     <description>Read a history object in binary.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>clone</method>
-     !@     <description>Clone a history object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys a history object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>trim</method>
-     !@     <description>Removes any times in a history which have become outdated.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>increment</method>
-     !@     <description>Adds two histories, possibly with different time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>combine</method>
-     !@     <description>Combines two histories.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>extend</method>
-     !@     <description>Extends the time range of a history to encompass the specified limits.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>reset</method>
-     !@     <description>Resets all entries in a history to zero.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>setToUnity</method>
-     !@     <description>Set all entries in a history to unity.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>exists</method>
-     !@     <description>Returns true if the given history has been created.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timeSteps</method>
-     !@     <description>Returns an array with the timesteps (i.e. the intervals between successive times) in the given history.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure :: builder    => History_Builder
      procedure :: dump       => History_Dump
      procedure :: dumpRaw    => History_Dump_Raw
@@ -115,21 +186,6 @@ module Histories
      procedure :: setToUnity => History_Set_To_Unity
      procedure :: exists     => History_Exists
      procedure :: timeSteps  => History_Timesteps
-     !@ <objectMethods>
-     !@   <object>history</object>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <description>Return a count of the number of properties in a serialized history object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <description>Serialize a history object to an array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <description>Deserialize a history object from an array.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure                 :: serializeCount         => History_Serialize_Count
      procedure                 :: serialize              => History_Serialize
      procedure                 :: deserialize            => History_Deserialize

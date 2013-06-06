@@ -26,11 +26,25 @@ module Root_Finder
   public :: rootFinder
 
   ! Enumeration of range expansion types.
+  !@ <enumeration>
+  !@  <name>rangeExpand</name>
+  !@  <description>Used to specify the way in which the bracketing range should be expanded when searching for roots using a {\tt rootFinder} object.</description>
+  !@  <entry label="rangeExpandNull"           />
+  !@  <entry label="rangeExpandAdditive"       />
+  !@  <entry label="rangeExpandMultiplicative" />
+  !@ </enumeration>
   integer, parameter, public :: rangeExpandNull              =0
   integer, parameter, public :: rangeExpandAdditive          =1
   integer, parameter, public :: rangeExpandMultiplicative    =2
 
   ! Enumeration of sign expectations.
+  !@ <enumeration>
+  !@  <name>rangeExpandSignExpect</name>
+  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>
+  !@  <entry label="rangeExpandSignExpectNegative" />
+  !@  <entry label="rangeExpandSignExpectNone"     />
+  !@  <entry label="rangeExpandSignExpectPositive" />
+  !@ </enumeration>
   integer, parameter, public :: rangeExpandSignExpectNegative=-1
   integer, parameter, public :: rangeExpandSignExpectNone    = 0
   integer, parameter, public :: rangeExpandSignExpectPositive=+1
@@ -61,26 +75,38 @@ module Root_Finder
      !@   <objectMethod>
      !@     <method>rootFunction</method>
      !@     <description>Set the function that evaluates $f(x)$ to use in a {\tt rootFinder} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless function(\textless double\textgreater} x\argin\textcolor{red}{)\textgreater} rootFunction</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>type</method>
      !@     <description>Set the type of algorithm to use in a {\tt rootFinder} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(fgsl\_root\_fsolver\_type)\textgreater} solverType\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>tolerance</method>
      !@     <description>Set the tolerance to use in a {\tt rootFinder} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ [toleranceAbsolute]\argin, \doublezero\ [toleranceRelative]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>rangeExpand</method>
      !@     <description>Specify how the initial range will be expanded in a {\tt rootFinder} object to bracket the root.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ [rangeExpandUpward]\argin,\doublezero\ [rangeExpandDownward]\argin, \enumRangeExpand\ [rangeExpandType]\argin, \doublezero\ [rangeUpwardLimit]\argin, \doublezero\ [rangeDownwardLimit]\argin, \enumRangeExpandSignExpect\ [rangeExpandDownwardSignExpect]\argin, \enumRangeExpandSignExpect\ [rangeExpandUpwardSignExpect]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>find</method>
-     !@     <description>Find the root of a function using a {\tt rootFinder} object.</description>
+     !@     <description>Find the root of the function given an initial guess or range.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ [rootGuess]|\textcolor{red}{\textless double(2)\textgreater} [rootRange]</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isInitialized</method>
      !@     <description>Return the initialization state of a {\tt rootFinder} object.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure                                :: rootFunction    => Root_Finder_Root_Function
