@@ -42,7 +42,165 @@ module Abundances_Structure
      double precision                            :: metallicityValue
      double precision, allocatable, dimension(:) :: elementalValue
    contains
-     ! Operators.
+     !@ <objectMethods>
+     !@   <object>abundances</object>
+     !@   <objectMethod>
+     !@     <method>multiply</method>
+     !@     <type>\textcolor{red}{\textless type(abundances)\textgreater}</type>
+     !@     <arguments>\doublezero\ multiplier\argin</arguments>
+     !@     <description>Multiply an abundance by a scalar.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>divide</method>
+     !@     <type>\textcolor{red}{\textless type(abundances)\textgreater}</type>
+     !@     <arguments>\doublezero\ divisor\argin</arguments>
+     !@     <description>Divide an abundance by a scalar.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>add</method>
+     !@     <type>\textcolor{red}{\textless type(abundances)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} abundances2\argin</arguments>
+     !@     <description>Add two abundances.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>subtract</method>
+     !@     <type>\textcolor{red}{\textless type(abundances)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} abundances2\argin</arguments>
+     !@     <description>Subtract one abundance from another.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>metallicity</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\enumMetallicityScale\ [metallicityType]\argin</arguments>
+     !@     <description>Returns the metallicity.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>metallicitySet</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ metallicity\argin, \enumMetallicityScale\ [metallicityType]\argin, \enumAdjustElements\ [adjustElements]\argin, \intzero\ [abundanceIndex]\argin</arguments>
+     !@     <description>Sets the metallicity to {\tt metallicity}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massToMassFraction</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ mass\argin</arguments>
+     !@     <description>Converts abundance masses to mass fractions by dividing by the given {\tt mass} while ensuring that fractions are in the range 0--1.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>increment</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(abundances)\textgreater} addAbundances\argin</arguments>
+     !@     <description>Increment an abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serializeCount</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return a count of the number of properties in a serialized abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>serialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ historyArray\argout</arguments>
+     !@     <description>Serialize an abundances object to an array.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>deserialize</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doubleone\ historyArray\argin</arguments>
+     !@     <description>Deserialize an abundances object from an array.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hydrogenNumberFraction</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Returns the hydrogen fraction by number.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>hydrogenMassFraction</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Returns the hydrogen fraction by mass.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>heliumMassFraction</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Returns the helium fraction by mass.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>heliumNumberFraction</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Returns the helium fraction by number.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isZero</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if an abundances object is zero.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Destroy an abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset an abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>builder</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(node)\textgreater} abundancesDefinition\argin</arguments>
+     !@     <description>Build an abundances object from a provided XML description.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>dump</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Dump an abundances object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <type>\void</type>
+     !@     <method>dumpRaw</method>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@     <description>Dump an abundances object to binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>readRaw</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileHandle\argin</arguments>
+     !@     <description>Read an abundances object from binary.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>setToUnity</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Set an abundances object to unity.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>output</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
+     !@     <description>Store an abundances object in the output buffers.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputCount</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
+     !@     <description>Specify the count of an abundances object for output.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>outputNames</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
+     !@     <description>Specify the names of abundance object properties for output.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure                 :: add                    => Abundances_Add
      procedure                 :: subtract               => Abundances_Subtract
      procedure                 :: multiply               => Abundances_Multiply
@@ -53,126 +211,23 @@ module Abundances_Structure
      generic                   :: operator(/)            => divide
      procedure                 :: isZero                 => Abundances_Is_Zero
      procedure                 :: destroy                => Abundances_Destroy
-     ! Methods.
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>reset</method>
-     !@   <description>Reset an abundances object.</description>
-     !@ </objectMethod>
      procedure                 :: reset                  => Abundances_Reset
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>builder</method>
-     !@   <description>Build an abundances object from a provided XML description.</description>
-     !@ </objectMethod>
      procedure                 :: builder                => Abundances_Builder
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>dump</method>
-     !@   <description>Dump an abundances object.</description>
-     !@ </objectMethod>
      procedure                 :: dump                   => Abundances_Dump
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>dumpRaw</method>
-     !@   <description>Dump an abundances object to binary.</description>
-     !@ </objectMethod>
      procedure                 :: dumpRaw                => Abundances_Dump_Raw
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>readRaw</method>
-     !@   <description>Read an abundances object from binary.</description>
-     !@ </objectMethod>
      procedure                 :: readRaw                => Abundances_Read_Raw
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>setToUnity</method>
-     !@   <description>Set an abundances object to unity.</description>
-     !@ </objectMethod>
      procedure                 :: setToUnity             => Abundances_Set_To_Unity
-     !@ <objectMethods>
-     !@   <object>abundances</object>
-     !@   <objectMethod>
-     !@     <method>serializeCount</method>
-     !@     <description>Return a count of the number of properties in a serialized abundances object.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>serialize</method>
-     !@     <description>Serialize an abundances object to an array.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>deserialize</method>
-     !@     <description>Deserialize an abundances object from an array.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure, nopass         :: serializeCount         => Abundances_Property_Count
      procedure                 :: serialize              => Abundances_Serialize
      procedure                 :: deserialize            => Abundances_Deserialize
-     !@ <objectMethod>
-     !@   <object>abundances</object>
-     !@   <method>increment</method>
-     !@   <description>Increment an abundances object.</description>
-     !@ </objectMethod>
      procedure                 :: increment              => Abundances_Increment
-     ! Metallicity methods.
-     !@ <objectMethods>
-     !@   <object>abundances</object>
-     !@   <objectMethod>
-     !@     <method>metallicity</method>
-     !@     <description>Returns the metallicity.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>metallicitySet(metallicity)</method>
-     !@     <description>Sets the metallicity to {\tt metallicity}.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massToMassFraction(mass)</method>
-     !@     <description>Converts abundance masses to mass fractions by dividing by the given {\tt mass} while ensuring that fractions are in the range 0--1.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure                 :: metallicity            => Abundances_Get_Metallicity
      procedure                 :: metallicitySet         => Abundances_Set_Metallicity
      procedure                 :: massToMassFraction     => Abundances_Mass_To_Mass_Fraction_Packed
-     ! Hydrogen/helium methods.
-     !@ <objectMethods>
-     !@   <object>abundances</object>
-     !@   <objectMethod>
-     !@     <method>hydrogenNumberFraction</method>
-     !@     <description>Returns the hydrogen fraction by number.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>hydrogenMassFraction</method>
-     !@     <description>Returns the hydrogen fraction by mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>heliumMassFraction</method>
-     !@     <description>Returns the helium fraction by mass.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>heliumNumberFraction</method>
-     !@     <description>Returns the helium fraction by number.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure                 :: hydrogenNumberFraction => Abundances_Hydrogen_Number_Fraction
      procedure                 :: hydrogenMassFraction   => Abundances_Hydrogen_Mass_Fraction
      procedure                 :: heliumMassFraction     => Abundances_Helium_Mass_Fraction
      procedure                 :: heliumNumberFraction   => Abundances_Helium_Number_Fraction
-     ! Output methods.
-     !@ <objectMethods>
-     !@   <object>abundances</object>
-     !@   <objectMethod>
-     !@     <method>output</method>
-     !@     <description>Store an abundances object in the output buffers.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputCount</method>
-     !@     <description>Specify the count of an abundances object for output.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>outputNames</method>
-     !@     <description>Specify the names of abundance object properties for output.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      procedure                 :: output      => Abundances_Output
      procedure                 :: outputCount => Abundances_Output_Count
      procedure                 :: outputNames => Abundances_Output_Names
@@ -189,6 +244,16 @@ module Abundances_Structure
   integer,          allocatable, dimension(:) :: elementsIndices
 
   ! Type of metallicity/abundance measure required.
+  !@ <enumeration>
+  !@  <name>metallicityScale</name>
+  !@  <description>Used to specify the metallicity scale when working with {\tt abundances} objects.</description>
+  !@  <entry label="linearByMass"             />
+  !@  <entry label="linearByNumber"           />
+  !@  <entry label="logarithmicByMassSolar"   />
+  !@  <entry label="logarithmicByNumberSolar" />
+  !@  <entry label="linearByMassSolar"        />
+  !@  <entry label="linearByNumberSolar"      />
+  !@ </enumeration>
   integer,          parameter, public         :: linearByMass            =0
   integer,          parameter, public         :: linearByNumber          =1
   integer,          parameter, public         :: logarithmicByMassSolar  =2
@@ -203,6 +268,13 @@ module Abundances_Structure
   logical                                     :: abundancesInitialized=.false.
 
   ! Labels used in determining how to update elemental abundances when metallicity is adjusted.
+  !@ <enumeration>
+  !@  <name>adjustElements</name>
+  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\tt abundances} object is changed.</description>
+  !@  <entry label="adjustElementsNone"   />
+  !@  <entry label="adjustElementsReset"  />
+  !@  <entry label="adjustElementsUpdate" />
+  !@ </enumeration>
   integer,          parameter, public         :: adjustElementsNone  =0
   integer,          parameter, public         :: adjustElementsReset =1
   integer,          parameter, public         :: adjustElementsUpdate=2

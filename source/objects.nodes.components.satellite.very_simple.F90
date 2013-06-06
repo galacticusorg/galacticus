@@ -43,7 +43,7 @@ module Node_Component_Satellite_Very_Simple
   !#     <name>timeOfMerging</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <classDefault>-1.0d0</classDefault>
   !#     <getFunction>Node_Component_Satellite_Very_Simple_Time_Of_Merging</getFunction>

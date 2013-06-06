@@ -259,6 +259,39 @@ sub Get_Suffix {
     return $suffix;
 }
 
+sub dataObjectDocName {
+    # Construct and return the name of the object to use in documentation for data of given type and rank.
+    my $dataObject = shift;
+    # Variable to store the object name.
+    my $name = "\\textcolor{red}{\\textless ";
+    # Extract the type.
+    if ( exists($dataObject->{'type'}) ) {
+	switch ( $dataObject->{'type'} ) {
+	    case ( "integer"     ) {$name .= "integer"                 }
+	    case ( "logical"     ) {$name .= "logical"                 }
+	    case ( "real"        ) {$name .= "double"                  }
+	    case ( "chemicals"   ) {$name .= "type(chemicalAbundances)"}
+	    case ( "abundances"  ) {$name .= "type(abundances)"        }
+	    case ( "history"     ) {$name .= "type(history)"           }
+	    case ( "keplerOrbit" ) {$name .= "type(keplerOrbit)"       }
+	    else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
+	}
+    } else {
+	die "Build_Include_File.pl::dataObjectDocName: no 'type' specifier present";
+    }
+    if ( exists($dataObject->{'rank'}) ) {
+	switch ( $dataObject->{'rank'} ) {
+	    case ( 0 ) {$name .= ""}
+	    case ( 1 ) {$name .= "(:)"}
+	    else {die "Build_Include_File.pl::dataObjectName: 'rank' specifier is unknown"}
+	}
+    } else {
+	die "Build_Include_File.pl::dataObjectDocName: no 'rank' specifier present";
+    }
+    $name .= "\\textgreater}";
+    return $name;
+}
+
 sub dataObjectName {
     # Construct and return the name of the object to use for data of given type and rank.
     my $dataObject = shift;
@@ -662,8 +695,8 @@ sub Construct_Linked_Data {
 			die("No ".$requiredElement." was specified for ".$propertyName." property of the ".lcfirst($componentID)." component")
 			    unless ( exists($property->{$requiredElement}) );
 		    }
-		    # If no isVirtual element is present, assume "no" by default.
-		    $property->{'isVirtual'} = "no"
+		    # If no isVirtual element is present, assume "false" by default.
+		    $property->{'isVirtual'} = "false"
 			unless ( exists($property->{'isVirtual'}) );
 		    # Copy the attributes to the data element.
 		    $property->{'data'} = 
@@ -673,7 +706,7 @@ sub Construct_Linked_Data {
 			isEvolvable => $property->{'attributes'}->{'isEvolvable'}
 		    };
 		    # Unless this property is virtual, create a linked data object for it.
-		    unless ( $property->{'isVirtual'} eq "yes" ) {
+		    unless ( $property->{'isVirtual'} eq "true" ) {
 			# Write a message.
 			print " -> Creating linked data object for ".$propertyName." property of the ".lcfirst($componentID)." component\n";
 			# Create the linked data name.
@@ -850,139 +883,185 @@ sub Generate_Node_Component_Type{
 	     type        => "procedure"                                                                                            ,
 	     name        => "type"                                                                                                 ,
 	     function    => "Node_Component_Generic_Type"                                                                          ,
-	     description => "Return the type of a generic {\\tt nodeComponent} object."
+	     description => "Return the type of this object."                                                                      ,
+	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                     ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "host"                                                                                                 ,
 	     function    => "Node_Component_Host_Node"                                                                             ,
-	     description => "Return a pointer to the host {\\tt treeNode} object of a {\\tt nodeComponent} object."
+	     description => "Return a pointer to the host {\\tt treeNode} object."                                                 ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                            ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "destroy"                                                                                              ,
 	     function    => "Node_Component_Generic_Destroy"                                                                       ,
-	     description => "Destroy a {\\tt nodComponent} object."
+	     description => "Destroy the object."                                                                                  ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "serializeCount"                                                                                       ,
 	     function    => "Node_Component_Serialize_Count_Zero"                                                                  ,
-	     description => "Return a count of the number of evolvable quantities to be evolved in a {\\tt nodeComponent} object."
+	     description => "Return a count of the number of evolvable quantities to be evolved."                                  ,
+	     returnType  => "\\intzero"                                                                                            ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "serializeValues"                                                                                      ,
 	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable quantities of a {\\tt nodeComponent} object to an array."
+	     description => "Serialize the evolvable quantities to an array."                                                      ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "serializeRates"                                                                                       ,
 	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable rates of a {\\tt nodeComponent} object to an array."
+	     description => "Serialize the evolvable rates to an array."                                                           ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "serializeScales"                                                                                      ,
 	     function    => "Node_Component_Serialize_Null"                                                                        ,
-	     description => "Serialize the evolvable scales of a {\\tt nodeComponent} object to an array."
+	     description => "Serialize the evolvable scales to an array."                                                          ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "deserializeValues"                                                                                    ,
 	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable quantities of a {\\tt nodeComponent} object from an array."
+	     description => "Deserialize the evolvable quantities from an array."                                                  ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argout"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "deserializeRates"                                                                                     ,
 	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable rates of a {\\tt nodeComponent} object from an array."          
+	     description => "Deserialize the evolvable rates from an array."                                                       ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argout"          
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "deserializeScales"                                                                                    ,
 	     function    => "Node_Component_Deserialize_Null"                                                                      ,
-	     description => "Deserialize the evolvable scales of a {\\tt nodeComponent} object from an array."
+	     description => "Deserialize the evolvable scales from an array."                                                      ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\doubleone\\ array\\argout"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "odeStepRatesInitialize"                                                                               ,
 	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
-	     description => "Initialize rates for evolvable properties in a {\\tt nodeComponent}."
+	     description => "Initialize rates for evolvable properties."                                                           ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "odeStepScalesInitialize"                                                                              ,
 	     function    => "Node_Component_ODE_Step_Initialize_Null"                                                              ,
-	     description => "Initialize scales for evolvable properties in a {\\tt nodeComponent}."          
+	     description => "Initialize scales for evolvable properties."                                                          ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""          
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "dump"                                                                                                 ,
 	     function    => "Node_Component_Dump_Null"                                                                             ,
-	     description => "Generate an ASCII dump of a {\\tt nodeComponent} object (null implementation)."
+	     description => "Generate an ASCII dump of all properties."                                                            ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "dumpRaw"                                                                                              ,
 	     function    => "Node_Component_Dump_Raw_Null"                                                                         ,
-	     description => "Generate a binary dump of a {\\tt nodeComponent} object (null implementation)."                   
+	     description => "Generate a binary dump of all properties."                                                            ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ fileHandle\\argin"                   
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "outputCount"                                                                                          ,
 	     function    => "Node_Component_Output_Count_Null"                                                                     ,
-	     description => "Compute a count of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute a count of outputtable properties."                                                           ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ integerPropertyCount\\arginout, \\intzero\\ doublePropertyCount\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "outputNames"                                                                                          ,
 	     function    => "Node_Component_Output_Names_Null"                                                                     ,
-	     description => "Generate names of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Generate names of outputtable properties."                                                            ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "output"                                                                                               ,
 	     function    => "Node_Component_Output_Null"                                                                           ,
-	     description => "Generate values of outputtable properties in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Generate values of outputtable properties."                                                           ,
+	     returnType  => "\\void"                                                                                               ,
+	     arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin, \\intzero\\ instance\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "enclosedMass"                                                                                         ,
 	     function    => "Node_Component_Enclosed_Mass_Null"                                                                    ,
-	     description => "Compute the mass enclosed within a radius in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the mass enclosed within a radius."                                                           ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "density"                                                                                              ,
 	     function    => "Node_Component_Density_Null"                                                                          ,
-	     description => "Compute the density in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the density."                                                                                 ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionSpherical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "surfaceDensity"                                                                                       ,
 	     function    => "Node_Component_Surface_Density_Null"                                                                  ,
-	     description => "Compute the surface density in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the surface density."                                                                         ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "potential"                                                                                            ,
 	     function    => "Node_Component_Potential_Null"                                                                        ,
-	     description => "Compute the gravitational potential in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the gravitational potential."                                                                 ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "rotationCurve"                                                                                        ,
 	     function    => "Node_Component_Rotation_Curve_Null"                                                                   ,
-	     description => "Compute the rotation curve in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the rotation curve."                                                                          ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
 	     name        => "rotationCurveGradient"                                                                                ,
 	     function    => "Node_Component_Rotation_Curve_Gradient_Null"                                                          ,
-	     description => "Compute the rotation curve gradient in a {\\tt nodeComponent} object (null implementation)."
+	     description => "Compute the rotation curve gradient."                                                                 ,
+	     returnType  => "\\doublezero"                                                                                         ,
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
 	 }
 	);
     # Specify the data content.
@@ -1066,7 +1145,7 @@ sub Generate_Component_Classes{
 		    unless ( exists($propertiesCreated{$functionName}) ) {
 			push(
 			    @typeBoundFunctions,
-			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component is settable (null implementation)."}
+			    {type => "procedure", pass => "nopass", name => $functionName, function => "Boolean_False", description => "Specify whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentClass."} component is settable.", returnType => "\\logicalzero", arguments => ""}
 			    );
 			$propertiesCreated{$functionName} = 1;
 		    }
@@ -1086,7 +1165,7 @@ sub Generate_Component_Classes{
 			    }
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
+				{type => "procedure", name => $functionName, function => $boundTo, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentClass."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -1099,7 +1178,7 @@ sub Generate_Component_Classes{
 			unless ( exists($propertiesCreated{$functionName}) ) {
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
+				{type => "procedure", name => $functionName, function => $componentClass."NullBindingInteger0In", description => "Compute the count of evolvable quantities in the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\intzero", arguments => ""}
 				);
 			    $propertiesCreated{$functionName} = 1;
 			}
@@ -1119,13 +1198,13 @@ sub Generate_Component_Classes{
 				}
 				push(
 				    @typeBoundFunctions,
-				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
+				    {type => "procedure", name => $functionName, function => $boundTo, description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				    );
 			    }
 			    # Create a "scale" function unless this is a virtual property.
 			    push(
 				@typeBoundFunctions,
-				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component (null implementation)."}
+				{type => "procedure", name => $propertyName."Scale", function => $componentClass."NullBindingSet".$type, description => "Set the scale of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 				)
 				unless ( $property->{'isVirtual'} eq "true" );
 			    $propertiesCreated{$functionName} = 1;
@@ -1134,11 +1213,18 @@ sub Generate_Component_Classes{
 		    # Add any bindings which bind at the component class level.
 		    if ( exists($buildData->{'components'}->{$componentName}->{'bindings'}) ) {
 			foreach ( @{$buildData->{'components'}->{$componentName}->{'bindings'}->{'binding'}} ) {
-			    push(
-				@typeBoundFunctions,
-				{type => "procedure", name => $_->{'method'}, function => $_->{'nullFunction'}, description => $_->{'description'}}
-				)
-				if ( $_->{'bindsTo'} eq "componentClass" );
+			    if ( $_->{'bindsTo'} eq "componentClass" ) {
+				my %function = (
+				    type     => "procedure",
+				    name     => $_->{'method'},
+				    function => $_->{'function'}
+				    );
+				foreach my $attribute ( "description", "returnType", "arguments" ) {
+				    $function{$attribute} = $_->{$attribute}
+				    if ( exists($_->{$attribute}) );
+				}
+				push(@typeBoundFunctions,\%function);
+			    }
 			}
 		    }
 		}
@@ -1210,7 +1296,7 @@ sub Generate_Implementations {
 	# Add binding for deferred create function set function.
 	push(
 	    @typeBoundFunctions,
-	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet", description => "Set the function used to create {\\tt ".$componentID."} components."}
+	    {type => "procedure", pass => "nopass", name => "createFunctionSet", function => $componentID."CreateFunctionSet", description => "Set the function used to create {\\tt ".$componentID."} components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater}"}
 	    )
 	    if ( 
 		exists($component->{'createFunction'})
@@ -1219,10 +1305,16 @@ sub Generate_Implementations {
      	# If this component has bindings defined, scan through them and create an appropriate method.
     	if ( exists($component->{'bindings'}) ) {
     	    foreach ( @{$component->{'bindings'}->{'binding'}} ) {
-		push(
-		    @typeBoundFunctions,
-		    {type => "procedure", name => $_->{'method'}, function => $_->{'function'}, description => $_->{'description'}},
+		my %function = (
+		    type     => "procedure",
+		    name     => $_->{'method'},
+		    function => $_->{'function'}
 		    );
+		foreach my $attribute ( "description", "returnType", "arguments" ) {
+		    $function{$attribute} = $_->{$attribute}
+		       if ( exists($_->{$attribute}) );
+		}
+		push(@typeBoundFunctions,\%function);
 	    }
 	}
 	# Iterate over properties.
@@ -1231,8 +1323,8 @@ sub Generate_Implementations {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    push(
 		@typeBoundFunctions,
-		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'}), description => "Return whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component is gettable."},
-		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'}), description => "Return whether the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component is settable."}
+		{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isGettable'})},
+		{type => "procedure", pass => "nopass", name => $propertyName."IsSettable", function => "Boolean_".ucfirst($property->{'attributes'}->{'isSettable'})}
 		);
 	}
 	# Create the type.
@@ -1462,67 +1554,90 @@ sub Generate_Tree_Node_Object {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "type"                                                                                                            ,
 	     function    => "Tree_Node_Type"                                                                                                  ,
-	     description => "Return the type of this node."
+	     description => "Return the type of this node."                                                                                   ,
+	     returnType  => "\\textcolor{red}{\\textless type(varying\\_string)\\textgreater}"                                                 ,
+	     arguments   => ""
+
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "index"                                                                                                           ,
 	     function    => "Tree_Node_Index"                                                                                                 ,
-	     description => "Return the index of this node."
+	     description => "Return the index of this node."                                                                                  ,
+	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                    ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "indexSet"                                                                                                        ,
 	     function    => "Tree_Node_Index_Set"                                                                                             ,
-	     description => "Set the index of this node."
+	     description => "Set the index of this node."                                                                                     ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} index\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "uniqueID"                                                                                                        ,
 	     function    => "Tree_Node_Unique_ID"                                                                                             ,
-	     description => "Return the unique identifier for this node."
+	     description => "Return the unique identifier for this node."                                                                     ,
+	     returnType  => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater}"                                                    ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "uniqueIDSet"                                                                                                     ,
 	     function    => "Tree_Node_Unique_ID_Set"                                                                                         ,
-	     description => "Set the unique identifier for this node."
+	     description => "Set the unique identifier for this node."                                                                        ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} uniqueID\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "initialize"                                                                                                      ,
 	     function    => "treeNodeInitialize"                                                                                              ,
-	     description => "Initialize this node (assigns a unique identifier, creates generic components)."
+	     description => "Initialize this node (assigns a unique identifier, creates generic components)."                                 ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} index\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "destroy"                                                                                                         ,
 	     function    => "treeNodeDestroy"                                                                                                 ,
-	     description => "Destroy this node."
+	     description => "Destroy this node."                                                                                              ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "componentBuilder"                                                                                                ,
-	     function    => "Tree_Node_Component_Builder"             ,
-	     description => "Build components in this node given an XML description of their properties."
+	     function    => "Tree_Node_Component_Builder"                                                                                     ,
+	     description => "Build components in this node given an XML description of their properties."                                     ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\textcolor{red}{\\textless *type(node)\\textgreater} nodeDefinition\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removeFromHost"                                                                                                  ,
 	     function    => "Tree_Node_Remove_From_Host"                                                                                      ,
-	     description => "Remove this node from the satellite population of its host halo."
+	     description => "Remove this node from the satellite population of its host halo."                                                ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removeFromMergee"                                                                                                ,
 	     function    => "Tree_Node_Remove_From_Mergee"                                                                                    ,
-	     description => "Remove this node from the list of mergees associated with its merge target."
+	     description => "Remove this node from the list of mergees associated with its merge target."                                     ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isPrimaryProgenitor"                                                                                             ,
 	     function    => "Tree_Node_Is_Primary_Progenitor"                                                                                 ,
-	     description => "Return true if this node is the primary progenitor of its descendent, false otherwise."
+	     description => "Return true if this node is the primary progenitor of its descendent, false otherwise."                          ,
+	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
@@ -1536,79 +1651,105 @@ sub Generate_Tree_Node_Object {
 	     type        => "generic"                                                                                                         ,
 	     name        => "isPrimaryProgenitorOf"                                                                                           ,
 	     function    => ["Tree_Node_Is_Primary_Progenitor_Of_Index","Tree_Node_Is_Primary_Progenitor_Of_Node"]                            ,
-	     description => "Return true is this node is the primary progenitor of the specified (by index or pointer) node, false otherwise."
+	     description => "Return true is this node is the primary progenitor of the specified (by index or pointer) node, false otherwise.",
+	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} targetNodeIndex\\argin|\\textcolor{red}{\\textless *type(treeNode)\\textgreater} targetNode\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isOnMainBranch"                                                                                                  ,
 	     function    => "Tree_Node_Is_On_Main_Branch"                                                                                     ,
-	     description => "Return true if this node is on the main branch of its tree, false otherwise."
+	     description => "Return true if this node is on the main branch of its tree, false otherwise."                                    ,
+	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "isSatellite"                                                                                                     ,
 	     function    => "Tree_Node_Is_Satellite"                                                                                          ,
-	     description => "Return true if this node is a satellite, false otherwise."
+	     description => "Return true if this node is a satellite, false otherwise."                                                       ,
+	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "lastSatellite"                                                                                                   ,
 	     function    => "Tree_Node_Get_Last_Satellite"                                                                                    ,
-	     description => "Return a pointer to the last satellite in the list of satellites beloning to this node."
+	     description => "Return a pointer to the last satellite in the list of satellites beloning to this node."                         ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "earliestProgenitor"                                                                                              ,
 	     function    => "Tree_Node_Get_Earliest_Progenitor"                                                                               ,
-	     description => "Return a pointer to the earliest progenitor (along the main branch) of this node."
+	     description => "Return a pointer to the earliest progenitor (along the main branch) of this node."                               ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "mergesWith"                                                                                                      ,
 	     function    => "Tree_Node_Merges_With_Node"                                                                                      ,
-	     description => "Return a pointer to the node with which this node will merge."
+	     description => "Return a pointer to the node with which this node will merge."                                                   ,
+	     returnType  => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater}"                                                       ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranch"                                                                                                      ,
 	     function    => "Tree_Node_Walk_Branch"                                                                                           ,
-	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."
+	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, excluding satellites."  ,
+	     returnType  => "\\void"                                                       ,
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout, \\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkBranchWithSatellites"                                                                                        ,
 	     function    => "Tree_Node_Walk_Branch_With_Satellites"                                                                           ,
-	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."
+	     description => "Return a pointer to the next node when performing a walk of a single branch of the tree, including satellites."  ,
+	     returnType  => "\\void"                                                       ,
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} startNode\\arginout, \\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTree"                                                                                                        ,
 	     function    => "Tree_Node_Walk_Tree"                                                                                             ,
-	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."
+	     description => "Return a pointer to the next node when performing a walk of the entire tree, excluding satellites."              ,
+	     returnType  => "\\void"                                                       ,
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeUnderConstruction"                                                                                       ,
 	     function    => "Tree_Node_Walk_Tree_Under_Construction"                                                                          ,
-	     description => "Return a pointer to the next node when performing a walk of a tree under construction."
+	     description => "Return a pointer to the next node when performing a walk of a tree under construction."                          ,
+	     returnType  => "\\void"                                                       ,
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "walkTreeWithSatellites"                                                                                          ,
 	     function    => "Tree_Node_Walk_Tree_With_Satellites"                                                                             ,
-	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."
+	     description => "Return a pointer to the next node when performing a walk of the entire tree, including satellites."              ,
+	     returnType  => "\\void"                                                       ,
+	     arguments   => "\\textcolor{red}{\\textless *type(treeNode)\\textgreater} nextNode\\arginout"
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "createEvent"                                                                                                     ,
 	     function    => "Tree_Node_Create_Event"                                                                                          ,
-	     description => "Create a {\\tt nodeEvent} object in this node."
+	     description => "Create a {\\tt nodeEvent} object in this node."                                                                  ,
+	     returnType  => "\\textcolor{red}{\\textless *type(nodeEvent)\\textgreater}"                                                      ,
+	     arguments   => ""
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
 	     name        => "removePairedEvent"                                                                                               ,
 	     function    => "Tree_Node_Remove_Paired_Event"                                                                                   ,
-	     description => "Remove a paired {\\tt nodeEvent} from this node."
+	     description => "Remove a paired {\\tt nodeEvent} from this node."                                                                ,
+	     returnType  => "\\void"                                                                                                          ,
+	     arguments   => "\\textcolor{red}{\\textless type(nodeEvent)\\textgreater} event\\argin"
 	 }
 	);
     # Add data content.
@@ -1713,7 +1854,7 @@ sub Generate_Initialization_Function {
     # Generate the function code.
     my $functionCode;
     $functionCode .= "  subroutine Galacticus_Nodes_Initialize()\n";
-    $functionCode .= "    !% Initialize the \\glc\\ object system.\n";
+    $functionCode .= "    !% Initialize the \\glc\\\ object system.\n";
     $functionCode .= "    use Input_Parameters\n";
     $functionCode .= "    use ISO_Varying_String\n";
     $functionCode .= "    use Memory_Management\n";
@@ -1913,7 +2054,7 @@ sub Generate_Map_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "mapVoid", function => "mapComponentsVoid"}
+	{type => "procedure", name => "mapVoid", function => "mapComponentsVoid", description => "Map a void function over components.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
 	);
 
     # Function for mapping a scalar double function.
@@ -1978,7 +2119,7 @@ sub Generate_Map_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "mapDouble0", function => "mapComponentsDouble0"}
+	{type => "procedure", name => "mapDouble0", function => "mapComponentsDouble0", description => "Map a scalar double function over components.", returnType => "\\doublezero", arguments => "\\textcolor{red}{\\textless *function()\\textgreater} mapFunction"}
 	);
 }
 
@@ -2042,7 +2183,7 @@ sub Generate_Node_Dump_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "dump", function => "Node_Dump"}
+	{type => "procedure", name => "dump", function => "Node_Dump", description => "Generate an ASCII dump of all content of a node.", returnType => "\\void", arguments => ""}
 	);
     # Create a function for doing a raw (binary) dump.
     @dataContent =
@@ -2103,7 +2244,7 @@ sub Generate_Node_Dump_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "dumpRaw", function => "Node_Dump_Raw"}
+	{type => "procedure", name => "dumpRaw", function => "Node_Dump_Raw", description => "Generate a binary dump of all content of a node.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"}
 	);
     # Create a function for doing a raw (binary) read.
     @dataContent =
@@ -2177,7 +2318,7 @@ sub Generate_Node_Dump_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "readRaw", function => "Node_Read_Raw"}
+	{type => "procedure", name => "readRaw", function => "Node_Read_Raw", description => "Read a binary dump of all content of a node.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"}
 	);
 }
 
@@ -2232,7 +2373,7 @@ sub Generate_Node_Output_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "outputCount", function => "Node_Output_Count"}
+	{type => "procedure", name => "outputCount", function => "Node_Output_Count", description => "Increment the count of properties to output for a node.", returnType => "\\void", arguments => "\\intzero\\ integerPropertyCount\\arginout, \\intzero\\ doublePropertyCount\\arginout, \\doublezero\\ time\\argin"}
 	);
     # Create an output property names function.
     @dataContent =
@@ -2292,7 +2433,7 @@ sub Generate_Node_Output_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "outputNames", function => "Node_Output_Names"}
+	{type => "procedure", name => "outputNames", function => "Node_Output_Names", description => "Establish the names of properties to output for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} integerPropertyComments\\arginout, \\doubleone\\ integerPropertyUnitsSI\\arginout, \\intzero\\ doubleProperty\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyNames\\arginout, \\textcolor{red}{\\textless char[*](:)\\textgreater} doublePropertyComments\\arginout, \\doubleone\\ doublePropertyUnitsSI\\arginout, \\doublezero\\ time\\argin"}
 	);
     # Create an output function.
     @dataContent =
@@ -2353,7 +2494,7 @@ sub Generate_Node_Output_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "output", function => "Node_Output"}
+	{type => "procedure", name => "output", function => "Node_Output", description => "Populate output buffers with properties for a node.", returnType  => "\\void", arguments   => "\\intzero\\ integerProperty\\arginout, \\intzero\\ integerBufferCount\\arginout, \\inttwo\\ integerBuffer\\arginout, \\intzero doubleProperty\\arginout, \\intzero\\ doubleBufferCount\\arginout, \\doubletwo\\ doubleBuffer\\arginout, \\doublezero\\ time\\argin"}
 	);
 }
 
@@ -2423,7 +2564,7 @@ sub Generate_Node_Property_Name_From_Index_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "nameFromIndex", function => "Node_Property_Name_From_Index"}
+	{type => "procedure", name => "nameFromIndex", function => "Node_Property_Name_From_Index", description => "Return the name of a property given its index in a node.", returnType => "\\textcolor{red}{\\textless varying\\_string\\textgreater}", arguments => "\\intzero\\ index\\argin"}
 	);
 }
 
@@ -2480,7 +2621,7 @@ sub Generate_Node_Serialization_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "serializeCount", function => "serializeToArrayCount"}
+	{type => "procedure", name => "serializeCount", function => "serializeToArrayCount", description => "Return a count of the number of evolvable properties of the serialized object.", returnType => "\\intzero", arguments => ""}
 	);
 
     # Iterate over all property-associated data for which we need serialization/deserialization functions.
@@ -2545,7 +2686,7 @@ sub Generate_Node_Serialization_Functions {
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s"}
+	    {type => "procedure", name => "serialize".ucfirst($content)."s", function => "serializeToArray".ucfirst($content)."s", description => "Serialize ".$content."s to {\\tt array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argout"}
 	    );
 	# Create the deserialization function.
 	@dataContent =
@@ -2603,7 +2744,7 @@ sub Generate_Node_Serialization_Functions {
 	# Insert a type-binding for this function into the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => "deserialize".ucfirst($content)."s", function => "deserializeFromArray".ucfirst($content)."s"}
+	    {type => "procedure", name => "deserialize".ucfirst($content)."s", function => "deserializeFromArray".ucfirst($content)."s", description => "Deserialize ".$content."s from {\\tt array}.", returnType => "\\void", arguments => "\\doubleone\\ array\\argin"}
 	    );
     }
 }
@@ -2657,7 +2798,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "odeStepRatesInitialize", function => "Tree_Node_ODE_Step_Rates_Initialize"},
+	{type => "procedure", name => "odeStepRatesInitialize", function => "Tree_Node_ODE_Step_Rates_Initialize", description => "Initialize rates of evolvable properties.", returnType => "\\void", arguments => ""},
 	);    
     # Create functions to initialize property scales for an ODE step.
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Scales_Initialize(self)\n";
@@ -2691,7 +2832,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "odeStepScalesInitialize" , function => "Tree_Node_ODE_Step_Scales_Initialize"}
+	{type => "procedure", name => "odeStepScalesInitialize" , function => "Tree_Node_ODE_Step_Scales_Initialize", description => "Initialize tolerance scales of evolvable properties.", returnType => "\\void", arguments => ""}
 	);
 }
 
@@ -2961,7 +3102,7 @@ sub Generate_Implementation_Dump_Functions {
 	# Insert a type-binding for this function into the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw"},
+	    {type => "procedure", name => "readRaw", function => "Node_Component_".ucfirst($componentID)."_Read_Raw", description => "Read a binary dump of the {\\tt nodeComponent} from the given {\\tt fileHandle}.", returnType => "\\void", arguments => "\\intzero\\ fileHandle\\argin"},
 	    );
     }
 }
@@ -3347,7 +3488,7 @@ sub Generate_Implementation_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -3519,7 +3660,7 @@ sub Generate_Implementation_Output_Functions {
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
 			$object = "self%".$linkedDataName;
-		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -3758,7 +3899,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
     # Insert a type-binding for this function into the implementation type.
     push(
 	@{$buildData->{'types'}->{'nodeComponent'}->{'boundFunctions'}},
-	{type => "procedure", name => "nameFromIndex", function => "Node_Component_Name_From_Index"}
+	{type => "procedure", name => "nameFromIndex", function => "Node_Component_Name_From_Index", description => "Return the name of a property given is index.", returnType => "\\void", arguments => "\\intzero\\ count\\argin, \\textcolor{red}{\\textless varying\\_string\\textgreater}name\\argout"}
 	);
 }
 
@@ -4083,7 +4224,7 @@ sub Generate_Component_Count_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked"}
+	    {type => "procedure", name => $componentClassName."Count", function => $componentClassName."CountLinked", description => "Returns the number of {\\tt ".$componentClassName."} components in the node.", returnType => "\\intzero", arguments => ""}
 	    );
     }
 }
@@ -4167,7 +4308,7 @@ sub Generate_Component_Get_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get"}
+	    {type => "procedure", name => $componentClassName, function => $componentClassName."Get", description => "Return a ".$componentClassName." component member of the node. If no {\\tt instance} is specified, return the first instance. If {\\tt autoCreate} is {\\tt true} then create a single instance of the component if none exists in the node.", returnType => "\\textcolor{red}{\\textless *class(nodeComponent".ucfirst($componentClassName).")\\textgreater}", arguments => "\\intzero\\ [instance]\\argin, \\logicalzero\\ [autoCreate]\\argin"}
 	    );
 	# Specify data content for create-by-interrupt function.
 	@dataContent =
@@ -4287,7 +4428,7 @@ sub Generate_Component_Destruction_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked" }
+	    {type => "procedure", name => $componentClassName."Destroy" , function => $componentClassName."DestroyLinked", description => "Destroy the {\\tt ".$componentClassName."} component(s) of the node.", returnType => "\\void", arguments => ""}
 	    );
     }
 }
@@ -4358,7 +4499,7 @@ sub Generate_Component_Creation_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked" }
+	    {type => "procedure", name => $componentClassName."Create" , function => $componentClassName."CreateLinked", description => "Create a {\\tt ".$componentClassName."} component in the node. If no {\\tt template} is specified use the active implementation of this class.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(nodeComponent".ucfirst($componentClassName).")\\textgreater}\\ [template]\\argin"}
 	    );
     }
 }
@@ -4454,7 +4595,7 @@ sub Generate_Node_Copy_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To"}
+	{type => "procedure", name => "copyNodeTo", function => "Tree_Node_Copy_Node_To", description => "Make a copy of the node in {\\tt targetNode}. If {\\tt skipFormationNode} is {\tt true} then do not copy any pointer to the formation node.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout, \\logicalzero\\ [skipFormationNode]\\argin"}
 	);
 }
 
@@ -4512,14 +4653,14 @@ sub Generate_Node_Move_Function {
     # Insert a type-binding for this function into the treeNode type.
     push(
 	@{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components"}
+	{type => "procedure", name => "moveComponentsTo", function => "Tree_Node_Move_Components", description => "Move components from a node to {\\tt targetNode}.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless class(treeNode)\\textgreater} targetNode\\arginout"}
 	);
 }
 
 sub Generate_Deferred_Function_Attacher {
     # Generate functions to attach a function to a deferred method and to query the attachment state.
     my $component = shift;
-    my $property    = shift;
+    my $property  = shift;
     my $buildData = shift;
     my $gsr       = shift;
     my $gsrSuffix = "";
@@ -4528,7 +4669,7 @@ sub Generate_Deferred_Function_Attacher {
     # Get the component fully-qualified, class and metho names.
     my $componentClassName = $component->{'class'             };
     my $componentName      = $component->{'fullyQualifiedName'};
-    my $propertyName         = $property->{'name'};
+    my $propertyName       = $property->{'name'};
     # Skip if this function was already created.
     my $recordName = $componentClassName.$propertyName.$gsr;
     unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$recordName}) ) {
@@ -4571,9 +4712,12 @@ sub Generate_Deferred_Function_Attacher {
 	    ( $property->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
 	    (                                                    $gsr eq "rate"                   )
 	    ) {
+	    my $functionType = "\\void";
+	    $functionType = &dataObjectDocName($property)
+		if ( $gsr eq "get" );
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\tt ".$gsr."} method of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
 		);
 	}
 	# Also create a function to return whether or not the deferred function has been attached.
@@ -4595,7 +4739,7 @@ sub Generate_Deferred_Function_Attacher {
 	    ) {
 	    push(
 		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached"}
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the ".$componentClassName." component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
 		);
 	}
 	# Record that these functions have now been created.
@@ -4756,7 +4900,7 @@ sub Generate_Deferred_GSR_Function {
 		    unless ( exists($bindings{$bindingName}) && $property->{'attributes' }->{'bindsTo'} eq "top" ) {
 			push(
 			    @{$buildData->{'types'}->{$type}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate"}
+			    {type => "procedure", name => $propertyName."Rate", function => $componentName.ucfirst($propertyName)."Rate", description => "Cumulate to the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 			$bindings{$bindingName} = 1;
 		    }
@@ -4857,7 +5001,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix}
+			    {type => "procedure", name => $propertyName.$suffix, function => $componentID.ucfirst($propertyName)."Get".$suffix, description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			    );
 		    }
 		}
@@ -4922,7 +5066,7 @@ sub Generate_GSR_Functions {
 			# Insert a type-binding for this function into the implementation type.
 			push(
 			    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix}
+			    {type => "procedure", name => $propertyName."Set".$suffix, function => $componentID.ucfirst($propertyName)."Set".$suffix, description => "Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => &dataObjectDocName($property)."\\ value"}
 			    );
 		    }
 		}
@@ -5684,7 +5828,7 @@ sub Generate_Component_Class_Removal_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove"}
+	    {type => "procedure", name => $componentClassName."Remove", function => "Node_Component_".ucfirst($componentClassName)."_Remove", description => "Remove an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous. If no {\\tt instance} is specified, the first instance is assumed.", returnType => "\\void", arguments => "\\intzero\\ [instance]\\argin"}
 	    );
     }
 }
@@ -5779,7 +5923,7 @@ sub Generate_Component_Class_Move_Functions {
 	# Bind this function to the treeNode type.
 	push(
 	    @{$buildData->{'types'}->{'treeNode'}->{'boundFunctions'}},
-	    {type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move"}
+	    {type => "procedure", name => $componentClassName."Move", function => "Node_Component_".ucfirst($componentClassName)."_Move", description => "", returnType => "\\void", arguments => "\\textcolor{red}{\\textless type(treeNode)\\textgreater} targetNode\\arginout"}
 	    );
     }
 }
@@ -5859,7 +6003,7 @@ sub Generate_Component_Class_Initializor_Functions {
 	# Insert a type-binding for this function into the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentClassName)."_Initializor"},
+	    {type => "procedure", name => "initialize", function => "Node_Component_".ucfirst($componentClassName)."_Initializor", description => "Initialize the object.", returnType => "\\void", arguments => ""},
 	    );
     }
 }
@@ -5905,7 +6049,7 @@ sub Generate_Component_Class_Builder_Functions {
 	# Insert a type-binding for this function into the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder"},
+	    {type => "procedure", name => "builder", function => "Node_Component_".ucfirst($componentClassName)."_Builder", description => "Build a {\\tt nodeComponent} from a supplied XML definition.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless *type(node)\\textgreater}componentDefinition\\argin"},
 	    );
     }
 }
@@ -6182,7 +6326,7 @@ sub Generate_Component_Class_Output_Functions {
 			my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 			$rank   = $linkedData->{'rank'};
 			$type   = $linkedData->{'type'};
-		    } elsif ( $property->{'isVirtual'} eq "yes" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    } elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
 			$rank = $property->{'rank'};
 			$type = $property->{'type'};
 		    } else {
@@ -6297,7 +6441,7 @@ sub Generate_Is_Active_Functions {
 	# Bind this function to the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($component->{'class'})}->{'boundFunctions'}},
-	    {type => "procedure", pass => "nopass", name => lcfirst($component->{'name'})."IsActive", function => "Node_Component_".ucfirst($componentID)."_Is_Active"}
+	    {type => "procedure", pass => "nopass", name => lcfirst($component->{'name'})."IsActive", function => "Node_Component_".ucfirst($componentID)."_Is_Active", description => "Return whether the ".$component->{'name'}." implementation of the ".$component->{'class'}." component class is active.", returnType => "\\logicalzero", arguments => ""}
 	    );
     }
 }
@@ -6673,7 +6817,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable"}
+			{type => "procedure", pass => "nopass", name => $propertyName."IsGettable", function => ucfirst($componentClassName).ucfirst($propertyName)."IsGettable", description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Generate code for default value function.
 		    $functionCode  = "  function ".ucfirst($componentClassName).ucfirst($propertyName)."(self)\n";
@@ -6769,7 +6913,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Bind this function to the implementation type.
 		    push(
 			@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName)}
+			{type => "procedure", name => $propertyName, function => ucfirst($componentClassName).ucfirst($propertyName), description => "Get the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => &dataObjectDocName($property), arguments => ""}
 			);
 		    # Record that this property has been created.
 		    $propertiesCreated{$propertyName} = 1;
@@ -6853,7 +6997,12 @@ sub Bound_Function_Table {
     foreach ( @typeBoundFunctions ) {
 	if ( exists($_->{'description'}) ) {
 	    ++$methodCount;
-	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$_->{'description'}."</description>\n     !@  </objectMethod>\n";
+	    $description .= "     !@  <objectMethod>\n     !@   <method>".$_->{'name'}."</method>\n     !@   <description>".$_->{'description'}."</description>\n";
+	    $description .= "     !@    <type>".$_->{'returnType'}."</type>\n"
+		if ( exists($_->{'returnType'}) );
+	    $description .= "     !@    <arguments>".$_->{'arguments'}."</arguments>\n"
+		if ( exists($_->{'arguments'}) );
+	    $description .= "     !@  </objectMethod>\n";
 	}
 
     }

@@ -88,21 +88,21 @@ module Node_Component_Hot_Halo_Standard
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>outflowingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>unaccretedMass</name>
@@ -135,21 +135,21 @@ module Node_Component_Hot_Halo_Standard
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAngularMomentum</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>hotHaloCoolingAbundances</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" bindsTo="top" />
   !#     <type>abundances</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>massSink</name>
@@ -157,14 +157,14 @@ module Node_Component_Hot_Halo_Standard
   !#     <setFunction>Node_Component_Hot_Halo_Standard_Mass_Sink</setFunction>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#   <property>
   !#     <name>heatSource</name>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#   </property>
   !#  </properties>
   !#  <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>

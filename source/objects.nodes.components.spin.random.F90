@@ -42,7 +42,7 @@ module Node_Component_Spin_Random
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <getFunction bindsTo="component">SpinRandomSpinGrowthRate</getFunction>
   !#   </property>
   !#  </properties>

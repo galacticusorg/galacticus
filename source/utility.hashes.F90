@@ -31,6 +31,63 @@ module Hashes
      integer,              allocatable :: hashValues(:)
      type(varying_string), allocatable :: hashKeys  (:)
    contains
+     !@ <objectMethods>
+     !@   <object>integerScalarHash</object>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <description>Initialize the hash.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <description>Set the value of a key in the hash.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string)\textgreater} key\argin, \intzero\ value\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>delete</method>
+     !@     <description>Delete a key from the hash.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string)\textgreater} key\argin, \intzero\ value\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>value</method>
+     !@     <description>Return the value for the given key.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string|\intzero)\textgreater} key\argin, \intzero\ value\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>key</method>
+     !@     <description>Return the key of the {\tt indexValue}$^{\rm th}$ entry in the hash.</description>
+     !@     <type>\textcolor{red}{\textless type(varying\_string)\textgreater}</type>
+     !@     <arguments>\intzero\ indexValue\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>keys</method>
+     !@     <description>Return an array of all keys in the hash.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(varying\_string)[:]\textgreater} keys\arginout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>values</method>
+     !@     <description>Return an array of all values in the hash.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless integer[:]\textgreater} values\arginout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exists</method>
+     !@     <description>Return true if the specified key exists in the hash.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless (character(len=*)|varying\_string|\intzero)\textgreater} key\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>size</method>
+     !@     <description>Return the number of keys in the hash.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: initialize => Initialize_Integer_Scalar
      procedure ::               Set_Integer_Scalar_VS
      procedure ::               Set_Integer_Scalar_CH

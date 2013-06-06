@@ -44,53 +44,57 @@ module Merger_Trees
      !@   <objectMethod>
      !@     <method>destroy</method>
      !@     <description>Destroys the merger tree, including all nodes and their components.</description>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>destroyBranch</method>
      !@     <description>
      !@       Destroys a branch of a merger tree starting from the supplied node. All nodes and their components are destroyed.
      !@     </description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>createNode</method>
+     !@     <description>Creates {\tt thisNode}.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout, \textcolor{red}{\textless integer(kind\_int8)\textgreater} [index]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>promoteNode</method>
+     !@     <description>Promotes {\tt thisNode} to take the place of its parent node.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>getNode</method>
+     !@     <description>Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists.</description>
+     !@     <type>\textcolor{red}{\textless *type(treeNode)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)\textgreater} nodeIndex\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>mergeNode</method>
+     !@     <description>Causes {\tt thisNode} to undergo a node merger event with its parent node.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>evolveNode</method>
+     !@     <description>Evolves {\tt thisNode} over a suitable timestep.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout, \doublezero endTime\argin, \logicalzero\ interrupted\argout, \textcolor{red}{\textless *function(*type(treeNode)} thisNode\arginout\textcolor{red}{)\textgreater} interruptProcedure\argout</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure                 :: destroy       => Merger_Tree_Destroy
      procedure                 :: destroyBranch => Merger_Tree_Destroy_Branch
-     ! Node creation.
-     !@ <objectMethod>
-     !@   <object>mergerTree</object>
-     !@   <method>createNode(thisNode)</method>
-     !@   <description>Creates {\tt thisNode}.</description>
-     !@ </objectMethod>
      procedure                 :: createNode    => Tree_Node_Create
-     ! Node promotion.
-     !@ <objectMethod>
-     !@   <object>mergerTree</object>
-     !@   <method>promoteNode(thisNode)</method>
-     !@   <description>Promotes {\tt thisNode} to take the place of its parent node.</description>
-     !@ </objectMethod>
      procedure                 :: promoteNode   => Tree_Node_Promote
-     ! Node evolution.
-     !@ <objectMethod>
-     !@   <object>mergerTree</object>
-     !@   <method>evolveNode(thisNode)</method>
-     !@   <description>Evolves {\tt thisNode} over a suitable timestep.</description>
-     !@ </objectMethod>
      procedure                 :: evolveNode    => Tree_Node_Evolve
-     ! Node merging.
-     !@ <objectMethod>
-     !@   <object>mergerTree</object>
-     !@   <method>mergeNode(thisNode)</method>
-     !@   <description>Causes {\tt thisNode} to undergo a node merger event with its parent node.</description>
-     !@ </objectMethod>
      procedure                 :: mergeNode     => Events_Node_Merger
-     ! Node locating.
-     !@ <objectMethod>
-     !@   <object>mergerTree</object>
-     !@   <method>getNode(thisNode)</method>
-     !@   <description>Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists.</description>
-     !@ </objectMethod>
      procedure                 :: getNode       => Tree_Node_Get
   end type mergerTree
-
+  
   ! Flag to indicate if the tree node create routines have been initialized.
   logical                                     :: treeNodeCreateInitialized=.false.
 

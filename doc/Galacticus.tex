@@ -11,6 +11,7 @@
 \usepackage{hyphenat}
 \usepackage{ragged2e}
 \usepackage[acronym]{glossaries}
+\usepackage{color}
 
 % Table of contents
 \setcounter{tocdepth}{5}
@@ -30,6 +31,21 @@
 \def\clight{{\rm c}}
 \def\d{{\rm d}}
 \def\e{{\rm e}}
+
+% Variable specifiers.
+\def\void{\textcolor{red}{\textless void\textgreater}}
+\def\logicalzero{\textcolor{red}{\textless logical\textgreater}}
+\def\intzero{\textcolor{red}{\textless integer\textgreater}}
+\def\intone{\textcolor{red}{\textless integer(:)\textgreater}}
+\def\inttwo{\textcolor{red}{\textless integer(:,:)\textgreater}}
+\def\doublezero{\textcolor{red}{\textless double\textgreater}}
+\def\doubleone{\textcolor{red}{\textless double(:)\textgreater}}
+\def\doubletwo{\textcolor{red}{\textless double(:,:)\textgreater}}
+\def\enum{\textcolor{red}{\textless enumeration\textgreater}}
+\def\argin{\textcolor{blue}{$\rightarrow$}}
+\def\arginout{\textcolor{blue}{$\leftrightarrow$}}
+\def\argout{\textcolor{blue}{$\leftarrow$}}
+\include{dataEnumerationSpecifiers}
 
 \makeglossary
 \glstoctrue

@@ -38,7 +38,7 @@ module Node_Component_Spheroid_Standard
   !#  <class>spheroid</class>
   !#  <name>standard</name>
   !#  <isDefault>yes</isDefault>
-  !# <createFunction isDeferred="true" />
+  !#  <createFunction isDeferred="true" />
   !#  <properties>
   !#   <property>
   !#     <name>isInitialized</name>
@@ -93,7 +93,7 @@ module Node_Component_Spheroid_Standard
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <getFunction>Node_Component_Spheroid_Standard_Half_Mass_Radius</getFunction>
   !#   </property>
   !#   <property>
@@ -108,7 +108,7 @@ module Node_Component_Spheroid_Standard
   !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" createIfNeeded="true" makeGeneric="true" />
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <output condition="[[spheroidOutputStarFormationRate]]" unitsInSI="massSolar/gigaYear" comment="Star formation rate of the standard spheroid."/>
   !#   </property>
   !#   <property>
@@ -135,19 +135,19 @@ module Node_Component_Spheroid_Standard
   !#     <name>massGasSink</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#   </property>
   !#   <property>
   !#     <name>energyGasInput</name>
   !#     <type>real</type>
   !#     <rank>0</rank>
-  !#     <isVirtual>yes</isVirtual>
+  !#     <isVirtual>true</isVirtual>
   !#     <attributes isSettable="false" isGettable="false" isEvolvable="true" isDeferred="rate" />
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Standard_Enclosed_Mass" description="Compute the mass enclosed within a radius in the standard spheroid component." bindsTo="component" />
+  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Standard_Enclosed_Mass" bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>

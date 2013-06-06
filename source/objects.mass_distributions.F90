@@ -33,26 +33,38 @@ module Mass_Distributions
      !@   <objectMethod>
      !@     <method>symmetry</method>
      !@     <description>Returns a label specifying the symmetry of the mass distribution (see \S\ref{sec:MassDistributions}).</description>
+     !@     <type>\enumMassDistributionSymmetry</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>isDimensionless</method>
      !@     <description>Returns {\tt true} is this is a dimensionless mass distribution, {\tt false} otherwise.</description>
+     !@     <type>\logicalzero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>density</method>
      !@     <description>Returns the density of the mass distribution at the supplied {\tt coordinates}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>densityRadialMoment</method>
      !@     <description>Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ moment\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massEnclosedBySphere</method>
      !@     <description>Returns the mass enclosed by a sphere of given {\tt radius} centered on the origin.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>potential</method>
      !@     <description>Returns the gravitational potential at the specified {\tt coordinates}.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_None
@@ -67,18 +79,12 @@ module Mass_Distributions
      !% A spherical mass distribution class.
    contains
      !@ <objectMethods>
-     !@   <object>massDistribution</object>
-     !@   <objectMethod>
-     !@     <method>symmetry</method>
-     !@     <description>Returns a label specifying the symmetry of the spherical mass distribution (see \S\ref{sec:MassDistributions}).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massEnclosedBySphere</method>
-     !@     <description>Returns the mass enclosed by a sphere of given {\tt radius} centered on the origin.</description>
-     !@   </objectMethod>
+     !@   <object>massDistributionSpherical</object>
      !@   <objectMethod>
      !@     <method>halfMassRadius</method>
      !@     <description>Returns the radius enclosing half of the mass of the mass distribution.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Spherical
@@ -91,11 +97,6 @@ module Mass_Distributions
   type, public, extends(massDistribution) :: massDistributionCylindrical
      !% A cylindrical mass distribution class.
    contains
-     !@ <objectMethod>
-     !@   <object>massDistribution</object>
-     !@   <method>symmetry</method>
-     !@   <description>Returns a label specifying the symmetry of the cylindrical mass distribution (see \S\ref{sec:MassDistributions}).</description>
-     !@ </objectMethod>
      procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Cylindrical
   end type massDistributionCylindrical
 
@@ -106,6 +107,13 @@ module Mass_Distributions
   include 'objects.mass_distributions.Sersic.type.inc'
 
   ! Labels for mass distribution symmetries.
+  !@ <enumeration>
+  !@  <name>massDistributionSymmetry</name>
+  !@  <description>Used to specify the symmetry of {\tt massDistribution} objects.</description>
+  !@  <entry label="massDistributionSymmetryNone"        />
+  !@  <entry label="massDistributionSymmetryCylindrical" />
+  !@  <entry label="massDistributionSymmetrySpherical"   />
+  !@ </enumeration>
   integer, parameter, public :: massDistributionSymmetryNone       =0
   integer, parameter, public :: massDistributionSymmetryCylindrical=1
   integer, parameter, public :: massDistributionSymmetrySpherical  =2
