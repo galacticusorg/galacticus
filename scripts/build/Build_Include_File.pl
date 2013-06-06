@@ -181,7 +181,19 @@ foreach $fullname ( @filesToScan ) {
 		    case ( "cBinding" ) {
 			switch ( $codeType ) {
 			    case ( "c" ) {
-				$inserts{$moduleName} = "bind(c,name='".$data->{'unitName'}."') :: ".$data->{'unitName'}."\n";
+				$inserts{$moduleName}  = "interface\n";
+				$inserts{$moduleName} .= "   subroutine ".$data->{'unitName'}."(methodName";
+				for(my $i=0;$i<$instructions->{'pointerCount'};++$i) {
+				    $inserts{$moduleName} .= ",functionPointer".$i;
+				}
+				$inserts{$moduleName} .= ") bind(C, name=\"".$data->{'unitName'}."\")\n";
+				$inserts{$moduleName} .= "      use, intrinsic :: ISO_C_Binding\n";
+				$inserts{$moduleName} .= "      character(kind=c_char) :: methodName(*)\n";
+				for(my $i=0;$i<$instructions->{'pointerCount'};++$i) {
+				    $inserts{$moduleName} .= "      type     (     c_ptr ) :: functionPointer".$i."\n";
+				}
+				$inserts{$moduleName} .= "   end subroutine ".$data->{'unitName'}."\n";
+				$inserts{$moduleName} .= "end interface\n";
 			    }
 			}
 		    }
