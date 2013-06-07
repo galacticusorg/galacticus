@@ -1,12 +1,19 @@
 #!/usr/bin/env perl
-use lib "./perl";
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use PDL::Basic;
 use Graphics::GnuplotIF;
-use Galacticus::HDF5;
 use XML::Simple;
-use Stats::Histograms;
+require Galacticus::HDF5;
+require Stats::Histograms;
 
 # Run a test of the progenitor mass function construction algorithms.
 # Andrew Benson (12-Feb-2010)
@@ -15,7 +22,7 @@ use Stats::Histograms;
 print "Progenitor_Mass_Function.pl is running: will create a plot of progenitor mass functions from Galacticus...\n";
 
 # Specify name of Galacticus output file to be used.
-$galacticusOutput = tests/progenitorMassFunction/"progenitorMassFunctionTest.hdf5";
+$galacticusOutput = $galacticusPath."tests/progenitorMassFunction/progenitorMassFunctionTest.hdf5";
 
 # Hubble constant.
 $h0 = 0.73;
@@ -44,7 +51,7 @@ $summedWeights = zeroes($rootBinCount,$outputCount-1);
 
 # Read data from the Millennium Simulation.
 $xml = new XML::Simple;
-$data = $xml->XMLin("data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
+$data = $xml->XMLin($galacticusPath."data/darkMatter/Progenitor_Mass_Function_Millennium_Simulation.xml");
 foreach $massFunction ( @{$data->{'massFunction'}} ) {
     $label = $massFunction->{'rootMass'}.":".$massFunction->{'redshift'};
     @{${$millenniumData{$label}}{'Mass'}} = @{$massFunction->{'massRatio'}};
@@ -53,7 +60,7 @@ foreach $massFunction ( @{$data->{'massFunction'}} ) {
 
 # Run Galacticus to generate the data.
 print "  -> Running Galacticus to generate merger trees...\n";
-system("Galacticus.exe tests/Progenitor_Mass_Function_Parameters.xml");
+system($galacticusPath."Galacticus.exe ".$galacticusPath."tests/Progenitor_Mass_Function_Parameters.xml");
 
 # Create data structure to read the results.
 $dataSet{'file'} = $galacticusOutput;
@@ -117,7 +124,7 @@ for ($rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
 
 # Create the plot.
 print "  -> Creating the plot...\n";
-$plotName = "tests/progenitorMassFunction/progenitorMassFunction.pdf";
+$plotName = $galacticusPath."tests/progenitorMassFunction/progenitorMassFunction.pdf";
 $plot1  = Graphics::GnuplotIF->new();
 $plot1->gnuplot_hardcopy( '| ps2pdf - '.$plotName, 
 			  'postscript enhanced', 
