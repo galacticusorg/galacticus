@@ -230,7 +230,7 @@ Galacticus.exe: ./work/build/galacticus.hg.patch ./work/build/galacticus.hg.bund
 ./work/build/galacticus.hg.patch:
 	hg diff > ./work/build/galacticus.hg.patch | true
 ./work/build/galacticus.hg.bundle:
-	hg bundle -t none ./work/build/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus_v0.9.2 | true
+	hg bundle -t none ./work/build/galacticus.hg.bundle https://abensonca@bitbucket.org/abensonca/galacticus | true
 
 # Rules for cleaning up.
 clean: tidy
