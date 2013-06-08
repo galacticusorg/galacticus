@@ -77,16 +77,16 @@ for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
     for ($iOutput=$outputCount;$iOutput>0;--$iOutput) {
 	$dataSet{'output'} = $iOutput;
 	# Read the node masses and which nodes are isolated.
-	&HDF5::Get_Dataset(\%dataSet,['nodeMass','nodeIsIsolated','mergerTreeWeight']);
+	&HDF5::Get_Dataset(\%dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
 	$dataSets = \%{$dataSet{'dataSets'}};
 	# Get a list of isolated node masses.
-	$isolatedNodeMass = where(${$dataSets->{'nodeMass'}},${$dataSets->{'nodeIsIsolated'}} == 1);
+	$isolatedNodeMass = where(${$dataSets->{'basicMass'}},${$dataSets->{'nodeIsIsolated'}} == 1);
 	$isolatedNodeMass = $isolatedNodeMass*$h0; # Put into "h" units as were used by Cole et al.
 	$weight = $isolatedNodeMass;
 	$isolatedNodeMass = log10($isolatedNodeMass);
 	# Clean up.
 	delete($dataSets->{'nodeIsIsolated'});
-	delete($dataSets->{'nodeMass'});
+	delete($dataSets->{'basicMass'});
 	# Compute fractional node masses and take the log.
 	if ( $iOutput == $outputCount ) {
 	    $logRootNodeMass = $isolatedNodeMass->index(0);
