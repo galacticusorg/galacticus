@@ -63,27 +63,28 @@ print "  -> Running Galacticus to generate merger trees...\n";
 system($galacticusPath."Galacticus.exe ".$galacticusPath."tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
 
 # Create data structure to read the results.
-$dataSet{'file'} = $galacticusOutput;
+$dataSet->{'file'} = $galacticusOutput;
 
 # Get a count of the number of trees present.
-&HDF5::Count_Trees(\%dataSet);
-$treesCount = $#{$dataSet{'mergerTreesAvailable'}}+1;
+&HDF5::Count_Trees($dataSet);
+$treesCount = scalar(@{$dataSet->{'mergerTreesAvailable'}});
 print "  -> Found ".$treesCount." trees: processing.......\n";
 
 # Loop through trees.
 for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
-    $dataSet{'tree'} = $iTree;
+    $dataSet->{'tree'} = $iTree;
     # Loop over outputs.
     for ($iOutput=$outputCount;$iOutput>0;--$iOutput) {
-	$dataSet{'output'} = $iOutput;
+	$dataSet->{'output'} = $iOutput;
 	# Read the node masses and which nodes are isolated.
-	&HDF5::Get_Dataset(\%dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
-	$dataSets = \%{$dataSet{'dataSets'}};
+	&HDF5::Get_Dataset($dataSet,['basicMass','nodeIsIsolated','mergerTreeWeight']);
+	$dataSets = $dataSet->{'dataSets'};
 	# Get a list of isolated node masses.
-	$isolatedNodeMass = where(${$dataSets->{'basicMass'}},${$dataSets->{'nodeIsIsolated'}} == 1);
+	$isolatedNodeMass = where($dataSets->{'basicMass'},$dataSets->{'nodeIsIsolated'} == 1);
 	$isolatedNodeMass = $isolatedNodeMass*$h0; # Put into "h" units as were used by Cole et al.
 	$weight = $isolatedNodeMass;
 	$isolatedNodeMass = log10($isolatedNodeMass);
+
 	# Clean up.
 	delete($dataSets->{'nodeIsIsolated'});
 	delete($dataSets->{'basicMass'});
@@ -105,7 +106,7 @@ for ($iTree=1;$iTree<=$treesCount;$iTree+=1) {
 		# Build a histogram.
 		($hist,$histErrors) = &Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
 		# Accumulate.
-		$vWeight = ${$dataSets->{'mergerTreeWeight'}}->index(0);
+		$vWeight = $dataSets->{'mergerTreeWeight'}->index(0);
 		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*$vWeight;
 		$summedWeights->(($rootBin),($iOutput-1)) += $vWeight;
 	    }
