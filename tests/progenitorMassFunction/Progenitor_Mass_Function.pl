@@ -81,7 +81,7 @@ for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
 	&HDF5::Get_Dataset(\%dataSet,['nodeMass','nodeIsIsolated','volumeWeight']);
 	$dataSets = \%{$dataSet{'dataSets'}};
 	# Get a list of isolated node masses.
-	$isolatedNodeMass = where(${$dataSets->{'nodeMass'}},${$dataSets->{'nodeIsIsolated'}} == 1);
+	$isolatedNodeMass = where($dataSets->{'nodeMass'},$dataSets->{'nodeIsIsolated'} == 1);
 	$isolatedNodeMass = $isolatedNodeMass*$h0; # Put into "h" units as were used by Cole et al.
 	$weight = $isolatedNodeMass;
 	$isolatedNodeMass = log10($isolatedNodeMass);
@@ -106,7 +106,7 @@ for ($iTree=2082;$iTree<=$treesCount;$iTree+=1) {
 		# Build a histogram.
 		($hist,$histErrors) = &Histograms::Histogram($lgMval,$isolatedNodeMass,$weight);
 		# Accumulate.
-		$vWeight = ${$dataSets->{'volumeWeight'}}->index(0);
+		$vWeight = $dataSets->{'volumeWeight'}->index(0);
 		$progenitorMF->(($rootBin),($iOutput-1),:) += $hist*$vWeight;
 		$summedWeights->(($rootBin),($iOutput-1)) += $vWeight;
 	    }
