@@ -777,7 +777,7 @@ contains
           call thisOrbit%assertIsDefined()
           ! Compute from eccentricity, radius and periapsis if possible.
           if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
-             thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*dsqrt((2.0d0*(1.0d0-thisOrbit%radius()&
+             thisOrbit%velocityRadialValue=thisOrbit%velocityScale()*sqrt((2.0d0*(1.0d0-thisOrbit%radius()&
                   &/thisOrbit%radiusPericenter())+(1.0d0+thisOrbit%eccentricity())*(thisOrbit%radius()/thisOrbit%radiusPericenter()&
                   &-thisOrbit%radiusPericenter()/thisOrbit%radius()))/thisOrbit%specificReducedMass())
              thisOrbit%velocityRadialIsSet=.true.
@@ -809,7 +809,7 @@ contains
           end if
           ! Compute from eccentricity, radius and periapsis if possible.
           if (thisOrbit%eccentricityIsSet.and.thisOrbit%radiusIsSet.and.thisOrbit%radiusPericenterIsSet) then
-             thisOrbit%velocityTangentialValue=thisOrbit%velocityScale()*dsqrt((1.0d0+thisOrbit%eccentricity())&
+             thisOrbit%velocityTangentialValue=thisOrbit%velocityScale()*sqrt((1.0d0+thisOrbit%eccentricity())&
                   &*thisOrbit%radiusPericenter() /thisOrbit%radius() /thisOrbit%specificReducedMass())
              thisOrbit%velocityTangentialIsSet=.true.
           end if
@@ -876,7 +876,7 @@ contains
        if (.not.thisOrbit%eccentricityIsSet) then
           velocityTangential         =thisOrbit%velocityTangential()/thisOrbit%velocityScale()
           velocityRadial             =thisOrbit%velocityRadial    ()/thisOrbit%velocityScale()
-          thisOrbit%eccentricityValue=dsqrt(1.0d0+2.0d0*thisOrbit%energy()*thisOrbit%angularMomentum()**2/thisOrbit%radius()**2&
+          thisOrbit%eccentricityValue=sqrt(1.0d0+2.0d0*thisOrbit%energy()*thisOrbit%angularMomentum()**2/thisOrbit%radius()**2&
                &/thisOrbit%velocityScale()**4/thisOrbit%specificReducedMass())
           thisOrbit%eccentricityIsSet=.true.
        end if
@@ -980,7 +980,7 @@ contains
        if (.not.(thisOrbit%radiusIsSet.and.thisOrbit%massesIsSet)) call Galacticus_Error_Report('Kepler_Orbits_Velocity_Scale','orbit&
             & masses and radius must be specified')
        ! Compute the velocity scale.
-       Kepler_Orbits_Velocity_Scale=dsqrt(gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius())
+       Kepler_Orbits_Velocity_Scale=sqrt(gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%radius())
     end select
     return
   end function Kepler_Orbits_Velocity_Scale

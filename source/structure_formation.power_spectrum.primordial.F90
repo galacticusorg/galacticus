@@ -57,7 +57,7 @@ contains
     double precision             :: logWavenumber
 
     ! Get logarithm of wavenumber.
-    logWavenumber=dlog(wavenumber)
+    logWavenumber=log(wavenumber)
 
     !$omp critical(Power_Spectrum_Initialization) 
     ! Initialize if necessary.
@@ -77,7 +77,7 @@ contains
     !$omp end critical(Power_Spectrum_Initialization)
 
     ! Interpolate in the tabulated function and return a value.
-    Primordial_Power_Spectrum=dexp(Interpolate(powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP &
+    Primordial_Power_Spectrum=exp(Interpolate(powerSpectrumNumberPoints,powerSpectrumLogWavenumber,powerSpectrumLogP &
          &,interpolationObject,interpolationAccelerator,logWavenumber,reset=resetInterpolation))
 
     return
@@ -91,7 +91,7 @@ contains
     double precision             :: logWavenumber
 
     ! Get logarithm of wavenumber.
-    logWavenumber=dlog(wavenumber)
+    logWavenumber=log(wavenumber)
 
     !$omp critical(Power_Spectrum_Initialization) 
     ! Initialize if necessary.

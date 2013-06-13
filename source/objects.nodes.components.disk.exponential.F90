@@ -953,11 +953,11 @@ contains
           ! sequentially. There's no guarantee that this will work in every situation however.
           select case (mod(radiusSolverIteration,4))
           case (0)
-             newRadius=dsqrt (radius          *radiusHistory(1))
+             newRadius=sqrt (radius          *radiusHistory(1))
           case (1)
              newRadius=0.5d0*(radius          +radiusHistory(1))
           case (2)
-             newRadius=dsqrt (radiusHistory(1)*radiusHistory(2))
+             newRadius=sqrt (radiusHistory(1)*radiusHistory(2))
           case (3)
              newRadius=0.5d0*(radiusHistory(1)+radiusHistory(2))
           end select
@@ -1036,7 +1036,7 @@ contains
           ! imaginary specific angular momentum - this can happen as the radius solver explores the allowed range of radii when
           ! seeking a solution.
           if (diskRadiusSolverCole2000Method)                                                              &
-               & specificAngularMomentum=dsqrt(                                                            &
+               & specificAngularMomentum=sqrt(                                                            &
                &                               max(                                                        &
                &                                    0.0d0,                                                 &
                &                                    specificAngularMomentum**2                             &

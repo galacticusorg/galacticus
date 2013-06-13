@@ -220,7 +220,7 @@ contains
        electronScatteringTableTimeMaximum=    Cosmology_Age(1.0d0)
        electronScatteringTableTimeMinimum=min(Cosmology_Age(1.0d0),time)/2.0d0
        ! Decide how many points to tabulate and allocate table arrays.
-       electronScatteringTableNumberPoints=int(dlog10(electronScatteringTableTimeMaximum/electronScatteringTableTimeMinimum)&
+       electronScatteringTableNumberPoints=int(log10(electronScatteringTableTimeMaximum/electronScatteringTableTimeMinimum)&
             &*dble(electronScatteringTablePointsPerDecade))+1
        if (allocated(electronScatteringTableTime)) then
           call Dealloc_Array(electronScatteringTableTime                    )

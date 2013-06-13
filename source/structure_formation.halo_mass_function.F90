@@ -100,8 +100,8 @@ contains
 
     parameterPointer=c_loc(timeTarget)
     timeTarget=time
-    logMassLow =dlog(massLow )
-    logMassHigh=dlog(massHigh)
+    logMassLow =log(massLow )
+    logMassHigh=log(massHigh)
     Halo_Mass_Function_Integrated=Integrate(logMassLow,logMassHigh,Halo_Mass_Function_Integrand,parameterPointer &
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-5,integrationRule&
          &=FGSL_Integ_Gauss15)
@@ -119,7 +119,7 @@ contains
 
     ! Extract integrand parameters.
     call c_f_pointer(parameterPointer,time)
-    mass=dexp(logMass)
+    mass=exp(logMass)
 
     ! Return the differential mass function multiplied by mass since we are integrating over log(mass).
     Halo_Mass_Function_Integrand=Halo_Mass_Function_Differential(time,mass)*mass
@@ -140,8 +140,8 @@ contains
 
     parameterPointer=c_loc(timeTarget)
     timeTarget=time
-    logMassLow =dlog(massLow )
-    logMassHigh=dlog(massHigh)
+    logMassLow =log(massLow )
+    logMassHigh=log(massHigh)
     Halo_Mass_Fraction_Integrated=Integrate(logMassLow,logMassHigh,Halo_Mass_Fraction_Integrand,parameterPointer &
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-5,integrationRule&
          &=FGSL_Integ_Gauss15)
@@ -162,7 +162,7 @@ contains
 
     ! Extract integrand parameters.
     call c_f_pointer(parameterPointer,time)
-    mass=dexp(logMass)
+    mass=exp(logMass)
 
     ! Return the differential mass function multiplied by mass since we are integrating over log(mass) and by mass again to get
     ! the mass fraction.

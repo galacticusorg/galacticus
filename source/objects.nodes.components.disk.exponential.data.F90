@@ -122,7 +122,7 @@ contains
         rotationCurveHalfRadiusMaximum=max(rotationCurveHalfRadiusMaximum,2.0d0*halfRadius)
         
         ! Determine how many points to tabulate.
-        rotationCurvePointsCount=int(dlog10(rotationCurveHalfRadiusMaximum/rotationCurveHalfRadiusMinimum)*dble(rotationCurvePointsPerDecade))+1
+        rotationCurvePointsCount=int(log10(rotationCurveHalfRadiusMaximum/rotationCurveHalfRadiusMinimum)*dble(rotationCurvePointsPerDecade))+1
         
         ! Allocate table arrays.
         call rotationCurveTable%destroy()
@@ -185,7 +185,7 @@ contains
        rotationCurveGradientHalfRadiusMaximum=max(rotationCurveGradientHalfRadiusMaximum,2.0d0*halfRadius)
 
        ! Determine how many points to tabulate.
-       rotationCurveGradientPointsCount=int(dlog10(rotationCurveGradientHalfRadiusMaximum/rotationCurveGradientHalfRadiusMinimum)*dble(rotationCurveGradientPointsPerDecade))+1
+       rotationCurveGradientPointsCount=int(log10(rotationCurveGradientHalfRadiusMaximum/rotationCurveGradientHalfRadiusMinimum)*dble(rotationCurveGradientPointsPerDecade))+1
 
        ! Allocate table arrays.
        call rotationCurveGradientTable%destroy()

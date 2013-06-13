@@ -81,12 +81,12 @@ contains
        
        ! Compute halo density contrast and logarithm.
        haloDensityContrast=Halo_Virial_Density_Contrast(time)
-       y=dlog10(haloDensityContrast)
+       y=log10(haloDensityContrast)
        
        ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)
-       upperA=1.0d0+0.24d0*y*dexp(-(4.0d0/y)**4)
+       upperA=1.0d0+0.24d0*y*exp(-(4.0d0/y)**4)
        lowerA=0.44d0*y-0.88d0
-       upperC=0.019d0+0.107d0*y+0.19d0*dexp(-(4.0d0/y)**4)
+       upperC=0.019d0+0.107d0*y+0.19d0*exp(-(4.0d0/y)**4)
     end if
 
     ! Compute halo bias (equation 6 of Tinker et al. 2010).

@@ -28,8 +28,8 @@ module Transfer_Function_BBKS
   logical                     :: transferFunctionInitialized=.false.
 
   ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum=dlog(10.0d0)
-  double precision            :: logWavenumberMinimum=dlog(1.0d-5)
+  double precision            :: logWavenumberMaximum=log(10.0d0)
+  double precision            :: logWavenumberMinimum=log(1.0d-5)
   integer,          parameter :: numberPointsPerDecade=1000
 
   ! Warm dark matter free-streaming length.
@@ -95,13 +95,13 @@ contains
     transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
          &,rangeTypeLinear)
     ! Create transfer function.
-    Gamma=Omega_Matter()*Little_H_0()*dexp(-Omega_b()*(1.0d0+dsqrt(2.0d0*Little_H_0())/Omega_Matter()))/((T_CMB()/2.7d0)**2)
+    Gamma=Omega_Matter()*Little_H_0()*exp(-Omega_b()*(1.0d0+sqrt(2.0d0*Little_H_0())/Omega_Matter()))/((T_CMB()/2.7d0)**2)
     do iWavenumber=1,transferFunctionNumberPoints
-       wavenumber         =dexp(transferFunctionLogWavenumber(iWavenumber))
+       wavenumber         =exp(transferFunctionLogWavenumber(iWavenumber))
        wavenumberHUnits   =wavenumber/Little_H_0()
        wavenumberScaleFree=wavenumber*transferFunctionWDMFreeStreamingLength
        q                  =wavenumberHUnits/Gamma
-       transferFunctionLogT(iWavenumber)=dlog((dlog(1.0+2.34d0*q)/2.34d0/q)/(1.0d0+3.89d0*q+(16.1d0*q)**2+(5.46d0*q)**3+(6.71d0&
+       transferFunctionLogT(iWavenumber)=log((log(1.0+2.34d0*q)/2.34d0/q)/(1.0d0+3.89d0*q+(16.1d0*q)**2+(5.46d0*q)**3+(6.71d0&
             &*q)**4)**0.25d0)-0.5d0*wavenumberScaleFree*(1.0d0+wavenumberScaleFree)
     end do
     return

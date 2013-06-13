@@ -220,7 +220,7 @@ contains
          &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the pressure ratio that Blitz & Rosolowsky use to compute the molecular fraction.
     pressureRatio=0.5d0*Pi*gravitationalConstantGalacticus*surfaceDensityGas*(surfaceDensityGas+velocityDispersionDiskGas &
-         &*dsqrt(surfaceDensityStar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
+         &*sqrt(surfaceDensityStar/Pi/gravitationalConstantGalacticus/heightToRadialScaleDiskBlitzRosolowsky&
          &/diskScaleRadius))/pressureCharacteristicBlitzRosolowsky
     ! Compute the molecular fraction, limited to 100% molecular.
     if (pressureRatio >= 1.0d0) then

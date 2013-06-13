@@ -582,17 +582,17 @@ contains
     ! Compute rate using the relevant fitting function.
     if (electronNumber <= 3 .or. electronNumber == 11 .or. (atomicNumber > 5 .and. atomicNumber < 9) .or. atomicNumber == 10 .or.&
          & (atomicNumber == 26 .and. electronNumber > 11)) then
-       temperatureScaled=dsqrt(temperature/recombinationFitCoefficientsNew(3,atomicNumber,electronNumber))
+       temperatureScaled=sqrt(temperature/recombinationFitCoefficientsNew(3,atomicNumber,electronNumber))
        Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficientsNew(1,atomicNumber,electronNumber)&
             &/(temperatureScaled *(temperatureScaled+1.0d0)**(1.0d0-recombinationFitCoefficientsNew(2,atomicNumber&
-            &,electronNumber))*(1.0d0 +dsqrt(temperature/recombinationFitCoefficientsNew(4,atomicNumber,electronNumber)))**(1.0d0&
+            &,electronNumber))*(1.0d0 +sqrt(temperature/recombinationFitCoefficientsNew(4,atomicNumber,electronNumber)))**(1.0d0&
             & +recombinationFitCoefficientsNew(2,atomicNumber,electronNumber)))
     else
        temperatureScaled=temperature/1.0d4
        if (atomicNumber == 26 .and. electronNumber <= 13) then
           Atomic_Rate_Recombination_Radiative_Verner=recombinationCoefficientsIron(1,electronNumber)/temperatureScaled &
                &**(recombinationCoefficientsIron(2,electronNumber)+recombinationCoefficientsIron(3,electronNumber) &
-               &*dlog10(temperatureScaled))
+               &*log10(temperatureScaled))
        else
           Atomic_Rate_Recombination_Radiative_Verner=recombinationFitCoefficients(1,atomicNumber,electronNumber)&
                &/temperatureScaled **recombinationFitCoefficients(2,atomicNumber,electronNumber)

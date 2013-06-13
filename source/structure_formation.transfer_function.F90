@@ -56,7 +56,7 @@ contains
     double precision             :: logWavenumber
 
     ! Get logarithm of wavenumber.
-    logWavenumber=dlog(wavenumber)
+    logWavenumber=log(wavenumber)
 
     !$omp critical(Transfer_Function_Initialization) 
     ! Initialize if necessary.
@@ -91,7 +91,7 @@ contains
     double precision             :: logWavenumber
 
     ! Get logarithm of wavenumber.
-    logWavenumber=dlog(wavenumber)
+    logWavenumber=log(wavenumber)
 
     !$omp critical(Transfer_Function_Initialization) 
     ! Initialize if necessary.

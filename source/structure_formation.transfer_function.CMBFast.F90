@@ -31,7 +31,7 @@ module Transfer_Function_CMBFast
   type(varying_string) :: transferFunctionFile
 
   ! Smallest maximum wavenumber to tabulate.
-  double precision, parameter :: logWavenumberMaximumDefault=dlog(10.0d0)
+  double precision, parameter :: logWavenumberMaximumDefault=log(10.0d0)
 
 contains
   
@@ -107,7 +107,7 @@ contains
     ! Read the file if this module has not been initialized or if the wavenumber is out of range.
     if (makeFile) then
        ! Run CMBFast wrapper script.
-       write (wavenumberLabel,'(e12.6)') dexp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
+       write (wavenumberLabel,'(e12.6)') exp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
        command=char(Galacticus_Input_Path())//'scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)//' '//Transfer_Function_Named_File_Format_Version()
        call System_Command_Do(command)
 

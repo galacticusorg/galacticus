@@ -63,7 +63,7 @@ contains
     logPossibleBifurcations=Logarithmic_Double_Factorial(2*leafCount-3)
     
     ! Compute the CIC in bits.
-    Merger_Tree_Cladistic_Information_Content=(logPossibleBifurcations-logPermittedBifurcations)/dlog(2.0d0)
+    Merger_Tree_Cladistic_Information_Content=(logPossibleBifurcations-logPermittedBifurcations)/log(2.0d0)
     return
   end function Merger_Tree_Cladistic_Information_Content
   

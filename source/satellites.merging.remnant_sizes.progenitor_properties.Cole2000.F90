@@ -127,7 +127,7 @@ contains
     if (hostSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        hostSpheroidDarkMatterFactor=           hostSpheroidComponent%angularMomentum()                           &
             &                       /(componentMass**1.5d0)                                                      &
-            &                       /dsqrt(gravitationalConstantGalacticus*          hostSpheroidHalfMassRadius)
+            &                       /sqrt(gravitationalConstantGalacticus*          hostSpheroidHalfMassRadius)
     else
        hostSpheroidDarkMatterFactor=0.0d0
     end if
@@ -137,7 +137,7 @@ contains
     if (hostDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        hostDiskDarkMatterFactor         =          hostDiskComponent%angularMomentum()                           &
             &                            /(componentMass**1.5d0)                                                 &
-            &                            /dsqrt(gravitationalConstantGalacticus*         hostDiskHalfMassRadius)
+            &                            /sqrt(gravitationalConstantGalacticus*         hostDiskHalfMassRadius)
     else
        hostDiskDarkMatterFactor=0.0d0
     end if
@@ -147,7 +147,7 @@ contains
     if (satelliteSpheroidHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        satelliteSpheroidDarkMatterFactor= satelliteSpheroidComponent%angularMomentum()                           &
             &                            /(componentMass**1.5d0)                                                 &
-            &                            /dsqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
+            &                            /sqrt(gravitationalConstantGalacticus*satelliteSpheroidHalfMassRadius)
     else
        satelliteSpheroidDarkMatterFactor=0.0d0
     end if
@@ -157,7 +157,7 @@ contains
     if (satelliteDiskHalfMassRadius > 0.0d0 .and. componentMass > 0.0d0) then
        satelliteDiskDarkMatterFactor    =     satelliteDiskComponent%angularMomentum()                           &
             &                            /(componentMass**1.5d0)                                                 &
-            &                            /dsqrt(gravitationalConstantGalacticus*    satelliteDiskHalfMassRadius)
+            &                            /sqrt(gravitationalConstantGalacticus*    satelliteDiskHalfMassRadius)
     else
        satelliteDiskDarkMatterFactor=0.0d0
     end if

@@ -58,7 +58,7 @@ contains
     redshift                =Redshift_from_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
     a                       =w*redshift-m
     b                       =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
-    haloMassLogarithmic     =dlog10(thisBasicComponent%mass()*Little_H_0())
+    haloMassLogarithmic     =log10(thisBasicComponent%mass()*Little_H_0())
     concentrationLogarithmic=a*haloMassLogarithmic+b
     Dark_Matter_Profile_Concentration_MunozCuartas2011=10.0d0**concentrationLogarithmic
     return

@@ -61,7 +61,7 @@ contains
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
     radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
     ! Compute radius of orbit with same energy.
-    equivalentCircularOrbitRadius=dexp(thisOrbit%energy()/velocityScale**2+0.5d0)
+    equivalentCircularOrbitRadius=exp(thisOrbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
     orbitalCircularity=thisOrbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute mass ratio.
@@ -76,7 +76,7 @@ contains
        ! Compute dynamical friction timescale.
        Satellite_Time_Until_Merging_Lacey_Cole=Dynamical_Friction_Timescale_Multiplier()*(orbitalCircularity**0.78d0)&
             &*(equivalentCircularOrbitRadius**2) *Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio&
-            &/dlog(massRatio)
+            &/log(massRatio)
     end if
     return
   end function Satellite_Time_Until_Merging_Lacey_Cole

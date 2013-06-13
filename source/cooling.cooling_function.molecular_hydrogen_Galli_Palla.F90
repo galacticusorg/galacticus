@@ -226,7 +226,7 @@ contains
             &,coolingFunctionLowDensityLimit)
        ! Check if we need to recompute the low density limit cooling function gradient.
        if (temperature /= temperaturePrevious1) then
-          logarithmic10Temperature=dlog10(temperature)
+          logarithmic10Temperature=log10(temperature)
           coolingFunctionLowDensityLimitTemperatureLogGradient=                                                 &
                &                    +                          coolingFunctionLowDensityLimitCoefficient(1)     &
                &                    +logarithmic10Temperature*(coolingFunctionLowDensityLimitCoefficient(2)     &
@@ -246,7 +246,7 @@ contains
                   & +(  coolingFunctionRotationalLambda1*(temperatureThousand**(coolingFunctionRotationalExponent1-1.0d0))                                   &
                   &    /(1.0d0+coolingFunctionRotationalCoefficient1*(temperatureThousand**coolingFunctionRotationalExponent2))                              &
                   &  )                                                                                                                                       &
-                  &   *dexp(   -(coolingFunctionRotationalTemperature1/temperatureThousand)**3)*(                                                            &
+                  &   *exp(   -(coolingFunctionRotationalTemperature1/temperatureThousand)**3)*(                                                            &
                   &      +3.0d0*(coolingFunctionRotationalTemperature1/temperatureThousand)**3                                                               &
                   &      +coolingFunctionRotationalExponent1                                                                                                 &
                   &      -coolingFunctionRotationalExponent2*coolingFunctionRotationalCoefficient1*(temperatureThousand**coolingFunctionRotationalExponent2) &
@@ -254,12 +254,12 @@ contains
                   &                                                                             )                                                            &
                   & +(coolingFunctionRotationalLambda2/temperatureThousand)                                                                                  &
                   &   *    ( coolingFunctionRotationalTemperature2/temperatureThousand)                                                                      &
-                  &   *dexp(-coolingFunctionRotationalTemperature2/temperatureThousand)
+                  &   *exp(-coolingFunctionRotationalTemperature2/temperatureThousand)
              coolingFunctionVibrationalTemperatureGradient=(                                                                                                 &
                   &                                     coolingFunctionVibrationalLambda1*(coolingFunctionVibrationalTemperature1/temperatureThousand)       &
-                  &                                       *dexp(-coolingFunctionVibrationalTemperature1/temperatureThousand)                                 &
+                  &                                       *exp(-coolingFunctionVibrationalTemperature1/temperatureThousand)                                 &
                   &                                    +coolingFunctionVibrationalLambda2*(coolingFunctionVibrationalTemperature2/temperatureThousand)       &
-                  &                                       *dexp(-coolingFunctionVibrationalTemperature2/temperatureThousand)                                 &
+                  &                                       *exp(-coolingFunctionVibrationalTemperature2/temperatureThousand)                                 &
                   &                                        )/temperatureThousand
              temperaturePrevious2=temperature
           end if
@@ -282,7 +282,7 @@ contains
        if (temperature > 1.0d3 .and. temperature < 1.0d4) then
           coolingFunction=Cooling_Function_GP_H2Plus_Electron(temperature,chemicalDensities)
           if (temperature /= temperaturePrevious3) then
-             logarithmic10Temperature=dlog10(temperature)
+             logarithmic10Temperature=log10(temperature)
              coolingFunctionH2PlusElectronTemperatureLogGradient=                         &
                   & +coolingFunctionH2PlusElectronCoefficient(1)                          &
                   & +coolingFunctionH2PlusElectronCoefficient(2)*logarithmic10Temperature
@@ -296,7 +296,7 @@ contains
        if (temperature > 1.0d3 .and. temperature < 1.0d4) then
           coolingFunction=Cooling_Function_GP_H_H2Plus(temperature,chemicalDensities)
           if (temperature /= temperaturePrevious4) then
-             logarithmic10Temperature=dlog10(temperature)
+             logarithmic10Temperature=log10(temperature)
              coolingFunctionH2PlusHTemperatureLogGradient=                         &
                   & +coolingFunctionH2PlusHCoefficient(1)                          &
                   & +coolingFunctionH2PlusHCoefficient(2)*logarithmic10Temperature
@@ -362,7 +362,7 @@ contains
 
     if (temperature /= temperaturePrevious) then
        ! The expression from Galli & Palla (1998), assumes an equilibrium (1:3) ratio of para:ortho.
-       logarithmic10Temperature=dlog10(temperature)
+       logarithmic10Temperature=log10(temperature)
        coolingFunctionLowDensityLimitStored=10.0d0**(coolingFunctionLowDensityLimitCoefficient(0)     &
             &             +logarithmic10Temperature*(coolingFunctionLowDensityLimitCoefficient(1)     &
             &             +logarithmic10Temperature*(coolingFunctionLowDensityLimitCoefficient(2)     &
@@ -373,13 +373,13 @@ contains
        temperatureThousand=temperature*milli ! Convert to units of 1,000K.
        coolingFunctionRotationalTemperaturePart =((coolingFunctionRotationalLambda1*(temperatureThousand**coolingFunctionRotationalExponent1)) &
             & /(1.0d0+coolingFunctionRotationalCoefficient1*(temperatureThousand**coolingFunctionRotationalExponent2)))                        &
-            & *dexp(-(coolingFunctionRotationalTemperature1/temperatureThousand)**3)                                                           &
+            & *exp(-(coolingFunctionRotationalTemperature1/temperatureThousand)**3)                                                           &
             &                                     +coolingFunctionRotationalLambda2                                                            &
-            & *dexp(-coolingFunctionRotationalTemperature2/temperatureThousand)
+            & *exp(-coolingFunctionRotationalTemperature2/temperatureThousand)
        coolingFunctionVibrationalTemperaturePart= coolingFunctionVibrationalLambda1                                    &
-            &                                       *dexp(-coolingFunctionVibrationalTemperature1/temperatureThousand) &
+            &                                       *exp(-coolingFunctionVibrationalTemperature1/temperatureThousand) &
             &                                    +coolingFunctionVibrationalLambda2                                    &
-            &                                       *dexp(-coolingFunctionVibrationalTemperature2/temperatureThousand)
+            &                                       *exp(-coolingFunctionVibrationalTemperature2/temperatureThousand)
        
        ! Record the temperature used.
        temperaturePrevious=temperature
@@ -421,7 +421,7 @@ contains
     if (temperature > 1.0d3 .and. temperature < 1.0d4) then
        ! Recompute the temperature dependent part if necessary.
        if (temperature /= temperaturePrevious) then
-          logarithmic10Temperature=dlog10(temperature)
+          logarithmic10Temperature=log10(temperature)
           coolingFunctionElectronMolecularHydrogenCation=10.0d0**(                        &
                &  coolingFunctionH2PlusElectronCoefficient(0)                             &
                & +coolingFunctionH2PlusElectronCoefficient(1)*logarithmic10Temperature    &
@@ -456,7 +456,7 @@ contains
     if (temperature > 1.0d3 .and. temperature < 1.0d4) then
        ! Recompute the temperature dependent part if necessary.
        if (temperature /= temperaturePrevious) then
-          logarithmic10Temperature=dlog10(temperature)
+          logarithmic10Temperature=log10(temperature)
           coolingFunctionAtomicHydrogenMolecularHydrogenCation=10.0d0**(           &
                &  coolingFunctionH2PlusHCoefficient(0)                             &
                & +coolingFunctionH2PlusHCoefficient(1)*logarithmic10Temperature    &

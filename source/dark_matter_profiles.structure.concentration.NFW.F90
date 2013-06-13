@@ -103,7 +103,7 @@ contains
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =nfw96ConcentrationF*nodeMass
     ! Find the time of collapse for this progenitor.
-    collapseCriticalOverdensity=dsqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
+    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
     collapseTime               =Time_of_Collapse(collapseCriticalOverdensity)
     collapseExpansionFactor    =Expansion_Factor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
@@ -130,7 +130,7 @@ contains
     implicit none
     double precision, intent(in   ) :: concentration
     
-    NFW_Concentration_Function_Root=concentration**3/(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-targetValue
+    NFW_Concentration_Function_Root=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-targetValue
     return
   end function NFW_Concentration_Function_Root
 

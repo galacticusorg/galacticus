@@ -30,7 +30,7 @@ module Primordial_Power_Spectrum_Power_Law
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
   integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logWavenumberMinimum=dlog(1.0d-5), logWavenumberMaximum=dlog(10.0d0)
+  double precision            :: logWavenumberMinimum=log(1.0d-5), logWavenumberMaximum=log(10.0d0)
 
 contains
   
@@ -114,8 +114,8 @@ contains
     ! Tabulate the function.
     powerSpectrumLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,powerSpectrumNumberPoints,rangeTypeLinear)
     do iWavenumber=1,powerSpectrumNumberPoints
-       wavenumber=dexp(powerSpectrumLogWavenumber(iWavenumber))
-       powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+0.5d0*powerSpectrumRunning*dlog(wavenumber&
+       wavenumber=exp(powerSpectrumLogWavenumber(iWavenumber))
+       powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+0.5d0*powerSpectrumRunning*log(wavenumber&
             &/powerSpectrumReferenceWavenumber))*powerSpectrumLogWavenumber(iWavenumber)
     end do
     

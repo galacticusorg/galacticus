@@ -100,7 +100,7 @@ contains
        issueNewReport=.true.
     else if (usedMemory%memoryType(memoryTypeTotal)%usage > 0) then
        ! Only report memory usage if the total usage has changed by more than newReportChangeFactor.
-       if (dabs(dlog(dble(usedMemory%memoryType(memoryTypeTotal)%usage)/dble(usageAtPreviousReport))) > dlog(newReportChangeFactor)) then
+       if (abs(log(dble(usedMemory%memoryType(memoryTypeTotal)%usage)/dble(usageAtPreviousReport))) > log(newReportChangeFactor)) then
           if (usedMemory%memoryType(memoryTypeTotal)%usage < usageAtPreviousReport) then
              successiveDecreaseCount=successiveDecreaseCount+1
              if (successiveDecreaseCount >= 2) then
@@ -167,11 +167,11 @@ contains
     implicit none
     type(memoryUsage),       intent(inout) :: thisMemoryUsage
     integer(kind=kind_int8), parameter     :: kilo     =1024
-    double precision,        parameter     :: log10kilo=dlog10(dble(kilo))
+    double precision,        parameter     :: log10kilo=log10(dble(kilo))
     integer                                :: usageDecade
 
     if (thisMemoryUsage%usage > 0) then
-       usageDecade=int(dlog10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
+       usageDecade=int(log10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
        select case (usageDecade)
        case (:0)
           thisMemoryUsage%divisor=1

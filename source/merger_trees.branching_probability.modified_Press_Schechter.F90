@@ -37,7 +37,7 @@ module Modified_Press_Schechter_Branching
   double precision             :: modifiedPressSchechterFirstOrderAccuracy
 
   ! Precomputed numerical factors.
-  double precision, parameter  :: sqrtTwoOverPi=dsqrt(2.0d0/Pi)
+  double precision, parameter  :: sqrtTwoOverPi=sqrt(2.0d0/Pi)
 
   ! Branching probability integrand integration tolerance.
   double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
@@ -181,7 +181,7 @@ contains
     if (haloMass>2.0d0*massResolution) then
        parentSigma        =Cosmological_Mass_Root_Variance(      haloMass)
        parentHalfMassSigma=Cosmological_Mass_Root_Variance(0.5d0*haloMass)
-       Modified_Press_Schechter_Branching_Maximum_Step=modifiedPressSchechterFirstOrderAccuracy*dsqrt(2.0d0&
+       Modified_Press_Schechter_Branching_Maximum_Step=modifiedPressSchechterFirstOrderAccuracy*sqrt(2.0d0&
             &*(parentHalfMassSigma**2-parentSigma**2))
     else
        Modified_Press_Schechter_Branching_Maximum_Step=largeStep
@@ -286,7 +286,7 @@ contains
     double precision             :: childSigmaSquared
 
     childSigmaSquared=childSigma**2
-    Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*dabs(childAlpha)
+    Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*abs(childAlpha)
     return
   end function Merging_Rate
   

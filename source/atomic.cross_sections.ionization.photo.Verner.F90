@@ -2027,15 +2027,15 @@ contains
        energyScaled=energy/fitCoefficients1(2,atomicNumber,electronNumber,shellNumber)
        exponent1   =-0.5d0*exponent2-dble(fitCoefficientL(shellNumber))-5.5d0
        coefficient =fitCoefficients1(3,atomicNumber,electronNumber,shellNumber)*((energyScaled-1.0d0)**2+fitCoefficients1(6,atomicNumber,electronNumber,shellNumber)**2)
-       energyFactor=dsqrt(energyScaled/fitCoefficients1(4,atomicNumber,electronNumber,shellNumber))+1.0d0
+       energyFactor=sqrt(energyScaled/fitCoefficients1(4,atomicNumber,electronNumber,shellNumber))+1.0d0
        Atomic_Cross_Section_Ionization_Photo_Verner=coefficient*energyScaled**exponent1*energyFactor**exponent2
     else
        exponent2     =-fitCoefficients2(4,atomicNumber,electronNumber)
        exponent1     =-0.5d0*exponent2-5.5d0
        energyScaled  =energy/fitCoefficients2(1,atomicNumber,electronNumber)-fitCoefficients2(6,atomicNumber,electronNumber)
-       energyModified=dsqrt(energyScaled**2+fitCoefficients2(7,atomicNumber,electronNumber)**2)
+       energyModified=sqrt(energyScaled**2+fitCoefficients2(7,atomicNumber,electronNumber)**2)
        coefficient   =fitCoefficients2(2,atomicNumber,electronNumber)*((energyScaled-1.0d0)**2+fitCoefficients2(5,atomicNumber,electronNumber)**2)
-       energyFactor  =1.0d0+dsqrt(energyModified/fitCoefficients2(3,atomicNumber,electronNumber))
+       energyFactor  =1.0d0+sqrt(energyModified/fitCoefficients2(3,atomicNumber,electronNumber))
        Atomic_Cross_Section_Ionization_Photo_Verner=coefficient*energyModified**exponent1*energyFactor**exponent2
     end if
 

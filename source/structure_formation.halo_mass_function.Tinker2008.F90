@@ -137,7 +137,7 @@ contains
        ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
        normalization=normalization0*expansionFactor**0.14d0
        a=a0*expansionFactor**0.06d0
-       alphaDelta=10.0d0**(-(0.75d0/dlog10(Delta/75.0d0))**1.2d0)
+       alphaDelta=10.0d0**(-(0.75d0/log10(Delta/75.0d0))**1.2d0)
        b=b0*expansionFactor**alphaDelta
        c=c0
 
@@ -147,8 +147,8 @@ contains
 
     ! Compute the mass function.    
     sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
-    alpha=dabs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*dexp(-c/sigma**2)&
+    alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
+    Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return
   end function Halo_Mass_Function_Differential_Tinker2008

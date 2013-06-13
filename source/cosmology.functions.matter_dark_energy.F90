@@ -50,8 +50,8 @@ module Cosmology_Functions_Matter_Dark_Energy
   integer                                     :: ageTableNumberPoints
   double precision                            :: ageTableTimeMinimum=1.0d-4, ageTableTimeMaximum=20.0d0
   integer,          parameter                 :: ageTableNPointsPerDecade=300
-  double precision, parameter                 :: ageTableNPointsPerOctave=dble(ageTableNPointsPerDecade)*dlog(2.0d0)/dlog(10.0d0)
-  double precision, parameter                 :: ageTableIncrementFactor =dexp(int(ageTableNPointsPerOctave+1.0d0)*dlog(10.0d0)&
+  double precision, parameter                 :: ageTableNPointsPerOctave=dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter                 :: ageTableIncrementFactor =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)&
        &/dble(ageTableNPointsPerDecade))
   double precision, allocatable, dimension(:) :: ageTableTime, ageTableExpansionFactor
   type(fgsl_interp)                           :: interpolationObject     ,interpolationObjectInverse
@@ -311,13 +311,13 @@ contains
     if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
 
     ! Determine number of points to tabulate.
-    ageTableNumberPoints=int(dlog10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
+    ageTableNumberPoints=int(log10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
     ageTableTimeMaximum=ageTableTimeMinimum*10.0d0**(dble(ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
 
     ! Deallocate arrays if currently allocated.
     if (allocated(ageTableTime)) then
        ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(dlog10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
+       prefixPointCount=int(log10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
        call Move_Alloc(ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.

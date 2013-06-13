@@ -31,7 +31,7 @@ contains
     implicit none
     double precision, intent(in) :: temperature,density
 
-    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/dsqrt(gravitationalConstantGalacticus)/dsqrt(density)
+    Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/sqrt(gravitationalConstantGalacticus)/sqrt(density)
     return
   end function Ideal_Gas_Jeans_Length
 
@@ -52,7 +52,7 @@ contains
     end if
     
     ! Compute the sound speed.
-    Ideal_Gas_Sound_Speed=dsqrt(5.0d0*boltzmannsConstant*temperature/3.0d0/meanAtomicMassActual/atomicMassUnit)/kilo
+    Ideal_Gas_Sound_Speed=sqrt(5.0d0*boltzmannsConstant*temperature/3.0d0/meanAtomicMassActual/atomicMassUnit)/kilo
     return
   end function Ideal_Gas_Sound_Speed
   

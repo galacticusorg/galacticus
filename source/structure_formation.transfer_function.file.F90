@@ -194,8 +194,8 @@ contains
        do iDatum=0,getLength(datumList)-1
           datum => item(datumList,iDatum)
           call extractDataContent(datum,datumValues)
-          transferFunctionLogWavenumber(iDatum+1)=dlog(datumValues(1))
-          transferFunctionLogT         (iDatum+1)=dlog(datumValues(2))
+          transferFunctionLogWavenumber(iDatum+1)=log(datumValues(1))
+          transferFunctionLogT         (iDatum+1)=log(datumValues(2))
        end do
        ! Destroy the document.
        call destroy(doc)

@@ -490,8 +490,8 @@ contains
 
     ! Compute the rate coefficient
     Atomic_Rate_Ionization_Collisional_Verner=fitCoefficient(3,atomicNumber,electronNumber)*(1.0d0+fitCoefficient(2,atomicNumber&
-         &,electronNumber)*dsqrt(energyScaled))/(fitCoefficient(4,atomicNumber,electronNumber)+energyScaled)*energyScaled&
-         &**fitCoefficient(5,atomicNumber,electronNumber)*dexp(-energyScaled)
+         &,electronNumber)*sqrt(energyScaled))/(fitCoefficient(4,atomicNumber,electronNumber)+energyScaled)*energyScaled&
+         &**fitCoefficient(5,atomicNumber,electronNumber)*exp(-energyScaled)
     return
   end function Atomic_Rate_Ionization_Collisional_Verner
 

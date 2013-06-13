@@ -161,8 +161,8 @@ contains
           if (x < xArray(1           )                                                                         ) xActual=xArray(1           )
           if (x > xArray(size(xArray))                                                                         ) xActual=xArray(size(xArray))
        case default
-          if (x < xArray(1           ) .and. x > xArray(1           )-rangeTolerance*dabs(xArray(1)           )) xActual=xArray(1           )
-          if (x > xArray(size(xArray)) .and. x < xArray(size(xArray))+rangeTolerance*dabs(xArray(size(xArray)))) xActual=xArray(size(xArray))
+          if (x < xArray(1           ) .and. x > xArray(1           )-rangeTolerance*abs(xArray(1)           )) xActual=xArray(1           )
+          if (x > xArray(size(xArray)) .and. x < xArray(size(xArray))+rangeTolerance*abs(xArray(size(xArray)))) xActual=xArray(size(xArray))
        end select
        ! Do the interpolation.
        errorCode=fgsl_interp_eval_e(interpolationObject,xArray,yArray,xActual,interpolationAccelerator,Interpolate)
@@ -300,7 +300,7 @@ contains
     Interpolate_Locate=max(min(Interpolate_Locate,nPointsC-1),1)
 
     ! If we want the closest point, find it.
-    if (closestActual .and. dabs(x-xArray(Interpolate_Locate+1)) < dabs(x-xArray(Interpolate_Locate))) Interpolate_Locate=Interpolate_Locate+1
+    if (closestActual .and. abs(x-xArray(Interpolate_Locate+1)) < abs(x-xArray(Interpolate_Locate))) Interpolate_Locate=Interpolate_Locate+1
 
     return
   end function Interpolate_Locate

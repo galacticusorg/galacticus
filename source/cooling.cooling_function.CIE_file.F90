@@ -541,12 +541,12 @@ contains
        firstMetallicityIsZero=(coolingFunctionMetallicities(1) == 0.0d0)
        if (firstMetallicityIsZero) firstNonZeroMetallicity=coolingFunctionMetallicities(2)
        where (coolingFunctionMetallicities > 0.0d0)
-          coolingFunctionMetallicities=dlog(coolingFunctionMetallicities)
+          coolingFunctionMetallicities=log(coolingFunctionMetallicities)
        elsewhere
           coolingFunctionMetallicities=-999.0d0
        end where
-       coolingFunctionTemperatures=dlog(coolingFunctionTemperatures)
-       coolingFunctionTable=dlog(coolingFunctionTable)
+       coolingFunctionTemperatures=log(coolingFunctionTemperatures)
+       coolingFunctionTable=log(coolingFunctionTable)
     else
        if     (                                                  &
             &  extrapolateTemperatureLow  == extrapolatePowerLaw &
@@ -585,7 +585,7 @@ contains
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
     ! Get interpolation in temperature.
-    if (logarithmicTable) temperatureUse=dlog(temperatureUse)
+    if (logarithmicTable) temperatureUse=log(temperatureUse)
     iTemperature=Interpolate_Locate(coolingFunctionTemperatureNumberPoints,coolingFunctionTemperatures&
          &,interpolationAcceleratorTemperature,temperatureUse,resetTemperature)
     iTemperature=max(min(iTemperature,coolingFunctionTemperatureNumberPoints),1)
@@ -597,7 +597,7 @@ contains
        iMetallicity=1
        hMetallicity=metallicityUse/firstNonZeroMetallicity
     else
-       if (logarithmicTable) metallicityUse=dlog(metallicityUse)
+       if (logarithmicTable) metallicityUse=log(metallicityUse)
        iMetallicity=Interpolate_Locate(coolingFunctionMetallicityNumberPoints,coolingFunctionMetallicities&
          &,interpolationAcceleratorMetallicity,metallicityUse,resetMetallicity)
        iMetallicity=max(min(iMetallicity,coolingFunctionMetallicityNumberPoints),1)
@@ -620,7 +620,7 @@ contains
          &          +coolingFunctionTable(iTemperature+1,iMetallicity+1)*       hTemperature *       hMetallicity
 
     ! Exponentiate the result if the table was stored as the log.
-    if (logarithmicTable) Do_Interpolation=dexp(Do_Interpolation)
+    if (logarithmicTable) Do_Interpolation=exp(Do_Interpolation)
 
     return
   end function Do_Interpolation

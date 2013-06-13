@@ -59,9 +59,9 @@ contains
     if (exponentialArgument < exponentialArgumentMaximum) then
        select case (radianceTypeActual)
        case (radianceTypeWavelength)
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight**2*angstromsPerMeter**4/wavelength**5/(dexp(exponentialArgument)-1.0d0)
+          Blackbody_Emission=2.0d0*plancksConstant*speedLight**2*angstromsPerMeter**4/wavelength**5/(exp(exponentialArgument)-1.0d0)
        case (radianceTypeFrequency )
-          Blackbody_Emission=2.0d0*plancksConstant*speedLight   *angstromsPerMeter**3/wavelength**3/(dexp(exponentialArgument)-1.0d0)
+          Blackbody_Emission=2.0d0*plancksConstant*speedLight   *angstromsPerMeter**3/wavelength**3/(exp(exponentialArgument)-1.0d0)
        end select
     else
        Blackbody_Emission=0.0d0

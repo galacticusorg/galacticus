@@ -149,7 +149,7 @@ contains
     wNow=deltaCriticalNow/sNow      ! Equation 7 from Zhao et al. (2009).
 
     ! Compute p factor.
-    pNow=pObserved*max(0.0d0,1.0d0-dlog10(deltaCriticalNow/deltaCriticalObserved)*wObserved/0.272d0) ! Equation 10 from Zhao et al. (2009).
+    pNow=pObserved*max(0.0d0,1.0d0-log10(deltaCriticalNow/deltaCriticalObserved)*wObserved/0.272d0) ! Equation 10 from Zhao et al. (2009).
 
     ! Compute dimensionless growth rate.
     dSigmadDeltaCriticalLogarithmic=(wNow-pNow)/5.85d0 ! Equation 12 from Zhao et al. (2009).

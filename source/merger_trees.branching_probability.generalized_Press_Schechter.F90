@@ -37,7 +37,7 @@ module Generalized_Press_Schechter_Branching
   double precision :: generalizedPressSchechterMinimumMass
 
   ! Precomputed numerical factors.
-  double precision, parameter  :: sqrtTwoOverPi=dsqrt(2.0d0/Pi)
+  double precision, parameter  :: sqrtTwoOverPi=sqrt(2.0d0/Pi)
 
   ! Branching probability integrand integration tolerance.
   double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-2

@@ -191,7 +191,7 @@ contains
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
        componentMass=Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
-       if (componentMass > 0.0d0) Hot_Halo_Profile_Rotation_Curve_Task=dsqrt(gravitationalConstantGalacticus*componentMass)/dsqrt(radius)
+       if (componentMass > 0.0d0) Hot_Halo_Profile_Rotation_Curve_Task=sqrt(gravitationalConstantGalacticus*componentMass)/sqrt(radius)
     end if
     return
   end function Hot_Halo_Profile_Rotation_Curve_Task

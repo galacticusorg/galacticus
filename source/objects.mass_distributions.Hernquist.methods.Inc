@@ -153,7 +153,7 @@ double precision function Mass_Distribution_Hernquist_Half_Mass_Radius(self)
   !% Return the half-mass radius of a Hernquist mass distribution.
   implicit none
   class           (massDistributionHernquist), intent(in   ) :: self
-  double precision                           , parameter     :: halfMassRadiusToScaleRadius=1.0d0/(dsqrt(2.0d0)-1.0d0)
+  double precision                           , parameter     :: halfMassRadiusToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)
 
   Mass_Distribution_Hernquist_Half_Mass_Radius=halfMassRadiusToScaleRadius*self%scaleLength
   return

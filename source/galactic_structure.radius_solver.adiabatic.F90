@@ -220,7 +220,7 @@ contains
        end if
 
        ! Compute new estimate of velocity.
-       velocity=dsqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
+       velocity=sqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
 
        ! Compute new estimate of radius.
        if (radius > 0.0d0) then
@@ -229,7 +229,7 @@ contains
           radiusNew=specificAngularMomentum/velocity
        endif
        ! Compute a fit measure.
-       if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+dabs(dlog(radiusNew/radius))
+       if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+abs(log(radiusNew/radius))
 
        ! Set radius to new radius.
        radius=radiusNew

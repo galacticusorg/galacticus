@@ -106,7 +106,7 @@ contains
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     
     ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
+    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
     
     ! Deallocate table if currently allocated.

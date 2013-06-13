@@ -84,7 +84,7 @@ contains
     else
        ! Compute dynamical friction timescale.
        Satellite_Time_Until_Merging_Lacey_Cole_Tormen=Dynamical_Friction_Timescale_Multiplier()*orbitalFactor&
-            &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio /dlog(massRatio)
+            &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*inverseTwoB1*massRatio /log(massRatio)
     end if
   return
   end function Satellite_Time_Until_Merging_Lacey_Cole_Tormen

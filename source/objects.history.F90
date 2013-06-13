@@ -770,7 +770,7 @@ contains
         case (rangeTypeLinear     )
            timeDelta=(timeEnd-timeBegin)/dble(timeCount-1)
         case (rangeTypeLogarithmic)
-           timeDelta=dlog(timeEnd/timeBegin)/dble(timeCount-1)
+           timeDelta=log(timeEnd/timeBegin)/dble(timeCount-1)
         case default
            if (thisHistory%rangeType == rangeTypeUndefined) then
               message='undefined range type: '//char(10)
@@ -787,8 +787,8 @@ contains
               addCountStart =int(    (timeBegin-timeRangeActual(1))/timeDelta)+1
               timeBegin=timeBegin      -dble(addCountStart)*timeDelta
            case (rangeTypeLogarithmic)
-              addCountStart =int(dlog(timeBegin/timeRangeActual(1))/timeDelta)+1
-              timeBegin=timeBegin*dexp(-dble(addCountStart)*timeDelta)
+              addCountStart =int(log(timeBegin/timeRangeActual(1))/timeDelta)+1
+              timeBegin=timeBegin*exp(-dble(addCountStart)*timeDelta)
            end select
            timeBeginIndex=timeBeginIndex+addCountStart
            timeEndIndex  =timeEndIndex  +addCountStart
@@ -801,8 +801,8 @@ contains
               addCountEnd =int(    (timeRangeActual(2)-timeEnd)/timeDelta)+1
               timeEnd  =timeEnd        +dble(addCountEnd)*timeDelta
            case (rangeTypeLogarithmic)
-              addCountEnd =int(dlog(timeRangeActual(2)/timeEnd)/timeDelta)+1
-              timeEnd  =timeEnd  *dexp(+dble(addCountEnd)*timeDelta)
+              addCountEnd =int(log(timeRangeActual(2)/timeEnd)/timeDelta)+1
+              timeEnd  =timeEnd  *exp(+dble(addCountEnd)*timeDelta)
            end select
         else
            addCountEnd=0

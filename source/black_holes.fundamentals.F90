@@ -101,9 +101,9 @@ contains
        A2Factor=A2(blackHoleSpin)
        select case (orbitActual)
        case (orbitPrograde)
-          Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor-dsqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
+          Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor-sqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
        case (orbitRetrograde)
-          Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor+dsqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
+          Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor+sqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
        case default
           call Galacticus_Error_Report('Black_Hole_ISCO_Radius_Spin','unrecognized orbit parameter')
        end select
@@ -212,8 +212,8 @@ contains
        Black_Hole_ISCO_Specific_Energy_Spin=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
     else
        Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+blackHoleSpin &
-            &*dsqrt(blackHoleIscoRadius))/blackHoleIscoRadius/dsqrt(blackHoleIscoRadius**2-3.0d0*blackHoleIscoRadius+2.0d0 &
-            &*blackHoleSpin*dsqrt(blackHoleIscoRadius))
+            &*sqrt(blackHoleIscoRadius))/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0*blackHoleIscoRadius+2.0d0 &
+            &*blackHoleSpin*sqrt(blackHoleIscoRadius))
     end if
 
     return
@@ -256,14 +256,14 @@ contains
     if (blackHoleSpin > maximumSpin) then
        Black_Hole_ISCO_Specific_Angular_Momentum=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Angular_Momentum=dsqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*blackHoleSpin &
-            &*dsqrt(blackHoleIscoRadius)+blackHoleSpin**2)/blackHoleIscoRadius/dsqrt(blackHoleIscoRadius**2-3.0d0 &
-            &*blackHoleIscoRadius+2.0d0*blackHoleSpin*dsqrt(blackHoleIscoRadius))
+       Black_Hole_ISCO_Specific_Angular_Momentum=sqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*blackHoleSpin &
+            &*sqrt(blackHoleIscoRadius)+blackHoleSpin**2)/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0 &
+            &*blackHoleIscoRadius+2.0d0*blackHoleSpin*sqrt(blackHoleIscoRadius))
     end if
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Angular_Momentum=Black_Hole_ISCO_Specific_Angular_Momentum &
-         &*dsqrt(gravitationalConstantGalacticus*thisBlackHole%mass()*Black_Hole_Gravitational_Radius(thisBlackHole))
+         &*sqrt(gravitationalConstantGalacticus*thisBlackHole%mass()*Black_Hole_Gravitational_Radius(thisBlackHole))
     return
   end function Black_Hole_ISCO_Specific_Angular_Momentum
 
@@ -449,7 +449,7 @@ contains
     implicit none
     double precision, intent(in) :: blackHoleSpin
 
-    Black_Hole_Horizon_Radius_Spin=1.0d0+dsqrt(1.0d0-blackHoleSpin**2)   
+    Black_Hole_Horizon_Radius_Spin=1.0d0+sqrt(1.0d0-blackHoleSpin**2)   
     return
   end function Black_Hole_Horizon_Radius_Spin
   
@@ -504,7 +504,7 @@ contains
        thetaActual=Pi/2.0d0
     end if
 
-    Black_Hole_Static_Radius_Spin=1.0d0+dsqrt(1.0d0-(blackHoleSpin*dcos(thetaActual))**2)
+    Black_Hole_Static_Radius_Spin=1.0d0+sqrt(1.0d0-(blackHoleSpin*cos(thetaActual))**2)
     return
   end function Black_Hole_Static_Radius_Spin
 
@@ -522,7 +522,7 @@ contains
     implicit none
     double precision, intent(in)           :: blackHoleSpin
 
-    A2=dsqrt(3.0d0*blackHoleSpin**2+A1(blackHoleSpin)**2)
+    A2=sqrt(3.0d0*blackHoleSpin**2+A1(blackHoleSpin)**2)
     return
   end function A2
 
@@ -559,7 +559,7 @@ contains
 
     if (blackHoleSpin > blackHoleSpinMinimum) then
        ! Full solution.
-       Black_Hole_Rotational_Energy_Spin_Down_Spin=((1.0d0+dsqrt(1.0d0-blackHoleSpin**2))**2+blackHoleSpin**2)*dsqrt(1.0d0&
+       Black_Hole_Rotational_Energy_Spin_Down_Spin=((1.0d0+sqrt(1.0d0-blackHoleSpin**2))**2+blackHoleSpin**2)*sqrt(1.0d0&
             &-blackHoleSpin**2)/blackHoleSpin
     else
        if (blackHoleSpin > blackHoleSpinSeriesMinimum) then

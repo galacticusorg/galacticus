@@ -129,10 +129,10 @@ contains
        ! Trap negative gas masses.
        if (thisDiskComponent%massGas() < 0.0d0) then          
           ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   dabs(thisDiskComponent%massGas    ()) &
+          fractionalError=   abs(thisDiskComponent%massGas    ()) &
                &          /(                                       &
                &                  thisDiskComponent%massStellar()  &
-               &            +dabs(thisDiskComponent%massGas    ()) &
+               &            +abs(thisDiskComponent%massGas    ()) &
                &           )
           !$omp critical (Very_Simple_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then

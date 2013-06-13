@@ -57,7 +57,7 @@ contains
           ! Radius is larger than the gravitational radius - compute the rotation speed.
           componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass&
                &,weightIndexNull,haloLoaded)
-          if (componentMass > 0.0d0) Node_Component_Black_Hole_Simple_Rotation_Curve=dsqrt(gravitationalConstantGalacticus&
+          if (componentMass > 0.0d0) Node_Component_Black_Hole_Simple_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
                &*componentMass/radius)
        else
           ! Radius is less than the gravitational radius - return the speed of light.

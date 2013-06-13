@@ -51,7 +51,7 @@ contains
        Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch
 
        ! Pre-compute the mass loss rate normalization factor.
-       massLossRateNormalization=massLossTimescaleNormalization*dsqrt(Halo_Virial_Density_Contrast(Cosmology_Age(1.0d0)))
+       massLossRateNormalization=massLossTimescaleNormalization*sqrt(Halo_Virial_Density_Contrast(Cosmology_Age(1.0d0)))
     end if
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch_Initialize
@@ -70,7 +70,7 @@ contains
     satelliteBoundMass =  thisBasicComponent%mass ()
     if (satelliteBoundMass > 0.0d0) then
        satelliteTime=thisBasicComponent%time()
-       massLossTimescale=massLossRateNormalization*Expansion_Factor(satelliteTime)**1.5d0/dsqrt(Halo_Virial_Density_Contrast(satelliteTime))
+       massLossTimescale=massLossRateNormalization*Expansion_Factor(satelliteTime)**1.5d0/sqrt(Halo_Virial_Density_Contrast(satelliteTime))
        parentBasicComponent => thisNode%parent%basic()
        satelliteHostMassRatio=satelliteBoundMass/parentBasicComponent%mass()
        Dark_Matter_Halos_Mass_Loss_Rate_vanDenBosch=-satelliteBoundMass*satelliteHostMassRatio**zeta/massLossTimescale

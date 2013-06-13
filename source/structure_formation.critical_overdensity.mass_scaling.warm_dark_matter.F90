@@ -115,7 +115,7 @@ contains
 
        ! Compute corresponding Jeans mass.
        matterRadiationEqualityRedshift=3600.0d0*(Omega_Matter()*Little_H_0()**2/0.15d0)-1.0d0
-       jeansMass=3.06d8*((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)**1.5d0*dsqrt(Omega_Matter()*Little_H_0()**2/0.15d0)&
+       jeansMass=3.06d8*((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)**1.5d0*sqrt(Omega_Matter()*Little_H_0()**2/0.15d0)&
             &/(warmDarkMatterCriticalOverdensityGX/1.5d0)/(warmDarkMatterCriticalOverdensityMX/1.0d0)**4
 
        ! Read in the tabulated critical overdensity scaling.

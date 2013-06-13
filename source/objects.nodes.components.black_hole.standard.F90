@@ -767,8 +767,8 @@ contains
     massEjected= ejectedBlackHoleComponent  %mass()
     massBinary = newBinaryBlackHoleComponent%mass() &
          &      +centralBlackHoleComponent  %mass()
-    velocityEjected=dsqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
-    velocityBinary =dsqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
+    velocityEjected=sqrt(kineticEnergyChange/(1.0d0+massEjected/massBinary )/massEjected*2.0d0)
+    velocityBinary =sqrt(kineticEnergyChange/(1.0d0+massBinary /massEjected)/massBinary *2.0d0)
     ! Determine whether the ejected black hole is actualy ejected.
     removeEjected=(0.5d0*velocityEjected**2+Galactic_Structure_Potential(thisNode,ejectedBlackHoleComponent%radialPosition()) >&
          & 0.0d0)

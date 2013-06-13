@@ -167,7 +167,7 @@ contains
        if (metallicityRelativeToSolar > 0.0d0) then
           chi                               =0.77d0*(1.0d0+3.1d0*metallicityRelativeToSolar**0.365d0)
           sigmaMolecularComplexNormalization=hydrogenMassFraction*molecularComplexClumpingFactorKMT09/mega**2
-          sNormalization                    =dlog(1.0d0+0.6d0*chi+0.01d0*chi**2)/(0.04d0*metallicityRelativeToSolar)
+          sNormalization                    =log(1.0d0+0.6d0*chi+0.01d0*chi**2)/(0.04d0*metallicityRelativeToSolar)
        end if
        ! Record that factors have now been computed.
        factorsComputed=.true.

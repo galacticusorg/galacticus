@@ -231,7 +231,7 @@ subroutine Sersic_Profile_Tabulate(radius)
   if (present(radius)) then
      radiusActual=min(radius,radiusMaximumToTabulate)
   else
-     radiusActual=dsqrt(sersicTableRadiusMinimum*sersicTableRadiusMaximum)
+     radiusActual=sqrt(sersicTableRadiusMinimum*sersicTableRadiusMaximum)
   end if
   !$omp critical (Sersic_Profile_Tabulation)
   ! Determine if the table must be rebuilt.
@@ -261,7 +261,7 @@ subroutine Sersic_Profile_Tabulate(radius)
         sersicTableRadiusMinimum=min(sersicTableRadiusMinimum,0.5d0*radiusActual*sersicTable3dHalfMassRadius)
         sersicTableRadiusMaximum=max(sersicTableRadiusMaximum,2.0d0*radiusActual*sersicTable3dHalfMassRadius)
         ! Determine the number of points at which to tabulate the profile.
-        sersicTableCount=int(dlog10(sersicTableRadiusMaximum/sersicTableRadiusMinimum)*dble(sersicTablePointsPerDecade))+1
+        sersicTableCount=int(log10(sersicTableRadiusMaximum/sersicTableRadiusMinimum)*dble(sersicTablePointsPerDecade))+1
         ! Allocate arrays for storing the tables.
         if (allocated(sersicTableRadius)) then
            call Dealloc_Array(sersicTableRadius      )
@@ -372,9 +372,9 @@ function Sersic_Abel_Integrand(radius,parameterPointer) bind(c)
   if (radius > sersicRadiusStart) then
      Sersic_Abel_Integrand= (1.0d0/Pi)                                                                &
           &                *      sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex) -1.0d0)) &
-          &                *dexp(-sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex))-1.0d0)) &
+          &                *exp(-sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex))-1.0d0)) &
           &                /dble(sersicProfileIndex)                                                  &
-          &                /dsqrt(radius**2-sersicRadiusStart**2)
+          &                /sqrt(radius**2-sersicRadiusStart**2)
   else
      Sersic_Abel_Integrand=0.0d0
   end if

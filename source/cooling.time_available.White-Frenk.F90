@@ -83,8 +83,8 @@ contains
        Cooling_Time_Available_WF=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
-       Cooling_Time_Available_WF=dexp(dlog(thisBasicComponent%time())*coolingTimeAvailableAgeFactor&
-            &+dlog(Dark_Matter_Halo_Dynamical_Timescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
+       Cooling_Time_Available_WF=exp(log(thisBasicComponent%time())*coolingTimeAvailableAgeFactor&
+            &+log(Dark_Matter_Halo_Dynamical_Timescale(thisNode))*(1.0d0-coolingTimeAvailableAgeFactor))
     end if
     return
   end function Cooling_Time_Available_WF

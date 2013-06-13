@@ -77,7 +77,7 @@ contains
     else
        ! Compute dynamical friction timescale.
        Satellite_Time_Until_Merging_BoylanKolchin2008=Dynamical_Friction_Timescale_Multiplier() &
-            &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/dlog(1.0d0 +massRatio))*dexp(c*orbitalCircularity)&
+            &*Dark_Matter_Halo_Dynamical_Timescale(hostNode)*A*((massRatio**b)/log(1.0d0 +massRatio))*exp(c*orbitalCircularity)&
             & *((equivalentCircularOrbitRadius/radialScale)**d)
     end if
     return

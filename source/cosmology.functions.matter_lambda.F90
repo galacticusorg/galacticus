@@ -46,8 +46,8 @@ module Cosmology_Functions_Matter_Lambda
   integer                                     :: ageTableNumberPoints
   double precision                            :: ageTableTimeMinimum=1.0d-4, ageTableTimeMaximum=20.0d0
   integer,          parameter                 :: ageTableNPointsPerDecade=300
-  double precision, parameter                 :: ageTableNPointsPerOctave=dble(ageTableNPointsPerDecade)*dlog(2.0d0)/dlog(10.0d0)
-  double precision, parameter                 :: ageTableIncrementFactor =dexp(int(ageTableNPointsPerOctave+1.0d0)*dlog(10.0d0)&
+  double precision, parameter                 :: ageTableNPointsPerOctave=dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter                 :: ageTableIncrementFactor =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)&
        &/dble(ageTableNPointsPerDecade))
   double precision, allocatable, dimension(:) :: ageTableTime, ageTableExpansionFactor
   type(fgsl_interp)                           :: interpolationObject     ,interpolationObjectInverse
@@ -175,12 +175,12 @@ contains
                   &*cubicTerm9+0.12d2*cubicTerm5*Omega_Matter()-0.45d2*cubicTerm5*Omega_DE()+0.36d2*Omega_Matter()*cubicTerm9+12.0d0*cubicTerm9&
                   &*Omega_DE())*cubicTerm1
              if (cubicTerm21Squared > 0.0d0) then
-                cubicTerm21=dsqrt(cubicTerm21Squared)
+                cubicTerm21=sqrt(cubicTerm21Squared)
                 cubicTerm25Cubed=(-0.108d3*Omega_Matter()+0.12d2*cubicTerm21)*cubicTerm9
                 if (cubicTerm25Cubed >= 0.0d0) then
                    cubicTerm25=cubicTerm25Cubed**(1.0d0/3.0d0)
                 else
-                   cubicTerm25=-dabs(cubicTerm25Cubed)**(1.0d0/3.0d0)
+                   cubicTerm25=-abs(cubicTerm25Cubed)**(1.0d0/3.0d0)
                 end if
                 aMaximum=cubicTerm1*cubicTerm25/0.6d1+0.2d1*(-0.1d1+Omega_Matter()+Omega_DE())/cubicTerm25
                 collapsingUniverse=aMaximum > 0.0d0
@@ -194,7 +194,7 @@ contains
           ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
           call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)       
           ! Find the corresponding time.
-          timeMaximum(1)=1.0d0/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
+          timeMaximum(1)=1.0d0/H_0_invGyr()/sqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
           ! Solve Friedmann equation to get time at turnaround.
           odeReset=.true.
           call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,aDominant,aExpansionMax*(1.0d0-1.0d-4),1,timeMaximum&
@@ -358,7 +358,7 @@ contains
     call Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
 
     ! Find the corresponding time.
-    tDominant=-2.0d0/densityPower/H_0_invGyr()/dsqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
+    tDominant=-2.0d0/densityPower/H_0_invGyr()/sqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
 
     ! Find minimum and maximum times to tabulate.
     if (present(tCosmological)) then
@@ -380,14 +380,14 @@ contains
     if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
 
     ! Determine number of points to tabulate.
-    ageTableNumberPoints=int(dlog10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
+    ageTableNumberPoints=int(log10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
     ageTableTimeMaximum=ageTableTimeMinimum*10.0d0**(dble(ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
     if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
 
     ! Deallocate arrays if currently allocated.
     if (allocated(ageTableTime)) then
        ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(dlog10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
+       prefixPointCount=int(log10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
        call Move_Alloc(ageTableTime           ,ageTableTimeTemporary           )
        call Move_Alloc(ageTableExpansionFactor,ageTableExpansionFactorTemporary)
        ! Allocate the arrays to current required size.
@@ -416,7 +416,7 @@ contains
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
     if (ageTableExpansionFactor(1) < 0.0d0) ageTableExpansionFactor(1)=(-0.5d0*densityPower*ageTableTime(1)*H_0_invGyr()&
-         &*dsqrt(Omega_Dominant))**(-2.0d0/densityPower)
+         &*sqrt(Omega_Dominant))**(-2.0d0/densityPower)
 
     ! Solve ODE to get corresponding expansion factors.
     iTableTurnaround=ageTableNumberPoints
@@ -489,7 +489,7 @@ contains
     end if
     ! Compute the Hubble parameter at the specified expansion factor.
     sqrtArgument=max(Omega_Matter()/aExpansionActual**3+Omega_DE()+Omega_K()/aExpansionActual**2,0.0d0)
-    Hubble_Parameter_Matter_Lambda=H_0()*dsqrt(sqrtArgument)
+    Hubble_Parameter_Matter_Lambda=H_0()*sqrt(sqrtArgument)
     ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
     if (collapsingUniverse) then
        if (present(tCosmological)) then
@@ -648,7 +648,7 @@ contains
        requestTypeActual=requestTypeExpansionFactor
     end if
 
-    Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda=(Omega_Matter()/dabs(Omega_DE()))**(1.0d0/3.0d0)
+    Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda=(Omega_Matter()/abs(Omega_DE()))**(1.0d0/3.0d0)
     if (requestType == requestTypeTime) Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Dark_Energy_Equality_Matter_Lambda)
     return
@@ -667,7 +667,7 @@ contains
        requestTypeActual=requestTypeExpansionFactor
     end if
 
-    Epoch_of_Matter_Curvature_Equality_Matter_Lambda=Omega_Matter()/dabs(Omega_K())
+    Epoch_of_Matter_Curvature_Equality_Matter_Lambda=Omega_Matter()/abs(Omega_K())
     if (requestType == requestTypeTime) Epoch_of_Matter_Curvature_Equality_Matter_Lambda&
          &=Cosmology_Age_Matter_Lambda(Epoch_of_Matter_Curvature_Equality_Matter_Lambda)
     return
@@ -809,7 +809,7 @@ contains
     distanceTableTimeMaximum=Cosmology_Age_Matter_Lambda(1.0d0)
  
     ! Determine number of points to tabulate.
-    distanceTableNumberPoints=int(dlog10(distanceTableTimeMaximum/distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
+    distanceTableNumberPoints=int(log10(distanceTableTimeMaximum/distanceTableTimeMinimum)*dble(distanceTableNPointsPerDecade))+1
  
     ! Deallocate arrays if currently allocated.
     if (allocated(distanceTableTime                     )) call Dealloc_Array(distanceTableTime                     )

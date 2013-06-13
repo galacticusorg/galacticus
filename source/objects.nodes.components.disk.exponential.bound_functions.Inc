@@ -227,7 +227,7 @@ double precision function Node_Component_Disk_Exponential_Rotation_Curve(self,ra
      if (fractionalRadius > fractionalRadiusMaximum) then
         ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
         ! very large arguments.
-        Node_Component_Disk_Exponential_Rotation_Curve=dsqrt(gravitationalConstantGalacticus*componentMass/radius)
+        Node_Component_Disk_Exponential_Rotation_Curve=sqrt(gravitationalConstantGalacticus*componentMass/radius)
      else
         ! We are often called at precisely one scale length. Use pre-computed factors in that case.
         if (fractionalRadius == 1.0d0) then
@@ -243,7 +243,7 @@ double precision function Node_Component_Disk_Exponential_Rotation_Curve(self,ra
            halfRadius=0.5d0*fractionalRadius
            fractionalRadiusFactor=Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(halfRadius)
         end if
-        Node_Component_Disk_Exponential_Rotation_Curve=dsqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)&
+        Node_Component_Disk_Exponential_Rotation_Curve=sqrt(2.0d0*(gravitationalConstantGalacticus*componentMass/diskRadius)&
              &*fractionalRadiusFactor)
      end if
   end if

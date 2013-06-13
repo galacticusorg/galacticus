@@ -57,10 +57,10 @@ contains
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.
-    logarithmHaloMass                        =dlog10(littleHubbleConstantGao2008*thisBasicComponent%mass() )
-    logarithmExpansionFactor                 =dlog10(Expansion_Factor(           thisBasicComponent%time()))
-    parameterA                               =-0.140d0*dexp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
-    parameterB                               = 2.646d0*dexp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
+    logarithmHaloMass                        =log10(littleHubbleConstantGao2008*thisBasicComponent%mass() )
+    logarithmExpansionFactor                 =log10(Expansion_Factor(           thisBasicComponent%time()))
+    parameterA                               =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
+    parameterB                               = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
     Dark_Matter_Profile_Concentration_Gao2008=10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
   end function Dark_Matter_Profile_Concentration_Gao2008

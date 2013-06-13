@@ -90,7 +90,7 @@ contains
     velocityMass      =A*(q**2*(1-q)/(1.0d0+q)**5)*(1.0d0+B*(q/(1.0d0+q)**2))
 
     ! Compute the net recoil velocity.
-    Black_Hole_Binary_Recoil_Velocity_Standard=dsqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)     
+    Black_Hole_Binary_Recoil_Velocity_Standard=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)     
     return
   end function Black_Hole_Binary_Recoil_Velocity_Standard
 

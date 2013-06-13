@@ -69,7 +69,7 @@ contains
 
        ! Construct a look-up table for the pericentric radius distribution.
        ! Determine number of points to use in the tabulation.
-       pericentricRadiusCount=int(dlog10(pericentricRadiusMaximum/pericentricRadiusMinimum)*dble(pericentricRadiusPointsPerDecade))+1
+       pericentricRadiusCount=int(log10(pericentricRadiusMaximum/pericentricRadiusMinimum)*dble(pericentricRadiusPointsPerDecade))+1
        ! Allocate space for the table.
        call Alloc_Array(pericentricRadiusTableRadius               ,[pericentricRadiusCount])
        call Alloc_Array(pericentricRadiusTableCumulativeProbability,[pericentricRadiusCount])
@@ -79,7 +79,7 @@ contains
        do iRadius=1,pericentricRadiusCount
           x      =pericentricRadiusTableRadius(iRadius)
           xGamma2=x**pericenterGamma2
-          pericentricRadiusTableCumulativeProbability(iRadius)=dexp(-xGamma2)*x*(                                                                                                          &
+          pericentricRadiusTableCumulativeProbability(iRadius)=exp(-xGamma2)*x*(                                                                                                          &
                &  pericenterGamma2*(1.0d0+pericenterGamma2*(1.0d0+xGamma2))*Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)/(1.0d0+pericenterGamma2) &
                & +                                                          Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)*(1.0d0+pericenterGamma2) &
                &                                                                )
@@ -174,7 +174,7 @@ contains
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
        circularity=finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
-       eccentricityInternal=dsqrt(1.0-circularity**2)
+       eccentricityInternal=sqrt(1.0-circularity**2)
        apocentricRadius    =pericentricRadius*(1.0d0+eccentricityInternal)/(1.0d0-eccentricityInternal)
        foundOrbit=apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
     end do
@@ -183,7 +183,7 @@ contains
     radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
     
     ! Set eccentricity and periapsis.
-    call thisOrbit%eccentricitySet    (dsqrt(1.0-circularity**2)    )
+    call thisOrbit%eccentricitySet    (sqrt(1.0-circularity**2)    )
     call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
     
     return

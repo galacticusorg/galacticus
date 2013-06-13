@@ -81,9 +81,9 @@ contains
        velocityRadialInternal    =Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*velocityMax
        velocityTangentialInternal=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)*velocityMax
        ! Evaluate distribution function for these parameters.
-       b1=a(3)*dexp(-a(4)*(velocityTangentialInternal-a(5))**2)
-       b2=a(6)*dexp(-a(7)*(velocityTangentialInternal-a(8))**2)
-       distributionFunction=a(1)*velocityTangentialInternal*dexp(-a(2)*((velocityTangentialInternal-a(9))**2.0))*dexp(-b1&
+       b1=a(3)*exp(-a(4)*(velocityTangentialInternal-a(5))**2)
+       b2=a(6)*exp(-a(7)*(velocityTangentialInternal-a(8))**2)
+       distributionFunction=a(1)*velocityTangentialInternal*exp(-a(2)*((velocityTangentialInternal-a(9))**2.0))*exp(-b1&
             &*(velocityRadialInternal-b2)**2)
        if (distributionFunction > pMax) call Galacticus_Error_Report('Virial_Orbital_Parameters_Benson2005','distribution&
             & function exceeds expected peak value')

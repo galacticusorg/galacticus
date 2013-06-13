@@ -106,7 +106,7 @@ contains
        else
           metallicityMaximum=metallicityMaximumDefault
        end if
-       write (metallicityLabel,'(e12.6)') dlog10(metallicityMaximum)
+       write (metallicityLabel,'(e12.6)') log10(metallicityMaximum)
 
        ! Run Atomic_CIE_Cloudy wrapper script.
        command=char(Galacticus_Input_Path())//'scripts/aux/Atomic_CIE_Cloudy_Driver.pl '//metallicityLabel//' '//char(Galacticus_Input_Path())//trim(coolingFunctionFile)//' '&

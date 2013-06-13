@@ -71,8 +71,8 @@ contains
     nu           =deltaCritical/sigma
     
     ! Compute halo bias.
-    Dark_Matter_Halo_Bias_SMT=1.0d0+(dsqrt(a)*(a*nu**2)+dsqrt(a)*b*(a*nu**2)**(1.0d0-c)-(a*nu**2)**c/((a*nu**2)**c+b*(1.0d0-c)&
-         &*(1.0d0-c/2.0d0)))/dsqrt(a)/deltaCritical
+    Dark_Matter_Halo_Bias_SMT=1.0d0+(sqrt(a)*(a*nu**2)+sqrt(a)*b*(a*nu**2)**(1.0d0-c)-(a*nu**2)**c/((a*nu**2)**c+b*(1.0d0-c)&
+         &*(1.0d0-c/2.0d0)))/sqrt(a)/deltaCritical
     return
   end function Dark_Matter_Halo_Bias_SMT
 

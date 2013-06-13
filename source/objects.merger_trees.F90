@@ -672,8 +672,8 @@ contains
     ! Find the property with the largest error (i.e. that which is limiting the step).
     scaledErrorMaximum=0.0d0
     do iProperty=1,nProperties
-       scale=odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative*dabs(currentPropertyValue(iProperty))
-       scaledError=dabs(currentPropertyError(iProperty))/scale
+       scale=odeToleranceAbsolute*propertyScales(iProperty)+odeToleranceRelative*abs(currentPropertyValue(iProperty))
+       scaledError=abs(currentPropertyError(iProperty))/scale
        if (scaledError > scaledErrorMaximum) then
           scaledErrorMaximum=scaledError
           limitingProperty=iProperty

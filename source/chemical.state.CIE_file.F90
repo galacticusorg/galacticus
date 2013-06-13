@@ -551,14 +551,14 @@ contains
        firstMetallicityIsZero=(chemicalStateMetallicities(1) == 0.0d0)
        if (firstMetallicityIsZero) firstNonZeroMetallicity=chemicalStateMetallicities(2)
        where (chemicalStateMetallicities > 0.0d0)
-          chemicalStateMetallicities=dlog(chemicalStateMetallicities)
+          chemicalStateMetallicities=log(chemicalStateMetallicities)
        elsewhere
           chemicalStateMetallicities=-999.0d0
        end where
-       chemicalStateTemperatures=dlog(chemicalStateTemperatures)
-       electronDensityTable=dlog(electronDensityTable)
-       if (gotHydrogenAtomic) hydrogenAtomicDensityTable=dlog(hydrogenAtomicDensityTable)
-       if (gotHydrogenCation) hydrogenCationDensityTable=dlog(hydrogenCationDensityTable)
+       chemicalStateTemperatures=log(chemicalStateTemperatures)
+       electronDensityTable=log(electronDensityTable)
+       if (gotHydrogenAtomic) hydrogenAtomicDensityTable=log(hydrogenAtomicDensityTable)
+       if (gotHydrogenCation) hydrogenCationDensityTable=log(hydrogenCationDensityTable)
     else
        if (        extrapolateTemperatureLow  == extrapolatePowerLaw   &
             & .or. extrapolateTemperatureHigh == extrapolatePowerLaw   &
@@ -590,7 +590,7 @@ contains
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
     ! Get interpolation in temperature.
-    if (logarithmicTable) temperatureUse=dlog(temperatureUse)
+    if (logarithmicTable) temperatureUse=log(temperatureUse)
     iTemperature=Interpolate_Locate(chemicalStateTemperatureNumberPoints,chemicalStateTemperatures&
          &,interpolationAcceleratorTemperature,temperatureUse,resetTemperature)
     iTemperature=max(min(iTemperature,chemicalStateTemperatureNumberPoints),1)
@@ -602,7 +602,7 @@ contains
        iMetallicity=1
        hMetallicity=metallicityUse/firstNonZeroMetallicity
     else
-       if (logarithmicTable) metallicityUse=dlog(metallicityUse)
+       if (logarithmicTable) metallicityUse=log(metallicityUse)
        iMetallicity=Interpolate_Locate(chemicalStateMetallicityNumberPoints,chemicalStateMetallicities&
             &,interpolationAcceleratorMetallicity,metallicityUse,resetMetallicity)
        iMetallicity=max(min(iMetallicity,chemicalStateMetallicityNumberPoints),1)
@@ -626,7 +626,7 @@ contains
          &          +densityTable(iTemperature+1,iMetallicity+1)*       hTemperature *       hMetallicity
 
     ! Exponentiate the result if the table was stored as the log.
-    if (logarithmicTable) Do_Interpolation=dexp(Do_Interpolation)
+    if (logarithmicTable) Do_Interpolation=exp(Do_Interpolation)
 
     return
   end function Do_Interpolation

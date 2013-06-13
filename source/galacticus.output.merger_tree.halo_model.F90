@@ -248,7 +248,7 @@ contains
        !$omp end critical (HDF5_Access)
 
        ! Determine how many wavenumbers to tabulate at.
-       wavenumberCount=int(dlog10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
+       wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
 
        ! Allocate arrays for power spectrum.
        call Alloc_Array(wavenumber   ,[wavenumberCount])

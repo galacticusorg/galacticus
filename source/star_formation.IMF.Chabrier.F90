@@ -232,7 +232,7 @@ contains
     double precision, intent(in) :: mass
 
     if (mass >= chabrierMassLower .and. mass < chabrierMassTransition) then
-       Chabrier_Phi=normalizationLogNormal*dexp(-0.5d0*(dlog10(mass/chabrierMass)/chabrierSigma)**2)/mass
+       Chabrier_Phi=normalizationLogNormal*exp(-0.5d0*(log10(mass/chabrierMass)/chabrierSigma)**2)/mass
     else if (mass >= chabrierMassTransition .and. mass < chabrierMassUpper) then
        Chabrier_Phi=normalizationExponential*(mass**chabrierExponent)
     else

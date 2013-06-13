@@ -33,16 +33,16 @@ contains
     double precision, dimension(3), intent(in) :: cartesianPosition
 
     ! Spherical radius.
-    Coordinates_Cartesian_To_Spherical(1)=dsqrt(cartesianPosition(1)**2+cartesianPosition(2)**2+cartesianPosition(3)**2)
+    Coordinates_Cartesian_To_Spherical(1)=sqrt(cartesianPosition(1)**2+cartesianPosition(2)**2+cartesianPosition(3)**2)
     ! Check for zero radius.
     if (Coordinates_Cartesian_To_Spherical(1) == 0.0d0) then
        ! Other coordinates are arbitrary - set to zero.
        Coordinates_Cartesian_To_Spherical(2:3)=0.0d0
     else
        ! Spherical theta.
-       Coordinates_Cartesian_To_Spherical(2)=dacos(cartesianPosition(3)/Coordinates_Cartesian_To_Spherical(1))
+       Coordinates_Cartesian_To_Spherical(2)=acos(cartesianPosition(3)/Coordinates_Cartesian_To_Spherical(1))
        ! Spherical phi.
-       Coordinates_Cartesian_To_Spherical(3)=datan2(cartesianPosition(2),cartesianPosition(1))
+       Coordinates_Cartesian_To_Spherical(3)=atan2(cartesianPosition(2),cartesianPosition(1))
     end if
     return
   end function Coordinates_Cartesian_To_Spherical
@@ -54,9 +54,9 @@ contains
     double precision, dimension(3), intent(in) :: cartesianPosition
 
     ! Cylindrical radius.
-    Coordinates_Cartesian_To_Cylindrical(1)=dsqrt(cartesianPosition(1)**2+cartesianPosition(2)**2)
+    Coordinates_Cartesian_To_Cylindrical(1)=sqrt(cartesianPosition(1)**2+cartesianPosition(2)**2)
     ! Spherical phi.
-    Coordinates_Cartesian_To_Cylindrical(2)=datan2(cartesianPosition(2),cartesianPosition(1))
+    Coordinates_Cartesian_To_Cylindrical(2)=atan2(cartesianPosition(2),cartesianPosition(1))
     ! Spherical z.
     Coordinates_Cartesian_To_Cylindrical(3)=cartesianPosition(3)
     return
@@ -70,14 +70,14 @@ contains
     double precision, dimension(3), intent(in) :: cylindricalPosition
 
     ! Spherical radius.
-    Coordinates_Cylindrical_To_Spherical(1)=dsqrt(cylindricalPosition(1)**2+cylindricalPosition(3)**2)
+    Coordinates_Cylindrical_To_Spherical(1)=sqrt(cylindricalPosition(1)**2+cylindricalPosition(3)**2)
     ! Check for zero radius.
     if (Coordinates_Cylindrical_To_Spherical(1) == 0.0d0) then
        ! Angular coordinate is undefined - set to zero.
        Coordinates_Cylindrical_To_Spherical(2)=0.0d0
     else
        ! Spherical theta.
-       Coordinates_Cylindrical_To_Spherical(2)=dacos(cylindricalPosition(3)/Coordinates_Cylindrical_To_Spherical(1))
+       Coordinates_Cylindrical_To_Spherical(2)=acos(cylindricalPosition(3)/Coordinates_Cylindrical_To_Spherical(1))
     end if
     ! Spherical phi.
     Coordinates_Cylindrical_To_Spherical(3)=cylindricalPosition(2)
@@ -92,11 +92,11 @@ contains
     double precision, dimension(3), intent(in) :: sphericalPosition
 
     ! Cylindrical radius.
-    Coordinates_Spherical_To_Cylindrical(1)=sphericalPosition(1)*dsin(sphericalPosition(2))
+    Coordinates_Spherical_To_Cylindrical(1)=sphericalPosition(1)*sin(sphericalPosition(2))
     ! Cylinderical phi.
     Coordinates_Spherical_To_Cylindrical(2)=sphericalPosition(3)
     ! Cylindrical z.
-    Coordinates_Spherical_To_Cylindrical(3)=sphericalPosition(1)*dcos(sphericalPosition(2))
+    Coordinates_Spherical_To_Cylindrical(3)=sphericalPosition(1)*cos(sphericalPosition(2))
     return
   end function Coordinates_Spherical_To_Cylindrical
 

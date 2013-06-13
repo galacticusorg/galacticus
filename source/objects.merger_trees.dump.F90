@@ -135,10 +135,10 @@ contains
           if (thisBasicComponent%time() > timeMaximum    ) timeMaximum    =thisBasicComponent%time()
           call thisNode%walkTreeWithSatellites(thisNode)
        end do
-       nodeMassMinimum=dlog(nodeMassMinimum)
-       nodeMassMaximum=dlog(nodeMassMaximum)
-       timeMinimum    =dlog(timeMinimum)
-       timeMaximum    =dlog(timeMaximum)
+       nodeMassMinimum=log(nodeMassMinimum)
+       nodeMassMaximum=log(nodeMassMaximum)
+       timeMinimum    =log(timeMinimum)
+       timeMaximum    =log(timeMaximum)
     end if
 
     ! Open an output file and write the GraphViz opening.
@@ -186,7 +186,7 @@ contains
              write (fileUnit,'(a,i16.16,a,i16.16,a,a,a,a,$)') '"',thisNode%index(),'" -> "',thisNode%parent%index(),'" [color="',trim(edgeColorActual),'", style=',trim(edgeStyleActual)
              if (edgeLengthsToTimesActual) then
                 parentBasicComponent => thisNode%parent%basic()
-                timeDifference=1000.0d0*dlog10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
+                timeDifference=1000.0d0*log10(parentBasicComponent%time()/thisBasicComponent%time())/(timeMaximum-timeMinimum)
                 write (fileUnit,'(a,f10.6,$)') ', minlen=',timeDifference
              end if
              write (fileUnit,'(a)') '];'
@@ -195,7 +195,7 @@ contains
 
        ! Set size of node if requested.
        if (scaleNodesByLogMassActual.and.nodeMassMaximum > nodeMassMinimum) then
-          nodeMass=10.0d0*(dlog(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
+          nodeMass=10.0d0*(log(thisBasicComponent%mass())-nodeMassMinimum)/(nodeMassMaximum-nodeMassMinimum)+1.0d0
           write (fileUnit,'(a,i16.16,a,f10.6,a)') '"',thisNode%index(),'" [width=',nodeMass,'];'
        end if
 

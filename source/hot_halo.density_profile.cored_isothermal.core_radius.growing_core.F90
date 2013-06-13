@@ -147,7 +147,7 @@ contains
        if (makeTable) then
           coreRadiusMinimum   =min(isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusInitial)
           coreRadiusMaximum   =isothermalCoreRadiusOverVirialRadiusMaximum
-          coreRadiusTableCount=int(dlog10(coreRadiusMaximum/coreRadiusMinimum)*dble(coreRadiusTablePointsPerDecade))+1
+          coreRadiusTableCount=int(log10(coreRadiusMaximum/coreRadiusMinimum)*dble(coreRadiusTablePointsPerDecade))+1
           if (allocated(coreRadiusTableCoreRadius   )) call Dealloc_Array(coreRadiusTableCoreRadius   )
           if (allocated(coreRadiusTableDensityFactor)) call Dealloc_Array(coreRadiusTableDensityFactor)
           call Alloc_Array(coreRadiusTableCoreRadius   ,[coreRadiusTableCount])
@@ -189,7 +189,7 @@ contains
     implicit none
     double precision, intent(in) :: radiusOverVirialRadius
     
-    Growing_Core_Virial_Density_Function=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*datan(1.0d0/radiusOverVirialRadius))
+    Growing_Core_Virial_Density_Function=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*atan(1.0d0/radiusOverVirialRadius))
     return
   end function Growing_Core_Virial_Density_Function
 

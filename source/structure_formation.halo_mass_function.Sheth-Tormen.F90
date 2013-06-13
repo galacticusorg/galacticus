@@ -25,7 +25,7 @@ module Halo_Mass_Function_Sheth_Tormen
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
   integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMinimum=dlog(1.0d9), logMassMaximum=dlog(1.0d15)
+  double precision            :: logMassMinimum=log(1.0d9), logMassMaximum=log(1.0d15)
 
 contains
   
@@ -57,9 +57,9 @@ contains
     ! Compute the mass function.
     nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
     nuPrime=a*nu
-    alpha=dabs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Sheth_Tormen_Differential=(Omega_Matter()*Critical_Density()/mass**2)*alpha*dsqrt(2.0d0*nuPrime/Pi)*normalization&
-         &*(1.0d0+1.0d0/nuPrime**p) *dexp(-0.5d0*nuPrime)
+    alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
+    Halo_Mass_Function_Sheth_Tormen_Differential=(Omega_Matter()*Critical_Density()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
+         &*(1.0d0+1.0d0/nuPrime**p) *exp(-0.5d0*nuPrime)
     return
   end function Halo_Mass_Function_Sheth_Tormen_Differential
   

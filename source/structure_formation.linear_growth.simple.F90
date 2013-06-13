@@ -94,7 +94,7 @@ contains
     growthTableTimeMaximum=max(growthTableTimeMaximum,max(time,tMatterDominant)*2.0d0)
     
     ! Determine number of points to tabulate.
-    growthTableNumberPoints=int(dlog10(growthTableTimeMaximum/growthTableTimeMinimum)*dble(growthTableNPointsPerDecade))
+    growthTableNumberPoints=int(log10(growthTableTimeMaximum/growthTableTimeMinimum)*dble(growthTableNPointsPerDecade))
 
     ! Deallocate arrays if currently allocated.
     if (allocated(growthTableTime        )) call Dealloc_Array(growthTableTime        )

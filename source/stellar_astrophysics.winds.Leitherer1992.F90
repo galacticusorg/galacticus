@@ -62,8 +62,8 @@ contains
 
     ! Compute mass loss rate using fitting formula. (Initial constant 9 converts Leitherer's mass loss rate from per year to per Gyr.)
     if (stellarLuminosity > 0.0d0 .and. stellarEffectiveTemperature > 0.0d0) then
-       Stellar_Winds_Mass_Loss_Rate_Leitherer1992=10.0d0**(9.0d0-24.06d0+2.45d0*dlog10(stellarLuminosity)-1.10d0&
-            &*dlog10(initialMass) +1.31d0*dlog10(stellarEffectiveTemperature)+0.80d0*dlog10(max(metallicity,metallicityMinimum)&
+       Stellar_Winds_Mass_Loss_Rate_Leitherer1992=10.0d0**(9.0d0-24.06d0+2.45d0*log10(stellarLuminosity)-1.10d0&
+            &*log10(initialMass) +1.31d0*log10(stellarEffectiveTemperature)+0.80d0*log10(max(metallicity,metallicityMinimum)&
             &/metallicitySolar))
     else
        Stellar_Winds_Mass_Loss_Rate_Leitherer1992=0.0d0
@@ -85,8 +85,8 @@ contains
 
     ! Compute mass loss rate using fitting formula.
     if (stellarLuminosity > 0.0d0 .and. stellarEffectiveTemperature > 0.0d0) then
-       Stellar_Winds_Terminal_Velocity_Leitherer1992=10.0d0**(1.23d0-0.30d0*dlog10(stellarLuminosity)+0.55d0 *dlog10(initialMass)&
-            &+0.64d0*dlog10(stellarEffectiveTemperature)+0.12d0*dlog10(max(metallicity,metallicityMinimum)/metallicitySolar))
+       Stellar_Winds_Terminal_Velocity_Leitherer1992=10.0d0**(1.23d0-0.30d0*log10(stellarLuminosity)+0.55d0 *log10(initialMass)&
+            &+0.64d0*log10(stellarEffectiveTemperature)+0.12d0*log10(max(metallicity,metallicityMinimum)/metallicitySolar))
     else
        Stellar_Winds_Terminal_Velocity_Leitherer1992=0.0d0
     end if

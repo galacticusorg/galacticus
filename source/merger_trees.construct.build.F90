@@ -190,7 +190,7 @@ contains
        mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
 
        ! Generate a randomly sampled set of halo masses.
-       treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
+       treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
        call Alloc_Array(treeHaloMass,[treeCount])
        call Alloc_Array(treeWeight  ,[treeCount])
 
@@ -198,7 +198,7 @@ contains
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
        case ("quasi","uniform")
           ! Generate a randomly sampled set of halo masses.
-          treeCount=max(2,int(dlog10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
+          treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call Alloc_Array(treeHaloMass,[treeCount])
           call Alloc_Array(treeWeight  ,[treeCount])
           
@@ -282,22 +282,22 @@ contains
           ! Get the minimum mass of the interval occupied by this tree.
           if (iTree==1) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                massMinimum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                massMinimum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
              else
                 massMinimum=mergerTreeBuildHaloMassMinimum
              end if
           else
-             massMinimum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
+             massMinimum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
           end if
           ! Get the maximum mass of the interval occupied by this tree.
           if (iTree==treeCount) then
              if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                massMaximum=treeHaloMass(iTree)*dsqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                massMaximum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
              else
                 massMaximum=mergerTreeBuildHaloMassMaximum
              end if
           else
-             massMaximum=dsqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
+             massMaximum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
           end if
           ! For distributions of masses, adjust the masses at the end points so that they are at the
           ! geometric mean of their range.

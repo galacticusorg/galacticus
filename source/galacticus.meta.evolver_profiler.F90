@@ -85,7 +85,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('metaProfileTimeStepPointsPerDecade',metaProfileTimeStepPointsPerDecade,defaultValue=3)
        ! Create an array of timesteps.
-       metaProfileTimeStepPoints=int(dlog10(metaProfileTimeStepMaximum/metaProfileTimeStepMinimum)*dble(metaProfileTimeStepPointsPerDecade))+1
+       metaProfileTimeStepPoints=int(log10(metaProfileTimeStepMaximum/metaProfileTimeStepMinimum)*dble(metaProfileTimeStepPointsPerDecade))+1
        call Alloc_Array(metaProfileTimeStep     ,[metaProfileTimeStepPoints])
        call Alloc_Array(metaProfileTimeStepCount,[metaProfileTimeStepPoints])
        metaProfileTimeStep=Make_Range(metaProfileTimeStepMinimum,metaProfileTimeStepMaximum,metaProfileTimeStepPoints &

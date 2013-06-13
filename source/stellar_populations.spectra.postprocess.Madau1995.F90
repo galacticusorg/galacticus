@@ -86,7 +86,7 @@ contains
        end if
        
        ! Compute attenuation from optical depth.
-       modifier=modifier*dexp(-opticalDepth) 
+       modifier=modifier*exp(-opticalDepth) 
     end if
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Madau1995
