@@ -17,7 +17,6 @@ require Galacticus::Build::ModuleUse;
 require Galacticus::Build::MethodNames;
 require Galacticus::Build::Labels;
 require Galacticus::Build::FunctionCall;
-require Galacticus::Build::Components;
 require Galacticus::Build::BindingsC;
 
 # Scans source code for "!#" directives and generates an include file.
@@ -31,6 +30,9 @@ my $xmlFile         = $ARGV[1];
 
 # Specify verbosity.
 $verbosity = 0;
+
+# Set load status of large modules.
+my $componentsLoaded = 0;
 
 # Load the file of directive locations.
 my $locations;
@@ -147,7 +149,11 @@ foreach my $currentFileName ( @filesToScan ) {
 			if ( $@              );
 		    print Dumper($buildData->{'currentDocument'})
 			if ( $verbosity == 1 );
-
+		    # Load large modules needed for this action type.
+		    if ( $componentsLoaded == 0 && $buildData->{'type'} eq "component" ) {
+			require Galacticus::Build::Components;
+			$componentsLoaded = 1;
+		    }
 		    # Look for a match for this action type and call the relevant function to parse it.
 		    my $foundMatch = 0;
 		    foreach my $hook ( keys(%Hooks::moduleHooks) ) {
