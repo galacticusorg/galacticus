@@ -159,7 +159,7 @@ contains
     call Get_Input_Parameter('haloMassFunctionsPointsPerDecade',haloMassFunctionsPointsPerDecade,defaultValue=10)
 
     ! Compute number of tabulation points.
-    haloMassFunctionsCount=int(dlog10(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)*dble(haloMassFunctionsPointsPerDecade))+1
+    haloMassFunctionsCount=int(log10(haloMassFunctionsMassMaximum/haloMassFunctionsMassMinimum)*dble(haloMassFunctionsPointsPerDecade))+1
 
     ! Allocate arrays for halo mass functions.
     call Alloc_Array(haloMassFunction_Mass             ,[haloMassFunctionsCount,outputCount])

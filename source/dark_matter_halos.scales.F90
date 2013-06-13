@@ -105,7 +105,7 @@ contains
        ! Get the basic component.
        thisBasicComponent => thisNode%basic()
        ! Compute the virial velocity.
-       virialVelocityStored=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass() &
+       virialVelocityStored=sqrt(gravitationalConstantGalacticus*thisBasicComponent%mass() &
             &/Dark_Matter_Halo_Virial_Radius(thisNode))
        ! Record that virial velocity has now been computed.
        virialVelocityComputed=.true.

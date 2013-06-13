@@ -100,7 +100,7 @@ contains
           ! from the Schwarzchild solution assuming power grows exponentially with spin and matched to the Kerr solution at the
           ! transition spin.
           Accretion_Disk_Jet_Power_Shakura_Sunyaev=powerNormalizationSchwarzchild*(blackHoleMassDimensionless**0.9d0) &
-               &*(accretionRateDimensionless**1.2d0)*dexp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
+               &*(accretionRateDimensionless**1.2d0)*exp(3.785d0*blackHoleSpin)/(alphaViscosityNormalized**0.1d0)
        end if
     end if
     return

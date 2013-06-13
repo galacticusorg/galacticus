@@ -161,7 +161,7 @@ contains
           meanSpecificAngularMomentum= gravitationalConstantGalacticus                   &
                &                      *thisSpinComponent %spin()                         &
                &                      *thisBasicComponent%mass()**1.5d0                  &
-               &                      /dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
+               &                      /sqrt(abs(Dark_Matter_Profile_Energy(thisNode)))
        case (profileHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
           thisHotHaloComponent => thisNode%hotHalo()

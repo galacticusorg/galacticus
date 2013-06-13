@@ -64,7 +64,7 @@ contains
     thisBasicComponent => thisNode%basic(                 )
     thisSpinComponent  => thisNode%spin (autoCreate=.true.)
     Dark_Matter_Halo_Angular_Momentum=thisSpinComponent%spin()*gravitationalConstantGalacticus*thisBasicComponent%mass()**2.5d0 &
-         &/dsqrt(dabs(Dark_Matter_Profile_Energy(thisNode)))
+         &/sqrt(abs(Dark_Matter_Profile_Energy(thisNode)))
     return
   end function Dark_Matter_Halo_Angular_Momentum
 

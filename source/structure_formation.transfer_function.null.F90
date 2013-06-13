@@ -24,8 +24,8 @@ module Transfer_Function_Null
   public :: Transfer_Function_Null_Initialize
 
   ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum=dlog(10.0d0)
-  double precision            :: logWavenumberMinimum=dlog(1.0d-5)
+  double precision            :: logWavenumberMaximum=log(10.0d0)
+  double precision            :: logWavenumberMinimum=log(1.0d-5)
   integer         , parameter :: numberPointsPerDecade=1000
 
 contains

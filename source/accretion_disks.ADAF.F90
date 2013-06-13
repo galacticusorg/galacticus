@@ -453,12 +453,12 @@ contains
        ADAF_Disk_Jet_Power=diskPowerPrevious
     else
        ! They are not, so compute (and store) a new value.
-       betaPhi=dsqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
+       betaPhi=sqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
        ADAF_Disk_Jet_Power=(3.0d0/80.0d0)*radius**2                                                                                                &
-            & *(2.0d0*blackHoleSpin*betaPhi/radius**2+dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                                  &
+            & *(2.0d0*blackHoleSpin*betaPhi/radius**2+sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                                  &
             & *(1.0d0-adafThermalPressureFraction)                                                                                                 &
             & *(ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha))**2            &
-            & *dsqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))                  &
+            & *sqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))                  &
             & *(ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)+Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius))**2 &
             & *ADAF_Temperature          (radius,blackHoleSpin,adafViscosityAlpha)                                                                 &
             & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)                                                                                    &
@@ -489,12 +489,12 @@ contains
           ADAF_BH_Jet_Power=jetPowerPrevious
        else
           ! They are not, so compute (and store) a new value.
-          betaPhi=dsqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
+          betaPhi=sqrt(1.0d0-1.0d0/ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)**2)
           ADAF_BH_Jet_Power=(3.0d0/80.0d0)*radius**2                                                                                       &
-               & *(2.0d0*blackHoleSpin*betaPhi/radius**2+dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                       &
+               & *(2.0d0*blackHoleSpin*betaPhi/radius**2+sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)))**2                       &
                & *(1.0d0-adafThermalPressureFraction)                                                                                      &
                & *(ADAF_Field_Enhancement(radius,blackHoleSpin,adafViscosityAlpha)*ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha))**2 &
-               & *dsqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))       &
+               & *sqrt((1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2)/Black_Hole_Metric_D_Factor(blackHoleSpin,radius))       &
                & *Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)**2                                                             &
                & *ADAF_Temperature          (radius,blackHoleSpin,adafViscosityAlpha)                                                      &
                & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)                                                                         &
@@ -523,12 +523,12 @@ contains
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
        tauPhi=1.0d0/ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
-       tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
+       tauR  =radius*ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)/sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius))&
             &/ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)
        tau=min(tauPhi,tauR)
        select case (adafFieldEnhance)
        case (adafFieldEnhanceExponential)
-          fieldEnhancementPrevious= dexp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
+          fieldEnhancementPrevious= exp(Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau)
        case (adafFieldEnhanceLinear     )
           fieldEnhancementPrevious=1.0d0+Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*tau
        end select
@@ -553,7 +553,7 @@ contains
          & adafViscosityAlphaPrevious) then
        angularVelocityPrevious=                                          &
             & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) & 
-            & *dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
+            & *sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
             & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)**3)          &
             & /radius**2                                                     &
             & /ADAF_gamma_phi(radius,blackHoleSpin,adafViscosityAlpha)       &
@@ -630,7 +630,7 @@ contains
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
          & adafViscosityAlphaPrevious) then
-       gammaPrevious=dsqrt(1.0d0+((ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)/radius/ADAF_gamma_r(radius&
+       gammaPrevious=sqrt(1.0d0+((ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)/radius/ADAF_gamma_r(radius&
             &,blackHoleSpin,adafViscosityAlpha))**2)/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))
        radiusPrevious            =radius
        blackHoleSpinPrevious     =blackHoleSpin
@@ -651,7 +651,7 @@ contains
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
          & adafViscosityAlphaPrevious) then
-       gammaPrevious=dsqrt(1.0d0/(1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2))
+       gammaPrevious=sqrt(1.0d0/(1.0d0-ADAF_V(radius,blackHoleSpin,adafViscosityAlpha)**2))
        radiusPrevious            =radius
        blackHoleSpinPrevious     =blackHoleSpin
        adafViscosityAlphaPrevious=adafViscosityAlpha
@@ -696,14 +696,14 @@ contains
        ADAF_Enthalpy_Angular_Momentum_Product=enthalpyAngularMomentumPrevious
     else
        ! We are not, so compute (and store) the value.
-       logarithmAlpha=dlog10(adafViscosityAlpha)
+       logarithmAlpha=log10(adafViscosityAlpha)
        radiusISCO=Black_Hole_ISCO_Radius(blackHoleSpin,unitsGravitational)
        etaLADAF1=0.0871d0*radiusISCO-0.10282d0
        etaLADAF2=0.5d0-7.7983d0*(adafAdiabaticIndex-1.333d0)**1.26d0
        etaLADAF3=0.153d0*(radiusISCO-0.6d0)**0.30d0+0.105d0
        etaLADAF4=etaLADAF3*(0.9d0*adafAdiabaticIndex-0.2996d0)*(1.202d0-0.08d0*(logarithmAlpha+2.5d0)**2.6d0)
        etaLADAF5=-1.8d0*adafAdiabaticIndex+4.299d0-0.018d0+0.018d0*(logarithmAlpha+2.0d0)**3.571d0
-       etaLADAF6=etaLADAF4*(((0.14d0*dlog10(radius)**etaLADAF5+0.23d0)/etaLADAF4)**10.0d0+1.0d0)**0.1d0
+       etaLADAF6=etaLADAF4*(((0.14d0*log10(radius)**etaLADAF5+0.23d0)/etaLADAF4)**10.0d0+1.0d0)**0.1d0
        ADAF_Enthalpy_Angular_Momentum_Product=etaLADAF2+(etaLADAF1+10.0d0**etaLADAF6)*(1.15d0-0.03d0*(3.0d0+logarithmAlpha)**2.37d0)
        radiusPrevious                 =radius
        blackHoleSpinPrevious          =blackHoleSpin
@@ -746,13 +746,13 @@ contains
        ADAF_Temperature=temperaturePrevious
     else
        ! We are not, so compute (and store) the value.
-       logarithmAlpha=dlog10(adafViscosityAlpha)
+       logarithmAlpha=log10(adafViscosityAlpha)
        radiusISCO=Black_Hole_ISCO_Radius(blackHoleSpin,unitsGravitational)
        t1=-0.270278d0*adafAdiabaticIndex+1.36027d0
        t2=-0.94d0+4.4744d0*(adafAdiabaticIndex-1.444d0)-5.1402d0*(adafAdiabaticIndex-1.444d0)**2
-       t3=0.84d0*logarithmAlpha+0.919d0-0.643d0*dexp(-0.209d0/adafViscosityAlpha)
-       t4=(0.6365d0*radiusISCO-0.4828d0)*(1.0d0+11.9d0*dexp(-0.838d0*radiusISCO**4))
-       t5=1.444d0*dexp(-1.01d0*radiusISCO**0.86d0)+0.1d0
+       t3=0.84d0*logarithmAlpha+0.919d0-0.643d0*exp(-0.209d0/adafViscosityAlpha)
+       t4=(0.6365d0*radiusISCO-0.4828d0)*(1.0d0+11.9d0*exp(-0.838d0*radiusISCO**4))
+       t5=1.444d0*exp(-1.01d0*radiusISCO**0.86d0)+0.1d0
        ADAF_Temperature=0.31d0*((1.0d0+(t4/radius)**0.9d0)**(t2+t3))/((radius-t5)**t1)
        radiusPrevious                 =radius
        blackHoleSpinPrevious          =blackHoleSpin
@@ -779,14 +779,14 @@ contains
        z=radius/rISCO
        zh=rh/rISCO
        alpha_eff=adafViscosityAlpha*(1.0d0+6.450d0*(adafAdiabaticIndex-1.444d0)+1.355d0*(adafAdiabaticIndex-1.444d0)**2)
-       v1=9.0d0*dlog(9.0d0*z)
-       v2=dexp(-0.66d0*(1.0d0-2.0d0*alpha_eff)*dlog(alpha_eff/0.1d0)*dlog(z/zh))
-       v3=1.0d0-dexp(-z*(0.16d0*(blackHoleSpin-1.0d0)+0.76d0))
-       v4=1.4d0+0.29065d0*(blackHoleSpin-0.5d0)**4-0.8756d0*(blackHoleSpin-0.5d0)**2+(-0.33d0*blackHoleSpin+0.45035d0)*(1.0d0-dexp(-(z-zh)))
-       v5=2.3d0*dexp(40.0d0*(blackHoleSpin-1.0d0))*dexp(-15.0d0*rISCO*(z-zh))+1.0d0
+       v1=9.0d0*log(9.0d0*z)
+       v2=exp(-0.66d0*(1.0d0-2.0d0*alpha_eff)*log(alpha_eff/0.1d0)*log(z/zh))
+       v3=1.0d0-exp(-z*(0.16d0*(blackHoleSpin-1.0d0)+0.76d0))
+       v4=1.4d0+0.29065d0*(blackHoleSpin-0.5d0)**4-0.8756d0*(blackHoleSpin-0.5d0)**2+(-0.33d0*blackHoleSpin+0.45035d0)*(1.0d0-exp(-(z-zh)))
+       v5=2.3d0*exp(40.0d0*(blackHoleSpin-1.0d0))*exp(-15.0d0*rISCO*(z-zh))+1.0d0
        Phi=v1*v2*v3*v4*v5
        reff=rh+Phi*(radius-rh)
-       adafVelocityPrevious      =dsqrt(1.0d0-(1.0d0-2.0d0/reff+(blackHoleSpin/reff)**2))
+       adafVelocityPrevious      =sqrt(1.0d0-(1.0d0-2.0d0/reff+(blackHoleSpin/reff)**2))
        radiusPrevious            =radius
        blackHoleSpinPrevious     =blackHoleSpin
        adafViscosityAlphaPrevious=adafViscosityAlpha
@@ -812,12 +812,12 @@ contains
             &*ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)**2-((blackHoleSpin*ADAF_gamma_phi(radius&
             &,blackHoleSpin,adafViscosityAlpha))**2/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*ADAF_gamma_r(radius&
             &,blackHoleSpin,adafViscosityAlpha)**2*Black_Hole_Metric_D_Factor(blackHoleSpin,radius)-ADAF_gamma_r(radius&
-            &,blackHoleSpin,adafViscosityAlpha)*dsqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)&
+            &,blackHoleSpin,adafViscosityAlpha)*sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)&
             &/Black_Hole_Metric_A_Factor(blackHoleSpin,radius))*2.0d0*ADAF_Angular_Momentum(radius,blackHoleSpin&
             &,adafViscosityAlpha)*Black_Hole_Frame_Dragging_Frequency(blackHoleSpin,radius)*ADAF_gamma_phi(radius,blackHoleSpin&
             &,adafViscosityAlpha)*blackHoleSpin**2
        nuz2=nuz2/radius**4
-       adafHeightPrevious=dsqrt(ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius,blackHoleSpin &
+       adafHeightPrevious=sqrt(ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)/ADAF_Enthalpy(radius,blackHoleSpin &
             &,adafViscosityAlpha)/radius**2/nuz2)
        radiusPrevious            =radius
        blackHoleSpinPrevious     =blackHoleSpin

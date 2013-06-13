@@ -60,7 +60,7 @@ contains
     real(c_double), value :: x
     type(c_ptr),    value :: parameterPointer
     
-    Integrand3=1.0d0/dsqrt(x)
+    Integrand3=1.0d0/sqrt(x)
     return
   end function Integrand3
   

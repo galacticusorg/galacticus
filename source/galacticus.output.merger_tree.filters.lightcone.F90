@@ -141,7 +141,7 @@ contains
              itemList => getElementsByTagname(thisItem,"length")
              thisItem => item(itemList,0)
              call extractDataContent(thisItem,lightconeFieldOfViewLength)
-             lightconeFieldOfViewTanHalfAngle=dtan(0.5d0*lightconeFieldOfViewLength)
+             lightconeFieldOfViewTanHalfAngle=tan(0.5d0*lightconeFieldOfViewLength)
              angularWeight=1.0d0/(lightconeFieldOfViewLength*(180.0d0/Pi))**2
           case default
              call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','unknown field of view geometry')
@@ -241,9 +241,9 @@ contains
                 select case (lightconeGeometry)
                 case (lightconeGeometrySquare)
                    galaxyIsInFieldOfView=                                                                    &
-                        & dabs(lightconePosition(2)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle &
+                        & abs(lightconePosition(2)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle &
                         &  .and.                                                                             &
-                        & dabs(lightconePosition(3)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle
+                        & abs(lightconePosition(3)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle
                 end select
                 
                 ! Test if galaxy lies within appropriate radial range.

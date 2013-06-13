@@ -126,7 +126,7 @@ contains
                   &+1.0d0))))/(dble(iLine)+1.0d0-beta)/(3.0d0*dble(iLine)-gamma-1.0d0)/nFactorial
           end do
           ! Add contribution due to Lyman-limit systems.
-          opticalDepth=opticalDepth+N0*(dexp(Gamma_Function_Logarithmic(2.0d0-beta))-dexp(-1.0d0)-seriesSolutionTermA)*(((1.0d0+redshift)**(&
+          opticalDepth=opticalDepth+N0*(exp(Gamma_Function_Logarithmic(2.0d0-beta))-exp(-1.0d0)-seriesSolutionTermA)*(((1.0d0+redshift)**(&
                &-3.0d0*(beta-1.0d0)+gamma+1.0d0))*(wavelengthObservedLymanContinuum**(3.0d0*(beta-1.0d0)))&
                &-(wavelengthObservedLymanContinuum**(gamma+1.0d0)))/(4.0d0+gamma-3.0d0*beta)-N0*seriesSolutionTermB
           ! Add contribution due to optically thin systems.
@@ -135,7 +135,7 @@ contains
        end if
        
        ! Compute attenuation from optical depth.
-       modifier=modifier*dexp(-opticalDepth)
+       modifier=modifier*exp(-opticalDepth)
     end if
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006

@@ -723,7 +723,7 @@ contains
        case (logarithmicByMassSolar)
           ! Convert to a logarithmic metallicity by mass relative to Solar.
           if (Abundances_Get_Metallicity > 0.0d0) then
-             Abundances_Get_Metallicity=dlog10(Abundances_Get_Metallicity/metallicitySolar)
+             Abundances_Get_Metallicity=log10(Abundances_Get_Metallicity/metallicitySolar)
           else
              Abundances_Get_Metallicity=logMetallicityZero
           end if

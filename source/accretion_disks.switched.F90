@@ -76,7 +76,7 @@ contains
        else
           accretionRateThinDiskMinimumExists=.true.
           read (accretionRateThin,*) accretionRateThinDiskMinimum
-          accretionRateThinDiskMinimumLogarithmic=dlog(accretionRateThinDiskMinimum)
+          accretionRateThinDiskMinimumLogarithmic=log(accretionRateThinDiskMinimum)
        end if
        !@ <inputParameter>
        !@   <name>accretionRateThinDiskMaximum</name>
@@ -94,7 +94,7 @@ contains
        else
           accretionRateThinDiskMaximumExists=.true.
           read (accretionRateThin,*) accretionRateThinDiskMaximum
-          accretionRateThinDiskMaximumLogarithmic=dlog(accretionRateThinDiskMaximum)
+          accretionRateThinDiskMaximumLogarithmic=log(accretionRateThinDiskMaximum)
        end if
        !@ <inputParameter>
        !@   <name>accretionRateTransitionWidth</name>
@@ -191,15 +191,15 @@ contains
        massAccretionRateDimensionless=massAccretionRate/eddingtonAccretionRate
 
        ! Compute the ADAF fraction.
-       accretionRateLogarithmic=dlog(massAccretionRateDimensionless)
+       accretionRateLogarithmic=log(massAccretionRateDimensionless)
        adafFraction=0.0d0
        if (accretionRateThinDiskMinimumExists) then
           argument=min( (accretionRateLogarithmic-accretionRateThinDiskMinimumLogarithmic)/accretionRateTransitionWidth,exponentialArgumentMaximum)
-          adafFraction=adafFraction+1.0d0/(1.0d0+dexp(argument))
+          adafFraction=adafFraction+1.0d0/(1.0d0+exp(argument))
        end if
        if (accretionRateThinDiskMaximumExists) then
           argument=min(-(accretionRateLogarithmic-accretionRateThinDiskMaximumLogarithmic)/accretionRateTransitionWidth,exponentialArgumentMaximum)
-          adafFraction=adafFraction+1.0d0/(1.0d0+dexp(argument))
+          adafFraction=adafFraction+1.0d0/(1.0d0+exp(argument))
        end if
        Accretion_Disk_Switched_ADAF_Fraction=adafFraction
 

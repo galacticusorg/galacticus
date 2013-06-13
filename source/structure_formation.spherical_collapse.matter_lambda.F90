@@ -121,7 +121,7 @@ contains
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
 
     ! Determine number of points to tabulate.
-    deltaTableNumberPoints=int(dlog10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
+    deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
 
     ! Deallocate table if currently allocated.
@@ -280,7 +280,7 @@ contains
          &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,hasSingularities=.true.,reset=integrationReset)&
          &/hubbleParameterInvGyr
     ! Add on analytic correction for region close to aMaximum.
-    tMaximum=tMaximum-2.0d0*dsqrt(OmegaM/aMaximum+epsilonPerturbation+OmegaDE*aMaximum**2)/(2.0d0*OmegaDE*aMaximum-OmegaM&
+    tMaximum=tMaximum-2.0d0*sqrt(OmegaM/aMaximum+epsilonPerturbation+OmegaDE*aMaximum**2)/(2.0d0*OmegaDE*aMaximum-OmegaM&
          &/aMaximum**2)/hubbleParameterInvGyr
     ! Time to collapse is twice the time to maximum expansion.
     tCollapse=2.0d0*tMaximum
@@ -297,7 +297,7 @@ contains
     ! Compute the integrand.
     sqrtArgument=OmegaM+epsilonPerturbationShared*a+OmegaDE*a**3
     if (sqrtArgument>0.0d0) then
-       Perturbation_Integrand=dsqrt(a/sqrtArgument)
+       Perturbation_Integrand=sqrt(a/sqrtArgument)
     else
        Perturbation_Integrand=0.0d0
     end if

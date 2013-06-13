@@ -166,7 +166,7 @@ contains
           call metallicityGroup%close()
        end do
        ! Convert metallicities to logarithmic scale.
-       stellarTrackLogMetallicities=dlog(stellarTrackLogMetallicities)
+       stellarTrackLogMetallicities=log(stellarTrackLogMetallicities)
        stellarTrackMetallicityCount=metallicityCountMaximum
 
        ! Close the file.
@@ -280,7 +280,7 @@ contains
     if (metallicity <= 0.0d0) then
        logMetallicity=stellarTrackLogMetallicities(1)
     else
-       logMetallicity=dlog(metallicity)
+       logMetallicity=log(metallicity)
     end if
     if (logMetallicity < stellarTrackLogMetallicities(1)) then
        interpolationIndicesMetallicity=[    1,    2]

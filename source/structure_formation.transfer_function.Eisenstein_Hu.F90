@@ -29,8 +29,8 @@ module Transfer_Function_Eisenstein_Hu
   logical                     :: transferFunctionInitialized=.false.
 
   ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum=dlog(10.0d0)
-  double precision            :: logWavenumberMinimum=dlog(1.0d-5)
+  double precision            :: logWavenumberMaximum=log(10.0d0)
+  double precision            :: logWavenumberMinimum=log(1.0d-5)
   integer,          parameter :: numberPointsPerDecade=1000
 
   ! Neutrino properties.
@@ -168,7 +168,7 @@ contains
     ! Relative expansion factor between previous two computed redshifts.
     yd=(1.0d0+zeq)/(1.0d0+zd)
     ! Compute the comoving distance that a sound wave can propagate prior to zd (i.e. sound horizon; eq. 4)
-    s=44.5d0*dlog(9.83d0/Omega_Matter()/(Little_H_0()**2))/dsqrt(1.0d0+10.0d0*((Omega_b()*(Little_H_0()**2))**0.75d0))
+    s=44.5d0*log(9.83d0/Omega_Matter()/(Little_H_0()**2))/sqrt(1.0d0+10.0d0*((Omega_b()*(Little_H_0()**2))**0.75d0))
     ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
     fv=summedNeutrinoMasses/94.0d0/(Little_H_0()**2)/Omega_Matter()
     Nv=effectiveNumberNeutrinos
@@ -180,31 +180,31 @@ contains
     ! Baryonic + neutrino fraction.
     fvb=fv+fb
     ! Compute small scale suppression factor (eqn. 15).
-    pc =0.25d0*(5.0d0-dsqrt(1.0d0+24.0d0*fc ))
-    pcb=0.25d0*(5.0d0-dsqrt(1.0d0+24.0d0*fcb))
+    pc =0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*fc ))
+    pcb=0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*fcb))
     alphav=(fc/fcb)*((5.0d0-2.0d0*(pc+pcb))/(5.0d0-4.0d0*pcb))*((1.0d0-0.533d0*fvb+0.126d0*(fvb**3))*((1.0d0+yd)**(pcb-pc))/(1.0d0-0.193d0&
-         &*dsqrt(fv*Nv)+0.169d0*fv*(Nv**0.2d0)))*(1.0d0+0.5d0*(pc-pcb)*(1.0d0+1.0d0/(3.0d0-4.0d0*pc)/(7.0d0-4.0d0*pcb))/(1.0d0+yd))
+         &*sqrt(fv*Nv)+0.169d0*fv*(Nv**0.2d0)))*(1.0d0+0.5d0*(pc-pcb)*(1.0d0+1.0d0/(3.0d0-4.0d0*pc)/(7.0d0-4.0d0*pcb))/(1.0d0+yd))
     ! Loop over all wavenumbers.
     do iWavenumber=1,transferFunctionNumberPoints
-       wavenumber=dexp(transferFunctionLogWavenumber(iWavenumber))
+       wavenumber=exp(transferFunctionLogWavenumber(iWavenumber))
        ! Compute effective q.
        qEH=wavenumber*(Theta27**2)/Omega_Matter()/(Little_H_0()**2)
        ! Compute rescaled shape parameter (eqn. 16)
-       Gammaeff=Omega_Matter()*(Little_H_0()**2)*(dsqrt(alphav)+(1.0d0-dsqrt(alphav))/(1.0d0+((0.43d0*wavenumber*s)**4)))
+       Gammaeff=Omega_Matter()*(Little_H_0()**2)*(sqrt(alphav)+(1.0d0-sqrt(alphav))/(1.0d0+((0.43d0*wavenumber*s)**4)))
        qeff=wavenumber*(Theta27**2)/Gammaeff
        betac=1.0d0/(1.0d0-0.949d0*fvb)                     ! Eqn. 21.
-       L=dlog(dexp(1.0d0)+1.84d0*betac*dsqrt(alphav)*qeff) ! Eqn. 19.
+       L=log(exp(1.0d0)+1.84d0*betac*sqrt(alphav)*qeff) ! Eqn. 19.
        C=14.4d0+325.0d0/(1.0d0+60.5d0*(qeff**1.11d0))      ! Eqn. 20.
        Tsup=L/(L+C*(qeff**2))                              ! Zero baryon form of the transfer function (eqn. 18).
        ! Apply correction for scales close to horizon.
        if (fv > 0.0d0.and.fv <= 0.3d0) then
-          qv=3.92d0*qEH*dsqrt(Nv)/fv
+          qv=3.92d0*qEH*sqrt(Nv)/fv
           Bk=1.0d0+(1.2d0*(fv**0.64d0)*(Nv**(0.3d0+0.6d0*fv)))/((qv**(-1.6d0))+(qv**0.8d0))
        else
           qv=0.0d0
           Bk=1.0d0
        end if
-       transferFunctionLogT(iWavenumber)=dlog(Tsup*Bk)
+       transferFunctionLogT(iWavenumber)=log(Tsup*Bk)
        if (transferFunctionWdmCutOffScale > 0.0d0) transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)+log((1.0d0&
             &+(transferFunctionWdmEpsilon*wavenumber*transferFunctionWdmCutOffScale)**(2.0d0*transferFunctionWdmNu))**(-transferFunctionWdmEta/transferFunctionWdmNu))
     end do

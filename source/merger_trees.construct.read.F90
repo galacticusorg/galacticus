@@ -1724,7 +1724,7 @@ contains
           thisSpinComponent  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
           ! Compute the spin parameter.
           spin=                                         nodes(iNode)%angularMomentum    &
-               & *dsqrt(dabs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node))) &
+               & *sqrt(abs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node))) &
                & /gravitationalConstantGalacticus                                       &
                & /thisBasicComponent%mass()**2.5d0
           ! Assign to the node.

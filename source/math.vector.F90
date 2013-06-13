@@ -30,7 +30,7 @@ contains
     implicit none
     double precision, dimension(3), intent(in) :: vector1
 
-    Vector_Magnitude=dsqrt(sum(vector1**2))
+    Vector_Magnitude=sqrt(sum(vector1**2))
     return
   end function Vector_Magnitude
   

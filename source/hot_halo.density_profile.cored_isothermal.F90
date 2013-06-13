@@ -77,7 +77,7 @@ contains
           densityNormalizationPrevious=3.0d0/outerRadiusOverCoreRadius**3+9.0d0/5.0d0/outerRadiusOverCoreRadius
        else
           ! For larger outer radii, use the exact solution.
-          densityNormalizationPrevious=1.0d0/(outerRadiusOverCoreRadius-datan(outerRadiusOverCoreRadius))
+          densityNormalizationPrevious=1.0d0/(outerRadiusOverCoreRadius-atan(outerRadiusOverCoreRadius))
        end if
     end if
     Density_Normalization_Factor=densityNormalizationPrevious
@@ -151,7 +151,7 @@ contains
     end if
     coreRadius =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
     Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=hotGasMass*Density_Normalization_Factor(coreRadius,outerRadius)*(radius&
-         &/coreRadius-datan(radius/coreRadius))
+         &/coreRadius-atan(radius/coreRadius))
     return
   end function Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get
 
@@ -180,14 +180,14 @@ contains
          &                                                       (                                                 &
          &                                                        1.0d0                                            &
          &                                                       - radiusCoreOverRadiusOuter                       &
-         &                                                        *datan(1.0d0/radiusCoreOverRadiusOuter)          &
+         &                                                        *atan(1.0d0/radiusCoreOverRadiusOuter)          &
          &                                                      )                                                  &
          &                                                     /(                                                  &
          &                                                        0.5d0                                            &
          &                                                       + radiusCoreOverRadiusOuter**2                    &
-         &                                                        *dlog(                                           &
+         &                                                        *log(                                           &
          &                                                               radiusCoreOverRadiusOuter                 &
-         &                                                              /dsqrt(1.0d0+radiusCoreOverRadiusOuter**2) &
+         &                                                              /sqrt(1.0d0+radiusCoreOverRadiusOuter**2) &
          &                                                             )                                           &
          &                                                      )                                                  &
          &                                                     /radiusOuter

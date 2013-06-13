@@ -327,7 +327,7 @@ contains
          &           1.0d0                                                     &
          &           -erf(                                                     &
          &                 log10(massStellar/fMassStellar)                     &
-         &                /dsqrt(2.0d0)                                        &
+         &                /sqrt(2.0d0)                                        &
          &                /conditionalStellarMassFunctionBehrooziSigmaLogMstar &
          &               )                                                     &
          &          )

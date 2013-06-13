@@ -25,7 +25,7 @@ module Halo_Mass_Function_Press_Schechter
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
   integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMinimum=dlog(1.0d9), logMassMaximum=dlog(1.0d15)
+  double precision            :: logMassMinimum=log(1.0d9), logMassMaximum=log(1.0d15)
 
 contains
   

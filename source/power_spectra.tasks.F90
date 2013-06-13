@@ -105,7 +105,7 @@ contains
     call Get_Input_Parameter('powerSpectraPointsPerDecade',powerSpectraPointsPerDecade,defaultValue=10)
 
     ! Compute number of tabulation points.
-    powerSpectraCount=int(dlog10(powerSpectraWavenumberMaximum/powerSpectraWavenumberMinimum)*dble(powerSpectraPointsPerDecade))+1
+    powerSpectraCount=int(log10(powerSpectraWavenumberMaximum/powerSpectraWavenumberMinimum)*dble(powerSpectraPointsPerDecade))+1
 
     ! Allocate arrays for power spectra.
     call Alloc_Array(powerSpectrum_Wavenumber   ,[powerSpectraCount])

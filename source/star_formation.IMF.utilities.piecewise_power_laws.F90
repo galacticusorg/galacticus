@@ -55,7 +55,7 @@ contains
        ! Sum the mass contributed by this range.
        if (massExponent(iPiece) == -2.0d0) then
           ! Integral is logarithmic in this case.
-          totalMass=totalMass+imfNormalization(iPiece)*dlog(massUpper(iPiece)/massLower(iPiece))
+          totalMass=totalMass+imfNormalization(iPiece)*log(massUpper(iPiece)/massLower(iPiece))
        else
           ! Integral is a power-law in all other cases.
           totalMass=totalMass+imfNormalization(iPiece)*(massUpper(iPiece)**(2.0d0+massExponent(iPiece))-massLower(iPiece) &

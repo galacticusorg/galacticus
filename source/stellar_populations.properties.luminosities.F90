@@ -65,7 +65,7 @@ contains
     case (luminosityOutputOptionFuture)
        Stellar_Population_Luminosities_Output=(     luminosityCosmicTime(luminosityIndex)       >= time*(1.0d0-timeTolerance))
     case (luminosityOutputOptionPresent)
-       Stellar_Population_Luminosities_Output=(dabs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
+       Stellar_Population_Luminosities_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
        call Galacticus_Error_Report('Stellar_Population_Luminosities_Output','unknown luminosity output option')
     end select

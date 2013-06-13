@@ -80,7 +80,7 @@ contains
     logical         , intent(in   ) :: ratesCalculation
     integer         , intent(in   ) :: iRemap
 
-    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=dsqrt(smtFitParameterA)*barrier*(1.0d0+smtFitParameterB*(variance/smtFitParameterA/barrier**2)**smtFitParameterC)
+    if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=sqrt(smtFitParameterA)*barrier*(1.0d0+smtFitParameterB*(variance/smtFitParameterA/barrier**2)**smtFitParameterC)
     return
   end subroutine Excursion_Sets_Barrier_Remap_SMT
 
@@ -100,11 +100,11 @@ contains
           barrierGradient=0.0d0
        else
           barrierGradient=                                                                                                       &
-               &           dsqrt(smtFitParameterA)*barrierGradient*(                                                             &
+               &           sqrt(smtFitParameterA)*barrierGradient*(                                                             &
                &                                                      1.0d0                                                      &
                &                                                     +smtFitParameterB                                           &
                &                                                     * (variance/smtFitParameterA/barrier**2)**smtFitParameterC) &
-               &           +dsqrt(smtFitParameterA)*barrier        *(                                                            &
+               &           +sqrt(smtFitParameterA)*barrier        *(                                                            &
                &                                                      smtFitParameterB                                           &
                &                                                     *smtFitParameterC                                           &
                &                                                     *((variance/smtFitParameterA/barrier**2)**smtFitParameterC) &

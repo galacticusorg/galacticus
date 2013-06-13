@@ -219,7 +219,7 @@ contains
     double precision, intent(in)             :: radius
 
     if (radius > 0.0d0) then
-       Dark_Matter_Profile_Circular_Velocity_Einasto=dsqrt(gravitationalConstantGalacticus&
+       Dark_Matter_Profile_Circular_Velocity_Einasto=sqrt(gravitationalConstantGalacticus&
             &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)/radius)
     else
        Dark_Matter_Profile_Circular_Velocity_Einasto=0.0d0
@@ -277,7 +277,7 @@ contains
     ! Get the shape parameter of the halo.
     alpha      =thisDarkMatterProfileComponent%shape()
     ! Compute the specific angular momentum in scale free units.
-    specificAngularMomentumScaleFree=specificAngularMomentum/dsqrt(gravitationalConstantGalacticus*scaleRadius&
+    specificAngularMomentumScaleFree=specificAngularMomentum/sqrt(gravitationalConstantGalacticus*scaleRadius&
          &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,scaleRadius))
     ! Compute the corresponding radius.
     Radius_from_Specific_Angular_Momentum_Einasto=scaleRadius*Radius_from_Specific_Angular_Momentum_Scale_Free(alpha&
@@ -373,7 +373,7 @@ contains
           ! Allocate arrays to the appropriate sizes.
           angularMomentumTableAlphaCount =int(      (angularMomentumTableAlphaMaximum -angularMomentumTableAlphaMinimum )&
                &*dble(angularMomentumTableAlphaPointsPerUnit   ))+1
-          angularMomentumTableRadiusCount=int(dlog10(angularMomentumTableRadiusMaximum/angularMomentumTableRadiusMinimum)&
+          angularMomentumTableRadiusCount=int(log10(angularMomentumTableRadiusMaximum/angularMomentumTableRadiusMinimum)&
                &*dble(angularMomentumTableRadiusPointsPerDecade))+1
           if (allocated(angularMomentumTableAlpha )) call Dealloc_Array(angularMomentumTableAlpha )
           if (allocated(angularMomentumTableRadius)) call Dealloc_Array(angularMomentumTableRadius)
@@ -393,7 +393,7 @@ contains
                 radius=angularMomentumTableRadius(iRadius)
                 enclosedMass= Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius**alpha/alpha) &
                      &       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0              /alpha)
-                angularMomentumTable(iRadius,iAlpha)=dsqrt(enclosedMass*radius)
+                angularMomentumTable(iRadius,iAlpha)=sqrt(enclosedMass*radius)
              end do             
           end do
           ! Reset interpolators. 
@@ -590,7 +590,7 @@ contains
        ! Allocate arrays to the appropriate sizes.
        energyTableAlphaCount        =int(      (energyTableAlphaMaximum        -energyTableAlphaMinimum        ) &
             &*dble(energyTableAlphaPointsPerUnit          ))+1
-       energyTableConcentrationCount=int(dlog10(energyTableConcentrationMaximum/energyTableConcentrationMinimum) &
+       energyTableConcentrationCount=int(log10(energyTableConcentrationMaximum/energyTableConcentrationMinimum) &
             &*dble(energyTableConcentrationPointsPerDecade))+1
        if (allocated(energyTableAlpha        )) call Dealloc_Array(energyTableAlpha        )
        if (allocated(energyTableConcentration)) call Dealloc_Array(energyTableConcentration)
@@ -723,10 +723,10 @@ contains
 
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
-         &               *dexp(-2.0d0/alpha                                                                   ) &
+         &               *exp(-2.0d0/alpha                                                                   ) &
          &               /Gamma_Function                         (3.0d0/alpha                                 ) &
          &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
-    Density_Einasto_Scale_Free=densityNormalization*dexp(-(2.0d0/alpha)*(radius**alpha-1.0d0))
+    Density_Einasto_Scale_Free=densityNormalization*exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))
     return
   end function Density_Einasto_Scale_Free
   
@@ -866,9 +866,9 @@ contains
        ! Allocate arrays to the appropriate sizes.
        fourierProfileTableAlphaCount        =int(      (fourierProfileTableAlphaMaximum        -fourierProfileTableAlphaMinimum        ) &
             &*dble(fourierProfileTableAlphaPointsPerUnit          ))+1
-       fourierProfileTableConcentrationCount=int(dlog10(fourierProfileTableConcentrationMaximum/fourierProfileTableConcentrationMinimum) &
+       fourierProfileTableConcentrationCount=int(log10(fourierProfileTableConcentrationMaximum/fourierProfileTableConcentrationMinimum) &
             &*dble(fourierProfileTableConcentrationPointsPerDecade))+1
-       fourierProfileTableWavenumberCount   =int(dlog10(fourierProfileTableWavenumberMaximum   /fourierProfileTableWavenumberMinimum   ) &
+       fourierProfileTableWavenumberCount   =int(log10(fourierProfileTableWavenumberMaximum   /fourierProfileTableWavenumberMinimum   ) &
             &*dble(fourierProfileTableWavenumberPointsPerDecade   ))+1
        if (allocated(fourierProfileTableAlpha        )) call Dealloc_Array(fourierProfileTableAlpha        )
        if (allocated(fourierProfileTableConcentration)) call Dealloc_Array(fourierProfileTableConcentration)
@@ -941,7 +941,7 @@ contains
     real(c_double), value   :: radius
     type(c_ptr),    value   :: parameterPointer
     
-    Fourier_Profile_Integrand_Einasto=4.0d0*Pi*radius*dsin(wavenumberParameter*radius)*Density_Einasto_Scale_Free(radius&
+    Fourier_Profile_Integrand_Einasto=4.0d0*Pi*radius*sin(wavenumberParameter*radius)*Density_Einasto_Scale_Free(radius&
          &,concentrationParameter,alphaParameter)/wavenumberParameter
     return
   end function Fourier_Profile_Integrand_Einasto
@@ -981,7 +981,7 @@ contains
     radiusScale  =thisDarkMatterProfileComponent%scale()
 
     ! Get the velocity scale.
-    velocityScale=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
+    velocityScale=sqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
@@ -1048,7 +1048,7 @@ contains
     radiusScale  =thisDarkMatterProfileComponent%scale()
 
     ! Get the velocity scale.
-    velocityScale=dsqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
+    velocityScale=sqrt(gravitationalConstantGalacticus*thisBasicComponent%mass()/radiusScale)
 
     ! Compute time scale.
     timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
@@ -1121,7 +1121,7 @@ contains
        ! Display a message.
        call Galacticus_Display_Indent('Constructing Einasto profile freefall radius lookup table...',verbosityWorking)
        ! Decide how many points to tabulate and allocate table arrays.
-       freefallRadiusTableRadiusCount=int(dlog10(freefallRadiusTableRadiusMaximum/freefallRadiusTableRadiusMinimum)*dble(freefallRadiusTableRadiusPointsPerDecade))+1
+       freefallRadiusTableRadiusCount=int(log10(freefallRadiusTableRadiusMaximum/freefallRadiusTableRadiusMinimum)*dble(freefallRadiusTableRadiusPointsPerDecade))+1
        freefallRadiusTableAlphaCount =int(      (freefallRadiusTableAlphaMaximum -freefallRadiusTableAlphaMinimum )*dble(freefallRadiusTableAlphaPointsPerUnit   ))+1
        if (allocated(freefallRadiusTableRadius)) then
           call Dealloc_Array(freefallRadiusTableAlpha )
@@ -1198,7 +1198,7 @@ contains
     type(c_ptr),    value     :: parameterPointer
 
     Freefall_Time_Scale_Free_Integrand_Einasto= 1.0d0                                                                   &
-         &                                     /dsqrt(                                                                  &
+         &                                     /sqrt(                                                                  &
          &                                             2.0d0                                                            &
          &                                            *(                                                                &
          &                                               Potential_Einasto_Scale_Free(radiusStart,1.0d0,alphaParameter) &

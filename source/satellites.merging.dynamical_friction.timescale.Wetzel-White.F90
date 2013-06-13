@@ -66,7 +66,7 @@ contains
          &                                    *timeScaleNormalization                                      &
          &                                    /Expansion_Rate(Expansion_Factor(thisBasicComponent%time())) &
          &                                    *           massRatio                                        &
-         &                                    /dlog(1.0d0+massRatio)
+         &                                    /log(1.0d0+massRatio)
     return
   end function Satellite_Time_Until_Merging_Wetzel_White
 

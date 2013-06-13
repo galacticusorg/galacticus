@@ -292,7 +292,7 @@ contains
             &                            -(                                                                                  &
             &                               2.0d0                                                                            &
             &                              *dynamicalFrictionXSpheroid                                                       &
-            &                              /dsqrt(Pi)                                                                        &
+            &                              /sqrt(Pi)                                                                        &
             &                              *exp(-dynamicalFrictionXSpheroid**2)                                              &
             &                             )                                                                                  &
             &                           )                                                                                    &
@@ -303,7 +303,7 @@ contains
             &                            -(                                                                                  &
             &                               2.0d0                                                                            &
             &                              *dynamicalFrictionXDarkMatter                                                     &
-            &                              /dsqrt(Pi)                                                                        &
+            &                              /sqrt(Pi)                                                                        &
             &                              *exp(-dynamicalFrictionXDarkMatter**2)                                            &
             &                             )                                                                                  &
             &                           )                                                                                    &

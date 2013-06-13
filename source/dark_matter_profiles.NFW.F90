@@ -157,7 +157,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwTableNumberPoints=int(dlog10(concentrationMaximum/concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
+       nfwTableNumberPoints=int(log10(concentrationMaximum/concentrationMinimum)*dble(nfwTablePointsPerDecade))+1
        call nfwConcentrationTable%destroy()
        call nfwConcentrationTable%create(concentrationMinimum,concentrationMaximum,nfwTableNumberPoints,2)
        ! Loop over concentrations and populate tables.
@@ -207,7 +207,7 @@ contains
     end if
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwInverseTableNumberPoints=int(dlog10(radiusMaximum/radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
+       nfwInverseTableNumberPoints=int(log10(radiusMaximum/radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
        if (allocated(nfwRadius)) then
           call Dealloc_Array(nfwRadius                 )
           call Dealloc_Array(nfwSpecificAngularMomentum)
@@ -294,10 +294,10 @@ contains
        radiusTerm=1.0d0-0.5d0*radiusOverScaleRadius
     else
        ! Use the full expression for larger radii.
-       radiusTerm=dlog(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
+       radiusTerm=log(1.0d0+radiusOverScaleRadius)/radiusOverScaleRadius
     end if
-    Dark_Matter_Profile_Potential_NFW=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-dlog(1.0d0+virialRadiusOverScaleRadius)&
-         &/virialRadiusOverScaleRadius)/(dlog(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
+    Dark_Matter_Profile_Potential_NFW=(-1.0d0-virialRadiusOverScaleRadius*(radiusTerm-log(1.0d0+virialRadiusOverScaleRadius)&
+         &/virialRadiusOverScaleRadius)/(log(1.0d0 +virialRadiusOverScaleRadius)-virialRadiusOverScaleRadius/(1.0d0&
          &+virialRadiusOverScaleRadius))) *Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     return
   end function Dark_Matter_Profile_Potential_NFW
@@ -313,7 +313,7 @@ contains
     double precision, intent(in)             :: radius
 
     if (radius > 0.0d0) then
-       Dark_Matter_Profile_Circular_Velocity_NFW=dsqrt(gravitationalConstantGalacticus&
+       Dark_Matter_Profile_Circular_Velocity_NFW=sqrt(gravitationalConstantGalacticus&
             &*Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)/radius)
     else
        Dark_Matter_Profile_Circular_Velocity_NFW=0.0d0
@@ -486,8 +486,8 @@ contains
     implicit none
     double precision, intent(in) :: concentration
 
-    Angular_Momentum_NFW_Scale_Free=(1.0d0+concentration-2.0d0*dlog(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
-         &/(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))
+    Angular_Momentum_NFW_Scale_Free=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
+         &/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
     return
   end function Angular_Momentum_NFW_Scale_Free
 
@@ -497,7 +497,7 @@ contains
     implicit none
     double precision, intent(in) :: radius
 
-    Specific_Angular_Momentum_NFW_Scale_Free=dsqrt(radius*Enclosed_Mass_NFW_Scale_Free(radius,1.0d0))
+    Specific_Angular_Momentum_NFW_Scale_Free=sqrt(radius*Enclosed_Mass_NFW_Scale_Free(radius,1.0d0))
     return
   end function Specific_Angular_Momentum_NFW_Scale_Free
 
@@ -508,16 +508,16 @@ contains
     double precision, intent(in) :: radius,concentration
     double precision, parameter  :: minimumRadiusForExactSolution=1.0d-7
     ! Precomputed NFW normalization factor for unit concentration.
-    double precision, parameter  :: nfwNormalizationFactorUnitConcentration=1.0d0/(dlog(2.0d0)-0.5d0)
+    double precision, parameter  :: nfwNormalizationFactorUnitConcentration=1.0d0/(log(2.0d0)-0.5d0)
     ! Precomputed NFW normalization factor for unit radius.
-    double precision, parameter  :: nfwNormalizationFactorUnitRadius       =dlog(2.0d0)-0.5d0
+    double precision, parameter  :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
     double precision, save       :: concentrationPrevious=-1.0d0,nfwNormalizationFactorPrevious
     !$omp threadprivate(concentrationPrevious,nfwNormalizationFactorPrevious)
 
     if (radius == 1.0d0) then
        Enclosed_Mass_NFW_Scale_Free=nfwNormalizationFactorUnitRadius
     else if (radius >= minimumRadiusForExactSolution) then
-       Enclosed_Mass_NFW_Scale_Free=(dlog(1.0d0+radius)-radius/(1.0d0+radius))
+       Enclosed_Mass_NFW_Scale_Free=(log(1.0d0+radius)-radius/(1.0d0+radius))
     else
        Enclosed_Mass_NFW_Scale_Free=(radius**2)*(0.5d0+radius*(-2.0d0/3.0d0+radius*(0.75d0+radius*(-0.8d0))))
     end if
@@ -527,7 +527,7 @@ contains
        if (concentration == 1.0d0) then
           nfwNormalizationFactorPrevious=nfwNormalizationFactorUnitConcentration
        else
-          nfwNormalizationFactorPrevious=1.0d0/(dlog(1.0d0+concentration)-concentration/(1.0d0 &
+          nfwNormalizationFactorPrevious=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0 &
                &+concentration))
        end if
        concentrationPrevious=concentration
@@ -543,7 +543,7 @@ contains
     implicit none
     double precision, intent(in) :: radius,concentration
 
-    Density_NFW_Scale_Free=1.0d0/(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
+    Density_NFW_Scale_Free=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
     return
   end function Density_NFW_Scale_Free
   
@@ -657,11 +657,11 @@ contains
 
     ! Compute the Fourier transformed profile.
     Dark_Matter_Profile_kSpace_NFW=(                                                                                                                  &
-         & +dsin(              waveNumberScaleFree)*(Sine_Integral  ((1.0d0+concentration)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
-         & -dsin(concentration*waveNumberScaleFree)/(1.0d0+concentration)/waveNumberScaleFree                                                         &
-         & +dcos(              waveNumberScaleFree)*(Cosine_Integral((1.0d0+concentration)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
+         & +sin(              waveNumberScaleFree)*(Sine_Integral  ((1.0d0+concentration)*waveNumberScaleFree)-Sine_Integral  (waveNumberScaleFree)) &
+         & -sin(concentration*waveNumberScaleFree)/(1.0d0+concentration)/waveNumberScaleFree                                                         &
+         & +cos(              waveNumberScaleFree)*(Cosine_Integral((1.0d0+concentration)*waveNumberScaleFree)-Cosine_Integral(waveNumberScaleFree)) &
          &                         )                                                                                                                  &
-         & /(dlog(1.0d0+concentration)-concentration/(1.0d0+concentration))
+         & /(log(1.0d0+concentration)-concentration/(1.0d0+concentration))
     return
   end function Dark_Matter_Profile_kSpace_NFW
 
@@ -697,7 +697,7 @@ contains
     velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/dsqrt(concentration/(dlog(1.0d0+concentration)-concentration&
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
          &/(1.0d0+concentration)))
 
     ! Compute dimensionless time.
@@ -749,7 +749,7 @@ contains
     velocityScale=Dark_Matter_Halo_Virial_Velocity(thisNode)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/dsqrt(concentration/(dlog(1.0d0+concentration)-concentration&
+    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
          &/(1.0d0+concentration)))
 
     ! Compute dimensionless time.
@@ -798,7 +798,7 @@ contains
     if (retabulate) then
 
        ! Decide how many points to tabulate and allocate table arrays.
-       nfwFreefallTableNumberPoints=int(dlog10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
+       nfwFreefallTableNumberPoints=int(log10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
        if (allocated(nfwFreefallRadius)) then
           call Dealloc_Array(nfwFreefallRadius)
           call Dealloc_Array(nfwFreefallTime  )
@@ -844,7 +844,7 @@ contains
     else
        ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
        ! first order terms.
-       Freefall_Time_Scale_Free=2.0d0*dsqrt(radius)
+       Freefall_Time_Scale_Free=2.0d0*sqrt(radius)
     end if
     return
   end function Freefall_Time_Scale_Free
@@ -862,18 +862,18 @@ contains
     
      if (radius < radiusSmall) then
        ! Use a series approximation for small radii.
-       Freefall_Time_Scale_Free_Integrand=dlog(1.0d0+radiusStart)/radiusStart-1.0d0+radius*(0.5d0-radius/3.0d0)
+       Freefall_Time_Scale_Free_Integrand=log(1.0d0+radiusStart)/radiusStart-1.0d0+radius*(0.5d0-radius/3.0d0)
     else if (radius > radiusStart*(1.0d0-radiusSmallFraction)) then
        ! Use a series approximation for radii close to the initial radius.
        x=1.0d0-radius/radiusStart
-       Freefall_Time_Scale_Free_Integrand=(1.0d0/(1.0d0+radiusStart)-dlog(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
-            &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*dlog(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
+       Freefall_Time_Scale_Free_Integrand=(1.0d0/(1.0d0+radiusStart)-log(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
+            &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*log(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
             &**2
     else
        ! Use full expression for larger radii.
-       Freefall_Time_Scale_Free_Integrand=dlog(1.0d0+radiusStart)/radiusStart-dlog(1.0d0+radius)/radius
+       Freefall_Time_Scale_Free_Integrand=log(1.0d0+radiusStart)/radiusStart-log(1.0d0+radius)/radius
     end if
-    Freefall_Time_Scale_Free_Integrand=1.0d0/dsqrt(-2.0d0*Freefall_Time_Scale_Free_Integrand)
+    Freefall_Time_Scale_Free_Integrand=1.0d0/sqrt(-2.0d0*Freefall_Time_Scale_Free_Integrand)
     return
   end function Freefall_Time_Scale_Free_Integrand
   

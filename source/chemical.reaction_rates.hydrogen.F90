@@ -342,7 +342,7 @@ contains
        temperaturePrevious=temperature
 
        ! Compute base 10 logarithm of temperature.
-       log10Temperature=dlog10(temperature)
+       log10Temperature=log10(temperature)
        
        ! Compute rate coefficient.
        if      (temperature <=    1.0d0) then
@@ -432,9 +432,9 @@ contains
     ! Compute the rate coefficient.
     if (temperatureElectronVolts >= 0.1d0) then
        ! Get the natural logarithm of the temperature in electron volts.
-       logNaturalTemperatureElectronVolts=dlog(temperatureElectronVolts)
+       logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
 
-       H_Hminus_to_H2_Electron_Rate_Coefficient=dexp(               & 
+       H_Hminus_to_H2_Electron_Rate_Coefficient=exp(               & 
             &                                      -20.069138970d0  &
             & +logNaturalTemperatureElectronVolts*(+ 0.228980000d0  &
             & +logNaturalTemperatureElectronVolts*(+ 3.599837700d-2 &
@@ -493,7 +493,7 @@ contains
        if (temperatureElectronVolts < 0.577d0) then
           rateCoefficient=3.833d-16*(temperatureElectronVolts**1.8d0)
        else
-          rateCoefficient=5.810d-16*((0.20651d0*temperatureElectronVolts)**(-0.2891d0*dlog(0.20651d0*temperatureElectronVolts)))
+          rateCoefficient=5.810d-16*((0.20651d0*temperatureElectronVolts)**(-0.2891d0*log(0.20651d0*temperatureElectronVolts)))
        end if
 
        ! Compute the rate.
@@ -606,13 +606,13 @@ contains
 
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-       logNaturalTemperatureElectronVolts=dlog(temperatureElectronVolts)
+       logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
 
        ! Compute rate coefficient.
        if (temperature < 1000.0d0) then
           rateCoefficient=0.0d0
        else
-          rateCoefficient=dexp(                                          &
+          rateCoefficient=exp(                                          &
                & -24.24914687d0                                          &
                & +3.400824440d0 * logNaturalTemperatureElectronVolts     &
                & -3.898003960d0 *(logNaturalTemperatureElectronVolts**2) &
@@ -678,7 +678,7 @@ contains
        if (temperature < 1000.0d0) then
           rateCoefficient=0.0d0
        else
-          rateCoefficient=5.6d-11*dsqrt(temperature)*dexp(-102124.0d0/temperature)
+          rateCoefficient=5.6d-11*sqrt(temperature)*exp(-102124.0d0/temperature)
        end if
 
        ! Compute rate.
@@ -732,13 +732,13 @@ contains
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
 
        ! Compute base 10 logarithm of temperature.
-       log10Temperature=dlog10(temperature)
+       log10Temperature=log10(temperature)
 
        ! Compute the rate coefficient.
        if (log10Temperature < 3.0d0 .or. log10Temperature > 5.4d0) then
           rateCoefficient=0.0d0
        else
-          rateCoefficient=1.067d-10*(temperatureElectronVolts**2.012d0)*dexp(-(4.463d0/temperatureElectronVolts)*((1.0d0+0.2472d0&
+          rateCoefficient=1.067d-10*(temperatureElectronVolts**2.012d0)*exp(-(4.463d0/temperatureElectronVolts)*((1.0d0+0.2472d0&
                &*temperatureElectronVolts)**3.512d0))
        end if
 
@@ -818,10 +818,10 @@ contains
 
     ! Compute the temperature in electron volts.
     temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-    logNaturalTemperatureElectronVolts=dlog(temperatureElectronVolts)
+    logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
     
     ! Compute rate coefficient.
-    Hminus_Electron_to_H_2Electron_Rate_Coefficient=dexp(       &
+    Hminus_Electron_to_H_2Electron_Rate_Coefficient=exp(       &
          &                                      -18.01849334d0  &
          & +logNaturalTemperatureElectronVolts*(+ 2.36085220d0  &
          & +logNaturalTemperatureElectronVolts*(- 0.28274430d0  &
@@ -873,11 +873,11 @@ contains
 
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-       logNaturalTemperatureElectronVolts=dlog(temperatureElectronVolts)
+       logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
 
        ! Compute rate coefficient.
        if (temperatureElectronVolts >= 0.1d0) then
-          rateCoefficient=dexp(                                          &
+          rateCoefficient=exp(                                          &
                & -20.37260896d0                                          &
                & + 1.13944330d0 * logNaturalTemperatureElectronVolts     &
                & - 0.14210136d0 *(logNaturalTemperatureElectronVolts**2) &
@@ -968,7 +968,7 @@ contains
     implicit none
     double precision, intent(in) :: temperature
     
-    Hminus_Hplus_to_2H_Rate_Coefficient=7.0d-8/dsqrt(temperature/100.0d0)
+    Hminus_Hplus_to_2H_Rate_Coefficient=7.0d-8/sqrt(temperature/100.0d0)
     return
   end function Hminus_Hplus_to_2H_Rate_Coefficient
   
@@ -1016,7 +1016,7 @@ contains
        if (temperatureElectronVolts < 1.719d0) then
           rateCoefficient=2.2910d-10/(temperatureElectronVolts**0.4d0)
        else
-          rateCoefficient=8.4258d-10/(temperatureElectronVolts**1.4d0)*dexp(-1.301d0/temperatureElectronVolts)
+          rateCoefficient=8.4258d-10/(temperatureElectronVolts**1.4d0)*exp(-1.301d0/temperatureElectronVolts)
        end if
 
        ! Compute rate.
@@ -1131,7 +1131,7 @@ contains
     if (reactionActive) then
 
        ! Compute rate coefficient.
-       rateCoefficient=5.0d-7*dsqrt(100.0d0/temperature)
+       rateCoefficient=5.0d-7*sqrt(100.0d0/temperature)
 
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)&
@@ -1193,7 +1193,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          rateCoefficient=0.144d0*(radiation%temperature([radiationTypeCMB])**2.13d0)*dexp(-8650.0d0/radiation%temperature([radiationTypeCMB]))
+          rateCoefficient=0.144d0*(radiation%temperature([radiationTypeCMB])**2.13d0)*exp(-8650.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_Hminus_Gamma_to_H_Electron,[0.0d0&
                &,crossSectionWavelengthHigh])
@@ -1283,7 +1283,7 @@ contains
 
        ! Compute rate coefficient.
        if (hydrogenNetworkCMBOnly) then
-          rateCoefficient=6.36d5*dexp(-71600.0d0/radiation%temperature([radiationTypeCMB]))
+          rateCoefficient=6.36d5*exp(-71600.0d0/radiation%temperature([radiationTypeCMB]))
        else
           rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow&
                &,crossSectionWavelengthHigh])

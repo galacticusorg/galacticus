@@ -108,7 +108,7 @@ contains
     double precision, intent(in)             :: radius
 
     if (radius <= 0.0d0) call Galacticus_Error_Report('Dark_Matter_Profile_Potential_Isothermal','isothermal profile potential is infinite at zero radius')
-    Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+dlog(radius/Dark_Matter_Halo_Virial_Radius(thisNode)))&
+    Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+log(radius/Dark_Matter_Halo_Virial_Radius(thisNode)))&
          &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
     return
   end function Dark_Matter_Profile_Potential_Isothermal
@@ -216,7 +216,7 @@ contains
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: time
 
-    Dark_Matter_Profile_Freefall_Radius_Isothermal=dsqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)*time&
+    Dark_Matter_Profile_Freefall_Radius_Isothermal=sqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)*time&
          &/Mpc_per_km_per_s_To_Gyr
     return
   end function Dark_Matter_Profile_Freefall_Radius_Isothermal
@@ -234,7 +234,7 @@ contains
     type(treeNode),   intent(inout), pointer :: thisNode
     double precision, intent(in)             :: time
 
-    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal=dsqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)&
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal=sqrt(2.0d0/Pi)*Dark_Matter_Halo_Virial_Velocity(thisNode)&
          &/Mpc_per_km_per_s_To_Gyr
     return
   end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Isothermal

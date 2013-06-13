@@ -85,7 +85,7 @@ contains
     double precision                 :: logTreeRootMass
 
     ! Find the logarithm of the tree mass.
-    logTreeRootMass=dlog10(treeRootMass)
+    logTreeRootMass=log10(treeRootMass)
     
     Galacticus_Time_Per_Tree_File=0.0
     do iTerm=0,2

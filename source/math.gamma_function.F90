@@ -52,7 +52,7 @@ contains
     implicit none
     double precision, intent(in) :: argument
 
-    Gamma_Function=dexp(Gamma_Function_Logarithmic(argument))
+    Gamma_Function=exp(Gamma_Function_Logarithmic(argument))
     return
   end function Gamma_Function
   

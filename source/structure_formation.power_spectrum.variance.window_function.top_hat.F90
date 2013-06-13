@@ -63,7 +63,7 @@ contains
             &           )))
     else
        ! For larger x, use the full expression.
-       Power_Spectrum_Window_Function_Top_Hat=3.0d0*(dsin(x)-x*dcos(x))/(x**3)
+       Power_Spectrum_Window_Function_Top_Hat=3.0d0*(sin(x)-x*cos(x))/(x**3)
     end if
     return
   end function Power_Spectrum_Window_Function_Top_Hat

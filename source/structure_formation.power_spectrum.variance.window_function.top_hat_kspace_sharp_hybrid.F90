@@ -125,7 +125,7 @@ contains
             &               )))
     else
        ! For larger x, use the full expression.
-       topHatWindowFunction=3.0d0*(dsin(x)-x*dcos(x))/(x**3)
+       topHatWindowFunction=3.0d0*(sin(x)-x*cos(x))/(x**3)
     end if
 
     ! Compute k-space sharp window function.

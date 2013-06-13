@@ -172,7 +172,7 @@ contains
           remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
           
           ! Also compute the specific angular momentum at the half-mass radius.
-          remnantCircularVelocity=dsqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
+          remnantCircularVelocity=sqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
           remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
        else
           ! Remnant has zero mass - don't do anything.

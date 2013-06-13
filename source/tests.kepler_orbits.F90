@@ -39,7 +39,7 @@ program Tests_Kepler_Orbits
   call Input_Parameters_File_Open(parameterFile)
 
   ! Compute velocity scale for unit mass and radius.
-  velocityScale=dsqrt(gravitationalConstantGalacticus)
+  velocityScale=sqrt(gravitationalConstantGalacticus)
 
   ! Create a circular orbit.
   call thisOrbit%reset()
@@ -77,7 +77,7 @@ program Tests_Kepler_Orbits
   valueExpected=0.5d0*velocityScale
   call Assert('Angular momentum of elliptical orbit',valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
   valueActual  =thisOrbit%eccentricity   ()
-  valueExpected=dsqrt(5.0d0/8.0d0)
+  valueExpected=sqrt(5.0d0/8.0d0)
   call Assert('Eccentricity of elliptical orbit'    ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
   valueActual  =thisOrbit%semiMajorAxis  ()
   valueExpected=(2.0d0/3.0d0)

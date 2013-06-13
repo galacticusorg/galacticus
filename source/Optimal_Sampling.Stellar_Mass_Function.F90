@@ -54,8 +54,8 @@ program Optimal_Sampling_SMF
   call Input_Parameters_File_Open(parameterFile)
 
   ! Compute number of points to tabulate.
-  stellarMassTableCount=int(dlog10(stellarMassMaximum/stellarMassMinimum)*dble(stellarMassPointsPerDecade)+1.0d0)
-  haloMassTableCount   =int(dlog10(   haloMassMaximum/   haloMassMinimum)*dble(   haloMassPointsPerDecade)+1.0d0)
+  stellarMassTableCount=int(log10(stellarMassMaximum/stellarMassMinimum)*dble(stellarMassPointsPerDecade)+1.0d0)
+  haloMassTableCount   =int(log10(   haloMassMaximum/   haloMassMinimum)*dble(   haloMassPointsPerDecade)+1.0d0)
   
   ! Allocate arrays.
   call Alloc_Array(stellarMassTableMass        ,[stellarMassTableCount])

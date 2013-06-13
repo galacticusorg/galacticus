@@ -44,7 +44,7 @@ contains
     Logarithmic_Double_Factorial=0.0d0
     i=argument
     do while (i >= 2)
-       Logarithmic_Double_Factorial=Logarithmic_Double_Factorial+dlog(dble(i))
+       Logarithmic_Double_Factorial=Logarithmic_Double_Factorial+log(dble(i))
        i=i-2
     end do
     return

@@ -107,11 +107,11 @@ program Test_Zhao2009_Dark_Energy
         ! Compute the difference between our values and the comparison values.
         timeDifferenceMaximum         =max(                                                             &
              &                              timeDifferenceMaximum                                       &
-             &                             ,dabs(ourTime         -theirTime         )/theirTime         &
+             &                             ,abs(ourTime         -theirTime         )/theirTime         &
              &                             )
         concentrationDifferenceMaximum=max(                                                             &
              &                              concentrationDifferenceMaximum                              &
-             &                             ,dabs(ourConcentration-theirConcentration)/theirConcentration&
+             &                             ,abs(ourConcentration-theirConcentration)/theirConcentration&
              &                            )
 
      end do

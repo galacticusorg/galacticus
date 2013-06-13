@@ -1096,8 +1096,8 @@ use kind_numbers
     thisSpheroid => thisNode%spheroid()
     componentMass=thisSpheroid%enclosedMass(radius,componentType,massType,weightByMass&
          &,weightIndexNull,haloLoaded)
-    if (componentMass > 0.0d0) Node_Component_Spheroid_Standard_Rotation_Curve=dsqrt(gravitationalConstantGalacticus&
-         &*componentMass)/dsqrt(radius)
+    if (componentMass > 0.0d0) Node_Component_Spheroid_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
+         &*componentMass)/sqrt(radius)
     return
   end function Node_Component_Spheroid_Standard_Rotation_Curve
 

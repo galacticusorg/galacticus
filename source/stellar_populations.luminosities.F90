@@ -147,7 +147,7 @@ contains
                &,luminosityTables(imfIndex)%metallicitiesCount,luminosityTables(imfIndex)%age&
                &,luminosityTables(imfIndex)%metallicity)
           where (luminosityTables(imfIndex)%metallicity > 0.0d0)
-             luminosityTables(imfIndex)%metallicity=dlog10(luminosityTables(imfIndex)%metallicity/metallicitySolar)
+             luminosityTables(imfIndex)%metallicity=log10(luminosityTables(imfIndex)%metallicity/metallicitySolar)
           elsewhere
              luminosityTables(imfIndex)%metallicity=logMetallicityZero
           end where

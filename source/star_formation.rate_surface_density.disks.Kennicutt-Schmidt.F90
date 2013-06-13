@@ -196,7 +196,7 @@ contains
        call fuelAbundances%massToMassFraction(gasMass)
        hydrogenMassFraction=fuelAbundances%hydrogenMassFraction()
        ! Compute the constant factor appearing in the critical density. 
-       criticalDensityFactor=toomreParameterCritical*dsqrt(2.0d0)&
+       criticalDensityFactor=toomreParameterCritical*sqrt(2.0d0)&
             &*velocityDispersionDiskGas*thisDiskComponent%velocity()/Pi/gravitationalConstantGalacticus 
        ! Record that factors have now been computed.
        factorsComputed=.true.

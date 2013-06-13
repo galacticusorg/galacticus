@@ -71,7 +71,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('lognormalSpinDistributionSigma' ,lognormalSpinDistributionSigma ,defaultValue=0.51025d0)
-       lognormalSpinDistributionMedian=dlog(lognormalSpinDistributionMedian)
+       lognormalSpinDistributionMedian=log(lognormalSpinDistributionMedian)
     end if
     return
   end subroutine Halo_Spin_Distribution_Lognormal_Initialize
@@ -86,7 +86,7 @@ contains
 
     randomDeviate=Gaussian_Random_Get(randomSequenceObject,lognormalSpinDistributionSigma,resetRandomSequence)
     logLambda=lognormalSpinDistributionMedian+randomDeviate
-    Halo_Spin_Distribution_Lognormal=dexp(logLambda)
+    Halo_Spin_Distribution_Lognormal=exp(logLambda)
     return
   end function Halo_Spin_Distribution_Lognormal
 

@@ -86,10 +86,10 @@ contains
     ! Evaluate the fitting formula for the orbital angular momentum (which accounts for losses to gravitational waves).
     orbitalAngularMomentum=s4*(blackHoleSpin1**2+blackHoleSpin2**2*massRatio**4+2.0d0*blackHoleSpin1*blackHoleSpin2*massRatio**2&
          &*cosinePhi)/(1.0d0+massRatio**2)**2+((s5*symmetricMassRatio+t0+2.0d0)/(1.0d0+massRatio**2))*(blackHoleSpin1*cosineTheta&
-         &+blackHoleSpin2*massRatio**2*cosinePhi)+2.0d0*dsqrt(3.0d0)+t2*symmetricMassRatio+t3*symmetricMassRatio**2
+         &+blackHoleSpin2*massRatio**2*cosinePhi)+2.0d0*sqrt(3.0d0)+t2*symmetricMassRatio+t3*symmetricMassRatio**2
 
     ! Compute the spin of the final black hole by evaluating the fitting formula.
-    blackHoleSpinFinal=dsqrt(blackHoleSpin1**2+blackHoleSpin2**2*massRatio**4+2.0d0*blackHoleSpin2*blackHoleSpin1*massRatio**2&
+    blackHoleSpinFinal=sqrt(blackHoleSpin1**2+blackHoleSpin2**2*massRatio**4+2.0d0*blackHoleSpin2*blackHoleSpin1*massRatio**2&
          &*cosinePhi+2.0d0*(blackHoleSpin1*cosineTheta+blackHoleSpin2*massRatio**2*cosineXi)*orbitalAngularMomentum*massRatio&
          &+(orbitalAngularMomentum*massRatio)**2)/(1.0d0+massRatio)**2
     

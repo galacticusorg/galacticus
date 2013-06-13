@@ -100,7 +100,7 @@ contains
     expansionFactorBase=Expansion_Factor(baseBasicComponent%time())
 
     ! Compute the expansion factor for the current node.
-    expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*dlog(nodeMass/baseBasicComponent%mass())&
+    expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*log(nodeMass/baseBasicComponent%mass())&
          &/mergerTreeFormationExpansionFactor)
 
     ! Find the time corresponding to this expansion factor.
