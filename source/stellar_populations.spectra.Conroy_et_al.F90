@@ -86,7 +86,7 @@ contains
        imfName=IMF_Descriptor(imfIndex)
 
        ! Name of the parameter to be used for this IMF.
-       stellarPopulationSpectraFile=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.3_imf'//imfName//'.hdf5'
+       stellarPopulationSpectraFile=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.4_imf'//imfName//'.hdf5'
 
        ! Generate the IMF tabulation.
        if (allocated(imfMass)) call Dealloc_Array(imfMass)
