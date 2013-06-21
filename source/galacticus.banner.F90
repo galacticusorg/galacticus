@@ -28,7 +28,7 @@ contains
   subroutine Galacticus_Banner_Show
     !% Displays the \glc\ banner.
     implicit none
-    
+
     write (0,*) '             ##                                     '
     write (0,*) '  ####        #                  #                  '
     write (0,*) ' #   #        #             #                       '
@@ -42,5 +42,5 @@ contains
     write (0,*)
     return
   end subroutine Galacticus_Banner_Show
-  
+
 end module Galacticus_Banner

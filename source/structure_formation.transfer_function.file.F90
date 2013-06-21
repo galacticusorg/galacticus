@@ -23,25 +23,25 @@ module Transfer_Functions_File
   implicit none
   private
   public :: Transfer_Function_File_Initialize, Transfer_Function_Named_File_Read, Transfer_Function_Named_File_Format_Version
-  
+
   ! Flag to indicate if this module has been initialized.
-  logical                                     :: transferFunctionInitialized   =.false.                           
-  
+  logical                                     :: transferFunctionInitialized   =.false.
+
   ! File name for the transfer function data.
-  type            (varying_string)            :: transferFunctionFile                                             
-  
+  type            (varying_string)            :: transferFunctionFile
+
   ! Extrapolation methods.
-  integer                                     :: extrapolateWavenumberHigh             , extrapolateWavenumberLow 
-  
+  integer                                     :: extrapolateWavenumberHigh             , extrapolateWavenumberLow
+
   ! Number of points per decade to add per decade when extrapolating and the buffer in log wavenumber to use.
-  integer                         , parameter :: extrapolatePointsPerDecade    =10                                
-  double precision                            :: extrapolateLogWavenumberBuffer=1.0d0                             
-  
+  integer                         , parameter :: extrapolatePointsPerDecade    =10
+  double precision                            :: extrapolateLogWavenumberBuffer=1.0d0
+
   ! Current file format version for intergalactic background radiation files.
-  integer                         , parameter :: fileFormatVersionCurrent      =1                                 
-  
+  integer                         , parameter :: fileFormatVersionCurrent      =1
+
 contains
-  
+
   integer function Transfer_Function_Named_File_Format_Version()
     !% Return the current file format version of transfer function files files.
     implicit none
@@ -57,9 +57,9 @@ contains
     !% Initializes the ``transfer function from file'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string             ), intent(in   )          :: transferFunctionMethod     
-    procedure(Transfer_Function_File_Read), intent(inout), pointer :: Transfer_Function_Tabulate 
-    
+    type     (varying_string             ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_File_Read), intent(inout), pointer :: Transfer_Function_Tabulate
+
     if (transferFunctionMethod == 'file') then
        Transfer_Function_Tabulate => Transfer_Function_File_Read
        !@ <inputParameter>
@@ -80,11 +80,11 @@ contains
        &,transferFunctionLogT,fileName)
     !% Read the transfer function from a file specified by {\tt fileName}.
     implicit none
-    double precision                                           , intent(in   ) :: logWavenumber                                               
-    double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber 
-    integer                                                    , intent(  out) :: transferFunctionNumberPoints                                
-    type            (varying_string)                           , intent(in   ) :: fileName                                                    
-    
+    double precision                                           , intent(in   ) :: logWavenumber
+    double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                    , intent(  out) :: transferFunctionNumberPoints
+    type            (varying_string)                           , intent(in   ) :: fileName
+
     ! Set the filename to that specified.
     transferFunctionFile=fileName
     ! Flag that module is uninitialized again.
@@ -108,27 +108,27 @@ contains
     use Numerical_Ranges
     use IO_XML
     implicit none
-    double precision                                              , intent(in   ) :: logWavenumber                                                     
-    double precision                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber       
-    integer                                                       , intent(  out) :: transferFunctionNumberPoints                                      
-    type            (Node    ), pointer                                           :: datum                       , doc                             , & 
-         &                                                                           extrapolation               , extrapolationElement            , & 
-         &                                                                           formatElement               , nameElement                     , & 
-         &                                                                           thisParameter               , valueElement                        
-    type            (NodeList), pointer                                           :: datumList                   , parameterList                   , & 
-         &                                                                           wavenumberExtrapolationList                                       
-    double precision                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary                 
-    
-    integer                                                                       :: addCount                    , extrapolationMethod             , & 
-         &                                                                           iDatum                      , iExtrapolation                  , & 
-         &                                                                           iParameter                  , ioErr                           , & 
-         &                                                                           versionNumber                                                     
-    double precision                                                              :: cmbTemperatureValue         , datumValues                  (2), & 
-         &                                                                           hubbleParameterValue        , omegaBaryonValue                , & 
-         &                                                                           omegaDarkEnergyValue        , omegaMatterValue                , & 
-         &                                                                           parameterValue                                                    
-    character       (len=32  )                                                    :: limitType                                                         
-    
+    double precision                                              , intent(in   ) :: logWavenumber
+    double precision                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                       , intent(  out) :: transferFunctionNumberPoints
+    type            (Node    ), pointer                                           :: datum                       , doc                             , &
+         &                                                                           extrapolation               , extrapolationElement            , &
+         &                                                                           formatElement               , nameElement                     , &
+         &                                                                           thisParameter               , valueElement
+    type            (NodeList), pointer                                           :: datumList                   , parameterList                   , &
+         &                                                                           wavenumberExtrapolationList
+    double precision                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
+
+    integer                                                                       :: addCount                    , extrapolationMethod             , &
+         &                                                                           iDatum                      , iExtrapolation                  , &
+         &                                                                           iParameter                  , ioErr                           , &
+         &                                                                           versionNumber
+    double precision                                                              :: cmbTemperatureValue         , datumValues                  (2), &
+         &                                                                           hubbleParameterValue        , omegaBaryonValue                , &
+         &                                                                           omegaDarkEnergyValue        , omegaMatterValue                , &
+         &                                                                           parameterValue
+    character       (len=32  )                                                    :: limitType
+
     ! Read the file if this module has not been initialized.
     if (.not.transferFunctionInitialized) then
 
@@ -277,5 +277,5 @@ contains
     end if
     return
   end subroutine Transfer_Function_File_Read
-  
+
 end module Transfer_Functions_File

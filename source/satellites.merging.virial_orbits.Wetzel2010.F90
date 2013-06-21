@@ -26,27 +26,27 @@ module Virial_Orbits_Wetzel2010
   public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
        & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
 
-  type            (fgsl_rng)                            :: clonedPseudoSequenceObject                            , pseudoSequenceObject                     
-  logical                                               :: resetSequence                              =.true.    , resetSequenceSnapshot                    
+  type            (fgsl_rng)                            :: clonedPseudoSequenceObject                            , pseudoSequenceObject
+  logical                                               :: resetSequence                              =.true.    , resetSequenceSnapshot
   !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
   ! Table of the cumulative distribution for the pericentric radius.
-  integer                   , parameter                 :: pericentricRadiusPointsPerDecade           =10                                                   
-  integer                                               :: pericentricRadiusCount                                                                           
-  double precision          , parameter                 :: pericentricRadiusMaximum                   =1.0d2     , pericentricRadiusMinimum    =1.0d-6      
-  double precision          , allocatable, dimension(:) :: pericentricRadiusTableCumulativeProbability           , pericentricRadiusTableRadius             
-  
+  integer                   , parameter                 :: pericentricRadiusPointsPerDecade           =10
+  integer                                               :: pericentricRadiusCount
+  double precision          , parameter                 :: pericentricRadiusMaximum                   =1.0d2     , pericentricRadiusMinimum    =1.0d-6
+  double precision          , allocatable, dimension(:) :: pericentricRadiusTableCumulativeProbability           , pericentricRadiusTableRadius
+
   ! Parameters of the fitting functions.
-  double precision          , parameter                 :: circularityAlpha1                          =0.242d0   , circularityBeta1            =2.360d0 , & 
-       &                                                   circularityGamma1                          =0.108d0   , circularityGamma2           =1.05d0  , & 
-       &                                                   circularityP1                              =0.0d0                                                
-  double precision          , parameter                 :: pericenterAlpha1                           =0.450d0   , pericenterBeta1             =-0.395d0, & 
-       &                                                   pericenterGamma1                           =0.109d0   , pericenterGamma2            =0.85d0  , & 
-       &                                                   pericenterP1                               =-4.0d0                                               
-  double precision          , parameter                 :: c1Maximum                                  =9.999999d0, r1Minimum                   =0.05d0      
-  
+  double precision          , parameter                 :: circularityAlpha1                          =0.242d0   , circularityBeta1            =2.360d0 , &
+       &                                                   circularityGamma1                          =0.108d0   , circularityGamma2           =1.05d0  , &
+       &                                                   circularityP1                              =0.0d0
+  double precision          , parameter                 :: pericenterAlpha1                           =0.450d0   , pericenterBeta1             =-0.395d0, &
+       &                                                   pericenterGamma1                           =0.109d0   , pericenterGamma2            =0.85d0  , &
+       &                                                   pericenterP1                               =-4.0d0
+  double precision          , parameter                 :: c1Maximum                                  =9.999999d0, r1Minimum                   =0.05d0
+
   ! Global variables used in root finding.
-  double precision                                      :: C0                                                    , C1                                   , & 
-       &                                                   uniformDeviate                                                                                   
+  double precision                                      :: C0                                                    , C1                                   , &
+       &                                                   uniformDeviate
   !$omp threadprivate(uniformDeviate,C0,C1)
 contains
 
@@ -61,11 +61,11 @@ contains
     use Hypergeometric_Functions
     use Kepler_Orbits
     implicit none
-    type            (varying_string                      ), intent(in   )          :: virialOrbitsMethod                     
-    procedure       (Virial_Orbital_Parameters_Wetzel2010), intent(inout), pointer :: Virial_Orbital_Parameters_Get          
-    integer                                                                        :: iRadius                                
-    double precision                                                               :: x                            , xGamma2 
-    
+    type            (varying_string                      ), intent(in   )          :: virialOrbitsMethod
+    procedure       (Virial_Orbital_Parameters_Wetzel2010), intent(inout), pointer :: Virial_Orbital_Parameters_Get
+    integer                                                                        :: iRadius
+    double precision                                                               :: x                            , xGamma2
+
     if (virialOrbitsMethod == 'Wetzel2010') then
        ! Set procedure pointer to our orbital parameter function.
        Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Wetzel2010
@@ -104,27 +104,27 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type            (keplerOrbit       )                                          :: thisOrbit                                                                              
-    type            (treeNode          )                 , intent(inout), pointer :: hostNode                       , thisNode                       
-    logical                                              , intent(in   )          :: acceptUnboundOrbits                                                                    
-    class           (nodeComponentBasic)                                , pointer :: hostBasicComponent             , thisBasicComponent             
-    double precision                          , parameter                         :: toleranceAbsolute       =0.0d0 , toleranceRelative     =1.0d-2    
-    double precision                          , parameter                         :: circularityMaximum      =1.0d0 , circularityMinimum    =0.0d0     
+    type            (keplerOrbit       )                                          :: thisOrbit
+    type            (treeNode          )                 , intent(inout), pointer :: hostNode                       , thisNode
+    logical                                              , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic)                                , pointer :: hostBasicComponent             , thisBasicComponent
+    double precision                          , parameter                         :: toleranceAbsolute       =0.0d0 , toleranceRelative     =1.0d-2
+    double precision                          , parameter                         :: circularityMaximum      =1.0d0 , circularityMinimum    =0.0d0
     double precision                          , parameter                         :: redshiftMaximum         =5.0d0 , expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type            (fgsl_interp       ), save                                    :: interpolationObject                                                                    
-    type            (fgsl_interp_accel ), save                                    :: interpolationAccelerator                                                               
-    logical                             , save                                    :: interpolationReset      =.true.                                                        
+    type            (fgsl_interp       ), save                                    :: interpolationObject
+    type            (fgsl_interp_accel ), save                                    :: interpolationAccelerator
+    logical                             , save                                    :: interpolationReset      =.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-    type            (rootFinder        ), save                                    :: finder                                                                                 
+    type            (rootFinder        ), save                                    :: finder
     !$omp threadprivate(finder)
-    double precision                                                              :: R1                                                    , apocentricRadius           , & 
-         &                                                                           circularity                                           , eccentricityInternal       , & 
-         &                                                                           expansionFactor                                       , g1                         , & 
-         &                                                                           massCharacteristic                                    , pericentricRadius          , & 
-         &                                                                           probabilityTotal                                      , radialScale                , & 
-         &                                                                           timeNode                                                                               
-    logical                                                                       :: foundOrbit                                                                             
-    
+    double precision                                                              :: R1                                                    , apocentricRadius           , &
+         &                                                                           circularity                                           , eccentricityInternal       , &
+         &                                                                           expansionFactor                                       , g1                         , &
+         &                                                                           massCharacteristic                                    , pericentricRadius          , &
+         &                                                                           probabilityTotal                                      , radialScale                , &
+         &                                                                           timeNode
+    logical                                                                       :: foundOrbit
+
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Circularity_Root                   )
@@ -170,12 +170,12 @@ contains
     ! Search for an orbit.
     foundOrbit=.false.
     do while (.not.foundOrbit)
-       
+
        ! Compute pericentric radius by inversion in table.
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
        pericentricRadius=R1*Interpolate(pericentricRadiusCount,pericentricRadiusTableCumulativeProbability&
             &,pericentricRadiusTableRadius ,interpolationObject,interpolationAccelerator,uniformDeviate ,reset=interpolationReset)
-       
+
        ! Compute circularity by root finding in the cumulative probability distribution.
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
        circularity=finder%find(rootRange=[circularityMinimum,circularityMaximum])
@@ -184,22 +184,22 @@ contains
        apocentricRadius    =pericentricRadius*(1.0d0+eccentricityInternal)/(1.0d0-eccentricityInternal)
        foundOrbit=apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
     end do
-    
+
     ! Get length scale for this orbit.
     radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
-    
+
     ! Set eccentricity and periapsis.
     call thisOrbit%eccentricitySet    (sqrt(1.0-circularity**2)    )
     call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
-    
+
     return
   end function Virial_Orbital_Parameters_Wetzel2010
 
   double precision function Circularity_Root(circularity)
     !% Function used in finding the circularity corresponding to a given cumulative probability.
-    double precision, intent(in   ) :: circularity           
-    double precision                :: cumulativeProbability 
-    
+    double precision, intent(in   ) :: circularity
+    double precision                :: cumulativeProbability
+
     cumulativeProbability=Circularity_Cumulative_Probability(circularity)
     Circularity_Root=cumulativeProbability-uniformDeviate
     return
@@ -209,8 +209,8 @@ contains
     !% The cumulative probability distribution for orbital circularity.
     use Hypergeometric_Functions
     implicit none
-    double precision, intent(in   ) :: circularity 
-    
+    double precision, intent(in   ) :: circularity
+
     Circularity_Cumulative_Probability=C0*(circularity**(circularityGamma2+1.0d0))*Hypergeometric_2F1([-C1,1.0d0&
          &+circularityGamma2],[2.0d0+circularityGamma2],circularity)/(circularityGamma2+1.0d0)
     return
@@ -227,7 +227,7 @@ contains
     resetSequenceSnapshot=resetSequence
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -235,14 +235,14 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) resetSequenceSnapshot
     if (.not.resetSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Virial_Orbital_Parameters_Wetzel2010_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -250,12 +250,12 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) resetSequence
     if (.not.resetSequence) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
-  
+
 end module Virial_Orbits_Wetzel2010

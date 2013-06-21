@@ -24,14 +24,14 @@ program Test_Perfect_Hashes
   use Kind_Numbers
   use Memory_Management
   implicit none
-  integer                , parameter                        :: keyCount   =11                           
-  integer(kind=kind_int8)                                   :: i                                        
-  integer(kind=kind_int8)             , dimension(keyCount) :: keys          , retrievedValues, values  
-  integer                , allocatable, dimension(:)        :: bucketCount                              
-  logical                             , dimension(keyCount) :: keyPresent                               
-  type   (hashPerfect   )                                   :: hash                                     
-  
-  ! Read in basic code memory usage.                                                                                                   
+  integer                , parameter                        :: keyCount   =11
+  integer(kind=kind_int8)                                   :: i
+  integer(kind=kind_int8)             , dimension(keyCount) :: keys          , retrievedValues, values
+  integer                , allocatable, dimension(:)        :: bucketCount
+  logical                             , dimension(keyCount) :: keyPresent
+  type   (hashPerfect   )                                   :: hash
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.hashes.perfect.size')
 
   ! Begin unit tests.

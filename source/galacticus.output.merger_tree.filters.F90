@@ -25,14 +25,14 @@ module Galacticus_Merger_Tree_Output_Filters
   public :: Galacticus_Merger_Tree_Output_Filter, Galacticus_Merger_Tree_Output_Filter_Initialize
 
   ! Flag indicating whether filters have been initialized.
-  logical                                            :: filtersInitialized     =.false.  
-  
-  ! Count of the number of filters being applied.                                                                                    
-  integer                                            :: filterCount            =0        
-  
-  ! List of filters to be used.                                                                                    
-  type   (varying_string), allocatable, dimension(:) :: mergerTreeOutputFilters          
-                                                                                      
+  logical                                            :: filtersInitialized     =.false.
+
+  ! Count of the number of filters being applied.
+  integer                                            :: filterCount            =0
+
+  ! List of filters to be used.
+  type   (varying_string), allocatable, dimension(:) :: mergerTreeOutputFilters
+
 contains
 
   subroutine Galacticus_Merger_Tree_Output_Filter_Initialize()
@@ -85,9 +85,9 @@ contains
     include 'galacticus.output.merger_tree.filters.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Ensure the filter subsystem is initialized.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Ensure the filter subsystem is initialized.
     call Galacticus_Merger_Tree_Output_Filter_Initialize()
 
     ! Assume galaxy will be output by default.

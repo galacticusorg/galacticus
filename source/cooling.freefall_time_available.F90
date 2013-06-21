@@ -28,22 +28,22 @@ module Cooling_Freefall_Times_Available
   private
   public :: Cooling_Freefall_Time_Available, Cooling_Freefall_Time_Available_Increase_Rate
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                          :: freefallTimeAvailableInitialized                 =.false.  
-  
-  ! Name of cooling time available method used.                                                                                                                            
-  type     (varying_string                              )          :: freefallTimeAvailableMethod                                
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                            
-  procedure(Cooling_Freefall_Time_Available_Get_Template), pointer :: Cooling_Freefall_Time_Available_Get              =>null()  
-  procedure(Cooling_Freefall_Time_Available_Get_Template), pointer :: Cooling_Freefall_Time_Available_Increase_Rate_Get=>null()  
+  ! Flag to indicate if this module has been initialized.
+  logical                                                          :: freefallTimeAvailableInitialized                 =.false.
+
+  ! Name of cooling time available method used.
+  type     (varying_string                              )          :: freefallTimeAvailableMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Cooling_Freefall_Time_Available_Get_Template), pointer :: Cooling_Freefall_Time_Available_Get              =>null()
+  procedure(Cooling_Freefall_Time_Available_Get_Template), pointer :: Cooling_Freefall_Time_Available_Increase_Rate_Get=>null()
   interface Cooling_Freefall_Time_Available_Get_Template
      double precision function Cooling_Freefall_Time_Available_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode  
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Cooling_Freefall_Time_Available_Get_Template
   end interface
-  
+
 contains
 
   subroutine Cooling_Freefall_Time_Available_Initialize
@@ -54,7 +54,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.freefallTimeAvailableInitialized) then
-       !$omp critical(Cooling_Freefall_Time_Available_Initialization) 
+       !$omp critical(Cooling_Freefall_Time_Available_Initialization)
        if (.not.freefallTimeAvailableInitialized) then
           ! Get the cooling time available method parameter.
           !@ <inputParameter>
@@ -77,7 +77,7 @@ contains
                & Galacticus_Error_Report('Cooling_Freefall_Time_Available','method ' //char(freefallTimeAvailableMethod)//' is unrecognized')
           freefallTimeAvailableInitialized=.true.
        end if
-       !$omp end critical(Cooling_Freefall_Time_Available_Initialization) 
+       !$omp end critical(Cooling_Freefall_Time_Available_Initialization)
     end if
     return
   end subroutine Cooling_Freefall_Time_Available_Initialize
@@ -85,9 +85,9 @@ contains
   double precision function Cooling_Freefall_Time_Available(thisNode)
     !% Return the time available for freefall in cooling calculations in {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Initialize if necessary.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Initialize if necessary.
     call Cooling_Freefall_Time_Available_Initialize
 
     ! Get the cooling time using the selected method.
@@ -99,9 +99,9 @@ contains
   double precision function Cooling_Freefall_Time_Available_Increase_Rate(thisNode)
     !% Return the rate at which the time available for freefall in cooling calculations increases in {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Initialize if necessary.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Initialize if necessary.
     call Cooling_Freefall_Time_Available_Initialize
 
     ! Get the cooling time using the selected method.

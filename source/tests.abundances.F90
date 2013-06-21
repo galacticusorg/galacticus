@@ -25,11 +25,11 @@ program Test_Abundances
   use Input_Parameters
   use Abundances_Structure
   implicit none
-  type            (varying_string)               :: parameterFile                              
-  type            (abundances    )               :: abundances1    , abundances2, abundances3  
-  double precision                , dimension(5) :: abundancesArray                            
-  
-  ! Read in basic code memory usage.                                                                                          
+  type            (varying_string)               :: parameterFile
+  type            (abundances    )               :: abundances1    , abundances2, abundances3
+  double precision                , dimension(5) :: abundancesArray
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.abundances.size')
 
   ! Begin unit tests.
@@ -38,7 +38,7 @@ program Test_Abundances
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/abundances/testAbundances.xml'
   call Input_Parameters_File_Open(parameterFile)
-  
+
   ! Initialize abundances.
   call abundances1%deserialize([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0])
   call abundances2%deserialize([5.0d0,4.0d0,3.0d0,2.0d0,1.0d0])
@@ -48,7 +48,7 @@ program Test_Abundances
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close
- 
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

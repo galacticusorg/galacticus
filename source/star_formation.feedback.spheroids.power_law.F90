@@ -25,8 +25,8 @@ module Star_Formation_Feedback_Spheroids_Power_Law
   public :: Star_Formation_Feedback_Spheroids_Power_Law_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: spheroidOutflowExponent, spheroidOutflowVelocity  
-                                                                     
+  double precision :: spheroidOutflowExponent, spheroidOutflowVelocity
+
 contains
 
   !# <starFormationFeedbackSpheroidsMethod>
@@ -38,9 +38,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                         ), intent(in   )          :: starFormationFeedbackSpheroidsMethod               
-    procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law), intent(inout), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get  
-                                                                                                                                                  
+    type     (varying_string                                         ), intent(in   )          :: starFormationFeedbackSpheroidsMethod
+    procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law), intent(inout), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get
+
     if (starFormationFeedbackSpheroidsMethod == 'powerLaw') then
        Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
        ! Get parameters of for the feedback calculation.
@@ -86,12 +86,12 @@ contains
     use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                           
-    double precision                       , intent(in   )          :: energyInputRate               , starFormationRate  
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                              
-    double precision                                                :: outflowRateToStarFormationRate, spheroidVelocity   
-    
-    ! Get spheroid circular velocity.                                                                                                                   
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    double precision                       , intent(in   )          :: energyInputRate               , starFormationRate
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    double precision                                                :: outflowRateToStarFormationRate, spheroidVelocity
+
+    ! Get spheroid circular velocity.
     thisSpheroidComponent => thisNode%spheroid()
     spheroidVelocity=thisSpheroidComponent%velocity()
 
@@ -105,5 +105,5 @@ contains
    end if
     return
   end function Star_Formation_Feedback_Spheroid_Outflow_Rate_Power_Law
-  
+
 end module Star_Formation_Feedback_Spheroids_Power_Law

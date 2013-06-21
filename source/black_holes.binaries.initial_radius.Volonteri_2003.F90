@@ -35,9 +35,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                 ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod     
-    procedure(Black_Hole_Binary_Initial_Radius_Volonteri_2003), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get  
-                                                                                                                             
+    type     (varying_string                                 ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod
+    procedure(Black_Hole_Binary_Initial_Radius_Volonteri_2003), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get
+
     if (blackHoleBinaryInitialRadiiMethod == 'Volonteri2003') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Volonteri_2003
     return
   end subroutine Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize
@@ -49,10 +49,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode                
-    class(nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent  
-    
-    ! Get the black hole components.                                                                                                      
+    type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode
+    class(nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
+
+    ! Get the black hole components.
     thisBlackHoleComponent => thisNode%blackHole()
     hostBlackHoleComponent => hostNode%blackHole()
     ! Compute the initial separation.

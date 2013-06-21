@@ -22,15 +22,15 @@ program Test_Interpolation_2D
   use Unit_Tests
   use Numerical_Interpolation_2D_Irregular
   implicit none
-  double precision                         , dimension(30) :: xTable                       , yTable    , & 
-       &                                                      zTable                                       
-  double precision                         , dimension(10) :: x                            , y         , & 
-       &                                                      z                            , zExpected     
-  type            (interp2dIrregularObject)                :: interpolationWorkspace                       
-  logical                                                  :: resetInterpolation    =.true.                
-  integer                                                  :: i                                            
-  
-  ! Begin unit tests.                                                                                                      
+  double precision                         , dimension(30) :: xTable                       , yTable    , &
+       &                                                      zTable
+  double precision                         , dimension(10) :: x                            , y         , &
+       &                                                      z                            , zExpected
+  type            (interp2dIrregularObject)                :: interpolationWorkspace
+  logical                                                  :: resetInterpolation    =.true.
+  integer                                                  :: i
+
+  ! Begin unit tests.
   call Unit_Tests_Begin_Group("2D interpolation")
 
   xTable=[                &
@@ -65,7 +65,7 @@ program Test_Interpolation_2D
        &  0.2184850988d0, &
        &  0.4083093568d0  &
        & ]
-  
+
   yTable=[                &
        &  0.4029597505d0, &
        &  0.5841232045d0, &
@@ -98,7 +98,7 @@ program Test_Interpolation_2D
        &  0.6516215871d0, &
        &  0.3544660839d0  &
        & ]
-  
+
   zTable=[                &
        &  0.1852220492d0, &
        &  0.1658587228d0, &
@@ -131,7 +131,7 @@ program Test_Interpolation_2D
        &  0.9529872043d0, &
        &  0.1231806851d0  &
        & ]
-  
+
   x=     [                &
        &  0.8616389739d0, &
        &  0.6941142939d0, &
@@ -144,7 +144,7 @@ program Test_Interpolation_2D
        &  0.8790745125d0, &
        &  0.7046271069d0  &
        & ]
-  
+
   y=     [                &
        &  0.7180532431d0, &
        &  0.0736140739d0, &
@@ -157,7 +157,7 @@ program Test_Interpolation_2D
        &  0.3272385504d0, &
        &  0.5767996241d0  &
        & ]
-  
+
   zExpected=[                       &
        &     0.77761029436913132d0, &
        &     0.26662388093008405d0, &
@@ -168,7 +168,7 @@ program Test_Interpolation_2D
        &     0.56940253473405611d0, &
        &     0.41993939199925162d0, &
        &     0.25723639212386112d0, &
-       &     0.22254465968375139d0  &     
+       &     0.22254465968375139d0  &
        &    ]
 
   do i=1,size(x)

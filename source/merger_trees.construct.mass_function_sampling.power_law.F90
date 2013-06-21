@@ -23,8 +23,8 @@ module Merger_Trees_Mass_Function_Sampling_Power_Law
   public :: Merger_Trees_Mass_Function_Sampling_Power_Law_Initialize
 
   ! The exponent in the halo mass function sampling power law.
-  double precision :: mergerTreeBuildTreesHaloMassExponent  
-                                                         
+  double precision :: mergerTreeBuildTreesHaloMassExponent
+
 contains
 
   !# <haloMassFunctionSamplingMethod>
@@ -35,15 +35,15 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod                    
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get  
-                                                                                                          
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+
     if (haloMassFunctionSamplingMethod == 'powerLaw') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Power_Law
 
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesHaloMassExponent</name>
-       !@   <defaultValue>1</defaultValue>       
+       !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Halo masses will be (pseudo-)uniformly distributed in $[\log(M)]^{1/(1+\alpha)}$ where $\alpha=${\tt mergerTreeBuildTreesHaloMassExponent}.
@@ -60,9 +60,9 @@ contains
   double precision function Merger_Tree_Construct_Mass_Function_Sampling_Power_Law(mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a power-law distribution.
     implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
-    
-    ! Sampling rate is simply a power-law in the logarithm of halo mass.                                                                      
+    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
+
+    ! Sampling rate is simply a power-law in the logarithm of halo mass.
     if (mass <= massMinimum .or. mass > massMaximum) then
        Merger_Tree_Construct_Mass_Function_Sampling_Power_Law=0.0d0
     else

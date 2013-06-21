@@ -24,9 +24,9 @@ module ODE_Solver_Error_Codes
   public
 
   ! An interrupt has been triggered.
-  integer         , parameter :: odeSolverInterrupt=FGSL_EBADFUNC 
-  
+  integer         , parameter :: odeSolverInterrupt=FGSL_EBADFUNC
+
   ! Point during the integration at which an interrupt occurred.
-  double precision            :: interruptedAtX                   
+  double precision            :: interruptedAtX
   !$omp threadprivate(interruptedAtX)
 end module ODE_Solver_Error_Codes

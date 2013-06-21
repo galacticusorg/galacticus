@@ -26,77 +26,77 @@ module Dark_Matter_Profiles_Einasto
   public :: Dark_Matter_Profile_Einasto_Initialize, Dark_Matter_Profiles_Einasto_State_Store, Dark_Matter_Profiles_Einasto_State_Retrieve
 
   ! Module scope variables used in integrations.
-  double precision                                                              :: alphaParameter                                               , concentrationParameter                                         , & 
-       &                                                                           radiusStart                                                  , wavenumberParameter                                                
-  
+  double precision                                                              :: alphaParameter                                               , concentrationParameter                                         , &
+       &                                                                           radiusStart                                                  , wavenumberParameter
+
   ! Tables for specific angular momentum vs. radius table
-  double precision                                                              :: angularMomentumTableRadiusMinimum                    =1.0d-3                                                                      
-  double precision                                                              :: angularMomentumTableRadiusMaximum                    =20.0d+0                                                                     
-  integer                                                           , parameter :: angularMomentumTableRadiusPointsPerDecade            =100                                                                         
-  double precision                                                              :: angularMomentumTableAlphaMinimum                     =0.1d+0                                                                      
-  double precision                                                              :: angularMomentumTableAlphaMaximum                     =0.3d+0                                                                      
-  integer                                                           , parameter :: angularMomentumTableAlphaPointsPerUnit               =100                                                                         
-  logical                                                                       :: angularMomentumTableInitialized                      =.false.                                                                     
-  integer                                                                       :: angularMomentumTableAlphaCount                               , angularMomentumTableRadiusCount                                    
-  double precision                   , allocatable, dimension(:  )              :: angularMomentumTableAlpha                                    , angularMomentumTableRadius                                         
-  double precision                   , allocatable, dimension(:,:)              :: angularMomentumTable                                                                                                              
-  type            (fgsl_interp      )                                           :: angularMomentumTableRadiusInterpolationObject                                                                                     
-  type            (fgsl_interp_accel)                                           :: angularMomentumTableAlphaInterpolationAccelerator            , angularMomentumTableRadiusInterpolationAccelerator                 
-  logical                                                                       :: angularMomentumTableAlphaInterpolationReset          =.true. , angularMomentumTableRadiusInterpolationReset            =.true.    
-  
+  double precision                                                              :: angularMomentumTableRadiusMinimum                    =1.0d-3
+  double precision                                                              :: angularMomentumTableRadiusMaximum                    =20.0d+0
+  integer                                                           , parameter :: angularMomentumTableRadiusPointsPerDecade            =100
+  double precision                                                              :: angularMomentumTableAlphaMinimum                     =0.1d+0
+  double precision                                                              :: angularMomentumTableAlphaMaximum                     =0.3d+0
+  integer                                                           , parameter :: angularMomentumTableAlphaPointsPerUnit               =100
+  logical                                                                       :: angularMomentumTableInitialized                      =.false.
+  integer                                                                       :: angularMomentumTableAlphaCount                               , angularMomentumTableRadiusCount
+  double precision                   , allocatable, dimension(:  )              :: angularMomentumTableAlpha                                    , angularMomentumTableRadius
+  double precision                   , allocatable, dimension(:,:)              :: angularMomentumTable
+  type            (fgsl_interp      )                                           :: angularMomentumTableRadiusInterpolationObject
+  type            (fgsl_interp_accel)                                           :: angularMomentumTableAlphaInterpolationAccelerator            , angularMomentumTableRadiusInterpolationAccelerator
+  logical                                                                       :: angularMomentumTableAlphaInterpolationReset          =.true. , angularMomentumTableRadiusInterpolationReset            =.true.
+
   ! Tables for freefall time vs. radius table
-  double precision                                                              :: freefallRadiusTableRadiusMinimum                     =1.0d-3                                                                      
-  double precision                                                              :: freefallRadiusTableRadiusMaximum                     =20.0d+0                                                                     
-  integer                                                           , parameter :: freefallRadiusTableRadiusPointsPerDecade             =10                                                                          
-  double precision                                                              :: freefallRadiusTableAlphaMinimum                      =0.1d+0                                                                      
-  double precision                                                              :: freefallRadiusTableAlphaMaximum                      =0.3d+0                                                                      
-  integer                                                           , parameter :: freefallRadiusTableAlphaPointsPerUnit                =30                                                                          
-  logical                                                                       :: freefallRadiusTableInitialized                       =.false.                                                                     
-  integer                                                                       :: freefallRadiusTableAlphaCount                                , freefallRadiusTableRadiusCount                                     
-  double precision                   , allocatable, dimension(:  )              :: freefallRadiusTableAlpha                                     , freefallRadiusTableRadius                                          
-  double precision                   , allocatable, dimension(:,:)              :: freefallRadiusTable                                                                                                               
-  double precision                                                              :: freefallTimeMaximum                                          , freefallTimeMinimum                                                
-  type            (fgsl_interp      )                                           :: freefallRadiusTableRadiusInterpolationObject                                                                                      
-  type            (fgsl_interp_accel)                                           :: freefallRadiusTableAlphaInterpolationAccelerator             , freefallRadiusTableRadiusInterpolationAccelerator                  
-  logical                                                                       :: freefallRadiusTableAlphaInterpolationReset           =.true. , freefallRadiusTableRadiusInterpolationReset             =.true.    
-  
+  double precision                                                              :: freefallRadiusTableRadiusMinimum                     =1.0d-3
+  double precision                                                              :: freefallRadiusTableRadiusMaximum                     =20.0d+0
+  integer                                                           , parameter :: freefallRadiusTableRadiusPointsPerDecade             =10
+  double precision                                                              :: freefallRadiusTableAlphaMinimum                      =0.1d+0
+  double precision                                                              :: freefallRadiusTableAlphaMaximum                      =0.3d+0
+  integer                                                           , parameter :: freefallRadiusTableAlphaPointsPerUnit                =30
+  logical                                                                       :: freefallRadiusTableInitialized                       =.false.
+  integer                                                                       :: freefallRadiusTableAlphaCount                                , freefallRadiusTableRadiusCount
+  double precision                   , allocatable, dimension(:  )              :: freefallRadiusTableAlpha                                     , freefallRadiusTableRadius
+  double precision                   , allocatable, dimension(:,:)              :: freefallRadiusTable
+  double precision                                                              :: freefallTimeMaximum                                          , freefallTimeMinimum
+  type            (fgsl_interp      )                                           :: freefallRadiusTableRadiusInterpolationObject
+  type            (fgsl_interp_accel)                                           :: freefallRadiusTableAlphaInterpolationAccelerator             , freefallRadiusTableRadiusInterpolationAccelerator
+  logical                                                                       :: freefallRadiusTableAlphaInterpolationReset           =.true. , freefallRadiusTableRadiusInterpolationReset             =.true.
+
   ! Tables for energy as a function of concentration and alpha.
-  double precision                                                              :: energyTableConcentrationMinimum                      =2.0d0                                                                       
-  double precision                                                              :: energyTableConcentrationMaximum                      =20.0d0                                                                      
-  integer                                                           , parameter :: energyTableConcentrationPointsPerDecade              =100                                                                         
-  double precision                                                              :: energyTableAlphaMinimum                              =0.1d0                                                                       
-  double precision                                                              :: energyTableAlphaMaximum                              =0.3d0                                                                       
-  integer                                                           , parameter :: energyTableAlphaPointsPerUnit                        =100                                                                         
-  logical                                                                       :: energyTableInitialized                               =.false.                                                                     
-  integer                                                                       :: energyTableAlphaCount                                        , energyTableConcentrationCount                                      
-  double precision                   , allocatable, dimension(:  )              :: energyTableAlpha                                             , energyTableConcentration                                           
-  double precision                   , allocatable, dimension(:,:)              :: energyTable                                                                                                                       
-  type            (fgsl_interp      )                                           :: energyTableAlphaInterpolationObject                          , energyTableConcentrationInterpolationObject                        
-  type            (fgsl_interp_accel)                                           :: energyTableAlphaInterpolationAccelerator                     , energyTableConcentrationInterpolationAccelerator                   
-  logical                                                                       :: energyTableAlphaInterpolationReset                   =.true. , energyTableConcentrationInterpolationReset              =.true.    
-  
+  double precision                                                              :: energyTableConcentrationMinimum                      =2.0d0
+  double precision                                                              :: energyTableConcentrationMaximum                      =20.0d0
+  integer                                                           , parameter :: energyTableConcentrationPointsPerDecade              =100
+  double precision                                                              :: energyTableAlphaMinimum                              =0.1d0
+  double precision                                                              :: energyTableAlphaMaximum                              =0.3d0
+  integer                                                           , parameter :: energyTableAlphaPointsPerUnit                        =100
+  logical                                                                       :: energyTableInitialized                               =.false.
+  integer                                                                       :: energyTableAlphaCount                                        , energyTableConcentrationCount
+  double precision                   , allocatable, dimension(:  )              :: energyTableAlpha                                             , energyTableConcentration
+  double precision                   , allocatable, dimension(:,:)              :: energyTable
+  type            (fgsl_interp      )                                           :: energyTableAlphaInterpolationObject                          , energyTableConcentrationInterpolationObject
+  type            (fgsl_interp_accel)                                           :: energyTableAlphaInterpolationAccelerator                     , energyTableConcentrationInterpolationAccelerator
+  logical                                                                       :: energyTableAlphaInterpolationReset                   =.true. , energyTableConcentrationInterpolationReset              =.true.
+
   ! Tables for specific Fourier transform of density profile as a function of alpha and radius.
-  double precision                                                              :: fourierProfileTableConcentrationMinimum              =2.0d0                                                                       
-  double precision                                                              :: fourierProfileTableConcentrationMaximum              =20.0d0                                                                      
-  integer                                                           , parameter :: fourierProfileTableConcentrationPointsPerDecade      =10                                                                          
-  double precision                                                              :: fourierProfileTableWavenumberMinimum                 =1.0d-3                                                                      
-  double precision                                                              :: fourierProfileTableWavenumberMaximum                 =1.0d+3                                                                      
-  integer                                                           , parameter :: fourierProfileTableWavenumberPointsPerDecade         =10                                                                          
-  double precision                                                              :: fourierProfileTableAlphaMinimum                      =0.1d+0                                                                      
-  double precision                                                              :: fourierProfileTableAlphaMaximum                      =0.3d+0                                                                      
-  integer                                                           , parameter :: fourierProfileTableAlphaPointsPerUnit                =100                                                                         
-  logical                                                                       :: fourierProfileTableInitialized                       =.false.                                                                     
-  integer                                                                       :: fourierProfileTableAlphaCount                                , fourierProfileTableConcentrationCount                          , & 
-       &                                                                           fourierProfileTableWavenumberCount                                                                                                
-  double precision                   , allocatable, dimension(:    )            :: fourierProfileTableAlpha                                     , fourierProfileTableConcentration                               , & 
-       &                                                                           fourierProfileTableWavenumber                                                                                                     
-  double precision                   , allocatable, dimension(:,:,:)            :: fourierProfileTable                                                                                                               
-  type            (fgsl_interp      )                                           :: fourierProfileTableWavenumberInterpolationObject                                                                                  
-  type            (fgsl_interp_accel)                                           :: fourierProfileTableAlphaInterpolationAccelerator             , fourierProfileTableConcentrationInterpolationAccelerator       , & 
-       &                                                                           fourierProfileTableWavenumberInterpolationAccelerator                                                                             
-  logical                                                                       :: fourierProfileTableAlphaInterpolationReset           =.true. , fourierProfileTableConcentrationInterpolationReset      =.true., & 
-       &                                                                           fourierProfileTableWavenumberInterpolationReset      =.true.                                                                      
-  
+  double precision                                                              :: fourierProfileTableConcentrationMinimum              =2.0d0
+  double precision                                                              :: fourierProfileTableConcentrationMaximum              =20.0d0
+  integer                                                           , parameter :: fourierProfileTableConcentrationPointsPerDecade      =10
+  double precision                                                              :: fourierProfileTableWavenumberMinimum                 =1.0d-3
+  double precision                                                              :: fourierProfileTableWavenumberMaximum                 =1.0d+3
+  integer                                                           , parameter :: fourierProfileTableWavenumberPointsPerDecade         =10
+  double precision                                                              :: fourierProfileTableAlphaMinimum                      =0.1d+0
+  double precision                                                              :: fourierProfileTableAlphaMaximum                      =0.3d+0
+  integer                                                           , parameter :: fourierProfileTableAlphaPointsPerUnit                =100
+  logical                                                                       :: fourierProfileTableInitialized                       =.false.
+  integer                                                                       :: fourierProfileTableAlphaCount                                , fourierProfileTableConcentrationCount                          , &
+       &                                                                           fourierProfileTableWavenumberCount
+  double precision                   , allocatable, dimension(:    )            :: fourierProfileTableAlpha                                     , fourierProfileTableConcentration                               , &
+       &                                                                           fourierProfileTableWavenumber
+  double precision                   , allocatable, dimension(:,:,:)            :: fourierProfileTable
+  type            (fgsl_interp      )                                           :: fourierProfileTableWavenumberInterpolationObject
+  type            (fgsl_interp_accel)                                           :: fourierProfileTableAlphaInterpolationAccelerator             , fourierProfileTableConcentrationInterpolationAccelerator       , &
+       &                                                                           fourierProfileTableWavenumberInterpolationAccelerator
+  logical                                                                       :: fourierProfileTableAlphaInterpolationReset           =.true. , fourierProfileTableConcentrationInterpolationReset      =.true., &
+       &                                                                           fourierProfileTableWavenumberInterpolationReset      =.true.
+
 contains
 
   !# <darkMatterProfileMethod>
@@ -112,19 +112,19 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type     (varying_string                                           ), intent(in   )          :: darkMatterProfileMethod                                       
-    procedure(Dark_Matter_Profile_Density_Einasto                      ), intent(inout), pointer :: Dark_Matter_Profile_Density_Get                               
-    procedure(Dark_Matter_Profile_Energy_Einasto                       ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Get                                
-    procedure(Dark_Matter_Profile_Energy_Growth_Rate_Einasto           ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get                    
-    procedure(Dark_Matter_Profile_Rotation_Normalization_Einasto       ), intent(inout), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get                
-    procedure(Radius_from_Specific_Angular_Momentum_Einasto            ), intent(inout), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get 
-    procedure(Dark_Matter_Profile_Circular_Velocity_Einasto            ), intent(inout), pointer :: Dark_Matter_Profile_Circular_Velocity_Get                     
-    procedure(Dark_Matter_Profile_Potential_Einasto                    ), intent(inout), pointer :: Dark_Matter_Profile_Potential_Get                             
-    procedure(Dark_Matter_Profile_Enclosed_Mass_Einasto                ), intent(inout), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get                         
-    procedure(Dark_Matter_Profile_kSpace_Einasto                       ), intent(inout), pointer :: Dark_Matter_Profile_kSpace_Get                                
-    procedure(Dark_Matter_Profile_Freefall_Radius_Einasto              ), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Get                       
-    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         
-    
+    type     (varying_string                                           ), intent(in   )          :: darkMatterProfileMethod
+    procedure(Dark_Matter_Profile_Density_Einasto                      ), intent(inout), pointer :: Dark_Matter_Profile_Density_Get
+    procedure(Dark_Matter_Profile_Energy_Einasto                       ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Get
+    procedure(Dark_Matter_Profile_Energy_Growth_Rate_Einasto           ), intent(inout), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get
+    procedure(Dark_Matter_Profile_Rotation_Normalization_Einasto       ), intent(inout), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get
+    procedure(Radius_from_Specific_Angular_Momentum_Einasto            ), intent(inout), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get
+    procedure(Dark_Matter_Profile_Circular_Velocity_Einasto            ), intent(inout), pointer :: Dark_Matter_Profile_Circular_Velocity_Get
+    procedure(Dark_Matter_Profile_Potential_Einasto                    ), intent(inout), pointer :: Dark_Matter_Profile_Potential_Get
+    procedure(Dark_Matter_Profile_Enclosed_Mass_Einasto                ), intent(inout), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get
+    procedure(Dark_Matter_Profile_kSpace_Einasto                       ), intent(inout), pointer :: Dark_Matter_Profile_kSpace_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Einasto              ), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Get
+    procedure(Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto), intent(inout), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get
+
     if (darkMatterProfileMethod == 'Einasto') then
        Dark_Matter_Profile_Density_Get                               => Dark_Matter_Profile_Density_Einasto
        Dark_Matter_Profile_Energy_Get                                => Dark_Matter_Profile_Energy_Einasto
@@ -133,7 +133,7 @@ contains
        Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get => Radius_from_Specific_Angular_Momentum_Einasto
        Dark_Matter_Profile_Circular_Velocity_Get                     => Dark_Matter_Profile_Circular_Velocity_Einasto
        Dark_Matter_Profile_Potential_Get                             => Dark_Matter_Profile_Potential_Einasto
-       Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Einasto       
+       Dark_Matter_Profile_Enclosed_Mass_Get                         => Dark_Matter_Profile_Enclosed_Mass_Einasto
        Dark_Matter_Profile_kSpace_Get                                => Dark_Matter_Profile_kSpace_Einasto
        Dark_Matter_Profile_Freefall_Radius_Get                       => Dark_Matter_Profile_Freefall_Radius_Einasto
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
@@ -155,13 +155,13 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                       
-    double precision                                , intent(in   )          :: radius                                                         
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent                                             
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                                 
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , & 
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius    
-    
+    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
+         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
@@ -174,20 +174,20 @@ contains
          &*thisBasicComponent%mass()/scaleRadius**3
     return
   end function Dark_Matter_Profile_Density_Einasto
-  
+
   double precision function Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                       
-    double precision                                , intent(in   )          :: radius                                                         
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent                                             
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                                 
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , & 
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius    
-    
+    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
+         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
@@ -207,9 +207,9 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode 
-    double precision          , intent(in   )          :: radius   
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     if (radius > 0.0d0) then
        Dark_Matter_Profile_Circular_Velocity_Einasto=sqrt(gravitationalConstantGalacticus&
             &*Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)/radius)
@@ -226,13 +226,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                       
-    double precision                                , intent(in   )          :: radius                                                         
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent                                             
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                                 
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , & 
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius    
-    
+    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
+         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
@@ -249,19 +249,19 @@ contains
          & *gravitationalConstantGalacticus*thisBasicComponent%mass()/scaleRadius
     return
   end function Dark_Matter_Profile_Potential_Einasto
-    
+
   double precision function Radius_from_Specific_Angular_Momentum_Einasto(thisNode,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
     use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode                                         
-    double precision                                , intent(in   )          :: specificAngularMomentum                          
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                   
-    double precision                                                         :: alpha                           , scaleRadius, & 
-         &                                                                      specificAngularMomentumScaleFree                 
-    
+    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    double precision                                , intent(in   )          :: specificAngularMomentum
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                           , scaleRadius, &
+         &                                                                      specificAngularMomentumScaleFree
+
     ! Get components.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
@@ -283,11 +283,11 @@ contains
     !% profile.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   )  :: alpha , specificAngularMomentumScaleFree 
-    integer         , dimension(0:1) :: jAlpha                                   
-    double precision, dimension(0:1) :: hAlpha                                   
-    integer                          :: iAlpha                                   
-    
+    double precision, intent(in   )  :: alpha , specificAngularMomentumScaleFree
+    integer         , dimension(0:1) :: jAlpha
+    double precision, dimension(0:1) :: hAlpha
+    integer                          :: iAlpha
+
     ! Return immediately for zero angular momentum.
     if (specificAngularMomentumScaleFree <= 0.0d0) then
        Radius_from_Specific_Angular_Momentum_Scale_Free=0.0d0
@@ -331,12 +331,12 @@ contains
     use Gamma_Functions
     use Memory_Management
     implicit none
-    double precision, intent(in   ) :: alphaRequired, specificAngularMomentumRequired    
-    integer                         :: iAlpha       , iRadius                            
-    logical                         :: makeTable                                         
-    double precision                :: alpha        , enclosedMass                   , & 
-         &                             radius                                            
-    
+    double precision, intent(in   ) :: alphaRequired, specificAngularMomentumRequired
+    integer                         :: iAlpha       , iRadius
+    logical                         :: makeTable
+    double precision                :: alpha        , enclosedMass                   , &
+         &                             radius
+
     !$omp critical (Einasto_Interpolate_Specific_Angular_Momentum)
     ! Always check if we need to make the table.
     makeTable=.true.
@@ -381,16 +381,16 @@ contains
           angularMomentumTableRadius=Make_Range(angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum&
                &,angularMomentumTableRadiusCount,rangeType=rangeTypeLogarithmic)
           ! Tabulate the radius vs. specific angular momentum relation.
-          do iAlpha=1,angularMomentumTableAlphaCount    
+          do iAlpha=1,angularMomentumTableAlphaCount
              alpha=angularMomentumTableAlpha(iAlpha)
              do iRadius=1,angularMomentumTableRadiusCount
                 radius=angularMomentumTableRadius(iRadius)
                 enclosedMass= Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius**alpha/alpha) &
                      &       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0              /alpha)
                 angularMomentumTable(iRadius,iAlpha)=sqrt(enclosedMass*radius)
-             end do             
+             end do
           end do
-          ! Reset interpolators. 
+          ! Reset interpolators.
           call Interpolate_Done(angularMomentumTableRadiusInterpolationObject,angularMomentumTableRadiusInterpolationAccelerator &
                &,angularMomentumTableRadiusInterpolationReset)
           call Interpolate_Done(interpolationAccelerator=angularMomentumTableAlphaInterpolationAccelerator &
@@ -412,11 +412,11 @@ contains
     use Gamma_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode                                       
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                 
-    double precision                                                         :: alpha                         , scaleRadius, & 
-         &                                                                      virialRadiusOverScaleRadius                    
-    
+    type            (treeNode                      ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    double precision                                                         :: alpha                         , scaleRadius, &
+         &                                                                      virialRadiusOverScaleRadius
+
     ! Get components.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
@@ -436,22 +436,22 @@ contains
 
     return
   end function Dark_Matter_Profile_Rotation_Normalization_Einasto
-  
+
   double precision function Dark_Matter_Profile_Energy_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type            (treeNode                      ), intent(inout) , pointer :: thisNode                                       
-    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent                             
-    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent                 
-    integer                                         , dimension(0:1)          :: jAlpha                                         
-    double precision                                , dimension(0:1)          :: hAlpha                                         
-    integer                                                                   :: iAlpha                                         
-    double precision                                                          :: alpha                         , scaleRadius, & 
-         &                                                                       virialRadiusOverScaleRadius                    
-    
+    type            (treeNode                      ), intent(inout) , pointer :: thisNode
+    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
+    integer                                         , dimension(0:1)          :: jAlpha
+    double precision                                , dimension(0:1)          :: hAlpha
+    integer                                                                   :: iAlpha
+    double precision                                                          :: alpha                         , scaleRadius, &
+         &                                                                       virialRadiusOverScaleRadius
+
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
@@ -486,23 +486,23 @@ contains
     !$omp end critical(Einasto_Interpolation)
     return
   end function Dark_Matter_Profile_Energy_Einasto
-  
+
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type            (treeNode                      ), intent(inout) , pointer :: thisNode                                       
-    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent                             
-    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent                 
-    integer                                         , dimension(0:1)          :: jAlpha                                         
-    double precision                                , dimension(0:1)          :: hAlpha                                         
-    integer                                                                   :: iAlpha                                         
-    double precision                                                          :: alpha                         , energy     , & 
-         &                                                                       energyGradient                , scaleRadius, & 
-         &                                                                       virialRadiusOverScaleRadius                    
-    
+    type            (treeNode                      ), intent(inout) , pointer :: thisNode
+    class           (nodeComponentBasic            )                , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)                , pointer :: thisDarkMatterProfileComponent
+    integer                                         , dimension(0:1)          :: jAlpha
+    double precision                                , dimension(0:1)          :: hAlpha
+    integer                                                                   :: iAlpha
+    double precision                                                          :: alpha                         , energy     , &
+         &                                                                       energyGradient                , scaleRadius, &
+         &                                                                       virialRadiusOverScaleRadius
+
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
@@ -511,10 +511,10 @@ contains
     scaleRadius                =thisDarkMatterProfileComponent%scale()
     alpha                      =thisDarkMatterProfileComponent%shape()
     virialRadiusOverScaleRadius=Dark_Matter_Halo_Virial_Radius(thisNode)/scaleRadius
-    
+
     ! Ensure the table exists and is sufficiently tabulated.
     call Energy_Table_Make(virialRadiusOverScaleRadius,alpha)
-    
+
     !$omp critical(Einasto_Interpolation)
     ! Get interpolating factors in alpha.
     jAlpha(0)=Interpolate_Locate(energyTableAlphaCount,energyTableAlpha,energyTableAlphaInterpolationAccelerator,alpha,reset&
@@ -545,7 +545,7 @@ contains
 
     return
   end function Dark_Matter_Profile_Energy_Growth_Rate_Einasto
-  
+
   subroutine Energy_Table_Make(concentrationRequired,alphaRequired)
     !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
     use, intrinsic :: ISO_C_Binding
@@ -555,18 +555,18 @@ contains
     use Memory_Management
     use Numerical_Constants_Math
     implicit none
-    double precision                            , intent(in   ) :: alphaRequired          , concentrationRequired    
-    integer                                                     :: iAlpha                 , iConcentration           
-    logical                                                     :: makeTable                                         
-    double precision                                            :: alpha                  , concentration        , & 
-         &                                                         jeansEquationIntegral  , kineticEnergy        , & 
-         &                                                         kineticEnergyIntegral  , potentialEnergy      , & 
-         &                                                         potentialEnergyIntegral, radiusMaximum        , & 
-         &                                                         radiusMinimum                                     
-    type            (c_ptr                     )                :: parameterPointer                                  
-    type            (fgsl_function             )                :: integrandFunction                                 
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                              
-    
+    double precision                            , intent(in   ) :: alphaRequired          , concentrationRequired
+    integer                                                     :: iAlpha                 , iConcentration
+    logical                                                     :: makeTable
+    double precision                                            :: alpha                  , concentration        , &
+         &                                                         jeansEquationIntegral  , kineticEnergy        , &
+         &                                                         kineticEnergyIntegral  , potentialEnergy      , &
+         &                                                         potentialEnergyIntegral, radiusMaximum        , &
+         &                                                         radiusMinimum
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     !$omp critical (Einasto_Interpolation)
     ! Assume table does not need remaking.
     makeTable=.false.
@@ -604,11 +604,11 @@ contains
        energyTableConcentration=Make_Range(energyTableConcentrationMinimum,energyTableConcentrationMaximum &
             &,energyTableConcentrationCount,rangeType=rangeTypeLogarithmic)
        ! Tabulate the radius vs. specific angular momentum relation.
-       do iAlpha=1,energyTableAlphaCount    
+       do iAlpha=1,energyTableAlphaCount
           alpha=energyTableAlpha(iAlpha)
           do iConcentration=1,energyTableConcentrationCount
              concentration=energyTableConcentration(iConcentration)
-             
+
              ! Compute the potential energy.
              radiusMinimum         =0.0d0
              radiusMaximum         =concentration
@@ -618,7 +618,7 @@ contains
                   &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
-             
+
              ! Compute the velocity dispersion at the virial radius.
              radiusMinimum         =        concentration
              radiusMaximum         =100.0d0*concentration
@@ -627,7 +627,7 @@ contains
              jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,Jeans_Equation_Integrand_Einasto&
                   &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
-             
+
              ! Compute the kinetic energy.
              radiusMinimum         =0.0d0
              radiusMaximum         =concentration
@@ -637,13 +637,13 @@ contains
                   &,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
-             
+
              ! Compute the total energy.
              energyTable(iConcentration,iAlpha)=(potentialEnergy+kineticEnergy)*concentration
-             
+
           end do
        end do
-       ! Reset interpolators. 
+       ! Reset interpolators.
        call Interpolate_Done(energyTableConcentrationInterpolationObject,energyTableConcentrationInterpolationAccelerator &
             &,energyTableConcentrationInterpolationReset)
        call Interpolate_Done(energyTableAlphaInterpolationObject        ,energyTableAlphaInterpolationAccelerator         &
@@ -661,22 +661,22 @@ contains
     !% Integrand for Einasto profile potential energy.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Potential_Energy_Integrand_Einasto 
-    real(kind=c_double), value :: radius                             
-    type(c_ptr        ), value :: parameterPointer                   
-    
+    real(kind=c_double)        :: Potential_Energy_Integrand_Einasto
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     Potential_Energy_Integrand_Einasto=(Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)/radius)**2
     return
   end function Potential_Energy_Integrand_Einasto
-  
+
   function Kinetic_Energy_Integrand_Einasto(radius,parameterPointer) bind(c)
     !% Integrand for Einasto profile kinetic energy.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Kinetic_Energy_Integrand_Einasto 
-    real(kind=c_double), value :: radius                           
-    type(c_ptr        ), value :: parameterPointer                 
-    
+    real(kind=c_double)        :: Kinetic_Energy_Integrand_Einasto
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     Kinetic_Energy_Integrand_Einasto=Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)&
          &*Density_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)*radius
     return
@@ -686,10 +686,10 @@ contains
     !% Integrand for Einasto profile Jeans equation.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Jeans_Equation_Integrand_Einasto 
-    real(kind=c_double), value :: radius                           
-    type(c_ptr        ), value :: parameterPointer                 
-    
+    real(kind=c_double)        :: Jeans_Equation_Integrand_Einasto
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     Jeans_Equation_Integrand_Einasto=Enclosed_Mass_Einasto_Scale_Free(radius,concentrationParameter,alphaParameter)&
          &*Density_Einasto_Scale_Free(radius ,concentrationParameter,alphaParameter)/radius**2
     return
@@ -700,8 +700,8 @@ contains
     !% given {\tt radius} (given in units of the scale radius).
     use Gamma_Functions
     implicit none
-    double precision, intent(in   ) :: alpha, concentration, radius 
-    
+    double precision, intent(in   ) :: alpha, concentration, radius
+
     if (radius >= concentration) then
        Enclosed_Mass_Einasto_Scale_Free=1.0d0
     else
@@ -711,16 +711,16 @@ contains
     end if
     return
   end function Enclosed_Mass_Einasto_Scale_Free
-  
+
   double precision function Density_Einasto_Scale_Free(radius,concentration,alpha)
     !% Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with
     !% given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).
     use Numerical_Constants_Math
     use Gamma_Functions
     implicit none
-    double precision, intent(in   ) :: alpha               , concentration, radius 
-    double precision                :: densityNormalization                        
-    
+    double precision, intent(in   ) :: alpha               , concentration, radius
+    double precision                :: densityNormalization
+
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
          &               *exp(-2.0d0/alpha                                                                   ) &
@@ -729,14 +729,14 @@ contains
     Density_Einasto_Scale_Free=densityNormalization*exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))
     return
   end function Density_Einasto_Scale_Free
-  
+
   double precision function Potential_Einasto_Scale_Free(radius,concentration,alpha)
     !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
     !% profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).
     use Numerical_Constants_Math
     use Gamma_Functions
     implicit none
-    double precision, intent(in   ) :: alpha, concentration, radius 
+    double precision, intent(in   ) :: alpha, concentration, radius
        if (radius <= 0.0d0) then
          Potential_Einasto_Scale_Free=                                                                  &
                & -((2.0d0/alpha)**(1.0d0/alpha))                                                        &
@@ -758,22 +758,22 @@ contains
        end if
     return
    end function Potential_Einasto_Scale_Free
-  
+
   double precision function Dark_Matter_Profile_kSpace_Einasto(thisNode,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$)).
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
-    type            (treeNode                      )                , intent(inout), pointer :: thisNode                                               
-    double precision                                                , intent(in   )          :: wavenumber                                             
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent                         
-    integer                                         , dimension(0:1)                         :: jAlpha                        , jConcentration         
-    double precision                                , dimension(0:1)                         :: hAlpha                        , hConcentration         
-    integer                                                                                  :: iAlpha                        , iConcentration         
-    double precision                                                                         :: alpha                         , scaleRadius        , & 
-         &                                                                                      virialRadiusOverScaleRadius   , wavenumberScaleFree    
-    
+    type            (treeNode                      )                , intent(inout), pointer :: thisNode
+    double precision                                                , intent(in   )          :: wavenumber
+    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
+    integer                                         , dimension(0:1)                         :: jAlpha                        , jConcentration
+    double precision                                , dimension(0:1)                         :: hAlpha                        , hConcentration
+    integer                                                                                  :: iAlpha                        , iConcentration
+    double precision                                                                         :: alpha                         , scaleRadius        , &
+         &                                                                                      virialRadiusOverScaleRadius   , wavenumberScaleFree
+
     ! Get components.
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
 
@@ -826,16 +826,16 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Display
     implicit none
-    double precision                            , intent(in   ) :: alphaRequired       , concentrationRequired, wavenumberRequired    
-    integer                                                     :: iAlpha              , iConcentration       , iWavenumber       , & 
-         &                                                         percentage                                                         
-    logical                                                     :: makeTable                                                          
-    double precision                                            :: alpha               , concentration        , radiusMaximum     , & 
-         &                                                         radiusMinimum       , wavenumber                                   
-    type            (c_ptr                     )                :: parameterPointer                                                   
-    type            (fgsl_function             )                :: integrandFunction                                                  
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                                               
-    
+    double precision                            , intent(in   ) :: alphaRequired       , concentrationRequired, wavenumberRequired
+    integer                                                     :: iAlpha              , iConcentration       , iWavenumber       , &
+         &                                                         percentage
+    logical                                                     :: makeTable
+    double precision                                            :: alpha               , concentration        , radiusMaximum     , &
+         &                                                         radiusMinimum       , wavenumber
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     !$omp critical (Einasto_Fourier_Interpolation)
     ! Assume table does not need remaking.
     makeTable=.false.
@@ -890,9 +890,9 @@ contains
        ! Tabulate the Fourier profile.
        do iAlpha=1,fourierProfileTableAlphaCount
           alpha=fourierProfileTableAlpha(iAlpha)
-          do iConcentration=1,fourierProfileTableConcentrationCount    
+          do iConcentration=1,fourierProfileTableConcentrationCount
              concentration=fourierProfileTableConcentration(iConcentration)
-             
+
              ! Show progress.
              percentage=int(100.0d0*dble((iAlpha-1)*fourierProfileTableConcentrationCount+iConcentration-1)&
                   &/dble(fourierProfileTableAlphaCount*fourierProfileTableConcentrationCount))
@@ -910,12 +910,12 @@ contains
                      &,Fourier_Profile_Integrand_Einasto ,parameterPointer,integrandFunction,integrationWorkspace&
                      &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
-             
+
              end do
           end do
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
-       ! Reset interpolators. 
+       ! Reset interpolators.
        call Interpolate_Done(fourierProfileTableWavenumberInterpolationObject,fourierProfileTableWavenumberInterpolationAccelerator &
             &,fourierProfileTableWavenumberInterpolationReset)
        call Interpolate_Done(interpolationAccelerator=fourierProfileTableAlphaInterpolationAccelerator         &
@@ -939,10 +939,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     implicit none
-    real(kind=c_double)        :: Fourier_Profile_Integrand_Einasto 
-    real(kind=c_double), value :: radius                            
-    type(c_ptr        ), value :: parameterPointer                  
-    
+    real(kind=c_double)        :: Fourier_Profile_Integrand_Einasto
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     Fourier_Profile_Integrand_Einasto=4.0d0*Pi*radius*sin(wavenumberParameter*radius)*Density_Einasto_Scale_Free(radius&
          &,concentrationParameter,alphaParameter)/wavenumberParameter
     return
@@ -956,17 +956,17 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                      )                , intent(inout), pointer :: thisNode                                                 
-    double precision                                                , intent(in   )          :: time                                                     
-    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent                                       
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent                           
-    integer                                         , dimension(0:1)                         :: jAlpha                                                   
-    double precision                                , dimension(0:1)                         :: hAlpha                                                   
-    integer                                                                                  :: iAlpha                                                   
-    double precision                                                                         :: alpha                         , freefallTimeScaleFree, & 
-         &                                                                                      radiusScale                   , timeScale            , & 
-         &                                                                                      velocityScale                                            
-    
+    type            (treeNode                      )                , intent(inout), pointer :: thisNode
+    double precision                                                , intent(in   )          :: time
+    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
+    integer                                         , dimension(0:1)                         :: jAlpha
+    double precision                                , dimension(0:1)                         :: hAlpha
+    integer                                                                                  :: iAlpha
+    double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
+         &                                                                                      radiusScale                   , timeScale            , &
+         &                                                                                      velocityScale
+
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
        Dark_Matter_Profile_Freefall_Radius_Einasto=0.0d0
@@ -1014,7 +1014,7 @@ contains
     !$omp end critical(Einasto_Freefall_Interpolation)
     return
   end function Dark_Matter_Profile_Freefall_Radius_Einasto
-  
+
   double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto(thisNode,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\tt time} (given in
     !% Gyr).
@@ -1024,17 +1024,17 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                      )                , intent(inout), pointer :: thisNode                                                 
-    double precision                                                , intent(in   )          :: time                                                     
-    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent                                       
-    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent                           
-    integer                                         , dimension(0:1)                         :: jAlpha                                                   
-    double precision                                , dimension(0:1)                         :: hAlpha                                                   
-    integer                                                                                  :: iAlpha                                                   
-    double precision                                                                         :: alpha                         , freefallTimeScaleFree, & 
-         &                                                                                      radiusScale                   , timeScale            , & 
-         &                                                                                      velocityScale                                            
-    
+    type            (treeNode                      )                , intent(inout), pointer :: thisNode
+    double precision                                                , intent(in   )          :: time
+    class           (nodeComponentBasic            )                               , pointer :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)                               , pointer :: thisDarkMatterProfileComponent
+    integer                                         , dimension(0:1)                         :: jAlpha
+    double precision                                , dimension(0:1)                         :: hAlpha
+    integer                                                                                  :: iAlpha
+    double precision                                                                         :: alpha                         , freefallTimeScaleFree, &
+         &                                                                                      radiusScale                   , timeScale            , &
+         &                                                                                      velocityScale
+
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto=0.0d0
@@ -1082,7 +1082,7 @@ contains
     !$omp end critical(Einasto_Freefall_Interpolation)
     return
   end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
-  
+
   subroutine Dark_Matter_Profile_Einasto_Freefall_Tabulate(freefallTimeScaleFree,alphaRequired)
     !% Tabulates the freefall time vs. freefall radius for Einasto halos.
     use Galacticus_Display
@@ -1090,11 +1090,11 @@ contains
     use Memory_Management
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: alphaRequired, freefallTimeScaleFree             
-    logical                         :: retabulate                                       
-    integer                         :: iAlpha       , iRadius              , percentage 
-    double precision                :: alpha                                            
-    
+    double precision, intent(in   ) :: alphaRequired, freefallTimeScaleFree
+    logical                         :: retabulate
+    integer                         :: iAlpha       , iRadius              , percentage
+    double precision                :: alpha
+
     !$omp critical (Einasto_Freefall_Interpolation)
     retabulate=.not.freefallRadiusTableInitialized
     ! If the table has not yet been made, compute and store the freefall times corresponding to the minimum and maximum
@@ -1173,18 +1173,18 @@ contains
     !$omp end critical (Einasto_Freefall_Interpolation)
     return
   end subroutine Dark_Matter_Profile_Einasto_Freefall_Tabulate
-  
+
   double precision function Freefall_Time_Scale_Free(radius,alpha)
     !% Compute the freefall time in a scale-free Einasto halo.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: alpha               , radius 
-    type            (c_ptr                     )                :: parameterPointer             
-    type            (fgsl_function             )                :: integrandFunction            
-    type            (fgsl_integration_workspace)                :: integrationWorkspace         
-    double precision                                            :: radiusEnd                    
-    
+    double precision                            , intent(in   ) :: alpha               , radius
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    double precision                                            :: radiusEnd
+
     radiusStart   =radius
     radiusEnd     =0.0d0
     alphaParameter=alpha
@@ -1192,15 +1192,15 @@ contains
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     return
   end function Freefall_Time_Scale_Free
-  
+
   function Freefall_Time_Scale_Free_Integrand_Einasto(radius,parameterPointer) bind(c)
     !% Integrand function used for finding the free-fall time in Einasto halos.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: Freefall_Time_Scale_Free_Integrand_Einasto 
-    real(kind=c_double), value :: radius                                     
-    type(c_ptr        ), value :: parameterPointer                           
-    
+    real(kind=c_double)        :: Freefall_Time_Scale_Free_Integrand_Einasto
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     Freefall_Time_Scale_Free_Integrand_Einasto= 1.0d0                                                                   &
          &                                     /sqrt(                                                                  &
          &                                             2.0d0                                                            &
@@ -1211,16 +1211,16 @@ contains
          &                                           )
     return
   end function Freefall_Time_Scale_Free_Integrand_Einasto
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Dark_Matter_Profiles_Einasto_State_Store</unitName>
   !# </galacticusStateStoreTask>
   subroutine Dark_Matter_Profiles_Einasto_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
          &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
          &,energyTableAlphaMinimum,energyTableAlphaMaximum,fourierProfileTableWavenumberMinimum &
@@ -1230,16 +1230,16 @@ contains
 
     return
   end subroutine Dark_Matter_Profiles_Einasto_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Dark_Matter_Profiles_Einasto_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
   subroutine Dark_Matter_Profiles_Einasto_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     ! Read the minimum and maximum tabulated times.
     read (stateFile) angularMomentumTableRadiusMinimum,angularMomentumTableRadiusMaximum,angularMomentumTableAlphaMinimum &
          &,angularMomentumTableAlphaMaximum,energyTableConcentrationMinimum,energyTableConcentrationMaximum &
@@ -1254,5 +1254,5 @@ contains
     freefallRadiusTableInitialized =.false.
     return
   end subroutine Dark_Matter_Profiles_Einasto_State_Retrieve
-  
+
 end module Dark_Matter_Profiles_Einasto

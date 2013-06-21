@@ -25,23 +25,23 @@ module Supernovae_Type_Ia
   public :: SNeIa_Cumulative_Number, SNeIa_Cumulative_Yield
 
   ! Flag indicating whether this module has been initialized.
-  logical                                              :: supernovaeIaInitialized    =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                          
-  type     (varying_string                  )          :: supernovaeIaMethod                   
-  
-  ! Pointer to the function that actually does the calculation.                                                                                          
-  procedure(SNeIa_Cumulative_Number_Template), pointer :: SNeIa_Cumulative_Number_Get=>null()  
-  procedure(SNeIa_Cumulative_Yield_Template ), pointer :: SNeIa_Cumulative_Yield_Get =>null()  
+  logical                                              :: supernovaeIaInitialized    =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                  )          :: supernovaeIaMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(SNeIa_Cumulative_Number_Template), pointer :: SNeIa_Cumulative_Number_Get=>null()
+  procedure(SNeIa_Cumulative_Yield_Template ), pointer :: SNeIa_Cumulative_Yield_Get =>null()
   abstract interface
     double precision function SNeIa_Cumulative_Number_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity  
+      double precision, intent(in   ) :: age, initialMass, metallicity
     end function SNeIa_Cumulative_Number_Template
   end interface
   abstract interface
     double precision function SNeIa_Cumulative_Yield_Template(initialMass,age,metallicity,atomIndex)
-      double precision, intent(in   )           :: age      , initialMass, metallicity  
-      integer         , intent(in   ), optional :: atomIndex                            
+      double precision, intent(in   )           :: age      , initialMass, metallicity
+      integer         , intent(in   ), optional :: atomIndex
     end function SNeIa_Cumulative_Yield_Template
   end interface
 
@@ -58,12 +58,12 @@ contains
 
     ! Initialize if necessary.
     if (.not.supernovaeIaInitialized) then
-       !$omp critical(Supernovae_Type_Ia_Initialization) 
+       !$omp critical(Supernovae_Type_Ia_Initialization)
        if (.not.supernovaeIaInitialized) then
           ! Get the halo spin distribution method parameter.
           !@ <inputParameter>
           !@   <name>supernovaeIaMethod</name>
-          !@   <defaultValue>Nagashima</defaultValue>       
+          !@   <defaultValue>Nagashima</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The method to use for computing properties of Type Ia supernovae.
@@ -81,7 +81,7 @@ contains
                &,'method '//char(supernovaeIaMethod)//' is unrecognized')
           supernovaeIaInitialized=.true.
        end if
-       !$omp end critical(Supernovae_Type_Ia_Initialization) 
+       !$omp end critical(Supernovae_Type_Ia_Initialization)
     end if
     return
   end subroutine Supernovae_Type_Ia_Initialize
@@ -89,9 +89,9 @@ contains
   double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
     !% Return the cumulative number of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity  
-    
-    ! Ensure module is initialized.                                                               
+    double precision, intent(in   ) :: age, initialMass, metallicity
+
+    ! Ensure module is initialized.
     call Supernovae_Type_Ia_Initialize
 
     ! Simply call the function which does the actual work.
@@ -102,10 +102,10 @@ contains
   double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
     !% Return the cumulative yield of Type Ia supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   )           :: age      , initialMass, metallicity  
-    integer         , intent(in   ), optional :: atomIndex                            
-    
-    ! Ensure module is initialized.                                                                               
+    double precision, intent(in   )           :: age      , initialMass, metallicity
+    integer         , intent(in   ), optional :: atomIndex
+
+    ! Ensure module is initialized.
     call Supernovae_Type_Ia_Initialize
 
     ! Simply call the function which does the actual work.

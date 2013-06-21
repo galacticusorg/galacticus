@@ -26,10 +26,10 @@ module Atomic_Rates_Recombination_Radiative_Verner
   public :: Atomic_Rate_Recombination_Radiative_Verner_Initialize
 
   ! Arrays to hold coefficients of fitting functions.
-  double precision :: recombinationCoefficientsIron  (3,10   ), recombinationFitCoefficients(2,30,30), & 
-       &              recombinationFitCoefficientsNew(4,30,30)                                           
-  integer          :: i                                                                                  
-  
+  double precision :: recombinationCoefficientsIron  (3,10   ), recombinationFitCoefficients(2,30,30), &
+       &              recombinationFitCoefficientsNew(4,30,30)
+  integer          :: i
+
   ! Set the fitting coefficients.
   data(recombinationFitCoefficients   (i, 4, 4),i=1, 2) /4.500d-13,0.6480d0/
   data(recombinationFitCoefficients   (i, 5, 4),i=1, 2) /2.680d-12,0.7250d0/
@@ -506,8 +506,8 @@ module Atomic_Rates_Recombination_Radiative_Verner
   data(recombinationFitCoefficientsNew(i,10, 8),i=1, 4) /9.563d-12,0.3067d0,9.768d+03,4.851d+17/
   data(recombinationFitCoefficientsNew(i,10, 9),i=1, 4) /5.417d-08,0.6930d0,1.179d-03,1.060d+07/
   data(recombinationFitCoefficientsNew(i,10,10),i=1, 4) /5.023d-12,0.2420d0,3.181d+02,1.450d+18/
-  data(recombinationFitCoefficientsNew(i,26,12),i=1, 4) /8.110d-10,0.5442d0,1.755d+03,6.799d+07/ 
-  data(recombinationFitCoefficientsNew(i,26,13),i=1, 4) /6.967d-10,0.5602d0,1.727d+03,5.618d+07/ 
+  data(recombinationFitCoefficientsNew(i,26,12),i=1, 4) /8.110d-10,0.5442d0,1.755d+03,6.799d+07/
+  data(recombinationFitCoefficientsNew(i,26,13),i=1, 4) /6.967d-10,0.5602d0,1.727d+03,5.618d+07/
   data(recombinationFitCoefficientsNew(i,26,14),i=1, 4) /3.236d-08,0.3247d0,2.338d+01,8.337d+12/
   data(recombinationFitCoefficientsNew(i,26,15),i=1, 4) /2.664d-08,0.3285d0,2.297d+01,6.672d+12/
   data(recombinationFitCoefficientsNew(i,26,16),i=1, 4) /2.165d-08,0.3403d0,2.195d+01,6.383d+12/
@@ -534,9 +534,9 @@ contains
     !% Initializes the ``Verner'' atomic collisional ionization rate module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: atomicRadiativeRecombinationMethod      
-    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Recombination_Radiative_Get 
-    
+    type     (varying_string  ), intent(in   )          :: atomicRadiativeRecombinationMethod
+    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Recombination_Radiative_Get
+
     ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicRadiativeRecombinationMethod == 'Verner') Atomic_Rate_Recombination_Radiative_Get => Atomic_Rate_Recombination_Radiative_Verner
 
@@ -560,11 +560,11 @@ contains
     !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
     use Galacticus_Error
     implicit none
-    integer         , intent(in   ) :: atomicNumber     , ionizationState 
-    double precision, intent(in   ) :: temperature                        
-    integer                         :: electronNumber                     
-    double precision                :: temperatureScaled                  
-    
+    integer         , intent(in   ) :: atomicNumber     , ionizationState
+    double precision, intent(in   ) :: temperature
+    integer                         :: electronNumber
+    double precision                :: temperatureScaled
+
     ! Set zero rate by default.
     Atomic_Rate_Recombination_Radiative_Verner=0.0d0
 
@@ -599,7 +599,7 @@ contains
                &/temperatureScaled **recombinationFitCoefficients(2,atomicNumber,electronNumber)
        end if
     end if
-    return 
+    return
   end function Atomic_Rate_Recombination_Radiative_Verner
 
 end module Atomic_Rates_Recombination_Radiative_Verner

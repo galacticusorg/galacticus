@@ -25,24 +25,24 @@ module Stellar_Feedback
   public :: Stellar_Feedback_Cumulative_Energy_Input
 
   ! Flag indicating whether this module has been initialized.
-  logical                                                                   :: stellarFeedbackInitialized                  =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                                
-  type     (varying_string                                       )          :: stellarFeedbackMethod                                 
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                
-  procedure(Stellar_Feedback_Cumulative_Energy_Input_Get_Template), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get=>null()  
+  logical                                                                   :: stellarFeedbackInitialized                  =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                                       )          :: stellarFeedbackMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Stellar_Feedback_Cumulative_Energy_Input_Get_Template), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get=>null()
   abstract interface
     double precision function Stellar_Feedback_Cumulative_Energy_Input_Get_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity  
+      double precision, intent(in   ) :: age, initialMass, metallicity
     end function Stellar_Feedback_Cumulative_Energy_Input_Get_Template
   end interface
 
   ! Canonical value of the total energy input from a single stellar population of $1 M_\odot$ after infinite time. All feedback
   ! calculations which don't specifically use the energy input should be scaled to this value if they want to have the correct
   ! time and IMF dependencies. Value was computed for a Salpeter IMF. Units are MSolar (km/s)^2.
-  double precision, parameter, public :: feedbackEnergyInputAtInfinityCanonical=4.517d5  
-                                                                                      
+  double precision, parameter, public :: feedbackEnergyInputAtInfinityCanonical=4.517d5
+
 contains
 
   subroutine Stellar_Feedback_Initialize
@@ -56,12 +56,12 @@ contains
 
     ! Initialize if necessary.
     if (.not.stellarFeedbackInitialized) then
-       !$omp critical(Stellar_Feedback_Initialization) 
+       !$omp critical(Stellar_Feedback_Initialization)
        if (.not.stellarFeedbackInitialized) then
           ! Get the halo spin distribution method parameter.
           !@ <inputParameter>
           !@   <name>stellarFeedbackMethod</name>
-          !@   <defaultValue>standard</defaultValue>       
+          !@   <defaultValue>standard</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The method to use for computing aspects of stellar feedback.
@@ -79,7 +79,7 @@ contains
                &,'method '//char(stellarFeedbackMethod)//' is unrecognized')
           stellarFeedbackInitialized=.true.
        end if
-       !$omp end critical(Stellar_Feedback_Initialization) 
+       !$omp end critical(Stellar_Feedback_Initialization)
     end if
     return
   end subroutine Stellar_Feedback_Initialize
@@ -87,9 +87,9 @@ contains
   double precision function Stellar_Feedback_Cumulative_Energy_Input(initialMass,age,metallicity)
     !% Return the cumulative energy input per from stellar feedback from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity  
-    
-    ! Ensure module is initialized.                                                               
+    double precision, intent(in   ) :: age, initialMass, metallicity
+
+    ! Ensure module is initialized.
     call Stellar_Feedback_Initialize
 
     ! Simply call the function which does the actual work.

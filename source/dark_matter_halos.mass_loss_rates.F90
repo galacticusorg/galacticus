@@ -24,19 +24,19 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                      :: darkMatterHaloMassLossRateInitialized=.false.  
-  
-  ! Name of mass loss rate method used.                                                                                                            
-  type     (varying_string                          )          :: darkMatterHaloMassLossRateMethod               
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                            
-  procedure(Dark_Matter_Halo_Mass_Loss_Rate_Template), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                      :: darkMatterHaloMassLossRateInitialized=.false.
+
+  ! Name of mass loss rate method used.
+  type     (varying_string                          )          :: darkMatterHaloMassLossRateMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Dark_Matter_Halo_Mass_Loss_Rate_Template), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()
   abstract interface
      double precision function Dark_Matter_Halo_Mass_Loss_Rate_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode  
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Dark_Matter_Halo_Mass_Loss_Rate_Template
   end interface
 
@@ -50,10 +50,10 @@ contains
     include 'dark_matter_halos.mass_loss_rates.modules.inc'
     !# </include>
     implicit none
-    
+
     ! Initialize if necessary.
     if (.not.darkMatterHaloMassLossRateInitialized) then
-       !$omp critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization) 
+       !$omp critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)
        if (.not.darkMatterHaloMassLossRateInitialized) then
           ! Get the dark matter halo mass loss rate method parameter.
           !@ <inputParameter>
@@ -76,7 +76,7 @@ contains
                &,'method ' //char(darkMatterHaloMassLossRateMethod)//' is unrecognized')
           darkMatterHaloMassLossRateInitialized=.true.
        end if
-       !$omp end critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization) 
+       !$omp end critical(Dark_Matter_Halo_Mass_Loss_Rates_Initialization)
     end if
     return
   end subroutine Dark_Matter_Halo_Mass_Loss_Rates_Initialize
@@ -84,9 +84,9 @@ contains
   double precision function Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
     !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Initialize the module.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Initialize the module.
     call Dark_Matter_Halo_Mass_Loss_Rates_Initialize
 
     ! Get the energy using the selected method.
@@ -94,5 +94,5 @@ contains
 
     return
   end function Dark_Matter_Halos_Mass_Loss_Rate
-  
+
 end module Dark_Matter_Halos_Mass_Loss_Rates

@@ -30,15 +30,15 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use Numerical_Constants_Math
   use Critical_Overdensity
   implicit none
-  double precision                , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]                                    
-  type            (varying_string)               :: parameterFile                                                                                                 
-  character       (len=1024      )               :: message                                                                                                       
-  integer                                        :: iExpansion                                                                                                    
-  double precision                               :: age                                                                       , criticalOverdensity           , & 
-       &                                            criticalOverdensityExpected                                               , expansionFactor               , & 
-       &                                            virialDensityContrast                                                     , virialDensityContrastExpected     
-  
-  ! Read in basic code memory usage.                                                                                                                                                             
+  double precision                , dimension(7) :: redshift                   =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  type            (varying_string)               :: parameterFile
+  character       (len=1024      )               :: message
+  integer                                        :: iExpansion
+  double precision                               :: age                                                                       , criticalOverdensity           , &
+       &                                            criticalOverdensityExpected                                               , expansionFactor               , &
+       &                                            virialDensityContrast                                                     , virialDensityContrastExpected
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.EdS.size')
 
   ! Begin unit tests.

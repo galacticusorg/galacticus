@@ -30,39 +30,39 @@ module Galacticus_Output_Merger_Tree
   ! Output groups.
   type outputGroup
      !% Type used for output group information.
-     logical                 :: doubleAttributesWritten, integerAttributesWritten, & 
-          &                     opened                                               
-     type   (hdf5Object    ) :: hdf5Group              , nodeDataGroup               
-     integer(kind=kind_int8) :: length                                               
+     logical                 :: doubleAttributesWritten, integerAttributesWritten, &
+          &                     opened
+     type   (hdf5Object    ) :: hdf5Group              , nodeDataGroup
+     integer(kind=kind_int8) :: length
   end type outputGroup
-  type            (hdf5Object          )                                         :: outputsGroup                                                         
-  logical                                                                        :: outputsGroupOpened         =.false.                                  
-  type            (outputGroup         )           , allocatable, dimension(:)   :: outputGroups                                                         
-  integer                                                                        :: outputGroupsCount          =0                                        
-  integer                               , parameter                              :: outputGroupsIncrement      =10                                       
-  
+  type            (hdf5Object          )                                         :: outputsGroup
+  logical                                                                        :: outputsGroupOpened         =.false.
+  type            (outputGroup         )           , allocatable, dimension(:)   :: outputGroups
+  integer                                                                        :: outputGroupsCount          =0
+  integer                               , parameter                              :: outputGroupsIncrement      =10
+
   ! Number of properties of each type.
-  integer                                                                        :: doublePropertyCount        =-1     , integerPropertyCount    =-1     
+  integer                                                                        :: doublePropertyCount        =-1     , integerPropertyCount    =-1
   !$omp threadprivate(integerPropertyCount,doublePropertyCount)
   ! Buffers for properties.
-  integer                                                                        :: doublePropertiesWritten    =0      , integerPropertiesWritten=0      
-  integer                                                                        :: doubleBufferCount          =0      , integerBufferCount      =0      
-  integer                               , parameter                              :: bufferSize                 =1024   , commentLengthMax        =256, & 
-       &                                                                            nameLengthMax              =256                                      
-  integer         (kind=kind_int8      )           , allocatable, dimension(:,:) :: integerBuffer                                                        
-  double precision                                 , allocatable, dimension(:,:) :: doubleBuffer                                                         
-  character       (len=nameLengthMax   )           , allocatable, dimension(:)   :: doublePropertyNames                , integerPropertyNames            
-  character       (len=commentLengthMax)           , allocatable, dimension(:)   :: doublePropertyComments             , integerPropertyComments         
-  double precision                                 , allocatable, dimension(:)   :: doublePropertyUnitsSI              , integerPropertyUnitsSI          
+  integer                                                                        :: doublePropertiesWritten    =0      , integerPropertiesWritten=0
+  integer                                                                        :: doubleBufferCount          =0      , integerBufferCount      =0
+  integer                               , parameter                              :: bufferSize                 =1024   , commentLengthMax        =256, &
+       &                                                                            nameLengthMax              =256
+  integer         (kind=kind_int8      )           , allocatable, dimension(:,:) :: integerBuffer
+  double precision                                 , allocatable, dimension(:,:) :: doubleBuffer
+  character       (len=nameLengthMax   )           , allocatable, dimension(:)   :: doublePropertyNames                , integerPropertyNames
+  character       (len=commentLengthMax)           , allocatable, dimension(:)   :: doublePropertyComments             , integerPropertyComments
+  double precision                                 , allocatable, dimension(:)   :: doublePropertyUnitsSI              , integerPropertyUnitsSI
   !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)
   !$omp threadprivate(doubleBuffer,integerPropertyNames,doublePropertyNames,integerPropertyUnitsSI,doublePropertyUnitsSI)
   !$omp threadprivate(integerPropertyComments,doublePropertyComments)
   ! Flag indicating if module is initialized.
-  logical                                                                        :: mergerTreeOutputInitialized=.false.                                  
-  
+  logical                                                                        :: mergerTreeOutputInitialized=.false.
+
   ! Flag indicating if merger tree references are to be output.
-  logical                                                                        :: mergerTreeOutputReferences                                           
-  
+  logical                                                                        :: mergerTreeOutputReferences
+
 contains
 
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
@@ -78,19 +78,19 @@ contains
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree        )              , intent(inout), target   :: thisTree                                         
-    integer                                           , intent(in   )           :: iOutput                                          
-    double precision                                  , intent(in   )           :: time                                             
-    logical                                           , intent(in   ), optional :: isLastOutput                                     
-    type            (treeNode          ), pointer                               :: thisNode                                         
-    integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength   , referenceStart               
-    class           (nodeComponentBasic), pointer                               :: thisBasicComponent                               
-    type            (mergerTree        ), pointer                               :: currentTree                                      
-    integer                                                                     :: doubleProperty    , iGroup        , iProperty, & 
-         &                                                                         integerProperty                                  
-    logical                                                                     :: nodePassesFilter                                 
-    type            (hdf5Object        )                                        :: toDataset                                        
-    
+    type            (mergerTree        )              , intent(inout), target   :: thisTree
+    integer                                           , intent(in   )           :: iOutput
+    double precision                                  , intent(in   )           :: time
+    logical                                           , intent(in   ), optional :: isLastOutput
+    type            (treeNode          ), pointer                               :: thisNode
+    integer         (kind=HSIZE_T      ), dimension(1)                          :: referenceLength   , referenceStart
+    class           (nodeComponentBasic), pointer                               :: thisBasicComponent
+    type            (mergerTree        ), pointer                               :: currentTree
+    integer                                                                     :: doubleProperty    , iGroup        , iProperty, &
+         &                                                                         integerProperty
+    logical                                                                     :: nodePassesFilter
+    type            (hdf5Object        )                                        :: toDataset
+
     ! Initialize if necessary.
     !$omp critical(Merger_Tree_Output)
     if (.not.mergerTreeOutputInitialized) then
@@ -151,7 +151,7 @@ contains
                 ! Establish node link properties.
                 if (integerPropertyCount > 0) then
                    integerProperty=0
-                   integerBufferCount=integerBufferCount+1     
+                   integerBufferCount=integerBufferCount+1
                 end if
                 if (doublePropertyCount > 0) then
                    doubleProperty=0
@@ -253,8 +253,8 @@ contains
   subroutine Galacticus_Merger_Tree_Output_Finalize()
     !% Finalize merger tree output by closing any open groups.
     implicit none
-    integer :: iGroup 
-    
+    integer :: iGroup
+
     ! Close any open output groups.
     !$omp critical(HDF5_Access)
     do iGroup=1,outputGroupsCount
@@ -273,10 +273,10 @@ contains
     use Numerical_Constants_Astronomical
     use String_Handling
     implicit none
-    type   (mergerTree    ), intent(inout) :: thisTree               
-    integer                , intent(in   ) :: iOutput                
-    type   (varying_string)                :: commentText, groupName 
-    
+    type   (mergerTree    ), intent(inout) :: thisTree
+    integer                , intent(in   ) :: iOutput
+    type   (varying_string)                :: commentText, groupName
+
     ! Create a name for the group.
     groupName='mergerTree'
     groupName=groupName//thisTree%index
@@ -297,10 +297,10 @@ contains
   subroutine Integer_Buffer_Dump(iOutput)
     !% Dump the contents of the integer properties buffer to the \glc\ output file.
     implicit none
-    integer            , intent(in   ) :: iOutput     
-    integer                            :: iProperty   
-    type   (hdf5Object)                :: thisDataset 
-    
+    integer            , intent(in   ) :: iOutput
+    integer                            :: iProperty
+    type   (hdf5Object)                :: thisDataset
+
     ! Write integer data from the buffer.
     if (integerPropertyCount > 0) then
        !$omp critical(HDF5_Access)
@@ -324,10 +324,10 @@ contains
   subroutine Double_Buffer_Dump(iOutput)
     !% Dump the contents of the double precision properties buffer to the \glc\ output file.
     implicit none
-    integer            , intent(in   ) :: iOutput     
-    integer                            :: iProperty   
-    type   (hdf5Object)                :: thisDataset 
-    
+    integer            , intent(in   ) :: iOutput
+    integer                            :: iProperty
+    type   (hdf5Object)                :: thisDataset
+
     ! Write double data from the buffer.
     if (doublePropertyCount > 0) then
        !$omp critical(HDF5_Access)
@@ -355,9 +355,9 @@ contains
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
     implicit none
-    double precision          , intent(in   )          :: time     
-    type            (treeNode), intent(inout), pointer :: thisNode 
-    
+    double precision          , intent(in   )          :: time
+    type            (treeNode), intent(inout), pointer :: thisNode
+
     integerPropertyCount=0
     doublePropertyCount =0
     call thisNode%outputCount(integerPropertyCount,doublePropertyCount,time)
@@ -407,10 +407,10 @@ contains
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
     implicit none
-    double precision          , intent(in   )          :: time                            
-    type            (treeNode), intent(inout), pointer :: thisNode                        
-    integer                                            :: doubleProperty, integerProperty 
-    
+    double precision          , intent(in   )          :: time
+    type            (treeNode), intent(inout), pointer :: thisNode
+    integer                                            :: doubleProperty, integerProperty
+
     integerProperty=0
     doubleProperty =0
     call thisNode%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
@@ -432,11 +432,11 @@ contains
     include 'galacticus.output.merger_tree.outputGroup.tasks.modules.inc'
     !# </include>
     implicit none
-    integer                         , intent(in   )               :: iOutput                          
-    double precision                , intent(in   )               :: time                             
-    type            (outputGroup   ), allocatable  , dimension(:) :: outputGroupsTemporary            
-    type            (varying_string)                              :: commentText          , groupName 
-    
+    integer                         , intent(in   )               :: iOutput
+    double precision                , intent(in   )               :: time
+    type            (outputGroup   ), allocatable  , dimension(:) :: outputGroupsTemporary
+    type            (varying_string)                              :: commentText          , groupName
+
     !$omp critical (HDF5_Access)
     ! Ensure group ID space is large enough.
     if (iOutput > outputGroupsCount) then

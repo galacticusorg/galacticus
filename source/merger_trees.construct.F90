@@ -25,21 +25,21 @@ module Merger_Tree_Construction
   private
   public :: Merger_Tree_Create
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                            :: mergerTreeConstructInitialized=.false.  
-  
-  ! Name of tree construction method used.                                                                                           
-  type     (varying_string                )          :: mergerTreeConstructMethod               
-  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.                                                                                           
-  procedure(Merger_Tree_Construct_Template), pointer :: Merger_Tree_Construct         =>null()  
+  ! Flag to indicate if this module has been initialized.
+  logical                                            :: mergerTreeConstructInitialized=.false.
+
+  ! Name of tree construction method used.
+  type     (varying_string                )          :: mergerTreeConstructMethod
+  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
+  procedure(Merger_Tree_Construct_Template), pointer :: Merger_Tree_Construct         =>null()
   abstract interface
      subroutine Merger_Tree_Construct_Template(thisTree,skipTree)
        import mergerTree
-       type   (mergerTree), intent(inout) :: thisTree  
-       logical            , intent(in   ) :: skipTree  
+       type   (mergerTree), intent(inout) :: thisTree
+       logical            , intent(in   ) :: skipTree
      end subroutine Merger_Tree_Construct_Template
   end interface
-  
+
 contains
 
   function Merger_Tree_Create(skipTree) result(thisTree)
@@ -51,12 +51,12 @@ contains
     include 'merger_trees.construct.modules.inc'
     !# </include>
     implicit none
-    type   (mergerTree), pointer       :: thisTree  
-    logical            , intent(in   ) :: skipTree  
-    
-    ! Initialize if necessary.                                             
+    type   (mergerTree), pointer       :: thisTree
+    logical            , intent(in   ) :: skipTree
+
+    ! Initialize if necessary.
     if (.not.mergerTreeConstructInitialized) then
-       !$omp critical(Merger_Tree_Construct_Initialization) 
+       !$omp critical(Merger_Tree_Construct_Initialization)
        if (.not.mergerTreeConstructInitialized) then
           !@ <inputParameter>
           !@   <name>mergerTreeConstructMethod</name>

@@ -27,14 +27,14 @@ module Galacticus_State
   public :: Galacticus_State_Snapshot, Galacticus_State_Store, Galacticus_State_Retrieve
 
   ! Flag indicating if we have retrieved the internal state already.
-  logical                 :: stateHasBeenRetrieved=.false.                         
-  
-  ! Root name for state files.                                                                              
-  type   (varying_string) :: stateFileRoot                , stateRetrieveFileRoot  
-  
-  ! Flag indicating if module has been initialized.                                                                              
-  logical                 :: stateInitialized     =.false.                         
-                                                                                
+  logical                 :: stateHasBeenRetrieved=.false.
+
+  ! Root name for state files.
+  type   (varying_string) :: stateFileRoot                , stateRetrieveFileRoot
+
+  ! Flag indicating if module has been initialized.
+  logical                 :: stateInitialized     =.false.
+
 contains
 
   subroutine Galacticus_State_Snapshot
@@ -62,17 +62,17 @@ contains
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
-    type   (varying_string), intent(in   ), optional :: logMessage                                
-    integer                                          :: iError       , stateUnit                  
-    type   (fgsl_file     )                          :: fgslStateFile                             
-    type   (varying_string)                          :: fileName     , fileNameFGSL, fileNameLog  
-    
-    ! Ensure that module is initialized.                                                                                           
+    type   (varying_string), intent(in   ), optional :: logMessage
+    integer                                          :: iError       , stateUnit
+    type   (fgsl_file     )                          :: fgslStateFile
+    type   (varying_string)                          :: fileName     , fileNameFGSL, fileNameLog
+
+    ! Ensure that module is initialized.
     call State_Initialize
 
     ! Check if a file has been specified.
     if (stateFileRoot /= "none") then
-       
+
        ! Open a file in which to store the state and an additional file for FGSL state.
        !$ if (omp_in_parallel()) then
        !$    fileName    =stateFileRoot//     '.state.'
@@ -94,12 +94,12 @@ contains
 
        open(newunit=stateUnit,file=char(fileName),form='unformatted',status='unknown')
        fgslStateFile=FGSL_Open(char(fileNameFGSL),'w')
-       
+
        !# <include directive="galacticusStateStoreTask" type="functionCall" functionType="void">
        !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
-       
+
        ! Close the state files.
        close(stateUnit)
        iError=FGSL_Close(fgslStateFile)
@@ -110,7 +110,7 @@ contains
     end if
     return
   end subroutine Galacticus_State_Store
-  
+
   subroutine Galacticus_State_Retrieve
     !% Retrieve the interal state.
     !$ use OMP_Lib
@@ -120,11 +120,11 @@ contains
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
     implicit none
-    integer                 :: iError       , stateUnit     
-    type   (fgsl_file     ) :: fgslStateFile                
-    type   (varying_string) :: fileName     , fileNameFGSL  
-    
-    ! Check if we have already retrieved the internal state.                                                     
+    integer                 :: iError       , stateUnit
+    type   (fgsl_file     ) :: fgslStateFile
+    type   (varying_string) :: fileName     , fileNameFGSL
+
+    ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
 
        ! Ensure that module is initialized.
@@ -132,7 +132,7 @@ contains
 
        ! Check if a file has been specified.
        if (stateRetrieveFileRoot /= "none") then
-          
+
           ! Open a file in which to retrieve the state and an additional file for FGSL state.
           !$ if (omp_in_parallel()) then
           !$    fileName    =stateRetrieveFileRoot//     '.state.'
@@ -145,22 +145,22 @@ contains
           !$ end if
           open(newunit=stateUnit,file=char(fileName),form='unformatted',status='old')
           fgslStateFile=FGSL_Open(char(fileNameFGSL),'r')
-          
+
           !# <include directive="galacticusStateRetrieveTask" type="functionCall" functionType="void">
           !#  <functionArgs>stateUnit,fgslStateFile</functionArgs>
           include 'galacticus.state.retrieve.inc'
           !# </include>
-          
+
           ! Close the state files.
           close(stateUnit)
           iError=FGSL_Close(fgslStateFile)
-          
+
        end if
-       
+
        ! Flag that internal state has been retrieved
        stateHasBeenRetrieved=.true.
     end if
-    
+
     return
   end subroutine Galacticus_State_Retrieve
 
@@ -169,9 +169,9 @@ contains
     !% retrieve a state.
     use Input_Parameters
     implicit none
-  
+
     if (.not.stateInitialized) then
-       
+
        ! Get the base name of the state files.
        !@ <inputParameter>
        !@   <name>stateFileRoot</name>
@@ -184,7 +184,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stateFileRoot'        ,stateFileRoot        ,defaultValue="none")
-   
+
        ! Get the base name of the files to retrieve from.
        !@ <inputParameter>
        !@   <name>stateRetrieveFileRoot</name>
@@ -197,12 +197,12 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('stateRetrieveFileRoot',stateRetrieveFileRoot,defaultValue="none")
-       
+
        ! Flag that module is now initialized.
-       stateInitialized=.true. 
-       
+       stateInitialized=.true.
+
     end if
     return
   end subroutine State_Initialize
-  
+
 end module Galacticus_State

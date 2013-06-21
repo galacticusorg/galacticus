@@ -28,7 +28,7 @@ module Galactic_Structure_Radii_Linear
   public :: Galactic_Structure_Radii_Linear_Initialize
 
   ! Module variables used to communicate current state of radius solver.
-  type(treeNode), pointer :: haloNode 
+  type(treeNode), pointer :: haloNode
   !$omp threadprivate(haloNode)
 contains
 
@@ -39,9 +39,9 @@ contains
     !% Initializes the ``linear'' galactic radii solver module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod 
-    procedure(Galactic_Structure_Radii_Solve_Linear), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do   
-    
+    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Linear), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+
     if (galacticStructureRadiusSolverMethod == 'linear') Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Linear
     return
   end subroutine Galactic_Structure_Radii_Linear_Initialize
@@ -52,12 +52,12 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                                              
-    procedure       (Structure_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null() 
-    procedure       (Structure_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null() 
-    logical                                                          :: componentActive                                       
-    double precision                                                 :: specificAngularMomentum                               
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    procedure       (Structure_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Structure_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
+    logical                                                          :: componentActive
+    double precision                                                 :: specificAngularMomentum
+
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
@@ -65,20 +65,20 @@ contains
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Linear
-  
+
   subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                              
-    double precision                        , intent(in   )          :: specificAngularMomentum               
-    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get 
-    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set 
-    double precision                                                 :: radius                 , velocity     
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: specificAngularMomentum
+    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    double precision                                                 :: radius                 , velocity
+
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
-    
+
     ! Find the radius of the component, assuming radius scales linearly with angular momentum.
     velocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
     radius  =specificAngularMomentum/velocity

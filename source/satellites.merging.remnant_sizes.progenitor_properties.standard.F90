@@ -35,9 +35,9 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod   
-    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Standard), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get 
-    
+    type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod
+    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Standard), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get
+
     if (satelliteMergingRemnantProgenitorPropertiesMethod == 'standard') then
        Satellite_Merging_Remnant_Progenitor_Properties_Get => Satellite_Merging_Remnant_Progenitor_Properties_Standard
        ! Ensure that required methods are supported.
@@ -70,26 +70,26 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode                        
-    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , & 
-         &                                                             hostRadius                     , hostSpheroidMass                 , & 
-         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , & 
-         &                                                             remnantSpheroidMass            , satelliteMass                    , & 
-         &                                                             satelliteRadius                , satelliteSpheroidMass                
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent               
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent           
-    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , & 
-         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , & 
-         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , & 
-         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, & 
-         &                                                             satelliteSpheroidHalfMassRadius                                       
-    
+    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode
+    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , &
+         &                                                             hostRadius                     , hostSpheroidMass                 , &
+         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , &
+         &                                                             remnantSpheroidMass            , satelliteMass                    , &
+         &                                                             satelliteRadius                , satelliteSpheroidMass
+    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent
+    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , &
+         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , &
+         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , &
+         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, &
+         &                                                             satelliteSpheroidHalfMassRadius
+
     ! Get the disk and spheroid components of host and satellite.
     hostDiskComponent          =>      hostNode%disk    ()
     hostSpheroidComponent      =>      hostNode%spheroid()
     satelliteDiskComponent     => satelliteNode%disk    ()
     satelliteSpheroidComponent => satelliteNode%spheroid()
-    
+
     ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
     call Galactic_Structure_Radii_Solve(hostNode     )
     call Galactic_Structure_Radii_Solve(satelliteNode)
@@ -228,7 +228,7 @@ contains
     ! Trap cases where radius is zero, but mass is finite (due to numerical inaccuracies).
     if (hostRadius      <= 0.0d0) hostSpheroidMass     =0.0d0
     if (satelliteRadius <= 0.0d0) satelliteSpheroidMass=0.0d0
-    
+
     ! Compute the radii of the spheroid components.
     if (hostSpheroidMass      > 0.0d0) hostRadius     =hostRadius     /hostSpheroidMass
     if (satelliteSpheroidMass > 0.0d0) satelliteRadius=satelliteRadius/satelliteSpheroidMass

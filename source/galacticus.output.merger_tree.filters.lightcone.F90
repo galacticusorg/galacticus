@@ -26,27 +26,27 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
        & Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize
 
   ! Number of lightcone properties.
-  integer                                      , parameter :: lightconePropertyCount    =8                                            
-  
+  integer                                      , parameter :: lightconePropertyCount    =8
+
   ! Flags indicating if the module has been initialized and if this filter is active.
-  logical                                                  :: lightconeFilterInitialized=.false.                                      
-  logical                                                  :: lightconeFilterActive                                                   
-  
+  logical                                                  :: lightconeFilterInitialized=.false.
+  logical                                                  :: lightconeFilterActive
+
   ! Variables used to describe the lightcone geometry.
-  double precision             , dimension(3  )            :: lightconeOrigin                                                         
-  double precision             , dimension(3,3)            :: lightconeUnitVector                                                     
-  double precision, allocatable, dimension(:)              :: lightconeMaximumDistance          , lightconeMinimumDistance        , & 
-       &                                                      lightconeTime                                                           
-  double precision                                         :: lightconeFieldOfViewLength        , lightconeFieldOfViewTanHalfAngle, & 
-       &                                                      lightconeReplicationPeriod                                              
-  double precision                                         :: angularWeight                                                           
-  integer                                                  :: lightconeGeometry                                                       
-  integer                                      , parameter :: lightconeGeometrySquare   =1                                            
-  
+  double precision             , dimension(3  )            :: lightconeOrigin
+  double precision             , dimension(3,3)            :: lightconeUnitVector
+  double precision, allocatable, dimension(:)              :: lightconeMaximumDistance          , lightconeMinimumDistance        , &
+       &                                                      lightconeTime
+  double precision                                         :: lightconeFieldOfViewLength        , lightconeFieldOfViewTanHalfAngle, &
+       &                                                      lightconeReplicationPeriod
+  double precision                                         :: angularWeight
+  integer                                                  :: lightconeGeometry
+  integer                                      , parameter :: lightconeGeometrySquare   =1
+
   ! Variables that store the position, velocity and redshift of a galaxy that is found to be in the lightcone. These are then used
   ! to output that position.
-  double precision             , dimension(3  )            :: lightconePosition                 , lightconeVelocity                   
-  double precision                                         :: lightconeRedshift                                                       
+  double precision             , dimension(3  )            :: lightconePosition                 , lightconeVelocity
+  double precision                                         :: lightconeRedshift
   !$omp threadprivate(lightconePosition,lightconeVelocity,lightconeRedshift)
 contains
 
@@ -64,22 +64,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    type            (varying_string), dimension(:), intent(in   ) :: filterNames                                                   
-    type            (Node          ), pointer                     :: doc                            , thisItem                     
-    type            (NodeList      ), pointer                     :: itemList                                                      
-    integer                                                       :: iAxis                          , iOutput                  , & 
-         &                                                           ioErr                          , lengthUnitsHubbleExponent    
-    double precision                                              :: lengthUnitsInSI                , unitConversionLength         
-    type            (varying_string)                              :: filterLightconeGeometryFileName                               
-    character       (len=11        )                              :: tagName                                                       
-    character       (len=10        )                              :: geometryLabel                                                 
-    
+    type            (varying_string), dimension(:), intent(in   ) :: filterNames
+    type            (Node          ), pointer                     :: doc                            , thisItem
+    type            (NodeList      ), pointer                     :: itemList
+    integer                                                       :: iAxis                          , iOutput                  , &
+         &                                                           ioErr                          , lengthUnitsHubbleExponent
+    double precision                                              :: lengthUnitsInSI                , unitConversionLength
+    type            (varying_string)                              :: filterLightconeGeometryFileName
+    character       (len=11        )                              :: tagName
+    character       (len=10        )                              :: geometryLabel
+
     ! Initialize the filter if necessary.
     if (.not.lightconeFilterInitialized) then
        ! Determine if this filter has been selected.
        lightconeFilterActive=any(filterNames == "lightcone")
        ! If this filter is active, read the geometric constraints.
-       if (lightconeFilterActive) then          
+       if (lightconeFilterActive) then
           ! Get name of lightcone geometry specification file.
           !@ <inputParameter>
           !@   <name>filterLightconeGeometryFileName</name>
@@ -188,28 +188,28 @@ contains
     end if
     return
   end subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone_Initialize
-  
+
   !# <mergerTreeOutputFilter>
   !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Lightcone</unitName>
   !# </mergerTreeOutputFilter>
   subroutine Galacticus_Merger_Tree_Output_Filter_Lightcone(thisNode,doOutput)
-    !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output. 
+    !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output.
     use Galacticus_Nodes
     use Arrays_Search
     use Numerical_Constants_Astronomical
     use Cosmology_Functions
     implicit none
-    type            (treeNode             )                , intent(inout), pointer :: thisNode                                                      
-    logical                                                , intent(inout)          :: doOutput                                                      
-    class           (nodeComponentBasic   )                               , pointer :: thisBasicComponent                                            
-    class           (nodeComponentPosition)                               , pointer :: thisPositionComponent                                         
-    double precision                       , parameter                              :: timeTolerance        =1.0d-3                                  
-    integer                                , dimension(3,3)                         :: periodicRange                                                 
-    double precision                       , dimension(3  )                         :: galaxyPosition              , galaxyVelocity                  
-    logical                                                                         :: galaxyIsInFieldOfView       , galaxyIsInLightcone             
-    integer                                                                         :: i                           , iAxis              , iOutput, & 
-         &                                                                             j                           , k                               
-    
+    type            (treeNode             )                , intent(inout), pointer :: thisNode
+    logical                                                , intent(inout)          :: doOutput
+    class           (nodeComponentBasic   )                               , pointer :: thisBasicComponent
+    class           (nodeComponentPosition)                               , pointer :: thisPositionComponent
+    double precision                       , parameter                              :: timeTolerance        =1.0d-3
+    integer                                , dimension(3,3)                         :: periodicRange
+    double precision                       , dimension(3  )                         :: galaxyPosition              , galaxyVelocity
+    logical                                                                         :: galaxyIsInFieldOfView       , galaxyIsInLightcone
+    integer                                                                         :: i                           , iAxis              , iOutput, &
+         &                                                                             j                           , k
+
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
 
@@ -233,13 +233,13 @@ contains
        do j=periodicRange(2,1),periodicRange(2,2)
           do k=periodicRange(3,1),periodicRange(3,2)
              if (.not.galaxyIsInLightcone) then
-                
+
                 ! Compute position of galaxy in lightcone coordinate system.
                 forall(iAxis=1:3)
                    lightconePosition(iAxis)=Dot_Product(galaxyPosition-lightconeOrigin+lightconeReplicationPeriod*dble([i,j,k]) &
                         & ,lightconeUnitVector(:,iAxis))
                 end forall
-                
+
                 ! Test if galaxy lies within the correct angular window.
                 select case (lightconeGeometry)
                 case (lightconeGeometrySquare)
@@ -248,7 +248,7 @@ contains
                         &  .and.                                                                             &
                         & abs(lightconePosition(3)/lightconePosition(1)) < lightconeFieldOfViewTanHalfAngle
                 end select
-                
+
                 ! Test if galaxy lies within appropriate radial range.
                 galaxyIsInLightcone=      galaxyIsInFieldOfView                                     &
                      &              .and. lightconePosition(1) >  lightconeMinimumDistance(iOutput) &
@@ -286,16 +286,16 @@ contains
     use Galacticus_Error
     use FoX_DOM
     implicit none
-    double precision          , dimension(3)           :: Filter_Lightcone_Get_Coordinates 
-    type            (Node    ), intent(in   ), pointer :: enclosingItem                    
-    type            (Node    )               , pointer :: thisItem                         
-    type            (NodeList)               , pointer :: coordinates                      
-    integer                                            :: iAxis                            
-    
+    double precision          , dimension(3)           :: Filter_Lightcone_Get_Coordinates
+    type            (Node    ), intent(in   ), pointer :: enclosingItem
+    type            (Node    )               , pointer :: thisItem
+    type            (NodeList)               , pointer :: coordinates
+    integer                                            :: iAxis
+
     coordinates => getElementsByTagname(enclosingItem,"coordinate")
     if (getLength(coordinates) /= 3) call Galacticus_Error_Report('Filter_Lightcone_Get_Coordinates','three axes must be specified')
     do iAxis=1,3
-       thisItem => item(coordinates,iAxis-1)    
+       thisItem => item(coordinates,iAxis-1)
        call extractDataContent(thisItem,Filter_Lightcone_Get_Coordinates(iAxis))
     end do
     return
@@ -312,13 +312,13 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+
     if (lightconeFilterActive) then
        !@ <outputPropertyGroup>
        !@   <name>lightconePosition</name>
@@ -444,10 +444,10 @@ contains
     !% Account for the number of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                  
-    double precision          , intent(in   )          :: time                                      
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: time
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     if (lightconeFilterActive) doublePropertyCount=doublePropertyCount+lightconePropertyCount
     return
   end subroutine Galacticus_Output_Tree_Lightcone_Property_Count
@@ -462,13 +462,13 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )          :: time                                                          
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
-         &                                                      integerProperty                                               
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
-    
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                      integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+
    if (lightconeFilterActive) then
        doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+3)=lightconePosition
        doubleProperty=doubleProperty+3

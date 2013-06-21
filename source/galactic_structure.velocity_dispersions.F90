@@ -26,11 +26,11 @@ module Galactic_Structure_Velocity_Dispersions
   implicit none
   private
   public :: Galactic_Structure_Velocity_Dispersion
-  
+
   ! Module scoped variables used in integrations.
-  integer                    :: componentTypeGlobal, massTypeGlobal 
-  type   (treeNode), pointer :: activeNode                          
-  logical                    :: haloLoadedActual                    
+  integer                    :: componentTypeGlobal, massTypeGlobal
+  type   (treeNode), pointer :: activeNode
+  logical                    :: haloLoadedActual
   !$omp threadprivate(massTypeGlobal,componentTypeGlobal,activeNode,haloLoadedActual)
 contains
 
@@ -42,16 +42,16 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
-    type            (treeNode                  ), intent(inout), pointer  :: thisNode                                         
-    double precision                            , intent(in   )           :: radius              , radiusOuter                
-    integer                                     , intent(in   )           :: componentType       , massType                   
-    logical                                     , intent(in   ), optional :: haloLoaded                                       
-    double precision                                                      :: componentDensity    , densityVelocityVariance, & 
-         &                                                                   massTotal                                        
-    type            (c_ptr                     )                          :: parameterPointer                                 
-    type            (fgsl_function             )                          :: integrandFunction                                
-    type            (fgsl_integration_workspace)                          :: integrationWorkspace                             
-    
+    type            (treeNode                  ), intent(inout), pointer  :: thisNode
+    double precision                            , intent(in   )           :: radius              , radiusOuter
+    integer                                     , intent(in   )           :: componentType       , massType
+    logical                                     , intent(in   ), optional :: haloLoaded
+    double precision                                                      :: componentDensity    , densityVelocityVariance, &
+         &                                                                   massTotal
+    type            (c_ptr                     )                          :: parameterPointer
+    type            (fgsl_function             )                          :: integrandFunction
+    type            (fgsl_integration_workspace)                          :: integrationWorkspace
+
     activeNode         => thisNode
     componentTypeGlobal=  componentType
     massTypeGlobal     =  massType
@@ -87,10 +87,10 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    real(kind=c_double)        :: Velocity_Dispersion_Integrand 
-    real(kind=c_double), value :: radius                        
-    type(c_ptr        ), value :: parameterPointer              
-    
+    real(kind=c_double)        :: Velocity_Dispersion_Integrand
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     if (radius == 0.0d0) then
        Velocity_Dispersion_Integrand=0.0d0
     else

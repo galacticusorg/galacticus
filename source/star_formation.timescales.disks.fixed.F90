@@ -24,8 +24,8 @@ module Star_Formation_Timescale_Disks_Fixed
   public :: Star_Formation_Timescale_Disks_Fixed_Initialize
 
   ! Parameters of the timescale model.
-  double precision :: starFormationTimescaleDisksFixedTimescale  
-                                                              
+  double precision :: starFormationTimescaleDisksFixedTimescale
+
 contains
 
   !# <starFormationTimescaleDisksMethod>
@@ -38,9 +38,9 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    type     (varying_string                     ), intent(in   )          :: starFormationTimescaleDisksMethod  
-    procedure(Star_Formation_Timescale_Disk_Fixed), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get  
-                                                                                                              
+    type     (varying_string                     ), intent(in   )          :: starFormationTimescaleDisksMethod
+    procedure(Star_Formation_Timescale_Disk_Fixed), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
+
     if (starFormationTimescaleDisksMethod == 'fixed') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Fixed
        ! Get parameters of for the timescale calculation.
@@ -64,11 +64,11 @@ contains
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\tt thisNode}, assuming a fixed timecale.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Return the timescale.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Return the timescale.
     Star_Formation_Timescale_Disk_Fixed=starFormationTimescaleDisksFixedTimescale
     return
   end function Star_Formation_Timescale_Disk_Fixed
-  
+
 end module Star_Formation_Timescale_Disks_Fixed

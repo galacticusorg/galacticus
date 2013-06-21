@@ -22,7 +22,7 @@ module Satellite_Promotion
   implicit none
   private
   public :: Satellite_Move_To_New_Host
-  
+
 contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
@@ -35,11 +35,11 @@ contains
     include 'satellites.structures.host_change.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: newHostNode      , satelliteNode  
-    type(treeNode      )               , pointer :: lastSatelliteNode                 
-    type(varying_string)                         :: message                           
-    
-    ! Report if necessary.                                                                               
+    type(treeNode      ), intent(inout), pointer :: newHostNode      , satelliteNode
+    type(treeNode      )               , pointer :: lastSatelliteNode
+    type(varying_string)                         :: message
+
+    ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['
        message=message//satelliteNode%index()//'] is being promoted to new host node ['//newHostNode%index()//']'

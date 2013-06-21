@@ -49,7 +49,7 @@ program Test_Hashes
        &      [myHash%exists("dude") ,myHash%exists("munky"),myHash%exists("zuncular")], &
        &      [.true.                ,.true.                ,.true.                   ]  &
        &     )
-  
+
   ! Assert that unset entries to not exist.
   call Assert("hash non-entries do not exist",                                           &
        &      [myHash%exists("buffy"),myHash%exists("giles"),myHash%exists("willow")  ], &
@@ -61,7 +61,7 @@ program Test_Hashes
        &      [myHash%value ("dude") ,myHash%value ("munky"),myHash%value ("zuncular")], &
        &      [34                    ,-86                   ,12                       ]  &
        &     )
-  
+
   ! Delete a hash entry.
   call myHash%delete("munky")
 

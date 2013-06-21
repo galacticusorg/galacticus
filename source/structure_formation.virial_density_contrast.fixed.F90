@@ -24,17 +24,17 @@ module Virial_Densities_Fixed
   public :: Virial_Density_Fixed_Initialize
 
   ! The type of reference density to use.
-  integer                     :: densityType                                                     
-  integer         , parameter :: densityTypeCritical       =0                                    
-  integer         , parameter :: densityTypeMean           =1                                    
-  
-  ! The fixed overdensity to use.                                                                                            
-  double precision            :: virialDensityContrastFixed                                      
-  
-  ! Variables to hold the tabulated critical overdensity data.                                                                                            
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0  
-  integer         , parameter :: deltaTableNPointsPerDecade=100                                  
-                                                                                              
+  integer                     :: densityType
+  integer         , parameter :: densityTypeCritical       =0
+  integer         , parameter :: densityTypeMean           =1
+
+  ! The fixed overdensity to use.
+  double precision            :: virialDensityContrastFixed
+
+  ! Variables to hold the tabulated critical overdensity data.
+  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
+  integer         , parameter :: deltaTableNPointsPerDecade=100
+
 contains
 
   !# <virialDensityContrastMethod>
@@ -46,10 +46,10 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type     (varying_string      ), intent(in   )          :: virialDensityContrastMethod       
-    procedure(Virial_Density_Fixed), intent(inout), pointer :: Virial_Density_Contrast_Tabulate  
-    type     (varying_string      )                         :: virialDensityContrastFixedType    
-                                                                                              
+    type     (varying_string      ), intent(in   )          :: virialDensityContrastMethod
+    procedure(Virial_Density_Fixed), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
+    type     (varying_string      )                         :: virialDensityContrastFixedType
+
     if (virialDensityContrastMethod == 'fixed') then
        ! Return a pointer to our tabulation function.
        Virial_Density_Contrast_Tabulate => Virial_Density_Fixed
@@ -96,19 +96,19 @@ contains
     use Numerical_Ranges
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time                           
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable               
-    integer                                               :: deltaTableNumberPoints, iTime  
-    double precision                                      :: densityContrast                
-    
-    ! Find minimum and maximum times to tabulate.                                                                                     
+    double precision                      , intent(in   ) :: time
+    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
+    integer                                               :: deltaTableNumberPoints, iTime
+    double precision                                      :: densityContrast
+
+    ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
-    
+
     ! Determine number of points to tabulate.
     deltaTableNumberPoints=int(log10(deltaTableTimeMaximum/deltaTableTimeMinimum)&
          &*dble(deltaTableNPointsPerDecade))
-    
+
     ! Deallocate table if currently allocated.
     if (allocated(deltaVirialTable)) then
        call deltaVirialTable%destroy()

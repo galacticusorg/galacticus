@@ -24,15 +24,15 @@ module Satellite_Merging_Remnant_Sizes_Progenitors
   private
   public :: Satellite_Merging_Remnant_Progenitor_Properties
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                             :: satelliteMergingRemnantProgenitorPropertiesInitialized=.false. 
-  
+  ! Flag to indicate if this module has been initialized.
+  logical                                                             :: satelliteMergingRemnantProgenitorPropertiesInitialized=.false.
+
   ! Name of mass movement method used.
-  type     (varying_string                                 )          :: satelliteMergingRemnantProgenitorPropertiesMethod              
-  
+  type     (varying_string                                 )          :: satelliteMergingRemnantProgenitorPropertiesMethod
+
   ! Pointer to the subroutine that returns properties of progenitors.
-  procedure(Satellite_Merging_Remnant_Progenitor_Properties), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get   =>null() 
-  
+  procedure(Satellite_Merging_Remnant_Progenitor_Properties), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get   =>null()
+
 contains
 
   subroutine Satellite_Merging_Remnant_Progenitor_Properties(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass&
@@ -46,13 +46,13 @@ contains
     include 'satellites.merging.remnant_sizes.progenitor_propeties.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode), intent(inout), pointer :: hostNode                 , satelliteNode             
-    double precision          , intent(  out)          :: angularMomentumFactor    , hostMass              , & 
-         &                                                hostRadius               , hostSpheroidMass      , & 
-         &                                                hostSpheroidMassPreMerger, remnantSpheroidGasMass, & 
-         &                                                remnantSpheroidMass      , satelliteMass         , & 
-         &                                                satelliteRadius          , satelliteSpheroidMass     
-    
+    type            (treeNode), intent(inout), pointer :: hostNode                 , satelliteNode
+    double precision          , intent(  out)          :: angularMomentumFactor    , hostMass              , &
+         &                                                hostRadius               , hostSpheroidMass      , &
+         &                                                hostSpheroidMassPreMerger, remnantSpheroidGasMass, &
+         &                                                remnantSpheroidMass      , satelliteMass         , &
+         &                                                satelliteRadius          , satelliteSpheroidMass
+
     if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then
        !$omp critical(satelliteMergingRemnantProgenitorPropertiesInitialize)
        if (.not.satelliteMergingRemnantProgenitorPropertiesInitialized) then

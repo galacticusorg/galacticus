@@ -27,10 +27,10 @@ module Hot_Halo_Ram_Pressure_Force_Font2008
   public :: Hot_Halo_Ram_Pressure_Force_Font2008_Initialize
 
   ! Pointers to the host and satellite nodes.
-  type            (treeNode), pointer :: hostNode        , satelliteNode 
+  type            (treeNode), pointer :: hostNode        , satelliteNode
   !$omp threadprivate(hostNode,satelliteNode)
   ! The ram pressure force (per unit area) used in root finding.
-  double precision                    :: ramPressureForce                
+  double precision                    :: ramPressureForce
   !$omp threadprivate(ramPressureForce)
 contains
 
@@ -42,9 +42,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                          ), intent(in   )          :: hotHaloRamPressureForceMethod   
-    procedure(Hot_Halo_Ram_Pressure_Force_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get 
-    
+    type     (varying_string                          ), intent(in   )          :: hotHaloRamPressureForceMethod
+    procedure(Hot_Halo_Ram_Pressure_Force_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get
+
     if (hotHaloRamPressureForceMethod == 'Font2008') then
        Hot_Halo_Ram_Pressure_Force_Get => Hot_Halo_Ram_Pressure_Force_Font2008_Get
     end if
@@ -62,17 +62,17 @@ contains
     use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                                               
-    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent                                 
-    type            (keplerOrbit           )                         :: thisOrbit                                              
-    double precision                                                 :: densityHotHaloHost    , orbitalRadius, orbitalVelocity 
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent
+    type            (keplerOrbit           )                         :: thisOrbit
+    double precision                                                 :: densityHotHaloHost    , orbitalRadius, orbitalVelocity
+
     ! Find the host node.
     hostNode      => thisNode%parent
     ! Set a pointer to the satellite node.
     satelliteNode => thisNode
     ! Get the satellite component.
-    thisSatelliteComponent => thisNode%satellite() 
+    thisSatelliteComponent => thisNode%satellite()
     ! Get the orbit for this node.
     thisOrbit=thisSatelliteComponent%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.

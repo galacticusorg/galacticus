@@ -22,7 +22,7 @@ module Events_Halo_Formation
   implicit none
   private
   public :: Event_Halo_Formation
-  
+
 contains
 
   subroutine Event_Halo_Formation(thisNode)
@@ -32,8 +32,8 @@ contains
     include 'events.halo_formation.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     ! Allow arbitrary routines to perform tasks.
     !# <include directive="haloFormationTask" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode</functionArgs>

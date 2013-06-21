@@ -27,11 +27,11 @@ module Merger_Trees_State_Store
   public :: Merger_Tree_State_Store, Merger_Tree_State_Store_Initialize
 
   ! File name from which stored trees should be read.
-  type   (varying_string) :: mergerTreeStateStoreFile  
-  
-  ! File unit for the tree data file.                                                  
-  integer                 :: treeDataUnit              
-                                                    
+  type   (varying_string) :: mergerTreeStateStoreFile
+
+  ! File unit for the tree data file.
+  integer                 :: treeDataUnit
+
 contains
 
   !# <mergerTreeConstructMethod>
@@ -41,10 +41,10 @@ contains
     !% Initialize the ``state restore'' method for constructing merger trees.
     use Input_Parameters
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod  
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct      
-    
-    ! Check if our method is to be used.                                                                             
+    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+
+    ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'stateRestore') then
        ! Assign pointer to our merger tree construction subroutine.
        Merger_Tree_Construct => Merger_Tree_State_Restore
@@ -72,14 +72,14 @@ contains
     use Galacticus_Nodes
     use Galacticus_State
     implicit none
-    type     (mergerTree    ), intent(in   )               :: thisTree                      
-    character(len=*         ), intent(in   )               :: storeFile                     
-    type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode   
-    integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices                   
-    type     (varying_string), save                        :: storeFilePrevious             
-    integer                                                :: fileUnit         , nodeCount  
-    
-    ! Take a snapshot of the internal state and store it.                                                                                     
+    type     (mergerTree    ), intent(in   )               :: thisTree
+    character(len=*         ), intent(in   )               :: storeFile
+    type     (treeNode      ), pointer                     :: currentNodeInTree, thisNode
+    integer  (kind=kind_int8), allocatable  , dimension(:) :: nodeIndices
+    type     (varying_string), save                        :: storeFilePrevious
+    integer                                                :: fileUnit         , nodeCount
+
+    ! Take a snapshot of the internal state and store it.
     call Galacticus_State_Snapshot
     call Galacticus_State_Store
 
@@ -144,9 +144,9 @@ contains
   integer function Node_Array_Position(nodeIndex,nodeIndices)
     !% Returns the position of a node in the output list given its index.
     implicit none
-    integer(kind=kind_int8)              , intent(in   ) :: nodeIndex    
-    integer(kind=kind_int8), dimension(:), intent(in   ) :: nodeIndices  
-                                                                      
+    integer(kind=kind_int8)              , intent(in   ) :: nodeIndex
+    integer(kind=kind_int8), dimension(:), intent(in   ) :: nodeIndices
+
     if (nodeIndex == -1) then
        Node_Array_Position=-1
     else
@@ -165,16 +165,16 @@ contains
     use Galacticus_State
     use Galacticus_Error
     implicit none
-    type   (mergerTree    ), intent(inout)               :: thisTree                                                        
-    logical                , intent(in   )               :: skipTree                                                        
-    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes                                                           
-    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , & 
-         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , & 
-         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , & 
-         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex     
-    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID                               
-    
-    ! Retrieve stored internal state if possible.                                                                                                                     
+    type   (mergerTree    ), intent(inout)               :: thisTree
+    logical                , intent(in   )               :: skipTree
+    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
+    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
+         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
+         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
+         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex
+    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID
+
+    ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve
 
     ! Read basic tree information.
@@ -225,10 +225,10 @@ contains
   function Pointed_At_Node(nodeArrayIndex,nodes)
     !% Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
     use Galacticus_Nodes
-    type   (treeNode    ), pointer                     :: Pointed_At_Node  
-    integer                            , intent(in   ) :: nodeArrayIndex   
-    type   (treeNodeList), dimension(:), intent(in   ) :: nodes            
-                                                                        
+    type   (treeNode    ), pointer                     :: Pointed_At_Node
+    integer                            , intent(in   ) :: nodeArrayIndex
+    type   (treeNodeList), dimension(:), intent(in   ) :: nodes
+
     if (nodeArrayIndex == -1) then
        Pointed_At_Node => null()
     else
@@ -241,8 +241,8 @@ contains
     !% Walk a merger tree for the purposes of storing the full state to file. Includes walking of formation nodes.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: currentNodeInTree, thisNode  
-                                                                        
+    type(treeNode), intent(inout), pointer :: currentNodeInTree, thisNode
+
     if (associated(thisNode%formationNode)) then
        if (.not.associated(currentNodeInTree)) currentNodeInTree => thisNode
        thisNode => thisNode%formationNode

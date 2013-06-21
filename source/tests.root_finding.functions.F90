@@ -36,14 +36,14 @@ contains
   double precision function Root_Function_2(x)
     !% Function for root finding unit tests.
     double precision, intent(in   ) :: x
-   
+
     Root_Function_2=x**2-5.0d0*x+1.0d0
   end function Root_Function_2
 
   double precision function Root_Function_3(x)
     !% Function for root finding unit tests.
     double precision, intent(in   ) :: x
-   
+
     Root_Function_3=x*exp(-x)+1.0d0
   end function Root_Function_3
 

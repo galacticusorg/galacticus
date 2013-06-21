@@ -24,29 +24,29 @@ module Conditional_Stellar_Mass_Functions_Behroozi2010
   public :: Conditional_Stellar_Mass_Functions_Behroozi2010_Initialize
 
   ! Parameters of the Behroozi et al. fitting function.
-  double precision                                               :: conditionalStellarMassFunctionBehrooziAlphaSatellite                                         
-  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10M1                                                
-  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10Mstar0                                            
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBeta                                                   
-  double precision                                               :: conditionalStellarMassFunctionBehrooziDelta                                                  
-  double precision                                               :: conditionalStellarMassFunctionBehrooziGamma                                                  
-  double precision                                               :: conditionalStellarMassFunctionBehrooziSigmaLogMstar                                          
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBCut                                                   
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBSatellite                                             
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaCut                                                
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaSatellite                                          
-  double precision                                               :: Mstar0                                                                                       
-  
+  double precision                                               :: conditionalStellarMassFunctionBehrooziAlphaSatellite
+  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10M1
+  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10Mstar0
+  double precision                                               :: conditionalStellarMassFunctionBehrooziBeta
+  double precision                                               :: conditionalStellarMassFunctionBehrooziDelta
+  double precision                                               :: conditionalStellarMassFunctionBehrooziGamma
+  double precision                                               :: conditionalStellarMassFunctionBehrooziSigmaLogMstar
+  double precision                                               :: conditionalStellarMassFunctionBehrooziBCut
+  double precision                                               :: conditionalStellarMassFunctionBehrooziBSatellite
+  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaCut
+  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaSatellite
+  double precision                                               :: Mstar0
+
   ! Tablulation of stellar-halo mass relation.
-  integer                            , parameter                 :: fMassStellarTablePointsPerDecade                    =10                                      
-  integer                                                        :: fMassStellarTableCount                                                                       
-  double precision                                               :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8 
-  double precision                                               :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum          
-  double precision                   , allocatable, dimension(:) :: fMassHaloTable                                              , fMassStellarTable              
-  logical                                                        :: interpolationReset                                  =.false.                                 
-  type            (fgsl_interp      )                            :: interpolationObject                                                                          
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                                                     
-  
+  integer                            , parameter                 :: fMassStellarTablePointsPerDecade                    =10
+  integer                                                        :: fMassStellarTableCount
+  double precision                                               :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8
+  double precision                                               :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum
+  double precision                   , allocatable, dimension(:) :: fMassHaloTable                                              , fMassStellarTable
+  logical                                                        :: interpolationReset                                  =.false.
+  type            (fgsl_interp      )                            :: interpolationObject
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator
+
 contains
 
   !# <conditionalStellarMassFunctionMethod>
@@ -58,9 +58,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: conditionalStellarMassFunctionMethod                                                                   
-    procedure(double precision), intent(inout), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get, Cumulative_Conditional_Stellar_Mass_Function_Var_Get 
-    
+    type     (varying_string  ), intent(in   )          :: conditionalStellarMassFunctionMethod
+    procedure(double precision), intent(inout), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get, Cumulative_Conditional_Stellar_Mass_Function_Var_Get
+
     if (conditionalStellarMassFunctionMethod == 'Behroozi2010') then
        Cumulative_Conditional_Stellar_Mass_Function_Get     => Cumulative_Conditional_Stellar_Mass_Function_Behroozi2010
        Cumulative_Conditional_Stellar_Mass_Function_Var_Get => Cumulative_Conditional_Stellar_Mass_Function_Var_Behroozi2010
@@ -219,9 +219,9 @@ contains
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
     implicit none
-    double precision, intent(in   ) :: massHalo      , massStellar      
-    double precision                :: numberCentrals, numberSatellites 
-    
+    double precision, intent(in   ) :: massHalo      , massStellar
+    double precision                :: numberCentrals, numberSatellites
+
     ! Get the number of satellites and centrals.
     call Cumulative_Conditional_Stellar_Mass_Function_Compute(massHalo,massStellar,numberCentrals,numberSatellites)
 
@@ -236,10 +236,10 @@ contains
     !% satellite galaxies is Poisson distributed, while the number of central galaxies follows a Bernoulli distribution, and that
     !% the numbers of satellites and centrals are uncorrelated.
     implicit none
-    double precision, intent(in   ) :: massHalo        , massStellarHigh     , massStellarLow         
-    double precision                :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , & 
-         &                             numberSatellites, numberSatellitesHigh, numberSatellitesLow    
-    
+    double precision, intent(in   ) :: massHalo        , massStellarHigh     , massStellarLow
+    double precision                :: numberCentrals  , numberCentralsHigh  , numberCentralsLow  , &
+         &                             numberSatellites, numberSatellitesHigh, numberSatellitesLow
+
     ! Get the number of satellites and centrals.
     call Cumulative_Conditional_Stellar_Mass_Function_Compute(massHalo,massStellarLow ,numberCentralsLow ,numberSatellitesLow )
     call Cumulative_Conditional_Stellar_Mass_Function_Compute(massHalo,massStellarHigh,numberCentralsHigh,numberSatellitesHigh)
@@ -260,15 +260,15 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    double precision                    , intent(in   ) :: massHalo                  , massStellar                   
-    double precision                    , intent(  out) :: numberCentrals            , numberSatellites              
-    double precision, parameter                         :: massNormalization  =1.0d12                                
-    double precision                                    :: fMassHalo                 , massCut                   , & 
-         &                                                 massSatellite                                             
-    double precision              , save                :: fMassStellar              , massHaloPrevious   =-1.0d0    
+    double precision                    , intent(in   ) :: massHalo                  , massStellar
+    double precision                    , intent(  out) :: numberCentrals            , numberSatellites
+    double precision, parameter                         :: massNormalization  =1.0d12
+    double precision                                    :: fMassHalo                 , massCut                   , &
+         &                                                 massSatellite
+    double precision              , save                :: fMassStellar              , massHaloPrevious   =-1.0d0
     !$omp threadprivate(massHaloPrevious,fMassStellar)
-    double precision, dimension(2), save                :: fMassHaloStored           , massCutStored             , & 
-         &                                                 massSatelliteStored       , massStellarPrevious=-1.0d0    
+    double precision, dimension(2), save                :: fMassHaloStored           , massCutStored             , &
+         &                                                 massSatelliteStored       , massStellarPrevious=-1.0d0
     !$omp threadprivate(massStellarPrevious,fMassHaloStored,massSatelliteStored,massCutStored)
     ! Ensure that the stellar-halo mass relation is tabulated over a sufficient range.
     !$omp critical(CSMF_Behroozi2010_Tabulate)
@@ -307,7 +307,7 @@ contains
        massSatellite         =massNormalization*conditionalStellarMassFunctionBehrooziBSatellite*(fMassHalo/massNormalization)&
             &                  **conditionalStellarMassFunctionBehrooziBetaSatellite
        massCut               =massNormalization*conditionalStellarMassFunctionBehrooziBCut      *(fMassHalo/massNormalization)&
-            &                  **conditionalStellarMassFunctionBehrooziBetaCut       
+            &                  **conditionalStellarMassFunctionBehrooziBetaCut
        fMassHaloStored    (1)=fMassHalo
        massStellarPrevious(1)=massStellar
        massSatelliteStored(1)=massSatellite
@@ -345,10 +345,10 @@ contains
   elemental double precision function fSHMRInverse(massStellar)
     !% The median stellar mass vs. halo mass relation functional form from \cite{behroozi_comprehensive_2010}.
     implicit none
-    double precision, intent(in   ) :: massStellar                  
-    double precision, parameter     :: logHaloMassTransition=20.0d0 
-    double precision                :: argument                     
-    
+    double precision, intent(in   ) :: massStellar
+    double precision, parameter     :: logHaloMassTransition=20.0d0
+    double precision                :: argument
+
     ! Compute the logarithmic halo mass for the given stellar mass.
     argument=                                                                                                                   &
          &    conditionalStellarMassFunctionBehrooziLog10M1                                                                     &

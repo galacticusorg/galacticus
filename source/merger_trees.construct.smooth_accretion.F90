@@ -28,13 +28,13 @@ module Merger_Tree_Smooth_Accretion
   public :: Merger_Tree_Smooth_Accretion_Initialize
 
   ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeBaseRedshift              , mergerTreeBuildTreesBaseTime   , & 
-       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor, & 
-       &              mergerTreeHaloMassResolution                                             
-  
+  double precision :: mergerTreeBaseRedshift              , mergerTreeBuildTreesBaseTime   , &
+       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor, &
+       &              mergerTreeHaloMassResolution
+
   ! Flag indicating whether or not we've already built the tree.
-  logical          :: treeWasBuilt                =.false.                                     
-  
+  logical          :: treeWasBuilt                =.false.
+
 contains
 
   !# <mergerTreeConstructMethod>
@@ -45,9 +45,9 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod 
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct     
-    
+    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'smoothAccretion') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -55,7 +55,7 @@ contains
        ! Read the mass of the halo to construct.
        !@ <inputParameter>
        !@   <name>mergerTreeHaloMass</name>
-       !@   <defaultValue>$10^{12}$</defaultValue>       
+       !@   <defaultValue>$10^{12}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
@@ -66,7 +66,7 @@ contains
        call Get_Input_Parameter('mergerTreeHaloMass'                ,mergerTreeHaloMass                ,defaultValue=1.0d12)
        !@ <inputParameter>
        !@   <name>mergerTreeHaloMassResolution</name>
-       !@   <defaultValue>$10^{12}$</defaultValue>       
+       !@   <defaultValue>$10^{12}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The final mass of the merger tree base halo to consider when building a smoothly accreting merger tree, in units of $M_\odot$.
@@ -77,7 +77,7 @@ contains
        call Get_Input_Parameter('mergerTreeHaloMassResolution'      ,mergerTreeHaloMassResolution      ,defaultValue=1.0d9 )
        !@ <inputParameter>
        !@   <name>mergerTreeHaloMassDeclineFactor</name>
-       !@   <defaultValue>$0.9$</defaultValue>       
+       !@   <defaultValue>$0.9$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which halo mass should decrease in each step back in time building a smoothly accreting merger tree, in units of $M_\odot$.
@@ -88,7 +88,7 @@ contains
        call Get_Input_Parameter('mergerTreeHaloMassDeclineFactor'   ,mergerTreeHaloMassDeclineFactor   ,defaultValue=0.9d0 )
        !@ <inputParameter>
        !@   <name>mergerTreeBaseRedshift</name>
-       !@   <defaultValue>0</defaultValue>       
+       !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The redshift at which to plant the base node when building the smoothly accreting merger tree.
@@ -108,14 +108,14 @@ contains
     use Kind_Numbers
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type            (mergerTree        )         , intent(inout) :: thisTree                                             
-    logical                                      , intent(in   ) :: skipTree                                             
-    type            (treeNode          ), pointer                :: currentNode        , newNode                         
-    class           (nodeComponentBasic), pointer                :: baseBasicComponent , newBasicComponent               
-    integer         (kind=kind_int8    )                         :: nodeIndex                                            
-    double precision                                             :: expansionFactorBase, mergerTreeBaseTime, nodeMass, & 
-         &                                                          nodeTime                                             
-    
+    type            (mergerTree        )         , intent(inout) :: thisTree
+    logical                                      , intent(in   ) :: skipTree
+    type            (treeNode          ), pointer                :: currentNode        , newNode
+    class           (nodeComponentBasic), pointer                :: baseBasicComponent , newBasicComponent
+    integer         (kind=kind_int8    )                         :: nodeIndex
+    double precision                                             :: expansionFactorBase, mergerTreeBaseTime, nodeMass, &
+         &                                                          nodeTime
+
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
     if (.not.treeWasBuilt) then
@@ -134,7 +134,7 @@ contains
        mergerTreeBaseTime =Cosmology_Age                 (expansionFactorBase   )
        ! Assign a time to the base node.
        call baseBasicComponent%timeSet(mergerTreeBaseTime)
-       ! Get a pointer to the current node (i.e. the base node).       
+       ! Get a pointer to the current node (i.e. the base node).
        currentNode => thisTree%baseNode
        ! Initialize current node mass.
        nodeMass=mergerTreeHaloMass

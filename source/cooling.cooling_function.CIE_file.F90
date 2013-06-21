@@ -27,40 +27,40 @@ module Cooling_Functions_CIE_File
        & Cooling_Function_CIE_File_logTemperature_Interpolate, Cooling_Function_CIE_File,&
        & Cooling_Function_Temperature_Slope_CIE_File, Cooling_Function_Density_Slope_CIE_File,&
        & Cooling_Function_CIE_File_Format_Version
-  
+
   ! Flag indicating whether or not this cooling function is selected.
-  logical                                                          :: functionSelected                      =.false.                                                   
-  
+  logical                                                          :: functionSelected                      =.false.
+
   ! Flag to indicate if this module has been initialized.
-  logical                                                          :: coolingFunctionInitialized            =.false.                                                   
-  
+  logical                                                          :: coolingFunctionInitialized            =.false.
+
   ! File name for the cooling function data.
-  type            (varying_string   )                              :: coolingFunctionFile                                                                              
-  
+  type            (varying_string   )                              :: coolingFunctionFile
+
   ! Ranges of the tabulations.
-  double precision                                                 :: metallicityMaximum                            , metallicityMinimum                           , & 
-       &                                                              temperatureMaximum                            , temperatureMinimum                               
-  
+  double precision                                                 :: metallicityMaximum                            , metallicityMinimum                           , &
+       &                                                              temperatureMaximum                            , temperatureMinimum
+
   ! Extrapolation methods.
-  integer                                                          :: extrapolateMetallicityHigh                    , extrapolateMetallicityLow                    , & 
-       &                                                              extrapolateTemperatureHigh                    , extrapolateTemperatureLow                        
-  
+  integer                                                          :: extrapolateMetallicityHigh                    , extrapolateMetallicityLow                    , &
+       &                                                              extrapolateTemperatureHigh                    , extrapolateTemperatureLow
+
   ! The cooling function tables.
-  logical                                                          :: firstMetallicityIsZero                        , logarithmicTable                                 
-  integer                                                          :: coolingFunctionMetallicityNumberPoints        , coolingFunctionTemperatureNumberPoints           
-  double precision                                                 :: firstNonZeroMetallicity                                                                          
-  double precision                   , allocatable, dimension(:)   :: coolingFunctionMetallicities                  , coolingFunctionTemperatures                      
-  double precision                   , allocatable, dimension(:,:) :: coolingFunctionTable                                                                             
-  
+  logical                                                          :: firstMetallicityIsZero                        , logarithmicTable
+  integer                                                          :: coolingFunctionMetallicityNumberPoints        , coolingFunctionTemperatureNumberPoints
+  double precision                                                 :: firstNonZeroMetallicity
+  double precision                   , allocatable, dimension(:)   :: coolingFunctionMetallicities                  , coolingFunctionTemperatures
+  double precision                   , allocatable, dimension(:,:) :: coolingFunctionTable
+
   ! Interpolation structures.
-  logical                                                          :: resetMetallicity                      =.true. , resetTemperature                      =.true.    
-  type            (fgsl_interp_accel)                              :: interpolationAcceleratorMetallicity           , interpolationAcceleratorTemperature              
-  
+  logical                                                          :: resetMetallicity                      =.true. , resetTemperature                      =.true.
+  type            (fgsl_interp_accel)                              :: interpolationAcceleratorMetallicity           , interpolationAcceleratorTemperature
+
   ! Current file format version for CIE cooling files.
-  integer                            , parameter                   :: fileFormatVersionCurrent              =1                                                         
-  
+  integer                            , parameter                   :: fileFormatVersionCurrent              =1
+
 contains
-  
+
   integer function Cooling_Function_CIE_File_Format_Version()
     !% Return the current file format version of CIE cooling files.
     implicit none
@@ -77,9 +77,9 @@ contains
     !% Initializes the ``CIE cooling function from file'' module.
     use Input_Parameters
     implicit none
-    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:) 
-    integer                , intent(inout) :: coolingFunctionsMatched    
-    
+    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)
+    integer                , intent(inout) :: coolingFunctionsMatched
+
     if (any(coolingFunctionMethods == 'cieFromFile')) then
        ! Flag that this cooling function has been selected.
        functionSelected=.true.
@@ -101,14 +101,14 @@ contains
   subroutine Cooling_Function_CIE_File_Read_Initialize
     !% Ensure that the cooling data file has been read in.
     implicit none
-    
+
     if (.not.coolingFunctionInitialized) then
        !$omp critical (Cooling_Function_CIE_File_Initialize)
        if (.not.coolingFunctionInitialized) then
-          
+
           ! Call routine to read in the tabulated data.
           call Cooling_Function_CIE_File_Read(coolingFunctionFile)
-          
+
           ! Flag that cooling function is now initialized.
           coolingFunctionInitialized=.true.
        end if
@@ -126,31 +126,31 @@ contains
     use Radiation_Structure
     use Chemical_Abundances_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                  
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    double precision                    , intent(  out) :: coolingFunction                    
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunction
+
     ! Check if this cooling function has been selected.
     if (functionSelected) then
-       
+
        ! Ensure file has been read in.
        call Cooling_Function_CIE_File_Read_Initialize
-       
+
        ! Call routine to interpolate in the tabulated function.
        coolingFunction=Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
 
     else
-       
+
        ! Not selected, return zero.
        coolingFunction=0.0d0
-       
+
     end if
 
     return
   end subroutine Cooling_Function_CIE_File
-  
+
   !# <coolingFunctionTemperatureSlopeCompute>
   !#   <unitName>Cooling_Function_Temperature_Slope_CIE_File</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
@@ -162,36 +162,36 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                                
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                            
-    type            (radiationStructure), intent(in   ) :: radiation                                    
-    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope              
-    double precision                                    :: coolingFunction                              
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope
+    double precision                                    :: coolingFunction
+
     ! Check if this cooling function has been selected.
     if (functionSelected) then
-       
+
        ! Ensure file has been read in.
        call Cooling_Function_CIE_File_Read_Initialize
-       
+
        ! Get the cooling function.
        call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-       
+
        ! Call routine to interpolate in the tabulated function.
        coolingFunctionTemperatureSlope=Cooling_Function_CIE_File_logTemperature_Interpolate(temperature&
             &,numberDensityHydrogen,gasAbundances,radiation)*coolingFunction/temperature
 
     else
-       
+
        ! Not selected, return zero.
        coolingFunctionTemperatureSlope=0.0d0
-       
+
     end if
-       
+
     return
   end subroutine Cooling_Function_Temperature_Slope_CIE_File
-  
+
   !# <coolingFunctionDensitySlopeCompute>
   !#   <unitName>Cooling_Function_Density_Slope_CIE_File</unitName>
   !# </coolingFunctionDensitySlopeCompute>
@@ -202,32 +202,32 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                            
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                        
-    type            (radiationStructure), intent(in   ) :: radiation                                
-    double precision                    , intent(  out) :: coolingFunctionDensitySlope              
-    double precision                                    :: coolingFunction                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunctionDensitySlope
+    double precision                                    :: coolingFunction
+
     ! Check if this cooling function has been selected.
     if (functionSelected) then
-       
+
        ! Get the cooling function.
        call Cooling_Function_CIE_File(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-       
+
        ! Logarithmic slope is always 2 for a CIE cooling function.
        coolingFunctionDensitySlope=2.0d0*coolingFunction/numberDensityHydrogen
-       
+
     else
-       
+
        ! Not selected, return zero.
        coolingFunctionDensitySlope=0.0d0
-       
+
     end if
 
     return
   end subroutine Cooling_Function_Density_Slope_CIE_File
-  
+
   double precision function Cooling_Function_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
     !% Compute the cooling function by interpolation in the tabulated data.
     use Abundances_Structure
@@ -235,16 +235,16 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen         , temperature                   
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                 
-    type            (radiationStructure), intent(in   ) :: radiation                                                     
-    double precision                    , save          :: coolingFunctionPrevious       , metallicityPrevious=-1.0d0, & 
-         &                                                 temperaturePrevious    =-1.0d0                                
+    double precision                    , intent(in   ) :: numberDensityHydrogen         , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , save          :: coolingFunctionPrevious       , metallicityPrevious=-1.0d0, &
+         &                                                 temperaturePrevious    =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,coolingFunctionPrevious)
-    integer                                             :: iMetallicity                  , iTemperature                  
-    double precision                                    :: hMetallicity                  , hTemperature              , & 
-         &                                                 metallicityUse                , temperatureUse                
-    
+    integer                                             :: iMetallicity                  , iTemperature
+    double precision                                    :: hMetallicity                  , hTemperature              , &
+         &                                                 metallicityUse                , temperatureUse
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
@@ -295,7 +295,7 @@ contains
 
        ! Do the interpolation.
        coolingFunctionPrevious=Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity)
-       
+
        ! Store the temperature and metallicity for which calculation was performed.
        temperaturePrevious=temperatureUse
        metallicityPrevious=metallicityUse
@@ -315,16 +315,16 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen              , temperature                   
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                      
-    type            (radiationStructure), intent(in   ) :: radiation                                                          
-    double precision                    , save          :: coolingFunctionSlopePrevious       , metallicityPrevious=-1.0d0, & 
-         &                                                 temperaturePrevious         =-1.0d0                                
+    double precision                    , intent(in   ) :: numberDensityHydrogen              , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , save          :: coolingFunctionSlopePrevious       , metallicityPrevious=-1.0d0, &
+         &                                                 temperaturePrevious         =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,coolingFunctionSlopePrevious)
-    integer                                             :: iMetallicity                       , iTemperature                  
-    double precision                                    :: hMetallicity                       , hTemperature              , & 
-         &                                                 metallicityUse                     , temperatureUse                
-    
+    integer                                             :: iMetallicity                       , iTemperature
+    double precision                                    :: hMetallicity                       , hTemperature              , &
+         &                                                 metallicityUse                     , temperatureUse
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
@@ -372,24 +372,24 @@ contains
 
        ! Get the interpolation.
        call Get_Interpolation(temperatureUse,metallicityUse,iTemperature,hTemperature,iMetallicity,hMetallicity)
-       
+
        ! Do the interpolation.
        coolingFunctionSlopePrevious=( ( coolingFunctionTable(iTemperature+1,iMetallicity  )                       &
             &                          -coolingFunctionTable(iTemperature  ,iMetallicity  ))*(1.0d0-hMetallicity) &
-            &                        +( coolingFunctionTable(iTemperature+1,iMetallicity+1)                       & 
+            &                        +( coolingFunctionTable(iTemperature+1,iMetallicity+1)                       &
             &                          -coolingFunctionTable(iTemperature  ,iMetallicity+1))*       hMetallicity) &
             & /(coolingFunctionTemperatures(iTemperature+1)-coolingFunctionTemperatures(iTemperature))
-       
+
        ! Convert to logarithmic gradient if table was not stored logarithmically.
        if (.not.logarithmicTable) coolingFunctionSlopePrevious=coolingFunctionSlopePrevious*temperature&
             &/Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity)
-       
+
        ! Store the temperature and metallicity for which calculation was performed.
        temperaturePrevious=temperatureUse
        metallicityPrevious=metallicityUse
-       
+
     end if
-    
+
     ! Return the stored value.
     Cooling_Function_CIE_File_logTemperature_Interpolate=coolingFunctionSlopePrevious
 
@@ -405,22 +405,22 @@ contains
     use Galacticus_Display
     use IO_XML
     implicit none
-    type            (varying_string)         , intent(in   )           :: coolingFunctionFileToRead                                
-    double precision                         , intent(  out), optional :: metallicityMaximumTabulated                              
-    type            (Node          ), pointer                          :: datum                          , doc                 , & 
-         &                                                                extrapolation                  , extrapolationElement, & 
-         &                                                                metallicityElement             , thisCoolingFunction , & 
-         &                                                                thisCoolingRate                , thisTemperature     , & 
-         &                                                                version                                                  
-    type            (NodeList      ), pointer                          :: coolingDatumList               , coolingFunctionList , & 
-         &                                                                metallicityExtrapolationList   , temperatureDatumList, & 
-         &                                                                temperatureExtrapolationList   , versionList             
-    integer                                                            :: extrapolationMethod            , fileFormatVersion   , & 
-         &                                                                iCoolingFunction               , iDatum              , & 
-         &                                                                iExtrapolation                 , ioErr                   
-    double precision                                                   :: datumValues                 (1)                          
-    character       (len=32        )                                   :: limitType                                                
-    
+    type            (varying_string)         , intent(in   )           :: coolingFunctionFileToRead
+    double precision                         , intent(  out), optional :: metallicityMaximumTabulated
+    type            (Node          ), pointer                          :: datum                          , doc                 , &
+         &                                                                extrapolation                  , extrapolationElement, &
+         &                                                                metallicityElement             , thisCoolingFunction , &
+         &                                                                thisCoolingRate                , thisTemperature     , &
+         &                                                                version
+    type            (NodeList      ), pointer                          :: coolingDatumList               , coolingFunctionList , &
+         &                                                                metallicityExtrapolationList   , temperatureDatumList, &
+         &                                                                temperatureExtrapolationList   , versionList
+    integer                                                            :: extrapolationMethod            , fileFormatVersion   , &
+         &                                                                iCoolingFunction               , iDatum              , &
+         &                                                                iExtrapolation                 , ioErr
+    double precision                                                   :: datumValues                 (1)
+    character       (len=32        )                                   :: limitType
+
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
     call Galacticus_Display_Indent('Parsing file: '//coolingFunctionFileToRead,verbosityWorking)
@@ -540,7 +540,7 @@ contains
     call Galacticus_Display_Counter_Clear(verbosityWorking)
     call Galacticus_Display_Unindent('done',verbosityWorking)
     !$omp end critical (FoX_DOM_Access)
-  
+
     ! Store table ranges for convenience.
     metallicityMinimum=coolingFunctionMetallicities(1)
     metallicityMaximum=coolingFunctionMetallicities(coolingFunctionMetallicityNumberPoints)
@@ -588,11 +588,11 @@ contains
     !% Determine the interpolating paramters.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: metallicityIn , temperatureIn  
-    integer         , intent(  out) :: iMetallicity  , iTemperature   
-    double precision, intent(  out) :: hMetallicity  , hTemperature   
-    double precision                :: metallicityUse, temperatureUse 
-    
+    double precision, intent(in   ) :: metallicityIn , temperatureIn
+    integer         , intent(  out) :: iMetallicity  , iTemperature
+    double precision, intent(  out) :: hMetallicity  , hTemperature
+    double precision                :: metallicityUse, temperatureUse
+
     ! Copy the input parameters.
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
@@ -622,9 +622,9 @@ contains
   double precision function Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity)
     !% Perform the interpolation.
     implicit none
-    integer         , intent(in   ) :: iMetallicity, iTemperature 
-    double precision, intent(in   ) :: hMetallicity, hTemperature 
-    
+    integer         , intent(in   ) :: iMetallicity, iTemperature
+    double precision, intent(in   ) :: hMetallicity, hTemperature
+
     ! Do the interpolation.
     Do_Interpolation=coolingFunctionTable(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity)&
          &          +coolingFunctionTable(iTemperature  ,iMetallicity+1)*(1.0d0-hTemperature)*       hMetallicity &

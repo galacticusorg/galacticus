@@ -24,13 +24,13 @@ program Test_String_Utilities
   use String_Handling
   use Kind_Numbers
   implicit none
-  character(len=20        ), dimension(3) :: words                 
-  type     (varying_string), dimension(3) :: myStrings             
-  type     (varying_string)               :: myString1, myString2  
-  
-  ! Begin unit tests.                                                              
+  character(len=20        ), dimension(3) :: words
+  type     (varying_string), dimension(3) :: myStrings
+  type     (varying_string)               :: myString1, myString2
+
+  ! Begin unit tests.
   call Unit_Tests_Begin_Group("String handling utilities")
-  
+
   ! Test word counting.
   call Assert("count words: empty"                            ,String_Count_Words("  "                                                   ),0)
   call Assert("count words: 'one'"                            ,String_Count_Words("one"                                                  ),1)
@@ -90,7 +90,7 @@ program Test_String_Utilities
        &       3                                                &
        &      ]                                                 &
        &     )
-  
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

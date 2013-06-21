@@ -20,10 +20,10 @@
 double precision function Node_Component_Satellite_Preset_Merge_Time(self)
   !% Return the {\tt mergeTime} property of the {\tt satellitePreset} component class.
   implicit none
-  class(nodeComponentSatellitePreset), intent(inout) :: self                
-  type (treeNode                    ), pointer       :: selfNode            
-  class(nodeComponentBasic          ), pointer       :: selfBasicComponent  
-                                                                         
+  class(nodeComponentSatellitePreset), intent(inout) :: self
+  type (treeNode                    ), pointer       :: selfNode
+  class(nodeComponentBasic          ), pointer       :: selfBasicComponent
+
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      selfBasicComponent => selfNode%basic()
@@ -37,11 +37,11 @@ end function Node_Component_Satellite_Preset_Merge_Time
 subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
   !% Sets the {\tt mergeTime} property of the {\tt satellitePreset} component class.
   implicit none
-  class           (nodeComponentSatellitePreset)         , intent(inout) :: self                
-  double precision                                       , intent(in   ) :: setValue            
-  type            (treeNode                    ), pointer                :: selfNode            
-  class           (nodeComponentBasic          ), pointer                :: selfBasicComponent  
-                                                                                             
+  class           (nodeComponentSatellitePreset)         , intent(inout) :: self
+  double precision                                       , intent(in   ) :: setValue
+  type            (treeNode                    ), pointer                :: selfNode
+  class           (nodeComponentBasic          ), pointer                :: selfBasicComponent
+
   selfNode           => self    %host ()
   selfBasicComponent => selfNode%basic()
   self%timeOfMergingData%value=setValue+selfBasicComponent%time()
@@ -54,15 +54,15 @@ double precision function SatellitePresetMergeBoundMass(self)
   use FGSL
   use Numerical_Interpolation
   implicit none
-  class  (nodeComponentSatellitePreset), intent(inout) :: self                      
-  class  (nodeComponentBasic          ), pointer       :: selfBasicComponent        
-  type   (treeNode                    ), pointer       :: selfNode                  
-  integer                                              :: iTime                     
-  logical                                              :: interpolationReset        
-  type   (history                     )                :: boundMassHistory          
-  type   (fgsl_interp_accel           )                :: interpolationAccelerator  
-  
-  ! It does, so get the preset bound mass history.                                                                               
+  class  (nodeComponentSatellitePreset), intent(inout) :: self
+  class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
+  type   (treeNode                    ), pointer       :: selfNode
+  integer                                              :: iTime
+  logical                                              :: interpolationReset
+  type   (history                     )                :: boundMassHistory
+  type   (fgsl_interp_accel           )                :: interpolationAccelerator
+
+  ! It does, so get the preset bound mass history.
   boundMassHistory=self%boundMassHistory()
   ! Check if the history exists.
   if (boundMassHistory%exists()) then
@@ -73,7 +73,7 @@ double precision function SatellitePresetMergeBoundMass(self)
      iTime=Interpolate_Locate(size(boundMassHistory%time),boundMassHistory%time,interpolationAccelerator&
           &,selfBasicComponent%time(),reset=interpolationReset,closest=.true.)
      SatellitePresetMergeBoundMass=boundMassHistory%data(iTime,1)
-     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)  
+     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
   else
      ! It does not, so return zero.
      SatellitePresetMergeBoundMass=0.0d0

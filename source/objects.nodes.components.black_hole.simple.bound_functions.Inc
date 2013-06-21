@@ -21,10 +21,10 @@ double precision function Node_Component_Black_Hole_Simple_Seed_Mass(self)
   !% Return the seed mass for simple black holes.
   use Input_Parameters
   implicit none
-  class           (nodeComponentBlackHoleSimple), intent(inout) :: self                         
-  logical                                       , save          :: functionInitialized=.false.  
-  double precision                              , save          :: blackHoleSeedMass            
-                                                                                             
+  class           (nodeComponentBlackHoleSimple), intent(inout) :: self
+  logical                                       , save          :: functionInitialized=.false.
+  double precision                              , save          :: blackHoleSeedMass
+
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Simple_Seed_Mass)
      if (.not.functionInitialized) then
@@ -55,12 +55,12 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
   !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
   use Galactic_Structure_Options
   implicit none
-  class           (nodeComponentBlackHoleSimple), intent(inout)           :: self                                            
-  integer                                       , intent(in   )           :: componentType, massType, weightBy, weightIndex  
-  double precision                              , intent(in   )           :: radius                                          
-  logical                                       , intent(in   ), optional :: haloLoaded                                      
-  
-  ! Set zero enclosed mass by default.                                                                                                                        
+  class           (nodeComponentBlackHoleSimple), intent(inout)           :: self
+  integer                                       , intent(in   )           :: componentType, massType, weightBy, weightIndex
+  double precision                              , intent(in   )           :: radius
+  logical                                       , intent(in   ), optional :: haloLoaded
+
+  ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Simple_Enclosed_Mass=0.0d0
   ! Return the black hole mass only if massType and componentType are of black hole type.
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return

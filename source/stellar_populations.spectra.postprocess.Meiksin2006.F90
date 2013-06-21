@@ -23,18 +23,18 @@ module Stellar_Population_Spectra_Postprocessing_Meiksin2006
   public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize,Stellar_Population_Spectra_Postprocess_Meiksin2006
 
   ! Record of whether this method is active.
-  logical :: methodIsActive 
-  
+  logical :: methodIsActive
+
 contains
-  
+
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
   subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods 
-    
+    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods
+
     methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Meiksin2006')
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
@@ -49,18 +49,18 @@ contains
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision               , intent(in   ) :: redshift                               , wavelength             
-    double precision               , intent(inout) :: modifier                                                        
+    double precision               , intent(in   ) :: redshift                               , wavelength
+    double precision               , intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
-    double precision, parameter                    :: N0                              =0.25d0                         
-    double precision, parameter                    :: beta                            =1.50d0                         
-    double precision, parameter                    :: gamma                           =1.50d0                         
-    double precision, dimension(31)                :: opticalDepthLymanLines                 , redshiftLymanLines     
-    integer                                        :: iLine                                                           
-    double precision                               :: nFactorial                             , opticalDepth       , & 
-         &                                            seriesSolutionTermA                    , seriesSolutionTermB, & 
-         &                                            wavelengthObservedLymanContinuum                                
-    
+    double precision, parameter                    :: N0                              =0.25d0
+    double precision, parameter                    :: beta                            =1.50d0
+    double precision, parameter                    :: gamma                           =1.50d0
+    double precision, dimension(31)                :: opticalDepthLymanLines                 , redshiftLymanLines
+    integer                                        :: iLine
+    double precision                               :: nFactorial                             , opticalDepth       , &
+         &                                            seriesSolutionTermA                    , seriesSolutionTermB, &
+         &                                            wavelengthObservedLymanContinuum
+
     ! Check if this is a zero redshift case.
     if (.not.methodIsActive .or. redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.
@@ -68,12 +68,12 @@ contains
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
        wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/ionizationWavelengthHydrogen
-       
+
        ! Evaluate redshifts of various Lyman-series lines.
        forall (iLine=3:9)
           redshiftLymanLines(iLine)=wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2))-1.0d0
        end forall
-       
+
        ! Evaluate optical depths relative to Lyman-alpha.
        opticalDepthLymanLines(2)=1.0d0 ! By definition.
        if (redshiftLymanLines(3) < 3.0d0) then
@@ -98,7 +98,7 @@ contains
        forall (iLine=10:31)
           opticalDepthLymanLines(iLine)=opticalDepthLymanLines(9)*720.0d0/dble(iLine)/dble(iLine**2-1)
        end forall
-       
+
        ! Scale optical depths by Lyman-alpha optical depth.
        if (redshift <= 4.0d0) then
           forall (iLine=2:31)
@@ -109,13 +109,13 @@ contains
              opticalDepthLymanLines(iLine)=opticalDepthLymanLines(iLine)*0.00058d0*(wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2)))**4.50d0
           end forall
        end if
-       
+
        ! Accumulate optical depths if line falls within the required redshift range.
        opticalDepth=0.0d0
        do iLine=2,31
           if (wavelengthObservedLymanContinuum < (1.0d0+redshift)/(1.0d0-1.0d0/(dble(iLine)**2))) opticalDepth=opticalDepth+opticalDepthLymanLines(iLine)
        end do
-       
+
        if (wavelengthObservedLymanContinuum < (1.0d0+redshift)) then
           ! Add in photoelectric absorption contributions.
           seriesSolutionTermA=0.0d0
@@ -135,7 +135,7 @@ contains
           opticalDepth=opticalDepth+0.805d0*(wavelengthObservedLymanContinuum**3)*(1.0d0/wavelengthObservedLymanContinuum-1.0d0 &
                &/(1.0d0+redshift))
        end if
-       
+
        ! Compute attenuation from optical depth.
        modifier=modifier*exp(-opticalDepth)
     end if

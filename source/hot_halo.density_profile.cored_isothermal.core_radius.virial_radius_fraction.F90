@@ -26,8 +26,8 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Virial_Fraction
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_VF_Initialize
 
   ! Parameters of the model.
-  double precision :: isothermalCoreRadiusOverVirialRadius  
-                                                         
+  double precision :: isothermalCoreRadiusOverVirialRadius
+
 contains
 
   !# <hotHaloCoredIsothermalCoreRadiiMethod>
@@ -39,9 +39,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                               ), intent(in   )          :: hotHaloCoredIsothermalCoreRadiiMethod              
-    procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction), intent(inout), pointer :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get  
-                                                                                                                                                        
+    type     (varying_string                                               ), intent(in   )          :: hotHaloCoredIsothermalCoreRadiiMethod
+    procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction), intent(inout), pointer :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
+
     if (hotHaloCoredIsothermalCoreRadiiMethod == 'virialRadiusFraction') then
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction
        !@ <inputParameter>
@@ -65,11 +65,11 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Compute the core radius.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Compute the core radius.
     Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction=isothermalCoreRadiusOverVirialRadius*Dark_Matter_Halo_Virial_Radius(thisNode)
    return
   end function Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction
-  
+
 end module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Virial_Fraction

@@ -24,11 +24,11 @@ module Galacticus_Versioning
   public :: Galacticus_Version_Output, Galacticus_Version
 
   ! Define the version.
-  integer, parameter :: versionMajor   =0  
-  integer, parameter :: versionMinor   =9  
-  integer, parameter :: versionRevision=1  
-  
-  ! Include the automatically generated Bazaar revision number.                                      
+  integer, parameter :: versionMajor   =0
+  integer, parameter :: versionMinor   =9
+  integer, parameter :: versionRevision=1
+
+  ! Include the automatically generated Bazaar revision number.
   include 'galacticus.output.version.revision.inc'
 
 contains
@@ -38,8 +38,8 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(varying_string) :: Galacticus_Version  
-                                             
+    type(varying_string) :: Galacticus_Version
+
     Galacticus_Version="v"
     Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision
     return
@@ -59,14 +59,14 @@ contains
     use FoX_dom
     use FoX_utils
     implicit none
-    type     (Node          ), pointer :: doc            , emailNode, nameNode, thisNode  
-    type     (NodeList      ), pointer :: nodesList                                       
-    integer                            :: ioErr                                           
-    character(len=128       )          :: textBufferFixed                                 
-    type     (hdf5Object    )          :: versionGroup                                    
-    type     (varying_string)          :: runTime                                         
-    
-	! Write a UUID for this model.                                                                                   
+    type     (Node          ), pointer :: doc            , emailNode, nameNode, thisNode
+    type     (NodeList      ), pointer :: nodesList
+    integer                            :: ioErr
+    character(len=128       )          :: textBufferFixed
+    type     (hdf5Object    )          :: versionGroup
+    type     (varying_string)          :: runTime
+
+	! Write a UUID for this model.
     call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
 
     ! Create a group for version information.
@@ -107,5 +107,5 @@ contains
     call versionGroup%close()
     return
   end subroutine Galacticus_Version_Output
-  
+
 end module Galacticus_Versioning

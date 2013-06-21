@@ -36,23 +36,23 @@ contains
     !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use FGSL
     implicit none
-    double precision, dimension(:), intent(in   ) :: arrayToSearch  
-    double precision              , intent(in   ) :: valueToFind    
-    
-    ! Call the FGSL routine to do the search.                                                             
+    double precision, dimension(:), intent(in   ) :: arrayToSearch
+    double precision              , intent(in   ) :: valueToFind
+
+    ! Call the FGSL routine to do the search.
     Search_Array_Double=FGSL_Interp_BSearch(arrayToSearch,valueToFind,int(lbound(arrayToSearch,dim=1),kind=fgsl_size_t)-1,int(ubound(arrayToSearch,dim=1),kind=fgsl_size_t)-1)
     return
   end function Search_Array_Double
-  
+
   integer function Search_Array_Integer8(arrayToSearch,valueToFind)
     !% Searches a long integer array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch                     
-    integer(kind=kind_int8)              , intent(in   ) :: valueToFind                       
-    integer                                              :: jLower       , jMidpoint, jUpper  
-    logical                                              :: isInside                          
-                                                                                           
+    integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch
+    integer(kind=kind_int8)              , intent(in   ) :: valueToFind
+    integer                                              :: jLower       , jMidpoint, jUpper
+    logical                                              :: isInside
+
     isInside=.true.
     ! Check whether valueToFind is outside range of arrayToSearch().
     if (arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
@@ -88,18 +88,18 @@ contains
     end if
     return
   end function Search_Array_Integer8
-  
+
   integer function Search_Array_VarString(arrayToSearch,valueToFind)
     !% Searches an array, $x=(${\tt arrayToSearch}$)$, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i)
     !% = v$. With this algorithm, if multiple elements of $x()$ have the same value, then the largest value of $i$ for which
     !% $x(i)=v$ occurs will be returned.
     use ISO_Varying_String
     implicit none
-    type   (varying_string), dimension(:), intent(in   ) :: arrayToSearch                     
-    type   (varying_string)              , intent(in   ) :: valueToFind                       
-    integer                                              :: jLower       , jMidpoint, jUpper  
-    logical                                              :: isInside                          
-                                                                                           
+    type   (varying_string), dimension(:), intent(in   ) :: arrayToSearch
+    type   (varying_string)              , intent(in   ) :: valueToFind
+    integer                                              :: jLower       , jMidpoint, jUpper
+    logical                                              :: isInside
+
     isInside=.true.
     ! Check whether valueToFind is outside range of arrayToSearch().
     if (arrayToSearch(size(arrayToSearch)) >= arrayToSearch(1)) then ! arrayToSearch() is in ascending order.
@@ -135,7 +135,7 @@ contains
     end if
     return
   end function Search_Array_VarString
-  
+
   integer function Search_Array_For_Closest(arrayToSearch,valueToFind,tolerance)
     !% Searches an array, $x=(${\tt arrayToSearch}$)$, for the entry closest to value, $v(=${\tt valueToFind}$)$ and returns the
     !% index of that element in the array. Optionally, a tolerance may be specified within which the two values must match.
@@ -143,11 +143,11 @@ contains
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    double precision, dimension(:), intent(in   )           :: arrayToSearch  
-    double precision              , intent(in   )           :: valueToFind    
-    double precision              , intent(in   ), optional :: tolerance      
-    
-    ! For a single element array, just return the only option.                                                                       
+    double precision, dimension(:), intent(in   )           :: arrayToSearch
+    double precision              , intent(in   )           :: valueToFind
+    double precision              , intent(in   ), optional :: tolerance
+
+    ! For a single element array, just return the only option.
     if (size(arrayToSearch,dim=1) <= 1) then
        Search_Array_For_Closest=lbound(arrayToSearch,dim=1)
        return
@@ -170,6 +170,6 @@ contains
     end if
     return
   end function Search_Array_For_Closest
-  
+
 end module Arrays_Search
 

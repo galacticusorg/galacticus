@@ -35,10 +35,10 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod  
-    procedure(Galactic_Structure_Radius_Initial_Static           ), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Get             
-    procedure(Galactic_Structure_Radius_Initial_Derivative_Static), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get  
-                                                                                                                                             
+    type     (varying_string                                     ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod
+    procedure(Galactic_Structure_Radius_Initial_Static           ), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Get
+    procedure(Galactic_Structure_Radius_Initial_Derivative_Static), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get
+
     if (galacticStructureRadiusSolverInitialRadiusMethod == 'static') then
        Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Static
        Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Static
@@ -49,9 +49,9 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Static(thisNode,radius)
     !% Compute the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-                                                                 
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     Galactic_Structure_Radius_Initial_Static=radius
     return
   end function Galactic_Structure_Radius_Initial_Static
@@ -59,9 +59,9 @@ contains
   double precision function Galactic_Structure_Radius_Initial_Derivative_Static(thisNode,radius)
     !% Compute the derivative of the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-                                                                 
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0
     return
   end function Galactic_Structure_Radius_Initial_Derivative_Static

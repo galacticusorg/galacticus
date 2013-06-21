@@ -26,27 +26,27 @@ module Radiation_Intergalactic_Background
   public :: Radiation_Set_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
 
   ! Pointer to the functions that actually do the calculation.
-  procedure(Radiation_Set_Template ), pointer :: Radiation_Set_Intergalactic_Background_Do =>null() 
-  procedure(Radiation_Flux_Template), pointer :: Radiation_Flux_Intergalactic_Background_Do=>null() 
+  procedure(Radiation_Set_Template ), pointer :: Radiation_Set_Intergalactic_Background_Do =>null()
+  procedure(Radiation_Flux_Template), pointer :: Radiation_Flux_Intergalactic_Background_Do=>null()
   abstract interface
      subroutine Radiation_Set_Template(thisNode,radiationProperties)
        import treeNode
-       type            (treeNode)                           , intent(inout), pointer :: thisNode            
-       double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties 
+       type            (treeNode)                           , intent(inout), pointer :: thisNode
+       double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
      end subroutine Radiation_Set_Template
   end interface
   abstract interface
      subroutine Radiation_Flux_Template(radiationProperties,wavelength,radiationFlux)
        import treeNode
-       double precision, dimension(:), intent(in   ) :: radiationProperties 
-       double precision              , intent(in   ) :: wavelength          
-       double precision              , intent(inout) :: radiationFlux       
+       double precision, dimension(:), intent(in   ) :: radiationProperties
+       double precision              , intent(in   ) :: wavelength
+       double precision              , intent(inout) :: radiationFlux
      end subroutine Radiation_Flux_Template
   end interface
-  
+
   ! Flag indicating if module has been initialized.
-  logical :: moduleInitialized=.false. 
-  
+  logical :: moduleInitialized=.false.
+
 contains
 
   ! Specify the label for this radiation component.
@@ -63,8 +63,8 @@ contains
     include 'radiation.intergalactic_background.modules.inc'
     !# </include>
     implicit none
-    type(varying_string) :: radiationIntergalacticBackgroundMethod 
-    
+    type(varying_string) :: radiationIntergalacticBackgroundMethod
+
     if (.not.moduleInitialized) then
        !$omp critical(Radiation_Initialize_Intergalactic_Background)
        if (.not.moduleInitialized) then
@@ -101,10 +101,10 @@ contains
     !% Property setting routine for the radiation component from file method.
     use Memory_Management
     implicit none
-    logical                                              , intent(in   )          :: componentMatched    
-    type            (treeNode)                           , intent(inout), pointer :: thisNode            
-    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties 
-    
+    logical                                              , intent(in   )          :: componentMatched
+    type            (treeNode)                           , intent(inout), pointer :: thisNode
+    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
+
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
 
@@ -124,11 +124,11 @@ contains
   subroutine Radiation_Temperature_Intergalactic_Background(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
     !% Returns the temperature for the radiation component from file method.
     implicit none
-    integer                                    , intent(in   )           :: ourType             , requestedType 
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                 
-    double precision                           , intent(inout)           :: radiationTemperature                
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                       
-    
+    integer                                    , intent(in   )           :: ourType             , requestedType
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationTemperature
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
     ! Leave temperature undefined.
     return
   end subroutine Radiation_Temperature_Intergalactic_Background
@@ -140,12 +140,12 @@ contains
   subroutine Radiation_Flux_Intergalactic_Background(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
     !% Flux method for the radiation component from file method.
     implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType 
-    double precision                           , intent(in   )           :: wavelength                         
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                
-    double precision                           , intent(inout)           :: radiationFlux                      
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                      
-    
+    integer                                    , intent(in   )           :: ourType            , requestedType
+    double precision                           , intent(in   )           :: wavelength
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationFlux
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
     ! Return immediately if this component was not matched.
     if (requestedType /= ourType) return
 

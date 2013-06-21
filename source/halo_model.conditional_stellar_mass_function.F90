@@ -23,24 +23,24 @@ module Conditional_Stellar_Mass_Functions
   implicit none
   private
   public :: Cumulative_Conditional_Stellar_Mass_Function,Cumulative_Conditional_Stellar_Mass_Function_Variance
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                                       :: conditionalStellarMassFunctionInitialized           =.false.  
-  
-  ! Name of conditional stellar mass function method used.                                                                                                                                            
-  type     (varying_string                                           )          :: conditionalStellarMassFunctionMethod                          
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                            
-  procedure(Cumulative_Conditional_Stellar_Mass_Function_Template    ), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get    =>null()  
-  procedure(Cumulative_Conditional_Stellar_Mass_Function_Var_Template), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Var_Get=>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                                       :: conditionalStellarMassFunctionInitialized           =.false.
+
+  ! Name of conditional stellar mass function method used.
+  type     (varying_string                                           )          :: conditionalStellarMassFunctionMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Cumulative_Conditional_Stellar_Mass_Function_Template    ), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get    =>null()
+  procedure(Cumulative_Conditional_Stellar_Mass_Function_Var_Template), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Var_Get=>null()
   abstract interface
      double precision function Cumulative_Conditional_Stellar_Mass_Function_Template(massHalo,massStellar)
-       double precision, intent(in   ) :: massHalo, massStellar  
+       double precision, intent(in   ) :: massHalo, massStellar
      end function Cumulative_Conditional_Stellar_Mass_Function_Template
   end interface
   abstract interface
      double precision function Cumulative_Conditional_Stellar_Mass_Function_Var_Template(massHalo,massStellarLow,massStellarHigh)
-       double precision, intent(in   ) :: massHalo, massStellarHigh, massStellarLow  
+       double precision, intent(in   ) :: massHalo, massStellarHigh, massStellarLow
      end function Cumulative_Conditional_Stellar_Mass_Function_Var_Template
   end interface
 
@@ -55,7 +55,7 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Conditional_Stellar_Mass_Functions_Initialization) 
+    !$omp critical(Conditional_Stellar_Mass_Functions_Initialization)
     ! Initialize if necessary.
     if (.not.conditionalStellarMassFunctionInitialized) then
        ! Get the conditional stellar mass function method parameter.
@@ -84,7 +84,7 @@ contains
             & ) call Galacticus_Error_Report('Conditional_Stellar_Mass_Functions','method '//char(conditionalStellarMassFunctionMethod)//' is unrecognized')
        conditionalStellarMassFunctionInitialized=.true.
     end if
-    !$omp end critical(Conditional_Stellar_Mass_Functions_Initialization) 
+    !$omp end critical(Conditional_Stellar_Mass_Functions_Initialization)
 
     return
   end subroutine Conditional_Stellar_Mass_Functions_Initialize
@@ -92,9 +92,9 @@ contains
   double precision function Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellar)
     !% Returns the cumulative conditional stellar mass function at a stellar mass of {\tt massStellar} in a halo of mass {\tt massHalo}.
     implicit none
-    double precision, intent(in   ) :: massHalo, massStellar  
-    
-    ! Initialize the module.                                                       
+    double precision, intent(in   ) :: massHalo, massStellar
+
+    ! Initialize the module.
     call Conditional_Stellar_Mass_Functions_Initialize
 
     ! Get the mass function using the selected method.
@@ -102,13 +102,13 @@ contains
 
     return
   end function Cumulative_Conditional_Stellar_Mass_Function
-  
+
   double precision function Cumulative_Conditional_Stellar_Mass_Function_Variance(massHalo,massStellarLow,massStellarHigh)
     !% Returns the cumulative conditional stellar mass function at a stellar mass of {\tt massStellar} in a halo of mass {\tt massHalo}.
     implicit none
-    double precision, intent(in   ) :: massHalo, massStellarHigh, massStellarLow  
-    
-    ! Initialize the module.                                                                           
+    double precision, intent(in   ) :: massHalo, massStellarHigh, massStellarLow
+
+    ! Initialize the module.
     call Conditional_Stellar_Mass_Functions_Initialize
 
     ! Get the variance using the selected method.
@@ -116,5 +116,5 @@ contains
 
     return
   end function Cumulative_Conditional_Stellar_Mass_Function_Variance
-  
+
 end module Conditional_Stellar_Mass_Functions

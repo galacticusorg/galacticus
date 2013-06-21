@@ -25,17 +25,17 @@ module Galacticus_Output_Tree_Mass_Profiles
   public :: Galacticus_Output_Tree_Mass_Profile, Galacticus_Output_Tree_Mass_Profile_Property_Count, Galacticus_Output_Tree_Mass_Profile_Names
 
   ! Flag indicating if this module is initialize.
-  logical                                     :: outputMassProfileDataInitialized 
-  
+  logical                                     :: outputMassProfileDataInitialized
+
   ! Number of properties.
-  integer                                     :: massProfilePropertyCount         
-  
+  integer                                     :: massProfilePropertyCount
+
   ! Array of radii.
-  double precision, allocatable, dimension(:) :: outputMassProfileRadii           
-  
+  double precision, allocatable, dimension(:) :: outputMassProfileRadii
+
   ! Flag indicating whether or not half-light data is to be output.
-  logical                                     :: outputMassProfileData            
-  
+  logical                                     :: outputMassProfileData
+
 contains
 
   subroutine Galacticus_Output_Tree_Mass_Profile_Initialize
@@ -59,7 +59,7 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputMassProfileData',outputMassProfileData,defaultValue=.false.)
-          
+
           ! Read radii if necessary.
           if (outputMassProfileData) then
              massProfilePropertyCount=Get_Input_Parameter_Array_Size('outputMassProfileRadii')
@@ -76,7 +76,7 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('outputMassProfileRadii',outputMassProfileRadii)
           end if
-          
+
           ! Flag that module is now initialized.
           outputMassProfileDataInitialized=.true.
        end if
@@ -94,14 +94,14 @@ contains
     !% Set the names of half-light properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    integer                                                          :: iRadius                                            
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                          :: iRadius
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 
@@ -124,10 +124,10 @@ contains
   subroutine Galacticus_Output_Tree_Mass_Profile_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                  
-    double precision          , intent(in   )          :: time                                      
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: time
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 
@@ -143,39 +143,39 @@ contains
   subroutine Galacticus_Output_Tree_Mass_Profile(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store density contrast properties in the \glc\ output file buffers.
-    use Kind_Numbers 
+    use Kind_Numbers
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    double precision                , intent(in   )          :: time                                                          
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
-         &                                                      integerProperty                                               
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
-    integer                                                  :: iRadius                                                       
-    double precision                                         :: massEnclosed                                                  
-    
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                      integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+    integer                                                  :: iRadius
+    double precision                                         :: massEnclosed
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Mass_Profile_Initialize
 
     ! Store property data if we are outputting half-light data.
     if (outputMassProfileData) then
-       
+
        ! Loop over radii at which to output the mass profile.
        do iRadius=1,massProfilePropertyCount
-          
+
           ! Find the total mass enclosed.
           massEnclosed=Galactic_Structure_Enclosed_Mass(thisNode,outputMassProfileRadii(iRadius),componentType=componentTypeAll,massType=massTypeAll,haloLoaded=.true.)
-          
+
           ! Store the resulting mass.
           doubleProperty=doubleProperty+1
           doubleBuffer(doubleBufferCount,doubleProperty)=massEnclosed
-          
+
        end do
 
     end if
     return
   end subroutine Galacticus_Output_Tree_Mass_Profile
-  
+
 end module Galacticus_Output_Tree_Mass_Profiles

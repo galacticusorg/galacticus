@@ -24,8 +24,8 @@ module Star_Formation_IMF_Select_Fixed
   public :: IMF_Select_Fixed_Initialize
 
   ! Store the index of the selected IMF.
-  integer :: imfSelectedIndex  
-                            
+  integer :: imfSelectedIndex
+
 contains
 
   !# <imfSelectionMethod>
@@ -37,16 +37,16 @@ contains
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type     (varying_string), intent(in   )          :: imfNames         (:), imfSelectionMethod  
-    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do                             
-    type     (varying_string)                         :: imfSelectionFixed                         
-                                                                                                
+    type     (varying_string), intent(in   )          :: imfNames         (:), imfSelectionMethod
+    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do
+    type     (varying_string)                         :: imfSelectionFixed
+
     if (imfSelectionMethod == 'fixed') then
        IMF_Select_Do => IMF_Select_Fixed
        ! Get IMF choice.
        !@ <inputParameter>
        !@   <name>imfSelectionFixed</name>
-       !@   <defaultValue>Chabrier</defaultValue>       
+       !@   <defaultValue>Chabrier</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The name of the initial mass function to use in the ``fixed initial mass function'' module.
@@ -65,12 +65,12 @@ contains
     !% Return our selection of stellar initial mass function.
     use Abundances_Structure
     implicit none
-    double precision            , intent(in   ) :: starFormationRate  
-    type            (abundances), intent(in   ) :: fuelAbundances     
-    integer                     , intent(in   ) :: component          
-                                                                   
+    double precision            , intent(in   ) :: starFormationRate
+    type            (abundances), intent(in   ) :: fuelAbundances
+    integer                     , intent(in   ) :: component
+
     IMF_Select_Fixed=imfSelectedIndex
     return
   end function IMF_Select_Fixed
-  
+
 end module Star_Formation_IMF_Select_Fixed

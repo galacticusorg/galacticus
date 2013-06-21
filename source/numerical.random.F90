@@ -24,10 +24,10 @@ module Pseudo_Random
   implicit none
   private
   public :: Pseudo_Random_Get, Pseudo_Random_Free, Pseudo_Random_Store, Pseudo_Random_Retrieve
-  
-  logical                 :: Seed_Is_Set=.false. 
-  integer                 :: randomSeed          
-  integer(kind=fgsl_long) :: randomSeedC=-1      
+
+  logical                 :: Seed_Is_Set=.false.
+  integer                 :: randomSeed
+  integer(kind=fgsl_long) :: randomSeedC=-1
   !$omp threadprivate(randomSeedC)
 contains
 
@@ -36,10 +36,10 @@ contains
     use Input_Parameters
     !$ use OMP_Lib
     implicit none
-    type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject 
-    logical          , intent(inout), optional :: reset                
-    logical                                    :: resetActual          
-    
+    type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject
+    logical          , intent(inout), optional :: reset
+    logical                                    :: resetActual
+
     ! Determine if we need to reset.
     if (present(reset)) then
        resetActual=reset
@@ -66,11 +66,11 @@ contains
        Seed_Is_Set=.true.
     end if
     !$omp end critical (Pseudo_Random_Get)
-    
+
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
        if (randomSeedC < 0) then
-          randomSeedC=randomSeed 
+          randomSeedC=randomSeed
           !$ randomSeedC=randomSeedC+omp_get_thread_num()
        end if
        randomSeedC=randomSeedC+1
@@ -79,12 +79,12 @@ contains
     Pseudo_Random_Get=FGSL_RNG_Uniform(pseudoSequenceObject)
     return
   end function Pseudo_Random_Get
-  
+
   subroutine Pseudo_Random_Free(pseudoSequenceObject)
     !% Frees a pseudo-random sequence object.
     implicit none
-    type(fgsl_rng), intent(inout) :: pseudoSequenceObject 
-    
+    type(fgsl_rng), intent(inout) :: pseudoSequenceObject
+
     call FGSL_RNG_Free(pseudoSequenceObject)
     return
   end subroutine Pseudo_Random_Free
@@ -92,10 +92,10 @@ contains
   subroutine Pseudo_Random_Store(pseudoSequenceObject,fgslFile)
     !% Stores a pseudo-random sequence object to file.
     implicit none
-    type   (fgsl_rng ), intent(in   ) :: pseudoSequenceObject 
-    type   (fgsl_file), intent(in   ) :: fgslFile             
-    integer                           :: iError               
-    
+    type   (fgsl_rng ), intent(in   ) :: pseudoSequenceObject
+    type   (fgsl_file), intent(in   ) :: fgslFile
+    integer                           :: iError
+
     iError=FGSL_Rng_FWrite(fgslFile,pseudoSequenceObject)
     return
   end subroutine Pseudo_Random_Store
@@ -103,10 +103,10 @@ contains
   subroutine Pseudo_Random_Retrieve(pseudoSequenceObject,fgslFile)
     !% Stores a pseudo-random sequence object to file.
     implicit none
-    type   (fgsl_rng ), intent(inout) :: pseudoSequenceObject 
-    type   (fgsl_file), intent(in   ) :: fgslFile             
-    integer                           :: iError               
-    
+    type   (fgsl_rng ), intent(inout) :: pseudoSequenceObject
+    type   (fgsl_file), intent(in   ) :: fgslFile
+    integer                           :: iError
+
     if (.not.FGSL_Well_Defined(pseudoSequenceObject)) pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
     iError=FGSL_Rng_FRead(fgslFile,pseudoSequenceObject)
     return

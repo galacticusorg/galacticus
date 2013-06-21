@@ -25,15 +25,15 @@ module Galacticus_HDF5
   public
 
   ! Flag indicating if output file has been opened.
-  logical                       :: galacticusOutputFileIsOpen=.false.  
-  
-  ! Galacticus output file object.                                                                  
-  type   (hdf5Object  ), target :: galacticusOutputFile                
-  
-  ! Chunk size.                                                                  
-  integer(kind=HSIZE_T)         :: hdf5ChunkSize             =1        
-  
-  ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).                                                                  
-  integer                       :: hdf5CompressionLevel      =-1       
-                                                                    
+  logical                       :: galacticusOutputFileIsOpen=.false.
+
+  ! Galacticus output file object.
+  type   (hdf5Object  ), target :: galacticusOutputFile
+
+  ! Chunk size.
+  integer(kind=HSIZE_T)         :: hdf5ChunkSize             =1
+
+  ! Compression level (-1 means no compression, 0-9 means GNU gzip compression with higher numbers giving more compression).
+  integer                       :: hdf5CompressionLevel      =-1
+
 end module Galacticus_HDF5

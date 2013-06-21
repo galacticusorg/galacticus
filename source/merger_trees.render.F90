@@ -24,9 +24,9 @@ module Merger_Trees_Render
   public :: Merger_Trees_Render_Dump
 
   ! Counters for output file names.
-  integer(kind=kind_int8) :: treeIndexPrevious=-1  
-  integer                 :: outputCounter         
-                                                
+  integer(kind=kind_int8) :: treeIndexPrevious=-1
+  integer                 :: outputCounter
+
 contains
 
   subroutine Merger_Trees_Render_Dump(thisTree)
@@ -40,16 +40,16 @@ contains
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type            (mergerTree), intent(inout)                 :: thisTree                                    
-    type            (treeNode  ), pointer                       :: thisNode                                    
-    integer                     , allocatable  , dimension(:  ) :: childIndex     , nodeIndex   , parentIndex  
-    double precision            , allocatable  , dimension(:  ) :: expansionFactor, radiusVirial, time         
-    double precision            , allocatable  , dimension(:,:) :: position                                    
-    integer                                                     :: iNode          , nodesInTree                
-    character       (len=39    )                                :: fileName                                    
-    type            (hdf5Object)                                :: fileObject     , treeDataset                
-    
-    ! Reset output incremental counter if this tree is not the same as the previous one.                                                                                                        
+    type            (mergerTree), intent(inout)                 :: thisTree
+    type            (treeNode  ), pointer                       :: thisNode
+    integer                     , allocatable  , dimension(:  ) :: childIndex     , nodeIndex   , parentIndex
+    double precision            , allocatable  , dimension(:  ) :: expansionFactor, radiusVirial, time
+    double precision            , allocatable  , dimension(:,:) :: position
+    integer                                                     :: iNode          , nodesInTree
+    character       (len=39    )                                :: fileName
+    type            (hdf5Object)                                :: fileObject     , treeDataset
+
+    ! Reset output incremental counter if this tree is not the same as the previous one.
     if (thisTree%index /= treeIndexPrevious) then
        treeIndexPrevious=thisTree%index
        outputCounter    =-1
@@ -101,19 +101,19 @@ contains
     call fileObject%writeDataset(parentIndex    ,"parentIndex"    ,"Parent index []"                                )
     call fileObject%writeDataset(childIndex     ,"childIndex"     ,"Child index []"                                 )
     call fileObject%writeDataset(expansionFactor,"expansionFactor","Expansion factor []"                            )
-       
+
     call fileObject%writeDataset(time           ,"time"           ,"Time [Gyr]"         ,datasetReturned=treeDataset)
     call treeDataset%writeAttribute(gigaYear  ,"unitsInSI")
     call treeDataset%close()
-       
+
     call fileObject%writeDataset(radiusVirial   ,"radiusVirial"   ,"Virial radius [Mpc]",datasetReturned=treeDataset)
     call treeDataset%writeAttribute(megaParsec,"unitsInSI")
     call treeDataset%close()
-       
+
     call fileObject%writeDataset(position       ,"position"       ,"Position [Mpc]"     ,datasetReturned=treeDataset)
     call treeDataset%writeAttribute(megaParsec,"unitsInSI")
     call treeDataset%close()
-       
+
     ! Close the output file.
     call fileObject%close()
 

@@ -24,8 +24,8 @@ module Power_Spectrum_Window_Functions_Sharp_kSpace
   public :: Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize
 
   ! Parameter controlling the normalization between mass and cut-off wavenumber.
-  double precision :: cutOffNormalization  
-                                        
+  double precision :: cutOffNormalization
+
 contains
 
   !# <powerSpectrumWindowFunctionMethod>
@@ -39,17 +39,17 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type            (varying_string                                                ), intent(in   )          :: powerSpectrumWindowFunctionMethod                        
-    procedure       (Power_Spectrum_Window_Function_Sharp_kSpace                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get                       
-    procedure       (Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get    
-    character       (len=32                                                        )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText  
-    double precision                                                                                         :: powerSpectrumWindowFunctionSharpKSpaceNormalization      
-                                                                                                                                                                      
+    type            (varying_string                                                ), intent(in   )          :: powerSpectrumWindowFunctionMethod
+    procedure       (Power_Spectrum_Window_Function_Sharp_kSpace                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get
+    procedure       (Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
+    character       (len=32                                                        )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText
+    double precision                                                                                         :: powerSpectrumWindowFunctionSharpKSpaceNormalization
+
     if (powerSpectrumWindowFunctionMethod == 'kSpaceSharp') then
        ! Assign function pointer.
        Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_Sharp_kSpace
        Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace
-       ! Get parameters. 
+       ! Get parameters.
        !@ <inputParameter>
        !@   <name>powerSpectrumWindowFunctionSharpKSpaceNormalization</name>
        !@   <defaultValue>natural</defaultValue>
@@ -63,7 +63,7 @@ contains
        !@   </description>
        !@   <type>string</type>
        !@   <cardinality>1</cardinality>
-       !@ </inputParameter>       
+       !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumWindowFunctionSharpKSpaceNormalization'&
             &,powerSpectrumWindowFunctionSharpKSpaceNormalizationText,defaultValue="natural")
        if (powerSpectrumWindowFunctionSharpKSpaceNormalizationText == "natural") then
@@ -76,36 +76,36 @@ contains
     end if
     return
   end subroutine Power_Spectrum_Window_Functions_Sharp_kSpace_Initialize
-  
+
   double precision function Power_Spectrum_Window_Function_Sharp_kSpace(wavenumber,smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
     !% of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$ if $k_{\rm s}$ is the cut-off wavelength for the filter.
     implicit none
-    double precision, intent(in   ) :: smoothingMass   , wavenumber  
-    double precision                :: wavenumberCutOff              
-                                                                  
+    double precision, intent(in   ) :: smoothingMass   , wavenumber
+    double precision                :: wavenumberCutOff
+
     wavenumberCutOff=Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace(smoothingMass)
     if      (wavenumber <=            0.0d0) then
        Power_Spectrum_Window_Function_Sharp_kSpace=0.0d0
-    else if (wavenumber <= wavenumberCutOff) then 
+    else if (wavenumber <= wavenumberCutOff) then
        Power_Spectrum_Window_Function_Sharp_kSpace=1.0d0
     else
        Power_Spectrum_Window_Function_Sharp_kSpace=0.0d0
     end if
     return
   end function Power_Spectrum_Window_Function_Sharp_kSpace
-  
+
   double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace(smoothingMass)
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum. The normalization of the filter is chosen such that, in real-space, $W(r=0)=1$. This results in a contained mass
     !% of $M=6 \pi^2 \bar{\rho} k_{\rm s}^{-3}$ if $k_{\rm s}$ is the cut-off wavelength for the filter.
     implicit none
-    double precision, intent(in   ) :: smoothingMass  
-                                                   
+    double precision, intent(in   ) :: smoothingMass
+
     Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace=cutOffNormalization/smoothingMass**(1.0d0/3.0d0)
     return
   end function Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace
-  
+
 end module Power_Spectrum_Window_Functions_Sharp_kSpace
 

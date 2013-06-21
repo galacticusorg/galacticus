@@ -24,20 +24,20 @@ module Star_Formation_Feedback_Expulsion_Spheroids
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                                      :: starFormationExpulsiveFeedbackSpheroidsInitialized =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                                          
-  type     (varying_string                                          )          :: starFormationExpulsiveFeedbackSpheroidsMethod                
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                          
-  procedure(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Template), pointer :: Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get=>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                                      :: starFormationExpulsiveFeedbackSpheroidsInitialized =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                                          )          :: starFormationExpulsiveFeedbackSpheroidsMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Star_Formation_Expulsive_Feedback_Spheroid_Rate_Template), pointer :: Star_Formation_Expulsive_Feedback_Spheroid_Rate_Get=>null()
   abstract interface
      double precision function Star_Formation_Expulsive_Feedback_Spheroid_Rate_Template(thisNode,starFormationRate,energyInputRate)
        import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode                            
-       double precision          , intent(in   )          :: energyInputRate, starFormationRate  
+       type            (treeNode), intent(inout), pointer :: thisNode
+       double precision          , intent(in   )          :: energyInputRate, starFormationRate
      end function Star_Formation_Expulsive_Feedback_Spheroid_Rate_Template
   end interface
 
@@ -54,12 +54,12 @@ contains
 
     ! Initialize if necessary.
     if (.not.starFormationExpulsiveFeedbackSpheroidsInitialized) then
-       !$omp critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
+       !$omp critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization)
        if (.not.starFormationExpulsiveFeedbackSpheroidsInitialized) then
           ! Get the spheroid star formation expulsive feedback method parameter.
           !@ <inputParameter>
           !@   <name>starFormationExpulsiveFeedbackSpheroidsMethod</name>
-          !@   <defaultValue>null</defaultValue>       
+          !@   <defaultValue>null</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in spheroids.
@@ -78,7 +78,7 @@ contains
                &,'method ' //char(starFormationExpulsiveFeedbackSpheroidsMethod)//' is unrecognized')
           starFormationExpulsiveFeedbackSpheroidsInitialized=.true.
        end if
-       !$omp end critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization) 
+       !$omp end critical(Star_Formation_Expulsive_Feedback_Spheroids_Initialization)
     end if
     return
   end subroutine Star_Formation_Expulsive_Feedback_Spheroids_Initialize
@@ -86,10 +86,10 @@ contains
   double precision function Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
     !% Returns the expulsive outflow rate due to star formation in the spheroid component of {\tt thisNode}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                            
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
-    
-    ! Initialize the module.                                                                                       
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+
+    ! Initialize the module.
     call Star_Formation_Expulsive_Feedback_Spheroids_Initialize
 
     ! Get the energy using the selected method.
@@ -97,5 +97,5 @@ contains
 
     return
   end function Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate
-  
+
 end module Star_Formation_Feedback_Expulsion_Spheroids

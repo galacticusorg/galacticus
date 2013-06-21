@@ -27,22 +27,22 @@ module Numerical_Interpolation
   private
   public :: Interpolate, Interpolate_Derivative, Interpolate_Locate, Interpolate_Done, Interpolate_Linear_Generate_Factors,&
        & Interpolate_Linear_Do, Interpolate_Linear_Generate_Gradient_Factors
-  
+
   ! Labels for extrapolation methods.
-  integer, parameter, public :: extrapolationTypeNone  =0 
-  integer, parameter, public :: extrapolationTypeLinear=1 
-  integer, parameter, public :: extrapolationTypeFixed =2 
-  
+  integer, parameter, public :: extrapolationTypeNone  =0
+  integer, parameter, public :: extrapolationTypeLinear=1
+  integer, parameter, public :: extrapolationTypeFixed =2
+
 contains
-  
+
   double precision function Interpolate_Linear_Do(nPoints,yArray,iInterpolate,interpolationFactors)
     !% Given an array index {\tt iInterpolate} and interpolating factors {\tt interpolationFactors} for array {\tt yArray}, return
     !% a linearly interpolated value.
     implicit none
-    integer         , intent(in   ) :: iInterpolate           , nPoints 
-    double precision, intent(in   ) :: yArray              (:)          
-    double precision, intent(in   ) :: interpolationFactors(2)          
-    
+    integer         , intent(in   ) :: iInterpolate           , nPoints
+    double precision, intent(in   ) :: yArray              (:)
+    double precision, intent(in   ) :: interpolationFactors(2)
+
     Interpolate_Linear_Do=yArray(iInterpolate)*interpolationFactors(1)+yArray(iInterpolate+1)*interpolationFactors(2)
     return
   end function Interpolate_Linear_Do
@@ -51,11 +51,11 @@ contains
     !% Return interpolating factors for linear interpolation in the array {\tt xArray()} given the index in the array which
     !% brackets value {\tt x}.
     implicit none
-    double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Factors          
-    integer                         , intent(in   ) :: iinterpolate                       , nPoints 
-    double precision, dimension(:)  , intent(in   ) :: xArray                                       
-    double precision                , intent(in   ) :: x                                            
-    
+    double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Factors
+    integer                         , intent(in   ) :: iinterpolate                       , nPoints
+    double precision, dimension(:)  , intent(in   ) :: xArray
+    double precision                , intent(in   ) :: x
+
     Interpolate_Linear_Generate_Factors(0)=(xArray(iInterpolate+1)-x)/(xArray(iInterpolate+1)-xArray(iInterpolate))
     Interpolate_Linear_Generate_Factors(1)=1.0d0-Interpolate_Linear_Generate_Factors(0)
     return
@@ -65,11 +65,11 @@ contains
     !% Return interpolating factors for linear interpolation in the array {\tt xArray()} given the index in the array which
     !% brackets value {\tt x}.
     implicit none
-    double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Gradient_Factors          
-    integer                         , intent(in   ) :: iinterpolate                                , nPoints 
-    double precision, dimension(:)  , intent(in   ) :: xArray                                                
-    double precision                , intent(in   ) :: x                                                     
-    
+    double precision, dimension(0:1)                :: Interpolate_Linear_Generate_Gradient_Factors
+    integer                         , intent(in   ) :: iinterpolate                                , nPoints
+    double precision, dimension(:)  , intent(in   ) :: xArray
+    double precision                , intent(in   ) :: x
+
     Interpolate_Linear_Generate_Gradient_Factors(0)=-1.0d0/(xArray(iInterpolate+1)-xArray(iInterpolate))
     Interpolate_Linear_Generate_Gradient_Factors(1)=-Interpolate_Linear_Generate_Gradient_Factors(0)
     return
@@ -81,24 +81,24 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
-    integer                                          , intent(in   )           :: nPoints                                                     
-    double precision                   , dimension(:), intent(in   )           :: xArray                         , yArray                     
-    type            (fgsl_interp      )              , intent(inout)           :: interpolationObject                                         
-    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator                                    
-    double precision                                 , intent(in   )           :: x                                                           
-    type            (fgsl_interp_type )              , intent(in   ), optional :: interpolationType                                           
-    logical                                          , intent(inout), optional :: reset                                                       
-    integer                                          , intent(in   ), optional :: extrapolationType                                           
-    double precision                   , parameter                             :: rangeTolerance          =1.0d-6                             
-    type            (fgsl_interp_type )                                        :: interpolationTypeActual                                     
-    integer                                                                    :: basePoint                      , extrapolationTypeActual, & 
-         &                                                                        status                                                      
-    integer         (kind=c_size_t    )                                        :: nPointsC                                                    
-    logical                                                                    :: resetActual                                                 
-    type            (varying_string   )                                        :: message                                                     
-    integer         (kind=fgsl_int    )                                        :: errorCode                                                   
-    double precision                                                           :: gradient                       , xActual                    
-    
+    integer                                          , intent(in   )           :: nPoints
+    double precision                   , dimension(:), intent(in   )           :: xArray                         , yArray
+    type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
+    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator
+    double precision                                 , intent(in   )           :: x
+    type            (fgsl_interp_type )              , intent(in   ), optional :: interpolationType
+    logical                                          , intent(inout), optional :: reset
+    integer                                          , intent(in   ), optional :: extrapolationType
+    double precision                   , parameter                             :: rangeTolerance          =1.0d-6
+    type            (fgsl_interp_type )                                        :: interpolationTypeActual
+    integer                                                                    :: basePoint                      , extrapolationTypeActual, &
+         &                                                                        status
+    integer         (kind=c_size_t    )                                        :: nPointsC
+    logical                                                                    :: resetActual
+    type            (varying_string   )                                        :: message
+    integer         (kind=fgsl_int    )                                        :: errorCode
+    double precision                                                           :: gradient                       , xActual
+
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -155,7 +155,7 @@ contains
        end if
        Interpolate=yArray(basePoint)+gradient*(x-xArray(basePoint))
     else
-       ! Allow for rounding errors.	
+       ! Allow for rounding errors.
        xActual=x
        select case (extrapolationTypeActual)
        case (extrapolationTypeFixed)
@@ -186,22 +186,22 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
-    integer                                          , intent(in   )           :: nPoints                          
-    double precision                   , dimension(:), intent(in   )           :: xArray                  , yArray 
-    type            (fgsl_interp      )              , intent(inout)           :: interpolationObject              
-    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator         
-    double precision                                 , intent(in   )           :: x                                
-    type            (fgsl_interp_type )              , intent(in   ), optional :: interpolationType                
-    logical                                          , intent(inout), optional :: reset                            
-    integer                                          , intent(in   ), optional :: extrapolationType                
-    type            (fgsl_interp_type )                                        :: interpolationTypeActual          
-    integer                                                                    :: extrapolationTypeActual , status 
-    integer         (kind=c_size_t    )                                        :: nPointsC                         
-    logical                                                                    :: resetActual                      
-    type            (varying_string   )                                        :: message                          
-    integer         (kind=fgsl_int    )                                        :: errorCode                        
-    double precision                                                           :: xActual                          
-    
+    integer                                          , intent(in   )           :: nPoints
+    double precision                   , dimension(:), intent(in   )           :: xArray                  , yArray
+    type            (fgsl_interp      )              , intent(inout)           :: interpolationObject
+    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator
+    double precision                                 , intent(in   )           :: x
+    type            (fgsl_interp_type )              , intent(in   ), optional :: interpolationType
+    logical                                          , intent(inout), optional :: reset
+    integer                                          , intent(in   ), optional :: extrapolationType
+    type            (fgsl_interp_type )                                        :: interpolationTypeActual
+    integer                                                                    :: extrapolationTypeActual , status
+    integer         (kind=c_size_t    )                                        :: nPointsC
+    logical                                                                    :: resetActual
+    type            (varying_string   )                                        :: message
+    integer         (kind=fgsl_int    )                                        :: errorCode
+    double precision                                                           :: xActual
+
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
@@ -257,15 +257,15 @@ contains
     !% Perform an interpolation of {\tt x} into {\tt xArray()} and return the corresponding value in {\tt yArray()}.
     use Galacticus_Error
     implicit none
-    integer                                          , intent(in   )           :: nPoints                               
-    double precision                   , dimension(:), intent(in   )           :: xArray                                
-    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator              
-    double precision                                 , intent(in   )           :: x                                     
-    logical                                          , intent(inout), optional :: reset                                 
-    logical                                          , intent(in   ), optional :: closest                               
-    integer         (kind=c_size_t    )                                        :: nPointsC                              
-    logical                                                                    :: closestActual           , resetActual 
-    
+    integer                                          , intent(in   )           :: nPoints
+    double precision                   , dimension(:), intent(in   )           :: xArray
+    type            (fgsl_interp_accel)              , intent(inout)           :: interpolationAccelerator
+    double precision                                 , intent(in   )           :: x
+    logical                                          , intent(inout), optional :: reset
+    logical                                          , intent(in   ), optional :: closest
+    integer         (kind=c_size_t    )                                        :: nPointsC
+    logical                                                                    :: closestActual           , resetActual
+
     ! Abort on non-positive sized arrays.
     if (nPoints <= 0) call Galacticus_Error_Report('Interpolate_Locate','array has non-positive size')
 
@@ -309,11 +309,11 @@ contains
   subroutine Interpolate_Done(interpolationObject,interpolationAccelerator,reset)
     !% Free interpolation objects when they are no longer required.
     implicit none
-    type   (fgsl_interp      ), intent(inout), optional :: interpolationObject      
-    type   (fgsl_interp_accel), intent(inout), optional :: interpolationAccelerator 
-    logical                   , intent(in   ), optional :: reset                    
-    logical                                             :: resetActual              
-    
+    type   (fgsl_interp      ), intent(inout), optional :: interpolationObject
+    type   (fgsl_interp_accel), intent(inout), optional :: interpolationAccelerator
+    logical                   , intent(in   ), optional :: reset
+    logical                                             :: resetActual
+
     ! Determine reset status.
     if (present(reset)) then
        resetActual=reset

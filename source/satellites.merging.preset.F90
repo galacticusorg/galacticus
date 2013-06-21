@@ -32,9 +32,9 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                     ), intent(in   )          :: satelliteMergingMethod        
-    procedure(Satellite_Time_Until_Merging_Preset), intent(inout), pointer :: Satellite_Time_Until_Merging  
-                                                                                                         
+    type     (varying_string                     ), intent(in   )          :: satelliteMergingMethod
+    procedure(Satellite_Time_Until_Merging_Preset), intent(inout), pointer :: Satellite_Time_Until_Merging
+
     if (satelliteMergingMethod == 'preset') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Preset
     return
   end subroutine Satellite_Time_Until_Merging_Preset_Initialize
@@ -44,11 +44,11 @@ contains
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode                
-    type (keplerOrbit           ), intent(inout)          :: thisOrbit               
-    class(nodeComponentSatellite)               , pointer :: thisSatelliteComponent  
-    
-    ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.                                                                              
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    type (keplerOrbit           ), intent(inout)          :: thisOrbit
+    class(nodeComponentSatellite)               , pointer :: thisSatelliteComponent
+
+    ! Simply return the current time until merging as, by definition, this has been preset if this method is being used.
     thisSatelliteComponent => thisNode%satellite()
     Satellite_Time_Until_Merging_Preset=thisSatelliteComponent%mergeTime()
     return

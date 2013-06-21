@@ -20,20 +20,20 @@
 module Stellar_Population_Spectra_Postprocess
   !% Implements postprocessing of stellar population spectra.
   use Abundances_Structure
-  use ISO_Varying_String 
+  use ISO_Varying_String
   implicit none
   private
   public :: Stellar_Population_Spectrum_Postprocess
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.  
-  
-  ! Count of the number of methods being applied.                                                                                                           
-  integer                                            :: methodCount                                   =0        
-  
-  ! Name of stellar population postprocessing methods to apply.                                                                                                           
-  type   (varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessMethods              
-                                                                                                             
+  ! Flag to indicate if this module has been initialized.
+  logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.
+
+  ! Count of the number of methods being applied.
+  integer                                            :: methodCount                                   =0
+
+  ! Name of stellar population postprocessing methods to apply.
+  type   (varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessMethods
+
 contains
 
   subroutine Stellar_Population_Spectrum_Postprocess_Initialize
@@ -45,10 +45,10 @@ contains
     include 'stellar_populations.spectra.postprocess.initialize.modules.inc'
     !# </include>
     implicit none
-    
+
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraPostprocessInitialized) then
-       !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
+       !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization)
        if (.not.stellarPopulationSpectraPostprocessInitialized) then
           ! Get the stellar population postprocessing methods parameter.
           !@ <inputParameter>
@@ -81,7 +81,7 @@ contains
           !# </include>
           stellarPopulationSpectraPostprocessInitialized=.true.
        end if
-       !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization) 
+       !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization)
     end if
     return
   end subroutine Stellar_Population_Spectrum_Postprocess_Initialize
@@ -92,9 +92,9 @@ contains
     include 'stellar_populations.spectra.postprocess.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in   ) :: redshift, wavelength  
-    
-    ! Initialize the module.                                                      
+    double precision, intent(in   ) :: redshift, wavelength
+
+    ! Initialize the module.
     call Stellar_Population_Spectrum_Postprocess_Initialize()
 
     ! Return immediately if no methods were defined.
@@ -108,5 +108,5 @@ contains
     !# </include>
     return
   end function Stellar_Population_Spectrum_Postprocess
-  
+
 end module Stellar_Population_Spectra_Postprocess

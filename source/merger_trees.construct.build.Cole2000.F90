@@ -27,16 +27,16 @@ module Merger_Tree_Build_Cole2000
        & Merger_Tree_Build_Cole2000_State_Retrieve
 
   ! Variables controlling merger tree accuracy.
-  double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime  , & 
-       &                        mergerTreeBuildCole2000HighestRedshift        , mergerTreeBuildCole2000MassResolution, & 
-       &                        mergerTreeBuildCole2000MergeProbability                                                  
-  
+  double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime  , &
+       &                        mergerTreeBuildCole2000HighestRedshift        , mergerTreeBuildCole2000MassResolution, &
+       &                        mergerTreeBuildCole2000MergeProbability
+
   ! Random number sequence variables
-  type            (fgsl_rng) :: clonedPseudoSequenceObject                    , pseudoSequenceObject                     
-  logical                    :: reset                                  =.true., resetSnapshot                            
+  type            (fgsl_rng) :: clonedPseudoSequenceObject                    , pseudoSequenceObject
+  logical                    :: reset                                  =.true., resetSnapshot
   !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot)
   ! Variables used in integrands.
-  double precision           :: currentTime                                                                              
+  double precision           :: currentTime
   !$omp threadprivate(currentTime)
 contains
 
@@ -49,9 +49,9 @@ contains
     use ISO_Varying_String
     use Cosmology_Functions
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeBuildMethod 
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Build     
-    
+    type     (varying_string), intent(in   )          :: mergerTreeBuildMethod
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Build
+
     ! Check if our method is to be used.
     if (mergerTreeBuildMethod == 'Cole2000') then
        ! Assign pointer to our merger tree building subroutine.
@@ -119,16 +119,16 @@ contains
     use Pseudo_Random
     use Kind_Numbers
     implicit none
-    type            (mergerTree        ), intent(inout) :: thisTree                                                        
-    type            (treeNode          ), pointer       :: newNode1          , newNode2          , thisNode                
-    class           (nodeComponentBasic), pointer       :: newBasicComponent1, newBasicComponent2, thisBasicComponent      
-    integer         (kind=kind_int8    )                :: nodeIndex                                                       
-    double precision                                    :: accretionFraction , baseNodeTime      , branchingProbability, & 
-         &                                                 collapseTime      , deltaCritical     , deltaCritical1      , & 
-         &                                                 deltaCritical2    , deltaW            , nodeMass1           , & 
-         &                                                 nodeMass2         , time              , uniformRandom           
-    logical                                             :: doBranch                                                        
-    
+    type            (mergerTree        ), intent(inout) :: thisTree
+    type            (treeNode          ), pointer       :: newNode1          , newNode2          , thisNode
+    class           (nodeComponentBasic), pointer       :: newBasicComponent1, newBasicComponent2, thisBasicComponent
+    integer         (kind=kind_int8    )                :: nodeIndex
+    double precision                                    :: accretionFraction , baseNodeTime      , branchingProbability, &
+         &                                                 collapseTime      , deltaCritical     , deltaCritical1      , &
+         &                                                 deltaCritical2    , deltaW            , nodeMass1           , &
+         &                                                 nodeMass2         , time              , uniformRandom
+    logical                                             :: doBranch
+
     nodeIndex          =  1                 ! Initialize the node index counter to unity.
     thisNode           => thisTree%baseNode ! Point to the base node.
     thisBasicComponent => thisNode%basic()  ! Get the basic component of the node.
@@ -155,7 +155,7 @@ contains
           ! Find accretion rate.
           accretionFraction   =Tree_Subresolution_Fraction(thisBasicComponent%mass(),thisBasicComponent%time()&
                &,mergerTreeBuildCole2000MassResolution)
-          
+
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
           ! consider the node to have reached the end of its resolved evolution and so walk to the next node.
@@ -201,7 +201,7 @@ contains
              branchingProbability=uniformRandom/deltaW
              nodeMass1=Tree_Branch_Mass(thisBasicComponent%mass(),thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution&
                   &,branchingProbability)
-             
+
              ! Compute the time corresponding to this branching event.
              time=Time_of_Collapse(criticalOverdensity=deltaCritical,mass=thisBasicComponent%mass())
              ! Set properties of first new node.
@@ -281,7 +281,7 @@ contains
     resetSnapshot=reset
     return
   end subroutine Merger_Tree_Build_Cole2000_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Merger_Tree_Build_Cole2000_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -290,14 +290,14 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) resetSnapshot
     if (.not.resetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Merger_Tree_Build_Cole2000_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Merger_Tree_Build_Cole2000_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -306,9 +306,9 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) reset
     if (.not.reset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return

@@ -24,9 +24,9 @@ program Test_Hashes_Cryptographic
   use Memory_Management
   use Hashes_Cryptographic
   implicit none
-  type(varying_string) :: myHash, myText  
-  
-  ! Read in basic code memory usage.                                     
+  type(varying_string) :: myHash, myText
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.hashes.cryptographic.size')
 
   ! Begin unit tests.

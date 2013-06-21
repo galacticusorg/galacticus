@@ -32,10 +32,10 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                            ), intent(in   )          :: darkMatterHaloBiasMethod        
-    procedure(Dark_Matter_Halo_Bias_Node_Press_Schechter), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get  
-    procedure(Dark_Matter_Halo_Bias_Press_Schechter     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get       
-                                                                                                                  
+    type     (varying_string                            ), intent(in   )          :: darkMatterHaloBiasMethod
+    procedure(Dark_Matter_Halo_Bias_Node_Press_Schechter), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get
+    procedure(Dark_Matter_Halo_Bias_Press_Schechter     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get
+
     if (darkMatterHaloBiasMethod == 'Press-Schechter') then
        Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_Press_Schechter
        Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_Press_Schechter
@@ -49,10 +49,10 @@ contains
     use Power_Spectra
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode            
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
-    
-    ! Compute halo bias.                                                                      
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+
+    ! Compute halo bias.
     thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Bias_Node_Press_Schechter=Dark_Matter_Halo_Bias_Press_Schechter(thisBasicComponent%mass()&
          &,thisBasicComponent%time())
@@ -64,14 +64,14 @@ contains
     use Critical_Overdensity
     use Power_Spectra
     implicit none
-    double precision, intent(in   ) :: mass         , time         
-    double precision                :: deltaCritical, nu  , sigma  
-    
-    ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.                                                            
+    double precision, intent(in   ) :: mass         , time
+    double precision                :: deltaCritical, nu  , sigma
+
+    ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
     sigma        =Cosmological_Mass_Root_Variance(mass)
     nu           =deltaCritical/sigma
-    
+
     ! Compute halo bias.
     Dark_Matter_Halo_Bias_Press_Schechter=1.0d0+(nu**2-1.0d0)/deltaCritical
     return

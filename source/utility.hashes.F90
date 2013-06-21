@@ -27,9 +27,9 @@ module Hashes
   type integerScalarHash
      !% Derived type for integer hashes.
      private
-     integer                              :: allocatedSize   , elementCount 
-     integer                , allocatable :: hashValues   (:)               
-     type   (varying_string), allocatable :: hashKeys     (:)               
+     integer                              :: allocatedSize   , elementCount
+     integer                , allocatable :: hashValues   (:)
+     type   (varying_string), allocatable :: hashKeys     (:)
    contains
      !@ <objectMethods>
      !@   <object>integerScalarHash</object>
@@ -88,36 +88,36 @@ module Hashes
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: initialize           =>Initialize_Integer_Scalar 
-     procedure :: Set_Integer_Scalar_VS                            
-     procedure :: Set_Integer_Scalar_CH                            
+     procedure :: initialize           =>Initialize_Integer_Scalar
+     procedure :: Set_Integer_Scalar_VS
+     procedure :: Set_Integer_Scalar_CH
      generic   :: set        => Set_Integer_Scalar_VS,Set_Integer_Scalar_CH
-     procedure :: Delete_Integer_Scalar_VS 
-     procedure :: Delete_Integer_Scalar_CH 
+     procedure :: Delete_Integer_Scalar_VS
+     procedure :: Delete_Integer_Scalar_CH
      generic   :: delete     => Delete_Integer_Scalar_VS,Delete_Integer_Scalar_CH
-     procedure :: Value_Integer_Scalar_VS 
-     procedure :: Value_Integer_Scalar_CH 
-     procedure :: Value_Integer_Scalar_I  
+     procedure :: Value_Integer_Scalar_VS
+     procedure :: Value_Integer_Scalar_CH
+     procedure :: Value_Integer_Scalar_I
      generic   :: value      => Value_Integer_Scalar_VS,Value_Integer_Scalar_CH,Value_Integer_Scalar_I
-     procedure :: key                     =>Key_Integer_Scalar_I  
-     procedure :: Exists_Integer_Scalar_VS                        
-     procedure :: Exists_Integer_Scalar_CH                        
-     procedure :: keys                    =>Keys_Integer_Scalar   
-     procedure :: values                  =>Values_Integer_Scalar 
+     procedure :: key                     =>Key_Integer_Scalar_I
+     procedure :: Exists_Integer_Scalar_VS
+     procedure :: Exists_Integer_Scalar_CH
+     procedure :: keys                    =>Keys_Integer_Scalar
+     procedure :: values                  =>Values_Integer_Scalar
      generic   :: exists     => Exists_Integer_Scalar_VS,Exists_Integer_Scalar_CH
-     procedure :: size=>Size_Integer_Scalar 
+     procedure :: size=>Size_Integer_Scalar
   end type integerScalarHash
 
   ! The number of new elements by which to extend hashes that need to grow.
-  integer, parameter :: hashSizeIncrement=128 
-  
+  integer, parameter :: hashSizeIncrement=128
+
 contains
 
   subroutine Initialize_Integer_Scalar(thisHash)
     !% Routine to initialize (or re-initialize) an integer hash.
     implicit none
-    class(integerScalarHash), intent(  out) :: thisHash 
-    
+    class(integerScalarHash), intent(  out) :: thisHash
+
     select type (thisHash)
     type is (integerScalarHash)
        thisHash%elementCount =0
@@ -131,8 +131,8 @@ contains
   integer function Size_Integer_Scalar(thisHash)
     !% Returns the number of elements in the specified {\tt Hash}.
     implicit none
-    class(integerScalarHash), intent(in   ) :: thisHash 
-    
+    class(integerScalarHash), intent(in   ) :: thisHash
+
     select type (thisHash)
     type is (integerScalarHash)
        Size_Integer_Scalar=thisHash%elementCount
@@ -143,9 +143,9 @@ contains
   logical function Exists_Integer_Scalar_CH(thisHash,keyCH)
     !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
     implicit none
-    class    (integerScalarHash), intent(in   ) :: thisHash 
-    character(len=*            ), intent(in   ) :: keyCH    
-    type     (varying_string   ), save          :: key      
+    class    (integerScalarHash), intent(in   ) :: thisHash
+    character(len=*            ), intent(in   ) :: keyCH
+    type     (varying_string   ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     Exists_Integer_Scalar_CH=Exists_Integer_Scalar_VS(thisHash,key)
@@ -155,9 +155,9 @@ contains
   logical function Exists_Integer_Scalar_VS(thisHash,key)
     !% Returns true if the specified {\tt key} exists in the specified {\tt thisHash}, false otherwise.
     implicit none
-    class(integerScalarHash), intent(in   ) :: thisHash 
-    type (varying_string   ), intent(in   ) :: key      
-    
+    class(integerScalarHash), intent(in   ) :: thisHash
+    type (varying_string   ), intent(in   ) :: key
+
     select type (thisHash)
     type is (integerScalarHash)
        if (thisHash%elementCount > 0) then
@@ -168,13 +168,13 @@ contains
     end select
     return
   end function Exists_Integer_Scalar_VS
-  
+
   subroutine Delete_Integer_Scalar_CH(thisHash,keyCH)
     !% Deletes entry {\tt key} from {\tt thisHash}.
     implicit none
-    character(len=*            ), intent(in   ) :: keyCH    
-    class    (integerScalarHash), intent(inout) :: thisHash 
-    type     (varying_string   ), save          :: key      
+    character(len=*            ), intent(in   ) :: keyCH
+    class    (integerScalarHash), intent(inout) :: thisHash
+    type     (varying_string   ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     call Delete_Integer_Scalar_VS(thisHash,key)
@@ -186,10 +186,10 @@ contains
     use Arrays_Search
     use Galacticus_Error
     implicit none
-    type   (varying_string   ), intent(in   ) :: key      
-    class  (integerScalarHash), intent(inout) :: thisHash 
-    integer                   , save          :: iKey     
-    
+    type   (varying_string   ), intent(in   ) :: key
+    class  (integerScalarHash), intent(inout) :: thisHash
+    integer                   , save          :: iKey
+
     select type (thisHash)
     type is (integerScalarHash)
        if (Exists_Integer_Scalar_VS(thisHash,key)) then
@@ -208,10 +208,10 @@ contains
     !% Returns the key of entry number {\tt index} in {\tt thisHash}.
     use ISO_Varying_String
     implicit none
-    type   (varying_string   )                :: key        
-    integer                   , intent(in   ) :: indexValue 
-    class  (integerScalarHash), intent(in   ) :: thisHash   
-    
+    type   (varying_string   )                :: key
+    integer                   , intent(in   ) :: indexValue
+    class  (integerScalarHash), intent(in   ) :: thisHash
+
     select type (thisHash)
     type is (integerScalarHash)
        key=thisHash%hashKeys(indexValue)
@@ -222,9 +222,9 @@ contains
   subroutine Keys_Integer_Scalar(thisHash,keys)
     !% Returns an array of all keys in {\tt thisHash}.
     implicit none
-    type (varying_string   ), allocatable, dimension(:), intent(inout) :: keys     
-    class(integerScalarHash)                           , intent(in   ) :: thisHash 
-    
+    type (varying_string   ), allocatable, dimension(:), intent(inout) :: keys
+    class(integerScalarHash)                           , intent(in   ) :: thisHash
+
     select type (thisHash)
     type is (integerScalarHash)
        if (allocated(keys)) deallocate(keys)
@@ -237,9 +237,9 @@ contains
   subroutine Values_Integer_Scalar(thisHash,values)
     !% Returns an array of all values in {\tt thisHash}.
     implicit none
-    integer                   , allocatable, dimension(:), intent(inout) :: values   
-    class  (integerScalarHash)                           , intent(in   ) :: thisHash 
-    
+    integer                   , allocatable, dimension(:), intent(inout) :: values
+    class  (integerScalarHash)                           , intent(in   ) :: thisHash
+
     select type (thisHash)
     type is (integerScalarHash)
        if (allocated(values)) deallocate(values)
@@ -252,9 +252,9 @@ contains
   integer function Value_Integer_Scalar_I(thisHash,indexValue)
     !% Returns the value of entry number {\tt index} in {\tt Hash}.
     implicit none
-    class  (integerScalarHash), intent(in   ) :: thisHash   
-    integer                   , intent(in   ) :: indexValue 
-    
+    class  (integerScalarHash), intent(in   ) :: thisHash
+    integer                   , intent(in   ) :: indexValue
+
     select type (thisHash)
     type is (integerScalarHash)
        Value_Integer_Scalar_I=thisHash%hashValues(indexValue)
@@ -265,9 +265,9 @@ contains
   integer function Value_Integer_Scalar_CH(thisHash,keyCH)
     !% Returns the value of {\tt Key} in {\tt Hash}.
     implicit none
-    character(len=*            ), intent(in   ) :: keyCH    
-    class    (integerScalarHash), intent(in   ) :: thisHash 
-    type     (varying_string   ), save          :: key      
+    character(len=*            ), intent(in   ) :: keyCH
+    class    (integerScalarHash), intent(in   ) :: thisHash
+    type     (varying_string   ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
     Value_Integer_Scalar_CH=Value_Integer_Scalar_VS(thisHash,key)
@@ -279,10 +279,10 @@ contains
     use Arrays_Search
     use Galacticus_Error
     implicit none
-    class  (integerScalarHash), intent(in   ) :: thisHash 
-    type   (varying_string   ), intent(in   ) :: key      
-    integer                                   :: iKey     
-    
+    class  (integerScalarHash), intent(in   ) :: thisHash
+    type   (varying_string   ), intent(in   ) :: key
+    integer                                   :: iKey
+
     select type (thisHash)
     type is (integerScalarHash)
        if (Exists_Integer_Scalar_VS(thisHash,key)) then
@@ -299,11 +299,11 @@ contains
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
     use Arrays_Search
     implicit none
-    integer                     , intent(in   ) :: value    
-    character(len=*            ), intent(in   ) :: keyCH    
-    class    (integerScalarHash), intent(inout) :: thisHash 
-    type     (varying_string   ), save          :: key      
-    
+    integer                     , intent(in   ) :: value
+    character(len=*            ), intent(in   ) :: keyCH
+    class    (integerScalarHash), intent(inout) :: thisHash
+    type     (varying_string   ), save          :: key
+
     key=trim(keyCH)
     call Set_Integer_Scalar_VS(thisHash,key,value)
     return
@@ -313,14 +313,14 @@ contains
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
     use Arrays_Search
     implicit none
-    integer                                              , intent(in   ) :: Value           
-    type   (varying_string   )                           , intent(in   ) :: Key             
-    class  (integerScalarHash)                           , intent(inout) :: thisHash        
-    integer                                                              :: iKey            
-    logical                                                              :: keyExists       
-    integer                   , allocatable, dimension(:)                :: valuesTemporary 
-    type   (varying_string   ), allocatable, dimension(:)                :: keysTemporary   
-    
+    integer                                              , intent(in   ) :: Value
+    type   (varying_string   )                           , intent(in   ) :: Key
+    class  (integerScalarHash)                           , intent(inout) :: thisHash
+    integer                                                              :: iKey
+    logical                                                              :: keyExists
+    integer                   , allocatable, dimension(:)                :: valuesTemporary
+    type   (varying_string   ), allocatable, dimension(:)                :: keysTemporary
+
     select type (thisHash)
     type is (integerScalarHash)
        ! Check if key already exists.

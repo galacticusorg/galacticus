@@ -39,14 +39,14 @@ contains
     use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
-    integer                                 , intent(in   )           :: componentType         , massType  
-    double precision                        , intent(in   )           :: radius                            
-    logical                                 , intent(in   ), optional :: haloLoaded                        
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
-    double precision                                                  :: componentMass                     
-    
-    ! Set to zero by default.                                                                                                    
+    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    integer                                 , intent(in   )           :: componentType         , massType
+    double precision                        , intent(in   )           :: radius
+    logical                                 , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    double precision                                                  :: componentMass
+
+    ! Set to zero by default.
     Node_Component_Black_Hole_Simple_Rotation_Curve=0.0d0
     ! Get the black hole component and check that it is of the simple class.
     thisBlackHoleComponent => thisNode%blackHole()
@@ -72,7 +72,7 @@ contains
   !# </rotationCurveGradientTask>
   double precision function Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient(thisNode,radius,componentType&
        &,massType,haloLoaded)
-    !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian 
+    !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
     !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
     use Galacticus_Nodes
     use Galactic_Structure_Options
@@ -80,17 +80,17 @@ contains
     use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
-    integer                                 , intent(in   )           :: componentType         , massType  
-    double precision                        , intent(in   )           :: radius                            
-    logical                                 , intent(in   ), optional :: haloLoaded                        
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
-    double precision                                                  :: componentMass                     
-    
-    ! Set to zero by default.                                                                                                    
+    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    integer                                 , intent(in   )           :: componentType         , massType
+    double precision                        , intent(in   )           :: radius
+    logical                                 , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    double precision                                                  :: componentMass
+
+    ! Set to zero by default.
     Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return  
+    if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
     if (      radius        <= 0.0d0                                                         ) return
     ! Get the black hole component and check that it is of the simple class.
     thisBlackHoleComponent => thisNode%blackHole()
@@ -117,18 +117,18 @@ contains
   double precision function Node_Component_Black_Hole_Simple_Potential(thisNode,radius,componentType,massType,haloLoaded)
     !% Compute the gravitational potential due to a black hole.
     use Galacticus_Nodes
-    use Numerical_Constants_Physical 
+    use Numerical_Constants_Physical
     use Galactic_Structure_Options
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
-    integer                                 , intent(in   )           :: componentType         , massType  
-    double precision                        , intent(in   )           :: radius                            
-    logical                                 , intent(in   ), optional :: haloLoaded                        
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
-    double precision                                                  :: componentMass                     
-    
-    ! Set to zero by default.                                                                                                    
+    type            (treeNode              ), intent(inout), pointer  :: thisNode
+    integer                                 , intent(in   )           :: componentType         , massType
+    double precision                        , intent(in   )           :: radius
+    logical                                 , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    double precision                                                  :: componentMass
+
+    ! Set to zero by default.
     Node_Component_Black_Hole_Simple_Potential=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return

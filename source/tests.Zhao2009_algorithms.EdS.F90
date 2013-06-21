@@ -36,22 +36,22 @@ program Test_Zhao2009_Flat
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (mergerTree        )                         , pointer :: thisTree                                                                        
-  type            (treeNode          )                         , pointer :: thisNode                                                                        
-  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent                                                              
-  integer                             , dimension(1), parameter          :: logarithmicHaloMasses           =[12]                                           
-  double precision                    , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.3d-2], timeDifferenceTolerance=[3.4d-2]     
-  type            (varying_string    )                                   :: fileName                                 , message                          , & 
-       &                                                                    parameterFile                                                                   
-  integer                                                                :: dataLinesInFile                          , fUnit                            , & 
-       &                                                                    iLine                                    , iMass                            , & 
-       &                                                                    totalLinesInFile                                                                
-  double precision                                                       :: concentrationDifferenceMaximum           , haloMass                         , & 
-       &                                                                    ourConcentration                         , ourTime                          , & 
-       &                                                                    redshift                                 , theirConcentration               , & 
-       &                                                                    theirTime                                , timeDifferenceMaximum                
-  
-  ! Read in basic code memory usage.                                                                                                                                                       
+  type            (mergerTree        )                         , pointer :: thisTree
+  type            (treeNode          )                         , pointer :: thisNode
+  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
+  integer                             , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
+  double precision                    , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.3d-2], timeDifferenceTolerance=[3.4d-2]
+  type            (varying_string    )                                   :: fileName                                 , message                          , &
+       &                                                                    parameterFile
+  integer                                                                :: dataLinesInFile                          , fUnit                            , &
+       &                                                                    iLine                                    , iMass                            , &
+       &                                                                    totalLinesInFile
+  double precision                                                       :: concentrationDifferenceMaximum           , haloMass                         , &
+       &                                                                    ourConcentration                         , ourTime                          , &
+       &                                                                    redshift                                 , theirConcentration               , &
+       &                                                                    theirTime                                , timeDifferenceMaximum
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.EdS.size')
 
   ! Begin unit tests.
@@ -61,13 +61,13 @@ program Test_Zhao2009_Flat
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Zhao2009Algorithms/EdS.xml'
   call Input_Parameters_File_Open(parameterFile)
-  
+
   ! Create a node.
   call thisTree%createNode(thisNode)
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
-  
+
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
 
@@ -86,28 +86,28 @@ program Test_Zhao2009_Flat
      ! Initialize maximum differences to zero.
      timeDifferenceMaximum         =0.0d0
      concentrationDifferenceMaximum=0.0d0
-     
+
      ! Read all data lines from the comparison file.
      do iLine=1,dataLinesInFile
         read (fUnit,*) redshift,haloMass,theirConcentration
-        
+
         ! Compute the corresponding cosmological time.
         theirTime=Cosmology_Age(Expansion_Factor_From_Redshift(redshift))
-        
+
         ! Set the mass and time of the original node.
         call thisBasicComponent%massSet(10.0d0**logarithmicHaloMasses(iMass))
         call thisBasicComponent%timeSet(Cosmology_Age                (1.0d0))
 
         ! Get the time corresponding to the current halo mass.
         ourTime=Dark_Matter_Halo_Mass_Accretion_Time(thisNode,haloMass)
-        
+
         ! Set the node mass and time to the current values.
         call thisBasicComponent%massSet(haloMass )
         call thisBasicComponent%timeSet(theirTime)
-        
+
         ! Get the corresponding halo concentration.
         ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
-        
+
         ! Compute the difference between our values and the comparison values.
         timeDifferenceMaximum         =max(                                                             &
              &                              timeDifferenceMaximum                                       &
@@ -117,10 +117,10 @@ program Test_Zhao2009_Flat
              &                              concentrationDifferenceMaximum                              &
              &                             ,abs(ourConcentration-theirConcentration)/theirConcentration&
              &                            )
-        
+
      end do
      close(fUnit)
-     
+
      ! Perform the tests.
      message='10^'
      message=message//logarithmicHaloMasses(iMass)//' M⊙ halo mass accretion history'
@@ -133,9 +133,9 @@ program Test_Zhao2009_Flat
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close
- 
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
- 
+
 end program Test_Zhao2009_Flat

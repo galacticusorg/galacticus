@@ -25,14 +25,14 @@ program Tests_Comoving_Distance_Dark_Energy
   use Cosmology_Functions_Options
   use Memory_Management
   implicit none
-  double precision                , dimension(8), parameter :: redshift          =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                                                                    
-  double precision                , dimension(8), parameter :: distanceDarkEnergy=[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0,88.1893579d0,92.7669523d0,95.5884181d0]                     
-  type            (varying_string)                          :: parameterFile                                                                                                                                   
-  character       (len=1024      )                          :: message                                                                                                                                         
-  integer                                                   :: iExpansion                                                                                                                                      
-  double precision                                          :: distance                                                                                                                   , distanceModulus, & 
-       &                                                       time                                                                                                                       , timeLookup         
-  
+  double precision                , dimension(8), parameter :: redshift          =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
+  double precision                , dimension(8), parameter :: distanceDarkEnergy=[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0,88.1893579d0,92.7669523d0,95.5884181d0]
+  type            (varying_string)                          :: parameterFile
+  character       (len=1024      )                          :: message
+  integer                                                   :: iExpansion
+  double precision                                          :: distance                                                                                                                   , distanceModulus, &
+       &                                                       time                                                                                                                       , timeLookup
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.comoving_distance.dark_energy.size')
 

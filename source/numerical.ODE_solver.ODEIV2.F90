@@ -25,9 +25,9 @@ module ODEIV2_Solver
   use, intrinsic :: ISO_C_Binding
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
- 
+
 contains
-  
+
   subroutine ODEIV2_Solve(odeDriver,odeSystem,x0,x1,yCount,y,odeFunction,parameterPointer,toleranceAbsolute,toleranceRelative&
 #ifdef PROFILE
        &,Error_Analyzer &
@@ -39,32 +39,32 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    double precision                   , intent(in   )                    :: toleranceAbsolute        , toleranceRelative        , x1  
-    type            (c_ptr            ), intent(in   )                    :: parameterPointer                                          
-    integer                            , intent(in   )                    :: yCount                                                    
-    double precision                   , intent(inout)                    :: x0                       , y                (yCount)      
-    double precision                   , intent(in   ), optional          :: yScale           (yCount)                                 
-    type            (fodeiv2_driver   ), intent(inout)                    :: odeDriver                                                 
-    type            (fodeiv2_system   ), intent(inout)                    :: odeSystem                                                 
-    logical                            , intent(inout), optional          :: reset                                                     
-    procedure       (                 )               , optional, pointer :: errorHandler                                              
-    type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm                                                 
-    integer                            , intent(  out), optional          :: odeStatus                                                 
+    double precision                   , intent(in   )                    :: toleranceAbsolute        , toleranceRelative        , x1
+    type            (c_ptr            ), intent(in   )                    :: parameterPointer
+    integer                            , intent(in   )                    :: yCount
+    double precision                   , intent(inout)                    :: x0                       , y                (yCount)
+    double precision                   , intent(in   ), optional          :: yScale           (yCount)
+    type            (fodeiv2_driver   ), intent(inout)                    :: odeDriver
+    type            (fodeiv2_system   ), intent(inout)                    :: odeSystem
+    logical                            , intent(inout), optional          :: reset
+    procedure       (                 )               , optional, pointer :: errorHandler
+    type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm
+    integer                            , intent(  out), optional          :: odeStatus
 #ifdef PROFILE
-    type(c_funptr), intent(in   ) :: Error_Analyzer  
+    type(c_funptr), intent(in   ) :: Error_Analyzer
 #endif
-    integer         (kind=4           ), external  :: odeFunction                                               
-    integer                            , parameter :: genericFailureCountMaximum=10                             
-    double precision                   , parameter :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0     
-    integer                                        :: status                                                    
-    integer         (kind=c_size_t    )            :: odeNumber                                                 
-    double precision                               :: h                               , x                   , & 
-         &                                            x1Internal                                                
-    logical                                        :: forwardEvolve                   , resetActual             
-    type            (fodeiv2_step_type)            :: algorithmActual                                           
-    type            (varying_string   )            :: message                                                   
-    
-    ! Number of ODEs to solve.                                                                                                         
+    integer         (kind=4           ), external  :: odeFunction
+    integer                            , parameter :: genericFailureCountMaximum=10
+    double precision                   , parameter :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
+    integer                                        :: status
+    integer         (kind=c_size_t    )            :: odeNumber
+    double precision                               :: h                               , x                   , &
+         &                                            x1Internal
+    logical                                        :: forwardEvolve                   , resetActual
+    type            (fodeiv2_step_type)            :: algorithmActual
+    type            (varying_string   )            :: message
+
+    ! Number of ODEs to solve.
     odeNumber=yCount
 
     ! Decide whether to reset.
@@ -115,7 +115,7 @@ contains
           if (present(errorHandler)) call errorHandler()
           ! If ODE status was requested, then return it instead of aborting.
           if (present(odeStatus)) then
-             x0=x 
+             x0=x
              odeStatus=status
              return
           end if
@@ -131,7 +131,7 @@ contains
           if (present(errorHandler)) call errorHandler()
           ! If ODE status was requested, then return it instead of aborting.
           if (present(odeStatus)) then
-             x0=x 
+             x0=x
              odeStatus=status
              return
           end if
@@ -145,13 +145,13 @@ contains
     if (present(odeStatus)) odeStatus=status
     return
   end subroutine ODEIV2_Solve
-  
+
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
     implicit none
-    type(fodeiv2_driver), intent(inout) :: odeDriver  
-    type(fodeiv2_system), intent(inout) :: odeSystem  
-                                                   
+    type(fodeiv2_driver), intent(inout) :: odeDriver
+    type(fodeiv2_system), intent(inout) :: odeSystem
+
     call Fodeiv2_Driver_Free(odeDriver)
     call Fodeiv2_System_Free(odeSystem)
     return

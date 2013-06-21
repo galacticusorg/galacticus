@@ -25,18 +25,18 @@ module Dark_Matter_Profiles_Concentrations
   private
   public :: Dark_Matter_Profile_Concentration
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                          :: darkMatterConcentrationInitialized   =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                
-  type     (varying_string              )          :: darkMatterConcentrationMethod                  
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Concentration_Get=>null()  
+  ! Flag to indicate if this module has been initialized.
+  logical                                          :: darkMatterConcentrationInitialized   =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string              )          :: darkMatterConcentrationMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Concentration_Get=>null()
   abstract interface
      double precision function Dark_Matter_Profile_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode  
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Dark_Matter_Profile_Template
   end interface
 
@@ -53,7 +53,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.darkMatterConcentrationInitialized) then
-       !$omp critical(Dark_Matter_Concentrations_Initialization) 
+       !$omp critical(Dark_Matter_Concentrations_Initialization)
        if (.not.darkMatterConcentrationInitialized) then
           ! Get the halo spin distribution method parameter.
           !@ <inputParameter>
@@ -76,7 +76,7 @@ contains
                & call Galacticus_Error_Report('Dark_Matter_Concentrations_Initialize','method ' //char(darkMatterConcentrationMethod)//' is unrecognized')
           darkMatterConcentrationInitialized=.true.
        end if
-       !$omp end critical(Dark_Matter_Concentrations_Initialization) 
+       !$omp end critical(Dark_Matter_Concentrations_Initialization)
     end if
     return
   end subroutine Dark_Matter_Concentrations_Initialize
@@ -84,9 +84,9 @@ contains
   double precision function Dark_Matter_Profile_Concentration(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Initialize the module.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Initialize the module.
     call Dark_Matter_Concentrations_Initialize
 
     ! Get the concentration using the selected method.

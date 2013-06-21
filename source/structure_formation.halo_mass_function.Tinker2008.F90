@@ -24,13 +24,13 @@ module Halo_Mass_Function_Tinker2008
   public :: Halo_Mass_Function_Tinker2008_Initialize
 
   ! Variables to hold the table of parameters vs. overdensity.
-  integer                                     :: deltaTableNumberPoints                      
-  double precision, allocatable, dimension(:) :: deltaTableA            , deltaTableB    , & 
-       &                                         deltaTableC            , deltaTableDelta, & 
-       &                                         deltaTableNormalization                     
-  
+  integer                                     :: deltaTableNumberPoints
+  double precision, allocatable, dimension(:) :: deltaTableA            , deltaTableB    , &
+       &                                         deltaTableC            , deltaTableDelta, &
+       &                                         deltaTableNormalization
+
 contains
-  
+
   !# <haloMassFunctionMethod>
   !#  <unitName>Halo_Mass_Function_Tinker2008_Initialize</unitName>
   !# </haloMassFunctionMethod>
@@ -42,16 +42,16 @@ contains
     use Galacticus_Input_Paths
     use Memory_Management
     implicit none
-    type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod                                    
-    procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get                       
-    type            (Node            )               , pointer :: columnElement                      , columnsElement   , & 
-         &                                                        datum                              , doc                  
-    type            (NodeList        )               , pointer :: deltaList                          , normalizationList, & 
-         &                                                        parameterAList                     , parameterBList   , & 
-         &                                                        parameterCList                                            
-    integer                                                    :: iDatum                             , ioErr                
-    double precision                                           :: datumValue                                                
-    
+    type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod
+    procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    type            (Node            )               , pointer :: columnElement                      , columnsElement   , &
+         &                                                        datum                              , doc
+    type            (NodeList        )               , pointer :: deltaList                          , normalizationList, &
+         &                                                        parameterAList                     , parameterBList   , &
+         &                                                        parameterCList
+    integer                                                    :: iDatum                             , ioErr
+    double precision                                           :: datumValue
+
     if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Tinker2008
 
@@ -111,20 +111,20 @@ contains
     use Numerical_Interpolation
     use Linear_Growth
     implicit none
-    double precision                   , intent(in   ) :: mass                           , time              
-    double precision                                   :: alpha                          , sigma             
-    type            (fgsl_interp      ), save          :: interpolationObject                                
-    type            (fgsl_interp_accel), save          :: interpolationAccelerator                           
-    logical                            , save          :: resetInterpolation      =.true.                    
+    double precision                   , intent(in   ) :: mass                           , time
+    double precision                                   :: alpha                          , sigma
+    type            (fgsl_interp      ), save          :: interpolationObject
+    type            (fgsl_interp_accel), save          :: interpolationAccelerator
+    logical                            , save          :: resetInterpolation      =.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision                   , save          :: timePrevious            =-1.0d0                    
+    double precision                   , save          :: timePrevious            =-1.0d0
     !$omp threadprivate(timePrevious)
-    double precision                   , save          :: Delta                          , a             , & 
-         &                                                a0                             , alphaDelta    , & 
-         &                                                b                              , b0            , & 
-         &                                                c                              , c0            , & 
-         &                                                expansionFactor                , growthFactor  , & 
-         &                                                normalization                  , normalization0    
+    double precision                   , save          :: Delta                          , a             , &
+         &                                                a0                             , alphaDelta    , &
+         &                                                b                              , b0            , &
+         &                                                c                              , c0            , &
+         &                                                expansionFactor                , growthFactor  , &
+         &                                                normalization                  , normalization0
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= timePrevious) then
@@ -132,17 +132,17 @@ contains
        expansionFactor=Expansion_Factor            (time)
        Delta          =Halo_Virial_Density_Contrast(time)
        growthFactor   =Linear_Growth_Factor        (time)
-       
+
        ! Compute coefficients of fitting function.
        normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)   
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
        a0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableA &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
        b0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableB &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
        c0            =Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableC &
-            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear) 
-       
+            &,interpolationObject,interpolationAccelerator,Delta,reset=resetInterpolation,extrapolationType=extrapolationTypeLinear)
+
        ! Extrapolate to higher redshift using redshift scalings given by Tinker et al. (2008; eqns. 5-8).
        normalization=normalization0*expansionFactor**0.14d0
        a=a0*expansionFactor**0.06d0
@@ -154,12 +154,12 @@ contains
        timePrevious=time
     end if
 
-    ! Compute the mass function.    
+    ! Compute the mass function.
     sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
     alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
     Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return
   end function Halo_Mass_Function_Differential_Tinker2008
-  
+
 end module Halo_Mass_Function_Tinker2008

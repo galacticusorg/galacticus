@@ -55,13 +55,13 @@ module Node_Component_Disk_Very_Simple
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized          =.false.                                    
-  
+  logical          :: moduleInitialized          =.false.
+
   ! Parameters controlling the physical implementation.
-  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum 
-  
+  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum
+
 contains
-  
+
   !# <mergerTreePreTreeConstructionTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
   !# </mergerTreePreTreeConstructionTask>
@@ -69,8 +69,8 @@ contains
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
     implicit none
-    type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent 
-    
+    type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent
+
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
@@ -105,7 +105,7 @@ contains
     !$omp end critical (Node_Component_Disk_Very_Simple_Initialize)
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize
-  
+
   !# <postEvolveTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Post_Evolve</unitName>
   !# </postEvolveTask>
@@ -114,20 +114,20 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                      
-    class           (nodeComponentDisk )               , pointer :: thisDiskComponent                             
-    double precision                    , save                   :: fractionalErrorMaximum=0.0d0                  
-    double precision                                             :: diskMass                    , fractionalError 
-    character       (len=20            )                         :: valueString                                   
-    type            (varying_string    )                         :: message                                       
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    double precision                    , save                   :: fractionalErrorMaximum=0.0d0
+    double precision                                             :: diskMass                    , fractionalError
+    character       (len=20            )                         :: valueString
+    type            (varying_string    )                         :: message
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if a very simple disk component exists.
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
        ! Trap negative gas masses.
-       if (thisDiskComponent%massGas() < 0.0d0) then          
+       if (thisDiskComponent%massGas() < 0.0d0) then
           ! Check if this exceeds the maximum previously recorded error.
           fractionalError=   abs(thisDiskComponent%massGas    ()) &
                &          /(                                       &
@@ -136,7 +136,7 @@ contains
                &           )
           !$omp critical (Very_Simple_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
-             ! Report a warning.          
+             ! Report a warning.
              message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
              message=message//'  Node index        = '//thisNode%index() //char(10)
              write (valueString,'(e12.6)') thisDiskComponent%massGas()
@@ -156,7 +156,7 @@ contains
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
-          !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)         
+          !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)
           ! Get the specific angular momentum of the disk material
           diskMass= thisDiskComponent%massGas    () &
                &   +thisDiskComponent%massStellar()
@@ -177,16 +177,16 @@ contains
     use Stellar_Feedback
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                       
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                              
-    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent                           
-    logical                                , intent(inout)          :: interrupt                                      
-    procedure       (                     ), intent(inout), pointer :: interruptProcedureReturn                       
-    procedure       (                     )               , pointer :: interruptProcedure                             
-    double precision                                                :: diskDynamicalTime       , diskMass         , & 
-         &                                                             energyInputRate         , fuelMass         , & 
-         &                                                             massOutflowRate         , starFormationRate    
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent
+    logical                                , intent(inout)          :: interrupt
+    procedure       (                     ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (                     )               , pointer :: interruptProcedure
+    double precision                                                :: diskDynamicalTime       , diskMass         , &
+         &                                                             energyInputRate         , fuelMass         , &
+         &                                                             massOutflowRate         , starFormationRate
+
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the disk and check that it is of our class.
@@ -205,7 +205,7 @@ contains
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        energyInputRate=feedbackEnergyInputAtInfinityCanonical*starFormationRate
        massOutflowRate=Star_Formation_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
-       if (massOutflowRate > 0.0d0) then       
+       if (massOutflowRate > 0.0d0) then
           ! Get the masses of the disk.
           diskMass=fuelMass+thisDiskComponent%massStellar()
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
@@ -228,11 +228,11 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                  
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent         
-    double precision                   , parameter              :: massMinimum      =100.0d0 
-    double precision                                            :: mass                      
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    double precision                   , parameter              :: massMinimum      =100.0d0
+    double precision                                            :: mass
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if a very simple disk component exists.
@@ -256,19 +256,19 @@ contains
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode                             
-    type (treeNode         )               , pointer :: hostNode                             
-    class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent 
-    
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    type (treeNode         )               , pointer :: hostNode
+    class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent
+
     ! Check that the disk is of the verySimple class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
     class is (nodeComponentDiskVerySimple)
-       
+
        ! Find the node to merge with and its disk component.
        hostNode          => thisNode%mergesWith()
        hostDiskComponent => hostNode%disk      ()
-       
+
        ! Move the gas component of the very simple disk to the host.
        select case (thisMergerGasMovesTo)
        case (movesToDisk)
@@ -321,23 +321,23 @@ contains
     use Star_Formation_Timescales_Disks
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                           
-    class           (nodeComponentDisk )               , pointer :: thisDiskComponent                                  
-    double precision                                             :: diskDynamicalTime, gasMass, starFormationTimescale 
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    double precision                                             :: diskDynamicalTime, gasMass, starFormationTimescale
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
 
     ! Get the star formation timescale.
     starFormationTimescale=Star_Formation_Timescale_Disk(thisNode)
-    
+
     ! Limit the star formation timescale to a multiple of the dynamical time.
     diskDynamicalTime=Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     starFormationTimescale=max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
-       
+
     ! Get the gas mass.
     gasMass=thisDiskComponent%massGas()
-       
+
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0) then
        Node_Component_Disk_Very_Simple_SFR=gasMass/starFormationTimescale

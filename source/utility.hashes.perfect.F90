@@ -28,11 +28,11 @@ module Hashes_Perfect
   type hashPerfect
      !% A derived type which stores perfect long integer hashes.
      private
-     logical                                            :: created , hasInverseTable                                                , hasValues  
-     integer(kind=kind_int8)                            :: hashSize, rowSize                                                                     
-     integer(kind=kind_int8), allocatable, dimension(:) :: r                         !  r(R)=amount row A(R,:) was shifted.                      
-     integer(kind=kind_int8), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().               
-     integer(kind=kind_int8), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().             
+     logical                                            :: created , hasInverseTable                                                , hasValues
+     integer(kind=kind_int8)                            :: hashSize, rowSize
+     integer(kind=kind_int8), allocatable, dimension(:) :: r                         !  r(R)=amount row A(R,:) was shifted.
+     integer(kind=kind_int8), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().
+     integer(kind=kind_int8), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
    contains
      !@ <objectMethods>
      !@   <object>hashPerfect</object>
@@ -73,23 +73,23 @@ module Hashes_Perfect
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create   =>Hash_Perfect_Create      
-     procedure :: destroy  =>Hash_Perfect_Destroy     
-     procedure :: index    =>Hash_Perfect_Index       
-     procedure :: isPresent=>Hash_Perfect_Is_Present  
-     procedure :: size     =>Hash_Perfect_Size        
-     procedure :: value    =>Hash_Perfect_Value       
+     procedure :: create   =>Hash_Perfect_Create
+     procedure :: destroy  =>Hash_Perfect_Destroy
+     procedure :: index    =>Hash_Perfect_Index
+     procedure :: isPresent=>Hash_Perfect_Is_Present
+     procedure :: size     =>Hash_Perfect_Size
+     procedure :: value    =>Hash_Perfect_Value
   end type hashPerfect
 
   type rowStructure
      !% A row structure used in building hashes
-     integer(kind=kind_int8) :: rowNumber    !  the row number in array A().             
-     integer(kind=kind_int8) :: rowItemCount !  the number of items in this row of A().  
+     integer(kind=kind_int8) :: rowNumber    !  the row number in array A().
+     integer(kind=kind_int8) :: rowItemCount !  the number of items in this row of A().
   end type rowStructure
 
   ! A key value that is impossible
-  integer, parameter :: invalidKey=-1  
-                                    
+  integer, parameter :: invalidKey=-1
+
 contains
 
   subroutine Hash_Perfect_Create(hash,keys,values,keepInverseTable)
@@ -97,20 +97,20 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class  (hashPerfect   )                             , intent(inout)           :: hash                                                                                    
-    integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys                                                                                    
-    integer(kind=kind_int8)             , dimension(:)  , intent(in   ), optional :: values                                                                                  
-    logical                                             , intent(in   ), optional :: keepInverseTable                                                                        
-    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: A                   !  A(i,j)=K (i=K/t, j=K mod t) for each key K.                      
-    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: B                   !  B(i,j)=v (i=K/t, j=K mod t) for each key K.                      
-    integer(kind=kind_int8), allocatable, dimension(:)                            :: resizeTemp                                                                              
-    ! row() exists to facilitate sorting the rows of A() by their "fullness".                                                                                                                                                                      
-    type   (rowStructure  ), allocatable, dimension(:)                            :: row                 !  Entry counts for the rows in A().                                
-    integer(kind=kind_int8)                                                       :: hashTableMax    , i                                               , iColumn, iKey   , & 
-         &                                                                           iRow            , j                                               , k      , offset     
-    type   (rowStructure  )                                                       :: tmp                                                                                     
-    
-    ! Record options.                                                                                                                                                                      
+    class  (hashPerfect   )                             , intent(inout)           :: hash
+    integer(kind=kind_int8)             , dimension(:)  , intent(in   )           :: keys
+    integer(kind=kind_int8)             , dimension(:)  , intent(in   ), optional :: values
+    logical                                             , intent(in   ), optional :: keepInverseTable
+    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: A                   !  A(i,j)=K (i=K/t, j=K mod t) for each key K.
+    integer(kind=kind_int8), allocatable, dimension(:,:)                          :: B                   !  B(i,j)=v (i=K/t, j=K mod t) for each key K.
+    integer(kind=kind_int8), allocatable, dimension(:)                            :: resizeTemp
+    ! row() exists to facilitate sorting the rows of A() by their "fullness".
+    type   (rowStructure  ), allocatable, dimension(:)                            :: row                 !  Entry counts for the rows in A().
+    integer(kind=kind_int8)                                                       :: hashTableMax    , i                                               , iColumn, iKey   , &
+         &                                                                           iRow            , j                                               , k      , offset
+    type   (rowStructure  )                                                       :: tmp
+
+    ! Record options.
     hash%hasInverseTable=.true.
     if (present(keepInverseTable)) hash%hasInverseTable=keepInverseTable
     hash%hasValues=present(values)
@@ -238,8 +238,8 @@ contains
     !% Destroy a perfect hash.
     use Memory_Management
     implicit none
-    class(hashPerfect), intent(inout) :: hash  
-                                            
+    class(hashPerfect), intent(inout) :: hash
+
     hash%created=.false.
     if (allocated(hash%r)) call Dealloc_Array(hash%r)
     if (allocated(hash%C)) call Dealloc_Array(hash%C)
@@ -251,9 +251,9 @@ contains
    !% Return the size of the hash table.
    use Galacticus_Error
    implicit none
-   integer(kind=kind_int8)                :: Hash_Perfect_Size  
-   class  (hashPerfect   ), intent(in   ) :: hash               
-                                                             
+   integer(kind=kind_int8)                :: Hash_Perfect_Size
+   class  (hashPerfect   ), intent(in   ) :: hash
+
    if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Size','hash has not been created')
    Hash_Perfect_Size=hash%hashSize
    return
@@ -263,11 +263,11 @@ contains
    !% Return the index corresponding to a hash key.
    use Galacticus_Error
    implicit none
-   integer(kind=kind_int8)                :: Hash_Perfect_Index     
-   class  (hashPerfect   ), intent(in   ) :: hash                   
-   integer(kind=kind_int8), intent(in   ) :: key                    
-   integer(kind=kind_int8)                :: x                 , y  
-                                                                 
+   integer(kind=kind_int8)                :: Hash_Perfect_Index
+   class  (hashPerfect   ), intent(in   ) :: hash
+   integer(kind=kind_int8), intent(in   ) :: key
+   integer(kind=kind_int8)                :: x                 , y
+
    if (.not.hash%created) call Galacticus_Error_Report('Hash_Perfect_Index','hash has not been created')
    x                 =    key/hash%rowSize
    y                 =mod(key,hash%rowSize)
@@ -279,10 +279,10 @@ contains
    !% Returns true if the hash contains the key.
    use Galacticus_Error
    implicit none
-   class  (hashPerfect   ), intent(in   ) :: hash       
-   integer(kind=kind_int8), intent(in   ) :: key        
-   integer(kind=kind_int8)                :: hashIndex  
-                                                     
+   class  (hashPerfect   ), intent(in   ) :: hash
+   integer(kind=kind_int8), intent(in   ) :: key
+   integer(kind=kind_int8)                :: hashIndex
+
    hashIndex=hash%index(key)
    if (.not.hash%hasInverseTable) call Galacticus_Error_Report('Hash_Perfect_Is_Present','hash does not store inverse table')
    Hash_Perfect_Is_Present=(hash%C(hashIndex) == key)
@@ -293,11 +293,11 @@ contains
    !% Returns the value for a specified key.
    use Galacticus_Error
    implicit none
-   integer(kind=kind_int8)                :: Hash_Perfect_Value  
-   class  (hashPerfect   ), intent(in   ) :: hash                
-   integer(kind=kind_int8), intent(in   ) :: key                 
-   integer(kind=kind_int8)                :: hashIndex           
-                                                              
+   integer(kind=kind_int8)                :: Hash_Perfect_Value
+   class  (hashPerfect   ), intent(in   ) :: hash
+   integer(kind=kind_int8), intent(in   ) :: key
+   integer(kind=kind_int8)                :: hashIndex
+
    hashIndex=hash%index(key)
    if (.not.hash%hasValues) call Galacticus_Error_Report('Hash_Perfect_Value','hash does not store values')
    Hash_Perfect_Value=hash%v(hashIndex)

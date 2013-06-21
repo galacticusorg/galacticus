@@ -36,15 +36,15 @@ contains
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
     implicit none
-    character       (len=*         ), intent(in   ) :: nodesFile                                        
-    type            (mergerTreeData), intent(inout) :: mergerTrees                                      
-    integer                                         :: lineCountData            , lineCountTotal    , & 
-         &                                             lineNumberStart          , lineNumberStop        
-    double precision                                :: boxSize                  , powerSpectrumIndex, & 
-         &                                             sigma_8                                          
-    type            (varying_string)                :: source                   , transferFunction      
-    logical                                         :: haloMassesIncludeSubhalos                        
-    
+    character       (len=*         ), intent(in   ) :: nodesFile
+    type            (mergerTreeData), intent(inout) :: mergerTrees
+    integer                                         :: lineCountData            , lineCountTotal    , &
+         &                                             lineNumberStart          , lineNumberStop
+    double precision                                :: boxSize                  , powerSpectrumIndex, &
+         &                                             sigma_8
+    type            (varying_string)                :: source                   , transferFunction
+    logical                                         :: haloMassesIncludeSubhalos
+
     ! Process the file.
     ! Find number of lines in file, with and without comments.
     lineCountTotal=Count_Lines_in_File(nodesFile    )
@@ -64,7 +64,7 @@ contains
 
     ! Read in the data.
     call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
-    
+
     ! Specify that we do not want to create individual merger tree reference datasets.
     call mergerTrees%makeReferences          (.false.)
 
@@ -172,5 +172,5 @@ contains
     call mergerTrees%setIncludesSubhaloMasses(haloMassesIncludeSubhalos)
     return
   end subroutine Merger_Trees_Simple_Process
-  
+
 end module Merger_Trees_Simple

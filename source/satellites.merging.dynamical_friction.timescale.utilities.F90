@@ -25,7 +25,7 @@ module Dynamical_Friction_Timescale_Utilities
 
   ! Multiplier for the merging time.
   double precision :: mergingTimescaleMultiplier
-  
+
   ! Flag indicating if the module is initialized.
   logical          :: dynamicalFrictionMultiplierInitialized=.false.
 
@@ -50,7 +50,7 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=1.0d0)
-          ! Flag that the module is now initialized. 
+          ! Flag that the module is now initialized.
           dynamicalFrictionMultiplierInitialized=.true.
        end if
        !$omp end critical (Dynamical_Friction_Timescale_Multiplier_Initialize)
@@ -60,5 +60,5 @@ contains
     Dynamical_Friction_Timescale_Multiplier=mergingTimescaleMultiplier
     return
   end function Dynamical_Friction_Timescale_Multiplier
-  
+
 end module Dynamical_Friction_Timescale_Utilities

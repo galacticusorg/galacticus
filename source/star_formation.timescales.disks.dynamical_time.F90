@@ -24,9 +24,9 @@ module Star_Formation_Timescale_Disks_Dynamical_Time
   public :: Star_Formation_Timescale_Disks_Dynamical_Time_Initialize
 
   ! Parameters of the timescale model.
-  double precision :: starFormationDiskEfficiency      , starFormationDiskMinimumTimescale, & 
-       &              starFormationDiskVelocityExponent                                       
-  
+  double precision :: starFormationDiskEfficiency      , starFormationDiskMinimumTimescale, &
+       &              starFormationDiskVelocityExponent
+
 contains
 
   !# <starFormationTimescaleDisksMethod>
@@ -39,9 +39,9 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    type     (varying_string                               ), intent(in   )          :: starFormationTimescaleDisksMethod 
-    procedure(Star_Formation_Timescale_Disk_Dynamical_Time ), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
-    
+    type     (varying_string                               ), intent(in   )          :: starFormationTimescaleDisksMethod
+    procedure(Star_Formation_Timescale_Disk_Dynamical_Time ), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
+
     if (starFormationTimescaleDisksMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Dynamical_Time
        ! Get parameters of for the timescale calculation.
@@ -102,11 +102,11 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                                            
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                   
-    double precision                   , parameter              :: velocityZeroPoint=200.0d0                !   (km/s) 
-    double precision                                            :: diskVelocity             , dynamicalTime            
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    double precision                   , parameter              :: velocityZeroPoint=200.0d0                !   (km/s)
+    double precision                                            :: diskVelocity             , dynamicalTime
+
     ! Get the disk.
     thisDiskComponent => thisNode%disk()
 
@@ -122,12 +122,12 @@ contains
     else
        ! Get the dynamical time in Gyr.
        dynamicalTime=Mpc_per_km_per_s_To_Gyr*thisDiskComponent%radius()/diskVelocity
-       
+
        ! Compute the star formation timescale using a simple scaling factor.
        Star_Formation_Timescale_Disk_Dynamical_Time=max(dynamicalTime*(diskVelocity/velocityZeroPoint)&
             &**starFormationDiskVelocityExponent/starFormationDiskEfficiency,starFormationDiskMinimumTimescale)
     end if
     return
   end function Star_Formation_Timescale_Disk_Dynamical_Time
-  
+
 end module Star_Formation_Timescale_Disks_Dynamical_Time

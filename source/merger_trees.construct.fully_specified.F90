@@ -26,11 +26,11 @@ module Merger_Trees_Construct_Fully_Specified
   public :: Merger_Tree_Construct_Fully_Specified_Initialize
 
   ! Record of whether the tree has yet been processed.
-  logical                 :: treeProcessed                            =.false. 
-  
+  logical                 :: treeProcessed                            =.false.
+
   ! Name of the file to read the merger tree definition from.
-  type   (varying_string) :: mergerTreeConstructFullySpecifiedFileName         
-  
+  type   (varying_string) :: mergerTreeConstructFullySpecifiedFileName
+
 contains
 
   !# <mergerTreeConstructMethod>
@@ -40,9 +40,9 @@ contains
     !% Initializes the merger tree construction ``fully-specified'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod 
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct     
-    
+    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'fullySpecified') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -61,7 +61,7 @@ contains
     end if
     return
   end subroutine Merger_Tree_Construct_Fully_Specified_Initialize
-  
+
   subroutine Merger_Tree_Construct_Fully_Specified(thisTree,skipTree)
     !% Construct a fully-specified merger tree.
     use Galacticus_Nodes
@@ -71,15 +71,15 @@ contains
     use Memory_Management
     use Galacticus_Display
     implicit none
-    type   (mergerTree    )             , intent(inout) :: thisTree                               
-    logical                             , intent(in   ) :: skipTree                               
-    type   (treeNodeList  ), allocatable, dimension(:)  :: nodeArray                              
-    type   (node          ), pointer                    :: doc        , nodeDefinition            
-    type   (nodeList      ), pointer                    :: nodes                                  
-    integer                                             :: i          , ioErr         , nodeCount 
-    integer(kind=kind_int8)                             :: indexValue                             
-    logical                                             :: processTree                            
-    
+    type   (mergerTree    )             , intent(inout) :: thisTree
+    logical                             , intent(in   ) :: skipTree
+    type   (treeNodeList  ), allocatable, dimension(:)  :: nodeArray
+    type   (node          ), pointer                    :: doc        , nodeDefinition
+    type   (nodeList      ), pointer                    :: nodes
+    integer                                             :: i          , ioErr         , nodeCount
+    integer(kind=kind_int8)                             :: indexValue
+    logical                                             :: processTree
+
     !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)
     ! If the tree is already processed, return.
     processTree=.true.
@@ -137,7 +137,7 @@ contains
        call nodeArray(i)%node%componentBuilder(nodeDefinition)
        ! Dump the node.
        if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%dump()
-    end do   
+    end do
     ! Finished - destroy the XML document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
@@ -157,13 +157,13 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    integer  (kind=kind_int8)                         :: Node_Definition_Index 
-    type     (node          ), intent(in   ), pointer :: nodeDefinition        
-    character(len=*         ), intent(in   )          :: indexType             
-    type     (nodeList      )               , pointer :: indexElements         
-    type     (node          )               , pointer :: indexElement          
-    integer                                           :: indexValue            
-    
+    integer  (kind=kind_int8)                         :: Node_Definition_Index
+    type     (node          ), intent(in   ), pointer :: nodeDefinition
+    character(len=*         ), intent(in   )          :: indexType
+    type     (nodeList      )               , pointer :: indexElements
+    type     (node          )               , pointer :: indexElement
+    integer                                           :: indexValue
+
     ! Find all matching tags.
     indexElements => getElementsByTagname(nodeDefinition,indexType)
     if (getLength(indexElements) < 1 .or. getLength(indexElements) > 1) call Galacticus_Error_Report('Node_Definition_Index','multiple indices specified')
@@ -182,11 +182,11 @@ contains
     use Kind_Numbers
     use Galacticus_Error
     implicit none
-    type   (treeNode      ), pointer                     :: node       
-    type   (treeNodeList  ), dimension(:), intent(in   ) :: nodeArray  
-    integer(kind=kind_int8)              , intent(in   ) :: indexValue 
-    integer                                              :: i          
-    
+    type   (treeNode      ), pointer                     :: node
+    type   (treeNodeList  ), dimension(:), intent(in   ) :: nodeArray
+    integer(kind=kind_int8)              , intent(in   ) :: indexValue
+    integer                                              :: i
+
     node => null()
     if (indexValue < 0_kind_int8) return
     do i=1,size(nodeArray)

@@ -24,11 +24,11 @@ module Merger_Trees_Prune_Hierarchy
   public :: Merger_Tree_Prune_Hierarchy
 
   ! Flag indicating if module is initialized.
-  logical :: pruneHierarchyModuleInitialized=.false.  
-  
-  ! Depth below which hierarchy should be pruned.                                                 
-  integer :: mergerTreePruneHierarchyAtDepth          
-                                                   
+  logical :: pruneHierarchyModuleInitialized=.false.
+
+  ! Depth below which hierarchy should be pruned.
+  integer :: mergerTreePruneHierarchyAtDepth
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -40,13 +40,13 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type   (mergerTree), intent(in   ), target :: thisTree                                          
-    type   (treeNode  ), pointer               :: nextNode      , previousNode, thisNode, workNode  
-    type   (mergerTree), pointer               :: currentTree                                       
-    logical                                    :: didPruning                                        
-    integer                                    :: hierarchyDepth                                    
-    
-    ! Check if module is initialized.                                                                                             
+    type   (mergerTree), intent(in   ), target :: thisTree
+    type   (treeNode  ), pointer               :: nextNode      , previousNode, thisNode, workNode
+    type   (mergerTree), pointer               :: currentTree
+    logical                                    :: didPruning
+    integer                                    :: hierarchyDepth
+
+    ! Check if module is initialized.
     if (.not.pruneHierarchyModuleInitialized) then
        !$omp critical (Merger_Tree_Prune_Hierarchy_Initialize)
        if (.not.pruneHierarchyModuleInitialized) then
@@ -76,7 +76,7 @@ contains
           didPruning=.true.
           do while (didPruning)
              didPruning=.false.
-             ! Get root node of the tree.       
+             ! Get root node of the tree.
              thisNode => currentTree%baseNode
              ! Walk the tree, pruning hierarchy.
              do while (associated(thisNode))

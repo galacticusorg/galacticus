@@ -17,13 +17,13 @@
 
 type, public, extends(massDistributionSpherical) :: massDistributionHernquist
    !% The Hernquist \citep{hernquist_analytical_1990} density profile.
-   double precision :: densityNormalization, mass, scaleLength  
+   double precision :: densityNormalization, mass, scaleLength
  contains
-   procedure :: initialize          =>Mass_Distribution_Hernquist_Initialize             
-   procedure :: density             =>Mass_Distribution_Hernquist_Density                
-   procedure :: densityRadialMoment =>Mass_Distribution_Hernquist_Density_Radial_Moment  
-   procedure :: massEnclosedBySphere=>Mass_Distribution_Hernquist_Mass_Enc_By_Sphere     
-   procedure :: potential           =>Mass_Distribution_Hernquist_Potential              
-   procedure :: halfMassRadius      =>Mass_Distribution_Hernquist_Half_Mass_Radius       
+   procedure :: initialize          =>Mass_Distribution_Hernquist_Initialize
+   procedure :: density             =>Mass_Distribution_Hernquist_Density
+   procedure :: densityRadialMoment =>Mass_Distribution_Hernquist_Density_Radial_Moment
+   procedure :: massEnclosedBySphere=>Mass_Distribution_Hernquist_Mass_Enc_By_Sphere
+   procedure :: potential           =>Mass_Distribution_Hernquist_Potential
+   procedure :: halfMassRadius      =>Mass_Distribution_Hernquist_Half_Mass_Radius
 end type massDistributionHernquist
-  
+

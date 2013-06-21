@@ -26,34 +26,34 @@ module Excursion_Sets_First_Crossing_Zhang_Hui_Utilities
   public :: g_1,g_2,g_2_Integrated,Delta
 
   ! Module variables used in integrations.
-  double precision :: barrierGlobal , barrierGradientGlobal, timeGlobal, & 
-       &              varianceGlobal                                       
+  double precision :: barrierGlobal , barrierGradientGlobal, timeGlobal, &
+       &              varianceGlobal
   !$omp threadprivate(varianceGlobal,timeGlobal,barrierGlobal,barrierGradientGlobal)
 contains
-  
+
   double precision function g_1(variance,time)
     !% Returns the function $g_1(S)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use Excursion_Sets_Barriers
     use Math_Distributions_Gaussian
     implicit none
-    double precision, intent(in   ) :: time   , variance 
-    double precision                :: barrier           
-    
+    double precision, intent(in   ) :: time   , variance
+    double precision                :: barrier
+
     barrier=Excursion_Sets_Barrier(variance,time)
     g_1=(barrier/variance-2.0d0*Excursion_Sets_Barrier_Gradient(variance,time))*Gaussian_Distribution(barrier,sqrt(variance))
     return
   end function g_1
-  
+
   double precision function g_2(variance,variancePrimed,time)
     !% Returns the function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use Excursion_Sets_Barriers
     use Math_Distributions_Gaussian
-    implicit none  
-    double precision, intent(in   ) :: time                 , variance               , & 
-         &                             variancePrimed                                    
-    double precision                :: barrierPrimed                                     
-    double precision, save          :: barrier              , barrierGradient        , & 
-         &                             timePrevious  =-1.0d0, variancePrevious=-1.0d0    
+    implicit none
+    double precision, intent(in   ) :: time                 , variance               , &
+         &                             variancePrimed
+    double precision                :: barrierPrimed
+    double precision, save          :: barrier              , barrierGradient        , &
+         &                             timePrevious  =-1.0d0, variancePrevious=-1.0d0
     !$omp threadprivate(variancePrevious,barrier,barrierGradient)
     ! Compute the barriers.
     if (variance /= variancePrevious .or. time /= timePrevious) then
@@ -61,7 +61,7 @@ contains
        timePrevious    =time
        barrier         =Excursion_Sets_Barrier         (variance,time)
        barrierGradient =Excursion_Sets_Barrier_Gradient(variance,time)
-    end if    
+    end if
     barrierPrimed=Excursion_Sets_Barrier(variancePrimed,time)
     ! Compute the function.
     g_2=(2.0d0*barrierGradient-(barrier-barrierPrimed)/(variance-variancePrimed))*Gaussian_Distribution(barrier-barrierPrimed&
@@ -76,19 +76,19 @@ contains
     use Numerical_Integration
     use Excursion_Sets_Barriers
     implicit none
-    double precision                            , intent(in   ) :: deltaVariance                 , time, & 
-         &                                                         variance                                
-    double precision                            , parameter     :: gradientChangeTolerance=1.0d-3          
-    double precision                                            :: smallStep                               
-    type            (c_ptr                     )                :: parameterPointer                        
-    type            (fgsl_function             )                :: integrandFunction                       
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                    
-    
+    double precision                            , intent(in   ) :: deltaVariance                 , time, &
+         &                                                         variance
+    double precision                            , parameter     :: gradientChangeTolerance=1.0d-3
+    double precision                                            :: smallStep
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     varianceGlobal       =variance
     timeGlobal           =time
     barrierGlobal        =Excursion_Sets_Barrier         (varianceGlobal,timeGlobal)
     barrierGradientGlobal=Excursion_Sets_Barrier_Gradient(varianceGlobal,timeGlobal)
-    
+
     ! Find a suitably small step in variance that allows us to compute the divergent part of the integral with an analytic
     ! approximation. The approximation used assumes that the barrier gradient, dB/dS, is constant, so find a step over which
     ! the gradient is constant to within a specified tolerance.
@@ -114,11 +114,11 @@ contains
     use Math_Distributions_Gaussian
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(kind=c_double)        :: g_2_Integrand_Zhang_Hui 
-    real(kind=c_double), value :: variance                
-    type(c_ptr        ), value :: parameterPointer        
-    real(kind=c_double)        :: barrier                 
-    
+    real(kind=c_double)        :: g_2_Integrand_Zhang_Hui
+    real(kind=c_double), value :: variance
+    type(c_ptr        ), value :: parameterPointer
+    real(kind=c_double)        :: barrier
+
     if (variance >= varianceGlobal) then
        g_2_Integrand_Zhang_Hui=0.0d0
     else
@@ -133,11 +133,11 @@ contains
     !% Returns the factor $Delta_{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
     use Excursion_Sets_Barriers
     implicit none
-    integer               , intent(in   ) :: i               , j                                 
-    double precision      , intent(in   ) :: deltaVariance   , iVariance          , jVariance, & 
-         &                                   time                                                
-    double precision, save                :: deltaPrevious   , timePrevious=-1.0d0               
-    integer         , save                :: iPrevious    =-1, jPrevious   =-1                   
+    integer               , intent(in   ) :: i               , j
+    double precision      , intent(in   ) :: deltaVariance   , iVariance          , jVariance, &
+         &                                   time
+    double precision, save                :: deltaPrevious   , timePrevious=-1.0d0
+    integer         , save                :: iPrevious    =-1, jPrevious   =-1
     !$omp threadprivate(timePrevious,deltaPrevious,iPrevious,jPrevious)
     if (.not.(i == iPrevious .and. j == jPrevious .and. time == timePrevious)) then
        iPrevious   =i

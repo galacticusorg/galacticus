@@ -18,20 +18,20 @@
 module Halo_Mass_Function
   use ISO_Varying_String
   use FGSL
-  use, intrinsic :: ISO_C_Binding                             
+  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Halo_Mass_Function_Differential, Halo_Mass_Function_Integrated, Halo_Mass_Fraction_Integrated
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                             :: haloMassFunctionInitialized        =.false.  
-  
-  ! Name of power spectrum method used.                                                                                                 
-  type     (varying_string                 )          :: haloMassFunctionMethod                       
-  
-  ! Pointer to the function that computes the mass function.                                                                                                 
-  procedure(Halo_Mass_Function_Differential), pointer :: Halo_Mass_Function_Differential_Get=>null()  
-                                                                                                   
+  ! Flag to indicate if this module has been initialized.
+  logical                                             :: haloMassFunctionInitialized        =.false.
+
+  ! Name of power spectrum method used.
+  type     (varying_string                 )          :: haloMassFunctionMethod
+
+  ! Pointer to the function that computes the mass function.
+  procedure(Halo_Mass_Function_Differential), pointer :: Halo_Mass_Function_Differential_Get=>null()
+
 contains
 
   subroutine Halo_Mass_Function_Initialize()
@@ -77,11 +77,11 @@ contains
     !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: mass, time  
-    
-    ! Ensure that the module is initialized.                                            
+    double precision, intent(in   ) :: mass, time
+
+    ! Ensure that the module is initialized.
     call Halo_Mass_Function_Initialize()
-    
+
     ! Call the function that does the work.
     Halo_Mass_Function_Differential=Halo_Mass_Function_Differential_Get(time,mass)
     return
@@ -91,13 +91,13 @@ contains
     !% Return tha halo mass function integrated between {\tt massLow} and {\tt massHigh}.
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: massHigh            , massLow   , time  
-    double precision                            , target        :: timeTarget                              
-    double precision                                            :: logMassHigh         , logMassLow        
-    type            (c_ptr                     )                :: parameterPointer                        
-    type            (fgsl_function             )                :: integrandFunction                       
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                    
-                                                                                                        
+    double precision                            , intent(in   ) :: massHigh            , massLow   , time
+    double precision                            , target        :: timeTarget
+    double precision                                            :: logMassHigh         , logMassLow
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     parameterPointer=c_loc(timeTarget)
     timeTarget=time
     logMassLow =log(massLow )
@@ -111,13 +111,13 @@ contains
 
   function Halo_Mass_Function_Integrand(logMass,parameterPointer) bind(c)
     implicit none
-    real(kind=c_double)          :: Halo_Mass_Function_Integrand  
-    real(kind=c_double), value   :: logMass                       
-    type(c_ptr        ), value   :: parameterPointer              
-    real(kind=c_double), pointer :: time                          
-    real(kind=c_double)          :: mass                          
-    
-    ! Extract integrand parameters.                                                           
+    real(kind=c_double)          :: Halo_Mass_Function_Integrand
+    real(kind=c_double), value   :: logMass
+    type(c_ptr        ), value   :: parameterPointer
+    real(kind=c_double), pointer :: time
+    real(kind=c_double)          :: mass
+
+    ! Extract integrand parameters.
     call c_f_pointer(parameterPointer,time)
     mass=exp(logMass)
 
@@ -131,13 +131,13 @@ contains
     use Numerical_Integration
     use Cosmological_Parameters
     implicit none
-    double precision                            , intent(in   ) :: massHigh            , massLow   , time  
-    double precision                            , target        :: timeTarget                              
-    double precision                                            :: logMassHigh         , logMassLow        
-    type            (c_ptr                     )                :: parameterPointer                        
-    type            (fgsl_function             )                :: integrandFunction                       
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                    
-                                                                                                        
+    double precision                            , intent(in   ) :: massHigh            , massLow   , time
+    double precision                            , target        :: timeTarget
+    double precision                                            :: logMassHigh         , logMassLow
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     parameterPointer=c_loc(timeTarget)
     timeTarget=time
     logMassLow =log(massLow )
@@ -154,13 +154,13 @@ contains
   function Halo_Mass_Fraction_Integrand(logMass,parameterPointer) bind(c)
     !% Integrand function used in computing the halo mass fraction.
     implicit none
-    real(kind=c_double)          :: Halo_Mass_Fraction_Integrand  
-    real(kind=c_double), value   :: logMass                       
-    type(c_ptr        ), value   :: parameterPointer              
-    real(kind=c_double), pointer :: time                          
-    real(kind=c_double)          :: mass                          
-    
-    ! Extract integrand parameters.                                                           
+    real(kind=c_double)          :: Halo_Mass_Fraction_Integrand
+    real(kind=c_double), value   :: logMass
+    type(c_ptr        ), value   :: parameterPointer
+    real(kind=c_double), pointer :: time
+    real(kind=c_double)          :: mass
+
+    ! Extract integrand parameters.
     call c_f_pointer(parameterPointer,time)
     mass=exp(logMass)
 

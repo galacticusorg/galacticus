@@ -25,24 +25,24 @@ module Merger_Trees_Regrid_Times
   public :: Merger_Tree_Regrid_Time
 
   ! Flag indicating if module is initialized.
-  logical                                                     :: regridTimeModuleInitialized                  =.false.                                       
-  
+  logical                                                     :: regridTimeModuleInitialized                  =.false.
+
   ! Flag indicating if regridding is required.
-  logical                                                     :: mergerTreeRegridTimes                                                                       
-  
+  logical                                                     :: mergerTreeRegridTimes
+
   ! Flag indicating if dumping of merger trees is required.
-  logical                                                     :: mergerTreeRegridDumpTrees                                                                   
-  
+  logical                                                     :: mergerTreeRegridDumpTrees
+
   ! Variables expressing the distribution of grid points.
-  integer                                                     :: mergerTreeRegridCount                                , mergerTreeRegridSpacing              
-  type            (varying_string)                            :: mergerTreeRegridSpacingAsText                                                               
-  double precision                                            :: mergerTreeRegridEndExpansionFactor                   , mergerTreeRegridStartExpansionFactor 
-  double precision                , allocatable, dimension(:) :: mergerTreeRegridTimeGrid                                                                    
-  integer                         , parameter                 :: mergerTreeRegridSpacingLinear                =0                                             
-  integer                         , parameter                 :: mergerTreeRegridSpacingLogarithmic           =1                                             
-  integer                         , parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2                                             
-  integer                         , parameter                 :: mergerTreeRegridSpacingMillennium            =3                                             
-  
+  integer                                                     :: mergerTreeRegridCount                                , mergerTreeRegridSpacing
+  type            (varying_string)                            :: mergerTreeRegridSpacingAsText
+  double precision                                            :: mergerTreeRegridEndExpansionFactor                   , mergerTreeRegridStartExpansionFactor
+  double precision                , allocatable, dimension(:) :: mergerTreeRegridTimeGrid
+  integer                         , parameter                 :: mergerTreeRegridSpacingLinear                =0
+  integer                         , parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
+  integer                         , parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
+  integer                         , parameter                 :: mergerTreeRegridSpacingMillennium            =3
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -66,22 +66,22 @@ contains
     use Numerical_Comparison
     use Arrays_Search
     implicit none
-    type            (mergerTree        ), intent(inout), target                :: thisTree                                          
-    type            (treeNode          )                             , pointer :: childNode               , nextNode            , & 
-         &                                                                        siblingNode             , thisNode                
-    type            (treeNodeList      ), allocatable  , dimension(:)          :: newNodes                                          
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: highlightNodes                                    
-    class           (nodeComponentBasic)                             , pointer :: childBasicComponent     , parentBasicComponent, & 
-         &                                                                        thisBasicComponent                                
-    type            (mergerTree        )                             , pointer :: currentTree                                       
-    type            (fgsl_interp_accel )                                       :: interpolationAccelerator                          
-    logical                                                                    :: interpolationReset                                
-    integer                                                                    :: allocErr                , iNow                , & 
-         &                                                                        iParent                 , iTime                   
-    double precision                                                           :: massNow                 , massParent          , & 
-         &                                                                        timeNow                 , timeParent              
-    integer         (kind=kind_int8    )                                       :: firstNewNode            , nodeIndex               
-    
+    type            (mergerTree        ), intent(inout), target                :: thisTree
+    type            (treeNode          )                             , pointer :: childNode               , nextNode            , &
+         &                                                                        siblingNode             , thisNode
+    type            (treeNodeList      ), allocatable  , dimension(:)          :: newNodes
+    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: highlightNodes
+    class           (nodeComponentBasic)                             , pointer :: childBasicComponent     , parentBasicComponent, &
+         &                                                                        thisBasicComponent
+    type            (mergerTree        )                             , pointer :: currentTree
+    type            (fgsl_interp_accel )                                       :: interpolationAccelerator
+    logical                                                                    :: interpolationReset
+    integer                                                                    :: allocErr                , iNow                , &
+         &                                                                        iParent                 , iTime
+    double precision                                                           :: massNow                 , massParent          , &
+         &                                                                        timeNow                 , timeParent
+    integer         (kind=kind_int8    )                                       :: firstNewNode            , nodeIndex
+
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
        !$omp critical (Merger_Tree_Regrid_Time_Initialize)
@@ -221,7 +221,7 @@ contains
                    mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeRegridTimeGrid(iTime)))
                 end do
              end select
-             
+
           end if
 
           ! Flag that module is initialized.

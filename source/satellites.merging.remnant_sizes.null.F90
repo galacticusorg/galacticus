@@ -33,9 +33,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                     ), intent(in   )          :: satelliteMergingRemnantSizeMethod 
-    procedure(Satellite_Merging_Remnant_Size_Null), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do 
-    
+    type     (varying_string                     ), intent(in   )          :: satelliteMergingRemnantSizeMethod
+    procedure(Satellite_Merging_Remnant_Size_Null), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do
+
     if (satelliteMergingRemnantSizeMethod == 'null') Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Null
     return
   end subroutine Satellite_Merging_Remnant_Sizes_Null_Initialize
@@ -44,8 +44,8 @@ contains
     !% A null implementation of merger remnant size. Does nothing.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     ! Do nothing.
     return
   end subroutine Satellite_Merging_Remnant_Size_Null

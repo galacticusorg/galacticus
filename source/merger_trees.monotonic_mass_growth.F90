@@ -24,10 +24,10 @@ module Merger_Trees_Monotonic_Mass_Growth
   public :: Merger_Tree_Monotonic_Mass_Growth
 
   ! Flag indicating if module is initialized.
-  logical :: monotonicGrowthModuleInitialized=.false.  
-  
-  ! Flag indicating if pruning is required.                                                  
-  logical :: mergerTreeEnforceMonotonicGrowth          
+  logical :: monotonicGrowthModuleInitialized=.false.
+
+  ! Flag indicating if pruning is required.
+  logical :: mergerTreeEnforceMonotonicGrowth
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -39,14 +39,14 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type            (mergerTree        ), intent(in   ), target :: thisTree                                      
-    type            (treeNode          ), pointer               :: progenitorNode          , thisNode            
-    class           (nodeComponentBasic), pointer               :: progenitorBasicComponent, thisBasicComponent  
-    type            (mergerTree        ), pointer               :: currentTree                                   
-    logical                                                     :: didModifyTree                                 
-    double precision                                            :: progenitorMass                                
-    
-    ! Check if module is initialized.                                                                                                          
+    type            (mergerTree        ), intent(in   ), target :: thisTree
+    type            (treeNode          ), pointer               :: progenitorNode          , thisNode
+    class           (nodeComponentBasic), pointer               :: progenitorBasicComponent, thisBasicComponent
+    type            (mergerTree        ), pointer               :: currentTree
+    logical                                                     :: didModifyTree
+    double precision                                            :: progenitorMass
+
+    ! Check if module is initialized.
     if (.not.monotonicGrowthModuleInitialized) then
        !$omp critical (Merger_Tree_Monotonic_Mass_Growth_Initialize)
        if (.not.monotonicGrowthModuleInitialized) then
@@ -76,7 +76,7 @@ contains
           didModifyTree=.true.
           do while (didModifyTree)
              didModifyTree=.false.
-             ! Get root node of the tree.       
+             ! Get root node of the tree.
              thisNode => currentTree%baseNode
              ! Walk the tree.
              do while (associated(thisNode))
@@ -97,7 +97,7 @@ contains
                       didModifyTree=.true.
                    end if
                 end if
-                ! Walk to the next node in the tree.             
+                ! Walk to the next node in the tree.
                 call thisNode%walkTree(thisNode)
              end do
           end do

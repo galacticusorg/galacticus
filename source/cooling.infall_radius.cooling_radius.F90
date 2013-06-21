@@ -34,10 +34,10 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type     (varying_string                          ), intent(in   )          :: infallRadiusMethod             
-    procedure(Infall_Radius_Cooling_Radius            ), intent(inout), pointer :: Infall_Radius_Get              
-    procedure(Infall_Radius_Growth_Rate_Cooling_Radius), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get  
-                                                                                                               
+    type     (varying_string                          ), intent(in   )          :: infallRadiusMethod
+    procedure(Infall_Radius_Cooling_Radius            ), intent(inout), pointer :: Infall_Radius_Get
+    procedure(Infall_Radius_Growth_Rate_Cooling_Radius), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get
+
     if (infallRadiusMethod == 'coolingRadius') then
        Infall_Radius_Get             => Infall_Radius_Cooling_Radius
        Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Radius
@@ -50,21 +50,21 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Infall_Radius_Cooling_Radius=Cooling_Radius(thisNode)
     return
   end function Infall_Radius_Cooling_Radius
-  
+
   double precision function Infall_Radius_Growth_Rate_Cooling_Radius(thisNode)
     !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Infall_Radius_Growth_Rate_Cooling_Radius=Cooling_Radius_Growth_Rate(thisNode)
     return
   end function Infall_Radius_Growth_Rate_Cooling_Radius
-  
+
 end module Infall_Radii_Cooling_Radius

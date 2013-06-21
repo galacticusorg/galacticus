@@ -23,7 +23,7 @@ module Node_Component_Position_Preset
   implicit none
   private
   public :: Node_Component_Position_Preset_Node_Promotion
-  
+
   !# <component>
   !#  <class>position</class>
   !#  <name>preset</name>
@@ -66,9 +66,9 @@ contains
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, update the position of {\tt
     !% thisNode} to that of the parent.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode                                        
-    class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent  
-                                                                                                         
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent
+
     thisPositionComponent => thisNode%position()
     select type (thisPositionComponent)
     class is (nodeComponentPositionPreset)
@@ -77,10 +77,10 @@ contains
        class is (nodeComponentPositionPreset)
           call thisPositionComponent%       positionSet(parentPositionComponent%position       ())
           call thisPositionComponent%       velocitySet(parentPositionComponent%velocity       ())
-          call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())          
+          call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())
        end select
     end select
     return
   end subroutine Node_Component_Position_Preset_Node_Promotion
-  
+
 end module Node_Component_Position_Preset

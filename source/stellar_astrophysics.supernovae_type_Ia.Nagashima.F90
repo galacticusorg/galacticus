@@ -22,15 +22,15 @@ module Supernovae_Type_Ia_Nagashima
   implicit none
   private
   public :: Supernovae_Type_Ia_Nagashima_Initialize
-  
+
   ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
-  double precision                            :: binaryMassMaximum=12.0d0, binaryMassMinimum  =3.00d0 
-  double precision                            :: gamma            =2.0d0 , typeIaNormalization=0.07d0 
-  
+  double precision                            :: binaryMassMaximum=12.0d0, binaryMassMinimum  =3.00d0
+  double precision                            :: gamma            =2.0d0 , typeIaNormalization=0.07d0
+
   ! Total yield of metals from Type Ia supernova.
-  double precision                            :: totalYield                                           
-  double precision, allocatable, dimension(:) :: elementYield                                         
-  
+  double precision                            :: totalYield
+  double precision, allocatable, dimension(:) :: elementYield
+
 contains
 
   !# <supernovaeIaMethod>
@@ -48,16 +48,16 @@ contains
     use Memory_Management
     use Galacticus_Input_Paths
     implicit none
-    type            (varying_string                   ), intent(in   )          :: supernovaeIaMethod                           
-    procedure       (SNeIa_Cumulative_Number_Nagashima), intent(inout), pointer :: SNeIa_Cumulative_Number_Get                  
-    procedure       (SNeIa_Cumulative_Yield_Nagashima ), intent(inout), pointer :: SNeIa_Cumulative_Yield_Get                   
-    type            (Node                             )               , pointer :: doc                        , thisAtom    , & 
-         &                                                                         thisIsotope                , thisYield       
-    type            (NodeList                         )               , pointer :: isotopesList               , propertyList    
-    integer                                                                     :: atomicIndex                , atomicNumber, & 
-         &                                                                         iIsotope                   , ioErr           
-    double precision                                                            :: isotopeYield                                 
-    
+    type            (varying_string                   ), intent(in   )          :: supernovaeIaMethod
+    procedure       (SNeIa_Cumulative_Number_Nagashima), intent(inout), pointer :: SNeIa_Cumulative_Number_Get
+    procedure       (SNeIa_Cumulative_Yield_Nagashima ), intent(inout), pointer :: SNeIa_Cumulative_Yield_Get
+    type            (Node                             )               , pointer :: doc                        , thisAtom    , &
+         &                                                                         thisIsotope                , thisYield
+    type            (NodeList                         )               , pointer :: isotopesList               , propertyList
+    integer                                                                     :: atomicIndex                , atomicNumber, &
+         &                                                                         iIsotope                   , ioErr
+    double precision                                                            :: isotopeYield
+
     if (supernovaeIaMethod == 'Nagashima') then
        ! Set up pointers to our procedures.
        SNeIa_Cumulative_Number_Get => SNeIa_Cumulative_Number_Nagashima
@@ -109,23 +109,23 @@ contains
     !% mass function.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in   ) :: age          , initialMass, metallicity 
-    double precision                :: dyingStarMass, muMinimum                
-    
+    double precision, intent(in   ) :: age          , initialMass, metallicity
+    double precision                :: dyingStarMass, muMinimum
+
     ! Check if initial mass is within the range of binary masses that lead to Type Ia supernovae.
     if (initialMass > binaryMassMinimum .and. initialMass < binaryMassMaximum) then
-       
+
        ! Get the initial mass of a star which is just dying at this age.
        dyingStarMass=Star_Initial_Mass(age,metallicity)
-       
+
        ! Compute the cumulative number of Type Ia supernovae originating from stars of this mass.
        muMinimum=max(dyingStarMass/initialMass,(1.0d0-binaryMassMaximum/2.0d0/initialMass))
        if (muMinimum < 0.5d0) then
           SNeIa_Cumulative_Number_Nagashima=typeIaNormalization*(1.0d0-(2.0d0*muMinimum)**(1.0d0+gamma))
        else
-          SNeIa_Cumulative_Number_Nagashima=0.0d0      
+          SNeIa_Cumulative_Number_Nagashima=0.0d0
        end if
-      
+
     else
        ! Mass is not in range - assume that no Type Ia SNe are produced.
        SNeIa_Cumulative_Number_Nagashima=0.0d0
@@ -140,10 +140,10 @@ contains
     !% assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in   )           :: age      , initialMass, metallicity 
-    integer         , intent(in   ), optional :: atomIndex                           
-    double precision                          :: yield                               
-    
+    double precision, intent(in   )           :: age      , initialMass, metallicity
+    integer         , intent(in   ), optional :: atomIndex
+    double precision                          :: yield
+
     if (present(atomIndex)) then
        ! Return yield for requested atomic index.
        yield=elementYield(atomIndex)

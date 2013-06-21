@@ -22,7 +22,7 @@ module Star_Formation_Expulsive_Feedback_Disks_Null
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disks_Null_Initialize
-  
+
 contains
 
   !# <starFormationExpulsiveFeedbackDisksMethod>
@@ -33,11 +33,11 @@ contains
     !% Initializes the ``null'' disk star formation expulsive feedback module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                          ), intent(in   )          :: starFormationExpulsiveFeedbackDisksMethod                
-    procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null), intent(inout), pointer :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get  
-                                                                                                                                                         
+    type     (varying_string                                          ), intent(in   )          :: starFormationExpulsiveFeedbackDisksMethod
+    procedure(Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null), intent(inout), pointer :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get
+
     if (starFormationExpulsiveFeedbackDisksMethod == 'null') Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null
-     
+
     return
   end subroutine Star_Formation_Expulsive_Feedback_Disks_Null_Initialize
 
@@ -45,12 +45,12 @@ contains
     !% Implements a null expulsive outflow rate for disks.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                            
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
-    
-    ! Return a zero outflow rate.                                                                                       
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+
+    ! Return a zero outflow rate.
     Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null=0.0d0
     return
   end function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate_Null
-  
+
 end module Star_Formation_Expulsive_Feedback_Disks_Null

@@ -32,24 +32,24 @@ module Cooling_Radii_Isothermal
   public :: Cooling_Radius_Isothermal_Initialize, Cooling_Radius_Isothermal_Reset
 
   ! Internal record of the number of abundance and chemical properties.
-  integer                              :: abundancesCount                      , chemicalsCount                          
-  
+  integer                              :: abundancesCount                      , chemicalsCount
+
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8    ) :: lastUniqueID                 =-1                                               
+  integer         (kind=kind_int8    ) :: lastUniqueID                 =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not cooling radius has already been computed for this node.
-  logical                              :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false. 
+  logical                              :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false.
   !$omp threadprivate(coolingRadiusComputed,coolingRadiusGrowthRateComputed)
   ! Stored values of cooling radius.
-  double precision                     :: coolingRadiusGrowthRateStored        , coolingRadiusStored                     
+  double precision                     :: coolingRadiusGrowthRateStored        , coolingRadiusStored
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
   ! Abundances and chemical objects used in cooling calculations.
-  type            (abundances        ) :: hotAbundances                                                                  
+  type            (abundances        ) :: hotAbundances
   !$omp threadprivate(hotAbundances)
-  type            (chemicalAbundances) :: chemicalDensities                    , chemicalMasses                          
+  type            (chemicalAbundances) :: chemicalDensities                    , chemicalMasses
   !$omp threadprivate(chemicalMasses,chemicalDensities)
   ! Radiation structure used in cooling calculations.
-  type            (radiationStructure) :: radiation                                                                      
+  type            (radiationStructure) :: radiation
   !$omp threadprivate(radiation)
 contains
 
@@ -60,10 +60,10 @@ contains
     !% Initializes the ``isothermal'' cooling radius module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                       ), intent(in   )          :: coolingRadiusMethod            
-    procedure(Cooling_Radius_Isothermal            ), intent(inout), pointer :: Cooling_Radius_Get             
-    procedure(Cooling_Radius_Growth_Rate_Isothermal), intent(inout), pointer :: Cooling_Radius_Growth_Rate_Get 
-    
+    type     (varying_string                       ), intent(in   )          :: coolingRadiusMethod
+    procedure(Cooling_Radius_Isothermal            ), intent(inout), pointer :: Cooling_Radius_Get
+    procedure(Cooling_Radius_Growth_Rate_Isothermal), intent(inout), pointer :: Cooling_Radius_Growth_Rate_Get
+
     if (coolingRadiusMethod == 'isothermal') then
        Cooling_Radius_Get             => Cooling_Radius_Isothermal
        Cooling_Radius_Growth_Rate_Get => Cooling_Radius_Growth_Rate_Isothermal
@@ -80,8 +80,8 @@ contains
   subroutine Cooling_Radius_Isothermal_Reset(thisNode)
     !% Reset the cooling radius calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     coolingRadiusComputed          =.false.
     coolingRadiusGrowthRateComputed=.false.
     lastUniqueID                   =thisNode%uniqueID()
@@ -96,10 +96,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Cooling_Times_Available
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                                  
-    double precision                                   :: coolingRadius                   , coolingTimeAvailable, & 
-         &                                                coolingTimeAvailableIncreaseRate, virialRadius            
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision                                   :: coolingRadius                   , coolingTimeAvailable, &
+         &                                                coolingTimeAvailableIncreaseRate, virialRadius
+
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
 
@@ -110,17 +110,17 @@ contains
 
        ! Get the cooling radius.
        coolingRadius=Cooling_Radius_Isothermal(thisNode)
-       
+
        ! Get the virial radius.
        virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
-       
+
        ! Check if cooling radius has reached virial radius.
        if (coolingRadius >= virialRadius) then
           coolingRadiusGrowthRateStored=0.0d0
        else
           ! Get the time available for cooling in thisNode.
           coolingTimeAvailable=Cooling_Time_Available(thisNode)
-          
+
           ! Get the rate of increase of the time available for cooling.
           coolingTimeAvailableIncreaseRate=Cooling_Time_Available_Increase_Rate(thisNode)
 
@@ -130,7 +130,7 @@ contains
        end if
     end if
     ! Return the stored value.
-    Cooling_Radius_Growth_Rate_Isothermal=coolingRadiusGrowthRateStored       
+    Cooling_Radius_Growth_Rate_Isothermal=coolingRadiusGrowthRateStored
     return
   end function Cooling_Radius_Growth_Rate_Isothermal
 
@@ -143,12 +143,12 @@ contains
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                                         
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                             
-    double precision                                               :: coolingTime         , coolingTimeAvailable   , & 
-         &                                                            density             , massToDensityConversion, & 
-         &                                                            temperature         , virialRadius               
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    double precision                                               :: coolingTime         , coolingTimeAvailable   , &
+         &                                                            density             , massToDensityConversion, &
+         &                                                            temperature         , virialRadius
+
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Isothermal_Reset(thisNode)
 
@@ -166,7 +166,7 @@ contains
        ! Get the abundances for this node.
        hotAbundances=thisHotHaloComponent%abundances()
        call hotAbundances%massToMassFraction(thisHotHaloComponent%mass())
-       
+
        ! Get the chemicals for this node.
        if (chemicalsCount > 0) then
           chemicalMasses=thisHotHaloComponent%chemicals()
@@ -177,24 +177,24 @@ contains
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
        end if
-       
+
        ! Set the radiation field.
        call radiation%set(thisNode)
 
        ! Get the virial radius.
        virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode             )
-       
+
        ! Compute density, temperature and abundances.
        density     =Hot_Halo_Density              (thisNode,virialRadius)
        temperature =Hot_Halo_Temperature          (thisNode,virialRadius)
-       
+
        ! Compute the cooling time at the virial radius.
        coolingTime=Cooling_Time(temperature,density,hotAbundances,chemicalDensities,radiation)
 
        if (coolingTime < coolingTimeAvailable) then
           ! Cooling time available exceeds cooling time at virial radius, return virial radius.
           coolingRadiusStored=virialRadius
-       else       
+       else
           ! Cooling radius is between zero and virial radii.
           coolingRadiusStored=virialRadius*sqrt(coolingTimeAvailable/coolingTime)
        end if

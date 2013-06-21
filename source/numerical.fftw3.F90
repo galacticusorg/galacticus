@@ -29,9 +29,9 @@ contains
     !% Return the wavenumber (in units of $1/L$ where $L$ is the box length) corresponding to element {\tt k} out of {\tt n} of a
     !% 1-D FFT using the FFTW convention.
     implicit none
-    integer, intent(in   ) :: k , n  
-    integer                :: kk     
-                                  
+    integer, intent(in   ) :: k , n
+    integer                :: kk
+
     kk=k-1
     if (kk < n/2) then
        FFTW_Wavenumber=dble(kk  )

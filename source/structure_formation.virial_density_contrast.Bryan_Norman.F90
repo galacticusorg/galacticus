@@ -24,13 +24,13 @@ module Virial_Densities_Bryan_Norman
   public :: Virial_Density_Bryan_Norman_Initialize
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0  
-  integer         , parameter :: deltaTableNPointsPerDecade=100                                  
-  
-  ! Labels for different fitting function types.                                                                                            
-  integer                     :: fitType                                                         
-  integer         , parameter :: fitTypeFlatUniverse       =1     , fitTypeZeroLambda    =0      
-                                                                                              
+  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0
+  integer         , parameter :: deltaTableNPointsPerDecade=100
+
+  ! Labels for different fitting function types.
+  integer                     :: fitType
+  integer         , parameter :: fitTypeFlatUniverse       =1     , fitTypeZeroLambda    =0
+
 contains
 
   !# <virialDensityContrastMethod>
@@ -43,9 +43,9 @@ contains
     use Galacticus_Error
     use Cosmological_Parameters
    implicit none
-    type     (varying_string             ), intent(in   )          :: virialDensityContrastMethod       
-    procedure(Virial_Density_Bryan_Norman), intent(inout), pointer :: Virial_Density_Contrast_Tabulate  
-                                                                                                     
+    type     (varying_string             ), intent(in   )          :: virialDensityContrastMethod
+    procedure(Virial_Density_Bryan_Norman), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
+
     if (virialDensityContrastMethod == 'Bryan-Norman1998') then
        Virial_Density_Contrast_Tabulate => Virial_Density_Bryan_Norman
        ! Check that fitting formulae are applicable to this cosmology.
@@ -68,12 +68,12 @@ contains
     use Numerical_Ranges
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time                           
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable               
-    integer                                               :: deltaTableNumberPoints, iTime  
-    double precision                                      :: x                              
-    
-    ! Find minimum and maximum times to tabulate.                                                                                     
+    double precision                      , intent(in   ) :: time
+    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
+    integer                                               :: deltaTableNumberPoints, iTime
+    double precision                                      :: x
+
+    ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
         ! Determine number of points to tabulate.
@@ -88,7 +88,7 @@ contains
     select type (deltaVirialTable)
     type is (table1DLogarithmicLinear)
        ! Create the table.
-       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)    
+       call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
        do iTime=1,deltaTableNumberPoints
           x=Omega_Matter_Total(deltaVirialTable%x(iTime))-1.0d0

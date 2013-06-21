@@ -34,9 +34,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                ), intent(in   )          :: barInstabilityMethod           
-    procedure(Bar_Instability_Timescale_Null), intent(inout), pointer :: Bar_Instability_Timescale_Get  
-                                                                                                     
+    type     (varying_string                ), intent(in   )          :: barInstabilityMethod
+    procedure(Bar_Instability_Timescale_Null), intent(inout), pointer :: Bar_Instability_Timescale_Get
+
     if (barInstabilityMethod == 'null') Bar_Instability_Timescale_Get => Bar_Instability_Timescale_Null
 
     return
@@ -45,12 +45,12 @@ contains
   double precision function Bar_Instability_Timescale_Null(thisNode)
     !% Assumes that disks are never bar unstable and so returns an infinite timescale for bar instability.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Assume infinite timescale (i.e. no instability).                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Assume infinite timescale (i.e. no instability).
     Bar_Instability_Timescale_Null=-1.0d0
 
     return
   end function Bar_Instability_Timescale_Null
-  
+
 end module Galactic_Dynamics_Bar_Instabilities_Null

@@ -25,26 +25,26 @@ module Virial_Density_Contrast
   private
   public :: Halo_Virial_Density_Contrast, Halo_Virial_Density_Contrast_Rate_of_Change, Virial_Density_Contrast_State_Retrieve
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                           :: deltaVirialInitialized          =.false. 
-  
+  ! Flag to indicate if this module has been initialized.
+  logical                                                           :: deltaVirialInitialized          =.false.
+
   ! Variables to hold the tabulated virial overdensity data.
-  logical                                                           :: tablesInitialized               =.false. 
-  class    (table1D                                  ), allocatable :: deltaVirialTable                         
+  logical                                                           :: tablesInitialized               =.false.
+  class    (table1D                                  ), allocatable :: deltaVirialTable
   !$omp threadprivate(deltaVirialTable,tablesInitialized)
   ! Name of virial overdensity method used.
-  type     (varying_string                           )              :: virialDensityContrastMethod              
-  
+  type     (varying_string                           )              :: virialDensityContrastMethod
+
   ! Pointer to the subroutine that tabulates the virial overdensity and template interface for that subroutine.
-  procedure(Virial_Density_Contrast_Tabulate_Template), pointer     :: Virial_Density_Contrast_Tabulate=>null() 
+  procedure(Virial_Density_Contrast_Tabulate_Template), pointer     :: Virial_Density_Contrast_Tabulate=>null()
   abstract interface
      subroutine Virial_Density_Contrast_Tabulate_Template(time,deltaVirialTable)
        import table1D
-       double precision         , intent(in   ) :: time             
-       class           (table1D), intent(inout) :: deltaVirialTable 
+       double precision         , intent(in   ) :: time
+       class           (table1D), intent(inout) :: deltaVirialTable
      end subroutine Virial_Density_Contrast_Tabulate_Template
   end interface
-  
+
 contains
 
   subroutine Virial_Density_Contrast_Initialize(time)
@@ -55,8 +55,8 @@ contains
     include 'structure_formation.virial_overdensity.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in   ) :: time 
-    
+    double precision, intent(in   ) :: time
+
     ! Initialize the module if necessary.
     if (.not.deltaVirialInitialized) then
        !$omp critical (Virial_Density_Contrast_Initialize)
@@ -87,17 +87,17 @@ contains
     end if
     return
   end subroutine Virial_Density_Contrast_Initialize
-  
+
   subroutine Virial_Density_Contrast_Retabulate(time)
     !% Recompute the look-up tables for virial density contrast.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: time        
-    logical                         :: remakeTable 
-    
+    double precision, intent(in   ) :: time
+    logical                         :: remakeTable
+
     ! Ensure that the module is initialized.
     call Virial_Density_Contrast_Initialize(time)
-    
+
     ! Check if we need to recompute our table.
     if (tablesInitialized) then
        remakeTable=(time<deltaVirialTable%x(1).or.time>deltaVirialTable%x(-1))
@@ -117,11 +117,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , time 
-    logical         , intent(in   ), optional :: collapsing             
-    logical                                   :: collapsingActual       
-    double precision                          :: timeActual             
-    
+    double precision, intent(in   ), optional :: aExpansion      , time
+    logical         , intent(in   ), optional :: collapsing
+    logical                                   :: collapsingActual
+    double precision                          :: timeActual
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -156,11 +156,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , time 
-    logical         , intent(in   ), optional :: collapsing             
-    logical                                   :: collapsingActual       
-    double precision                          :: timeActual             
-    
+    double precision, intent(in   ), optional :: aExpansion      , time
+    logical         , intent(in   ), optional :: collapsing
+    logical                                   :: collapsingActual
+    double precision                          :: timeActual
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -197,11 +197,11 @@ contains
     use Memory_Management
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     tablesInitialized=.false.
     return
   end subroutine Virial_Density_Contrast_State_Retrieve
-  
+
 end module Virial_Density_Contrast

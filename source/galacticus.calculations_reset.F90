@@ -22,9 +22,9 @@ module Galacticus_Calculations_Resets
   implicit none
   private
   public :: Galacticus_Calculations_Reset
-  
+
 contains
-  
+
   subroutine Galacticus_Calculations_Reset(thisNode)
     !% Calls any routines required to reset all calculation for a new or updated node.
     use Galacticus_Nodes
@@ -32,14 +32,14 @@ contains
     include 'galacticus.calculation_reset.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     !# <include directive="calculationResetTask" type="functionCall" functionType="void">
     !#  <functionArgs>thisNode</functionArgs>
     include 'galacticus.calculation_reset.tasks.inc'
     !# </include>
-    
+
     return
   end subroutine Galacticus_Calculations_Reset
-  
+
 end module Galacticus_Calculations_Resets

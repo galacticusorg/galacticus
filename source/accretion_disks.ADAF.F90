@@ -28,47 +28,47 @@ module Accretion_Disks_ADAF
        & Black_Hole_Spin_Up_Rate_ADAF, Accretion_Disk_Jet_Power_ADAF
 
   ! Flag indicating if the module has been initialized.
-  logical                                                        :: adafInitialized                    =.false.                                            
-  
+  logical                                                        :: adafInitialized                    =.false.
+
   ! Option controlling type of radiative effiency to use.
-  integer                                                        :: adafRadiativeEfficiencyType                                                            
-  integer                            , parameter                 :: adafRadiativeEfficiencyTypeFixed   =0                                                  
-  integer                            , parameter                 :: adafRadiativeEfficiencyTypeThinDisk=1                                                  
-  
+  integer                                                        :: adafRadiativeEfficiencyType
+  integer                            , parameter                 :: adafRadiativeEfficiencyTypeFixed   =0
+  integer                            , parameter                 :: adafRadiativeEfficiencyTypeThinDisk=1
+
   ! Radiative efficiency of the accretion flow.
-  double precision                                               :: adafRadiativeEfficiency                                                                
-  
+  double precision                                               :: adafRadiativeEfficiency
+
   ! Adiabatic index of the accretion flow.
-  double precision                                               :: adafAdiabaticIndex                         , adafThermalPressureFraction               
-  
+  double precision                                               :: adafAdiabaticIndex                         , adafThermalPressureFraction
+
   ! Limit to the jet efficiency.
-  double precision                                               :: adafJetEfficiencyMaximum                                                               
-  
+  double precision                                               :: adafJetEfficiencyMaximum
+
   ! Options for the viscosity prescription.
-  type            (varying_string   )                            :: adafViscosityOption                                                                    
-  integer                            , parameter                 :: adafViscosityFit                   =1      , adafViscosityFixed            =0          
-  integer                                                        :: adafViscosity                                                                          
-  double precision                                               :: adafViscosityFixedAlpha                                                                
-  
+  type            (varying_string   )                            :: adafViscosityOption
+  integer                            , parameter                 :: adafViscosityFit                   =1      , adafViscosityFixed            =0
+  integer                                                        :: adafViscosity
+  double precision                                               :: adafViscosityFixedAlpha
+
   ! Options for the field-enhancing shear.
-  type            (varying_string   )                            :: adafFieldEnhanceType                                                                   
-  integer                            , parameter                 :: adafFieldEnhanceExponential        =0      , adafFieldEnhanceLinear        =1          
-  integer                                                        :: adafFieldEnhance                                                                       
-  
+  type            (varying_string   )                            :: adafFieldEnhanceType
+  integer                            , parameter                 :: adafFieldEnhanceExponential        =0      , adafFieldEnhanceLinear        =1
+  integer                                                        :: adafFieldEnhance
+
   ! Variable determining whether ADAF energy is 1 or E_ISCO.
-  type            (varying_string   )                            :: adafEnergyOption                                                                       
-  integer                            , parameter                 :: adafEnergy1                        =1      , adafEnergyIsco                =0          
-  integer                                                        :: adafEnergy                                                                             
-  
+  type            (varying_string   )                            :: adafEnergyOption
+  integer                            , parameter                 :: adafEnergy1                        =1      , adafEnergyIsco                =0
+  integer                                                        :: adafEnergy
+
   ! Tables to store spin-up and jet power functions.
-  logical                                                        :: jetPowerFunctionTabulated          =.false., spinUpFunctionTabulated       =.false.    
-  integer                            , parameter                 :: jetPowerTableCount                 =10000  , spinUpTableCount              =10000      
-  double precision                   , allocatable, dimension(:) :: jetPowerSpinParameterTable                 , jetPowerTable                         , & 
-       &                                                            spinUpSpinParameterTable                   , spinUpTable                               
-  type            (fgsl_interp      )                            :: jetPowerInterpolationObject                , spinUpInterpolationObject                 
-  type            (fgsl_interp_accel)                            :: jetPowerInterpolationAccelerator           , spinUpInterpolationAccelerator            
-  logical                                                        :: jetPowerInterpolationReset         =.true. , spinUpInterpolationReset      =.true.     
-  
+  logical                                                        :: jetPowerFunctionTabulated          =.false., spinUpFunctionTabulated       =.false.
+  integer                            , parameter                 :: jetPowerTableCount                 =10000  , spinUpTableCount              =10000
+  double precision                   , allocatable, dimension(:) :: jetPowerSpinParameterTable                 , jetPowerTable                         , &
+       &                                                            spinUpSpinParameterTable                   , spinUpTable
+  type            (fgsl_interp      )                            :: jetPowerInterpolationObject                , spinUpInterpolationObject
+  type            (fgsl_interp_accel)                            :: jetPowerInterpolationAccelerator           , spinUpInterpolationAccelerator
+  logical                                                        :: jetPowerInterpolationReset         =.true. , spinUpInterpolationReset      =.true.
+
 contains
 
   !# <accretionDisksMethod>
@@ -79,11 +79,11 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                          ), intent(in   )          :: accretionDisksMethod                    
-    procedure(Accretion_Disk_Radiative_Efficiency_ADAF), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get 
-    procedure(Black_Hole_Spin_Up_Rate_ADAF            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get             
-    procedure(Accretion_Disk_Jet_Power_ADAF           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get            
-    
+    type     (varying_string                          ), intent(in   )          :: accretionDisksMethod
+    procedure(Accretion_Disk_Radiative_Efficiency_ADAF), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
+    procedure(Black_Hole_Spin_Up_Rate_ADAF            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get
+    procedure(Accretion_Disk_Jet_Power_ADAF           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get
+
     if (accretionDisksMethod == 'ADAF') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_ADAF
        Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_ADAF
@@ -99,9 +99,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    double precision                 :: adafAdiabaticIndexDefault       
-    type            (varying_string) :: adafRadiativeEfficiencyTypeText 
-    
+    double precision                 :: adafAdiabaticIndexDefault
+    type            (varying_string) :: adafRadiativeEfficiencyTypeText
+
     if (.not.adafInitialized) then
        !$omp critical(adafInitalize)
        if (.not.adafInitialized) then
@@ -249,9 +249,9 @@ contains
     use Black_Hole_Fundamentals
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole     
-    double precision                        , intent(in   ) :: massAccretionRate 
-    
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
 
@@ -274,14 +274,14 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole                                                                
-    double precision                        , intent(in   ) :: massAccretionRate                                                            
-    double precision                        , parameter     :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6    
-    integer                                                 :: iSpin                                                                        
-    double precision                                        :: adafViscosityAlpha                 , blackHoleSpin                       , & 
-         &                                                     blackHoleSpinParameter             , radiusIsco                          , & 
-         &                                                     radiusStatic                                                                 
-    
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
+    integer                                                 :: iSpin
+    double precision                                        :: adafViscosityAlpha                 , blackHoleSpin                       , &
+         &                                                     blackHoleSpinParameter             , radiusIsco                          , &
+         &                                                     radiusStatic
+
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
 
@@ -294,10 +294,10 @@ contains
           jetPowerSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,jetPowerTableCount,rangeType&
                &=rangeTypeLogarithmic)
           do iSpin=1,jetPowerTableCount
-             
+
              ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
              blackHoleSpin=1.0d0-jetPowerSpinParameterTable(iSpin)
-             
+
              ! Determine the ADAF viscosity.
              select case (adafViscosity)
              case (adafViscosityFixed)
@@ -305,11 +305,11 @@ contains
              case (adafViscosityFit)
                 adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
              end select
-             
+
              ! Compute jet launch radii.
              radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
              radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-             
+
              ! Compute the jet power.
              jetPowerTable(iSpin)= min(                                                                     &
                   &                    (                                                                    &
@@ -350,18 +350,18 @@ contains
     use Numerical_Ranges
     use Numerical_Interpolation
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole                                                                
-    double precision                        , intent(in   ) :: massAccretionRate                                                            
-    double precision                        , parameter     :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6    
-    integer                                                 :: iSpin                                                                        
-    double precision                                        :: adafEnergyValue                    , adafViscosityAlpha                  , & 
-         &                                                     blackHoleSpin                      , blackHoleSpinParameter              , & 
-         &                                                     radiusIsco                         , radiusStatic                        , & 
-         &                                                     spinToMassRateOfChangeRatio                                                  
-    
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
+    double precision                        , intent(in   ) :: massAccretionRate
+    double precision                        , parameter     :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
+    integer                                                 :: iSpin
+    double precision                                        :: adafEnergyValue                    , adafViscosityAlpha                  , &
+         &                                                     blackHoleSpin                      , blackHoleSpinParameter              , &
+         &                                                     radiusIsco                         , radiusStatic                        , &
+         &                                                     spinToMassRateOfChangeRatio
+
     ! Ensure that parameters have been read.
     call Accretion_Disks_ADAF_Get_Parameters
-    
+
     ! Tabulate the spin up rate as a function of spin parameter.
     if (.not.spinUpFunctionTabulated) then
        !$omp critical(ADAF_Spin_Up_Rate_Interpolate)
@@ -371,10 +371,10 @@ contains
           spinUpSpinParameterTable=Make_Range(blackHoleSpinParameterMinimum,blackHoleSpinParameterMaximum,spinUpTableCount,rangeType&
                &=rangeTypeLogarithmic)
           do iSpin=1,spinUpTableCount
-             
+
              ! Get the black hole spin. The "spin parameter" that we tabulate in is 1-j so that we can easily pack many points close to j=1.
              blackHoleSpin=1.0d0-spinUpSpinParameterTable(iSpin)
-             
+
              ! Determine the ADAF energy.
              select case (adafEnergy)
              case (adafEnergy1)
@@ -382,7 +382,7 @@ contains
              case (adafEnergyIsco)
                 adafEnergyValue=Black_Hole_ISCO_Specific_Energy(blackHoleSpin,orbitPrograde)
              end select
-             
+
              ! Determine the ADAF viscosity.
              select case (adafViscosity)
              case (adafViscosityFixed)
@@ -390,11 +390,11 @@ contains
              case (adafViscosityFit)
                 adafViscosityAlpha=ADAF_alpha(blackHoleSpin)
              end select
-             
+
              ! Compute the spin up rate including braking term due to jets.
              radiusIsco  =Black_Hole_ISCO_Radius  (blackHoleSpin)
              radiusStatic=Black_Hole_Static_Radius(blackHoleSpin)
-             
+
              ! Compute the rate of spin up to mass rate of change ratio.
              spinUpTable(iSpin)=ADAF_Angular_Momentum(radiusIsco,blackHoleSpin,adafViscosityAlpha)-2.0d0*blackHoleSpin&
                   &*adafEnergyValue-Black_Hole_Rotational_Energy_Spin_Down(blackHoleSpin)*(ADAF_BH_Jet_Power(radiusStatic,blackHoleSpin&
@@ -426,10 +426,10 @@ contains
     !% Returns the power extracted from the black hole by the disk-launched jet from an ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             jetPowerPrevious          , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             jetPowerPrevious          , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,jetPowerPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -448,13 +448,13 @@ contains
     !% Returns the power of the disk-launched jet from an ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             diskPowerPrevious         , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             diskPowerPrevious         , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,diskPowerPrevious)
-    double precision                :: betaPhi                                                    
-    
+    double precision                :: betaPhi
+
     ! Check if arguments are the same as on the previous call.
     if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
        ! They are, so return the previously computed value.
@@ -484,14 +484,14 @@ contains
     !% Returns the power of the black hole-launched jet from an ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha               , blackHoleSpin              , & 
-         &                             radius                                                            
-    double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8                                 
-    double precision, save          :: adafViscosityAlphaPrevious       , blackHoleSpinPrevious=2.0d0, & 
-         &                             jetPowerPrevious                 , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha               , blackHoleSpin              , &
+         &                             radius
+    double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8
+    double precision, save          :: adafViscosityAlphaPrevious       , blackHoleSpinPrevious=2.0d0, &
+         &                             jetPowerPrevious                 , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,jetPowerPrevious)
-    double precision                :: betaPhi                                                           
-    
+    double precision                :: betaPhi
+
     if (blackHoleSpin > blackHoleSpinMinimum) then
        ! Check if arguments are the same as on the previous call.
        if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
@@ -525,14 +525,14 @@ contains
     !% Returns the field enhancement factor, $g$, in the ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             fieldEnhancementPrevious  , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             fieldEnhancementPrevious  , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,fieldEnhancementPrevious)
-    double precision                :: tau                       , tauPhi                     , & 
-         &                             tauR                                                       
-    
+    double precision                :: tau                       , tauPhi                     , &
+         &                             tauR
+
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
        tauPhi=1.0d0/ADAF_Fluid_Angular_Velocity(radius,blackHoleSpin,adafViscosityAlpha)
@@ -557,16 +557,16 @@ contains
     !% Returns the angular velocity of the rotating fluid with respect to the local inertial observer (ZAMO).
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , & 
-         &                             radius                                                       
-    double precision, save          :: adafViscosityAlphaPrevious      , angularVelocityPrevious, & 
-         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious             
+    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious      , angularVelocityPrevious, &
+         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularVelocityPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
          & adafViscosityAlphaPrevious) then
        angularVelocityPrevious=                                          &
-            & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) & 
+            & ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha) &
             & *sqrt(Black_Hole_Metric_D_Factor(blackHoleSpin,radius)        &
             & /Black_Hole_Metric_A_Factor(blackHoleSpin,radius)**3)          &
             & /radius**2                                                     &
@@ -583,8 +583,8 @@ contains
   double precision function ADAF_alpha(blackHoleSpin)
     !% Returns the effective value of $\alpha$ for an ADAF.
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin                              
-    double precision, save          :: alphaPrevious, blackHoleSpinPrevious=2.0d0 
+    double precision, intent(in   ) :: blackHoleSpin
+    double precision, save          :: alphaPrevious, blackHoleSpinPrevious=2.0d0
     !$omp threadprivate(blackHoleSpinPrevious,alphaPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (blackHoleSpin /= blackHoleSpinPrevious) then
@@ -615,10 +615,10 @@ contains
     !% The input quantities are in natural units.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             gammaPrevious             , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             gammaPrevious             , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -637,10 +637,10 @@ contains
     !% The input quantities are in natural units.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             gammaPrevious             , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             gammaPrevious             , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -659,10 +659,10 @@ contains
     !% Returns the $r$ component relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             gammaPrevious             , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             gammaPrevious             , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,gammaPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -680,10 +680,10 @@ contains
     !% Returns the specific angular momentum of accreted material in the ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , & 
-         &                             radius                                                       
-    double precision, save          :: adafViscosityAlphaPrevious      , angularMomentumPrevious, & 
-         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious             
+    double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious      , angularMomentumPrevious, &
+         &                             blackHoleSpinPrevious     =2.0d0, radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,angularMomentumPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -702,16 +702,16 @@ contains
     !% Return the product of enthalpy and angular momentum for the ADAF.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha             , blackHoleSpin              , & 
-         &                             radius                                                          
-    double precision, save          :: adafViscosityAlphaPrevious     , blackHoleSpinPrevious=2.0d0, & 
-         &                             enthalpyAngularMomentumPrevious, radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha             , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious     , blackHoleSpinPrevious=2.0d0, &
+         &                             enthalpyAngularMomentumPrevious, radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyAngularMomentumPrevious)
-    double precision                :: etaLADAF1                      , etaLADAF2                  , & 
-         &                             etaLADAF3                      , etaLADAF4                  , & 
-         &                             etaLADAF5                      , etaLADAF6                  , & 
-         &                             logarithmAlpha                 , radiusISCO                     
-    
+    double precision                :: etaLADAF1                      , etaLADAF2                  , &
+         &                             etaLADAF3                      , etaLADAF4                  , &
+         &                             etaLADAF5                      , etaLADAF6                  , &
+         &                             logarithmAlpha                 , radiusISCO
+
     ! Check if we are being called with the same arguments as the previous call.
     if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
        ! We are, so just return the stored value.
@@ -738,10 +738,10 @@ contains
   double precision function ADAF_Enthalpy(radius,blackHoleSpin,adafViscosityAlpha)
     !% Returns the relativistic enthalpy of the ADAF.
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             enthalpyPrevious          , radiusPrevious                 
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             enthalpyPrevious          , radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,enthalpyPrevious)
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
@@ -758,16 +758,16 @@ contains
   double precision function ADAF_Temperature(radius,blackHoleSpin,adafViscosityAlpha)
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , & 
-         &                             radius                                                     
-    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, & 
-         &                             radiusPrevious            , temperaturePrevious            
+    double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
+         &                             radius
+    double precision, save          :: adafViscosityAlphaPrevious, blackHoleSpinPrevious=2.0d0, &
+         &                             radiusPrevious            , temperaturePrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,temperaturePrevious)
-    double precision                :: logarithmAlpha            , radiusISCO                 , & 
-         &                             t1                        , t2                         , & 
-         &                             t3                        , t4                         , & 
-         &                             t5                                                         
-    
+    double precision                :: logarithmAlpha            , radiusISCO                 , &
+         &                             t1                        , t2                         , &
+         &                             t3                        , t4                         , &
+         &                             t5
+
     ! Check if we are being called with the same arguments as the previous call.
     if (radius == radiusPrevious .and. blackHoleSpin == blackHoleSpinPrevious .and. adafViscosityAlpha == adafViscosityAlphaPrevious) then
        ! We are, so just return the stored value.
@@ -795,18 +795,18 @@ contains
     !% flow with viscosity parameter {\tt adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , & 
-         &                             radius                                                     
-    double precision, save          :: adafVelocityPrevious       , adafViscosityAlphaPrevious, & 
-         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious                
+    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &
+         &                             radius
+    double precision, save          :: adafVelocityPrevious       , adafViscosityAlphaPrevious, &
+         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafVelocityPrevious)
-    double precision                :: Phi                        , alpha_eff                 , & 
-         &                             rISCO                      , reff                      , & 
-         &                             rh                         , v1                        , & 
-         &                             v2                         , v3                        , & 
-         &                             v4                         , v5                        , & 
-         &                             z                          , zh                            
-    
+    double precision                :: Phi                        , alpha_eff                 , &
+         &                             rISCO                      , reff                      , &
+         &                             rh                         , v1                        , &
+         &                             v2                         , v3                        , &
+         &                             v4                         , v5                        , &
+         &                             z                          , zh
+
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /= adafViscosityAlphaPrevious) then
        rh=Black_Hole_Horizon_Radius(blackHoleSpin)
@@ -835,13 +835,13 @@ contains
     !% flow with viscosity parameter {\tt adafViscosityAlpha}.
     use Black_Hole_Fundamentals
     implicit none
-    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , & 
-         &                             radius                                                     
-    double precision, save          :: adafHeightPrevious         , adafViscosityAlphaPrevious, & 
-         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious                
+    double precision, intent(in   ) :: adafViscosityAlpha         , blackHoleSpin             , &
+         &                             radius
+    double precision, save          :: adafHeightPrevious         , adafViscosityAlphaPrevious, &
+         &                             blackHoleSpinPrevious=2.0d0, radiusPrevious
     !$omp threadprivate(radiusPrevious,blackHoleSpinPrevious,adafViscosityAlphaPrevious,adafHeightPrevious)
-    double precision                :: nuz2                                                       
-    
+    double precision                :: nuz2
+
     ! Check if we are being called with the same arguments as the previous call.
     if (radius /= radiusPrevious .or. blackHoleSpin /= blackHoleSpinPrevious .or. adafViscosityAlpha /=&
          & adafViscosityAlphaPrevious) then

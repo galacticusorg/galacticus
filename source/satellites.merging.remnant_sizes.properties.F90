@@ -21,11 +21,11 @@ module Satellite_Merging_Remnant_Sizes_Properties
   !% Stores properties of merger remnants related to their size.
   implicit none
   public
-  
+
   ! Value indicating that there was no change in the remnant spheroid.
-  double precision, parameter :: remnantNoChangeValue          =-1.0d0                   
-  
-  double precision            :: remnantCircularVelocity              , remnantRadius, & 
-       &                         remnantSpecificAngularMomentum                          
+  double precision, parameter :: remnantNoChangeValue          =-1.0d0
+
+  double precision            :: remnantCircularVelocity              , remnantRadius, &
+       &                         remnantSpecificAngularMomentum
   !$omp threadprivate(remnantRadius,remnantCircularVelocity,remnantSpecificAngularMomentum)
 end module Satellite_Merging_Remnant_Sizes_Properties

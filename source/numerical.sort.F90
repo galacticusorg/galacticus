@@ -41,8 +41,8 @@ contains
   subroutine Sort_Do_Double(array)
     !% Given an unsorted double precision {\tt array}, sorts it in place.
     implicit none
-    double precision, dimension(:), intent(inout) :: array  
-                                                         
+    double precision, dimension(:), intent(inout) :: array
+
     call Sort_Do_Double_C(size(array),array)
     return
   end subroutine Sort_Do_Double
@@ -50,8 +50,8 @@ contains
   subroutine Sort_Do_Integer(array)
     !% Given an unsorted integer {\tt array}, sorts it in place.
     implicit none
-    integer, dimension(:), intent(inout) :: array  
-                                                
+    integer, dimension(:), intent(inout) :: array
+
     call Sort_Do_Integer_C(size(array),array)
     return
   end subroutine Sort_Do_Integer
@@ -60,9 +60,9 @@ contains
     !% Given an unsorted integer {\tt array}, sorts it in place.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), dimension(:)          , intent(in   ) :: array                   
-    integer(kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Integer8  
-                                                                                           
+    integer(kind=kind_int8), dimension(:)          , intent(in   ) :: array
+    integer(kind=c_size_t ), dimension(size(array))                :: Sort_Index_Do_Integer8
+
     call Sort_Index_Do_Integer8_C(size(array),array,Sort_Index_Do_Integer8)
     Sort_Index_Do_Integer8=Sort_Index_Do_Integer8+1
     return
@@ -71,11 +71,11 @@ contains
   subroutine Sort_Do_Double_C(arraySize,array)
     !% Do a double precision sort.
     implicit none
-    integer               , intent(in   )         :: arraySize                
-    real   (kind=c_double), intent(inout), target :: array       (arraySize)  
-    integer(kind=c_size_t)                        :: arraySizeC               
-    type   (c_ptr        )                        :: arrayPointer             
-                                                                           
+    integer               , intent(in   )         :: arraySize
+    real   (kind=c_double), intent(inout), target :: array       (arraySize)
+    integer(kind=c_size_t)                        :: arraySizeC
+    type   (c_ptr        )                        :: arrayPointer
+
     arrayPointer=c_loc(array)
     arraySizeC=arraySize
     call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1.0d0),Compare_Double)
@@ -85,11 +85,11 @@ contains
   subroutine Sort_Do_Integer_C(arraySize,array)
     !% Do a integer sort.
     implicit none
-    integer               , intent(in   )         :: arraySize                
-    integer(kind=c_int   ), intent(inout), target :: array       (arraySize)  
-    integer(kind=c_size_t)                        :: arraySizeC               
-    type   (c_ptr        )                        :: arrayPointer             
-                                                                           
+    integer               , intent(in   )         :: arraySize
+    integer(kind=c_int   ), intent(inout), target :: array       (arraySize)
+    integer(kind=c_size_t)                        :: arraySizeC
+    type   (c_ptr        )                        :: arrayPointer
+
     arrayPointer=c_loc(array)
     arraySizeC=arraySize
     call FGSL_HeapSort(arrayPointer,arraySizeC,FGSL_SizeOf(1),Compare_Integer)
@@ -100,13 +100,13 @@ contains
     !% Do a integer sort.
     use Kind_Numbers
     implicit none
-    integer                , intent(in   )         :: arraySize                
-    integer(kind=kind_int8), intent(in   ), target :: array       (arraySize)  
-    integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)  
-    integer(kind=c_size_t )                        :: arraySizeC               
-    integer                                        :: status                   
-    type   (c_ptr         )                        :: arrayPointer             
-                                                                            
+    integer                , intent(in   )         :: arraySize
+    integer(kind=kind_int8), intent(in   ), target :: array       (arraySize)
+    integer(kind=c_size_t ), intent(inout)         :: idx         (arraySize)
+    integer(kind=c_size_t )                        :: arraySizeC
+    integer                                        :: status
+    type   (c_ptr         )                        :: arrayPointer
+
     arrayPointer=c_loc(array)
     arraySizeC=arraySize
     status=FGSL_HeapSort_Index(idx,arrayPointer,arraySizeC,sizeof(1_kind_int8),Compare_Integer8)
@@ -115,10 +115,10 @@ contains
 
   function Compare_Double(x,y) bind(c)
     !% Comparison function for double precision data.
-    type   (c_ptr        ), value   :: x             , y   
-    integer(kind=c_int   )          :: Compare_Double      
-    real   (kind=c_double), pointer :: rx            , ry  
-                                                        
+    type   (c_ptr        ), value   :: x             , y
+    integer(kind=c_int   )          :: Compare_Double
+    real   (kind=c_double), pointer :: rx            , ry
+
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
     Compare_Double=0
@@ -127,10 +127,10 @@ contains
 
   function Compare_Integer(x,y) bind(c)
     !% Comparison function for integer data.
-    type   (c_ptr     ), value   :: x              , y   
-    integer(kind=c_int)          :: Compare_Integer      
-    integer(kind=c_int), pointer :: rx             , ry  
-                                                      
+    type   (c_ptr     ), value   :: x              , y
+    integer(kind=c_int)          :: Compare_Integer
+    integer(kind=c_int), pointer :: rx             , ry
+
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
     Compare_Integer=0
@@ -139,10 +139,10 @@ contains
 
   function Compare_Integer8(x,y) bind(c)
     !% Comparison function for integer data.
-    type   (c_ptr      ), value   :: x               , y   
-    integer(kind=c_int )          :: Compare_Integer8      
-    integer(kind=c_long), pointer :: rx              , ry  
-                                                        
+    type   (c_ptr      ), value   :: x               , y
+    integer(kind=c_int )          :: Compare_Integer8
+    integer(kind=c_long), pointer :: rx              , ry
+
     call c_f_pointer(x,rx)
     call c_f_pointer(y,ry)
     Compare_Integer8=0

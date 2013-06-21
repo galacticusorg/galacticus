@@ -24,46 +24,46 @@ module Merger_Tree_Branching
   private
   public :: Tree_Branching_Probability, Tree_Subresolution_Fraction, Tree_Branch_Mass, Tree_Maximum_Step
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                  :: treeBranchingInitialized            =.false. 
-  
+  ! Flag to indicate if this module has been initialized.
+  logical                                                  :: treeBranchingInitialized            =.false.
+
   ! Name of branching method used.
-  type     (varying_string                      )          :: treeBranchingMethod                          
-  
+  type     (varying_string                      )          :: treeBranchingMethod
+
   ! Pointer to the functions that return branching probabilities and templates for the functions.
-  procedure(Tree_Branching_Probability_Template ), pointer :: Tree_Branching_Probability_Function =>null() 
-  procedure(Tree_Subresolution_Fraction_Template), pointer :: Tree_Subresolution_Fraction_Function=>null() 
-  procedure(Tree_Branch_Mass_Template           ), pointer :: Tree_Branch_Mass_Function           =>null() 
-  procedure(Tree_Maximum_Step_Template          ), pointer :: Tree_Maximum_Step_Function          =>null() 
+  procedure(Tree_Branching_Probability_Template ), pointer :: Tree_Branching_Probability_Function =>null()
+  procedure(Tree_Subresolution_Fraction_Template), pointer :: Tree_Subresolution_Fraction_Function=>null()
+  procedure(Tree_Branch_Mass_Template           ), pointer :: Tree_Branch_Mass_Function           =>null()
+  procedure(Tree_Maximum_Step_Template          ), pointer :: Tree_Maximum_Step_Function          =>null()
   interface Tree_Branching_Probability_Template
      double precision function Tree_Branching_Probability_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
+       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Branching_Probability_Template
   end interface
   interface Tree_Subresolution_Fraction_Template
      double precision function Tree_Subresolution_Fraction_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
+       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Subresolution_Fraction_Template
   end interface
   interface Tree_Branch_Mass_Template
      double precision function Tree_Branch_Mass_Template(haloMass,deltaCritical,massResolution,probabilityFraction)
-       double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, & 
-            &                             probabilityFraction                              
+       double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, &
+            &                             probabilityFraction
      end function Tree_Branch_Mass_Template
   end interface
   interface Tree_Maximum_Step_Template
      double precision function Tree_Maximum_Step_Template(haloMass,deltaCritical,massResolution)
-       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
+       double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
      end function Tree_Maximum_Step_Template
   end interface
- 
+
 contains
 
   double precision function Tree_Maximum_Step(haloMass,deltaCritical,massResolution)
     !% Return the maximum step in $\delta_{\rm crit}$ allowed for a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
-    
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
@@ -75,8 +75,8 @@ contains
   double precision function Tree_Branching_Probability(haloMass,deltaCritical,massResolution)
     !% Return the branching probability per unit $\delta_{\rm crit}$ for a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
-    
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
@@ -88,8 +88,8 @@ contains
   double precision function Tree_Subresolution_Fraction(haloMass,deltaCritical,massResolution)
     !% Return the fraction of mass accreted below the resolution limit per $\delta_{\rm crit}$ in a halo in a merger tree.
     implicit none
-    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
-    
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
+
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
@@ -101,9 +101,9 @@ contains
   double precision function Tree_Branch_Mass(haloMass,deltaCritical,massResolution,probabilityFraction)
     !% Return the mass of a progenitor halo in a branch split.
     implicit none
-    double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, & 
-         &                             probabilityFraction                              
-    
+    double precision, intent(in   ) :: deltaCritical      , haloMass, massResolution, &
+         &                             probabilityFraction
+
     ! Initialize if necessary.
     call Tree_Branching_Initialize
 
@@ -120,10 +120,10 @@ contains
     include 'merger_trees.branching_probability.modules.inc'
     !# </include>
     implicit none
- 
+
     ! Initialize if necessary.
     if (.not.treeBranchingInitialized) then
-       !$omp critical(Tree_Branching_Initialization) 
+       !$omp critical(Tree_Branching_Initialization)
        if (.not.treeBranchingInitialized) then
           ! Get the tree branching method parameter.
           !@ <inputParameter>
@@ -147,12 +147,12 @@ contains
                & .or..not.associated(Tree_Branch_Mass_Function           )  &
                & .or..not.associated(Tree_Maximum_Step_Function          )) &
                & call Galacticus_Error_Report('Tree_Branching_Initialize','method '//char(treeBranchingMethod)//' is unrecognized')
-          
+
           treeBranchingInitialized=.true.
        end if
        !$omp end critical(Tree_Branching_Initialization)
     end if
     return
   end subroutine Tree_Branching_Initialize
-  
+
 end module Merger_Tree_Branching

@@ -28,17 +28,17 @@ module Spherical_Collapse_Matter_Lambda
        & Spherical_Collapse_Matter_Lambda_State_Store, Spherical_Collapse_Matter_Lambda_State_Retrieve
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0    
-  integer         , parameter :: deltaTableNPointsPerDecade=1000                                    
-  
+  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum =1.0d0
+  integer         , parameter :: deltaTableNPointsPerDecade=1000
+
   ! Variables used in root finding.
-  double precision            :: OmegaDE                          , OmegaM                      , & 
-       &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , & 
-       &                         tNow                                                               
-  
+  double precision            :: OmegaDE                          , OmegaM                      , &
+       &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
+       &                         tNow
+
   ! Calculation types.
-  integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1        
-  
+  integer         , parameter :: calculationDeltaCrit      =0     , calculationDeltaVirial=1
+
 contains
 
   !# <criticalOverdensityMethod>
@@ -48,9 +48,9 @@ contains
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod     
-    procedure(Spherical_Collapse_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate 
-    
+    type     (varying_string                         ), intent(in   )          :: criticalOverdensityMethod
+    procedure(Spherical_Collapse_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
+
     if (criticalOverdensityMethod == 'sphericalTopHat') Critical_Overdensity_Tabulate => Spherical_Collapse_Critical_Overdensity
     return
   end subroutine Spherical_Collape_Delta_Critical_Initialize
@@ -62,9 +62,9 @@ contains
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                            ), intent(in   )          :: virialDensityContrastMethod      
-    procedure(Spherical_Collapse_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate 
-    
+    type     (varying_string                            ), intent(in   )          :: virialDensityContrastMethod
+    procedure(Spherical_Collapse_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
+
     if (virialDensityContrastMethod == 'sphericalTopHat') Virial_Density_Contrast_Tabulate =>&
          & Spherical_Collapse_Virial_Density_Contrast
     return
@@ -74,9 +74,9 @@ contains
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time           
-    class           (table1D), allocatable, intent(inout) :: deltaCritTable 
-    
+    double precision                      , intent(in   ) :: time
+    class           (table1D), allocatable, intent(inout) :: deltaCritTable
+
     !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
     !$omp end critical(Spherical_Collapse_Make_Table)
@@ -88,9 +88,9 @@ contains
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time             
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable 
-    
+    double precision                      , intent(in   ) :: time
+    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
+
     !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
     !$omp end critical(Spherical_Collapse_Make_Table)
@@ -107,17 +107,17 @@ contains
     use Tables
     use Kind_Numbers
     implicit none
-    double precision                         , intent(in   ) :: time                                                                   
-    integer                                  , intent(in   ) :: calculationType                                                        
-    class           (table1D   ), allocatable, intent(inout) :: deltaTable                                                             
-    double precision            , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9    
-    type            (rootFinder), save                       :: finder                                                                 
+    double precision                         , intent(in   ) :: time
+    integer                                  , intent(in   ) :: calculationType
+    class           (table1D   ), allocatable, intent(inout) :: deltaTable
+    double precision            , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
+    type            (rootFinder), save                       :: finder
     !$omp threadprivate(finder)
-    integer                                                  :: deltaTableNumberPoints          , iTime                                
-    double precision                                         :: aExpansionNow                   , epsilonPerturbation              , & 
-         &                                                      epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , & 
-         &                                                      eta                             , normalization                    , & 
-         &                                                      radiiRatio                      , radiusMaximum                        
+    integer                                                  :: deltaTableNumberPoints          , iTime
+    double precision                                         :: aExpansionNow                   , epsilonPerturbation              , &
+         &                                                      epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
+         &                                                      eta                             , normalization                    , &
+         &                                                      radiiRatio                      , radiusMaximum
     double complex                                                         :: a,b,c,d,Delta
 
     ! Find minimum and maximum times to tabulate.
@@ -189,7 +189,7 @@ contains
                 b=cmplx(  0.0d0     ,0.0d0,kind=kind_dble)
                 c=cmplx(-(2.0d0+eta),0.0d0,kind=kind_dble)
                 d=cmplx(  1.0d0     ,0.0d0,kind=kind_dble)
-                ! Solve the cubic equation to get 
+                ! Solve the cubic equation to get
                 Delta=(sqrt(3.0d0)*sqrt(27.0d0*a**4*d**2+4.0d0*a**3*c**3)-9.0d0*a**2*d)**(1.0d0/3.0d0)
                 radiiRatio=real(cmplx(1.0d0,-sqrt(3.0d0),kind=kind_dble)*c/2.0d0**(2.0d0/3.0d0)/3.0d0**(1.0d0/3.0d0)/Delta-cmplx(1.0d0,sqrt(3.0d0),kind=kind_dble)&
                      & *Delta /2.0d0/a /2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0))
@@ -205,8 +205,8 @@ contains
   end subroutine Make_Table
 
   double precision function collapseRoot(epsilonPerturbation)
-    double precision, intent(in   ) :: epsilonPerturbation 
-    
+    double precision, intent(in   ) :: epsilonPerturbation
+
     ! Evaluate the root function.
     collapseRoot=tCollapse(epsilonPerturbation)-tNow
   end function collapseRoot
@@ -215,12 +215,12 @@ contains
     !% Find the maximum radius of a perturbation with initial curvature {\tt epsilonPerturbation}.
     use Root_Finder
     implicit none
-    double precision            , intent(in   ) :: epsilonPerturbation                                 
-    double precision            , parameter     :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-9 
-    type            (rootFinder), save          :: finder                                              
+    double precision            , intent(in   ) :: epsilonPerturbation
+    double precision            , parameter     :: toleranceAbsolute  =0.0d0, toleranceRelative=1.0d-9
+    type            (rootFinder), save          :: finder
     !$omp threadprivate(finder)
-    double precision                            :: aMaximumHigh             , aMaximumLow              
-    
+    double precision                            :: aMaximumHigh             , aMaximumLow
+
 
     if (OmegaDE == 0.0d0) then
        ! No cosmological constant - simple analytic solution.
@@ -233,7 +233,7 @@ contains
        if      (aMaximumRoot(aMaximumHigh) > 0.0d0) then
           ! If the root function is not negative at aMaximumHigh it is due to rounding errors in the calculation of aMaximumHigh
           ! which implies that aMaximumHigh is very close to the actual root.
-          Perturbation_Maximum_Radius=aMaximumHigh          
+          Perturbation_Maximum_Radius=aMaximumHigh
        else if (aMaximumRoot(aMaximumLow ) < 0.0d0)  then
           ! If the root function is not positive at aMaximumLow it is due to rounding errors in the calculation of aMaximumLow
           ! which implies that aMaximumLow is very close to the actual root.
@@ -252,8 +252,8 @@ contains
 
   double precision function aMaximumRoot(aMaximum)
     !% Root function for maximum expansion radius.
-    double precision, intent(in   ) :: aMaximum 
-    
+    double precision, intent(in   ) :: aMaximum
+
     ! Evaluate the root function.
     aMaximumRoot=OmegaM/aMaximum+epsilonPerturbationShared+OmegaDE*aMaximum**2
   end function aMaximumRoot
@@ -261,16 +261,16 @@ contains
   double precision function tCollapse(epsilonPerturbation)
     use Numerical_Integration
     implicit none
-    real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation                          
-    type   (fgsl_function             )               , save :: integrandFunction                            
-    type   (fgsl_integration_workspace)               , save :: integrationWorkspace                         
-    logical                                           , save :: integrationReset     =.true.                 
-    real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0                  
-    real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4                 
-    type   (c_ptr                     )                      :: parameterPointer                             
-    real   (kind=c_double             )                      :: aMaximum                    , aUpperLimit, & 
-         &                                                      tMaximum                                     
-    
+    real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation
+    type   (fgsl_function             )               , save :: integrandFunction
+    type   (fgsl_integration_workspace)               , save :: integrationWorkspace
+    logical                                           , save :: integrationReset     =.true.
+    real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0
+    real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
+    type   (c_ptr                     )                      :: parameterPointer
+    real   (kind=c_double             )                      :: aMaximum                    , aUpperLimit, &
+         &                                                      tMaximum
+
     ! Find the maximum radius of the perturbation. (This is the solution of a cubic equation.)
     aUpperLimit=Perturbation_Maximum_Radius(epsilonPerturbation)
 
@@ -294,11 +294,11 @@ contains
 
   function Perturbation_Integrand(a,parameterPointer) bind(c)
     implicit none
-    real(kind=c_double)        :: Perturbation_Integrand 
-    real(kind=c_double), value :: a                      
-    type(c_ptr        ), value :: parameterPointer       
-    real(kind=c_double)        :: sqrtArgument           
-    
+    real(kind=c_double)        :: Perturbation_Integrand
+    real(kind=c_double), value :: a
+    type(c_ptr        ), value :: parameterPointer
+    real(kind=c_double)        :: sqrtArgument
+
     ! Compute the integrand.
     sqrtArgument=OmegaM+epsilonPerturbationShared*a+OmegaDE*a**3
     if (sqrtArgument>0.0d0) then
@@ -315,9 +315,9 @@ contains
   subroutine Spherical_Collapse_Matter_Lambda_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Store
@@ -328,9 +328,9 @@ contains
   subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Lambda_State_Retrieve

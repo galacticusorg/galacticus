@@ -28,10 +28,10 @@ module Atomic_Rates_Ionization_Collisional_Verner
   public :: Atomic_Rate_Ionization_Collisional_Verner_Initialize
 
   ! Arrays to store coefficients of collisional ionization rate fitting functions.
-  double precision :: fitCoefficient(5,28,28)  
-  integer          :: i                        
-  
-  ! Initialize the fitting coefficients.                                          
+  double precision :: fitCoefficient(5,28,28)
+  integer          :: i
+
+  ! Initialize the fitting coefficients.
   data(fitCoefficient(i, 1, 1),i=1,5) /   13.6d0,0.0d0,2.91d-08,0.2320d0,0.39d0/
   data(fitCoefficient(i, 2, 2),i=1,5) /   24.6d0,0.0d0,1.75d-08,0.1800d0,0.35d0/
   data(fitCoefficient(i, 2, 1),i=1,5) /   54.4d0,1.0d0,2.05d-09,0.2650d0,0.25d0/
@@ -448,10 +448,10 @@ contains
     !% Initializes the ``Verner'' atomic collisional ionization rate module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: atomicCollisionalIonizationMethod       
-    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Ionization_Collisional_Get  
-    
-    ! Check if this atomic collisional ionization rate method has been selected.                                                                                            
+    type     (varying_string  ), intent(in   )          :: atomicCollisionalIonizationMethod
+    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Ionization_Collisional_Get
+
+    ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicCollisionalIonizationMethod == 'Verner') Atomic_Rate_Ionization_Collisional_Get => Atomic_Rate_Ionization_Collisional_Verner
 
     return
@@ -465,19 +465,19 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    integer         , intent(in   ) :: atomicNumber  , ionizationState    
-    double precision, intent(in   ) :: temperature                        
-    integer                         :: electronNumber                     
-    double precision                :: energyScaled  , temperatureScaled  
-    
-    ! Set a default rate coefficient of zero.                                                                   
+    integer         , intent(in   ) :: atomicNumber  , ionizationState
+    double precision, intent(in   ) :: temperature
+    integer                         :: electronNumber
+    double precision                :: energyScaled  , temperatureScaled
+
+    ! Set a default rate coefficient of zero.
     Atomic_Rate_Ionization_Collisional_Verner=0.0d0
 
     ! Compute number of electrons.
     electronNumber=atomicNumber-ionizationState+1
 
     ! Return immediately for unphysical conditions or out of range cases.
-    if (temperature    <= 0.0d0                               ) return    
+    if (temperature    <= 0.0d0                               ) return
     if (atomicNumber   <  1 .or. atomicNumber   > 28          ) return
     if (electronNumber <  1 .or. electronNumber > atomicNumber) return
 

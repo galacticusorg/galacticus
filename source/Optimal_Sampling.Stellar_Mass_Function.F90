@@ -32,24 +32,24 @@ program Optimal_Sampling_SMF
   use Cosmology_Functions
   use Merger_Trees_Mass_Function_Sampling
   implicit none
-  integer                                     , parameter                 :: stellarMassPointsPerDecade=100                                             
-  integer                                     , parameter                 :: haloMassPointsPerDecade   =100                                             
-  double precision                            , parameter                 :: stellarMassMaximum        =1.0d13, stellarMassMinimum          =1.0d8      
-  double precision                            , parameter                 :: haloMassMaximum           =1.0d15, haloMassMinimum             =1.0d10     
-  double precision                            , parameter                 :: toleranceAbsolute         =0.0d0 , toleranceRelative           =1.0d-3     
-  double precision                            , allocatable, dimension(:) :: haloMassTableMass                , haloMassTableXi                     , & 
-       &                                                                     stellarMassTableMass             , stellarMassTableMassFunction            
-  integer                                                                 :: haloMassTableCount               , iMass                               , & 
-       &                                                                     iUnit                            , stellarMassTableCount                   
-  double precision                                                        :: haloMass                         , samplingDensity                     , & 
-       &                                                                     stellarMass                      , time                                    
-  type            (varying_string            )                            :: parameterFile                                                              
-  type            (c_ptr                     )                            :: parameterPointer                                                           
-  type            (fgsl_function             )                            :: integrandFunction                                                          
-  type            (fgsl_integration_workspace)                            :: integrationWorkspace                                                       
-  logical                                                                 :: integrationReset          =.true.                                          
-  
-  ! Read in basic code memory usage.                                                                                                                                                   
+  integer                                     , parameter                 :: stellarMassPointsPerDecade=100
+  integer                                     , parameter                 :: haloMassPointsPerDecade   =100
+  double precision                            , parameter                 :: stellarMassMaximum        =1.0d13, stellarMassMinimum          =1.0d8
+  double precision                            , parameter                 :: haloMassMaximum           =1.0d15, haloMassMinimum             =1.0d10
+  double precision                            , parameter                 :: toleranceAbsolute         =0.0d0 , toleranceRelative           =1.0d-3
+  double precision                            , allocatable, dimension(:) :: haloMassTableMass                , haloMassTableXi                     , &
+       &                                                                     stellarMassTableMass             , stellarMassTableMassFunction
+  integer                                                                 :: haloMassTableCount               , iMass                               , &
+       &                                                                     iUnit                            , stellarMassTableCount
+  double precision                                                        :: haloMass                         , samplingDensity                     , &
+       &                                                                     stellarMass                      , time
+  type            (varying_string            )                            :: parameterFile
+  type            (c_ptr                     )                            :: parameterPointer
+  type            (fgsl_function             )                            :: integrandFunction
+  type            (fgsl_integration_workspace)                            :: integrationWorkspace
+  logical                                                                 :: integrationReset          =.true.
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('Optimal_Sampling.Stellar_Mass_Function.size')
 
   ! Open the parameter file.
@@ -59,7 +59,7 @@ program Optimal_Sampling_SMF
   ! Compute number of points to tabulate.
   stellarMassTableCount=int(log10(stellarMassMaximum/stellarMassMinimum)*dble(stellarMassPointsPerDecade)+1.0d0)
   haloMassTableCount   =int(log10(   haloMassMaximum/   haloMassMinimum)*dble(   haloMassPointsPerDecade)+1.0d0)
-  
+
   ! Allocate arrays.
   call Alloc_Array(stellarMassTableMass        ,[stellarMassTableCount])
   call Alloc_Array(stellarMassTableMassFunction,[stellarMassTableCount])
@@ -113,7 +113,7 @@ program Optimal_Sampling_SMF
       ! Write out the result.
       write (iUnit,*) iMass,haloMassTableMass(iMass),samplingDensity,Halo_Mass_Function_Differential(time,haloMass)*haloMass&
            &,Galacticus_Time_Per_Tree(haloMass)
-      
+
    end do
    close(iUnit)
 
@@ -128,12 +128,12 @@ contains
     use Halo_Mass_Function
     use Conditional_Stellar_Mass_Functions
     implicit none
-    real            (kind=c_double)            :: Stellar_Mass_Function_Integrand          
-    real            (kind=c_double), value     :: mass                                     
-    type            (c_ptr        ), value     :: parameterPointer                         
-    double precision               , parameter :: deltaLogMass                   =0.097d0  
-    double precision                           :: conditionalStellarMassFunction           
-                                                                                        
+    real            (kind=c_double)            :: Stellar_Mass_Function_Integrand
+    real            (kind=c_double), value     :: mass
+    type            (c_ptr        ), value     :: parameterPointer
+    double precision               , parameter :: deltaLogMass                   =0.097d0
+    double precision                           :: conditionalStellarMassFunction
+
     conditionalStellarMassFunction=&
          & (Cumulative_Conditional_Stellar_Mass_Function(mass,stellarMass*(10.0d0**(+0.5d0*deltaLogMass))) &
          & -Cumulative_Conditional_Stellar_Mass_Function(mass,stellarMass*(10.0d0**(-0.5d0*deltaLogMass))) &

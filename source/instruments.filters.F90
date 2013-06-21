@@ -27,26 +27,26 @@ module Instruments_Filters
 
   type filterType
      !% A structure which holds filter response curves.
-     integer                                                        :: nPoints                                     
-     double precision                   , allocatable, dimension(:) :: response                       , wavelength 
-     type            (varying_string   )                            :: name                                        
+     integer                                                        :: nPoints
+     double precision                   , allocatable, dimension(:) :: response                       , wavelength
+     type            (varying_string   )                            :: name
      ! Interpolation structures.
-     logical                                                        :: reset                   =.true.             
-     type            (fgsl_interp_accel)                            :: interpolationAccelerator                    
-     type            (fgsl_interp      )                            :: interpolationObject                         
+     logical                                                        :: reset                   =.true.
+     type            (fgsl_interp_accel)                            :: interpolationAccelerator
+     type            (fgsl_interp      )                            :: interpolationObject
   end type filterType
 
   ! Array to hold filter data.
-  type(filterType), allocatable, dimension(:) :: filterResponses 
-  
+  type(filterType), allocatable, dimension(:) :: filterResponses
+
 contains
 
   integer function Filter_Get_Index(filterName)
     !% Return the index for the specified filter, loading that filter if necessary.
     implicit none
-    type   (varying_string), intent(in   ) :: filterName 
-    integer                                :: iFilter    
-    
+    type   (varying_string), intent(in   ) :: filterName
+    integer                                :: iFilter
+
     ! See if we already have this filter loaded. If not, load it.
     !$omp critical (Filter_Get_Index_Lock)
     if (.not.allocated(filterResponses)) then
@@ -72,9 +72,9 @@ contains
   function Filter_Extent(filterIndex)
     !% Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
     implicit none
-    double precision, dimension(2)  :: Filter_Extent 
-    integer         , intent(in   ) :: filterIndex   
-    
+    double precision, dimension(2)  :: Filter_Extent
+    integer         , intent(in   ) :: filterIndex
+
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
     return
@@ -88,15 +88,15 @@ contains
     use Galacticus_Input_Paths
     use ISO_Varying_String
     implicit none
-    type            (varying_string), intent(in   )               :: filterName                             
-    type            (Node          ), pointer                     :: datum                      , doc       
-    type            (NodeList      ), pointer                     :: datumList                              
-    type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary               
-    integer                                                       :: filterIndex                , iDatum, & 
-         &                                                           ioErr                                  
-    double precision                                              :: datumValues             (2)            
-    type            (varying_string)                              :: filterFileName                         
-    
+    type            (varying_string), intent(in   )               :: filterName
+    type            (Node          ), pointer                     :: datum                      , doc
+    type            (NodeList      ), pointer                     :: datumList
+    type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
+    integer                                                       :: filterIndex                , iDatum, &
+         &                                                           ioErr
+    double precision                                              :: datumValues             (2)
+    type            (varying_string)                              :: filterFileName
+
     ! Allocate space for this filter.
     if (allocated(filterResponses)) then
        call Move_Alloc(filterResponses,filterResponsesTemporary)
@@ -152,9 +152,9 @@ contains
     !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
     use Numerical_Interpolation
     implicit none
-    integer         , intent(in   ) :: filterIndex 
-    double precision, intent(in   ) :: wavelength  
-    
+    integer         , intent(in   ) :: filterIndex
+    double precision, intent(in   ) :: wavelength
+
     ! Interpolate in the tabulated response curve.
     Filter_Response=Interpolate(filterResponses(filterIndex)%nPoints,filterResponses(filterIndex)%wavelength&
          &,filterResponses(filterIndex)%response,filterResponses(filterIndex)%interpolationObject&

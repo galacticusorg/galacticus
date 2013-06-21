@@ -32,10 +32,10 @@ contains
     !% Initialize the cored isothermal hot halo temperature profile module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: hotHaloTemperatureMethod                    
-    procedure(Hot_Halo_Temperature_Virial_Get                  ), intent(inout), pointer :: Hot_Halo_Temperature_Get                    
-    procedure(Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get), intent(inout), pointer :: Hot_Halo_Temperature_Logarithmic_Slope_Get  
-                                                                                                                                     
+    type     (varying_string                                   ), intent(in   )          :: hotHaloTemperatureMethod
+    procedure(Hot_Halo_Temperature_Virial_Get                  ), intent(inout), pointer :: Hot_Halo_Temperature_Get
+    procedure(Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get), intent(inout), pointer :: Hot_Halo_Temperature_Logarithmic_Slope_Get
+
     if (hotHaloTemperatureMethod == 'virial') then
        Hot_Halo_Temperature_Get                   => Hot_Halo_Temperature_Virial_Get
        Hot_Halo_Temperature_Logarithmic_Slope_Get => Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get
@@ -48,23 +48,23 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-                                                                 
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     Hot_Halo_Temperature_Virial_Get=Dark_Matter_Halo_Virial_Temperature(thisNode)
     return
   end function Hot_Halo_Temperature_Virial_Get
-  
+
   double precision function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get(thisNode,radius)
     !% Compute the logarithmic slope of the temperature at radius {\tt radius} in an isothermal temperature profile
     !% for {\tt thisNode}.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-                                                                 
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get=0.0d0
     return
   end function Hot_Halo_Temperature_Logarithmic_Slope_Virial_Get
-  
+
 end module Hot_Halo_Temperature_Profile_Virial

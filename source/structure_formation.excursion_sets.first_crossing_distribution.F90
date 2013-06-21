@@ -24,17 +24,17 @@ module Excursion_Sets_First_Crossings
   public :: Excursion_Sets_First_Crossing_Probability,Excursion_Sets_First_Crossing_Rate,Excursion_Sets_Collapsed_Fraction&
        &,Excursion_Sets_Non_Crossing_Rate
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                       :: firstCrossingModuleInitalized                =.false.  
-  
-  ! Name of method to use for distribution function.                                                                                                                     
-  type     (varying_string                           )          :: excursionSetFirstCrossingMethod                        
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                     
-  procedure(Excursion_Sets_First_Crossing_Probability), pointer :: Excursion_Sets_First_Crossing_Probability_Get=>null()  
-  procedure(Excursion_Sets_First_Crossing_Rate       ), pointer :: Excursion_Sets_First_Crossing_Rate_Get       =>null()  
-  procedure(Excursion_Sets_Non_Crossing_Rate         ), pointer :: Excursion_Sets_Non_Crossing_Rate_Get         =>null()  
-                                                                                                                       
+  ! Flag to indicate if this module has been initialized.
+  logical                                                       :: firstCrossingModuleInitalized                =.false.
+
+  ! Name of method to use for distribution function.
+  type     (varying_string                           )          :: excursionSetFirstCrossingMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Excursion_Sets_First_Crossing_Probability), pointer :: Excursion_Sets_First_Crossing_Probability_Get=>null()
+  procedure(Excursion_Sets_First_Crossing_Rate       ), pointer :: Excursion_Sets_First_Crossing_Rate_Get       =>null()
+  procedure(Excursion_Sets_Non_Crossing_Rate         ), pointer :: Excursion_Sets_Non_Crossing_Rate_Get         =>null()
+
 contains
 
   subroutine Excursion_Sets_First_Crossings_Initialize
@@ -46,7 +46,7 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Excursion_Sets_First_Crossing_Initialization) 
+    !$omp critical(Excursion_Sets_First_Crossing_Initialization)
     ! Initialize if necessary.
     if (.not.firstCrossingModuleInitalized) then
        ! Get the barrier first crossing probability method parameter.
@@ -75,28 +75,28 @@ contains
             & ) call Galacticus_Error_Report('Excursion_Sets_Barrier_Initialize','method '//char(excursionSetFirstCrossingMethod)//' is unrecognized')
        firstCrossingModuleInitalized=.true.
     end if
-    !$omp end critical(Excursion_Sets_First_Crossing_Initialization) 
+    !$omp end critical(Excursion_Sets_First_Crossing_Initialization)
     return
   end subroutine Excursion_Sets_First_Crossings_Initialize
 
   double precision function Excursion_Sets_First_Crossing_Probability(variance,time)
     !% Return the probability of first crossing for excursion sets at the given {\tt variance} and {\tt time}.
     implicit none
-    double precision, intent(in   ) :: time, variance  
-    
-    ! Initialize the module if necessary.                                                
+    double precision, intent(in   ) :: time, variance
+
+    ! Initialize the module if necessary.
     call Excursion_Sets_First_Crossings_Initialize
 
     Excursion_Sets_First_Crossing_Probability=Excursion_Sets_First_Crossing_Probability_Get(variance,time)
     return
   end function Excursion_Sets_First_Crossing_Probability
-  
+
   double precision function Excursion_Sets_First_Crossing_Rate(variance,varianceProgenitor,time)
     !% Return the rate of first crossing for excursion sets beginning at the given {\tt variance} and {\tt time} to transition to a first crossing at the given {\tt varianceProgenitor}.
     implicit none
-    double precision, intent(in   ) :: time, variance, varianceProgenitor  
-    
-    ! Initialize the module if necessary.                                                                    
+    double precision, intent(in   ) :: time, variance, varianceProgenitor
+
+    ! Initialize the module if necessary.
     call Excursion_Sets_First_Crossings_Initialize
 
     Excursion_Sets_First_Crossing_Rate=Excursion_Sets_First_Crossing_Rate_Get(variance,varianceProgenitor,time)
@@ -106,9 +106,9 @@ contains
   double precision function Excursion_Sets_Non_Crossing_Rate(variance,time)
     !% Return the rate of non-crossing for excursion sets beginning at the given {\tt variance} and {\tt time}.
     implicit none
-    double precision, intent(in   ) :: time, variance  
-    
-    ! Initialize the module if necessary.                                                
+    double precision, intent(in   ) :: time, variance
+
+    ! Initialize the module if necessary.
     call Excursion_Sets_First_Crossings_Initialize
 
     Excursion_Sets_Non_Crossing_Rate=Excursion_Sets_Non_Crossing_Rate_Get(variance,time)

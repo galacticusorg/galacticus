@@ -29,57 +29,57 @@ module Stellar_Population_Properties
        & Stellar_Population_Properties_History_Count, Stellar_Population_Properties_History_Create
 
   ! Flag indicating whether this module has been initialized.
-  logical                                                          :: stellarPopulationPropertiesInitialized =.false.  
-  
-  ! Flag to indicate if this module has been initialized.                                                                                                                    
-  logical                                                          :: starFormationTimescaleDisksInitialized =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                  
-  type     (varying_string                              )          :: stellarPopulationPropertiesMethod                
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                  
-  procedure(Stellar_Population_Properties_Rates_Template), pointer :: Stellar_Population_Properties_Rates_Get=>null()  
+  logical                                                          :: stellarPopulationPropertiesInitialized =.false.
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                          :: starFormationTimescaleDisksInitialized =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                              )          :: stellarPopulationPropertiesMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Stellar_Population_Properties_Rates_Template), pointer :: Stellar_Population_Properties_Rates_Get=>null()
   abstract interface
      subroutine Stellar_Population_Properties_Rates_Template(starFormationRate,fuelAbundances,component,thisNode,thisHistory &
           &,stellarMassRate,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
        import treeNode, abundances, history
-       double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , & 
-            &                                                                stellarMassRate                                      
-       type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates     
-       double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates                             
-       double precision                          , intent(in   )          :: starFormationRate                                    
-       type            (abundances)              , intent(in   )          :: fuelAbundances                                       
-       integer                                   , intent(in   )          :: component                                            
-       type            (treeNode  )              , intent(inout), pointer :: thisNode                                             
-       type            (history   )              , intent(inout)          :: thisHistory                                          
+       double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , &
+            &                                                                stellarMassRate
+       type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
+       double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates
+       double precision                          , intent(in   )          :: starFormationRate
+       type            (abundances)              , intent(in   )          :: fuelAbundances
+       integer                                   , intent(in   )          :: component
+       type            (treeNode  )              , intent(inout), pointer :: thisNode
+       type            (history   )              , intent(inout)          :: thisHistory
      end subroutine Stellar_Population_Properties_Rates_Template
   end interface
 
   ! Pointer to the function that sets scale factors for error control of stellar population properties.
-  procedure(Stellar_Population_Properties_Scales_Template), pointer :: Stellar_Population_Properties_Scales_Get=>null()  
+  procedure(Stellar_Population_Properties_Scales_Template), pointer :: Stellar_Population_Properties_Scales_Get=>null()
   abstract interface
      subroutine Stellar_Population_Properties_Scales_Template(thisHistory,stellarMass,stellarAbundances)
        import abundances, history
-       double precision            , intent(in   ) :: stellarMass        
-       type            (abundances), intent(in   ) :: stellarAbundances  
-       type            (history   ), intent(inout) :: thisHistory        
+       double precision            , intent(in   ) :: stellarMass
+       type            (abundances), intent(in   ) :: stellarAbundances
+       type            (history   ), intent(inout) :: thisHistory
      end subroutine Stellar_Population_Properties_Scales_Template
   end interface
 
   ! Pointer to the function that returns the size of any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Count_Template), pointer :: Stellar_Population_Properties_History_Count_Get=>null()  
+  procedure(Stellar_Population_Properties_History_Count_Template), pointer :: Stellar_Population_Properties_History_Count_Get=>null()
   abstract interface
      integer function Stellar_Population_Properties_History_Count_Template()
      end function Stellar_Population_Properties_History_Count_Template
   end interface
 
   ! Pointer to the subroutine that creates any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Create_Template), pointer :: Stellar_Population_Properties_History_Create_Do=>null()  
+  procedure(Stellar_Population_Properties_History_Create_Template), pointer :: Stellar_Population_Properties_History_Create_Do=>null()
   abstract interface
      subroutine Stellar_Population_Properties_History_Create_Template(thisNode,thisHistory)
        import treeNode, history
-       type(treeNode), intent(inout), pointer :: thisNode     
-       type(history ), intent(inout)          :: thisHistory  
+       type(treeNode), intent(inout), pointer :: thisNode
+       type(history ), intent(inout)          :: thisHistory
      end subroutine Stellar_Population_Properties_History_Create_Template
   end interface
 
@@ -94,13 +94,13 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Stellar_Population_Properties_Rates_Initialization) 
+    !$omp critical(Stellar_Population_Properties_Rates_Initialization)
     ! Initialize if necessary.
     if (.not.stellarPopulationPropertiesInitialized) then
        ! Get the halo spin distribution method parameter.
        !@ <inputParameter>
        !@   <name>stellarPopulationPropertiesMethod</name>
-       !@   <defaultValue>instantaneous</defaultValue>       
+       !@   <defaultValue>instantaneous</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The method to use for computing properties of stellar populations.
@@ -118,7 +118,7 @@ contains
             &,'method '//char(stellarPopulationPropertiesMethod)//' is unrecognized')
        stellarPopulationPropertiesInitialized=.true.
     end if
-    !$omp end critical(Stellar_Population_Properties_Rates_Initialization) 
+    !$omp end critical(Stellar_Population_Properties_Rates_Initialization)
 
     return
   end subroutine Stellar_Population_Properties_Rates_Initialize
@@ -127,17 +127,17 @@ contains
        &,stellarAbundancesRates ,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     implicit none
-    double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , & 
-         &                                                                stellarMassRate                                      
-    type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates     
-    double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates                             
-    double precision                          , intent(in   )          :: starFormationRate                                    
-    type            (abundances)              , intent(in   )          :: fuelAbundances                                       
-    integer                                   , intent(in   )          :: component                                            
-    type            (treeNode  )              , intent(inout), pointer :: thisNode                                             
-    type            (history   )              , intent(inout)          :: thisHistory                                          
-    
-    ! Ensure module is initialized.                                                                                                                        
+    double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , &
+         &                                                                stellarMassRate
+    type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
+    double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates
+    double precision                          , intent(in   )          :: starFormationRate
+    type            (abundances)              , intent(in   )          :: fuelAbundances
+    integer                                   , intent(in   )          :: component
+    type            (treeNode  )              , intent(inout), pointer :: thisNode
+    type            (history   )              , intent(inout)          :: thisHistory
+
+    ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize
 
     ! Simply call the subroutine which does the actual work.
@@ -149,11 +149,11 @@ contains
   subroutine Stellar_Population_Properties_Scales(thisHistory,stellarMass,stellarAbundances)
     !% Set the scaling factors for error control on the absolute value of stellar population properties.
     implicit none
-    double precision            , intent(in   ) :: stellarMass        
-    type            (abundances), intent(in   ) :: stellarAbundances  
-    type            (history   ), intent(inout) :: thisHistory        
-    
-    ! Ensure module is initialized.                                                               
+    double precision            , intent(in   ) :: stellarMass
+    type            (abundances), intent(in   ) :: stellarAbundances
+    type            (history   ), intent(inout) :: thisHistory
+
+    ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize
 
     ! Simply call the subroutine which does the actual work.
@@ -164,7 +164,7 @@ contains
   integer function Stellar_Population_Properties_History_Count()
     !% Return a count of the number of histories which must be stored for the selected stellar populations method.
     implicit none
-  
+
     ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize
 
@@ -178,10 +178,10 @@ contains
     !% Create any history required for storing stellar population properties.
     use Histories
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode     
-    type(history ), intent(inout)          :: thisHistory  
-    
-    ! Ensure module is initialized.                                                    
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(history ), intent(inout)          :: thisHistory
+
+    ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize
 
     ! Simply call the function which does the actual work.

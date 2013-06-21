@@ -83,11 +83,11 @@ contains
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     !% from the parent.
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode                                          
-    type (treeNode              )               , pointer :: parentNode                                        
-    class(nodeComponentSatellite)               , pointer :: parentSatelliteComponent, thisSatelliteComponent  
-    
-    ! Return immediately if the preset satellite implementation is not active.                                                                                                        
+    type (treeNode              ), intent(inout), pointer :: thisNode
+    type (treeNode              )               , pointer :: parentNode
+    class(nodeComponentSatellite)               , pointer :: parentSatelliteComponent, thisSatelliteComponent
+
+    ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the satellite component and check if it is of preset class.
     thisSatelliteComponent   => thisNode  %satellite(autoCreate=.true.)

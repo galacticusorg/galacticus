@@ -24,17 +24,17 @@ module Power_Spectrum_Window_Functions
   implicit none
   private
   public :: Power_Spectrum_Window_Function, Power_Spectrum_Window_Function_Wavenumber_Maximum
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                               :: moduleInitialized                                    =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                                     
-  type     (varying_string                                   )          :: powerSpectrumWindowFunctionMethod                              
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                     
-  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                   =>null()  
-  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get=>null()  
-                                                                                                                                       
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                               :: moduleInitialized                                    =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                                   )          :: powerSpectrumWindowFunctionMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                   =>null()
+  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get=>null()
+
 contains
 
   subroutine Power_Spectrum_Window_Functions_Initialize
@@ -48,7 +48,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then
-       !$omp critical(Power_Spectrum_Window_Functions_Initialization) 
+       !$omp critical(Power_Spectrum_Window_Functions_Initialization)
        if (.not.moduleInitialized) then
           ! Get the window function method parameter.
           !@ <inputParameter>
@@ -71,7 +71,7 @@ contains
                &,'method '//char(powerSpectrumWindowFunctionMethod)//' is unrecognized')
           moduleInitialized=.true.
        end if
-       !$omp end critical(Power_Spectrum_Window_Functions_Initialization) 
+       !$omp end critical(Power_Spectrum_Window_Functions_Initialization)
     end if
     return
   end subroutine Power_Spectrum_Window_Functions_Initialize
@@ -80,9 +80,9 @@ contains
     !% Returns the window function for power spectrum variance computation at the specified {\tt wavenumber} (in Mpc$^{-1}$) for a
     !% given {\tt smoothingMass} (in $M_\odot$).
     implicit none
-    double precision, intent(in   ) :: smoothingMass, wavenumber  
-    
-    ! Initialize the module.                                                           
+    double precision, intent(in   ) :: smoothingMass, wavenumber
+
+    ! Initialize the module.
     call Power_Spectrum_Window_Functions_Initialize
 
     ! Call the function that does the work.
@@ -94,14 +94,14 @@ contains
     !% Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a
     !% given {\tt smoothingMass} (in $M_\odot$).
     implicit none
-    double precision, intent(in   ) :: smoothingMass  
-    
-    ! Initialize the module.                                               
+    double precision, intent(in   ) :: smoothingMass
+
+    ! Initialize the module.
     call Power_Spectrum_Window_Functions_Initialize
 
     ! Call the function that does the work.
     Power_Spectrum_Window_Function_Wavenumber_Maximum=Power_Spectrum_Window_Function_Wavenumber_Maximum_Get(smoothingMass)
     return
   end function Power_Spectrum_Window_Function_Wavenumber_Maximum
-  
+
 end module Power_Spectrum_Window_Functions

@@ -23,6 +23,6 @@ module Merger_Tree_Active
   private
 
   ! Public pointer to the active tree.
-  double precision, public :: activeTreeWeight 
+  double precision, public :: activeTreeWeight
   !$omp threadprivate(activeTreeWeight)
 end module Merger_Tree_Active

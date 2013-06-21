@@ -29,37 +29,37 @@ module Critical_Overdensity
        & Critical_Overdensity_Mass_Scaling_Gradient
 
   ! Flag to indicate if this module and tables have been initialized.
-  logical                                                               :: deltaCriticalInitialized            =.false., massScalingInitialized   =.false., & 
-       &                                                                   tablesInitialized                   =.false.                                       
+  logical                                                               :: deltaCriticalInitialized            =.false., massScalingInitialized   =.false., &
+       &                                                                   tablesInitialized                   =.false.
   !$omp threadprivate(tablesInitialized)
   ! Variables to hold the tabulated critical overdensity data.
-  class           (table1D                               ), allocatable :: deltaCritTable                              , deltaCritTableReversed               
+  class           (table1D                               ), allocatable :: deltaCritTable                              , deltaCritTableReversed
   !$omp threadprivate(deltaCritTable,deltaCritTableReversed)
   ! Name of critical overdensity method used.
-  type            (varying_string                        )              :: criticalOverdensityMassScalingMethod        , criticalOverdensityMethod            
-  
+  type            (varying_string                        )              :: criticalOverdensityMassScalingMethod        , criticalOverdensityMethod
+
   ! Global variable used in root finding.
-  double precision                                                      :: collapseTime                                                                       
+  double precision                                                      :: collapseTime
   !$omp threadprivate(collapseTime)
   ! Pointer to the subroutine that tabulates the critical overdensity and template interface for that subroutine.
-  procedure       (Critical_Overdensity_Tabulate_Template), pointer     :: Critical_Overdensity_Tabulate       =>null()                                       
+  procedure       (Critical_Overdensity_Tabulate_Template), pointer     :: Critical_Overdensity_Tabulate       =>null()
   abstract interface
      subroutine Critical_Overdensity_Tabulate_Template(time,deltaCritTable)
        import table1D
-       double precision                      , intent(in   ) :: time           
-       class           (table1D), allocatable, intent(inout) :: deltaCritTable 
+       double precision                      , intent(in   ) :: time
+       class           (table1D), allocatable, intent(inout) :: deltaCritTable
      end subroutine Critical_Overdensity_Tabulate_Template
   end interface
 
   ! Pointer to the mass scaling function.
-  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Get         =>null() 
-  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Gradient_Get=>null() 
+  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Get         =>null()
+  procedure(Critical_Overdensity_Mass_Scaling_Template), pointer :: Critical_Overdensity_Mass_Scaling_Gradient_Get=>null()
   abstract interface
      double precision function Critical_Overdensity_Mass_Scaling_Template(mass)
-       double precision, intent(in   ) :: mass 
+       double precision, intent(in   ) :: mass
      end function Critical_Overdensity_Mass_Scaling_Template
   end interface
-  
+
 contains
 
   subroutine Critical_Overdensity_Initialize(time)
@@ -72,8 +72,8 @@ contains
     include 'structure_formation.critical_overdensity.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in   ) :: time 
-    
+    double precision, intent(in   ) :: time
+
     if (.not.deltaCriticalInitialized) then
        !$omp critical (Critical_Overdensity_Initialize)
        if (.not.deltaCriticalInitialized) then
@@ -115,11 +115,11 @@ contains
     use Root_Finder
     use Cosmology_Functions
     implicit none
-    double precision            , intent(in   ), optional :: aExpansion              , time                       
-    logical                     , intent(in   ), optional :: collapsing                                           
-    double precision            , parameter               :: massGuess        =1.0d13, toleranceAbsolute=0.0d0, & 
-         &                                                   toleranceRelative=1.0d-6                             
-    type            (rootFinder), save                    :: finder                                               
+    double precision            , intent(in   ), optional :: aExpansion              , time
+    logical                     , intent(in   ), optional :: collapsing
+    double precision            , parameter               :: massGuess        =1.0d13, toleranceAbsolute=0.0d0, &
+         &                                                   toleranceRelative=1.0d-6
+    type            (rootFinder), save                    :: finder
     !$omp threadprivate(finder)
     ! Get the critical overdensity for collapse at this epoch.
     if (present(time)) then
@@ -146,8 +146,8 @@ contains
   double precision function Collapsing_Mass_Root(mass)
     !% Function used in finding the mass of halo just collapsing at a given cosmic epoch.
     use Power_Spectra
-    double precision, intent(in   ) :: mass 
-    
+    double precision, intent(in   ) :: mass
+
     Collapsing_Mass_Root=Cosmological_Mass_Root_Variance(mass)-Critical_Overdensity_for_Collapse(time=collapseTime,mass=mass)
     return
   end function Collapsing_Mass_Root
@@ -158,11 +158,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , mass       , time 
-    logical         , intent(in   ), optional :: collapsing                          
-    logical                                   :: collapsingActual, remakeTable       
-    double precision                          :: timeActual                          
-    
+    double precision, intent(in   ), optional :: aExpansion      , mass       , time
+    logical         , intent(in   ), optional :: collapsing
+    logical                                   :: collapsingActual, remakeTable
+    double precision                          :: timeActual
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -205,11 +205,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , mass       , time 
-    logical         , intent(in   ), optional :: collapsing                          
-    logical                                   :: collapsingActual, remakeTable       
-    double precision                          :: timeActual                          
-    
+    double precision, intent(in   ), optional :: aExpansion      , mass       , time
+    logical         , intent(in   ), optional :: collapsing
+    logical                                   :: collapsingActual, remakeTable
+    double precision                          :: timeActual
+
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -251,10 +251,10 @@ contains
     use Numerical_Interpolation
     use Cosmology_Functions
     implicit none
-    double precision, intent(in   )           :: criticalOverdensity             
-    double precision, intent(in   ), optional :: mass                            
-    double precision                          :: criticalOverdensityActual, time 
-    
+    double precision, intent(in   )           :: criticalOverdensity
+    double precision, intent(in   ), optional :: mass
+    double precision                          :: criticalOverdensityActual, time
+
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) then
        criticalOverdensityActual=criticalOverdensity/Critical_Overdensity_Mass_Scaling(mass)
@@ -273,7 +273,7 @@ contains
        end if
        call Critical_Overdensity_Initialize(time)
     end do
-    
+
     ! Interpolate to get the expansion factor.
     Time_of_Collapse=deltaCritTableReversed%interpolate(criticalOverdensityActual)
     return
@@ -282,11 +282,11 @@ contains
   double precision function Critical_Overdensity_Mass_Scaling(mass)
     !% Return a multiplicative, mass-dependent factor by which the critical overdensity should be scaled.
     implicit none
-    double precision, intent(in   ) :: mass 
-    
+    double precision, intent(in   ) :: mass
+
     ! Ensure the mass scaling method is initialized.
-    call Critical_Overdensity_Mass_Scaling_Initialize    
-  
+    call Critical_Overdensity_Mass_Scaling_Initialize
+
     ! Perform the calculation.
     Critical_Overdensity_Mass_Scaling=Critical_Overdensity_Mass_Scaling_Get(mass)
     return
@@ -295,11 +295,11 @@ contains
   double precision function Critical_Overdensity_Mass_Scaling_Gradient(mass)
     !% Return the gradient with mass of a multiplicative, mass-dependent factor by which the critical overdensity should be scaled.
     implicit none
-    double precision, intent(in   ) :: mass 
-    
+    double precision, intent(in   ) :: mass
+
     ! Ensure the mass scaling method is initialized.
-    call Critical_Overdensity_Mass_Scaling_Initialize    
-    
+    call Critical_Overdensity_Mass_Scaling_Initialize
+
     ! Perform the calculation.
     Critical_Overdensity_Mass_Scaling_Gradient=Critical_Overdensity_Mass_Scaling_Gradient_Get(mass)
     return
@@ -352,11 +352,11 @@ contains
     use Memory_Management
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     tablesInitialized=.false.
     return
   end subroutine Critical_Overdensity_State_Retrieve
-  
+
 end module Critical_Overdensity

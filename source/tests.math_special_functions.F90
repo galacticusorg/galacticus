@@ -26,19 +26,19 @@ program Test_Math_Special_Functions
   use Gamma_Functions
   use Hypergeometric_Functions
   implicit none
-  double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]                                                                                                                                          
-  double precision, dimension(10) :: P                                   =[0.1353352832d0,0.4060058496d0,0.6766764160d0,0.8571234602d0,0.9473469824d0,0.9834363913d0,0.9954661943d0,0.9989032808d0,0.9997625524d0,0.9999535016d0]                                                 
-  double precision, dimension(10) :: Q                                   =[0.8646647168d0,0.5939941504d0,0.3233235840d0,0.1428765398d0,0.0526530176d0,0.0165636087d0,0.0045338057d0,0.0010967192d0,0.0002374473d0,0.0000464981d0]                                                 
-  double precision, dimension(10) :: BesselI0                                                                                                                                                                                    , BesselI1                                   , & 
-       &                             BesselK0                                                                                                                                                                                    , BesselK1                                   , & 
-       &                             cosineIntegral                                                                                                                                                                              , doubleFactorial                            , & 
-       &                             factorials                                                                                                                                                                                  , gammaFunction                              , & 
-       &                             hypergeometric1F1                                                                                                                                                                           , hypergeometric2F1                          , & 
-       &                             incompleteComplementaryGammaFunction                                                                                                                                                        , incompleteGammaFunction                    , & 
-       &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, & 
-       &                             logGammaFunction                                                                                                                                                                            , sineIntegral                                   
-  integer                         :: i                                                                                                                                                                                                                                            
-  
+  double precision, dimension(10) :: argument                            =[1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0]
+  double precision, dimension(10) :: P                                   =[0.1353352832d0,0.4060058496d0,0.6766764160d0,0.8571234602d0,0.9473469824d0,0.9834363913d0,0.9954661943d0,0.9989032808d0,0.9997625524d0,0.9999535016d0]
+  double precision, dimension(10) :: Q                                   =[0.8646647168d0,0.5939941504d0,0.3233235840d0,0.1428765398d0,0.0526530176d0,0.0165636087d0,0.0045338057d0,0.0010967192d0,0.0002374473d0,0.0000464981d0]
+  double precision, dimension(10) :: BesselI0                                                                                                                                                                                    , BesselI1                                   , &
+       &                             BesselK0                                                                                                                                                                                    , BesselK1                                   , &
+       &                             cosineIntegral                                                                                                                                                                              , doubleFactorial                            , &
+       &                             factorials                                                                                                                                                                                  , gammaFunction                              , &
+       &                             hypergeometric1F1                                                                                                                                                                           , hypergeometric2F1                          , &
+       &                             incompleteComplementaryGammaFunction                                                                                                                                                        , incompleteGammaFunction                    , &
+       &                             inverseGammaFunctionIncomplete                                                                                                                                                              , inverseGammaFunctionIncompleteComplementary, &
+       &                             logGammaFunction                                                                                                                                                                            , sineIntegral
+  integer                         :: i
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: special functions")
 
@@ -52,10 +52,10 @@ program Test_Math_Special_Functions
      cosineIntegral                             (i)=Cosine_Integral                                (                             argument(i)       )
      factorials                                 (i)=Factorial                                      (                                      i        )
      doubleFactorial                            (i)=Logarithmic_Double_Factorial                   (                                      i        )
-     gammaFunction                              (i)=Gamma_Function                                 (                             argument(i)       ) 
+     gammaFunction                              (i)=Gamma_Function                                 (                             argument(i)       )
      logGammaFunction                           (i)=Gamma_Function_Logarithmic                     (                             argument(i)       )
      incompleteGammaFunction                    (i)=Gamma_Function_Incomplete                      (                             argument(i),2.0d0 )
-     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                             argument(i),2.0d0 ) 
+     incompleteComplementaryGammaFunction       (i)=Gamma_Function_Incomplete_Complementary        (                             argument(i),2.0d0 )
      inverseGammaFunctionIncomplete             (i)=Inverse_Gamma_Function_Incomplete              (                             argument(i),P(i)  )
      inverseGammaFunctionIncompleteComplementary(i)=Inverse_Gamma_Function_Incomplete_Complementary(                             argument(i),Q(i)  )
      hypergeometric1F1                          (i)=Hypergeometric_1F1                             ([1.0d0      ],[2.0d0],       argument(i)       )

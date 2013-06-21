@@ -22,16 +22,16 @@ program Tests_Tree_Branch_Destroy
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
-  type   (mergerTree    ), pointer :: thisTree     
-  type   (treeNodeList  )          :: nodes   (5)  
-  integer(kind=kind_int8)          :: iNode        
-  
-  ! Read in basic code memory usage.                                              
+  type   (mergerTree    ), pointer :: thisTree
+  type   (treeNodeList  )          :: nodes   (5)
+  integer(kind=kind_int8)          :: iNode
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.tree_branch_destroy.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tree branch destruction: Avoid dangling pointers")
-  
+
   ! Create tree.
   allocate(thisTree)
 
@@ -47,11 +47,11 @@ program Tests_Tree_Branch_Destroy
   call nodes(3)%node%indexSet(3_kind_int8)
   call nodes(4)%node%indexSet(4_kind_int8)
   call nodes(5)%node%indexSet(5_kind_int8)
-  
+
   ! Set child nodes.
   nodes(1)%node%firstChild => nodes(2)%node
   nodes(3)%node%firstChild => nodes(4)%node
-  
+
   ! Set parent nodes.
   nodes(2)%node%parent => nodes(1)%node
   nodes(3)%node%parent => nodes(1)%node
@@ -64,7 +64,7 @@ program Tests_Tree_Branch_Destroy
 
   ! Destroy the branch rooted at node 2.
   call thisTree%destroyBranch(nodes(2)%node)
-  
+
   ! The child node of node 1 should have been shifted to point to node 3.
   call Assert('Child node of node 1 updated',nodes(1)%node%firstChild%index(),3_kind_int8)
 

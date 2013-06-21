@@ -24,9 +24,9 @@ module Star_Formation_Timescale_Spheroids_Dynamical_Time
   public :: Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
 
   ! Parameters of the timescale model.
-  double precision :: starFormationSpheroidEfficiency      , starFormationSpheroidMinimumTimescale, & 
-       &              starFormationSpheroidVelocityExponent                                           
-  
+  double precision :: starFormationSpheroidEfficiency      , starFormationSpheroidMinimumTimescale, &
+       &              starFormationSpheroidVelocityExponent
+
 contains
 
   !# <starFormationTimescaleSpheroidsMethod>
@@ -38,9 +38,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                  ), intent(in   )          :: starFormationTimescaleSpheroidsMethod 
-    procedure(Star_Formation_Timescale_Spheroid_Dynamical_Time), intent(inout), pointer :: Star_Formation_Timescale_Spheroid_Get 
-    
+    type     (varying_string                                  ), intent(in   )          :: starFormationTimescaleSpheroidsMethod
+    procedure(Star_Formation_Timescale_Spheroid_Dynamical_Time), intent(inout), pointer :: Star_Formation_Timescale_Spheroid_Get
+
     if (starFormationTimescaleSpheroidsMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_Dynamical_Time
        ! Get parameters of for the timescale calculation.
@@ -97,11 +97,11 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                                   
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                                      
-    double precision                       , parameter              :: velocityZeroPoint    =200.0d0                   !   (km/s) 
-    double precision                                                :: dynamicalTime                , spheroidVelocity            
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    double precision                       , parameter              :: velocityZeroPoint    =200.0d0                   !   (km/s)
+    double precision                                                :: dynamicalTime                , spheroidVelocity
+
     ! Get spheroid circular velocity.
     thisSpheroidComponent => thisNode%spheroid()
     spheroidVelocity=thisSpheroidComponent%velocity()
@@ -115,12 +115,12 @@ contains
     else
        ! Get the dynamical time in Gyr.
        dynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroidComponent%radius()/spheroidVelocity
-       
+
        ! Compute the star formation timescale using a simple scaling factor.
        Star_Formation_Timescale_Spheroid_Dynamical_Time=max(dynamicalTime*(spheroidVelocity/velocityZeroPoint)&
             &**starFormationSpheroidVelocityExponent/starFormationSpheroidEfficiency,starFormationSpheroidMinimumTimescale)
     end if
     return
   end function Star_Formation_Timescale_Spheroid_Dynamical_Time
-  
+
 end module Star_Formation_Timescale_Spheroids_Dynamical_Time

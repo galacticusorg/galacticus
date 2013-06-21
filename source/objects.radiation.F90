@@ -32,15 +32,15 @@ module Radiation_Structure
 
   type radiationData
      !% A structure used to store data for components of radiation objects.
-     double precision, allocatable, dimension(:) :: properties 
+     double precision, allocatable, dimension(:) :: properties
   end type radiationData
 
   type radiationStructure
      !% The radiation structure data type, used to describe radiation fields.
      private
-     double precision                                           :: timeValue     
-     integer                        , allocatable, dimension(:) :: radiationType 
-     type            (radiationData), allocatable, dimension(:) :: components    
+     double precision                                           :: timeValue
+     integer                        , allocatable, dimension(:) :: radiationType
+     type            (radiationData), allocatable, dimension(:) :: components
    contains
      !@ <objectMethods>
      !@   <object>radiationStructure</object>
@@ -90,26 +90,26 @@ module Radiation_Structure
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: isDefined                =>Radiation_Is_Defined                   
-     procedure :: define                   =>Radiation_Define                       
-     procedure :: set                      =>Radiation_Set                          
-     procedure :: temperature              =>Radiation_Temperature                  
-     procedure :: flux                     =>Radiation_Flux                         
-     procedure :: integrateOverCrossSection=>Radiation_Integrate_Over_Cross_Section 
-     procedure :: time                     =>Radiation_Time                         
+     procedure :: isDefined                =>Radiation_Is_Defined
+     procedure :: define                   =>Radiation_Define
+     procedure :: set                      =>Radiation_Set
+     procedure :: temperature              =>Radiation_Temperature
+     procedure :: flux                     =>Radiation_Flux
+     procedure :: integrateOverCrossSection=>Radiation_Integrate_Over_Cross_Section
+     procedure :: time                     =>Radiation_Time
   end type radiationStructure
 
   ! Module global variables for use in integrand routines.
-  type     (radiationStructure)          :: radiationGlobal            
-  procedure(double precision  ), pointer :: crossSectionFunctionGlobal 
+  type     (radiationStructure)          :: radiationGlobal
+  procedure(double precision  ), pointer :: crossSectionFunctionGlobal
   !$omp threadprivate(radiationGlobal,crossSectionFunctionGlobal)
 contains
 
   logical function Radiation_Is_Defined(radiation)
     !% Return true if the radiation object has been defined, false otherwise.
     implicit none
-    class(radiationStructure), intent(in   ) :: radiation 
-    
+    class(radiationStructure), intent(in   ) :: radiation
+
     Radiation_Is_Defined=allocated(radiation%radiationType)
     return
   end function Radiation_Is_Defined
@@ -118,9 +118,9 @@ contains
     !% Define which radiation fields are active in this {\tt radiation} object.
     use Memory_Management
     implicit none
-    class  (radiationStructure)              , intent(inout) :: radiation      
-    integer                    , dimension(:), intent(in   ) :: radiationTypes 
-    
+    class  (radiationStructure)              , intent(inout) :: radiation
+    integer                    , dimension(:), intent(in   ) :: radiationTypes
+
     ! Allocate the array of radiation types to the correct size.
     if (allocated(radiation%radiationType)) call Dealloc_Array(radiation%radiationType)
     if (allocated(radiation%components   )) then
@@ -143,11 +143,11 @@ contains
     !# </include>
     use Galacticus_Nodes
     implicit none
-    class  (radiationStructure), intent(inout)          :: radiation          
-    type   (treeNode          ), intent(inout), pointer :: thisNode           
-    class  (nodeComponentBasic)               , pointer :: thisBasicComponent 
-    integer                                             :: iComponent         
-    
+    class  (radiationStructure), intent(inout)          :: radiation
+    type   (treeNode          ), intent(inout), pointer :: thisNode
+    class  (nodeComponentBasic)               , pointer :: thisBasicComponent
+    integer                                             :: iComponent
+
     ! For an unallocated radiation object, return immediately.
     if (.not.allocated(radiation%radiationType)) return
 
@@ -169,8 +169,8 @@ contains
   double precision function Radiation_Time(radiation)
     !% Return the time of the {\tt radiation} object.
     implicit none
-    class(radiationStructure), intent(in   ) :: radiation 
-    
+    class(radiationStructure), intent(in   ) :: radiation
+
     Radiation_Time=radiation%timeValue
     return
   end function Radiation_Time
@@ -181,10 +181,10 @@ contains
     include 'objects.radiation.temperature.modules.inc'
     !# </include>
     implicit none
-    class  (radiationStructure)              , intent(in   )           :: radiation     
-    integer                    , dimension(:), intent(in   ), optional :: radiationType 
-    integer                                                            :: iComponent    
-    
+    class  (radiationStructure)              , intent(in   )           :: radiation
+    integer                    , dimension(:), intent(in   ), optional :: radiationType
+    integer                                                            :: iComponent
+
     ! Loop over all radiation components.
     Radiation_Temperature=0.0d0
     do iComponent=1,size(radiation%radiationType)
@@ -204,11 +204,11 @@ contains
     include 'objects.radiation.flux.modules.inc'
     !# </include>
     implicit none
-    class           (radiationStructure)              , intent(in   )           :: radiation     
-    double precision                                  , intent(in   )           :: wavelength    
-    integer                             , dimension(:), intent(in   ), optional :: radiationType 
-    integer                                                                     :: iComponent    
-    
+    class           (radiationStructure)              , intent(in   )           :: radiation
+    double precision                                  , intent(in   )           :: wavelength
+    integer                             , dimension(:), intent(in   ), optional :: radiationType
+    integer                                                                     :: iComponent
+
     ! Loop over all radiation components.
     Radiation_Flux=0.0d0
     do iComponent=1,size(radiation%radiationType)
@@ -228,20 +228,20 @@ contains
     !% {4 \pi \over {\rm h}} \int_{\lambda_1}^{\lambda_2} \sigma(\lambda) j_{\nu}(\lambda) {{\rm d}\lambda \over \lambda},
     !% \end{equation}
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
-    use, intrinsic :: ISO_C_Binding                             
+    use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     use FGSL
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    class           (radiationStructure        )              , intent(in   ) :: radiation            
-    double precision                            , dimension(2), intent(in   ) :: wavelengthRange      
-    double precision                            , external                    :: crossSectionFunction 
-    type            (c_ptr                     )                              :: parameterPointer     
-    type            (fgsl_function             )                              :: integrandFunction    
-    type            (fgsl_integration_workspace)                              :: integrationWorkspace 
-    
+    class           (radiationStructure        )              , intent(in   ) :: radiation
+    double precision                            , dimension(2), intent(in   ) :: wavelengthRange
+    double precision                            , external                    :: crossSectionFunction
+    type            (c_ptr                     )                              :: parameterPointer
+    type            (fgsl_function             )                              :: integrandFunction
+    type            (fgsl_integration_workspace)                              :: integrationWorkspace
+
     ! Copy the radiation object to a module global copy for use in the integrand routine.
     select type (radiation)
     type is (radiationStructure)
@@ -250,7 +250,7 @@ contains
 
     ! Copy the procedure pointer to a module global copy for use in the integrand routine.
     crossSectionFunctionGlobal => crossSectionFunction
-    
+
     ! Perform the integration.
     Radiation_Integrate_Over_Cross_Section=Integrate( wavelengthRange(1),wavelengthRange(2)            &
          &                                           ,Cross_Section_Integrand,parameterPointer         &
@@ -268,11 +268,11 @@ contains
 
   function Cross_Section_Integrand(wavelength,parameterPointer) bind(c)
     !% Integrand function use in integrating a radiation field over a cross section function.
-    use, intrinsic :: ISO_C_Binding                             
-    real(kind=c_double)        :: Cross_Section_Integrand 
-    real(kind=c_double), value :: wavelength              
-    type(c_ptr        ), value :: parameterPointer        
-    
+    use, intrinsic :: ISO_C_Binding
+    real(kind=c_double)        :: Cross_Section_Integrand
+    real(kind=c_double), value :: wavelength
+    type(c_ptr        ), value :: parameterPointer
+
     if (wavelength > 0.0d0) then
        Cross_Section_Integrand=crossSectionFunctionGlobal(wavelength)*Radiation_Flux(radiationGlobal,wavelength)/wavelength
     else

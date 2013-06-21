@@ -27,18 +27,18 @@ module Atomic_Cross_Sections_Ionization_Photo_Verner
   !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
   !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
   !% Inner-shell ionization energies of some low-ionized species are slightly
-  !% improved to fit smoothly the experimental inner-shell ionization energies 
+  !% improved to fit smoothly the experimental inner-shell ionization energies
   !% of neutral atoms.
   implicit none
   private
   public :: Atomic_Cross_Section_Ionization_Photo_Verner_Initialize
 
   ! Arrays to store coefficients of photo ionization rate fitting functions.
-  integer          :: fitCoefficientL  (7        ), i                          , & 
-       &              innerShellNumbers(30       ), outerShellNumbers(30     )     
-  double precision :: fitCoefficients1 (6,30,30,7), fitCoefficients2 (7,30,30)     
-  
-  ! Initialize the fitting coefficients.                                                                              
+  integer          :: fitCoefficientL  (7        ), i                          , &
+       &              innerShellNumbers(30       ), outerShellNumbers(30     )
+  double precision :: fitCoefficients1 (6,30,30,7), fitCoefficients2 (7,30,30)
+
+  ! Initialize the fitting coefficients.
   data(fitCoefficientL  (i),i=1, 7) /0,0,1,0,1,2,0/
   data(innerShellNumbers(i),i=1,30) /0,0,1,1,1,1,1,1,1,1,3,3,3,3,3,3,3,3,5,5,5,5,5,5,5,5,5,5,5,5/
   data(outerShellNumbers(i),i=1,30) /1,1,2,2,3,3,3,3,3,3,4,4,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,7,7/
@@ -1937,10 +1937,10 @@ contains
     !% Initializes the ``Verner'' atomic photo-ionization cross section module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: atomicPhotoIonizationMethod                
-    procedure(double precision), intent(inout), pointer :: Atomic_Cross_Section_Ionization_Photo_Get  
-    
-    ! Check if this atomic photo ionization rate method has been selected.                                                                                               
+    type     (varying_string  ), intent(in   )          :: atomicPhotoIonizationMethod
+    procedure(double precision), intent(inout), pointer :: Atomic_Cross_Section_Ionization_Photo_Get
+
+    ! Check if this atomic photo ionization rate method has been selected.
     if (atomicPhotoIonizationMethod == 'Verner') Atomic_Cross_Section_Ionization_Photo_Get =>&
          & Atomic_Cross_Section_Ionization_Photo_Verner
 
@@ -1958,19 +1958,19 @@ contains
     !% Original version (\href{ftp://gradj.pa.uky.edu//dima//photo//phfit2.f}{\tt phfit2.f}) written by
     !% \href{mailto:verner@pa.uky.edu}{D. A. Verner} (Version 2. March 25, 1996).
     !% Inner-shell ionization energies of some low-ionized species are slightly
-    !% improved to fit smoothly the experimental inner-shell ionization energies 
+    !% improved to fit smoothly the experimental inner-shell ionization energies
     !% of neutral atoms.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Numerical_Constants_Prefixes
     implicit none
-    integer         , intent(in   ) :: atomicNumber  , ionizationState , shellNumber                            
-    double precision, intent(in   ) :: wavelength                                                               
-    integer                         :: electronNumber, innerShellNumber, outerShellNumber                       
-    double precision                :: coefficient   , energy          , energyFactor    , energyModified   , & 
-         &                             energyScaled  , exponent1       , exponent2       , innerShellEnergy     
-    
-    ! Set a default cross section of zero.                                                                                                         
+    integer         , intent(in   ) :: atomicNumber  , ionizationState , shellNumber
+    double precision, intent(in   ) :: wavelength
+    integer                         :: electronNumber, innerShellNumber, outerShellNumber
+    double precision                :: coefficient   , energy          , energyFactor    , energyModified   , &
+         &                             energyScaled  , exponent1       , exponent2       , innerShellEnergy
+
+    ! Set a default cross section of zero.
     Atomic_Cross_Section_Ionization_Photo_Verner=0.0d0
 
     ! Compute number of electrons.

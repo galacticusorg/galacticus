@@ -28,24 +28,24 @@ module Chemical_Structures
 
   type atomicStructure
      !% A type that defines an atom within a chemical.
-     character       (len=10) :: name        
-     character       (len=2 ) :: shortLabel  
-     double precision         :: mass        
+     character       (len=10) :: name
+     character       (len=2 ) :: shortLabel
+     double precision         :: mass
   end type atomicStructure
 
   type atomicBond
      !% A type that defines an atomic bond within a chemical.
-     integer :: atom(2)  
+     integer :: atom(2)
   end type atomicBond
 
   type chemicalStructure
      !% A type that defines a chemical.
-     integer                                                      :: index        
-     type            (varying_string )                            :: name         
-     integer                                                      :: chargeValue  
-     double precision                                             :: massValue    
-     type            (atomicStructure), allocatable, dimension(:) :: atom         
-     type            (atomicBond     ), allocatable, dimension(:) :: bond         
+     integer                                                      :: index
+     type            (varying_string )                            :: name
+     integer                                                      :: chargeValue
+     double precision                                             :: massValue
+     type            (atomicStructure), allocatable, dimension(:) :: atom
+     type            (atomicBond     ), allocatable, dimension(:) :: bond
    contains
      ! Data methods.
      !@ <objectMethods>
@@ -75,10 +75,10 @@ module Chemical_Structures
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: retrieve=>Chemical_Database_Get      
-     procedure :: export  =>Chemical_Structure_Export  
-     procedure :: charge  =>Chemical_Structure_Charge  
-     procedure :: mass    =>Chemical_Structure_Mass    
+     procedure :: retrieve=>Chemical_Database_Get
+     procedure :: export  =>Chemical_Structure_Export
+     procedure :: charge  =>Chemical_Structure_Charge
+     procedure :: mass    =>Chemical_Structure_Mass
   end type chemicalStructure
 
   ! Atoms (we include an electron here for convenience).
@@ -88,11 +88,11 @@ module Chemical_Structures
        &                                                         ]
 
   ! Chemicals.
-  type   (chemicalStructure), allocatable, dimension(:) :: chemicals                            
-  
-  ! Flag indicating if the database has been initialized.                                                                                           
-  logical                                               :: chemicalDatabaseInitialized=.false.  
-                                                                                             
+  type   (chemicalStructure), allocatable, dimension(:) :: chemicals
+
+  ! Flag indicating if the database has been initialized.
+  logical                                               :: chemicalDatabaseInitialized=.false.
+
 contains
 
   subroutine Chemical_Structure_Initialize
@@ -102,12 +102,12 @@ contains
     use Galacticus_Error
     use Galacticus_Input_Paths
     implicit none
-    type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement  
-    type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList                   
-    integer                      :: iAtom   , iBond   , iChemical   , ioErr       , jAtom        
-    character(len=128 )          :: name                                                         
-    
-    ! Check if the chemical database is initialized.                                                                                          
+    type     (Node    ), pointer :: doc     , thisAtom, thisBond    , thisChemical, thisElement
+    type     (NodeList), pointer :: atomList, bondList, chemicalList, thisList
+    integer                      :: iAtom   , iBond   , iChemical   , ioErr       , jAtom
+    character(len=128 )          :: name
+
+    ! Check if the chemical database is initialized.
     if (.not.chemicalDatabaseInitialized) then
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(Galacticus_Input_Path())//'data/abundances/Chemical_Database.cml',iostat=ioErr)
@@ -181,13 +181,13 @@ contains
     use FoX_dom
     use String_Handling
     implicit none
-    class    (chemicalStructure), intent(in   ) :: thisChemical                
-    character(len=*            ), intent(in   ) :: outputFile                  
-    type     (xmlf_t           )                :: exportedChemicalDoc         
-    character(len=10           )                :: label                       
-    integer                                     :: iAtom              , iBond  
-    
-    ! Create the output file.                                                                        
+    class    (chemicalStructure), intent(in   ) :: thisChemical
+    character(len=*            ), intent(in   ) :: outputFile
+    type     (xmlf_t           )                :: exportedChemicalDoc
+    character(len=10           )                :: label
+    integer                                     :: iAtom              , iBond
+
+    ! Create the output file.
     call xml_OpenFile(outputFile,exportedChemicalDoc)
     ! Begin the chemical.
     call xml_NewElement   (exportedChemicalDoc,"chemical")
@@ -253,10 +253,10 @@ contains
     !% Find a chemical in the database and return it.
     use Galacticus_Error
     implicit none
-    character(len=*), intent(in   ) :: chemicalName  
-    integer                         :: iChemical     
-    
-    ! Initialize the database.                                              
+    character(len=*), intent(in   ) :: chemicalName
+    integer                         :: iChemical
+
+    ! Initialize the database.
     call Chemical_Structure_Initialize
 
     ! Scan through chemicals searching for that requested.
@@ -274,9 +274,9 @@ contains
     !% Find a chemical in the database and return it.
     use Galacticus_Error
     implicit none
-    class    (chemicalStructure), intent(inout) :: thisChemical  
-    character(len=*            ), intent(in   ) :: chemicalName  
-                                                              
+    class    (chemicalStructure), intent(inout) :: thisChemical
+    character(len=*            ), intent(in   ) :: chemicalName
+
     select type (thisChemical)
     type is (chemicalStructure)
        thisChemical=chemicals(Chemical_Database_Get_Index(chemicalName))
@@ -288,8 +288,8 @@ contains
     !% Return the charge on a chemical.
     use Galacticus_Error
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical  
-                                                          
+    class(chemicalStructure), intent(in   ) :: thisChemical
+
     Chemical_Structure_Charge=thisChemical%chargeValue
     return
   end function Chemical_Structure_Charge
@@ -298,8 +298,8 @@ contains
     !% Return the mass of a chemical.
     use Galacticus_Error
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical  
-                                                          
+    class(chemicalStructure), intent(in   ) :: thisChemical
+
     Chemical_Structure_Mass=thisChemical%massValue
     return
   end function Chemical_Structure_Mass

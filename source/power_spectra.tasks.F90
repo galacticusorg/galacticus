@@ -23,27 +23,27 @@ module Power_Spectrum_Tasks
   implicit none
   private
   public :: Power_Spectrum_Compute, Power_Spectrum_Open_File, Power_Spectrum_Close_File, Power_Spectrum_Output
-  
+
   ! HDF5 object for the output file.
-  type            (hdf5Object), public                    :: powerSpectrumOutputFile                                  
-  
+  type            (hdf5Object), public                    :: powerSpectrumOutputFile
+
   ! Arrays of power spectrum data.
-  double precision            , allocatable, dimension(:) :: powerSpectrum_mass      , powerSpectrum_power        , & 
-       &                                                     powerSpectrum_sigma     , powerSpectrum_sigmaGradient, & 
-       &                                                     powerSpectrum_wavenumber                                 
-  
+  double precision            , allocatable, dimension(:) :: powerSpectrum_mass      , powerSpectrum_power        , &
+       &                                                     powerSpectrum_sigma     , powerSpectrum_sigmaGradient, &
+       &                                                     powerSpectrum_wavenumber
+
 contains
-  
+
   subroutine Power_Spectrum_Open_File(outputFileName)
     !% Open the output file for power spectrum data.
     use ISO_Varying_String
     use HDF5
     implicit none
-    type(varying_string), intent(in   ) :: outputFileName 
-    
+    type(varying_string), intent(in   ) :: outputFileName
+
     ! Open the output file.
     call powerSpectrumOutputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
-    
+
     ! Set default chunking and compression levels.
     call IO_HDF5_Set_Defaults(chunkSize=int(128,kind=hsize_t),compressionLevel=9)
 
@@ -53,7 +53,7 @@ contains
   subroutine Power_Spectrum_Close_File
     !% Close the output file for power spectrum data.
     implicit none
-    
+
     call powerSpectrumOutputFile%close()
     return
   end subroutine Power_Spectrum_Close_File
@@ -67,10 +67,10 @@ contains
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none
-    integer          :: iWavenumber                  , powerSpectraCount            , & 
-         &              powerSpectraPointsPerDecade                                     
-    double precision :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum    
-    
+    integer          :: iWavenumber                  , powerSpectraCount            , &
+         &              powerSpectraPointsPerDecade
+    double precision :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum
+
     ! Find the wavenumber range and increment size.
     !@ <inputParameter>
     !@   <name>powerSpectraWavenumberMinimum</name>
@@ -115,10 +115,10 @@ contains
     call Alloc_Array(powerSpectrum_Mass         ,[powerSpectraCount])
     call Alloc_Array(powerSpectrum_sigma        ,[powerSpectraCount])
     call Alloc_Array(powerSpectrum_sigmaGradient,[powerSpectraCount])
-       
+
     ! Build a range of wavenumbers.
     powerSpectrum_Wavenumber(:)=Make_Range(powerSpectraWavenumberMinimum,powerSpectraWavenumberMaximum,powerSpectraCount,rangeTypeLogarithmic)
-       
+
     ! Loop over all halo wavenumberes.
     do iWavenumber=1,powerSpectraCount
        ! Compute power spectrum.
@@ -138,8 +138,8 @@ contains
     !% Outputs power spectrum data.
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: powerSpectrumGroup, thisDataset 
-    
+    type(hdf5Object) :: powerSpectrumGroup, thisDataset
+
     ! Write power spectrum datasets.
     powerSpectrumGroup=powerSpectrumOutputFile%openGroup('powerSpectrum','Group containing datasets relating to&
          & the power spectrum.')
@@ -156,7 +156,7 @@ contains
     call thisDataset%close()
     call powerSpectrumGroup%writeDataset(powerSpectrum_sigma        ,'sigma','The mass fluctuation on this scale.')
     call powerSpectrumGroup%writeDataset(powerSpectrum_sigmaGradient,'alpha','Logarithmic deriative of the mass flucation with respect to mass.')
- 
+
     ! Close the datasets group.
     call powerSpectrumGroup%close()
 

@@ -23,20 +23,20 @@ module Numerical_Constants_Units
   use Numerical_Constants_Prefixes
   implicit none
   public
-  
+
   ! Ergs in Joules.
-  double precision, parameter :: ergs              =1.0d-7                         
-  
-  ! Angstroms in microns.                                                                              
-  double precision, parameter :: angstromsPerMicron=1.0d4                          
-  
-  ! Angstroms in meters.                                                                              
-  double precision, parameter :: angstromsPerMeter =1.0d10                         
-  
-  ! Electron volt (in units of Joules).                                                                              
-  double precision, parameter :: electronVolt      =FGSL_CONST_MKSA_ELECTRON_VOLT  
-  
-  ! Barn (cross section unit, in units of m^2).                                                                              
-  double precision, parameter :: barn              =1.0d-28                        
-                                                                                
+  double precision, parameter :: ergs              =1.0d-7
+
+  ! Angstroms in microns.
+  double precision, parameter :: angstromsPerMicron=1.0d4
+
+  ! Angstroms in meters.
+  double precision, parameter :: angstromsPerMeter =1.0d10
+
+  ! Electron volt (in units of Joules).
+  double precision, parameter :: electronVolt      =FGSL_CONST_MKSA_ELECTRON_VOLT
+
+  ! Barn (cross section unit, in units of m^2).
+  double precision, parameter :: barn              =1.0d-28
+
 end module Numerical_Constants_Units

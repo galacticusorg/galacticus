@@ -24,17 +24,17 @@ module Primordial_Power_Spectrum_Power_Law
   private
   public :: Primordial_Power_Spectrum_Power_Law_Initialize, Primordial_Power_Spectrum_Power_Law_State_Store,&
        & Primordial_Power_Spectrum_Power_Law_State_Retrieve
-  
+
   ! Parameters of the power-law.
-  double precision            :: powerSpectrumIndex              , powerSpectrumReferenceWavenumber             , & 
-       &                         powerSpectrumRunning                                                               
-  
-  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.                                                                                                               
-  integer         , parameter :: nPointsPerDecade    =1000                                                          
-  double precision            :: logWavenumberMaximum=log(10.0d0), logWavenumberMinimum            =log(1.0d-5)     
-                                                                                                                 
+  double precision            :: powerSpectrumIndex              , powerSpectrumReferenceWavenumber             , &
+       &                         powerSpectrumRunning
+
+  ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
+  integer         , parameter :: nPointsPerDecade    =1000
+  double precision            :: logWavenumberMaximum=log(10.0d0), logWavenumberMinimum            =log(1.0d-5)
+
 contains
-  
+
   !# <powerSpectrumMethod>
   !#  <unitName>Primordial_Power_Spectrum_Power_Law_Initialize</unitName>
   !# </powerSpectrumMethod>
@@ -43,9 +43,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                   ), intent(in   )          :: powerSpectrumMethod      
-    procedure(Power_Spectrum_Power_Law_Tabulate), intent(inout), pointer :: Power_Spectrum_Tabulate  
-                                                                                                  
+    type     (varying_string                   ), intent(in   )          :: powerSpectrumMethod
+    procedure(Power_Spectrum_Power_Law_Tabulate), intent(inout), pointer :: Power_Spectrum_Tabulate
+
     if (powerSpectrumMethod == 'powerLaw') then
        Power_Spectrum_Tabulate => Power_Spectrum_Power_Law_Tabulate
        !@ <inputParameter>
@@ -92,16 +92,16 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision                           , intent(in   ) :: logWavenumber                                          
-    double precision, allocatable, dimension(:), intent(inout) :: powerSpectrumLogP        , powerSpectrumLogWavenumber  
-    integer                                    , intent(  out) :: powerSpectrumNumberPoints                              
-    integer                                                    :: iWavenumber                                            
-    double precision                                           :: wavenumber                                             
-    
-    ! Determine range of wavenumbers required.                                                                                                                  
+    double precision                           , intent(in   ) :: logWavenumber
+    double precision, allocatable, dimension(:), intent(inout) :: powerSpectrumLogP        , powerSpectrumLogWavenumber
+    integer                                    , intent(  out) :: powerSpectrumNumberPoints
+    integer                                                    :: iWavenumber
+    double precision                                           :: wavenumber
+
+    ! Determine range of wavenumbers required.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
     logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
-    
+
     ! Determine number of points to tabulate.
     powerSpectrumNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(nPointsPerDecade)/ln10)
 
@@ -119,7 +119,7 @@ contains
        powerSpectrumLogP(iWavenumber)=(powerSpectrumIndex+0.5d0*powerSpectrumRunning*log(wavenumber&
             &/powerSpectrumReferenceWavenumber))*powerSpectrumLogWavenumber(iWavenumber)
     end do
-    
+
     return
   end subroutine Power_Spectrum_Power_Law_Tabulate
 
@@ -130,13 +130,13 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-                                                     
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Primordial_Power_Spectrum_Power_Law_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Primordial_Power_Spectrum_Power_Law_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -144,12 +144,12 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-    
-    ! Read the minimum and maximum tabulated times.                                                 
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
     read (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Primordial_Power_Spectrum_Power_Law_State_Retrieve
-    
+
 end module Primordial_Power_Spectrum_Power_Law

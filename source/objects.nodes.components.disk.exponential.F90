@@ -139,29 +139,29 @@ module Node_Component_Disk_Exponential
   !# </component>
 
   ! Internal count of abundances.
-  integer                                     :: abundancesCount                                                           
-  
+  integer                                     :: abundancesCount
+
   ! Internal count of luminosities and work arrays.
-  integer                                     :: luminositiesCount                                                         
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                      , luminositiesStellarRates   , & 
-       &                                         luminositiesTransferRate                 , zeroLuminosities               
+  integer                                     :: luminositiesCount
+  double precision, allocatable, dimension(:) :: luminositiesMinimum                      , luminositiesStellarRates   , &
+       &                                         luminositiesTransferRate                 , zeroLuminosities
   !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates,luminositiesTransferRate)
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                , diskOutflowTimescaleMinimum, & 
-       &                                         diskStructureSolverRadius                                                 
-  logical                                     :: diskRadiusSolverCole2000Method                                            
-  
+  double precision                            :: diskMassToleranceAbsolute                , diskOutflowTimescaleMinimum, &
+       &                                         diskStructureSolverRadius
+  logical                                     :: diskRadiusSolverCole2000Method
+
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
-  integer                                     :: radiusSolverIteration                                                     
-  double precision                            :: radiusHistory                 (2)                                         
+  integer                                     :: radiusSolverIteration
+  double precision                            :: radiusHistory                 (2)
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk.
-  double precision, parameter                 :: angularMomentumMaximum           =1.0d1                                   
-  double precision, parameter                 :: angularMomentumMinimum           =1.0d-6                                  
-  
+  double precision, parameter                 :: angularMomentumMaximum           =1.0d1
+  double precision, parameter                 :: angularMomentumMinimum           =1.0d-6
+
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                =.false.                                 
-  logical                                     :: threadAllocationDone             =.false.                                 
+  logical                                     :: moduleInitialized                =.false.
+  logical                                     :: threadAllocationDone             =.false.
   !$omp threadprivate(threadAllocationDone)
 contains
 
@@ -176,8 +176,8 @@ contains
     use Memory_Management
     use Node_Component_Disk_Exponential_Data
     implicit none
-    type(nodeComponentDiskExponential) :: diskExponentialComponent 
-    
+    type(nodeComponentDiskExponential) :: diskExponentialComponent
+
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Exponential_Initialize)
     if (defaultDiskComponent%exponentialIsActive().and..not.moduleInitialized) then
@@ -233,7 +233,7 @@ contains
        !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    
+       !@
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
@@ -290,8 +290,8 @@ contains
     use Tables, only : table1d
     use Node_Component_Disk_Exponential_Data
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     call Node_Component_Disk_Exponential_Reset(thisNode%uniqueID())
     return
   end subroutine Node_Component_Disk_Exponential_Calculation_Reset
@@ -302,9 +302,9 @@ contains
   subroutine Node_Component_Disk_Exponential_Pre_Evolve(thisNode)
     !% Ensure the disk has been initialized.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode          
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent 
-    
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if an exponential disk component exists.
@@ -327,16 +327,16 @@ contains
     use Abundances_Structure
     use Histories
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                           
-    class           (nodeComponentDisk )               , pointer :: thisDiskComponent                                  
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                 
-    double precision                    , save                   :: fractionalErrorMaximum  =0.0d0                     
-    double precision                                             :: diskMass                      , fractionalError, & 
-         &                                                          specificAngularMomentum                            
-    character       (len=20            )                         :: valueString                                        
-    type            (varying_string    )                         :: message                                            
-    type            (history           )                         :: stellarPropertiesHistory                           
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk )               , pointer :: thisDiskComponent
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
+    double precision                                             :: diskMass                      , fractionalError, &
+         &                                                          specificAngularMomentum
+    character       (len=20            )                         :: valueString
+    type            (varying_string    )                         :: message
+    type            (history           )                         :: stellarPropertiesHistory
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if an exponential disk component exists.
@@ -358,7 +358,7 @@ contains
                &           )
           !$omp critical (Exponential_Disk_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
-             ! Report a warning.          
+             ! Report a warning.
              message='Warning: disk has negative gas mass (fractional error exceeds any previously reported):'//char(10)
              message=message//'  Node index        = '//thisNode%index() //char(10)
              write (valueString,'(e12.6)') thisDiskComponent%massGas    ()
@@ -409,11 +409,11 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: thisNode                                                   
-    class  (nodeComponentDisk)               , pointer :: thisDiskComponent                                          
-    type   (history          )                         :: starFormationHistory      , stellarPropertiesHistory       
-    logical                                            :: createStarFormationHistory, createStellarPropertiesHistory 
-    
+    type   (treeNode         ), intent(inout), pointer :: thisNode
+    class  (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type   (history          )                         :: starFormationHistory      , stellarPropertiesHistory
+    logical                                            :: createStarFormationHistory, createStellarPropertiesHistory
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Exit if already initialized.
@@ -454,32 +454,32 @@ contains
     use Star_Formation_Feedback_Expulsion_Disks
     use Galactic_Structure_Options
     use Galactic_Dynamics_Bar_Instabilities
-    use Galacticus_Output_Star_Formation_Histories 
+    use Galacticus_Output_Star_Formation_Histories
     use Stellar_Population_Properties
     use Numerical_Constants_Astronomical
      use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
     implicit none
-    type            (treeNode                                         ), intent(inout), pointer :: thisNode                                                
-    class           (nodeComponentDisk                                )               , pointer :: thisDisk                                                
-    class           (nodeComponentSpheroid                            )               , pointer :: thisSpheroid                                            
-    class           (nodeComponentHotHalo                             )               , pointer :: thisHotHalo                                             
-    logical                                                            , intent(inout)          :: interrupt                                               
-    procedure       (Interrupt_Procedure_Template                     ), intent(inout), pointer :: interruptProcedureReturn                                
-    procedure       (Interrupt_Procedure_Template                     )               , pointer :: interruptProcedure                                      
-    type            (abundances                                       ), save                   :: fuelAbundances          , fuelAbundancesRates       , & 
-         &                                                                                         stellarAbundancesRates                                  
+    type            (treeNode                                         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk                                )               , pointer :: thisDisk
+    class           (nodeComponentSpheroid                            )               , pointer :: thisSpheroid
+    class           (nodeComponentHotHalo                             )               , pointer :: thisHotHalo
+    logical                                                            , intent(inout)          :: interrupt
+    procedure       (Interrupt_Procedure_Template                     ), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (Interrupt_Procedure_Template                     )               , pointer :: interruptProcedure
+    type            (abundances                                       ), save                   :: fuelAbundances          , fuelAbundancesRates       , &
+         &                                                                                         stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate, & 
-         &                                                                                         barInstabilityTimescale , diskDynamicalTime         , & 
-         &                                                                                         diskMass                , energyInputRate           , & 
-         &                                                                                         fuelMass                , fuelMassRate              , & 
-         &                                                                                         gasMass                 , massLossRate              , & 
-         &                                                                                         massOutflowRate         , massOutflowRateFromHalo   , & 
-         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction  , & 
-         &                                                                                         starFormationRate       , stellarMassRate           , & 
-         &                                                                                         transferRate                                            
-    type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate            
-    
+    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate, &
+         &                                                                                         barInstabilityTimescale , diskDynamicalTime         , &
+         &                                                                                         diskMass                , energyInputRate           , &
+         &                                                                                         fuelMass                , fuelMassRate              , &
+         &                                                                                         gasMass                 , massLossRate              , &
+         &                                                                                         massOutflowRate         , massOutflowRateFromHalo   , &
+         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction  , &
+         &                                                                                         starFormationRate       , stellarMassRate           , &
+         &                                                                                         transferRate
+    type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate
+
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
 
@@ -543,7 +543,7 @@ contains
           diskMass=gasMass+thisDisk%massStellar()
 
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisDisk%radius()/thisDisk%velocity()   
+          diskDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisDisk%radius()/thisDisk%velocity()
           massOutflowRate=min(massOutflowRate,gasMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
 
           ! Compute the angular momentum outflow rate.
@@ -656,14 +656,14 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Abundances_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                    
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                           
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                       
-    double precision                       , parameter              :: massMinimum                   =1.0d0        
-    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-2       
-    double precision                                                :: angularMomentum                      , mass 
-    type            (history              )                         :: stellarPopulationHistoryScales              
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    double precision                       , parameter              :: massMinimum                   =1.0d0
+    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-2
+    double precision                                                :: angularMomentum                      , mass
+    type            (history              )                         :: stellarPopulationHistoryScales
+
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if an exponential disk component exists.
@@ -705,7 +705,7 @@ contains
        end if
 
        ! Set scales for stellar luminosities if necessary.
-       if (luminositiesCount > 0) then        
+       if (luminositiesCount > 0) then
           ! Set scale for stellar luminosities.
           call thisDiskComponent%luminositiesStellarScale(                                                  &
                &                                          max(                                              &
@@ -742,13 +742,13 @@ contains
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                       
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent      , thisDiskComponent     
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent  , thisSpheroidComponent 
-    type            (treeNode             )               , pointer :: hostNode                                       
-    type            (history              )                         :: hostHistory            , thisHistory           
-    double precision                                                :: specificAngularMomentum                        
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent      , thisDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent  , thisSpheroidComponent
+    type            (treeNode             )               , pointer :: hostNode
+    type            (history              )                         :: hostHistory            , thisHistory
+    double precision                                                :: specificAngularMomentum
+
     ! Check that the disk is of the exponential class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
@@ -757,8 +757,8 @@ contains
 
        ! Find the node to merge with.
        hostNode              => thisNode%mergesWith(                 )
-       hostDiskComponent     => hostNode%disk      (autoCreate=.true.)      
-       hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)      
+       hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
+       hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
 
        ! Get specific angular momentum of the disk material.
        if (                                                            thisDiskComponent%massGas()+thisDiskComponent%massStellar() > 0.0d0) then
@@ -782,7 +782,7 @@ contains
                &                                             hostDiskComponent    %angularMomentum    ()                         &
                &                                            +thisDiskComponent    %massGas            ()*specificAngularMomentum &
                &                                           )
-       case (movesToSpheroid)    
+       case (movesToSpheroid)
           call hostSpheroidComponent%massGasSet            (                                                                     &
                &                                             hostSpheroidComponent%massGas            ()                         &
                &                                            +thisDiskComponent    %massGas            ()                         &
@@ -879,11 +879,11 @@ contains
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                    
-    logical                            , intent(inout)          :: galaxyIsPhysicallyPlausible 
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent           
-    double precision                                            :: angularMomentumScale        
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    logical                            , intent(inout)          :: galaxyIsPhysicallyPlausible
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    double precision                                            :: angularMomentumScale
+
     ! Return immediately if our method is not selected.
     if (.not.defaultDiskComponent%exponentialIsActive()) return
 
@@ -928,9 +928,9 @@ contains
   double precision function Node_Component_Disk_Exponential_Radius_Solve(thisNode)
     !% Return the radius of the exponential disk used in structure solvers.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode          
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent 
-    
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+
     thisDiskComponent => thisNode%disk()
     Node_Component_Disk_Exponential_Radius_Solve=thisDiskComponent%radius()*diskStructureSolverRadius
     return
@@ -939,12 +939,12 @@ contains
   subroutine Node_Component_Disk_Exponential_Radius_Solve_Set(thisNode,radius)
     !% Set the radius of the exponential disk used in structure solvers.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                         
-    double precision                   , intent(in   )          :: radius                           
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                
-    integer                            , parameter              :: iterationsForBisectionMinimum=10 
-    double precision                                            :: newRadius                        
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: radius
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    integer                            , parameter              :: iterationsForBisectionMinimum=10
+    double precision                                            :: newRadius
+
     ! If using the Cole et al. (2000) method, check whether the solution is oscillating. This can happen as the effective
     ! angular momentum of the disk becomes radius dependent under this algorithm.
     newRadius=radius
@@ -982,9 +982,9 @@ contains
   double precision function Node_Component_Disk_Exponential_Velocity(thisNode)
     !% Return the circular velocity of the exponential disk.
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode          
-    class(nodeComponentDisk)               , pointer :: thisDiskComponent 
-    
+    type (treeNode         ), intent(inout), pointer :: thisNode
+    class(nodeComponentDisk)               , pointer :: thisDiskComponent
+
     thisDiskComponent => thisNode%disk()
     Node_Component_Disk_Exponential_Velocity=thisDiskComponent%velocity()
     return
@@ -993,10 +993,10 @@ contains
   subroutine Node_Component_Disk_Exponential_Velocity_Set(thisNode,velocity)
     !% Set the circular velocity of the exponential disk.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode          
-    double precision                   , intent(in   )          :: velocity          
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent 
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: velocity
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+
     thisDiskComponent => thisNode%disk()
     call thisDiskComponent%velocitySet(velocity)
     return
@@ -1011,15 +1011,15 @@ contains
     use Node_Component_Disk_Exponential_Data
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                                                         ), intent(inout), pointer :: thisNode                                     
-    logical                                                                            , intent(  out)          :: componentActive                              
-    double precision                                                                   , intent(  out)          :: specificAngularMomentum                      
-    procedure       (Node_Component_Disk_Exponential_Radius_Solve                     ), intent(  out), pointer :: Radius_Get                 , Velocity_Get    
-    procedure       (Node_Component_Disk_Exponential_Radius_Solve_Set                 ), intent(  out), pointer :: Radius_Set                 , Velocity_Set    
-    class           (nodeComponentDisk                                                )               , pointer :: thisDiskComponent                            
-    double precision                                                                                            :: angularMomentum            , diskMass    , & 
-         &                                                                                                         specificAngularMomentumMean                  
-    
+    type            (treeNode                                                         ), intent(inout), pointer :: thisNode
+    logical                                                                            , intent(  out)          :: componentActive
+    double precision                                                                   , intent(  out)          :: specificAngularMomentum
+    procedure       (Node_Component_Disk_Exponential_Radius_Solve                     ), intent(  out), pointer :: Radius_Get                 , Velocity_Get
+    procedure       (Node_Component_Disk_Exponential_Radius_Solve_Set                 ), intent(  out), pointer :: Radius_Set                 , Velocity_Set
+    class           (nodeComponentDisk                                                )               , pointer :: thisDiskComponent
+    double precision                                                                                            :: angularMomentum            , diskMass    , &
+         &                                                                                                         specificAngularMomentumMean
+
     ! Determine if thisNode has an active disk component supported by this module.
     componentActive=.false.
     thisDiskComponent => thisNode%disk()
@@ -1073,10 +1073,10 @@ contains
     !% Return the star formation rate of the exponential disk.
     use Star_Formation_Timescales_Disks
     implicit none
-    class           (nodeComponentDiskExponential), intent(inout) :: self                             
-    type            (treeNode                    ), pointer       :: thisNode                         
-    double precision                                              :: gasMass , starFormationTimescale 
-    
+    class           (nodeComponentDiskExponential), intent(inout) :: self
+    type            (treeNode                    ), pointer       :: thisNode
+    double precision                                              :: gasMass , starFormationTimescale
+
     ! Get the associated node.
     thisNode => self%host()
 
@@ -1104,13 +1104,13 @@ contains
     use Histories
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: thisNode             
-    integer                   , intent(in   )          :: iOutput              
-    integer(kind=kind_int8   ), intent(in   )          :: treeIndex            
-    logical                   , intent(in   )          :: nodePassesFilter     
-    class  (nodeComponentDisk)               , pointer :: thisDiskComponent    
-    type   (history          )                         :: starFormationHistory 
-    
+    type   (treeNode         ), intent(inout), pointer :: thisNode
+    integer                   , intent(in   )          :: iOutput
+    integer(kind=kind_int8   ), intent(in   )          :: treeIndex
+    logical                   , intent(in   )          :: nodePassesFilter
+    class  (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type   (history          )                         :: starFormationHistory
+
     ! Output the star formation history if a disk exists for this component.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)

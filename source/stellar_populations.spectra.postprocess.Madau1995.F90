@@ -23,18 +23,18 @@ module Stellar_Population_Spectra_Postprocessing_Madau1995
   public :: Stellar_Population_Spectra_Postprocess_Madau1995_Initialize,Stellar_Population_Spectra_Postprocess_Madau1995
 
   ! Record of whether this method is active.
-  logical :: methodIsActive  
-                          
+  logical :: methodIsActive
+
 contains
-  
+
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Madau1995_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
   subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Madau1995'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods  
-                                                                                                  
+    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods
+
     methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Madau1995')
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize
@@ -47,15 +47,15 @@ contains
     !% by the intervening intergalactic medium according to \cite{madau_radiative_1995}.
     use Numerical_Constants_Atomic
     implicit none
-    double precision              , intent(in   ) :: redshift                                                                                                                      , wavelength                           
-    double precision              , intent(inout) :: modifier                                                                                                                                                             
-    double precision, dimension(9), parameter     :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]                                       
-    double precision, dimension(9)                :: opticalDepthLymanLines                                                                                                                                               
-    integer                                       :: iLine                                                                                                                                                                
-    double precision                              :: continuumFactor                                                                                                               , emissionFactor                   , & 
-         &                                           opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum     
-    
-    ! Check if this is a zero redshift case.                                                                                                                                                                                                                   
+    double precision              , intent(in   ) :: redshift                                                                                                                      , wavelength
+    double precision              , intent(inout) :: modifier
+    double precision, dimension(9), parameter     :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]
+    double precision, dimension(9)                :: opticalDepthLymanLines
+    integer                                       :: iLine
+    double precision                              :: continuumFactor                                                                                                               , emissionFactor                   , &
+         &                                           opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
+
+    ! Check if this is a zero redshift case.
     if (.not.methodIsActive .or. redshift <= 0.0d0) then
        ! It is, so return no modification.
        return
@@ -75,7 +75,7 @@ contains
           if (wavelengthObservedLymanContinuum < (1.0d0+redshift)/(1.0d0-1.0d0/dble((iLine+1)**2))) opticalDepth=opticalDepth&
                &+opticalDepthLymanLines(iLine)
        end do
-       
+
        ! Add in continuum optical depth.
        if (wavelengthObservedLymanContinuum < 1.0d0+redshift) then
           emissionFactor =1.0d0+redshift
@@ -84,9 +84,9 @@ contains
                &*(continuumFactor**1.5d0)*(emissionFactor**0.18d0-continuumFactor**0.18d0)-0.7d0*(continuumFactor**3)*(1.0d0&
                &/continuumFactor**1.32d0-1.0d0/emissionFactor**1.32d0)-0.023d0*(emissionFactor**1.68d0-continuumFactor**1.68d0)
        end if
-       
+
        ! Compute attenuation from optical depth.
-       modifier=modifier*exp(-opticalDepth) 
+       modifier=modifier*exp(-opticalDepth)
     end if
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Madau1995

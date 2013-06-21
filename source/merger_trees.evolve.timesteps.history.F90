@@ -27,23 +27,23 @@ module Merger_Tree_Timesteps_History
   public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
 
   ! Variable inidicating if module is initialized and active.
-  logical                                                        :: timestepHistoryInitialized      =.false.                                   
-  logical                                                        :: diskActive                              , spheroidActive                   
-  
+  logical                                                        :: timestepHistoryInitialized      =.false.
+  logical                                                        :: diskActive                              , spheroidActive
+
   ! Variables which control the distribution of timesteps.
-  integer                                                        :: timestepHistorySteps                                                       
-  double precision                                               :: timestepHistoryBegin                    , timestepHistoryEnd               
-  
+  integer                                                        :: timestepHistorySteps
+  double precision                                               :: timestepHistoryBegin                    , timestepHistoryEnd
+
   ! Storage arrays.
-  double precision                   , allocatable, dimension(:) :: historyDiskStarFormationRate            , historyDiskStellarDensity    , & 
-       &                                                            historyExpansion                        , historyGasDensity            , & 
-       &                                                            historyHotGasDensity                    , historyNodeDensity           , & 
-       &                                                            historySpheroidStarFormationRate        , historySpheroidStellarDensity, & 
-       &                                                            historyStarFormationRate                , historyStellarDensity        , & 
-       &                                                            historyTime                                                                
-  
+  double precision                   , allocatable, dimension(:) :: historyDiskStarFormationRate            , historyDiskStellarDensity    , &
+       &                                                            historyExpansion                        , historyGasDensity            , &
+       &                                                            historyHotGasDensity                    , historyNodeDensity           , &
+       &                                                            historySpheroidStarFormationRate        , historySpheroidStellarDensity, &
+       &                                                            historyStarFormationRate                , historyStellarDensity        , &
+       &                                                            historyTime
+
   ! Interpolation variables.
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                                   
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator
   !$omp threadprivate(interpolationAccelerator)
 contains
 
@@ -61,16 +61,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: thisNode                   
-    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task       
-    double precision                               , intent(inout)                    :: timeStep                   
-    logical                                        , intent(in   )                    :: report                     
-    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode                   
-    type            (varying_string               ), intent(inout), optional          :: lockType                   
-    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent         
-    integer                                                                           :: timeIndex                  
-    double precision                                                                  :: ourTimeStep         , time 
-    
+    type            (treeNode                     ), intent(inout)          , pointer :: thisNode
+    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task
+    double precision                               , intent(inout)                    :: timeStep
+    logical                                        , intent(in   )                    :: report
+    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
+    type            (varying_string               ), intent(inout), optional          :: lockType
+    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
+    integer                                                                           :: timeIndex
+    double precision                                                                  :: ourTimeStep         , time
+
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
@@ -82,7 +82,7 @@ contains
           ! Get module parameters.
           !@ <inputParameter>
           !@   <name>timestepHistoryBegin</name>
-          !@   <defaultValue>5\% of the age of the Universe</defaultValue>       
+          !@   <defaultValue>5\% of the age of the Universe</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).
@@ -94,7 +94,7 @@ contains
           call Get_Input_Parameter('timestepHistoryBegin',timestepHistoryBegin,defaultValue=0.05d0*time)
           !@ <inputParameter>
           !@   <name>timestepHistoryEnd</name>
-          !@   <defaultValue>The age of the Universe</defaultValue>       
+          !@   <defaultValue>The age of the Universe</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).
@@ -106,7 +106,7 @@ contains
           call Get_Input_Parameter('timestepHistoryEnd'  ,timestepHistoryEnd  ,defaultValue=       time)
           !@ <inputParameter>
           !@   <name>timestepHistorySteps</name>
-          !@   <defaultValue>30</defaultValue>       
+          !@   <defaultValue>30</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.
@@ -151,13 +151,13 @@ contains
     ! Get current cosmic time.
     thisBasicComponent => thisNode%basic()
     time=thisBasicComponent%time()
-    
+
     ! Determine how long until next available timestep.
     timeIndex=Interpolate_Locate(timestepHistorySteps,historyTime,interpolationAccelerator,time)
     if (time < historyTime(timeIndex+1)) then
        ! Find next time for storage.
        ourTimeStep=historyTime(timeIndex+1)-time
-       
+
        ! Set return value if our timestep is smaller than current one.
        if (ourTimeStep <= timeStep) then
           if (present(lockNode)) lockNode => thisNode
@@ -177,16 +177,16 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type            (mergerTree           ), intent(in   )          :: thisTree                                 
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                 
-    integer                                , intent(inout)          :: deadlockStatus                           
-    class           (nodeComponentBasic   )               , pointer :: thisBasicComponent                       
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                        
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                    
-    integer                                                         :: timeIndex                                
-    double precision                                                :: diskStarFormationRate    , hotGasMass, & 
-         &                                                             spheroidStarFormationRate, time          
-    
+    type            (mergerTree           ), intent(in   )          :: thisTree
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    integer                                , intent(inout)          :: deadlockStatus
+    class           (nodeComponentBasic   )               , pointer :: thisBasicComponent
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    integer                                                         :: timeIndex
+    double precision                                                :: diskStarFormationRate    , hotGasMass, &
+         &                                                             spheroidStarFormationRate, time
+
     ! Get components.
     thisBasicComponent    => thisNode%basic   ()
     thisDiskComponent     => thisNode%disk    ()
@@ -259,8 +259,8 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: historyDataset, historyGroup 
-    
+    type(hdf5Object) :: historyDataset, historyGroup
+
     ! Output the history data if and only if any has been collated.
     if (timestepHistoryInitialized) then
        !@ <outputType>
@@ -269,7 +269,7 @@ contains
        !@ </outputType>
 
        historyGroup=galacticusOutputFile%openGroup('globalHistory','Global (volume averaged) history for this model.')
-       
+
        !@ <outputProperty>
        !@   <name>historyTime</name>
        !@   <datatype>real</datatype>
@@ -281,7 +281,7 @@ contains
        call historyGroup%writeDataset(historyTime                     ,"historyTime"                     ,"Time [Gyr]"                                       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(gigaYear                        ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyExpansion</name>
        !@   <datatype>real</datatype>
@@ -291,7 +291,7 @@ contains
        !@   <outputType>globalHistory</outputType>
        !@ </outputProperty>
        call historyGroup%writeDataset(historyExpansion                ,"historyExpansion"                ,"Expansion factor []"                                                             )
-       
+
        !@ <outputProperty>
        !@   <name>historyStarFormationRate</name>
        !@   <datatype>real</datatype>
@@ -303,7 +303,7 @@ contains
        call historyGroup%writeDataset(historyStarFormationRate        ,"historyStarFormationRate"        ,"Star formation rate [M⊙/Gyr/Mpc³]"             ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyDiskStarFormationRate</name>
        !@   <datatype>real</datatype>
@@ -315,7 +315,7 @@ contains
        call historyGroup%writeDataset(historyDiskStarFormationRate    ,"historyDiskStarFormationRate"    ,"Star formation rate in disks [M⊙/Gyr/Mpc³]"    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historySpheroidStarFormationRate</name>
        !@   <datatype>real</datatype>
@@ -327,7 +327,7 @@ contains
        call historyGroup%writeDataset(historySpheroidStarFormationRate,"historySpheroidStarFormationRate","Star formation rate in spheroids [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyStellarDensity</name>
        !@   <datatype>real</datatype>
@@ -339,7 +339,7 @@ contains
        call historyGroup%writeDataset(historyStellarDensity           ,"historyStellarDensity"           ,"Stellar mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyDiskStellarDensity</name>
        !@   <datatype>real</datatype>
@@ -351,7 +351,7 @@ contains
        call historyGroup%writeDataset(historyDiskStellarDensity       ,"historyDiskStellarDensity"       ,"Stellar mass density in disks [M⊙/Mpc³]"       ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historySpheroidStellarDensity</name>
        !@   <datatype>real</datatype>
@@ -363,7 +363,7 @@ contains
        call historyGroup%writeDataset(historySpheroidStellarDensity   ,"historySpheroidStellarDensity"   ,"Stellar mass density in spheroids [M⊙/Mpc³]"   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyGasDensity</name>
        !@   <datatype>real</datatype>
@@ -375,7 +375,7 @@ contains
        call historyGroup%writeDataset(historyGasDensity               ,"historyGasDensity"               ,"Gas mass density [M⊙/Mpc³]"                    ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyHotGasDensity</name>
        !@   <datatype>real</datatype>
@@ -387,7 +387,7 @@ contains
        call historyGroup%writeDataset(historyHotGasDensity            ,"historyHotGasDensity"            ,"Hot gas mass density [M⊙/Mpc³]"                ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        !@ <outputProperty>
        !@   <name>historyNodeDensity</name>
        !@   <datatype>real</datatype>
@@ -399,7 +399,7 @@ contains
        call historyGroup%writeDataset(historyNodeDensity              ,"historyNodeDensity"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI")
        call historyDataset%close()
-       
+
        call historyGroup%close()
 
     end if

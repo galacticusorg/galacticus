@@ -22,10 +22,10 @@ module Virial_Orbits_Fixed
   implicit none
   private
   public :: Virial_Orbital_Parameters_Fixed_Initialize
-  
+
   ! Fixed radial and tangential velocities to use (in units of host node virial velocity).
-  double precision :: virialOrbitsFixedRadialVelocity, virialOrbitsFixedTangentialVelocity  
-                                                                                         
+  double precision :: virialOrbitsFixedRadialVelocity, virialOrbitsFixedTangentialVelocity
+
 contains
 
   !# <virialOrbitsMethod>
@@ -37,9 +37,9 @@ contains
     use Input_Parameters
     use Kepler_Orbits
     implicit none
-    type     (varying_string                 ), intent(in   )          :: virialOrbitsMethod             
-    procedure(Virial_Orbital_Parameters_Fixed), intent(inout), pointer :: Virial_Orbital_Parameters_Get  
-                                                                                                      
+    type     (varying_string                 ), intent(in   )          :: virialOrbitsMethod
+    procedure(Virial_Orbital_Parameters_Fixed), intent(inout), pointer :: Virial_Orbital_Parameters_Get
+
     if (virialOrbitsMethod == 'fixed') then
        ! Return a pointer to our implementation.
        Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Fixed
@@ -76,13 +76,13 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (keplerOrbit       )                         :: thisOrbit                                
-    type            (treeNode          ), intent(inout), pointer :: hostNode           , thisNode            
-    logical                             , intent(in   )          :: acceptUnboundOrbits                      
-    class           (nodeComponentBasic)               , pointer :: hostBasicComponent , thisBasicComponent  
-    double precision                                             :: velocityScale                            
-    
-    ! Reset the orbit.                                                                                                      
+    type            (keplerOrbit       )                         :: thisOrbit
+    type            (treeNode          ), intent(inout), pointer :: hostNode           , thisNode
+    logical                             , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic)               , pointer :: hostBasicComponent , thisBasicComponent
+    double precision                                             :: velocityScale
+
+    ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
     thisBasicComponent => thisNode%basic()
@@ -94,5 +94,5 @@ contains
     call thisOrbit%velocityTangentialSet(virialOrbitsFixedTangentialVelocity*velocityScale)
     return
   end function Virial_Orbital_Parameters_Fixed
-  
+
 end module Virial_Orbits_Fixed

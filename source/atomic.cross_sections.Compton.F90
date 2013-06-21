@@ -22,23 +22,23 @@ module Atomic_Cross_Sections_Compton
   implicit none
   private
   public :: Atomic_Cross_Section_Compton
-  
+
 contains
-  
+
   function Atomic_Cross_Section_Compton(photonEnergy)
     !% Returns the Compton cross section (in cm$^2$) for the specified {\tt photonEnergy} (in keV) from \cite{klein_uber_1929}.
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Units
     implicit none
-    double precision, dimension(:                 ), intent(in   ) :: photonEnergy                                                                    
-    double precision, dimension(size(photonEnergy))                :: Atomic_Cross_Section_Compton                                             , eta  
-    double precision, parameter                                    :: electronEnergy              =electronMass*speedLight**2/electronVolt/kilo       
-                                                                                                                                                   
+    double precision, dimension(:                 ), intent(in   ) :: photonEnergy
+    double precision, dimension(size(photonEnergy))                :: Atomic_Cross_Section_Compton                                             , eta
+    double precision, parameter                                    :: electronEnergy              =electronMass*speedLight**2/electronVolt/kilo
+
     eta=photonEnergy/electronEnergy
     Atomic_Cross_Section_Compton=3.0d0*thomsonCrossSection*(hecto**2)*((1.0d0-(2.0d0*eta+2.0d0)/eta**2)*log(2.0d0*eta+1.0d0)&
          &+0.5d0+4.0d0/eta-0.5d0/(2.0d0*eta+1.0d0)**2)/8.0d0/eta
     return
   end function Atomic_Cross_Section_Compton
-  
+
 end module Atomic_Cross_Sections_Compton

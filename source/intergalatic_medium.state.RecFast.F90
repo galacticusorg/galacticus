@@ -25,7 +25,7 @@ module Intergalactic_Medium_State_RecFast
   implicit none
   private
   public :: Intergalactic_Medium_State_RecFast_Initialize
-  
+
 contains
 
   !# <intergalaticMediumStateMethod>
@@ -42,14 +42,14 @@ contains
     use Input_Parameters
     use Galacticus_Input_Paths
     implicit none
-    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod                                
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get                   
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get                         
-    character(len=32          )                         :: parameterLabel                                               
-    type     (varying_string  )                         :: command                                   , parameterFile, & 
-         &                                                 recfastFile                                                  
-    type     (xmlf_t          )                         :: parameterDoc                                                 
-    
+    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod
+    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
+    character(len=32          )                         :: parameterLabel
+    type     (varying_string  )                         :: command                                   , parameterFile, &
+         &                                                 recfastFile
+    type     (xmlf_t          )                         :: parameterDoc
+
     ! Test if our method has been selected.
     if (intergalaticMediumStateMethod == 'RecFast') then
        ! Set procedure pointers (use those from the ``file'' implementation).
@@ -57,7 +57,7 @@ contains
        Intergalactic_Medium_Temperature_Get       => Intergalactic_Medium_Temperature_File
 
        ! Ensure that the RecFast data file has been generated.
-       
+
        ! Generate the name of the data file and an XML input parameter file.
        recfastFile  =char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
        parameterFile=char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
@@ -85,7 +85,7 @@ contains
        write (parameterLabel,'(i1)') Intergalactic_Medium_State_File_Current_File_Format_Version()
        call Write_Parameter(parameterDoc,"fileFormat",parameterLabel)
        call xml_Close(parameterDoc)
-       
+
        ! Run the RecFast driver script to generate the data.
        command=char(Galacticus_Input_Path())//'scripts/aux/RecFast_Driver.pl '//parameterFile//' '//recfastFile
        call System_Command_Do(command)

@@ -26,12 +26,12 @@ program Simple_Merger_Tree_File_Maker
   use ISO_Varying_String
   use Input_Parameters
   implicit none
-  integer                   :: hdfChunkSize =1024, hdfCompressionLevel=9                
-  character(len=1024      ) :: nodesFile         , outputFile           , outputFormat  
-  type     (mergerTreeData) :: mergerTrees                                              
-  type     (varying_string) :: parameterFile                                            
-  
-  ! Read in basic code memory usage.                                                                                   
+  integer                   :: hdfChunkSize =1024, hdfCompressionLevel=9
+  character(len=1024      ) :: nodesFile         , outputFile           , outputFormat
+  type     (mergerTreeData) :: mergerTrees
+  type     (varying_string) :: parameterFile
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('Simple_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
@@ -54,5 +54,5 @@ program Simple_Merger_Tree_File_Maker
 
   ! Close the parameter file.
   call Input_Parameters_File_Close
-  
+
 end program Simple_Merger_Tree_File_Maker

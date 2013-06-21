@@ -27,19 +27,19 @@ module Star_Formation_IMF_Kroupa
        &, Star_Formation_IMF_Phi_Kroupa
 
   ! Index assigned to this IMF.
-  integer                                    :: imfIndex                      =-1                                                                                        
-  
+  integer                                    :: imfIndex                      =-1
+
   ! Flag indicating if the module has been initialized.
-  logical                                    :: imfKroupaInitialized          =.false.                                                                                   
-  
+  logical                                    :: imfKroupaInitialized          =.false.
+
   ! Parameters of the IMF.
-  double precision                           :: imfKroupaRecycledInstantaneous                            , imfKroupaYieldInstantaneous                                  
-  
+  double precision                           :: imfKroupaRecycledInstantaneous                            , imfKroupaYieldInstantaneous
+
   ! Fixed parameters of the IMF.
-  integer         , parameter                :: imfPieceCount                 =4                                                                                         
-  double precision, dimension(imfPieceCount) :: imfNormalization                                          , massExponent               =[-0.3d0,-1.8d0,-2.7d0,-2.3d0], & 
-       &                                        massLower                     =[0.01d0,0.08d0,0.5d0,1.0d0], massUpper                  =[0.08d0,0.5d0,1.0d0,125.0d0]     
-  
+  integer         , parameter                :: imfPieceCount                 =4
+  double precision, dimension(imfPieceCount) :: imfNormalization                                          , massExponent               =[-0.3d0,-1.8d0,-2.7d0,-2.3d0], &
+       &                                        massLower                     =[0.01d0,0.08d0,0.5d0,1.0d0], massUpper                  =[0.08d0,0.5d0,1.0d0,125.0d0]
+
 contains
 
   !# <imfRegister>
@@ -48,8 +48,8 @@ contains
   subroutine Star_Formation_IMF_Register_Kroupa(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount 
-    
+    integer, intent(inout) :: imfAvailableCount
+
     imfAvailableCount=imfAvailableCount+1
     imfIndex=imfAvailableCount
     return
@@ -62,8 +62,8 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:) 
-    
+    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)
+
     imfNames      (imfIndex)="Kroupa"
     imfDescriptors(imfIndex)="Kroupa"
     return
@@ -102,10 +102,10 @@ contains
           !@   <group>initialMassFunction</group>
           !@ </inputParameter>
           call Get_Input_Parameter('imfKroupaYieldInstantaneous'   ,imfKroupaYieldInstantaneous   ,defaultValue=0.023d0)
-          
+
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-          
+
           imfKroupaInitialized=.true.
        end if
        !$omp end critical (IMF_Kroupa_Initialize)
@@ -119,10 +119,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_Kroupa(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: minimumMass 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: minimumMass
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        minimumMass=massLower(1)
@@ -137,10 +137,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_Kroupa(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: maximumMass 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: maximumMass
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        maximumMass=massUpper(imfPieceCount)
@@ -156,11 +156,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(in   ) :: initialMass 
-    double precision, intent(  out) :: imfPhi      
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(in   ) :: initialMass
+    double precision, intent(  out) :: imfPhi
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
@@ -175,10 +175,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_Kroupa(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected      
-    logical         , intent(inout) :: imfMatched       
-    double precision, intent(  out) :: recycledFraction 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: recycledFraction
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        recycledFraction=imfKroupaRecycledInstantaneous
@@ -193,10 +193,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_Kroupa(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: yield       
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: yield
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        yield=imfKroupaYieldInstantaneous
@@ -214,11 +214,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer                                    , intent(in   ) :: imfSelected             
-    logical                                    , intent(inout) :: imfMatched              
-    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi 
-    integer         , parameter                                :: nPoints    =100         
-    
+    integer                                    , intent(in   ) :: imfSelected
+    logical                                    , intent(inout) :: imfMatched
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi
+    integer         , parameter                                :: nPoints    =100
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kroupa
        call Alloc_Array(imfMass,[nPoints])

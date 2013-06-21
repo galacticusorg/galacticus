@@ -29,26 +29,26 @@ contains
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,parameterPointer,integrandFunction&
        &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset)
     !% Integrates the supplied {\tt integrand} function.
-    use, intrinsic :: ISO_C_Binding                             
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                            , external                           :: integrand                                                              
-    double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit                           
-    type            (c_ptr                     )           , intent(in   )           :: parameterPointer                                                       
-    type            (fgsl_function             )           , intent(inout)           :: integrandFunction                                                      
-    type            (fgsl_integration_workspace)           , intent(inout)           :: integrationWorkspace                                                   
-    integer                                                , intent(in   ), optional :: integrationRule                 , maxIntervals                         
-    double precision                                       , intent(in   ), optional :: toleranceAbsolute               , toleranceRelative                    
-    logical                                                , intent(in   ), optional :: hasSingularities                                                       
-    logical                                                , intent(inout), optional :: reset                                                                  
-    integer                                     , parameter                          :: maxIntervalsDefault     =1000                                          
-    double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10     
-    integer                                                                          :: integrationRuleActual           , status                               
-    integer         (kind=c_size_t             )                                     :: maxIntervalsActual                                                     
-    double precision                                                                 :: integrationError                , integrationValue                 , & 
-         &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual              
-    logical                                                                          :: hasSingularitiesActual          , resetActual                          
-    
-    ! Set optional parameters to specified or default values.                                                                                                                                                        
+    double precision                            , external                           :: integrand
+    double precision                                       , intent(in   )           :: lowerLimit                      , upperLimit
+    type            (c_ptr                     )           , intent(in   )           :: parameterPointer
+    type            (fgsl_function             )           , intent(inout)           :: integrandFunction
+    type            (fgsl_integration_workspace)           , intent(inout)           :: integrationWorkspace
+    integer                                                , intent(in   ), optional :: integrationRule                 , maxIntervals
+    double precision                                       , intent(in   ), optional :: toleranceAbsolute               , toleranceRelative
+    logical                                                , intent(in   ), optional :: hasSingularities
+    logical                                                , intent(inout), optional :: reset
+    integer                                     , parameter                          :: maxIntervalsDefault     =1000
+    double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10
+    integer                                                                          :: integrationRuleActual           , status
+    integer         (kind=c_size_t             )                                     :: maxIntervalsActual
+    double precision                                                                 :: integrationError                , integrationValue                 , &
+         &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual
+    logical                                                                          :: hasSingularitiesActual          , resetActual
+
+    ! Set optional parameters to specified or default values.
     if (present(maxIntervals)) then
        maxIntervalsActual=maxIntervals
     else
@@ -103,9 +103,9 @@ contains
   subroutine Integrate_Done(integrandFunction,integrationWorkspace)
     !% Frees up integration objects that are no longer required.
     implicit none
-    type(fgsl_function             ), intent(inout) :: integrandFunction     
-    type(fgsl_integration_workspace), intent(inout) :: integrationWorkspace  
-                                                                          
+    type(fgsl_function             ), intent(inout) :: integrandFunction
+    type(fgsl_integration_workspace), intent(inout) :: integrationWorkspace
+
     call FGSL_Function_Free(integrandFunction)
     call FGSL_Integration_Workspace_Free(integrationWorkspace)
     return

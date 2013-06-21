@@ -25,12 +25,12 @@ module Satellite_Merging_Mass_Movements_Baugh2005
   public :: Satellite_Merging_Mass_Movements_Baugh2005_Initialize
 
   ! Mass ratio above which a merger is considered to be "major".
-  double precision :: burstCriticalGasFraction  , burstMassRatio, & 
-       &              majorMergerMassRatio                          
-  
+  double precision :: burstCriticalGasFraction  , burstMassRatio, &
+       &              majorMergerMassRatio
+
   ! Location to which gas from satellite galaxy in minor merger is moved.
-  integer          :: minorMergerGasMovesToValue                    
-  
+  integer          :: minorMergerGasMovesToValue
+
 contains
 
   !# <satelliteMergingMassMovementsMethod>
@@ -42,10 +42,10 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string                           ), intent(in   )          :: satelliteMergingMassMovementsMethod 
-    procedure(Satellite_Merging_Mass_Movement_Baugh2005), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get 
-    character(len=10                                   )                         :: minorMergerGasMovesTo               
-    
+    type     (varying_string                           ), intent(in   )          :: satelliteMergingMassMovementsMethod
+    procedure(Satellite_Merging_Mass_Movement_Baugh2005), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get
+    character(len=10                                   )                         :: minorMergerGasMovesTo
+
     if (satelliteMergingMassMovementsMethod == 'Baugh2005') then
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Baugh2005
        !@ <inputParameter>
@@ -110,13 +110,13 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                                       
-    integer                   , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo , starsMoveTo   
-    logical                   , intent(  out)          :: mergerIsMajor                                                  
-    type            (treeNode)               , pointer :: hostNode                                                       
-    logical                                            :: triggersBurst                                                  
-    double precision                                   :: hostGasMass  , hostMass      , hostSpheroidMass, satelliteMass 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    integer                   , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo , starsMoveTo
+    logical                   , intent(  out)          :: mergerIsMajor
+    type            (treeNode)               , pointer :: hostNode
+    logical                                            :: triggersBurst
+    double precision                                   :: hostGasMass  , hostMass      , hostSpheroidMass, satelliteMass
+
     ! Find the node to merge with.
    hostNode => thisNode%mergesWith()
 

@@ -23,15 +23,15 @@ program Test_Coordinate_Systems
   use Coordinate_Systems
   use Numerical_Constants_Math
   implicit none
-  double precision        , dimension(3,8) :: cartesian  =reshape([0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,1.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cartesian))                             
-  double precision        , dimension(3,8) :: spherical  =reshape([0.0d0,0.0d0,0.0d0,sqrt(3.0d0),0.955316618d0,Pi/4.0d0,1.0d0,Pi/2.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi/2.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi,1.0d0,Pi/2.0d0,-0.5d0*Pi,1.0d0,Pi,0.0d0],shape(spherical))  
-  double precision        , dimension(3,8) :: cylindrical=reshape([0.0d0,0.0d0,0.0d0,sqrt(2.0d0),Pi/4.0d0,1.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,Pi,0.0d0,1.0d0,-0.5d0*Pi,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cylindrical))                
-  integer                                  :: i                                                                                                                                                                                                                      
-  character       (len=43)                 :: groupName                                                                                                                                                                                                              
-  
-  ! Begin unit tests.                                                                                                                                                                                                                                                                
+  double precision        , dimension(3,8) :: cartesian  =reshape([0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,1.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,0.0d0,0.0d0,0.0d0,1.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cartesian))
+  double precision        , dimension(3,8) :: spherical  =reshape([0.0d0,0.0d0,0.0d0,sqrt(3.0d0),0.955316618d0,Pi/4.0d0,1.0d0,Pi/2.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi/2.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,Pi,1.0d0,Pi/2.0d0,-0.5d0*Pi,1.0d0,Pi,0.0d0],shape(spherical))
+  double precision        , dimension(3,8) :: cylindrical=reshape([0.0d0,0.0d0,0.0d0,sqrt(2.0d0),Pi/4.0d0,1.0d0,1.0d0,0.0d0,0.0d0,1.0d0,Pi/2.0d0,0.0d0,0.0d0,0.0d0,1.0d0,1.0d0,Pi,0.0d0,1.0d0,-0.5d0*Pi,0.0d0,0.0d0,0.0d0,-1.0d0],shape(cylindrical))
+  integer                                  :: i
+  character       (len=43)                 :: groupName
+
+  ! Begin unit tests.
   call Unit_Tests_Begin_Group("Coordinate systems")
-  
+
   do i=1,size(cartesian,dim=2)
      write (groupName,'(a,3(f4.1,a))') 'convert point [',cartesian(1,i),',',cartesian(2,i),',',cartesian(3,i),'] (cartesian):'
      call Unit_Tests_Begin_Group(groupName)

@@ -26,17 +26,17 @@ module Cosmological_Parameters
   public :: Omega_b, Omega_Matter, Omega_DE, Omega_Radiation, Omega_K, T_CMB, H_0, H_0_invGyr, Little_H_0, Critical_Density
 
   ! Stored values of cosmological parameters.
-  logical          :: Critical_Density_Is_Set=.false., H_0_Is_Set         =.false., & 
-       &              H_0_invGyr_Is_Set      =.false., Omega_DE_Is_Set    =.false., & 
-       &              Omega_K_Is_Set         =.false., Omega_Matter_Is_Set=.false., & 
-       &              Omega_Radiation_Is_Set =.false., Omega_b_Is_Set     =.false., & 
-       &              T_CMB_Is_Set           =.false.                                 
-  double precision :: Critical_Density_Value         , H_0_Value                  , & 
-       &              H_0_invGyr_Value               , Omega_DE_Value             , & 
-       &              Omega_K_Value                  , Omega_Matter_Value         , & 
-       &              Omega_Radiation_Value          , Omega_b_Value              , & 
-       &              T_CMB_Value                                                     
-  
+  logical          :: Critical_Density_Is_Set=.false., H_0_Is_Set         =.false., &
+       &              H_0_invGyr_Is_Set      =.false., Omega_DE_Is_Set    =.false., &
+       &              Omega_K_Is_Set         =.false., Omega_Matter_Is_Set=.false., &
+       &              Omega_Radiation_Is_Set =.false., Omega_b_Is_Set     =.false., &
+       &              T_CMB_Is_Set           =.false.
+  double precision :: Critical_Density_Value         , H_0_Value                  , &
+       &              H_0_invGyr_Value               , Omega_DE_Value             , &
+       &              Omega_K_Value                  , Omega_Matter_Value         , &
+       &              Omega_Radiation_Value          , Omega_b_Value              , &
+       &              T_CMB_Value
+
 contains
 
   double precision function Omega_b()
@@ -48,7 +48,7 @@ contains
        if (.not.Omega_b_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_b</name>
-          !@   <defaultValue>0.04611 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.04611 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of baryons in the Universe in units of the critical density.
@@ -75,13 +75,13 @@ contains
     if (.not.Omega_Matter_Is_Set) then
        !$omp critical (Omega_Matter_Initialization)
        if (.not.Omega_Matter_Is_Set) then
-          
+
           ! Check for deprecated parameter name.
           if (Input_Parameter_Is_Present('Omega_0')) call Galacticus_Error_Report('Omega_Matter','use of "Omega_0" in parameter file is deprecated - use "Omega_Matter" instead')
-          
+
           !@ <inputParameter>
           !@   <name>Omega_Matter</name>
-          !@   <defaultValue>0.2812 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.2812 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of matter in the Universe in units of the critical density.
@@ -109,7 +109,7 @@ contains
        if (.not.Omega_DE_Is_Set) then
           !@ <inputParameter>
           !@   <name>Omega_DE</name>
-          !@   <defaultValue>0.7188 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>0.7188 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The density of dark energy in the Universe in units of the critical density.
@@ -137,7 +137,7 @@ contains
        if (.not.T_CMB_Is_Set) then
           !@ <inputParameter>
           !@   <name>T_CMB</name>
-          !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>       
+          !@   <defaultValue>2.72548 \citep{fixsen_temperature_2009}</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The present day temperature of the \gls{cmb} in units of Kelvin.
@@ -170,7 +170,7 @@ contains
        end if
        !$omp end critical (Omega_Radiation_Initialization)
     end if
-    
+
     Omega_Radiation=Omega_Radiation_Value
     return
   end function Omega_Radiation
@@ -195,8 +195,8 @@ contains
   double precision function Little_H_0()
     !% Returns $h_0=H_0/100$km/s/Mpc.
     implicit none
-    double precision, parameter :: Big_H_0=100.0 !   km/s/Mpc. 
-    
+    double precision, parameter :: Big_H_0=100.0 !   km/s/Mpc.
+
     Little_H_0=H_0()/Big_H_0
     return
   end function Little_H_0
@@ -211,7 +211,7 @@ contains
        if (.not.H_0_Is_Set) then
           !@ <inputParameter>
           !@   <name>H_0</name>
-          !@   <defaultValue>69.7 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>       
+          !@   <defaultValue>69.7 (\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The present day value of the Hubble parameter in units of km/s/Mpc.

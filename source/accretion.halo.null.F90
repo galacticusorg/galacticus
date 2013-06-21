@@ -38,16 +38,16 @@ contains
     use ISO_Varying_String
     use Chemical_Abundances_Structure
     implicit none
-    type     (varying_string                                  ), intent(in   )          :: accretionHalosMethod                         
-    procedure(Halo_Baryonic_Accretion_Rate_Null_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get             
-    procedure(Halo_Baryonic_Accreted_Mass_Null_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get              
-    procedure(Halo_Baryonic_Failed_Accretion_Rate_Null_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get      
-    procedure(Halo_Baryonic_Failed_Accreted_Mass_Null_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get       
-    procedure(Halo_Baryonic_Accretion_Rate_Abundances_Null_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get  
-    procedure(Halo_Baryonic_Accreted_Abundances_Null_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get        
-    procedure(Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get   
-    procedure(Halo_Baryonic_Accreted_Chemicals_Null_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get         
-                                                                                                                                     
+    type     (varying_string                                  ), intent(in   )          :: accretionHalosMethod
+    procedure(Halo_Baryonic_Accretion_Rate_Null_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Accreted_Mass_Null_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get
+    procedure(Halo_Baryonic_Failed_Accretion_Rate_Null_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get
+    procedure(Halo_Baryonic_Failed_Accreted_Mass_Null_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Abundances_Null_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get
+    procedure(Halo_Baryonic_Accreted_Abundances_Null_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get
+    procedure(Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
+    procedure(Halo_Baryonic_Accreted_Chemicals_Null_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
+
     if (accretionHalosMethod == 'null') then
        ! Set pointers to our implementations of accretion functions.
        Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Null_Get
@@ -66,8 +66,8 @@ contains
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Halo_Baryonic_Accretion_Rate_Null_Get=0.0d0
     return
   end function Halo_Baryonic_Accretion_Rate_Null_Get
@@ -76,18 +76,18 @@ contains
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Halo_Baryonic_Accreted_Mass_Null_Get=0.0d0
     return
   end function Halo_Baryonic_Accreted_Mass_Null_Get
-  
+
   double precision function Halo_Baryonic_Failed_Accretion_Rate_Null_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Halo_Baryonic_Failed_Accretion_Rate_Null_Get=0.0d0
     return
   end function Halo_Baryonic_Failed_Accretion_Rate_Null_Get
@@ -96,8 +96,8 @@ contains
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Halo_Baryonic_Failed_Accreted_Mass_Null_Get=0.0d0
     return
   end function Halo_Baryonic_Failed_Accreted_Mass_Null_Get
@@ -106,44 +106,44 @@ contains
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type(treeNode  ), intent(inout), pointer :: thisNode                 
-    type(abundances), intent(inout)          :: accretionRateAbundances  
-                                                                      
+    type(treeNode  ), intent(inout), pointer :: thisNode
+    type(abundances), intent(inout)          :: accretionRateAbundances
+
     accretionRateAbundances=zeroAbundances
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Abundances_Null_Get
-  
+
   subroutine Halo_Baryonic_Accreted_Abundances_Null_Get(thisNode,accretedAbundances)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type(treeNode  ), intent(inout), pointer :: thisNode            
-    type(abundances), intent(inout)          :: accretedAbundances  
-                                                                 
+    type(treeNode  ), intent(inout), pointer :: thisNode
+    type(abundances), intent(inout)          :: accretedAbundances
+
     accretedAbundances=zeroAbundances
     return
   end subroutine Halo_Baryonic_Accreted_Abundances_Null_Get
-  
+
   subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get(thisNode,accretionRateChemicals)
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type(treeNode          ), intent(inout), pointer :: thisNode                
-    type(chemicalAbundances), intent(inout)          :: accretionRateChemicals  
-                                                                             
+    type(treeNode          ), intent(inout), pointer :: thisNode
+    type(chemicalAbundances), intent(inout)          :: accretionRateChemicals
+
     accretionRateChemicals=zeroChemicals
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Null_Get
-  
+
   subroutine Halo_Baryonic_Accreted_Chemicals_Null_Get(thisNode,accretedChemicals)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type(treeNode          ), intent(inout), pointer :: thisNode           
-    type(chemicalAbundances), intent(inout)          :: accretedChemicals  
-                                                                        
+    type(treeNode          ), intent(inout), pointer :: thisNode
+    type(chemicalAbundances), intent(inout)          :: accretedChemicals
+
     accretedChemicals=zeroChemicals
     return
   end subroutine Halo_Baryonic_Accreted_Chemicals_Null_Get

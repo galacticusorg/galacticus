@@ -25,14 +25,14 @@ module Merger_Tree_Mass_Accretion_History
   public :: Merger_Tree_Mass_Accretion_History_Output, Merger_Tree_Mass_Accretion_History_Close
 
   ! Flag indicating if module is initialized.
-  logical             :: accretionHistoryModuleInitialized=.false.  
-  
-  ! Flag indicating if output is required.                                                               
-  logical             :: massAccretionHistoryOutput                 
-  
-  ! Accretion group object.                                                               
-  type   (hdf5Object) :: accretionGroup                             
-                                                                 
+  logical             :: accretionHistoryModuleInitialized=.false.
+
+  ! Flag indicating if output is required.
+  logical             :: massAccretionHistoryOutput
+
+  ! Accretion group object.
+  type   (hdf5Object) :: accretionGroup
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -50,17 +50,17 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Error
     implicit none
-    type            (mergerTree        ), intent(in   ), target                :: thisTree                                             
-    type            (treeNode          )                             , pointer :: thisNode                                             
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: accretionHistoryNodeIndex                            
-    double precision                    , allocatable  , dimension(:)          :: accretionHistoryNodeMass , accretionHistoryNodeTime  
-    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent                                   
-    type            (mergerTree        )                             , pointer :: currentTree                                          
-    integer         (kind=kind_int8    )                                       :: accretionHistoryCount                                
-    type            (varying_string    )                                       :: groupName                                            
-    type            (hdf5Object        )                                       :: accretionDataset         , treeGroup                 
-    
-    ! Check if module is initialized.                                                                                                                                
+    type            (mergerTree        ), intent(in   ), target                :: thisTree
+    type            (treeNode          )                             , pointer :: thisNode
+    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: accretionHistoryNodeIndex
+    double precision                    , allocatable  , dimension(:)          :: accretionHistoryNodeMass , accretionHistoryNodeTime
+    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
+    type            (mergerTree        )                             , pointer :: currentTree
+    integer         (kind=kind_int8    )                                       :: accretionHistoryCount
+    type            (varying_string    )                                       :: groupName
+    type            (hdf5Object        )                                       :: accretionDataset         , treeGroup
+
+    ! Check if module is initialized.
     if (.not.accretionHistoryModuleInitialized) then
        !$omp critical(accretionHistoryModuleInitialize)
        if (.not.accretionHistoryModuleInitialized) then

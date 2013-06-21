@@ -23,14 +23,14 @@ module Merger_Trees_Mass_Function_Sampling_Stellar_MF
   public :: Merger_Trees_Mass_Function_Sampling_Stellar_MF_Initialize
 
   ! Global halo mass used in integrand function.
-  double precision :: massHalo                                                                                                                    
-  
+  double precision :: massHalo
+
   ! Parameters of the mass function error model.
-  double precision :: haloMassFunctionSamplingStellarMassFunctionErrorAlpha      , haloMassFunctionSamplingStellarMassFunctionErrorBeta       , & 
-       &              haloMassFunctionSamplingStellarMassFunctionErrorConstant   , haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth, & 
-       &              haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum, haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum, & 
-       &              haloMassFunctionSamplingStellarMassFunctionErrorMstar      , haloMassFunctionSamplingStellarMassFunctionErrorPhi0           
-  
+  double precision :: haloMassFunctionSamplingStellarMassFunctionErrorAlpha      , haloMassFunctionSamplingStellarMassFunctionErrorBeta       , &
+       &              haloMassFunctionSamplingStellarMassFunctionErrorConstant   , haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth, &
+       &              haloMassFunctionSamplingStellarMassFunctionErrorMassMaximum, haloMassFunctionSamplingStellarMassFunctionErrorMassMinimum, &
+       &              haloMassFunctionSamplingStellarMassFunctionErrorMstar      , haloMassFunctionSamplingStellarMassFunctionErrorPhi0
+
 contains
 
   !# <haloMassFunctionSamplingMethod>
@@ -41,9 +41,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod                   
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get 
-    
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+
     if (haloMassFunctionSamplingMethod == 'stellarMassFunction') then
        ! Set the pointer to point to our function.
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF
@@ -142,16 +142,16 @@ contains
     use Galacticus_Display
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: mass                        , massMaximum                 , & 
-         &                                                         massMinimum                 , time                            
-    double precision                            , parameter     :: toleranceAbsolute    =1.0d-3, toleranceRelative    =1.0d-2    
-    double precision                                            :: haloMassFunction            , logStellarMassMaximum       , & 
-         &                                                         logStellarMassMinimum       , treeComputeTime             , & 
-         &                                                         xi                          , xiIntegral                      
-    type            (fgsl_function             )                :: integrandFunction                                             
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                                          
-    type            (c_ptr                     )                :: parameterPointer                                              
-    
+    double precision                            , intent(in   ) :: mass                        , massMaximum                 , &
+         &                                                         massMinimum                 , time
+    double precision                            , parameter     :: toleranceAbsolute    =1.0d-3, toleranceRelative    =1.0d-2
+    double precision                                            :: haloMassFunction            , logStellarMassMaximum       , &
+         &                                                         logStellarMassMinimum       , treeComputeTime             , &
+         &                                                         xi                          , xiIntegral
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    type            (c_ptr                     )                :: parameterPointer
+
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
     haloMassFunction=mass*Halo_Mass_Function_Differential(time,mass)
 
@@ -179,13 +179,13 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Conditional_Stellar_Mass_Functions
     implicit none
-    real            (kind=c_double)        :: Xi_Integrand                                            
-    real            (kind=c_double), value :: logStellarMass                                          
-    type            (c_ptr        ), value :: parameterPointer                                        
-    double precision                       :: conditionalMassFunctionVariance , stellarMass       , & 
-         &                                    stellarMassFunctionObservedError, stellarMassMaximum, & 
-         &                                    stellarMassMinimum                                      
-    
+    real            (kind=c_double)        :: Xi_Integrand
+    real            (kind=c_double), value :: logStellarMass
+    type            (c_ptr        ), value :: parameterPointer
+    double precision                       :: conditionalMassFunctionVariance , stellarMass       , &
+         &                                    stellarMassFunctionObservedError, stellarMassMaximum, &
+         &                                    stellarMassMinimum
+
     ! Compute the stellar mass and range corresponding to data bins.
     stellarMass       =10.0d0** logStellarMass
     stellarMassMinimum=10.0d0**(logStellarMass-0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)

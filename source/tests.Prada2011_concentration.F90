@@ -29,17 +29,17 @@ program Test_Prada2011_Concentration
   use Galacticus_Nodes
   use Unit_Tests
   implicit none
-  type            (mergerTree        )                                 , pointer :: thisTree                                                                    
-  type            (treeNode          )                                 , pointer :: thisNode                                                                    
-  class           (nodeComponentBasic)                                 , pointer :: thisBasicComponent                                                          
-  type            (varying_string    )                                           :: message                                                    , parameterFile  
-  integer                                                   , parameter          :: massCount            =4                                                     
-  double precision                    , dimension(massCount), parameter          :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]                 
-  double precision                    , dimension(massCount), parameter          :: pradaLogConcentration=[0.966d0,0.887d0,0.804d0,0.728d0]                     
-  double precision                    , dimension(massCount)                     :: ourLogConcentration                                                         
-  integer                                                                        :: iMass                                                                       
-  
-  ! Read in basic code memory usage.                                                                                                                                                           
+  type            (mergerTree        )                                 , pointer :: thisTree
+  type            (treeNode          )                                 , pointer :: thisNode
+  class           (nodeComponentBasic)                                 , pointer :: thisBasicComponent
+  type            (varying_string    )                                           :: message                                                    , parameterFile
+  integer                                                   , parameter          :: massCount            =4
+  double precision                    , dimension(massCount), parameter          :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]
+  double precision                    , dimension(massCount), parameter          :: pradaLogConcentration=[0.966d0,0.887d0,0.804d0,0.728d0]
+  double precision                    , dimension(massCount)                     :: ourLogConcentration
+  integer                                                                        :: iMass
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Prada2011_concentration.size')
 
   ! Begin unit tests.
@@ -49,7 +49,7 @@ program Test_Prada2011_Concentration
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/Prada2011HaloConcentration/testParameters.xml'
   call Input_Parameters_File_Open(parameterFile)
-  
+
   ! Create a node.
   call thisTree%createNode(thisNode)
 
@@ -58,13 +58,13 @@ program Test_Prada2011_Concentration
 
   ! Set the time for the node.
   call thisBasicComponent%timeSet(Cosmology_Age(1.00d0))
-  
+
   ! Loop over halo masses
   do iMass=1,massCount
 
      ! Set the mass of the original node.
      call thisBasicComponent%massSet(10.0d0**logMass(iMass)/Little_H_0())
-     
+
      ! Compute and compare concentration at z=0.
      ourLogConcentration(iMass)=log10(Dark_Matter_Profile_Concentration(thisNode))
 
@@ -76,9 +76,9 @@ program Test_Prada2011_Concentration
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close
- 
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
- 
+
 end program Test_Prada2011_Concentration

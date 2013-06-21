@@ -24,15 +24,15 @@ module Satellite_Merging_Timescales
   private
   public :: Satellite_Time_Until_Merging
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                          :: satelliteMergeTimescaleInitialized=.false.  
-  
-  ! Name of satellite merging timescale method used.                                                                                             
-  type     (varying_string              )          :: satelliteMergingMethod                      
-  
-  ! Pointer for function that will be called to assign merging times to satellites.                                                                                             
-  procedure(Satellite_Time_Until_Merging), pointer :: Satellite_Time_Until_Merging_Get  =>null()  
-                                                                                               
+  ! Flag to indicate if this module has been initialized.
+  logical                                          :: satelliteMergeTimescaleInitialized=.false.
+
+  ! Name of satellite merging timescale method used.
+  type     (varying_string              )          :: satelliteMergingMethod
+
+  ! Pointer for function that will be called to assign merging times to satellites.
+  procedure(Satellite_Time_Until_Merging), pointer :: Satellite_Time_Until_Merging_Get  =>null()
+
 contains
 
   subroutine Satellite_Merging_Timescales_Initialize
@@ -46,9 +46,9 @@ contains
 
     ! Initialize if necessary.
     if (.not.satelliteMergeTimescaleInitialized) then
-       !$omp critical(Satellite_Merging_Timescales_Initialization) 
+       !$omp critical(Satellite_Merging_Timescales_Initialization)
        if (.not.satelliteMergeTimescaleInitialized) then
-          
+
           ! Get the satellite merging timescale method.
           !@ <inputParameter>
           !@   <name>satelliteMergingMethod</name>
@@ -74,7 +74,7 @@ contains
           ! Record that this module is now initialized.
           satelliteMergeTimescaleInitialized=.true.
        end if
-       !$omp end critical(Satellite_Merging_Timescales_Initialization) 
+       !$omp end critical(Satellite_Merging_Timescales_Initialization)
     end if
     return
   end subroutine Satellite_Merging_Timescales_Initialize
@@ -84,10 +84,10 @@ contains
     use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
-    type(treeNode   ), intent(inout), pointer :: thisNode   
-    type(keplerOrbit), intent(inout)          :: thisOrbit  
-    
-    ! Initialize the module.                                                     
+    type(treeNode   ), intent(inout), pointer :: thisNode
+    type(keplerOrbit), intent(inout)          :: thisOrbit
+
+    ! Initialize the module.
     call Satellite_Merging_Timescales_Initialize
 
     ! Get the cooling radius using the selected method.

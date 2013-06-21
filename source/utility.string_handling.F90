@@ -37,7 +37,7 @@ module String_Handling
   end interface
 
   ! Maximum length of string needed to hold integer values.
-  integer, parameter :: maxIntegerSize=20  
+  integer, parameter :: maxIntegerSize=20
   character(len=5), parameter :: maxIntegerFormat='(i20)'
 
   ! Character strings used in converting upper to lower case and vice-versa.
@@ -57,13 +57,13 @@ contains
   integer function String_Count_Words(inputString,separator)
     !% Return a count of the number of space separated words in {\tt inputString}.
     implicit none
-    character(len=*         ), intent(in   )           :: inputString      
-    character(len=*         ), intent(in   ), optional :: separator        
-    logical                                            :: inWord           
-    integer                                            :: iCharacter       
-    type     (varying_string)                          :: separatorActual  
-    
-    ! Decide what separator to use.                                                                    
+    character(len=*         ), intent(in   )           :: inputString
+    character(len=*         ), intent(in   ), optional :: separator
+    logical                                            :: inWord
+    integer                                            :: iCharacter
+    type     (varying_string)                          :: separatorActual
+
+    ! Decide what separator to use.
     if (present(separator)) then
        separatorActual=separator
     else
@@ -87,15 +87,15 @@ contains
   subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
-    type     (varying_string), dimension(:), intent(  out)           :: words                                               
-    character(len=*         )              , intent(in   )           :: inputString                                         
-    character(len=*         )              , intent(in   ), optional :: separator                                           
-    character(len=2         )              , intent(in   ), optional :: bracketing                                          
-    logical                                                          :: inWord                                              
-    integer                                                          :: iCharacter     , iCharacterStart, iWord, inBracket  
-    type     (varying_string)                                        :: separatorActual                                     
-    
-    ! Decide what separator to use.                                                                                                                     
+    type     (varying_string), dimension(:), intent(  out)           :: words
+    character(len=*         )              , intent(in   )           :: inputString
+    character(len=*         )              , intent(in   ), optional :: separator
+    character(len=2         )              , intent(in   ), optional :: bracketing
+    logical                                                          :: inWord
+    integer                                                          :: iCharacter     , iCharacterStart, iWord, inBracket
+    type     (varying_string)                                        :: separatorActual
+
+    ! Decide what separator to use.
     if (present(separator)) then
        separatorActual=separator
     else
@@ -135,15 +135,15 @@ contains
   subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
     !% Split {\tt inputString} into words and return as an array.
     implicit none
-    character(len=*         ), dimension(:), intent(  out)           :: words                                               
-    character(len=*         )              , intent(in   )           :: inputString                                         
-    character(len=*         )              , intent(in   ), optional :: separator                                           
-    character(len=2         )              , intent(in   ), optional :: bracketing                                          
-    logical                                                          :: inWord                                              
-    integer                                                          :: iCharacter     , iCharacterStart, iWord, inBracket  
-    type     (varying_string)                                        :: separatorActual                                     
-    
-    ! Decide what separator to use.                                                                                                                     
+    character(len=*         ), dimension(:), intent(  out)           :: words
+    character(len=*         )              , intent(in   )           :: inputString
+    character(len=*         )              , intent(in   ), optional :: separator
+    character(len=2         )              , intent(in   ), optional :: bracketing
+    logical                                                          :: inWord
+    integer                                                          :: iCharacter     , iCharacterStart, iWord, inBracket
+    type     (varying_string)                                        :: separatorActual
+
+    ! Decide what separator to use.
     if (present(separator)) then
        separatorActual=separator
     else
@@ -183,11 +183,11 @@ contains
   function Concatenate_VarStr_Integer(varStrVariable,intVariable)
     !% Provides a concatenation operator to append an integer number to a {\tt varying\_string}.
     implicit none
-    type     (varying_string    ), intent(in   ) :: varStrVariable              
-    integer                      , intent(in   ) :: intVariable                 
-    type     (varying_string    )                :: Concatenate_VarStr_Integer  
-    character(len=maxIntegerSize)                :: intString                   
-                                                                             
+    type     (varying_string    ), intent(in   ) :: varStrVariable
+    integer                      , intent(in   ) :: intVariable
+    type     (varying_string    )                :: Concatenate_VarStr_Integer
+    character(len=maxIntegerSize)                :: intString
+
     write (intString,maxIntegerFormat) intVariable
     Concatenate_VarStr_Integer=varStrVariable//trim(adjustl(intString))
     return
@@ -197,11 +197,11 @@ contains
     !% Provides a concatenation operator to append an integer number to a {\tt varying\_string}.
     use Kind_Numbers
     implicit none
-    type     (varying_string    ), intent(in   ) :: varStrVariable               
-    integer  (kind=kind_int8    ), intent(in   ) :: intVariable                  
-    type     (varying_string    )                :: Concatenate_VarStr_Integer8  
-    character(len=maxIntegerSize)                :: intString                    
-                                                                              
+    type     (varying_string    ), intent(in   ) :: varStrVariable
+    integer  (kind=kind_int8    ), intent(in   ) :: intVariable
+    type     (varying_string    )                :: Concatenate_VarStr_Integer8
+    character(len=maxIntegerSize)                :: intString
+
     write (intString,maxIntegerFormat) intVariable
     Concatenate_VarStr_Integer8=varStrVariable//trim(adjustl(intString))
     return
@@ -209,11 +209,11 @@ contains
 
   function String_Upper_Case(stringInput) result (stringOutput)
     !% Converts an input string to upper case.
-    character(len=*               ), intent(in   ) :: stringInput            
-    character(len=len(stringInput))                :: stringOutput           
-    integer                                        :: iCharacter  , iString  
-    
-    ! Transfer input string to output string.                                                                      
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter  , iString
+
+    ! Transfer input string to output string.
     stringOutput=stringInput
     ! Loop through each character in the string.
     do iString=1,len(stringOutput)
@@ -227,11 +227,11 @@ contains
 
   function String_Lower_Case(stringInput) result (stringOutput)
     !% Converts an input string to lower case.
-    character(len=*               ), intent(in   ) :: stringInput            
-    character(len=len(stringInput))                :: stringOutput           
-    integer                                        :: iCharacter  , iString  
-    
-    ! Transfer input string to output string.                                                                      
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter  , iString
+
+    ! Transfer input string to output string.
     stringOutput=stringInput
     ! Loop through each character in the string.
     do iString=1,len(stringOutput)
@@ -245,11 +245,11 @@ contains
 
   function String_Upper_Case_First(stringInput) result (stringOutput)
     !% Converts an input string to upper case.
-    character(len=*               ), intent(in   ) :: stringInput   
-    character(len=len(stringInput))                :: stringOutput  
-    integer                                        :: iCharacter    
-    
-    ! Transfer input string to output string.                                                             
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter
+
+    ! Transfer input string to output string.
     stringOutput=stringInput
     ! Find position of first character in string in list of lower case characters.
     iCharacter=index(charactersLowerCase,stringOutput(1:1))
@@ -261,10 +261,10 @@ contains
   function Convert_VarString_To_Char(varStrings)
     !% Convert an array of varying strings into an array of characters.
     implicit none
-    type     (varying_string             ), dimension(:)               , intent(in   ) :: varStrings                 
-    character(len=maxval(len(varStrings))), dimension(size(varStrings))                :: Convert_VarString_To_Char  
-    integer                                                                            :: iString                    
-                                                                                                                  
+    type     (varying_string             ), dimension(:)               , intent(in   ) :: varStrings
+    character(len=maxval(len(varStrings))), dimension(size(varStrings))                :: Convert_VarString_To_Char
+    integer                                                                            :: iString
+
     do iString=1,size(varStrings)
        Convert_VarString_To_Char(iString)=varStrings(iString)
     end do
@@ -275,10 +275,10 @@ contains
     !% Convert a C-style character array into a Fortran varying string variable.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type     (varying_string)                :: String_C_to_Fortran     
-    character(kind=c_char   ), intent(in   ) :: charArray          (:)  
-    integer                                  :: i                       
-                                                                     
+    type     (varying_string)                :: String_C_to_Fortran
+    character(kind=c_char   ), intent(in   ) :: charArray          (:)
+    integer                                  :: i
+
     String_C_to_Fortran=""
     do i=1,size(charArray)
        String_C_to_Fortran=String_C_to_Fortran//charArray(i)
@@ -288,11 +288,11 @@ contains
 
   function String_Subscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode subscripts.
-    character(len=*               ), intent(in   ) :: stringInput            
-    character(len=len(stringInput))                :: stringOutput           
-    integer                                        :: iCharacter  , iString  
-    
-    ! Transfer input string to output string.                                                                      
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter  , iString
+
+    ! Transfer input string to output string.
     stringOutput=stringInput
     ! Loop through each character in the string.
     do iString=1,len(stringOutput)
@@ -306,11 +306,11 @@ contains
 
   function String_Superscript(stringInput) result (stringOutput)
     !% Converts an input string to Unicode superscripts.
-    character(len=*               ), intent(in   ) :: stringInput            
-    character(len=len(stringInput))                :: stringOutput           
-    integer                                        :: iCharacter  , iString  
-    
-    ! Transfer input string to output string.                                                                      
+    character(len=*               ), intent(in   ) :: stringInput
+    character(len=len(stringInput))                :: stringOutput
+    integer                                        :: iCharacter  , iString
+
+    ! Transfer input string to output string.
     stringOutput=stringInput
     ! Loop through each character in the string.
     do iString=1,len(stringOutput)
@@ -326,10 +326,10 @@ contains
     !% Compute the \href{http://en.wikipedia.org/wiki/Levenshtein_distance}{Levenshtein distance} between strings {\tt a} and {\tt
     !% b}.
     implicit none
-    character(len=*), intent(in   )                :: s, t        
-    integer         , dimension(0:len(s),0:len(t)) :: d           
-    integer                                        :: i, j, m, n  
-                                                               
+    character(len=*), intent(in   )                :: s, t
+    integer         , dimension(0:len(s),0:len(t)) :: d
+    integer                                        :: i, j, m, n
+
     m=len(s)
     n=len(t)
     do i=0,m
@@ -360,11 +360,11 @@ contains
   function String_Join(strings,separator)
     !% Joins an array of strings into one long string with the given separator.
     implicit none
-    type     (varying_string)                              :: String_Join  
-    type     (varying_string), dimension(:), intent(in   ) :: strings      
-    character(len=*         )              , intent(in   ) :: separator    
-    integer                                                :: i            
-                                                                        
+    type     (varying_string)                              :: String_Join
+    type     (varying_string), dimension(:), intent(in   ) :: strings
+    character(len=*         )              , intent(in   ) :: separator
+    integer                                                :: i
+
     String_Join=""
     do i=1,size(strings)
        String_Join=String_Join//strings(i)

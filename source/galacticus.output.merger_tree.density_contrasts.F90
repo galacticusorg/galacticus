@@ -26,29 +26,29 @@ module Galacticus_Output_Trees_Density_Contrasts
   public :: Galacticus_Output_Tree_Density_Contrast, Galacticus_Output_Tree_Density_Contrast_Property_Count, Galacticus_Output_Tree_Density_Contrast_Names
 
   ! Number of overdensit properties.
-  integer                                                         :: densityContrastPropertyCount                                                       
-  
+  integer                                                         :: densityContrastPropertyCount
+
   ! Flag indicating whether or not density contrast information is to be output.
-  logical                                                         :: outputDensityContrastData                   , outputDensityContrastDataDarkOnly, & 
-       &                                                             outputDensityContrastHaloLoaded                                                    
-  
+  logical                                                         :: outputDensityContrastData                   , outputDensityContrastDataDarkOnly, &
+       &                                                             outputDensityContrastHaloLoaded
+
   ! Array of density contrasts for which to output data.
-  integer                                                         :: densityContrastCount                                                               
-  double precision                    , allocatable, dimension(:) :: outputDensityContrastValues                                                        
-  
+  integer                                                         :: densityContrastCount
+  double precision                    , allocatable, dimension(:) :: outputDensityContrastValues
+
   ! Flag indicating whether or not this module has been initialized.
-  logical                                                         :: outputDensityContrastDataInitialized=.false.                                       
-  
+  logical                                                         :: outputDensityContrastDataInitialized=.false.
+
   ! Label used to specify for what type of mass (dark or all) density contrasts are required.
-  integer                                                         :: massTypeSelected                                                                   
-  
+  integer                                                         :: massTypeSelected
+
   ! Reference density from which contrasts are defined.
-  double precision                                                :: referenceDensity                                                                   
-  
+  double precision                                                :: referenceDensity
+
   ! Global variables used in root finding.
-  type            (treeNode          ), pointer                   :: activeNode                                                                         
-  class           (nodeComponentBasic), pointer                   :: activeBasicComponent                                                               
-  double precision                                                :: meanDensityContrastTarget                                                          
+  type            (treeNode          ), pointer                   :: activeNode
+  class           (nodeComponentBasic), pointer                   :: activeBasicComponent
+  double precision                                                :: meanDensityContrastTarget
   !$omp threadprivate(activeNode,activeBasicComponent,meanDensityContrastTarget)
 contains
 
@@ -96,7 +96,7 @@ contains
              massTypeSelected=massTypeAll
              referenceDensity= Omega_Matter()           *Critical_Density()
           end select
-          
+
           ! Read density contrast values if necessary.
           if (outputDensityContrastData) then
              densityContrastCount=Get_Input_Parameter_Array_Size('outputDensityContrastValues')
@@ -126,7 +126,7 @@ contains
              !@ </inputParameter>
              call Get_Input_Parameter('outputDensityContrastHaloLoaded',outputDensityContrastHaloLoaded,defaultValue=.true.)
           end if
-          
+
           ! Flag that module is now initialized.
           outputDensityContrastDataInitialized=.true.
        end if
@@ -144,14 +144,14 @@ contains
     !% Set the names of density contrast properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    integer                                                          :: iDensity                                           
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+    integer                                                          :: iDensity
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
 
@@ -178,10 +178,10 @@ contains
   subroutine Galacticus_Output_Tree_Density_Contrast_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of density contrast properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                  
-    double precision          , intent(in   )          :: time                                      
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: time
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
 
@@ -204,19 +204,19 @@ contains
     use Root_Finder
     use FGSL
     implicit none
-    double precision                , intent(in   )          :: time                                                       
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                   
-    integer                         , intent(inout)          :: doubleBufferCount            , doubleProperty          , & 
-         &                                                      integerBufferCount           , integerProperty             
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer     (:,:)                                    
-    double precision                , intent(inout)          :: doubleBuffer      (:,:)                                    
-    double precision                , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3    
-    type            (rootFinder    ), save                   :: finder                                                     
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount            , doubleProperty          , &
+         &                                                      integerBufferCount           , integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer     (:,:)
+    double precision                , intent(inout)          :: doubleBuffer      (:,:)
+    double precision                , parameter              :: toleranceAbsolute      =0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder    ), save                   :: finder
     !$omp threadprivate(finder)
-    integer                                                  :: iDensity                                                   
-    double precision                                         :: enclosedMass                 , radius                  , & 
-         &                                                      radiusMaximum                , radiusMinimum               
-    
+    integer                                                  :: iDensity
+    double precision                                         :: enclosedMass                 , radius                  , &
+         &                                                      radiusMaximum                , radiusMinimum
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize
     ! Store property data if we are outputting density contrast data.
@@ -232,7 +232,7 @@ contains
                &                  )
           call finder%rootFunction(Mean_Density_Contrast_Root         )
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       end if       
+       end if
        ! Make the node and basic component available to the root finding routine.
        activeNode           => thisNode
        activeBasicComponent => thisNode%basic()
@@ -266,9 +266,9 @@ contains
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: radius       
-    double precision                :: enclosedMass 
-    
+    double precision, intent(in   ) :: radius
+    double precision                :: enclosedMass
+
     ! Solve for the radius enclosing the specified density contrast.
     enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType&
          &=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
@@ -276,5 +276,5 @@ contains
          &/Expansion_Factor(activeBasicComponent%time())**3)-meanDensityContrastTarget
     return
   end function Mean_Density_Contrast_Root
-  
+
 end module Galacticus_Output_Trees_Density_Contrasts

@@ -29,32 +29,32 @@ module Hot_Halo_Density_Profile
   public :: Hot_Halo_Density, Hot_Halo_Density_Log_Slope, Hot_Halo_Enclosed_Mass, Hot_Halo_Profile_Density_Task,&
        & Hot_Halo_Profile_Rotation_Curve_Task, Hot_Halo_Profile_Enclosed_Mass_Task, Hot_Halo_Profile_Rotation_Normalization,&
        & Hot_Halo_Profile_Rotation_Curve_Gradient_Task,Hot_Halo_Profile_Radial_Moment
-  ! Flag to indicate if this module has been initialized.  
-  logical                                           :: hotHaloDensityInitialized     =.false. 
-  
+  ! Flag to indicate if this module has been initialized.
+  logical                                           :: hotHaloDensityInitialized     =.false.
+
   ! Name of cooling time available method used.
-  type     (varying_string               )          :: hotHaloDensityMethod                   
-  
+  type     (varying_string               )          :: hotHaloDensityMethod
+
   ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get          =>null() 
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Log_Slope_Get=>null() 
-  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Enclosed_Mass_Get    =>null() 
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Get          =>null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Density_Log_Slope_Get=>null()
+  procedure(Hot_Halo_Density_Get_Template), pointer :: Hot_Halo_Enclosed_Mass_Get    =>null()
   abstract interface
      double precision function Hot_Halo_Density_Get_Template(thisNode,radius)
        import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode 
-       double precision          , intent(in   )          :: radius   
+       type            (treeNode), intent(inout), pointer :: thisNode
+       double precision          , intent(in   )          :: radius
      end function Hot_Halo_Density_Get_Template
   end interface
-  procedure(Hot_Halo_Profile_Rotation_Normalization_Template), pointer :: Hot_Halo_Profile_Rotation_Normalization_Get=>null() 
+  procedure(Hot_Halo_Profile_Rotation_Normalization_Template), pointer :: Hot_Halo_Profile_Rotation_Normalization_Get=>null()
   abstract interface
      double precision function Hot_Halo_Profile_Rotation_Normalization_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode 
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Hot_Halo_Profile_Rotation_Normalization_Template
   end interface
-  procedure(Hot_Halo_Profile_Radial_Moment), pointer :: Hot_Halo_Profile_Radial_Moment_Get 
-  
+  procedure(Hot_Halo_Profile_Radial_Moment), pointer :: Hot_Halo_Profile_Radial_Moment_Get
+
 contains
 
   subroutine Hot_Halo_Density_Initialize
@@ -63,9 +63,9 @@ contains
     use Galacticus_Error
     implicit none
 
-    ! Initialize if necessary. 
+    ! Initialize if necessary.
     if (.not.hotHaloDensityInitialized) then
-       !$omp critical(Hot_Halo_Density_Initialization) 
+       !$omp critical(Hot_Halo_Density_Initialization)
        if (.not.hotHaloDensityInitialized) then
           ! Get the cooling time available method parameter.
           !@ <inputParameter>
@@ -97,7 +97,7 @@ contains
                &                             )
           hotHaloDensityInitialized=.true.
        end if
-       !$omp end critical(Hot_Halo_Density_Initialization) 
+       !$omp end critical(Hot_Halo_Density_Initialization)
     end if
     return
   end subroutine Hot_Halo_Density_Initialize
@@ -105,9 +105,9 @@ contains
   double precision function Hot_Halo_Density(thisNode,radius)
     !% Return the density of the hot halo in {\tt thisNode} at radius {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode 
-    double precision          , intent(in   )          :: radius   
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     ! Initialize the module if necessary.
     call Hot_Halo_Density_Initialize
 
@@ -120,9 +120,9 @@ contains
   double precision function Hot_Halo_Density_Log_Slope(thisNode,radius)
     !% Return the density of the hot halo in {\tt thisNode} at radius {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode 
-    double precision          , intent(in   )          :: radius   
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     ! Initialize the module if necessary.
     call Hot_Halo_Density_Initialize
 
@@ -135,18 +135,18 @@ contains
   double precision function Hot_Halo_Enclosed_Mass(thisNode,radius)
     !% Return the enclosed mass of the hot halo in {\tt thisNode} at radius {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode 
-    double precision          , intent(in   )          :: radius   
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
     ! Initialize the module if necessary.
     call Hot_Halo_Density_Initialize
 
     ! Get the cooling time using the selected method.
     Hot_Halo_Enclosed_Mass=Hot_Halo_Enclosed_Mass_Get(thisNode,radius)
-    
+
     return
   end function Hot_Halo_Enclosed_Mass
-  
+
   !# <enclosedMassTask>
   !#  <unitName>Hot_Halo_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
@@ -155,11 +155,11 @@ contains
     use Galactic_Structure_Options
     use Cosmological_Parameters
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                                       
-    integer                   , intent(in   )           :: componentType, massType, weightBy, weightIndex 
-    double precision          , intent(in   )           :: radius                                         
-    logical                   , intent(in   ), optional :: haloLoaded                                     
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType, massType, weightBy, weightIndex
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+
     ! Return zero mass if the requested mass type or component is not matched.
     Hot_Halo_Profile_Enclosed_Mass_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
@@ -179,12 +179,12 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                
-    integer                   , intent(in   )           :: componentType, massType 
-    double precision          , intent(in   )           :: radius                  
-    logical                   , intent(in   ), optional :: haloLoaded              
-    double precision                                    :: componentMass           
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType, massType
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+    double precision                                    :: componentMass
+
     ! Set to zero by default.
     Hot_Halo_Profile_Rotation_Curve_Task=0.0d0
 
@@ -205,12 +205,12 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                        
-    integer                   , intent(in   )           :: componentType   , massType      
-    double precision          , intent(in   )           :: radius                          
-    logical                   , intent(in   ), optional :: haloLoaded                      
-    double precision                                    :: componentDensity, componentMass 
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType   , massType
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+    double precision                                    :: componentDensity, componentMass
+
     ! Set to zero by default.
     Hot_Halo_Profile_Rotation_Curve_Gradient_Task=0.0d0
 
@@ -234,12 +234,12 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                                    
-    integer                   , intent(in   )           :: componentType       , massType, weightBy, & 
-         &                                                 weightIndex                                 
-    double precision          , intent(in   )           :: positionSpherical(3)                        
-    logical                   , intent(in   ), optional :: haloLoaded                                  
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType       , massType, weightBy, &
+         &                                                 weightIndex
+    double precision          , intent(in   )           :: positionSpherical(3)
+    logical                   , intent(in   ), optional :: haloLoaded
+
     Hot_Halo_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBaryonic     .or. massType == massTypeGaseous)) return
@@ -253,8 +253,8 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in
     !% radius) for {\tt thisNode}. Specifically, the normalization, $A$, returned is such that $V_{\rm rot} = A J/M$.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     ! Initialize the module if necessary.
     call Hot_Halo_Density_Initialize
 
@@ -267,14 +267,14 @@ contains
   double precision function Hot_Halo_Profile_Radial_Moment(thisNode,moment,radius)
     !% Returns a radial {\tt moment} of the hot gas profile in {\tt thisNode} to the specified {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode         
-    double precision          , intent(in   )          :: moment  , radius 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: moment  , radius
+
     ! Initialize the module if necessary.
     call Hot_Halo_Density_Initialize()
     ! Get the energy using the selected method.
     Hot_Halo_Profile_Radial_Moment=Hot_Halo_Profile_Radial_Moment_Get(thisNode,moment,radius)
     return
   end function Hot_Halo_Profile_Radial_Moment
-  
+
 end module Hot_Halo_Density_Profile

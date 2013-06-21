@@ -24,28 +24,28 @@ module Merger_Tree_Branching_Modifiers
   private
   public :: Merger_Tree_Branching_Modifier
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                     :: treeBranchingModifierInitialized  =.false.  
-  
-  ! Name of branching method used.                                                                                                        
-  type     (varying_string                         )          :: treeBranchingModifierMethod                 
-  
-  ! Pointer to the functions that return branching probability modifiers.                                                                                                        
-  procedure(Merger_Tree_Branching_Modifier_Template), pointer :: Merger_Tree_Branching_Modifier_Get=>null()  
+  ! Flag to indicate if this module has been initialized.
+  logical                                                     :: treeBranchingModifierInitialized  =.false.
+
+  ! Name of branching method used.
+  type     (varying_string                         )          :: treeBranchingModifierMethod
+
+  ! Pointer to the functions that return branching probability modifiers.
+  procedure(Merger_Tree_Branching_Modifier_Template), pointer :: Merger_Tree_Branching_Modifier_Get=>null()
   abstract interface
      double precision function Merger_Tree_Branching_Modifier_Template(parentDelta,childSigma,parentSigma)
-       double precision, intent(in   ) :: childSigma, parentDelta, parentSigma  
+       double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
      end function Merger_Tree_Branching_Modifier_Template
   end interface
- 
+
 contains
 
   double precision function Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)
     !% Return a modifier for merger tree branching probabilities.
     implicit none
-    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma  
-    
-    ! Initialize if necessary.                                                                      
+    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
+
+    ! Initialize if necessary.
     call Tree_Branching_Modifiers_Initialize
 
     ! Call the function to complete the calculation.
@@ -61,9 +61,9 @@ contains
     include 'merger_trees.branching_probability.modifier.modules.inc'
     !# </include>
     implicit none
- 
+
     ! Initialize if necessary.
-    !$omp critical(Tree_Branching_Modifiers_Initialization) 
+    !$omp critical(Tree_Branching_Modifiers_Initialization)
     if (.not.treeBranchingModifierInitialized) then
        ! Get the tree branching method parameter.
        !@ <inputParameter>
@@ -84,11 +84,11 @@ contains
        !# </include>
        if (.not.associated(Merger_Tree_Branching_Modifier_Get))  &
             & call Galacticus_Error_Report('Tree_Branching_Modifiers_Initialize','method '//char(treeBranchingModifierMethod)//' is unrecognized')
-       
+
        treeBranchingModifierInitialized=.true.
     end if
     !$omp end critical(Tree_Branching_Modifiers_Initialization)
     return
   end subroutine Tree_Branching_Modifiers_Initialize
-  
+
 end module Merger_Tree_Branching_Modifiers

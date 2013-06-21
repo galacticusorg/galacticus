@@ -28,11 +28,11 @@ module Galactic_Structure_Enclosed_Masses
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
 
   ! Variables used in root finding.
-  integer                             :: componentTypeShared, massTypeShared, weightByShared, & 
-       &                                 weightIndexShared                                      
-  double precision                    :: massRoot           , radiusShared                      
-  logical                             :: haloLoadedShared                                       
-  type            (treeNode), pointer :: activeNode                                             
+  integer                             :: componentTypeShared, massTypeShared, weightByShared, &
+       &                                 weightIndexShared
+  double precision                    :: massRoot           , radiusShared
+  logical                             :: haloLoadedShared
+  type            (treeNode), pointer :: activeNode
   !$omp threadprivate(massRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared,activeNode)
 contains
 
@@ -45,14 +45,14 @@ contains
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode               ), intent(inout)          , pointer :: thisNode                                     
-    integer                                  , intent(in   ), optional          :: componentType        , massType, weightBy, & 
-         &                                                                         weightIndex                                  
-    double precision                         , intent(in   ), optional          :: radius                                       
-    logical                                  , intent(in   ), optional          :: haloLoaded                                   
-    procedure       (Component_Enclosed_Mass)                         , pointer :: componentEnclosedMass                        
-    double precision                                                            :: componentMass                                
-    
+    type            (treeNode               ), intent(inout)          , pointer :: thisNode
+    integer                                  , intent(in   ), optional          :: componentType        , massType, weightBy, &
+         &                                                                         weightIndex
+    double precision                         , intent(in   ), optional          :: radius
+    logical                                  , intent(in   ), optional          :: haloLoaded
+    procedure       (Component_Enclosed_Mass)                         , pointer :: componentEnclosedMass
+    double precision                                                            :: componentMass
+
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     ! Determine which radius to use.
@@ -72,7 +72,7 @@ contains
     !# </include>
     return
   end function Galactic_Structure_Enclosed_Mass
-  
+
   double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Return the radius enclosing a given mass (or fractional mass) in {\tt thisNode}.
     use Galacticus_Error
@@ -82,15 +82,15 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type            (treeNode      ), intent(inout), pointer  :: thisNode                                        
-    integer                         , intent(in   ), optional :: componentType , massType, weightBy, weightIndex 
-    double precision                , intent(in   ), optional :: fractionalMass, mass                            
-    logical                         , intent(in   ), optional :: haloLoaded                                      
-    type            (rootFinder    ), save                    :: finder                                          
+    type            (treeNode      ), intent(inout), pointer  :: thisNode
+    integer                         , intent(in   ), optional :: componentType , massType, weightBy, weightIndex
+    double precision                , intent(in   ), optional :: fractionalMass, mass
+    logical                         , intent(in   ), optional :: haloLoaded
+    type            (rootFinder    ), save                    :: finder
     !$omp threadprivate(finder)
-    type            (varying_string)                          :: message                                         
-    character       (len=11        )                          :: massLabel                                       
-    
+    type            (varying_string)                          :: message
+    character       (len=11        )                          :: massLabel
+
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     ! Determine what mass to use.
@@ -140,9 +140,9 @@ contains
     !% Set the default values for options in the enclosed mass functions.
     use Galacticus_Error
     implicit none
-    integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex 
-    logical, intent(in   ), optional :: haloLoaded                                     
-    
+    integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex
+    logical, intent(in   ), optional :: haloLoaded
+
     ! Determine which mass type to use.
     if (present(massType)) then
        massTypeShared=massType
@@ -177,8 +177,8 @@ contains
 
   double precision function Enclosed_Mass_Root(radius)
     !% Root function used in solving for the radius that encloses a given mass.
-    double precision, intent(in   ) :: radius 
-    
+    double precision, intent(in   ) :: radius
+
     ! Evaluate the root function.
     Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,componentTypeShared,massTypeShared,weightByShared&
          &,weightIndexShared,haloLoadedShared)-massRoot
@@ -187,8 +187,8 @@ contains
   double precision function Component_Enclosed_Mass(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components.
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     Component_Enclosed_Mass=component%enclosedMass(radiusShared,componentTypeShared,massTypeShared&
          &,weightByShared,weightIndexShared,haloLoadedShared)
     return

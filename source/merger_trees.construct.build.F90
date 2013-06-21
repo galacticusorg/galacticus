@@ -26,30 +26,30 @@ module Merger_Tree_Build
   public :: Merger_Tree_Build_Initialize
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
-  double precision                                                          :: mergerTreeBuildHaloMassMaximum               , mergerTreeBuildHaloMassMinimum          , & 
-       &                                                                       mergerTreeBuildTreesBaseRedshift             , mergerTreeBuildTreesBaseTime            , & 
-       &                                                                       mergerTreeBuildTreesPerDecade                                                              
-  integer                                                                   :: mergerTreeBuildTreesBeginAtTree                                                            
-  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile                , mergerTreeBuildTreesHaloMassDistribution    
-  
+  double precision                                                          :: mergerTreeBuildHaloMassMaximum               , mergerTreeBuildHaloMassMinimum          , &
+       &                                                                       mergerTreeBuildTreesBaseRedshift             , mergerTreeBuildTreesBaseTime            , &
+       &                                                                       mergerTreeBuildTreesPerDecade
+  integer                                                                   :: mergerTreeBuildTreesBeginAtTree
+  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile                , mergerTreeBuildTreesHaloMassDistribution
+
   ! Direction in which to process trees.
-  logical                                                                   :: mergerTreeBuildTreesProcessDescending                                                      
-  
+  logical                                                                   :: mergerTreeBuildTreesProcessDescending
+
   ! Array of halo masses to use.
-  integer                                                                   :: nextTreeIndex                                , treeCount                                   
-  double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight                                  
-  
+  integer                                                                   :: nextTreeIndex                                , treeCount
+  double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight
+
   ! Name of merger tree builder method.
-  type            (varying_string              )                            :: mergerTreeBuildMethod                                                                      
+  type            (varying_string              )                            :: mergerTreeBuildMethod
   ! Pointer to the subroutine that builds the merger tree.
-  procedure       (Merger_Tree_Builder_Template), pointer                   :: Merger_Tree_Builder                  =>null()                                              
+  procedure       (Merger_Tree_Builder_Template), pointer                   :: Merger_Tree_Builder                  =>null()
   abstract interface
      subroutine Merger_Tree_Builder_Template(thisTree)
        import mergerTree
-       type(mergerTree), intent(inout) :: thisTree 
+       type(mergerTree), intent(inout) :: thisTree
      end subroutine Merger_Tree_Builder_Template
   end interface
-  
+
 contains
 
   !# <mergerTreeConstructMethod>
@@ -74,29 +74,29 @@ contains
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
-    type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod                                                          
-    procedure       (                          )             , intent(inout), pointer :: Merger_Tree_Construct                                                              
-    type            (Node                      )                            , pointer :: doc                                 , thisTree                                     
-    type            (NodeList                  )                            , pointer :: rootMassList                                                                       
-    integer                                     , parameter                           :: massFunctionSamplePerDecade  =100                                                  
-    double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3    
-    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , & 
-         &                                                                               massFunctionSampleProbability                                                      
-    integer                                                                           :: iSample                             , iTree                                    , & 
-         &                                                                               ioErr                               , jSample                                  , & 
-         &                                                                               massFunctionSampleCount                                                            
-    type            (fgsl_qrng                 )                                      :: quasiSequenceObject                                                                
-    logical                                                                           :: quasiSequenceReset           =.true.                                               
-    double precision                                                                  :: expansionFactor                     , massFunctionSampleLogPrevious            , & 
-         &                                                                               massMaximum                         , massMinimum                              , & 
-         &                                                                               probability                                                                        
-    type            (fgsl_function             )                                      :: integrandFunction                                                                  
-    type            (fgsl_integration_workspace)                                      :: integrationWorkspace                                                               
-    type            (fgsl_interp               )                                      :: interpolationObject                                                                
-    type            (fgsl_interp_accel         )                                      :: interpolationAccelerator                                                           
-    type            (c_ptr                     )                                      :: parameterPointer                                                                   
-    logical                                                                           :: integrandReset               =.true., interpolationReset                =.true.    
-    
+    type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
+    procedure       (                          )             , intent(inout), pointer :: Merger_Tree_Construct
+    type            (Node                      )                            , pointer :: doc                                 , thisTree
+    type            (NodeList                  )                            , pointer :: rootMassList
+    integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
+    double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3
+    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , &
+         &                                                                               massFunctionSampleProbability
+    integer                                                                           :: iSample                             , iTree                                    , &
+         &                                                                               ioErr                               , jSample                                  , &
+         &                                                                               massFunctionSampleCount
+    type            (fgsl_qrng                 )                                      :: quasiSequenceObject
+    logical                                                                           :: quasiSequenceReset           =.true.
+    double precision                                                                  :: expansionFactor                     , massFunctionSampleLogPrevious            , &
+         &                                                                               massMaximum                         , massMinimum                              , &
+         &                                                                               probability
+    type            (fgsl_function             )                                      :: integrandFunction
+    type            (fgsl_integration_workspace)                                      :: integrationWorkspace
+    type            (fgsl_interp               )                                      :: interpolationObject
+    type            (fgsl_interp_accel         )                                      :: interpolationAccelerator
+    type            (c_ptr                     )                                      :: parameterPointer
+    logical                                                                           :: integrandReset               =.true., interpolationReset                =.true.
+
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -104,7 +104,7 @@ contains
        ! Read parameters for halo mass sampling.
        !@ <inputParameter>
        !@   <name>mergerTreeBuildHaloMassMinimum</name>
-       !@   <defaultValue>$10^{10}$</defaultValue>       
+       !@   <defaultValue>$10^{10}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The minimum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
@@ -115,7 +115,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildHaloMassMinimum'  ,mergerTreeBuildHaloMassMinimum  ,defaultValue=1.0d10)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildHaloMassMaximum</name>
-       !@   <defaultValue>$10^{15}$</defaultValue>       
+       !@   <defaultValue>$10^{15}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The maximum mass of merger tree base halos to consider when building merger trees, in units of $M_\odot$.
@@ -126,7 +126,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildHaloMassMaximum'  ,mergerTreeBuildHaloMassMaximum  ,defaultValue=1.0d15)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesPerDecade</name>
-       !@   <defaultValue>10</defaultValue>       
+       !@   <defaultValue>10</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The number of merger trees to build per decade of base halo mass.
@@ -137,7 +137,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesPerDecade'   ,mergerTreeBuildTreesPerDecade   ,defaultValue=10.0d0)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesBaseRedshift</name>
-       !@   <defaultValue>0</defaultValue>       
+       !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The redshift at which to plant the base node when building merger trees.
@@ -148,7 +148,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesBaseRedshift',mergerTreeBuildTreesBaseRedshift,defaultValue=0.0d0 )
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesBeginAtTree</name>
-       !@   <defaultValue>1</defaultValue>       
+       !@   <defaultValue>1</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees.
@@ -160,7 +160,7 @@ contains
        nextTreeIndex=mergerTreeBuildTreesBeginAtTree
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesHaloMassDistribution</name>
-       !@   <defaultValue>uniform</defaultValue>       
+       !@   <defaultValue>uniform</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The method to be used to construct a distribution of base halo masses.
@@ -171,7 +171,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesHaloMassDistribution',mergerTreeBuildTreesHaloMassDistribution,defaultValue="uniform")
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesProcessDescending</name>
-       !@   <defaultValue>true</defaultValue>       
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     If true, causes merger trees to be processed in order of decreasing mass.
@@ -182,7 +182,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesProcessDescending',mergerTreeBuildTreesProcessDescending,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreeMassesFile</name>
-       !@   <defaultValue>null</defaultValue>       
+       !@   <defaultValue>null</defaultValue>
        !@   <description>
        !@     Specifies the name of a file from which to read the masses of merger tree root halos when building merger trees.
        !@   </description>
@@ -190,10 +190,10 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
-       
+
        ! Find the cosmic time at which the trees are based.
        expansionFactor=Expansion_Factor_from_Redshift(mergerTreeBuildTreesBaseRedshift)
-       mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)       
+       mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
@@ -207,7 +207,7 @@ contains
           treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))
           call Alloc_Array(treeHaloMass,[treeCount])
           call Alloc_Array(treeWeight  ,[treeCount])
-          
+
           ! Create a distribution of halo masses.
           select case (char(mergerTreeBuildTreesHaloMassDistribution))
           case ("quasi")
@@ -343,14 +343,14 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Merger_Trees_Mass_Function_Sampling
     implicit none
-    real(kind=c_double)        :: Mass_Function_Sampling_Integrand 
-    real(kind=c_double), value :: logMass                          
-    type(c_ptr        ), value :: parameterPointer                 
-    
+    real(kind=c_double)        :: Mass_Function_Sampling_Integrand
+    real(kind=c_double), value :: logMass
+    type(c_ptr        ), value :: parameterPointer
+
     Mass_Function_Sampling_Integrand=Merger_Tree_Construct_Mass_Function_Sampling(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
     return
   end function Mass_Function_Sampling_Integrand
-  
+
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
     use Galacticus_Nodes
@@ -358,13 +358,13 @@ contains
     use Kind_Numbers
     use String_Handling
     implicit none
-    type   (mergerTree        ), intent(inout) :: thisTree                 
-    logical                    , intent(in   ) :: skipTree                 
-    class  (nodeComponentBasic), pointer       :: baseNodeBasicComponent   
-    integer(kind=kind_int8    ), parameter     :: baseNodeIndex         =1 
-    integer(kind=kind_int8    )                :: thisTreeIndex            
-    type   (varying_string    )                :: message                  
-    
+    type   (mergerTree        ), intent(inout) :: thisTree
+    logical                    , intent(in   ) :: skipTree
+    class  (nodeComponentBasic), pointer       :: baseNodeBasicComponent
+    integer(kind=kind_int8    ), parameter     :: baseNodeIndex         =1
+    integer(kind=kind_int8    )                :: thisTreeIndex
+    type   (varying_string    )                :: message
+
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
     !$omp critical (Merger_Tree_Build_Do)

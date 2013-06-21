@@ -40,12 +40,12 @@ contains
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    logical                                                        , intent(in   )          :: componentMatched     
-    type            (treeNode          )                           , intent(inout), pointer :: thisNode             
-    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties  
-    class           (nodeComponentBasic)             , pointer                              :: thisBasicComponent   
-    
-    ! Return immediately if this component was not matched.                                                                                                             
+    logical                                                        , intent(in   )          :: componentMatched
+    type            (treeNode          )                           , intent(inout), pointer :: thisNode
+    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
+    class           (nodeComponentBasic)             , pointer                              :: thisBasicComponent
+
+    ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
 
     ! Ensure that the properties array is allocated.
@@ -64,13 +64,13 @@ contains
   !# </radiationTemperature>
   subroutine Radiation_Temperature_CMB(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
     !% Returns the temperature for the cosmic microwave background radiation component.
-    implicit none 
-    integer                                    , intent(in   )           :: ourType             , requestedType  
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                  
-    double precision                           , intent(inout)           :: radiationTemperature                 
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                        
-    
-    ! Return immediately if this component was not matched.                                                                                                          
+    implicit none
+    integer                                    , intent(in   )           :: ourType             , requestedType
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationTemperature
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
+    ! Return immediately if this component was not matched.
     if (requestedType /= ourType) return
 
     ! Return immediately if the radiation object is not initialized.
@@ -97,13 +97,13 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Prefixes
     implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType  
-    double precision                           , intent(in   )           :: wavelength                          
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                 
-    double precision                           , intent(inout)           :: radiationFlux                       
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                       
-    
-    ! Return immediately if this component was not matched.                                                                                                         
+    integer                                    , intent(in   )           :: ourType            , requestedType
+    double precision                           , intent(in   )           :: wavelength
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationFlux
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
+    ! Return immediately if this component was not matched.
     if (requestedType /= ourType) return
 
     ! Return immediately if the radiation object is not initialized.

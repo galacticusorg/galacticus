@@ -28,40 +28,40 @@ module Chemical_States_CIE_File
        & Chemical_State_CIE_File_Format_Version
 
   ! Flag to indicate if this module has been initialized.
-  logical                                                          :: chemicalStateInitialized            =.false.                                                 
-  logical                                                          :: chemicalStateChemicalsInitialized   =.false.                                                 
-  
+  logical                                                          :: chemicalStateInitialized            =.false.
+  logical                                                          :: chemicalStateChemicalsInitialized   =.false.
+
   ! File name for the chemical state data.
-  type            (varying_string   )                              :: chemicalStateFile                                                                            
-  
+  type            (varying_string   )                              :: chemicalStateFile
+
   ! Ranges of the tabulations.
-  double precision                                                 :: metallicityMaximum                          , metallicityMinimum                         , & 
-       &                                                              temperatureMaximum                          , temperatureMinimum                             
-  
+  double precision                                                 :: metallicityMaximum                          , metallicityMinimum                         , &
+       &                                                              temperatureMaximum                          , temperatureMinimum
+
   ! Extrapolation methods.
-  integer                                                          :: extrapolateMetallicityHigh                  , extrapolateMetallicityLow                  , & 
-       &                                                              extrapolateTemperatureHigh                  , extrapolateTemperatureLow                      
-  
+  integer                                                          :: extrapolateMetallicityHigh                  , extrapolateMetallicityLow                  , &
+       &                                                              extrapolateTemperatureHigh                  , extrapolateTemperatureLow
+
   ! The chemical state tables.
-  logical                                                          :: firstMetallicityIsZero                      , gotHydrogenAtomic                          , & 
-       &                                                              gotHydrogenCation                           , logarithmicTable                               
-  integer                                                          :: chemicalStateMetallicityNumberPoints        , chemicalStateTemperatureNumberPoints           
-  double precision                                                 :: firstNonZeroMetallicity                                                                      
-  double precision                   , allocatable, dimension(:)   :: chemicalStateMetallicities                  , chemicalStateTemperatures                      
-  double precision                   , allocatable, dimension(:,:) :: electronDensityTable                        , hydrogenAtomicDensityTable                 , & 
-       &                                                              hydrogenCationDensityTable                                                                   
-  
+  logical                                                          :: firstMetallicityIsZero                      , gotHydrogenAtomic                          , &
+       &                                                              gotHydrogenCation                           , logarithmicTable
+  integer                                                          :: chemicalStateMetallicityNumberPoints        , chemicalStateTemperatureNumberPoints
+  double precision                                                 :: firstNonZeroMetallicity
+  double precision                   , allocatable, dimension(:)   :: chemicalStateMetallicities                  , chemicalStateTemperatures
+  double precision                   , allocatable, dimension(:,:) :: electronDensityTable                        , hydrogenAtomicDensityTable                 , &
+       &                                                              hydrogenCationDensityTable
+
   ! Interpolation structures.
-  logical                                                          :: resetMetallicity                    =.true. , resetTemperature                    =.true.    
-  type            (fgsl_interp_accel)                              :: interpolationAcceleratorMetallicity         , interpolationAcceleratorTemperature            
-  
+  logical                                                          :: resetMetallicity                    =.true. , resetTemperature                    =.true.
+  type            (fgsl_interp_accel)                              :: interpolationAcceleratorMetallicity         , interpolationAcceleratorTemperature
+
   ! Chemical indices.
-  integer                                                          :: atomicHydrogenCationChemicalIndex           , atomicHydrogenChemicalIndex                , & 
-       &                                                              electronChemicalIndex                                                                        
-  
+  integer                                                          :: atomicHydrogenCationChemicalIndex           , atomicHydrogenChemicalIndex                , &
+       &                                                              electronChemicalIndex
+
   ! Current file format version for CIE cooling files.
-  integer                            , parameter                   :: fileFormatVersionCurrent            =1                                                       
-  
+  integer                            , parameter                   :: fileFormatVersionCurrent            =1
+
 contains
 
   integer function Chemical_State_CIE_File_Format_Version()
@@ -80,11 +80,11 @@ contains
     !% Initializes the ``CIE ionization state from file'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: chemicalStateMethod                                                 
-    procedure(double precision), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get    , Electron_Density_Get, & 
-         &                                                 Electron_Density_Temperature_Log_Slope_Get                          
-    procedure(                ), intent(inout), pointer :: Chemical_Densities_Get                                              
-    
+    type     (varying_string  ), intent(in   )          :: chemicalStateMethod
+    procedure(double precision), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get    , Electron_Density_Get, &
+         &                                                 Electron_Density_Temperature_Log_Slope_Get
+    procedure(                ), intent(inout), pointer :: Chemical_Densities_Get
+
     if (chemicalStateMethod == 'cieFromFile') then
        ! Set the procedure pointer.
        Electron_Density_Get                       => Electron_Density_CIE_File
@@ -113,13 +113,13 @@ contains
     if (.not.chemicalStateInitialized) then
        !$omp critical (Chemical_State_CIE_File_Initialize)
        if (.not.chemicalStateInitialized) then
-          
+
           ! Call routine to read in the tabulated data.
           call Chemical_State_CIE_File_Read(chemicalStateFile)
-          
+
           ! Get chemical indices.
           call Chemical_State_CIE_Chemicals_Initialize
-          
+
           ! Flag that chemical state is now initialized.
           chemicalStateInitialized=.true.
        end if
@@ -127,16 +127,16 @@ contains
     end if
     return
   end subroutine Chemical_State_CIE_File_Read_Initialize
- 
+
   subroutine Chemical_State_CIE_Chemicals_Initialize
     !% Ensure that chemical indices have been found.
     use Chemical_Abundances_Structure
     implicit none
-    
+
     if (.not.chemicalStateChemicalsInitialized) then
        !$omp critical (Chemical_State_CIE_File_Chemicals_Initialize)
        if (.not.chemicalStateChemicalsInitialized) then
-          
+
           ! Get chemical indices.
           electronChemicalIndex               =Chemicals_Index("Electron"            )
           if (gotHydrogenAtomic) then
@@ -149,10 +149,10 @@ contains
           else
              atomicHydrogenCationChemicalIndex=-1
           end if
-          
+
           ! Flag that chemical state chemical indices are now initialized.
           chemicalStateChemicalsInitialized=.true.
-          
+
        end if
        !$omp end critical (Chemical_State_CIE_File_Chemicals_Initialize)
     end if
@@ -164,10 +164,10 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Ensure file has been read in.
     call Chemical_State_CIE_File_Read_Initialize
 
@@ -184,16 +184,16 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen         , temperature                   
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                 
-    type            (radiationStructure), intent(in   ) :: radiation                                                     
-    double precision                    , save          :: electronDensityPrevious       , metallicityPrevious=-1.0d0, & 
-         &                                                 temperaturePrevious    =-1.0d0                                
+    double precision                    , intent(in   ) :: numberDensityHydrogen         , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , save          :: electronDensityPrevious       , metallicityPrevious=-1.0d0, &
+         &                                                 temperaturePrevious    =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensityPrevious)
-    integer                                             :: iMetallicity                  , iTemperature                  
-    double precision                                    :: hMetallicity                  , hTemperature              , & 
-         &                                                 metallicityUse                , temperatureUse                
-    
+    integer                                             :: iMetallicity                  , iTemperature
+    double precision                                    :: hMetallicity                  , hTemperature              , &
+         &                                                 metallicityUse                , temperatureUse
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
@@ -263,10 +263,10 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Ensure file has been read in.
     call Chemical_State_CIE_File_Read_Initialize
 
@@ -284,16 +284,16 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen              , temperature                   
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                      
-    type            (radiationStructure), intent(in   ) :: radiation                                                          
-    double precision                    , save          :: electronDensitySlopePrevious       , metallicityPrevious=-1.0d0, & 
-         &                                                 temperaturePrevious         =-1.0d0                                
+    double precision                    , intent(in   ) :: numberDensityHydrogen              , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , save          :: electronDensitySlopePrevious       , metallicityPrevious=-1.0d0, &
+         &                                                 temperaturePrevious         =-1.0d0
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,electronDensitySlopePrevious)
-    integer                                             :: iMetallicity                       , iTemperature                  
-    double precision                                    :: hMetallicity                       , hTemperature              , & 
-         &                                                 metallicityUse                     , temperatureUse                
-    
+    integer                                             :: iMetallicity                       , iTemperature
+    double precision                                    :: hMetallicity                       , hTemperature              , &
+         &                                                 metallicityUse                     , temperatureUse
+
     ! Handle out of range temperatures.
     temperatureUse=temperature
     if (temperatureUse < temperatureMinimum) then
@@ -345,7 +345,7 @@ contains
        ! Do the interpolation.
        electronDensitySlopePrevious=( ( electronDensityTable(iTemperature+1,iMetallicity  )                       &
             &                          -electronDensityTable(iTemperature  ,iMetallicity  ))*(1.0d0-hMetallicity) &
-            &                        +( electronDensityTable(iTemperature+1,iMetallicity+1)                       & 
+            &                        +( electronDensityTable(iTemperature+1,iMetallicity+1)                       &
             &                          -electronDensityTable(iTemperature  ,iMetallicity+1))*       hMetallicity) &
             & /(chemicalStateTemperatures(iTemperature+1)-chemicalStateTemperatures(iTemperature))
 
@@ -371,10 +371,10 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Electron density always scales as total density under CIE conditions.
     Electron_Density_Density_Log_Slope_CIE_File=1.0d0
 
@@ -390,30 +390,30 @@ contains
     use Galacticus_Display
     use IO_XML
     implicit none
-    type            (varying_string)         , intent(in   )           :: chemicalStateFileToRead                                       
-    double precision                         , intent(  out), optional :: metallicityMaximumTabulated                                   
-    type            (Node          ), pointer                          :: datum                          , doc                      , & 
-         &                                                                extrapolation                  , extrapolationElement     , & 
-         &                                                                metallicityElement             , thisChemicalState        , & 
-         &                                                                thisElectronDensity            , thisHydrogenAtomicDensity, & 
-         &                                                                thisHydrogenCationDensity      , thisTemperature          , & 
-         &                                                                version                                                       
-    type            (NodeList      ), pointer                          :: chemicalStateList              , electronDatumList        , & 
-         &                                                                hydrogenAtomicDatumList        , hydrogenCationDatumList  , & 
-         &                                                                metallicityExtrapolationList   , temperatureDatumList     , & 
-         &                                                                temperatureExtrapolationList   , versionList                  
-    integer                                                            :: extrapolationMethod            , fileFormatVersion        , & 
-         &                                                                iChemicalState                 , iDatum                   , & 
-         &                                                                iExtrapolation                 , ioErr                        
-    double precision                                                   :: datumValues                 (1)                               
-    character       (len=32        )                                   :: limitType                                                     
-    
+    type            (varying_string)         , intent(in   )           :: chemicalStateFileToRead
+    double precision                         , intent(  out), optional :: metallicityMaximumTabulated
+    type            (Node          ), pointer                          :: datum                          , doc                      , &
+         &                                                                extrapolation                  , extrapolationElement     , &
+         &                                                                metallicityElement             , thisChemicalState        , &
+         &                                                                thisElectronDensity            , thisHydrogenAtomicDensity, &
+         &                                                                thisHydrogenCationDensity      , thisTemperature          , &
+         &                                                                version
+    type            (NodeList      ), pointer                          :: chemicalStateList              , electronDatumList        , &
+         &                                                                hydrogenAtomicDatumList        , hydrogenCationDatumList  , &
+         &                                                                metallicityExtrapolationList   , temperatureDatumList     , &
+         &                                                                temperatureExtrapolationList   , versionList
+    integer                                                            :: extrapolationMethod            , fileFormatVersion        , &
+         &                                                                iChemicalState                 , iDatum                   , &
+         &                                                                iExtrapolation                 , ioErr
+    double precision                                                   :: datumValues                 (1)
+    character       (len=32        )                                   :: limitType
+
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
     call Galacticus_Display_Indent('Parsing file: '//chemicalStateFileToRead,verbosityDebug)
     doc => parseFile(char(chemicalStateFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','Unable to find chemical state file')
- 
+
     ! Check the file format version of the file.
     versionList => getElementsByTagname(doc,"fileFormat")
     version     => item(versionList,0)
@@ -597,11 +597,11 @@ contains
     !% Determine the interpolating paramters.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: metallicityIn , temperatureIn  
-    integer         , intent(  out) :: iMetallicity  , iTemperature   
-    double precision, intent(  out) :: hMetallicity  , hTemperature   
-    double precision                :: metallicityUse, temperatureUse 
-    
+    double precision, intent(in   ) :: metallicityIn , temperatureIn
+    integer         , intent(  out) :: iMetallicity  , iTemperature
+    double precision, intent(  out) :: hMetallicity  , hTemperature
+    double precision                :: metallicityUse, temperatureUse
+
     ! Copy the input parameters.
     temperatureUse=temperatureIn
     metallicityUse=max(metallicityIn,0.0d0)
@@ -631,10 +631,10 @@ contains
   double precision function Do_Interpolation(iTemperature,hTemperature,iMetallicity,hMetallicity,densityTable)
     !% Perform the interpolation.
     implicit none
-    integer                         , intent(in   ) :: iMetallicity, iTemperature 
-    double precision                , intent(in   ) :: hMetallicity, hTemperature 
-    double precision, dimension(:,:), intent(in   ) :: densityTable               
-    
+    integer                         , intent(in   ) :: iMetallicity, iTemperature
+    double precision                , intent(in   ) :: hMetallicity, hTemperature
+    double precision, dimension(:,:), intent(in   ) :: densityTable
+
     ! Do the interpolation.
     Do_Interpolation=densityTable(iTemperature  ,iMetallicity  )*(1.0d0-hTemperature)*(1.0d0-hMetallicity)&
          &          +densityTable(iTemperature  ,iMetallicity+1)*(1.0d0-hTemperature)*       hMetallicity &
@@ -654,11 +654,11 @@ contains
     use Radiation_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances), intent(inout) :: theseAbundances                    
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    type            (chemicalAbundances), intent(inout) :: theseAbundances
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Ensure file has been read in.
     call Chemical_State_CIE_File_Read_Initialize
 
@@ -676,17 +676,17 @@ contains
     use Numerical_Constants_Astronomical
     use IO_XML
     implicit none
-    type            (chemicalAbundances)      , intent(inout) :: theseChemicals                                                  
-    double precision                          , intent(in   ) :: numberDensityHydrogen           , temperature                   
-    type            (abundances        )      , intent(in   ) :: gasAbundances                                                   
-    type            (radiationStructure)      , intent(in   ) :: radiation                                                       
-    double precision                    , save                :: metallicityPrevious      =-1.0d0, temperaturePrevious=-1.0d0    
-    type            (chemicalAbundances), save                :: chemicalDensitiesPrevious                                       
+    type            (chemicalAbundances)      , intent(inout) :: theseChemicals
+    double precision                          , intent(in   ) :: numberDensityHydrogen           , temperature
+    type            (abundances        )      , intent(in   ) :: gasAbundances
+    type            (radiationStructure)      , intent(in   ) :: radiation
+    double precision                    , save                :: metallicityPrevious      =-1.0d0, temperaturePrevious=-1.0d0
+    type            (chemicalAbundances), save                :: chemicalDensitiesPrevious
     !$omp threadprivate(temperaturePrevious,metallicityPrevious,chemicalDensitiesPrevious)
-    integer                                                   :: iMetallicity                    , iTemperature                  
-    double precision                                          :: hMetallicity                    , hTemperature              , & 
-         &                                                       metallicityUse                  , temperatureUse                
-    
+    integer                                                   :: iMetallicity                    , iTemperature
+    double precision                                          :: hMetallicity                    , hTemperature              , &
+         &                                                       metallicityUse                  , temperatureUse
+
     ! Ensure that chemical indices have been determined.
     call Chemical_State_CIE_Chemicals_Initialize
 

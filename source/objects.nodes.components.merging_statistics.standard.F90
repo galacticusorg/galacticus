@@ -65,11 +65,11 @@ module Node_Component_Merging_Statistics_Standard
   !# </component>
 
   ! Parameters controlling the statistics gathered.
-  double precision :: nodeFormationMassFraction        , nodeMajorMergerFraction  
-  
-  ! Record of whether this module has been initialized.                                                                             
-  logical          :: moduleInitialized        =.false.                           
-                                                                               
+  double precision :: nodeFormationMassFraction        , nodeMajorMergerFraction
+
+  ! Record of whether this module has been initialized.
+  logical          :: moduleInitialized        =.false.
+
 contains
 
   subroutine Node_Component_Merging_Statistics_Standard_Initialize()
@@ -104,7 +104,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('nodeFormationMassFraction',nodeFormationMassFraction,defaultValue=0.5d0)
        ! Record that the module is now initialized.
-       moduleInitialized=.true.     
+       moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Merging_Statistics_Standard_Initialize)
     return
@@ -117,14 +117,14 @@ contains
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: thisNode                        
-    type   (treeNode                      )               , pointer :: descendentNode                  
-    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatisticsComponent  
-    integer                                                         :: hierarchyLevel                  
-    
-    ! Return immediately if this class is not active.                                                                                                
+    type   (treeNode                      ), intent(inout), pointer :: thisNode
+    type   (treeNode                      )               , pointer :: descendentNode
+    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatisticsComponent
+    integer                                                         :: hierarchyLevel
+
+    ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-    
+
     ! Ensure that the module is initialized.
     call Node_Component_Merging_Statistics_Standard_Initialize()
 
@@ -152,13 +152,13 @@ contains
   subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(thisNode)
     !% Record any major merger of {\tt thisNode}.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode                                              
-    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent                      
-    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent  
-    
-    ! Return immediately if this class is not active.                                                                                                                    
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent
+    class(nodeComponentBasic            )               , pointer :: parentBasicComponent            , thisBasicComponent
+
+    ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-    
+
     thisBasicComponent               => thisNode       %basic            ()
     parentBasicComponent             => thisNode%parent%basic            ()
     parentMergingStatisticsComponent => thisNode%parent%mergingStatistics()
@@ -167,19 +167,19 @@ contains
             &  call parentMergingStatisticsComponent%nodeMajorMergerTimeSet(thisBasicComponent%time())
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Merger
-  
+
   !# <nodePromotionTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Promotion</unitName>
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(thisNode)
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the node merger time.
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode                                                          
-    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent, thisMergingStatisticsComponent  
-    
-    ! Return immediately if this class is not active.                                                                                                                                
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentMergingStatistics)               , pointer :: parentMergingStatisticsComponent, thisMergingStatisticsComponent
+
+    ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-    
+
     ! Get the merging statistics components.
     parentMergingStatisticsComponent => thisNode%parent%mergingStatistics()
     thisMergingStatisticsComponent   => thisNode       %mergingStatistics()
@@ -197,16 +197,16 @@ contains
     !% Record properties of a merging event for {\tt thisNode}.
     use Satellite_Merging_Mass_Movements_Descriptors
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode                        
-    type (treeNode                      )               , pointer :: hostNode                        
-    class(nodeComponentBasic            )               , pointer :: hostBasicComponent              
-    class(nodeComponentMergingStatistics)               , pointer :: hostMergingStatisticsComponent  
-    
-    ! Return immediately if this class is not active.                                                                                              
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    type (treeNode                      )               , pointer :: hostNode
+    class(nodeComponentBasic            )               , pointer :: hostBasicComponent
+    class(nodeComponentMergingStatistics)               , pointer :: hostMergingStatisticsComponent
+
+    ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-    
+
     ! Record the time of this merger if it is a major merger.
-    if (thisMergerIsMajor) then          
+    if (thisMergerIsMajor) then
        ! Find the node to merge with.
        hostNode                       => thisNode%mergesWith       ()
        hostBasicComponent             => hostNode%basic            ()
