@@ -141,7 +141,7 @@ contains
     integer,                                     intent(out)   :: transferFunctionNumberPoints
     integer                                                    :: iWavenumber
     double precision                                           :: qEH,wavenumber,Theta27,zeq,b1,b2,zd,yd,s,fv,Nv,fb ,fc,fcb,fvb&
-         &,pc,pcb,alphav,Gammaeff,qeff,betac,L,C,Tsup,qv,Bk
+         &,pc,pcb,alphav,Gammaeff,qeff,betac,L,C,Tsup,qv,Bk,transferFunctionWdmFactor
  
     ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
@@ -205,8 +205,23 @@ contains
           Bk=1.0d0
        end if
        transferFunctionLogT(iWavenumber)=log(Tsup*Bk)
-       if (transferFunctionWdmCutOffScale > 0.0d0) transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)+log((1.0d0&
-            &+(transferFunctionWdmEpsilon*wavenumber*transferFunctionWdmCutOffScale)**(2.0d0*transferFunctionWdmNu))**(-transferFunctionWdmEta/transferFunctionWdmNu))
+       if (transferFunctionWdmCutOffScale > 0.0d0) then
+          transferFunctionWdmFactor=                                &
+               & (                                                  &
+               &   1.0d0                                            &
+               &  +                                                 &
+               &   (                                                &
+               &     transferFunctionWdmEpsilon                     &
+               &    *wavenumber                                     &
+               &    *transferFunctionWdmCutOffScale                 &
+               &   )**(2.0d0*transferFunctionWdmNu)                 &
+               & )**(-transferFunctionWdmEta/transferFunctionWdmNu)
+          if (transferFunctionWdmFactor > 0.0d0) then
+             transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)+log(transferFunctionWdmFactor)
+          else
+             transferFunctionLogT(iWavenumber)=transferFunctionLogT(iWavenumber)-100.0d0
+          end if
+       end if
     end do
     return
   end subroutine Transfer_Function_Eisenstein_Hu_Make
