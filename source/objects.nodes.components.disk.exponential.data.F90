@@ -59,7 +59,8 @@ module Node_Component_Disk_Exponential_Data
   double precision                                                      :: rotationCurveGradientHalfRadiusMaximum       =rotationCurveGradientHalfRadiusMaximumDefault, rotationCurveGradientHalfRadiusMinimum       =rotationCurveGradientHalfRadiusMinimumDefault    
   type            (table1DLogarithmicLinear)                            :: rotationCurveGradientTable                                                                                                                                                                  
   
-  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing  ! rotation curves.
+  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
+  ! rotation curves.
   double precision                          , parameter                 :: fractionalRadiusMaximum                      =30.0d0                                                                                                                                        
   
   ! Parameter controlling the scale height of the disk.

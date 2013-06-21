@@ -242,7 +242,8 @@ contains
          &                                                       electronChemicalIndex                                                             
     double precision                                          :: rate                                     , rateCoefficient                        
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -375,7 +376,8 @@ contains
          &                                                       chemicalHydrogenChemicalIndex           , electronChemicalIndex                  
     double precision                                          :: rate                                    , rateCoefficient                        
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -587,7 +589,8 @@ contains
     double precision                                          :: logNaturalTemperatureElectronVolts         , rate                                 , & 
          &                                                       rateCoefficient                            , temperatureElectronVolts                 
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
@@ -659,7 +662,8 @@ contains
          &                                                       electronChemicalIndex                                                         
     double precision                                          :: rate                               , rateCoefficient                          
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
@@ -1179,7 +1183,8 @@ contains
          &                                                                  electronChemicalIndex                                                                                                                                    
     double precision                                                     :: rate                                                                                                            , rateCoefficient                        
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
@@ -1266,7 +1271,8 @@ contains
          &                                                                  chemicalHydrogenCationChemicalIndex                                                                                                                          
     double precision                                                     :: rate                                                                                                                , rateCoefficient                        
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
@@ -1359,7 +1365,8 @@ contains
     double precision                    , parameter                      :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)                                        
     double precision                                                     :: rate                                                                                                   , rateCoefficient                       
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
@@ -1411,7 +1418,8 @@ contains
          &                                                                  electronChemicalIndex                                                                                                                                          
     double precision                                                     :: rate                                                                                                                , rateCoefficient                          
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
@@ -1501,7 +1509,8 @@ contains
          &                                                                  electronChemicalIndex                                                                                                                                              
     double precision                                                     :: rate                                                                                                              , rateCoefficient                                
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
@@ -1588,7 +1597,8 @@ contains
     integer                                        , save                :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex         
     double precision                                                     :: rate                                                                                                        , rateCoefficient                       
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
@@ -1692,7 +1702,8 @@ contains
          &                                                                  electronChemicalIndex                                                                                                                                     
     double precision                                                     :: rate                                                                                                             , rateCoefficient                        
     
-    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
+    ! Check if this reaction needs initializing.
+    !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )

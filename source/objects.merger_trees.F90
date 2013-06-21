@@ -318,7 +318,8 @@ contains
     use Galacticus_Error
     type(varying_string) :: odeAlgorithm 
     
-    ! Initialize if necessary.    !$omp critical (Tree_Node_Evolve_Initialize)
+    ! Initialize if necessary.
+    !$omp critical (Tree_Node_Evolve_Initialize)
     if (.not.evolverInitialized) then
        ! Get tolerance values for the ODE solver.
        !@ <inputParameter>

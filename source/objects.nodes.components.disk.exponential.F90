@@ -178,7 +178,8 @@ contains
     implicit none
     type(nodeComponentDiskExponential) :: diskExponentialComponent 
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Disk_Exponential_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Disk_Exponential_Initialize)
     if (defaultDiskComponent%exponentialIsActive().and..not.moduleInitialized) then
 
        ! Get number of abundance properties.
@@ -944,7 +945,8 @@ contains
     integer                            , parameter              :: iterationsForBisectionMinimum=10 
     double precision                                            :: newRadius                        
     
-    ! If using the Cole et al. (2000) method, check whether the solution is oscillating. This can happen as the effective    ! angular momentum of the disk becomes radius dependent under this algorithm.
+    ! If using the Cole et al. (2000) method, check whether the solution is oscillating. This can happen as the effective
+    ! angular momentum of the disk becomes radius dependent under this algorithm.
     newRadius=radius
     if (diskRadiusSolverCole2000Method) then
        if     (                                                                                                         &

@@ -97,7 +97,13 @@ module Galactic_Structure_Options
   integer         , parameter :: coordinateSystemCylindrical=2      
   integer         , parameter :: coordinateSystemCartesian  =3      
   
-  ! Weighting options.  !@ <enumeration>  !@  <name>weightBy</name>  !@  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>  !@  <entry label="weightByMass"       />  !@  <entry label="weightByLuminosity" />  !@ </enumeration>
+  ! Weighting options.
+  !@ <enumeration>
+  !@  <name>weightBy</name>
+  !@  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
+  !@  <entry label="weightByMass"       />
+  !@  <entry label="weightByLuminosity" />
+  !@ </enumeration>
   integer         , parameter :: weightByMass               =0      
   integer         , parameter :: weightByLuminosity         =1      
   integer         , parameter :: weightIndexNull            =0      

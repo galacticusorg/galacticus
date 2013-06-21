@@ -53,7 +53,9 @@ module Cosmology_Functions_Matter_Lambda
   type            (fgsl_interp_accel )                                       :: interpolationAccelerator                                                                                                      , interpolationAcceleratorInverse                                                                         
   logical                                                                    :: resetInterpolation                        =.true.                                                                                                                                                                                       
   logical                                                                    :: resetInterpolationInverse                 =.true.                                                                                                                                                                                       
-  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
+  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)
+  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)
+  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
   ! Variables to hold table of distance vs. cosmic time.
   logical                                                                    :: distanceTableInitialized                  =.false.                                                                                                                                                                                      
   integer                                                                    :: distanceTableNumberPoints                                                                                                                                                                                                               
@@ -245,7 +247,8 @@ contains
     logical         , intent(in   ), optional :: collapsingPhase       
     logical                                   :: collapsingPhaseActual 
     
-    ! Initialize the module if necessary.    ! Validate the input.
+    ! Initialize the module if necessary.
+    ! Validate the input.
     if (.not.Expansion_Factor_Is_Valid_Matter_Lambda(aExpansion)) call Galacticus_Error_Report('Cosmology_Age_Matter_Lambda'&
          &,'expansion factor is invalid')
 
@@ -750,7 +753,8 @@ contains
     logical                                   :: gotComovingDistance, remakeTable        
     double precision                          :: comovingDistance   , luminosityDistance 
     
-    !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)    ! Check if we need to recompute our table.
+    !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
+    ! Check if we need to recompute our table.
     if (.not.distanceTableInitialized) call Make_Distance_Table(Cosmology_Age_Matter_Lambda(1.0d0))
     !$omp end critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
 
@@ -888,7 +892,8 @@ contains
     integer           , intent(in   ) :: stateFile     
     type   (fgsl_file), intent(in   ) :: fgslStateFile 
     
-    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they    ! were originally constructed.
+    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they
+    ! were originally constructed.
     write (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
     write (stateFile) ageTableTime,ageTableExpansionFactor
     write (stateFile) distanceTableNumberPoints,distanceTableTimeMinimum,distanceTableTimeMaximum

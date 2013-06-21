@@ -110,7 +110,8 @@ module Galacticus_Nodes
   ! Event ID counter.
   integer         (kind=kind_int8)                       :: eventID           =0 
   
-  ! Include node methods.  !# <include directive="component" type="component">
+  ! Include node methods.
+  !# <include directive="component" type="component">
   include 'objects.nodes.components.inc'
   !# </include>
 

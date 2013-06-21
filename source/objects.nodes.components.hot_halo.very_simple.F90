@@ -70,7 +70,8 @@ contains
     implicit none
     type(nodeComponentHotHaloVerySimple) :: hotHaloComponent 
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
     if (.not.moduleInitialized) then
        
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.

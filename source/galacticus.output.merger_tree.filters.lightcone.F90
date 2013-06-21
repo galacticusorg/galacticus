@@ -43,7 +43,8 @@ module Galacticus_Merger_Tree_Output_Filter_Lightcones
   integer                                                  :: lightconeGeometry                                                       
   integer                                      , parameter :: lightconeGeometrySquare   =1                                            
   
-  ! Variables that store the position, velocity and redshift of a galaxy that is found to be in the lightcone. These are then used  ! to output that position.
+  ! Variables that store the position, velocity and redshift of a galaxy that is found to be in the lightcone. These are then used
+  ! to output that position.
   double precision             , dimension(3  )            :: lightconePosition                 , lightconeVelocity                   
   double precision                                         :: lightconeRedshift                                                       
   !$omp threadprivate(lightconePosition,lightconeVelocity,lightconeRedshift)

@@ -37,7 +37,8 @@ module Star_Formation_Rate_Surface_Density_Disks_KMT09
        &                                           gasMass                                    , hydrogenMassFraction       , & 
        &                                           metallicityRelativeToSolar                 , sNormalization             , & 
        &                                           sigmaMolecularComplexNormalization                                          
-  !$omp threadprivate(hydrogenMassFraction,gasMass,diskScaleRadius,metallicityRelativeToSolar)  !$omp threadprivate(chi,sigmaMolecularComplexNormalization,sNormalization)
+  !$omp threadprivate(hydrogenMassFraction,gasMass,diskScaleRadius,metallicityRelativeToSolar)
+  !$omp threadprivate(chi,sigmaMolecularComplexNormalization,sNormalization)
   ! Parameters of the model.
   double precision                              :: molecularComplexClumpingFactorKMT09        , starFormationFrequencyKMT09    
   
@@ -213,7 +214,8 @@ contains
     double precision, parameter     :: sMaximum=8.0d0  
     double precision                :: delta           
     
-    ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow. Also use a simple series    ! expansion for cases of very small s.
+    ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow. Also use a simple series
+    ! expansion for cases of very small s.
     if      (s <  sMinimum) then
        KMT09_Molecular_Fraction_Slow=1.0d0-0.75d0*s
     else if (s >= sMaximum) then

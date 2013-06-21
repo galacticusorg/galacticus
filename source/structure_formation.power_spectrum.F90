@@ -118,7 +118,8 @@ contains
     integer                         :: iMass          
     double precision                :: h    , logMass 
     
-    ! Ensure that the sigma(M) tabulation exists.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    ! Ensure that the sigma(M) tabulation exists.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
 
     ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
@@ -150,7 +151,8 @@ contains
     implicit none
     double precision, intent(in   ) :: mass 
     
-    ! Check if we need to initialize this function.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    ! Check if we need to initialize this function.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     
     ! Interpolate in tabulated function and return result.
@@ -177,7 +179,8 @@ contains
     double precision, intent(in   ) :: mass                              
     double precision, intent(  out) :: sigma, sigmaLogarithmicDerivative 
     
-    ! Check if we need to initialize this function.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    ! Check if we need to initialize this function.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     

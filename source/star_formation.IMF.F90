@@ -426,7 +426,8 @@ contains
     type            (fgsl_interp               )         , save                                               ::        interpolationAgeObject                                                                             
     type            (fgsl_interp_accel         )         , save                                               ::        interpolationAgeAccelerator                        , interpolationMetallicityAccelerator           
     logical                                              , save                                               ::        interpolationAgeReset                       =.true., interpolationMetallicityReset      =.true.    
-    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
+    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                     ::        doc                                                , thisItem                                      
     type            (NodeList                  ), pointer                                                     ::        columnList                                         , dataList                                      
     type            (c_ptr                     )                                                              ::        parameterPointer                                                                                   
@@ -814,7 +815,8 @@ contains
      type            (fgsl_interp               )         , save                                                           :: interpolationAgeObject                                                             
      type            (fgsl_interp_accel         )         , save                                                           :: interpolationAgeAccelerator        , interpolationMetallicityAccelerator           
      logical                                              , save                                                           :: interpolationAgeReset       =.true., interpolationMetallicityReset      =.true.    
-     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
+     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
      type            (Node                      ), pointer                                                                 :: doc                                , thisItem                                      
      type            (NodeList                  ), pointer                                                                 :: columnList                         , dataList                                      
      type            (c_ptr                     )                                                                          :: parameterPointer                                                                   
@@ -1270,7 +1272,8 @@ contains
     type            (fgsl_interp               )         , save                                               ::        interpolationAgeObject                                                                        
     type            (fgsl_interp_accel         )         , save                                               ::        interpolationAgeAccelerator                   , interpolationMetallicityAccelerator           
     logical                                              , save                                               ::        interpolationAgeReset                  =.true., interpolationMetallicityReset      =.true.    
-    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
+    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
     type            (Node                      ), pointer                                                     ::        doc                                           , thisItem                                      
     type            (NodeList                  ), pointer                                                     ::        columnList                                    , dataList                                      
     type            (c_ptr                     )                                                              ::        parameterPointer                                                                              

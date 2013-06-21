@@ -37,7 +37,14 @@ module Root_Finder
   integer, parameter, public :: rangeExpandAdditive          =1  
   integer, parameter, public :: rangeExpandMultiplicative    =2  
   
-  ! Enumeration of sign expectations.  !@ <enumeration>  !@  <name>rangeExpandSignExpect</name>  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>  !@  <entry label="rangeExpandSignExpectNegative" />  !@  <entry label="rangeExpandSignExpectNone"     />  !@  <entry label="rangeExpandSignExpectPositive" />  !@ </enumeration>
+  ! Enumeration of sign expectations.
+  !@ <enumeration>
+  !@  <name>rangeExpandSignExpect</name>
+  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>
+  !@  <entry label="rangeExpandSignExpectNegative" />
+  !@  <entry label="rangeExpandSignExpectNone"     />
+  !@  <entry label="rangeExpandSignExpectPositive" />
+  !@ </enumeration>
   integer, parameter, public :: rangeExpandSignExpectNegative=-1 
   integer, parameter, public :: rangeExpandSignExpectNone    =0  
   integer, parameter, public :: rangeExpandSignExpectPositive=+1 
@@ -146,7 +153,8 @@ contains
     type            (varying_string)                                        :: message                                                           
     character       (len= 30       )                                        :: label                                                             
     
-    ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must    ! be able to return state to its original form before exiting the function.
+    ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must
+    ! be able to return state to its original form before exiting the function.
     previousFinder => currentFinder
     ! Initialize the root finder variables if necessary.
     if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then

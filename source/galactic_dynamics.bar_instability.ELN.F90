@@ -80,7 +80,8 @@ contains
     type            (treeNode         ), intent(inout), pointer :: thisNode                                                                   
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                                          
     double precision                   , parameter              :: stabilityIsolatedDisk        =0.6221297315d0                               
-    ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as    ! appears in stability criterion.
+    ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
+    ! appears in stability criterion.
     double precision                   , parameter              :: velocityBoostFactor          =1.180023758d0                                
     ! Maximum timescale (in dynamical times) allowed.
     double precision                   , parameter              :: timescaleDimensionlessMaximum=1.0d10                                       

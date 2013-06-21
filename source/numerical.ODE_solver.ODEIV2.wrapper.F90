@@ -309,11 +309,9 @@ contains
     integer(kind=fgsl_size_t)                          :: dimension           
     type   (c_ptr           ), intent(in   ), optional :: params              
     type   (fodeiv2_system  )                          :: fodeiv2_system_init 
-    !
     type   (c_funptr        )                          :: func_loc            
     type   (c_funptr        )                          :: jacobian_loc        
     type   (c_ptr           )                          :: params_loc          
-    ! debug!    integer(c_int) :: status!    real(c_double) :: y(2), dydt(2)!    write(6, *) 'Starting init with dimension: ',dimension!    y = (/1.0_c_double, 0.0_c_double /)!    status = func(0.0_c_double,y,dydt,params)!    write(6, *) 'Function output: ',dydt(1:2)! end debug
     func_loc = c_funloc(func)
     params_loc = c_null_ptr
     jacobian_loc = c_null_funptr

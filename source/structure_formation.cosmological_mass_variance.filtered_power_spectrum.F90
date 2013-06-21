@@ -131,7 +131,8 @@ contains
     real(kind=c_double), value :: wavenumber         
     type(c_ptr        ), value :: parameterPointer   
     
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included    ! elsewhere.
+    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+    ! elsewhere.
     Variance_Integrand=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
     return
   end function Variance_Integrand
@@ -146,7 +147,8 @@ contains
     real(kind=c_double), value :: wavenumber                
     type(c_ptr        ), value :: parameterPointer          
     
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included    ! elsewhere.
+    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+    ! elsewhere.
     Variance_Integrand_TopHat=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
     return
   end function Variance_Integrand_TopHat

@@ -79,7 +79,9 @@ contains
     character(len=32        )                :: metallicityLabel                               
     type     (varying_string)                :: command         , coolingFunctionFileVarString 
     
-    ! Generate the name of the data file and an XML input parameter file.    !$omp critical (Cooling_Function_Atomic_CIE_Cloudy_Initialize)    ! Determine if we need to reinitialize this module.
+    ! Generate the name of the data file and an XML input parameter file.
+    !$omp critical (Cooling_Function_Atomic_CIE_Cloudy_Initialize)
+    ! Determine if we need to reinitialize this module.
     if (.not.coolingFunctionInitialized) then
        makeFile=.true.
     else

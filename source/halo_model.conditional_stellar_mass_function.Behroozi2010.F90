@@ -270,7 +270,8 @@ contains
     double precision, dimension(2), save                :: fMassHaloStored           , massCutStored             , & 
          &                                                 massSatelliteStored       , massStellarPrevious=-1.0d0    
     !$omp threadprivate(massStellarPrevious,fMassHaloStored,massSatelliteStored,massCutStored)
-    ! Ensure that the stellar-halo mass relation is tabulated over a sufficient range.    !$omp critical(CSMF_Behroozi2010_Tabulate)
+    ! Ensure that the stellar-halo mass relation is tabulated over a sufficient range.
+    !$omp critical(CSMF_Behroozi2010_Tabulate)
     do while (massHalo < fMassHaloTableMinimum .or. massHalo > fMassHaloTableMaximum)
        if (massHalo < fMassHaloTableMinimum) fMassStellarTableMinimum=0.5d0*fMassStellarTableMinimum
        if (massHalo > fMassHaloTableMaximum) fMassStellarTableMaximum=2.0d0*fMassStellarTableMaximum

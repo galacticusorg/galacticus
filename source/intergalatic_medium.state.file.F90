@@ -44,7 +44,8 @@ module Intergalactic_Medium_State_File
   type            (fgsl_interp_accel)                            :: interpolationAcceleratorElectronFraction        , interpolationAcceleratorTemperature           
   type            (fgsl_interp      )                            :: interpolationObjectElectronFraction             , interpolationObjectTemperature                
   logical                                                        :: interpolationResetElectronFraction      =.true. , interpolationResetTemperature      =.true.    
-  !$omp threadprivate(interpolationAcceleratorElectronFraction,interpolationObjectElectronFraction,interpolationResetElectronFraction)  !$omp threadprivate(interpolationAcceleratorTemperature     ,interpolationObjectTemperature     ,interpolationResetTemperature     )
+  !$omp threadprivate(interpolationAcceleratorElectronFraction,interpolationObjectElectronFraction,interpolationResetElectronFraction)
+  !$omp threadprivate(interpolationAcceleratorTemperature     ,interpolationObjectTemperature     ,interpolationResetTemperature     )
   ! Current file format version for intergalactic medium state files.
   integer                            , parameter                 :: fileFormatVersionCurrent                =1                                                      
   

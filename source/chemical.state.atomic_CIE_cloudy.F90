@@ -79,7 +79,9 @@ contains
     character(len=32        )                :: metallicityLabel                    
     type     (varying_string)                :: chemicalStateFileVarString, command 
     
-    ! Generate the name of the data file and an XML input parameter file.    !$omp critical (Chemical_State_Atomic_CIE_Cloudy_Initialize)    ! Determine if we need to reinitialize this module.
+    ! Generate the name of the data file and an XML input parameter file.
+    !$omp critical (Chemical_State_Atomic_CIE_Cloudy_Initialize)
+    ! Determine if we need to reinitialize this module.
     if (.not.chemicalStateInitialized) then
        makeFile=.true.
     else

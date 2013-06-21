@@ -402,7 +402,8 @@ contains
     character       (len=9                        )                                   :: timeFormatted                                             
     type            (varying_string               )                                   :: message                                                   
     
-    ! Initialize if not yet done.    !$omp critical (evolveToTimeInitialize)
+    ! Initialize if not yet done.
+    !$omp critical (evolveToTimeInitialize)
     if (.not.evolveToTimeInitialized) then
        !@ <inputParameter>
        !@   <name>timestepHostRelative</name>

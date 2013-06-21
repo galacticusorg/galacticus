@@ -95,7 +95,17 @@ contains
     double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum        
     type            (mergerTree        )          :: thisTree                                                          
     
-    ! Get the verbosity level parameter.    !@ <inputParameter>    !@   <name>verbosityLevel</name>    !@   <defaultValue>1</defaultValue>    !@   <attachedTo>module</attachedTo>    !@   <description>    !@     The level of verbosity for \glc\ (higher values give more verbosity).    !@   </description>    !@   <type>integer</type>    !@   <cardinality>1</cardinality>    !@ </inputParameter>
+    ! Get the verbosity level parameter.
+    !@ <inputParameter>
+    !@   <name>verbosityLevel</name>
+    !@   <defaultValue>1</defaultValue>
+    !@   <attachedTo>module</attachedTo>
+    !@   <description>
+    !@     The level of verbosity for \glc\ (higher values give more verbosity).
+    !@   </description>
+    !@   <type>integer</type>
+    !@   <cardinality>1</cardinality>
+    !@ </inputParameter>
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
     

@@ -80,7 +80,8 @@ contains
     implicit none
     type(nodeComponentBlackHoleSimple) :: blackHoleSimple 
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Black_Hole_Simple_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Black_Hole_Simple_Initialize)
     if (.not.moduleInitialized) then
        ! Get the black hole seed mass.
        blackHoleSeedMass=blackHoleSimple%massSeed()

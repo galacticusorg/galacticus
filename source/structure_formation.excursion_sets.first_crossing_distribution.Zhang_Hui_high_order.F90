@@ -83,7 +83,9 @@ contains
          &                                             summation1                           , summation2                , & 
          &                                             timeMaximumPrevious                  , timeMinimumPrevious           
     
-    ! Determine if we need to make the table. Only recompute if the variance is sufficiently larger than that tabulated that we    ! will add at least one new point to the tabulation.    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High_Init)
+    ! Determine if we need to make the table. Only recompute if the variance is sufficiently larger than that tabulated that we
+    ! will add at least one new point to the tabulation.
+    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High_Init)
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum+1.0d0/dble(varianceTableNumberPerUnit)).or.(time < timeMinimum).or.(time > timeMaximum)
     if (makeTable) then
        ! Compute the range of times to tabulate.

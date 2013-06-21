@@ -47,7 +47,8 @@ contains
     type   (varying_string), intent(in   ) :: filterName 
     integer                                :: iFilter    
     
-    ! See if we already have this filter loaded. If not, load it.    !$omp critical (Filter_Get_Index_Lock)
+    ! See if we already have this filter loaded. If not, load it.
+    !$omp critical (Filter_Get_Index_Lock)
     if (.not.allocated(filterResponses)) then
        call Filter_Response_Load(filterName)
        Filter_Get_Index=1

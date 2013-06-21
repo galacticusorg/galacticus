@@ -54,7 +54,9 @@ module Galacticus_Output_Merger_Tree
   character       (len=nameLengthMax   )           , allocatable, dimension(:)   :: doublePropertyNames                , integerPropertyNames            
   character       (len=commentLengthMax)           , allocatable, dimension(:)   :: doublePropertyComments             , integerPropertyComments         
   double precision                                 , allocatable, dimension(:)   :: doublePropertyUnitsSI              , integerPropertyUnitsSI          
-  !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)  !$omp threadprivate(doubleBuffer,integerPropertyNames,doublePropertyNames,integerPropertyUnitsSI,doublePropertyUnitsSI)  !$omp threadprivate(integerPropertyComments,doublePropertyComments)
+  !$omp threadprivate(integerPropertiesWritten,doublePropertiesWritten,integerBufferCount,doubleBufferCount,integerBuffer)
+  !$omp threadprivate(doubleBuffer,integerPropertyNames,doublePropertyNames,integerPropertyUnitsSI,doublePropertyUnitsSI)
+  !$omp threadprivate(integerPropertyComments,doublePropertyComments)
   ! Flag indicating if module is initialized.
   logical                                                                        :: mergerTreeOutputInitialized=.false.                                  
   
@@ -89,7 +91,8 @@ contains
     logical                                                                     :: nodePassesFilter                                 
     type            (hdf5Object        )                                        :: toDataset                                        
     
-    ! Initialize if necessary.    !$omp critical(Merger_Tree_Output)
+    ! Initialize if necessary.
+    !$omp critical(Merger_Tree_Output)
     if (.not.mergerTreeOutputInitialized) then
 
        ! Ensure file is open.
@@ -252,7 +255,8 @@ contains
     implicit none
     integer :: iGroup 
     
-    ! Close any open output groups.    !$omp critical(HDF5_Access)
+    ! Close any open output groups.
+    !$omp critical(HDF5_Access)
     do iGroup=1,outputGroupsCount
        if (outputGroups(iGroup)%opened) then
           if (outputGroups(iGroup)%nodeDataGroup%isOpen()) call outputGroups(iGroup)%nodeDataGroup%close()
@@ -433,7 +437,8 @@ contains
     type            (outputGroup   ), allocatable  , dimension(:) :: outputGroupsTemporary            
     type            (varying_string)                              :: commentText          , groupName 
     
-    !$omp critical (HDF5_Access)    ! Ensure group ID space is large enough.
+    !$omp critical (HDF5_Access)
+    ! Ensure group ID space is large enough.
     if (iOutput > outputGroupsCount) then
        if (allocated(outputGroups)) then
           call Move_Alloc(outputGroups,outputGroupsTemporary)

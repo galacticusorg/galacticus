@@ -161,7 +161,14 @@ module Merger_Tree_Data_Structure
   integer, parameter, public :: metaDataTreeBuilder=5 
   integer, parameter, public :: metaDataProvenance =6 
   
-  ! Data types for metadata.  !@ <enumeration>  !@  <name>dataType</name>  !@  <description>Used to specify the type of data being stored in a {\tt mergerTreeData} structure metadata entry.</description>  !@  <entry label="dataTypeInteger" />  !@  <entry label="dataTypeDouble"  />  !@  <entry label="dataTypeText"    />  !@ </enumeration>
+  ! Data types for metadata.
+  !@ <enumeration>
+  !@  <name>dataType</name>
+  !@  <description>Used to specify the type of data being stored in a {\tt mergerTreeData} structure metadata entry.</description>
+  !@  <entry label="dataTypeInteger" />
+  !@  <entry label="dataTypeDouble"  />
+  !@  <entry label="dataTypeText"    />
+  !@ </enumeration>
   integer, parameter         :: dataTypeNull       =0 
   integer, parameter         :: dataTypeInteger    =1 
   integer, parameter         :: dataTypeDouble     =2 

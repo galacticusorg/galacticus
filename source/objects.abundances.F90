@@ -243,7 +243,17 @@ module Abundances_Structure
   ! Indices of elements as used in the Atomic_Data module.
   integer                                        , allocatable, dimension(:) :: elementsIndices                                  
   
-  ! Type of metallicity/abundance measure required.  !@ <enumeration>  !@  <name>metallicityScale</name>  !@  <description>Used to specify the metallicity scale when working with {\tt abundances} objects.</description>  !@  <entry label="linearByMass"             />  !@  <entry label="linearByNumber"           />  !@  <entry label="logarithmicByMassSolar"   />  !@  <entry label="logarithmicByNumberSolar" />  !@  <entry label="linearByMassSolar"        />  !@  <entry label="linearByNumberSolar"      />  !@ </enumeration>
+  ! Type of metallicity/abundance measure required.
+  !@ <enumeration>
+  !@  <name>metallicityScale</name>
+  !@  <description>Used to specify the metallicity scale when working with {\tt abundances} objects.</description>
+  !@  <entry label="linearByMass"             />
+  !@  <entry label="linearByNumber"           />
+  !@  <entry label="logarithmicByMassSolar"   />
+  !@  <entry label="logarithmicByNumberSolar" />
+  !@  <entry label="linearByMassSolar"        />
+  !@  <entry label="linearByNumberSolar"      />
+  !@ </enumeration>
   integer                     , parameter, public                            :: linearByMass            =0                       
   integer                     , parameter, public                            :: linearByNumber          =1                       
   integer                     , parameter, public                            :: logarithmicByMassSolar  =2                       
@@ -257,7 +267,14 @@ module Abundances_Structure
   ! Flag indicating if this module has been initialized.
   logical                                                                    :: abundancesInitialized   =.false.                 
   
-  ! Labels used in determining how to update elemental abundances when metallicity is adjusted.  !@ <enumeration>  !@  <name>adjustElements</name>  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\tt abundances} object is changed.</description>  !@  <entry label="adjustElementsNone"   />  !@  <entry label="adjustElementsReset"  />  !@  <entry label="adjustElementsUpdate" />  !@ </enumeration>
+  ! Labels used in determining how to update elemental abundances when metallicity is adjusted.
+  !@ <enumeration>
+  !@  <name>adjustElements</name>
+  !@  <description>Used to specify how elements should be adjusted when the metallicity of an {\tt abundances} object is changed.</description>
+  !@  <entry label="adjustElementsNone"   />
+  !@  <entry label="adjustElementsReset"  />
+  !@  <entry label="adjustElementsUpdate" />
+  !@ </enumeration>
   integer                     , parameter, public                            :: adjustElementsNone      =0                       
   integer                     , parameter, public                            :: adjustElementsReset     =1                       
   integer                     , parameter, public                            :: adjustElementsUpdate    =2                       
