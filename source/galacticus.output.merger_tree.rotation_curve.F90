@@ -25,33 +25,34 @@ module Galacticus_Output_Trees_Rotation_Curve
   public :: Galacticus_Output_Tree_Rotation_Curve, Galacticus_Output_Tree_Rotation_Curve_Property_Count, Galacticus_Output_Tree_Rotation_Curve_Names
 
   ! Flag indicating whether or not rotation curve information is to be output.
-  logical                                            :: outputRotationCurveData
-
+  logical :: outputRotationCurveData                    
+  
   ! Flag indicating whether or not this module has been initialized.
-  logical                                            :: outputRotationCurveDataInitialized=.false.
-
+  logical :: outputRotationCurveDataInitialized=.false. 
+  
   ! Radii at which rotation curve is to be output.
-  integer                                            :: radiiCount
+  integer :: radiiCount                                 
   type radiusSpecifier
-     type            (varying_string) :: name
-     integer                          :: type,mass,component,weightBy,weightByIndex
-     logical                          :: loaded
-     double precision                 :: value,fraction
+     type            (varying_string) :: name                                    
+     integer                          :: component    , mass , type, weightBy, & 
+          &                              weightByIndex                           
+     logical                          :: loaded                                  
+     double precision                 :: fraction     , value                    
   end type radiusSpecifier
-  type   (radiusSpecifier), dimension(:), allocatable :: radii
-  type   (varying_string ), dimension(:), allocatable :: outputRotationCurveRadii
-  logical                                             :: diskIsNeeded,spheroidIsNeeded,virialRadiusIsNeeded&
-       &,darkMatterScaleRadiusIsNeeded
-  integer                 , parameter                 :: radiusTypeRadius                =0
-  integer                 , parameter                 :: radiusTypeVirialRadius          =1
-  integer                 , parameter                 :: radiusTypeDarkMatterScaleRadius =2
-  integer                 , parameter                 :: radiusTypeDiskRadius            =3
-  integer                 , parameter                 :: radiusTypeSpheroidRadius        =4
-  integer                 , parameter                 :: radiusTypeDiskHalfMassRadius    =5
-  integer                 , parameter                 :: radiusTypeSpheroidHalfMassRadius=6
-  integer                 , parameter                 :: radiusTypeGalacticMassFraction  =7
-  integer                 , parameter                 :: radiusTypeGalacticLightFraction =8
-
+  type   (radiusSpecifier)           , allocatable, dimension(:) :: radii                                                       
+  type   (varying_string )           , allocatable, dimension(:) :: outputRotationCurveRadii                                    
+  logical                                                        :: darkMatterScaleRadiusIsNeeded     , diskIsNeeded        , & 
+       &                                                            spheroidIsNeeded                  , virialRadiusIsNeeded    
+  integer                 , parameter                            :: radiusTypeRadius                =0                          
+  integer                 , parameter                            :: radiusTypeVirialRadius          =1                          
+  integer                 , parameter                            :: radiusTypeDarkMatterScaleRadius =2                          
+  integer                 , parameter                            :: radiusTypeDiskRadius            =3                          
+  integer                 , parameter                            :: radiusTypeSpheroidRadius        =4                          
+  integer                 , parameter                            :: radiusTypeDiskHalfMassRadius    =5                          
+  integer                 , parameter                            :: radiusTypeSpheroidHalfMassRadius=6                          
+  integer                 , parameter                            :: radiusTypeGalacticMassFraction  =7                          
+  integer                 , parameter                            :: radiusTypeGalacticLightFraction =8                          
+  
 contains
 
   subroutine Galacticus_Output_Tree_Rotation_Curve_Initialize
@@ -64,12 +65,12 @@ contains
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type     (varying_string), dimension(5) :: radiusDefinition
-    type     (varying_string), dimension(3) :: fractionDefinition
-    type     (varying_string)               :: valueDefinition
-    character(len=20        )               :: radiusLabel,fractionLabel
-    integer                                 :: i
-
+    type     (varying_string), dimension(5) :: radiusDefinition                
+    type     (varying_string), dimension(3) :: fractionDefinition              
+    type     (varying_string)               :: valueDefinition                 
+    character(len=20        )               :: fractionLabel     , radiusLabel 
+    integer                                 :: i                               
+    
     if (.not.outputRotationCurveDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Rotation_Curve_Initialize)
        if (.not.outputRotationCurveDataInitialized) then
@@ -223,14 +224,14 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer      :: thisNode
-    double precision, intent(in   )               :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       :: i
-
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    integer                                                          :: i                                                  
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
 
@@ -261,9 +262,9 @@ contains
     !% Account for the number of rotation curve properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision          , intent(in   )          :: time                                      
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize
@@ -287,17 +288,17 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    double precision                                , intent(in   )          :: time
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                         , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty&
-         & ,doubleBufferCount
-    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer(:,:)
-    double precision                                , intent(inout)          :: doubleBuffer (:,:)
-    class           (nodeComponentDisk             ),                pointer :: thisDisk
-    class           (nodeComponentSpheroid         ),                pointer :: thisSpheroid
-    class           (nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfile
-    integer                                                                  :: i
-    double precision                                                         :: radius,radiusVirial
+    double precision                                , intent(in   )          :: time                                                              
+    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                          
+    integer                                         , intent(inout)          :: doubleBufferCount         , doubleProperty, integerBufferCount, & 
+         &                                                                      integerProperty                                                   
+    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)                                        
+    double precision                                , intent(inout)          :: doubleBuffer         (:,:)                                        
+    class           (nodeComponentDisk             )               , pointer :: thisDisk                                                          
+    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid                                                      
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile                                             
+    integer                                                                  :: i                                                                 
+    double precision                                                         :: radius                    , radiusVirial                          
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Rotation_Curve_Initialize

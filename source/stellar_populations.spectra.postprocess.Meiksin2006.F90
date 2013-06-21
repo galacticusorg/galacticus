@@ -23,8 +23,8 @@ module Stellar_Population_Spectra_Postprocessing_Meiksin2006
   public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize,Stellar_Population_Spectra_Postprocess_Meiksin2006
 
   ! Record of whether this method is active.
-  logical :: methodIsActive
-
+  logical :: methodIsActive 
+  
 contains
   
   !# <stellarPopulationSpectraPostprocessInitialize>
@@ -33,7 +33,7 @@ contains
   subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethods)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string), dimension(:), intent(in) :: stellarPopulationSpectraPostprocessMethods
+    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods 
     
     methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Meiksin2006')
     return
@@ -49,16 +49,18 @@ contains
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision, intent(in)    :: wavelength,redshift
-    double precision, intent(inout) :: modifier
+    double precision               , intent(in   ) :: redshift                               , wavelength             
+    double precision               , intent(inout) :: modifier                                                        
     ! Parameters of the Lyman-limit system distribution.
-    double precision, parameter     :: N0   =0.25d0
-    double precision, parameter     :: beta =1.50d0
-    double precision, parameter     :: gamma=1.50d0
-    double precision, dimension(31) :: opticalDepthLymanLines,redshiftLymanLines
-    integer                         :: iLine
-    double precision                :: seriesSolutionTermA,seriesSolutionTermB,wavelengthObservedLymanContinuum,nFactorial,opticalDepth
-
+    double precision, parameter                    :: N0                              =0.25d0                         
+    double precision, parameter                    :: beta                            =1.50d0                         
+    double precision, parameter                    :: gamma                           =1.50d0                         
+    double precision, dimension(31)                :: opticalDepthLymanLines                 , redshiftLymanLines     
+    integer                                        :: iLine                                                           
+    double precision                               :: nFactorial                             , opticalDepth       , & 
+         &                                            seriesSolutionTermA                    , seriesSolutionTermB, & 
+         &                                            wavelengthObservedLymanContinuum                                
+    
     ! Check if this is a zero redshift case.
     if (.not.methodIsActive .or. redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.

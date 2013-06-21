@@ -24,9 +24,9 @@ module Virial_Densities_Kitayama_Suto1996
   public :: Virial_Density_Kitayama_Suto1996_Initialize
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
-  integer,          parameter :: deltaTableNPointsPerDecade=100
-
+  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0  
+  integer         , parameter :: deltaTableNPointsPerDecade=100                                  
+                                                                                              
 contains
 
   !# <virialDensityContrastMethod>
@@ -40,9 +40,9 @@ contains
     use Galacticus_Error
     use Cosmological_Parameters
    implicit none
-    type     (varying_string                  ),          intent(in   ) :: virialDensityContrastMethod
-    procedure(Virial_Density_Kitayama_Suto1996), pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
-    
+    type     (varying_string                  ), intent(in   )          :: virialDensityContrastMethod       
+    procedure(Virial_Density_Kitayama_Suto1996), intent(inout), pointer :: Virial_Density_Contrast_Tabulate  
+                                                                                                          
     if (virialDensityContrastMethod == 'Kitayama-Suto1996') then
        Virial_Density_Contrast_Tabulate => Virial_Density_Kitayama_Suto1996
        ! Check that fitting formula is applicable to this cosmology.
@@ -59,12 +59,12 @@ contains
     use Numerical_Ranges
     use Tables
     implicit none
-    double precision         , intent(in   )              :: time
-    class           (table1D), intent(inout), allocatable :: deltaVirialTable
-    integer                                               :: iTime,deltaTableNumberPoints
-    double precision                                      :: omegaf
-
-    ! Find minimum and maximum times to tabulate.
+    double precision                      , intent(in   ) :: time                           
+    class           (table1D), allocatable, intent(inout) :: deltaVirialTable               
+    integer                                               :: deltaTableNumberPoints, iTime  
+    double precision                                      :: omegaf                         
+    
+    ! Find minimum and maximum times to tabulate.                                                                                     
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     

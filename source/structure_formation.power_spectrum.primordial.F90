@@ -24,26 +24,26 @@ module Primordial_Power_Spectra
        & Primordial_Power_Spectrum_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                        :: powerSpectrumInitialized=.false., tablesInitialized=.false.
-
-  ! Variables to hold the tabulated power spectrum data.
-  integer                                        :: powerSpectrumNumberPoints=-1
-  double precision,    allocatable, dimension(:) :: powerSpectrumLogWavenumber,powerSpectrumLogP
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation=.true.
-
-  ! Name of power spectrum method used.
-  type(varying_string)                           :: powerSpectrumMethod
-
-  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
-  procedure(Power_Spectrum_Tabulate_Template), pointer :: Power_Spectrum_Tabulate => null()
+  logical                                                                       :: powerSpectrumInitialized =.false., tablesInitialized         =.false.  
+  
+  ! Variables to hold the tabulated power spectrum data.                                                                                                                                                     
+  integer                                                                       :: powerSpectrumNumberPoints=-1                                           
+  double precision                                  , allocatable, dimension(:) :: powerSpectrumLogP                , powerSpectrumLogWavenumber          
+  type            (fgsl_interp                     )                            :: interpolationObject                                                    
+  type            (fgsl_interp_accel               )                            :: interpolationAccelerator                                               
+  logical                                                                       :: resetInterpolation       =.true.                                       
+  
+  ! Name of power spectrum method used.                                                                                                                                                     
+  type            (varying_string                  )                            :: powerSpectrumMethod                                                    
+  
+  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.                                                                                                                                                     
+  procedure       (Power_Spectrum_Tabulate_Template), pointer                   :: Power_Spectrum_Tabulate  =>null()                                      
   abstract interface
      subroutine Power_Spectrum_Tabulate_Template(logWavenumber,powerSpectrumNumberPoints,powerSpectrumLogWavenumber &
           &,powerSpectrumLogP)
-    double precision,                            intent(in)    :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: powerSpectrumLogWavenumber,powerSpectrumLogP
-    integer,                                     intent(out)   :: powerSpectrumNumberPoints
+    double precision                           , intent(in   ) :: logWavenumber                                          
+    double precision, allocatable, dimension(:), intent(inout) :: powerSpectrumLogP        , powerSpectrumLogWavenumber  
+    integer                                    , intent(  out) :: powerSpectrumNumberPoints                              
   end subroutine Power_Spectrum_Tabulate_Template
  end interface
   
@@ -53,10 +53,10 @@ contains
     !% Return the CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: wavenumber
-    double precision             :: logWavenumber
-
-    ! Get logarithm of wavenumber.
+    double precision, intent(in   ) :: wavenumber     
+    double precision                :: logWavenumber  
+    
+    ! Get logarithm of wavenumber.                                               
     logWavenumber=log(wavenumber)
 
     !$omp critical(Power_Spectrum_Initialization) 
@@ -87,10 +87,10 @@ contains
     !% Return the logarithmic derivative CDM primordial power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: wavenumber
-    double precision             :: logWavenumber
-
-    ! Get logarithm of wavenumber.
+    double precision, intent(in   ) :: wavenumber     
+    double precision                :: logWavenumber  
+    
+    ! Get logarithm of wavenumber.                                               
     logWavenumber=log(wavenumber)
 
     !$omp critical(Power_Spectrum_Initialization) 
@@ -125,8 +125,8 @@ contains
     include 'structure_formation.power_spectrum.primordial.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: logWavenumber
-
+    double precision, intent(in   ) :: logWavenumber  
+                                                   
     if (.not.powerSpectrumInitialized) then
        ! Get the primordial power spectrum method parameter.
        !@ <inputParameter>
@@ -163,9 +163,9 @@ contains
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     powerSpectrumNumberPoints=0
     if (allocated(powerSpectrumLogWavenumber)) call Dealloc_Array(powerSpectrumLogWavenumber)
     if (allocated(powerSpectrumLogP         )) call Dealloc_Array(powerSpectrumLogP         )

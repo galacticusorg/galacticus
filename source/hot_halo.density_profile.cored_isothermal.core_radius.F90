@@ -26,17 +26,17 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radius
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: hotHaloCoredIsothermalCoreRadiiInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: hotHaloCoredIsothermalCoreRadiiMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Template), pointer :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => null()
+  logical                                                                    :: hotHaloCoredIsothermalCoreRadiiInitialized       =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                                                      
+  type     (varying_string                                        )          :: hotHaloCoredIsothermalCoreRadiiMethod                      
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                                      
+  procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Template), pointer :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get=>null()  
   abstract interface
      double precision function Hot_Halo_Density_Cored_Isothermal_Core_Radius_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Hot_Halo_Density_Cored_Isothermal_Core_Radius_Template
   end interface
 
@@ -85,9 +85,9 @@ contains
   double precision function Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
     !% Returns the radius (in Mpc) of the core in a cored isothermal hot halo density profile for {\tt thisNode}.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Hot_Halo_Density_Cored_Isothermal_Core_Radii_Initialize
 
     ! Get the energy using the selected method.

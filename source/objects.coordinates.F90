@@ -32,7 +32,7 @@ module Coordinates
 
   type, public :: coordinate
      !% The base coordinate object class.
-     double precision :: position(3)
+     double precision :: position(3) 
    contains
      !@ <objectMethods>
      !@   <object>coordinate</object>
@@ -49,8 +49,8 @@ module Coordinates
      !@     <arguments>\textcolor{red}{\textless double(3)\textgreater} x\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian   => Coordinates_Null_To
-     procedure :: fromCartesian => Coordinates_Null_From
+     procedure :: toCartesian  =>Coordinates_Null_To   
+     procedure :: fromCartesian=>Coordinates_Null_From 
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
@@ -95,14 +95,14 @@ module Coordinates
      !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian   => Coordinates_Cartesian_To_Cartesian
-     procedure :: fromCartesian => Coordinates_Cartesian_From_Cartesian
-     procedure :: x             => Coordinates_Cartesian_X
-     procedure :: y             => Coordinates_Cartesian_Y
-     procedure :: z             => Coordinates_Cartesian_Z
-     procedure :: xSet          => Coordinates_Cartesian_Set_X
-     procedure :: ySet          => Coordinates_Cartesian_Set_Y
-     procedure :: zSet          => Coordinates_Cartesian_Set_Z
+     procedure :: toCartesian  =>Coordinates_Cartesian_To_Cartesian   
+     procedure :: fromCartesian=>Coordinates_Cartesian_From_Cartesian 
+     procedure :: x            =>Coordinates_Cartesian_X              
+     procedure :: y            =>Coordinates_Cartesian_Y              
+     procedure :: z            =>Coordinates_Cartesian_Z              
+     procedure :: xSet         =>Coordinates_Cartesian_Set_X          
+     procedure :: ySet         =>Coordinates_Cartesian_Set_Y          
+     procedure :: zSet         =>Coordinates_Cartesian_Set_Z          
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
@@ -147,14 +147,14 @@ module Coordinates
      !@     <arguments>\doublezero\ phi\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian   => Coordinates_Spherical_To_Cartesian
-     procedure :: fromCartesian => Coordinates_Spherical_From_Cartesian
-     procedure :: r             => Coordinates_Spherical_R
-     procedure :: theta         => Coordinates_Spherical_Theta
-     procedure :: phi           => Coordinates_Spherical_Phi
-     procedure :: rSet          => Coordinates_Spherical_Set_R
-     procedure :: thetaSet      => Coordinates_Spherical_Set_Theta
-     procedure :: phiSet        => Coordinates_Spherical_Set_Phi
+     procedure :: toCartesian  =>Coordinates_Spherical_To_Cartesian   
+     procedure :: fromCartesian=>Coordinates_Spherical_From_Cartesian 
+     procedure :: r            =>Coordinates_Spherical_R              
+     procedure :: theta        =>Coordinates_Spherical_Theta          
+     procedure :: phi          =>Coordinates_Spherical_Phi            
+     procedure :: rSet         =>Coordinates_Spherical_Set_R          
+     procedure :: thetaSet     =>Coordinates_Spherical_Set_Theta      
+     procedure :: phiSet       =>Coordinates_Spherical_Set_Phi        
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
@@ -199,14 +199,14 @@ module Coordinates
      !@     <arguments>\doublezero\ z\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: toCartesian   => Coordinates_Cylindrical_To_Cartesian
-     procedure :: fromCartesian => Coordinates_Cylindrical_From_Cartesian
-     procedure :: r             => Coordinates_Cylindrical_R
-     procedure :: phi           => Coordinates_Cylindrical_Phi
-     procedure :: z             => Coordinates_Cylindrical_Z
-     procedure :: rSet          => Coordinates_Cylindrical_Set_R
-     procedure :: phiSet        => Coordinates_Cylindrical_Set_Phi
-     procedure :: zSet          => Coordinates_Cylindrical_Set_Z
+     procedure :: toCartesian  =>Coordinates_Cylindrical_To_Cartesian   
+     procedure :: fromCartesian=>Coordinates_Cylindrical_From_Cartesian 
+     procedure :: r            =>Coordinates_Cylindrical_R              
+     procedure :: phi          =>Coordinates_Cylindrical_Phi            
+     procedure :: z            =>Coordinates_Cylindrical_Z              
+     procedure :: rSet         =>Coordinates_Cylindrical_Set_R          
+     procedure :: phiSet       =>Coordinates_Cylindrical_Set_Phi        
+     procedure :: zSet         =>Coordinates_Cylindrical_Set_Z          
   end type coordinateCylindrical
 
 contains
@@ -215,9 +215,9 @@ contains
     !% Set generic coordinate object from Cartesian point. Simply quits with an error.
     use Galacticus_Error
     implicit none
-    class           (coordinate), intent(  out)               :: self
-    double precision            , intent(in   ), dimension(3) :: x
-
+    class           (coordinate)              , intent(  out) :: self 
+    double precision            , dimension(3), intent(in   ) :: x    
+    
     call Galacticus_Error_Report('Coordinates_Null_To','no transformation from cartesian coordinates defined')
     return
   end subroutine Coordinates_Null_From
@@ -226,9 +226,9 @@ contains
     !% Convert generic coordinate object to Cartesian point. Simply quits with an error.
     use Galacticus_Error
     implicit none
-    class           (coordinate), intent(in   ) :: self
-    double precision            , dimension(3)  :: Coordinates_Null_To
-
+    class           (coordinate), intent(in   ) :: self                
+    double precision            , dimension(3)  :: Coordinates_Null_To 
+    
     call Galacticus_Error_Report('Coordinates_Null_To','no transformation to cartesian coordinates defined')
     return
   end function Coordinates_Null_To
@@ -236,10 +236,10 @@ contains
   subroutine Coordinates_Assign(coordinatesTo,coordinatesFrom)
     !% Assign one coordinate object to another, automatically handling the conversion between coordinate systems.
     implicit none
-    class           (coordinate), intent(  out) :: coordinatesTo
-    class           (coordinate), intent(in   ) :: coordinatesFrom
-    double precision            , dimension(3)  :: x
-
+    class           (coordinate), intent(  out) :: coordinatesTo   
+    class           (coordinate), intent(in   ) :: coordinatesFrom 
+    double precision            , dimension(3)  :: x               
+    
     ! Assign by transforming through cartesian coordinates.
     x=coordinatesFrom%toCartesian()
     call coordinatesTo%fromCartesian(x)
@@ -249,9 +249,9 @@ contains
   subroutine Coordinates_Assign_To(coordinates,x)
     !% Assign a 3-component vector to a {\tt coordinate} object.
     implicit none
-    class           (coordinate), intent(  out)               :: coordinates
-    double precision            , intent(in   ), dimension(3) :: x
-
+    class           (coordinate)              , intent(  out) :: coordinates 
+    double precision            , dimension(3), intent(in   ) :: x           
+    
     coordinates%position=x
     return
   end subroutine Coordinates_Assign_To
@@ -259,9 +259,9 @@ contains
   subroutine Coordinates_Assign_From(x,coordinates)
     !% Return a 3-component vector from a {\tt coordinate} object.
     implicit none
-    class           (coordinate), intent(in   )               :: coordinates
-    double precision            , intent(  out), dimension(3) :: x
-
+    class           (coordinate)              , intent(in   ) :: coordinates 
+    double precision            , dimension(3), intent(  out) :: x           
+    
     x=coordinates%position
     return
   end subroutine Coordinates_Assign_From
@@ -270,8 +270,8 @@ contains
   subroutine Coordinates_Cartesian_From_Cartesian(self,x)
     !% Create a Cartesian {\tt coordinate} object from a Cartesian vector.
     implicit none
-    class           (coordinateCartesian), intent(  out)               :: self
-    double precision                     , intent(in   ), dimension(3) :: x
+    class           (coordinateCartesian)              , intent(  out) :: self 
+    double precision                     , dimension(3), intent(in   ) :: x    
     
     self%position=x
     return
@@ -280,9 +280,9 @@ contains
   function Coordinates_Cartesian_To_Cartesian(self)
     !% Return a Cartesian vector from a Cartesian {\tt coordinate} object.
     implicit none
-    class           (coordinateCartesian), intent(in   ) :: self
-    double precision                     , dimension(3)  :: Coordinates_Cartesian_To_Cartesian
-
+    class           (coordinateCartesian), intent(in   ) :: self                               
+    double precision                     , dimension(3)  :: Coordinates_Cartesian_To_Cartesian 
+    
     Coordinates_Cartesian_To_Cartesian=self%position
     return
   end function Coordinates_Cartesian_To_Cartesian
@@ -290,7 +290,7 @@ contains
   double precision function Coordinates_Cartesian_X(self)
     !% Return the $x$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class(coordinateCartesian), intent(in   ) :: self
+    class(coordinateCartesian), intent(in   ) :: self 
     
     Coordinates_Cartesian_X=self%position(1)
     return
@@ -299,7 +299,7 @@ contains
   double precision function Coordinates_Cartesian_Y(self)
     !% Return the $y$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class(coordinateCartesian), intent(in   ) :: self
+    class(coordinateCartesian), intent(in   ) :: self 
     
     Coordinates_Cartesian_Y=self%position(2)
     return
@@ -308,7 +308,7 @@ contains
   double precision function Coordinates_Cartesian_Z(self)
     !% Return the $z$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class(coordinateCartesian), intent(in   ) :: self
+    class(coordinateCartesian), intent(in   ) :: self 
     
     Coordinates_Cartesian_Z=self%position(3)
     return
@@ -317,9 +317,9 @@ contains
   subroutine Coordinates_Cartesian_Set_X(self,x)
     !% Return the $x$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class           (coordinateCartesian), intent(inout) :: self
-    double precision                     , intent(in   ) :: x
- 
+    class           (coordinateCartesian), intent(inout) :: self 
+    double precision                     , intent(in   ) :: x    
+    
     self%position(1)=x
     return
   end subroutine Coordinates_Cartesian_Set_X
@@ -327,9 +327,9 @@ contains
   subroutine Coordinates_Cartesian_Set_Y(self,y)
     !% Return the $y$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class           (coordinateCartesian), intent(inout) :: self
-    double precision                     , intent(in   ) :: y
- 
+    class           (coordinateCartesian), intent(inout) :: self 
+    double precision                     , intent(in   ) :: y    
+    
     self%position(2)=y
     return
   end subroutine Coordinates_Cartesian_Set_Y
@@ -337,9 +337,9 @@ contains
   subroutine Coordinates_Cartesian_Set_Z(self,z)
     !% Return the $z$-component of a Cartesian {\tt coordinate} object.
     implicit none
-    class           (coordinateCartesian), intent(inout) :: self
-    double precision                     , intent(in   ) :: z
- 
+    class           (coordinateCartesian), intent(inout) :: self 
+    double precision                     , intent(in   ) :: z    
+    
     self%position(3)=z
     return
   end subroutine Coordinates_Cartesian_Set_Z
@@ -348,9 +348,9 @@ contains
   subroutine Coordinates_Spherical_From_Cartesian(self,x)
     !% Create a spherical {\tt coordinate} object from a Cartesian vector.
     implicit none
-    class           (coordinateSpherical), intent(  out)               :: self
-    double precision                     , intent(in   ), dimension(3) :: x
-    double precision                                                   :: r,theta,phi
+    class           (coordinateSpherical)              , intent(  out) :: self           
+    double precision                     , dimension(3), intent(in   ) :: x              
+    double precision                                                   :: phi , r, theta 
     
     r     =sqrt (sum(x**2))
     if (r > 0.0d0) then
@@ -368,10 +368,11 @@ contains
   function Coordinates_Spherical_To_Cartesian(self)
     !% Return a Cartesian vector from a spherical {\tt coordinate} object.
     implicit none
-    class           (coordinateSpherical), intent(in   ) :: self
-    double precision                     , dimension(3)  :: Coordinates_Spherical_To_Cartesian
-    double precision                                     :: r,theta,phi
-
+    class           (coordinateSpherical), intent(in   ) :: self                                     
+    double precision                     , dimension(3)  :: Coordinates_Spherical_To_Cartesian       
+    double precision                                     :: phi                               , r, & 
+         &                                                  theta                                    
+    
     r    =self%position(1)
     theta=self%position(2)
     phi  =self%position(3)
@@ -388,7 +389,7 @@ contains
   double precision function Coordinates_Spherical_R(self)
     !% Return the $r$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class(coordinateSpherical), intent(in   ) :: self
+    class(coordinateSpherical), intent(in   ) :: self 
     
     Coordinates_Spherical_R=self%position(1)
     return
@@ -397,7 +398,7 @@ contains
   double precision function Coordinates_Spherical_Theta(self)
     !% Return the $\theta$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class(coordinateSpherical), intent(in   ) :: self
+    class(coordinateSpherical), intent(in   ) :: self 
     
     Coordinates_Spherical_Theta=self%position(2)
     return
@@ -406,7 +407,7 @@ contains
   double precision function Coordinates_Spherical_Phi(self)
     !% Return the $\phi$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class(coordinateSpherical), intent(in   ) :: self
+    class(coordinateSpherical), intent(in   ) :: self 
     
     Coordinates_Spherical_Phi=self%position(3)
     return
@@ -415,9 +416,9 @@ contains
   subroutine Coordinates_Spherical_Set_R(self,r)
     !% Return the $r$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class           (coordinateSpherical), intent(inout) :: self
-    double precision                     , intent(in   ) :: r
- 
+    class           (coordinateSpherical), intent(inout) :: self 
+    double precision                     , intent(in   ) :: r    
+    
     self%position(1)=r
     return
   end subroutine Coordinates_Spherical_Set_R
@@ -425,9 +426,9 @@ contains
   subroutine Coordinates_Spherical_Set_Theta(self,theta)
     !% Return the $\theta$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class           (coordinateSpherical), intent(inout) :: self
-    double precision                     , intent(in   ) :: theta
- 
+    class           (coordinateSpherical), intent(inout) :: self  
+    double precision                     , intent(in   ) :: theta 
+    
     self%position(2)=theta
     return
   end subroutine Coordinates_Spherical_Set_Theta
@@ -435,9 +436,9 @@ contains
   subroutine Coordinates_Spherical_Set_Phi(self,phi)
     !% Return the $\phi$-component of a Spherical {\tt coordinate} object.
     implicit none
-    class           (coordinateSpherical), intent(inout) :: self
-    double precision                     , intent(in   ) :: phi
- 
+    class           (coordinateSpherical), intent(inout) :: self 
+    double precision                     , intent(in   ) :: phi  
+    
     self%position(3)=phi
     return
   end subroutine Coordinates_Spherical_Set_Phi
@@ -446,9 +447,9 @@ contains
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
     !% Create a cylindrical {\tt coordinate} object from a Cartesian vector.
     implicit none
-    class           (coordinateCylindrical), intent(  out)               :: self
-    double precision                       , intent(in   ), dimension(3) :: x
-    double precision                                                     :: r,phi,z
+    class           (coordinateCylindrical)              , intent(  out) :: self       
+    double precision                       , dimension(3), intent(in   ) :: x          
+    double precision                                                     :: phi , r, z 
     
     r     =sqrt (x(1)**2+x(2)**2)
     phi   =atan2(x(2),x(1))
@@ -460,10 +461,11 @@ contains
   function Coordinates_Cylindrical_To_Cartesian(self)
     !% Return a Cartesian vector from a cylindrical {\tt coordinate} object.
     implicit none
-    class           (coordinateCylindrical), intent(in   ) :: self
-    double precision                       , dimension(3)  :: Coordinates_Cylindrical_To_Cartesian
-    double precision                                       :: r,phi,z
-
+    class           (coordinateCylindrical), intent(in   ) :: self                                       
+    double precision                       , dimension(3)  :: Coordinates_Cylindrical_To_Cartesian       
+    double precision                                       :: phi                                 , r, & 
+         &                                                    z                                          
+    
     r  =self%position(1)
     phi=self%position(2)
     z  =self%position(3)
@@ -479,7 +481,7 @@ contains
   double precision function Coordinates_Cylindrical_R(self)
     !% Return the $r$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class(coordinateCylindrical), intent(in   ) :: self
+    class(coordinateCylindrical), intent(in   ) :: self 
     
     Coordinates_Cylindrical_R=self%position(1)
     return
@@ -488,7 +490,7 @@ contains
   double precision function Coordinates_Cylindrical_Phi(self)
     !% Return the $\phi$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class(coordinateCylindrical), intent(in   ) :: self
+    class(coordinateCylindrical), intent(in   ) :: self 
     
     Coordinates_Cylindrical_Phi=self%position(2)
     return
@@ -497,7 +499,7 @@ contains
   double precision function Coordinates_Cylindrical_Z(self)
     !% Return the $z$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class(coordinateCylindrical), intent(in   ) :: self
+    class(coordinateCylindrical), intent(in   ) :: self 
     
     Coordinates_Cylindrical_Z=self%position(3)
     return
@@ -506,9 +508,9 @@ contains
   subroutine Coordinates_Cylindrical_Set_R(self,r)
     !% Return the $r$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class           (coordinateCylindrical), intent(inout) :: self
-    double precision                       , intent(in   ) :: r
- 
+    class           (coordinateCylindrical), intent(inout) :: self 
+    double precision                       , intent(in   ) :: r    
+    
     self%position(1)=r
     return
   end subroutine Coordinates_Cylindrical_Set_R
@@ -516,9 +518,9 @@ contains
   subroutine Coordinates_Cylindrical_Set_Phi(self,phi)
     !% Return the $\phi$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class           (coordinateCylindrical), intent(inout) :: self
-    double precision                       , intent(in   ) :: phi
- 
+    class           (coordinateCylindrical), intent(inout) :: self 
+    double precision                       , intent(in   ) :: phi  
+    
     self%position(2)=phi
     return
   end subroutine Coordinates_Cylindrical_Set_Phi
@@ -526,9 +528,9 @@ contains
   subroutine Coordinates_Cylindrical_Set_Z(self,z)
     !% Return the $z$-component of a Cylindrical {\tt coordinate} object.
     implicit none
-    class           (coordinateCylindrical), intent(inout) :: self
-    double precision                       , intent(in   ) :: z
- 
+    class           (coordinateCylindrical), intent(inout) :: self 
+    double precision                       , intent(in   ) :: z    
+    
     self%position(3)=z
     return
   end subroutine Coordinates_Cylindrical_Set_Z

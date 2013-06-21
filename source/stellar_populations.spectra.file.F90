@@ -30,28 +30,29 @@ module Stellar_Population_Spectra_File
   type spectralTable
      !% Structure to hold spectral data.
      ! The spectra tables.
-     integer                                         :: stellarPopulationSpectraAgesNumberPoints &
-          &,stellarPopulationSpectraMetallicityNumberPoints,stellarPopulationSpectraWavelengthsNumberPoints
-     double precision, allocatable, dimension(:)     :: stellarPopulationSpectraMetallicities,stellarPopulationSpectraAges &
-          &,stellarPopulationSpectraWavelengths
-     double precision, allocatable, dimension(:,:,:) :: stellarPopulationSpectraTable
+     integer                                                            :: stellarPopulationSpectraAgesNumberPoints              , stellarPopulationSpectraMetallicityNumberPoints       , & 
+          &                                                                stellarPopulationSpectraWavelengthsNumberPoints                                                                   
+     double precision                   , allocatable, dimension(:)     :: stellarPopulationSpectraAges                          , stellarPopulationSpectraMetallicities                 , & 
+          &                                                                stellarPopulationSpectraWavelengths                                                                               
+     double precision                   , allocatable, dimension(:,:,:) :: stellarPopulationSpectraTable                                                                                     
      
      ! Interpolation structures.
-     logical                                         :: resetAge=.true., resetMetallicity=.true., resetWavelength=.true.
-     type(fgsl_interp_accel)                         :: interpolationAcceleratorAge,interpolationAcceleratorMetallicity &
-          &,interpolationAcceleratorWavelength
+     logical                                                            :: resetAge                                       =.true., resetMetallicity                               =.true., & 
+          &                                                                resetWavelength                                =.true.                                                            
+     type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge                           , interpolationAcceleratorMetallicity                   , & 
+          &                                                                interpolationAcceleratorWavelength                                                                                
   end type spectralTable
 
   ! Array of spectral tables.
-  type(spectralTable), allocatable, dimension(:) :: spectra
-
+  type   (spectralTable), allocatable, dimension(:) :: spectra                                                                                                     
+  
   ! IMF data.
-  integer                            :: imfCount=0 ! Number of IMFs currently held.
-  integer, allocatable, dimension(:) :: imfLookup ! Look-up array to cross-reference IMF indices to our internal data structure.
-
+  integer                                           :: imfCount                =0 !   Number of IMFs currently held.                                               
+  integer               , allocatable, dimension(:) :: imfLookup                  !   Look-up array to cross-reference IMF indices to our internal data structure. 
+  
   ! The current file format version.
-  integer, parameter                 :: fileFormatVersionCurrent=1
-
+  integer               , parameter                 :: fileFormatVersionCurrent=1                                                                                  
+  
 contains
   
   integer function Stellar_Population_Spectra_File_Format_Current()
@@ -69,9 +70,9 @@ contains
        &,Stellar_Population_Spectrum_Tabulation_Get)
     !% Initializes the ``stellar population spectra from file'' module.
     implicit none
-    type     (varying_string                            ),          intent(in   ) :: stellarPopulationSpectraMethod
-    procedure(Stellar_Population_Spectra_File_Get       ), pointer, intent(inout) :: Stellar_Population_Spectra_Get
-    procedure(Stellar_Population_Spectra_File_Tabulation), pointer, intent(inout) :: Stellar_Population_Spectrum_Tabulation_Get
+    type     (varying_string                            ), intent(in   )          :: stellarPopulationSpectraMethod             
+    procedure(Stellar_Population_Spectra_File_Get       ), intent(inout), pointer :: Stellar_Population_Spectra_Get             
+    procedure(Stellar_Population_Spectra_File_Tabulation), intent(inout), pointer :: Stellar_Population_Spectrum_Tabulation_Get 
     
     if (stellarPopulationSpectraMethod == 'file') then
        Stellar_Population_Spectra_Get             => Stellar_Population_Spectra_File_Get
@@ -86,10 +87,10 @@ contains
     !% spectra.
     use Abundances_Structure
     implicit none
-    type(abundances), intent(in) :: abundancesStellar
-    double precision, intent(in) :: age,wavelength
-    integer,          intent(in) :: imfIndex
-
+    type            (abundances), intent(in   ) :: abundancesStellar             
+    double precision            , intent(in   ) :: age              , wavelength 
+    integer                     , intent(in   ) :: imfIndex                      
+    
     ! Ensure that this IMF is initialized.
     call Stellar_Population_Spectra_File_Initialize_IMF(imfIndex)
 
@@ -105,10 +106,11 @@ contains
     use Star_Formation_IMF
     use Galacticus_Input_Paths
     implicit none
-    integer, intent(in)   :: imfIndex
-    logical               :: readFile
-    type(varying_string)  :: parameterName,defaultFile,stellarPopulationSpectraFile,imfName
-
+    integer                , intent(in   ) :: imfIndex                                       
+    logical                                :: readFile                                       
+    type   (varying_string)                :: defaultFile  , imfName                     , & 
+         &                                    parameterName, stellarPopulationSpectraFile    
+    
     ! Decide if we need to read the file.
     readFile=.not.allocated(imfLookup) ! If out lookup array is not allocated, we must read the file.
     if (.not.readFile) then
@@ -147,16 +149,20 @@ contains
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    type(abundances),          intent(in)     :: abundancesStellar
-    double precision,          intent(in)     :: age,wavelength
-    integer,                   intent(in)     :: imfIndex
-    double precision,          dimension(0:1) :: hAge,hMetallicity,hWavelength
-    double precision,          parameter      :: metallicityTolerance=0.01d0
-    integer                                   :: imfLookupIndex,iAge,iWavelength,iMetallicity,jAge,jWavelength,jMetallicity
-    double precision                          :: metallicity
-    type(varying_string)                      :: message
-    character(len=12)                         :: metallicityLabel
- 
+    type            (abundances    ), intent(in   )  :: abundancesStellar                              
+    double precision                , intent(in   )  :: age                        , wavelength        
+    integer                         , intent(in   )  :: imfIndex                                       
+    double precision                , dimension(0:1) :: hAge                       , hMetallicity  , & 
+         &                                              hWavelength                                    
+    double precision                , parameter      :: metallicityTolerance=0.01d0                    
+    integer                                          :: iAge                       , iMetallicity  , & 
+         &                                              iWavelength                , imfLookupIndex, & 
+         &                                              jAge                       , jMetallicity  , & 
+         &                                              jWavelength                                    
+    double precision                                 :: metallicity                                    
+    type            (varying_string)                 :: message                                        
+    character       (len=12        )                 :: metallicityLabel                               
+    
     ! Find the internal lookup index for this IMF.
     imfLookupIndex=imfLookup(imfIndex)
 
@@ -232,13 +238,13 @@ contains
     use Memory_Management
     use IO_HDF5
     implicit none
-    integer,              intent(in)                :: imfIndex
-    type(varying_string), intent(in)                :: stellarPopulationSpectraFileToRead
-    integer,              allocatable, dimension(:) :: imfLookupTemporary
-    type(spectralTable),  allocatable, dimension(:) :: spectraTemporary
-    integer                                         :: imfLookupIndex,fileFormatVersion
-    type(hdf5Object)                                :: stellarPopulationSpectraFile
-
+    integer                                           , intent(in   ) :: imfIndex                                           
+    type   (varying_string)                           , intent(in   ) :: stellarPopulationSpectraFileToRead                 
+    integer                , allocatable, dimension(:)                :: imfLookupTemporary                                 
+    type   (spectralTable ), allocatable, dimension(:)                :: spectraTemporary                                   
+    integer                                                           :: fileFormatVersion                 , imfLookupIndex 
+    type   (hdf5Object    )                                           :: stellarPopulationSpectraFile                       
+    
     ! Ensure that array for IMF index mappings is sufficiently large.
     if (allocated(imfLookup)) then
        if (size(imfLookup) < imfIndex) then
@@ -311,11 +317,11 @@ contains
     use Memory_Management
     use Numerical_Constants_Astronomical
     implicit none
-    integer,          intent(in)                             :: imfIndex
-    integer,          intent(out)                            :: agesCount,metallicitiesCount
-    double precision, intent(out), allocatable, dimension(:) :: age,metallicity
-    integer                                                  :: imfLookupIndex
-
+    integer                                    , intent(in   ) :: imfIndex                           
+    integer                                    , intent(  out) :: agesCount     , metallicitiesCount 
+    double precision, allocatable, dimension(:), intent(  out) :: age           , metallicity        
+    integer                                                    :: imfLookupIndex                     
+    
     ! Ensure that this IMF is initialized.
     call Stellar_Population_Spectra_File_Initialize_IMF(imfIndex)
 

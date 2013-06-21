@@ -25,24 +25,21 @@ program Test_Mass_Distributions
   use Mass_Distributions
   use Coordinates
   implicit none
-  class           (massDistribution   ), pointer                     :: myMassDistribution
-  integer                              , parameter                   :: sersicTableCount          =8
-  double precision                     , dimension(sersicTableCount) :: sersicTableRadius         = &
-       & [1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]
+  class           (massDistribution   ), pointer                     :: myMassDistribution                                                                                                                
+  integer                              , parameter                   :: sersicTableCount          =8                                                                                                      
+  double precision                     , dimension(sersicTableCount) :: sersicTableRadius         =[1.0000d-06,1.0000d-5,1.0000d-4,1.0000d-3,1.0000d-2,1.0000d-1,1.0000d+0,1.0000d+1]                     
   ! Mass targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                     , dimension(sersicTableCount) :: sersicTableMassTarget     = &
-       & [1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]
+  double precision                     , dimension(sersicTableCount) :: sersicTableMassTarget     =[1.4730d-11,2.1130d-9,2.5959d-7,2.4545d-5,1.4961d-3,4.4102d-2,4.1536d-1,9.4308d-1]                     
   ! Density targets for Sersic profile from Mazure & Capelato (2001).
-  double precision                     , dimension(sersicTableCount) :: sersicTableDensityTarget  = &
-       & [2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]
+  double precision                     , dimension(sersicTableCount) :: sersicTableDensityTarget  =[2.5553d+06,3.5797d+5,4.2189d+4,3.7044d+3,1.9679d+2,4.4047d+0,2.1943d-2,7.8166d-6]                     
   ! Potential targets for Sersic profile from Young (1976).
-  double precision                     , dimension(sersicTableCount) :: sersicTablePotentialTarget= &
-       & [1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]
-  double precision                     , dimension(sersicTableCount) :: sersicTableMass,sersicTableDensity,sersicTablePotential
-  type            (coordinateSpherical)                              :: position
-  integer                                                            :: i
-  double precision                                                   :: radiusInProjection
-
+  double precision                     , dimension(sersicTableCount) :: sersicTablePotentialTarget=[1.0000d+00,9.9993d-1,9.9908d-1,9.9027d-1,9.2671d-1,6.7129d-1,2.4945d-1,3.7383d-2]                     
+  double precision                     , dimension(sersicTableCount) :: sersicTableDensity                                                                                           , sersicTableMass, & 
+       &                                                                sersicTablePotential                                                                                                              
+  type            (coordinateSpherical)                              :: position                                                                                                                          
+  integer                                                            :: i                                                                                                                                 
+  double precision                                                   :: radiusInProjection                                                                                                                
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.mass_distributions.size')
 

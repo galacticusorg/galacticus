@@ -27,19 +27,21 @@ module Star_Formation_IMF_Chabrier
        &, Star_Formation_IMF_Phi_Chabrier
 
   ! Index assigned to this IMF.
-  integer :: imfIndex=-1
-
-  ! Flag indicating if the module has been initialized.
-  logical :: imfChabrierInitialized=.false.
-
-  ! Parameters of the IMF.
-  double precision :: imfChabrierRecycledInstantaneous, imfChabrierYieldInstantaneous
-
-  ! Fixed parameters of the IMF.
-  double precision, parameter :: chabrierMassLower=0.1d0, chabrierMassUpper=125.0d0, chabrierMassTransition=1.0d0
-  double precision, parameter :: chabrierExponent=-2.3d0, chabrierSigma=0.69d0, chabrierMass=0.08d0
-  double precision, parameter :: normalizationLogNormal=0.8326617874d0, normalizationExponential=0.2353362401d0
-
+  integer                     :: imfIndex                        =-1                                                               
+  
+  ! Flag indicating if the module has been initialized.                                                                                                                              
+  logical                     :: imfChabrierInitialized          =.false.                                                          
+  
+  ! Parameters of the IMF.                                                                                                                              
+  double precision            :: imfChabrierRecycledInstantaneous               , imfChabrierYieldInstantaneous                    
+  
+  ! Fixed parameters of the IMF.                                                                                                                              
+  double precision, parameter :: chabrierMassLower               =0.1d0         , chabrierMassTransition       =1.0d0          , & 
+       &                         chabrierMassUpper               =125.0d0                                                          
+  double precision, parameter :: chabrierExponent                =-2.3d0        , chabrierMass                 =0.08d0         , & 
+       &                         chabrierSigma                   =0.69d0                                                           
+  double precision, parameter :: normalizationExponential        =0.2353362401d0, normalizationLogNormal       =0.8326617874d0     
+                                                                                                                                
 contains
 
   !# <imfRegister>
@@ -48,8 +50,8 @@ contains
   subroutine Star_Formation_IMF_Register_Chabrier(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount
-
+    integer, intent(inout) :: imfAvailableCount  
+                                              
     imfAvailableCount=imfAvailableCount+1
     imfIndex=imfAvailableCount
     return
@@ -62,8 +64,8 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
-
+    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)  
+                                                                        
     imfNames      (imfIndex)="Chabrier"
     imfDescriptors(imfIndex)="Chabrier"
     return
@@ -115,10 +117,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_Chabrier(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: minimumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: minimumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        minimumMass=chabrierMassLower
@@ -133,10 +135,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_Chabrier(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: maximumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: maximumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        maximumMass=chabrierMassUpper
@@ -152,11 +154,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(in)    :: initialMass
-    double precision, intent(out)   :: imfPhi
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(in   ) :: initialMass  
+    double precision, intent(  out) :: imfPhi       
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        imfPhi=Chabrier_Phi(initialMass)
@@ -171,10 +173,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_Chabrier(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: recycledFraction
-
+    integer         , intent(in   ) :: imfSelected       
+    logical         , intent(inout) :: imfMatched        
+    double precision, intent(  out) :: recycledFraction  
+                                                      
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        recycledFraction=imfChabrierRecycledInstantaneous
@@ -189,10 +191,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_Chabrier(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: yield
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: yield        
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        yield=imfChabrierYieldInstantaneous
@@ -210,11 +212,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)                               :: imfSelected
-    logical,          intent(inout)                            :: imfMatched
-    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
-    integer,          parameter                                :: nPoints=100
-
+    integer                                    , intent(in   ) :: imfSelected              
+    logical                                    , intent(inout) :: imfMatched               
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi  
+    integer         , parameter                                :: nPoints    =100          
+                                                                                        
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Chabrier
        call Alloc_Array(imfMass,[nPoints])
@@ -229,8 +231,8 @@ contains
   elemental double precision function Chabrier_Phi(mass)
     !% Evaluates the Chabrier initial mass function.
     implicit none
-    double precision, intent(in) :: mass
-
+    double precision, intent(in   ) :: mass  
+                                          
     if (mass >= chabrierMassLower .and. mass < chabrierMassTransition) then
        Chabrier_Phi=normalizationLogNormal*exp(-0.5d0*(log10(mass/chabrierMass)/chabrierSigma)**2)/mass
     else if (mass >= chabrierMassTransition .and. mass < chabrierMassUpper) then

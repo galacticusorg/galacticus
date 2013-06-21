@@ -35,9 +35,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: criticalOverdensityMassScalingMethod
-    procedure(double precision), pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get
-    
+    type     (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod                                                   
+    procedure(double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get  
+                                                                                                                                               
     if (criticalOverdensityMassScalingMethod == 'null') then
        Critical_Overdensity_Mass_Scaling_Get          => Critical_Overdensity_Mass_Scaling_Null
        Critical_Overdensity_Mass_Scaling_Gradient_Get => Critical_Overdensity_Mass_Scaling_Gradient_Null
@@ -48,8 +48,8 @@ contains
   double precision function Critical_Overdensity_Mass_Scaling_Null(mass)
     !% Returns a mass scaling for critical overdensities that is always unity.
     implicit none
-    double precision, intent(in) :: mass
-
+    double precision, intent(in   ) :: mass  
+                                          
     Critical_Overdensity_Mass_Scaling_Null=1.0d0
     return
   end function Critical_Overdensity_Mass_Scaling_Null
@@ -57,8 +57,8 @@ contains
   double precision function Critical_Overdensity_Mass_Scaling_Gradient_Null(mass)
     !% Returns the gradient of a mass scaling for critical overdensities that is always unity.
     implicit none
-    double precision, intent(in) :: mass
-
+    double precision, intent(in   ) :: mass  
+                                          
     Critical_Overdensity_Mass_Scaling_Gradient_Null=0.0d0
     return
   end function Critical_Overdensity_Mass_Scaling_Gradient_Null

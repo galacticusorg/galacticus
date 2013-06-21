@@ -34,15 +34,15 @@ contains
   double precision function Quasi_Random_Get_Scalar(quasiSequenceObject,reset,quasiSequenceType)
     !% Returns a scalar giving a quasi-random point in a 1-dimensional space.
     implicit none
-    type(fgsl_qrng),      intent(inout)           :: quasiSequenceObject
-    logical,              intent(inout), optional :: reset
-    type(fgsl_qrng_type), intent(in),    optional :: quasiSequenceType
-    integer(kind=4),      parameter               :: nGet=1
-    double precision                              :: pointArray(1)
-    logical                                       :: resetActual
-    type(fgsl_qrng_type)                          :: quasiSequenceTypeActual
-
-    ! Determine what type of quasi-random sequence to use.
+    type            (fgsl_qrng     ), intent(inout)           :: quasiSequenceObject           
+    logical                         , intent(inout), optional :: reset                         
+    type            (fgsl_qrng_type), intent(in   ), optional :: quasiSequenceType             
+    integer         (kind=4        ), parameter               :: nGet                      =1  
+    double precision                                          :: pointArray             (1)    
+    logical                                                   :: resetActual                   
+    type            (fgsl_qrng_type)                          :: quasiSequenceTypeActual       
+    
+    ! Determine what type of quasi-random sequence to use.                                                                                        
     if (present(quasiSequenceType)) then
        quasiSequenceTypeActual=quasiSequenceType
     else
@@ -66,16 +66,16 @@ contains
   function Quasi_Random_Get_Array(quasiSequenceObject,quasiSequenceDimension,reset,quasiSequenceType) result (quasiSequencePoint)
     !% Returns an array giving a quasi-random points in a {\tt quasiSequenceDimension}-dimensional space.
     implicit none
-    type(fgsl_qrng),      intent(inout)                     :: quasiSequenceObject
-    integer(kind=4),      intent(in)                        :: quasiSequenceDimension
-    logical,              intent(inout), optional           :: reset
-    type(fgsl_qrng_type), intent(in),    optional           :: quasiSequenceType
-    double precision,     dimension(quasiSequenceDimension) :: quasiSequencePoint
-    logical                                                 :: resetActual
-    integer                                                 :: status
-    type(fgsl_qrng_type)                                    :: quasiSequenceTypeActual
-
-    ! Determine what type of quasi-random sequence to use.
+    type            (fgsl_qrng     ), intent(inout)                               :: quasiSequenceObject      
+    integer         (kind=4        ), intent(in   )                               :: quasiSequenceDimension   
+    logical                         , intent(inout)                    , optional :: reset                    
+    type            (fgsl_qrng_type), intent(in   )                    , optional :: quasiSequenceType        
+    double precision                , dimension(quasiSequenceDimension)           :: quasiSequencePoint       
+    logical                                                                       :: resetActual              
+    integer                                                                       :: status                   
+    type            (fgsl_qrng_type)                                              :: quasiSequenceTypeActual  
+    
+    ! Determine what type of quasi-random sequence to use.                                                                                                       
     if (present(quasiSequenceType)) then
        quasiSequenceTypeActual=quasiSequenceType
     else
@@ -98,8 +98,8 @@ contains
   subroutine Quasi_Random_Free(quasiSequenceObject)
     !% Frees a quasi-random sequence object.
     implicit none
-    type(fgsl_qrng), intent(inout) :: quasiSequenceObject
-    
+    type(fgsl_qrng), intent(inout) :: quasiSequenceObject  
+                                                        
     call FGSL_qRng_Free(quasiSequenceObject)
     return
   end subroutine Quasi_Random_Free

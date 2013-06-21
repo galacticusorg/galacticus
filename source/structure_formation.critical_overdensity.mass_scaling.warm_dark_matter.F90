@@ -26,29 +26,29 @@ module Critical_Overdensity_Mass_Scalings_WDM
   public :: Critical_Overdensity_Mass_Scaling_WDM_Initialize
   
   ! The Jeans mass used in the warm dark matter fitting formula.
-  double precision                                   :: jeansMass
-
+  double precision                                               :: jeansMass                                                                     
+  
   ! Tabulation of the critical overdensity scaling.
-  integer                                            :: deltaTableCount
-  double precision       , allocatable, dimension(:) :: deltaTableMass,deltaTableDelta
-
+  integer                                                        :: deltaTableCount                                                               
+  double precision                   , allocatable, dimension(:) :: deltaTableDelta                                              , deltaTableMass 
+  
   ! Interpolation objects.
-  logical                                            :: interpolationReset=.true.
-  type(fgsl_interp_accel)                            :: interpolationAccelerator
-  type(fgsl_interp      )                            :: interpolationObject
-  double precision       , parameter                 :: smallMassLogarithmicSlope=-1.934d0
-
+  logical                                                        :: interpolationReset                                 =.true.                    
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                                      
+  type            (fgsl_interp      )                            :: interpolationObject                                                           
+  double precision                   , parameter                 :: smallMassLogarithmicSlope                          =-1.934d0                  
+  
   ! Option controlling use of tabulated data or fitting function.
-  logical                                            :: warmDarkMatterCriticalOverdensityUseFittingFunction
-
+  logical                                                        :: warmDarkMatterCriticalOverdensityUseFittingFunction                           
+  
   ! Parameters of the fitting function.
-  double precision       , parameter                 :: fitParameterA=2.40000d0
-  double precision       , parameter                 :: fitParameterB=0.10000d0
-  double precision       , parameter                 :: fitParameterC=0.04000d0
-  double precision       , parameter                 :: fitParameterD=2.30000d0
-  double precision       , parameter                 :: fitParameterE=0.31687d0
-  double precision       , parameter                 :: fitParameterF=0.80900d0
-
+  double precision                   , parameter                 :: fitParameterA                                      =2.40000d0                 
+  double precision                   , parameter                 :: fitParameterB                                      =0.10000d0                 
+  double precision                   , parameter                 :: fitParameterC                                      =0.04000d0                 
+  double precision                   , parameter                 :: fitParameterD                                      =2.30000d0                 
+  double precision                   , parameter                 :: fitParameterE                                      =0.31687d0                 
+  double precision                   , parameter                 :: fitParameterF                                      =0.80900d0                 
+  
 contains
 
   !# <criticalOverdensityMassScalingMethod>
@@ -65,14 +65,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    type(varying_string),                 intent(in)    :: criticalOverdensityMassScalingMethod
-    procedure(double precision), pointer, intent(inout) :: Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get
-    type(Node),                  pointer                :: doc,thisNode
-    type(NodeList),              pointer                :: massDatumList,deltaDatumList,thisList
-    integer                                             :: iDatum,ioErr
-    double precision                                    :: matterRadiationEqualityRedshift,warmDarkMatterCriticalOverdensityGX&
-         &,warmDarkMatterCriticalOverdensityMX
-
+    type            (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod                                                     
+    procedure       (double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get    
+    type            (Node            )               , pointer :: doc                                  , thisNode                                          
+    type            (NodeList        )               , pointer :: deltaDatumList                       , massDatumList                                 , & 
+         &                                                        thisList                                                                                 
+    integer                                                    :: iDatum                               , ioErr                                             
+    double precision                                           :: matterRadiationEqualityRedshift      , warmDarkMatterCriticalOverdensityGX           , & 
+         &                                                        warmDarkMatterCriticalOverdensityMX                                                      
+    
     if (criticalOverdensityMassScalingMethod == 'warmDarkMatter') then
        ! Return a pointer to our implementation of the mass scaling function.
        Critical_Overdensity_Mass_Scaling_Get          => Critical_Overdensity_Mass_Scaling_WDM
@@ -152,10 +153,11 @@ contains
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: mass
-    double precision, parameter  :: massScaleFreeMinimum=-10.d0
-    double precision             :: massScaleFree,smoothTransition,powerLawFit,exponentialFit
-
+    double precision, intent(in   ) :: mass                                             
+    double precision, parameter     :: massScaleFreeMinimum=-10.d0                      
+    double precision                :: exponentialFit             , massScaleFree   , & 
+         &                             powerLawFit                , smoothTransition    
+    
     ! Determine the scale-free mass.
     massScaleFree=log(mass/jeansMass)
 
@@ -189,10 +191,12 @@ contains
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: mass
-    double precision             :: massScaleFree,smoothTransition,powerLawFit,exponentialFit,powerLawFitGradient&
-         &,exponentialFitGradient,smoothTransitionGradient
-
+    double precision, intent(in   ) :: mass                                                
+    double precision                :: exponentialFit          , exponentialFitGradient, & 
+         &                             massScaleFree           , powerLawFit           , & 
+         &                             powerLawFitGradient     , smoothTransition      , & 
+         &                             smoothTransitionGradient                            
+    
     ! Determine the scale-free mass.
     massScaleFree=log(mass/jeansMass)
 

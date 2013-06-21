@@ -24,8 +24,8 @@ module IO_XML
   public :: XML_Extrapolation_Element_Decode
 
   ! Labels for extrapolation methods.
-  integer, parameter, public :: extrapolateZero=0, extrapolateFixed=1, extrapolatePowerLaw=2
-
+  integer, parameter, public :: extrapolateFixed=1, extrapolatePowerLaw=2, extrapolateZero=0  
+                                                                                           
 contains
   
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
@@ -34,15 +34,15 @@ contains
     use Galacticus_Error
     use FoX_dom
     implicit none
-    type(Node),       pointer, intent(in)               :: extrapolationElement
-    character(len=*),          intent(out)              :: limitType
-    integer,                   intent(out)              :: extrapolationMethod
-    integer,          optional,intent(in), dimension(:) :: allowedMethods
-    type(Node),       pointer                           :: limitElement,methodElement
-    type(NodeList),   pointer                           :: elementList
-    character(len=32)                                   :: methodType
-
-    ! Extract the limit type.
+    type     (Node    )              , intent(in   ), pointer  :: extrapolationElement                 
+    character(len=*   )              , intent(  out)           :: limitType                            
+    integer                          , intent(  out)           :: extrapolationMethod                  
+    integer            , dimension(:), intent(in   ), optional :: allowedMethods                       
+    type     (Node    )                             , pointer  :: limitElement        , methodElement  
+    type     (NodeList)                             , pointer  :: elementList                          
+    character(len=32  )                                        :: methodType                           
+    
+    ! Extract the limit type.                                                                                                
     elementList => getElementsByTagname(extrapolationElement,"limit")
     if (getLength(elementList) /= 1) call Galacticus_Error_Report('Extrapolation_Element_Decode','extrapolation element must contain exactly one limit element')
     limitElement => item(elementList,0)

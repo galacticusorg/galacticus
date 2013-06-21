@@ -25,7 +25,7 @@ module Cooling_Times_Simple
   public :: Cooling_Time_Simple_Initialize
 
   ! Number of degrees of freedom assumed for the cooling time calculation.
-  double precision :: coolingTimeSimpleDegreesOfFreedom
+  double precision :: coolingTimeSimpleDegreesOfFreedom 
   
 contains
 
@@ -37,9 +37,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: coolingTimeMethod
-    procedure(double precision), pointer, intent(inout) :: Cooling_Time_Get,Cooling_Time_Density_Log_Slope_Get&
-         &,Cooling_Time_Temperature_Log_Slope_Get
+    type     (varying_string  ), intent(in   )          :: coolingTimeMethod                                           
+    procedure(double precision), intent(inout), pointer :: Cooling_Time_Density_Log_Slope_Get    , Cooling_Time_Get, & 
+         &                                                 Cooling_Time_Temperature_Log_Slope_Get                      
     
     if (coolingTimeMethod == 'simple') then
        Cooling_Time_Get => Cooling_Time_Simple
@@ -74,14 +74,15 @@ contains
     use Cooling_Functions
     use Chemical_States
     implicit none
-    double precision,                  intent(in) :: temperature,density
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
+    double precision                    , intent(in   ) :: density                       , temperature              
+    type            (abundances        ), intent(in   ) :: gasAbundances                                            
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                        
+    type            (radiationStructure), intent(in   ) :: radiation                                                
     ! Effectively infinite time (for arbitrarily long cooling times).
-    double precision,                  parameter  :: largeTime=1.0d10
-    double precision                              :: numberDensityHydrogen,numberDensityAllSpecies,coolingFunction,energyDensityThermal
-
+    double precision                    , parameter     :: largeTime              =1.0d10                           
+    double precision                                    :: coolingFunction               , energyDensityThermal , & 
+         &                                                 numberDensityAllSpecies       , numberDensityHydrogen    
+    
     ! Compute number density of hydrogen (in cm^-3).
     numberDensityHydrogen=density*gasAbundances%hydrogenMassFraction()*massSolar/massHydrogenAtom/(hecto*megaParsec)**3
 
@@ -112,11 +113,11 @@ contains
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision,                  intent(in) :: temperature,density
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-
+    double precision                    , intent(in   ) :: density          , temperature 
+    type            (abundances        ), intent(in   ) :: gasAbundances                  
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities              
+    type            (radiationStructure), intent(in   ) :: radiation                      
+    
     Cooling_Time_Density_Log_Slope_Simple=1.0d0-Cooling_Function_Density_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Density_Log_Slope_Simple
@@ -129,11 +130,11 @@ contains
     use Radiation_Structure
     use Cooling_Functions
     implicit none
-    double precision,                  intent(in) :: temperature,density
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-
+    double precision                    , intent(in   ) :: density          , temperature 
+    type            (abundances        ), intent(in   ) :: gasAbundances                  
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities              
+    type            (radiationStructure), intent(in   ) :: radiation                      
+    
     Cooling_Time_Temperature_Log_Slope_Simple=-Cooling_Function_Temperature_Log_Slope(temperature,density,gasAbundances,chemicalDensities,radiation)
     return
   end function Cooling_Time_Temperature_Log_Slope_Simple

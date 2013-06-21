@@ -26,12 +26,12 @@ module Cosmological_Mass_Variance_Filtered_Power_Spectrum
        &    Cosmological_Mass_Variance_FPS_State_Retrieve
 
   ! Initial ranges and tabulation scale for the mass variance.
-  double precision                :: sigmaTableMassMinimum=1.0d6, sigmaTableMassMaximum=1.0d15
-  integer         ,    parameter  :: sigmaTableNPointsPerDecade=10
-
+  double precision            :: sigmaTableMassMaximum     =1.0d15, sigmaTableMassMinimum=1.0d6 
+  integer         , parameter :: sigmaTableNPointsPerDecade=10                                  
+  
   ! Smoothing mass scale used in computing variance.
-  double precision                :: smoothingMass
-
+  double precision            :: smoothingMass                                                  
+  
 contains
 
   !# <cosmologicalMassVarianceMethod>
@@ -42,8 +42,8 @@ contains
     !% Initializes the $\sigma(M)$ calculation for the ``filtered power spectrum'' method.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                             ),          intent(in   ) :: cosmologicalMassVarianceMethod
-    procedure(Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate), pointer, intent(inout) :: Cosmological_Mass_Variance_Tabulate
+    type     (varying_string                                             ), intent(in   )          :: cosmologicalMassVarianceMethod      
+    procedure(Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate), intent(inout), pointer :: Cosmological_Mass_Variance_Tabulate 
     
     if (cosmologicalMassVarianceMethod == 'filteredPowerSpectrum') Cosmological_Mass_Variance_Tabulate =>&
          & Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate
@@ -53,12 +53,12 @@ contains
   subroutine Cosmological_Mass_Variance_Filtered_Power_Spectrum_Tabulate(mass,massNormalization,sigmaNormalization,sigmaTable)
     !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
     use Tables
-    double precision         , intent(in   )              :: mass,massNormalization
-    double precision         , intent(inout)              :: sigmaNormalization
-    class           (table1D), intent(inout), allocatable :: sigmaTable
-    integer                                               :: iMass,sigmaTableNPoints
-    double precision                                      :: sigma
-
+    double precision                      , intent(in   ) :: mass              , massNormalization 
+    double precision                      , intent(inout) :: sigmaNormalization                    
+    class           (table1D), allocatable, intent(inout) :: sigmaTable                            
+    integer                                               :: iMass             , sigmaTableNPoints 
+    double precision                                      :: sigma                                 
+    
     ! Create the table object.
     if (allocated(sigmaTable)) then
        call sigmaTable%destroy()
@@ -98,13 +98,13 @@ contains
     use Cosmological_Parameters
     use Power_Spectrum_Window_Functions
     implicit none
-    double precision                            , intent(in   ) :: mass
-    logical                                     , intent(in   ) :: useTopHat
-    double precision                                            :: wavenumberMinimum,wavenumberMaximum,topHatRadius
-    type            (c_ptr                     )                :: parameterPointer
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-
+    double precision                            , intent(in   ) :: mass                                                       
+    logical                                     , intent(in   ) :: useTopHat                                                  
+    double precision                                            :: topHatRadius        , wavenumberMaximum, wavenumberMinimum 
+    type            (c_ptr                     )                :: parameterPointer                                           
+    type            (fgsl_function             )                :: integrandFunction                                          
+    type            (fgsl_integration_workspace)                :: integrationWorkspace                                       
+    
     smoothingMass=mass
     topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
     wavenumberMinimum=    0.0d0/topHatRadius
@@ -127,12 +127,11 @@ contains
     use Power_Spectrum_Window_Functions
     use Primordial_Power_Spectra_Transferred
     implicit none
-    real(c_double)          :: Variance_Integrand
-    real(c_double), value   :: wavenumber
-    type(c_ptr   ), value   :: parameterPointer
-
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
-    ! elsewhere.
+    real(kind=c_double)        :: Variance_Integrand 
+    real(kind=c_double), value :: wavenumber         
+    type(c_ptr        ), value :: parameterPointer   
+    
+    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included    ! elsewhere.
     Variance_Integrand=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function(wavenumber,smoothingMass)*wavenumber)**2
     return
   end function Variance_Integrand
@@ -143,12 +142,11 @@ contains
     use Power_Spectrum_Window_Functions_Top_Hat
     use Primordial_Power_Spectra_Transferred
     implicit none
-    real(c_double)          :: Variance_Integrand_TopHat
-    real(c_double), value   :: wavenumber
-    type(c_ptr   ), value   :: parameterPointer
-
-    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
-    ! elsewhere.
+    real(kind=c_double)        :: Variance_Integrand_TopHat 
+    real(kind=c_double), value :: wavenumber                
+    type(c_ptr        ), value :: parameterPointer          
+    
+    ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included    ! elsewhere.
     Variance_Integrand_TopHat=Primordial_Power_Spectrum_Transferred(wavenumber)*(Power_Spectrum_Window_Function_Top_Hat(wavenumber,smoothingMass)*wavenumber)**2
     return
   end function Variance_Integrand_TopHat
@@ -160,9 +158,9 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
     return
   end subroutine Cosmological_Mass_Variance_FPS_State_Store
@@ -174,9 +172,9 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     ! Read the minimum and maximum tabulated times.
     read (stateFile) sigmaTableMassMinimum,sigmaTableMassMaximum
     return

@@ -25,17 +25,17 @@ module Atomic_Rates_Ionization_Collisional
   public :: Atomic_Rate_Ionization_Collisional
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: ionizationRateInitialized=.false.
-
-  ! Name of ionization state method used.
-  type(varying_string) :: atomicCollisionalIonizationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Rate_Ionization_Collisional_Template), pointer :: Atomic_Rate_Ionization_Collisional_Get => null()
+  logical                                                         :: ionizationRateInitialized             =.false.  
+  
+  ! Name of ionization state method used.                                                                                                                
+  type     (varying_string                             )          :: atomicCollisionalIonizationMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                
+  procedure(Atomic_Rate_Ionization_Collisional_Template), pointer :: Atomic_Rate_Ionization_Collisional_Get=>null()  
   abstract interface
      double precision function Atomic_Rate_Ionization_Collisional_Template(atomicNumber,ionizationState,temperature)
-       integer,          intent(in) :: atomicNumber,ionizationState
-       double precision, intent(in) :: temperature
+       integer         , intent(in   ) :: atomicNumber, ionizationState  
+       double precision, intent(in   ) :: temperature                    
      end function Atomic_Rate_Ionization_Collisional_Template
   end interface
   
@@ -83,10 +83,10 @@ contains
 
   double precision function Atomic_Rate_Ionization_Collisional(atomicNumber,ionizationState,temperature)
     implicit none
-    integer,          intent(in) :: atomicNumber,ionizationState
-    double precision, intent(in) :: temperature
-
-    ! Initialize the module.
+    integer         , intent(in   ) :: atomicNumber, ionizationState  
+    double precision, intent(in   ) :: temperature                    
+    
+    ! Initialize the module.                                                               
     call Atomic_Rate_Ionization_Collisional_Initialize
 
     ! Call the routine to do the calculation.

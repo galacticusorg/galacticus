@@ -32,9 +32,9 @@ contains
     !% Determine if use of this method is requested and set procedure pointer appropriately if it is.
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: nodeMergersMethod
-    procedure(Events_Node_Merger_Do_SLH),          pointer, intent(inout) :: Events_Node_Merger_Do
-
+    type     (varying_string           ), intent(in   )          :: nodeMergersMethod      
+    procedure(Events_Node_Merger_Do_SLH), intent(inout), pointer :: Events_Node_Merger_Do  
+                                                                                        
     if (nodeMergersMethod == 'singleLevelHierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
 
     return
@@ -48,11 +48,11 @@ contains
     use Galacticus_Nodes
     use Satellite_Promotion
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode
-    type(treeNode      ),                pointer :: parentNode,childNode,thisSatellite,nextSatellite
-    type(varying_string)                         :: message
-
-    ! Get the parent node.
+    type(treeNode      ), intent(inout), pointer :: thisNode                                             
+    type(treeNode      )               , pointer :: childNode, nextSatellite, parentNode, thisSatellite  
+    type(varying_string)                         :: message                                              
+    
+    ! Get the parent node.                                                                                                  
     parentNode => thisNode%parent
     ! Uncouple thisNode from the children of its parent.
     childNode  => parentNode%firstChild

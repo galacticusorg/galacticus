@@ -24,15 +24,16 @@ module Cooling_Rates_Modifier_Cut_Off
   public :: Cooling_Rate_Modifier_Cut_Off
 
   ! Record of whether module has been initialized.
-  logical          :: moduleInitialized=.false.
-
+  logical          :: moduleInitialized         =.false.                       
+  
   ! Parameters controlling the time and velocity scale at which cooling is cut off.
-  double precision :: coolingCutOffVelocity,coolingCutOffRedshift,coolingCutOffTime
-  logical          :: coolingCutOffFormationNode
-  integer          :: coolingCutOffWhen
-  integer          :: coolingCutOffWhenBefore=0
-  integer          :: coolingCutOffWhenAfter =1
-
+  double precision :: coolingCutOffRedshift             , coolingCutOffTime, & 
+       &              coolingCutOffVelocity                                    
+  logical          :: coolingCutOffFormationNode                               
+  integer          :: coolingCutOffWhen                                        
+  integer          :: coolingCutOffWhenBefore   =0                             
+  integer          :: coolingCutOffWhenAfter    =1                             
+  
 contains
 
   !# <coolingRateModifierMethod>
@@ -47,11 +48,11 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    double precision         , intent(inout)          :: coolingRate
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: virialVelocity
-    type (varying_string    )                         :: coolingCutOffWhenText
+    type            (treeNode          ), intent(inout), pointer :: thisNode              
+    double precision                    , intent(inout)          :: coolingRate           
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent    
+    double precision                                             :: virialVelocity        
+    type            (varying_string    )                         :: coolingCutOffWhenText 
     
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)

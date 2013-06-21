@@ -25,21 +25,21 @@ module Radiation_IGB_File
   public :: Radiation_IGB_File_Initialize,Radiation_IGB_File_Format_Version
 
   ! Flag indicating whether the module has been initialized yet.
-  logical :: moduleInitialized=.false.
-
-  ! Arrays holding the radiation data.
-  integer                                       :: spectraTimesCount,spectraWavelengthsCount
-  double precision, allocatable, dimension(:  ) :: spectraTimes,spectraWavelengths
-  double precision, allocatable, dimension(:,:) :: spectra
-
-  ! Interpolation structures.
-  logical                                       :: interpolationReset=.true., interpolationResetTimes=.true.
-  type(fgsl_interp_accel)                       :: interpolationAccelerator , interpolationAcceleratorTimes
-  type(fgsl_interp      )                       :: interpolationObject
-
-  ! Current file format version for intergalactic background radiation files.
-  integer         , parameter                   :: fileFormatVersionCurrent=1
-
+  logical                                                          :: moduleInitialized       =.false.                                        
+  
+  ! Arrays holding the radiation data.                                                                                                                                         
+  integer                                                          :: spectraTimesCount               , spectraWavelengthsCount               
+  double precision                   , allocatable, dimension(:  ) :: spectraTimes                    , spectraWavelengths                    
+  double precision                   , allocatable, dimension(:,:) :: spectra                                                                 
+  
+  ! Interpolation structures.                                                                                                                                         
+  logical                                                          :: interpolationReset      =.true. , interpolationResetTimes      =.true.  
+  type            (fgsl_interp_accel)                              :: interpolationAccelerator        , interpolationAcceleratorTimes         
+  type            (fgsl_interp      )                              :: interpolationObject                                                     
+  
+  ! Current file format version for intergalactic background radiation files.                                                                                                                                         
+  integer                            , parameter                   :: fileFormatVersionCurrent=1                                              
+                                                                                                                                           
 contains
 
   integer function Radiation_IGB_File_Format_Version()
@@ -64,15 +64,19 @@ contains
     use Array_Utilities
     use Galacticus_Input_Paths
     implicit none
-    type(varying_string),          intent(in)    :: radiationIntergalacticBackgroundMethod
-    procedure(Radiation_IGB_File_Set),          pointer, intent(inout) :: Radiation_Set_Intergalactic_Background_Do
-    procedure(Radiation_IGB_File_Flux),          pointer, intent(inout) :: Radiation_Flux_Intergalactic_Background_Do
-    type(Node),           pointer                :: doc,thisSpectrum,thisWavelength,thisDatum
-    type(NodeList),       pointer                :: spectraList,datumList,wavelengthList
-    integer                                      :: ioErr,iSpectrum,jSpectrum,iWavelength,fileFormatVersion
-    logical                                      :: timesIncreasing
-    type(varying_string)                         :: radiationIGBFileName
-
+    type     (varying_string         ), intent(in   )          :: radiationIntergalacticBackgroundMethod                         
+    procedure(Radiation_IGB_File_Set ), intent(inout), pointer :: Radiation_Set_Intergalactic_Background_Do                      
+    procedure(Radiation_IGB_File_Flux), intent(inout), pointer :: Radiation_Flux_Intergalactic_Background_Do                     
+    type     (Node                   )               , pointer :: doc                                       , thisDatum      , & 
+         &                                                        thisSpectrum                              , thisWavelength     
+    type     (NodeList               )               , pointer :: datumList                                 , spectraList    , & 
+         &                                                        wavelengthList                                                 
+    integer                                                    :: fileFormatVersion                         , iSpectrum      , & 
+         &                                                        iWavelength                               , ioErr          , & 
+         &                                                        jSpectrum                                                      
+    logical                                                    :: timesIncreasing                                                
+    type     (varying_string         )                         :: radiationIGBFileName                                           
+                                                                                                                              
     if (radiationIntergalacticBackgroundMethod == 'file') then
        Radiation_Set_Intergalactic_Background_Do  => Radiation_IGB_File_Set
        Radiation_Flux_Intergalactic_Background_Do => Radiation_IGB_File_Flux
@@ -163,11 +167,11 @@ contains
     use Galacticus_Nodes
     use Memory_Management
     implicit none
-    type (treeNode          ), intent(inout), pointer                   :: thisNode
-    double precision         , intent(inout), allocatable, dimension(:) :: radiationProperties
-    class(nodeComponentBasic),                pointer                   :: thisBasicComponent
-
-    ! Ensure that the properties array is allocated.
+    type            (treeNode          )                           , intent(inout), pointer :: thisNode             
+    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties  
+    class           (nodeComponentBasic)             , pointer                              :: thisBasicComponent   
+    
+    ! Ensure that the properties array is allocated.                                                                                                             
     if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
 
     ! Store the time for the radiation field.
@@ -181,18 +185,18 @@ contains
     !% Flux method for the radiation component from file method.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in)                   :: wavelength
-    double precision, intent(in),   dimension(:)   :: radiationProperties
-    double precision, intent(inout)                :: radiationFlux
-    double precision, save,         dimension(0:1) :: hSpectrum
-    !$omp threadprivate(hSpectrum)
-    double precision,               dimension(0:1) :: hWavelength
-    integer,          save                         :: iSpectrum
-    !$omp threadprivate(iSpectrum)
-    double precision, save                         :: previousTime=-1.0d0
-    integer                                        :: jSpectrum,iWavelength,jWavelength
-
-    ! Return if out of range.
+    double precision                      , intent(in   ) :: wavelength                                          
+    double precision, dimension(:)        , intent(in   ) :: radiationProperties                                 
+    double precision                      , intent(inout) :: radiationFlux                                       
+    double precision, dimension(0:1), save                :: hSpectrum                                           
+    !$omp threadprivate(hSpectrum)                                                                                                          
+    double precision, dimension(0:1)                      :: hWavelength                                         
+    integer                         , save                :: iSpectrum                                           
+    !$omp threadprivate(iSpectrum)                                                                                                          
+    double precision                , save                :: previousTime       =-1.0d0                          
+    integer                                               :: iWavelength               , jSpectrum, jWavelength  
+    
+    ! Return if out of range.                                                                                                          
     if     (    radiationProperties(1) < spectraTimes      (1                      ) &
          & .or. radiationProperties(1) > spectraTimes      (spectraTimesCount      ) &
          & .or. wavelength             < spectraWavelengths(1                      ) &

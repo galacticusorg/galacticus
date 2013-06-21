@@ -36,14 +36,14 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    class  (nodeEvent     ),          intent(in   ) :: thisEvent
-    type   (treeNode      ), pointer, intent(inout) :: thisNode
-    integer                ,          intent(inout) :: deadlockStatus
-    type   (treeNode      ), pointer                :: promotionNode
-    type   (mergerTree    )                         :: thisTree
-    type   (varying_string)                         :: message
-
-    ! Find the node to promote to.    
+    class  (nodeEvent     ), intent(in   )          :: thisEvent       
+    type   (treeNode      ), intent(inout), pointer :: thisNode        
+    integer                , intent(inout)          :: deadlockStatus  
+    type   (treeNode      )               , pointer :: promotionNode   
+    type   (mergerTree    )                         :: thisTree        
+    type   (varying_string)                         :: message         
+    
+    ! Find the node to promote to.                                                                    
     promotionNode => thisEvent%node
     ! If the target node has a child, we must wait for that child to be processed before promoting. Note that this should only
     ! happen in cases where the target node was cloned to be its own primary progenitor.

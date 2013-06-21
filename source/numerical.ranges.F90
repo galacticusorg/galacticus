@@ -24,8 +24,8 @@ module Numerical_Ranges
   public :: Make_Range
 
   ! Parameters to specify type of range required.
-  integer, public, parameter :: rangeTypeUndefined=-1, rangeTypeLinear=0, rangeTypeLogarithmic=1
-  
+  integer, parameter, public :: rangeTypeLinear=0, rangeTypeLogarithmic=1, rangeTypeUndefined=-1  
+                                                                                               
 contains
 
   recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType) result (rangeValues)
@@ -33,13 +33,13 @@ contains
     !% specified by {\tt rangeType} (defaulting to linear spacing if no {\tt rangeType} is given).
     use Galacticus_Error
     implicit none
-    double precision, intent(in)           :: rangeMinimum,rangeMaximum
-    integer,          intent(in)           :: rangeNumber
-    integer,          intent(in), optional :: rangeType
-    double precision                       :: rangeValues(rangeNumber)
-    integer                                :: rangeTypeActual,iRange
-
-    ! Find what type of range is required.
+    double precision, intent(in   )           :: rangeMaximum             , rangeMinimum     
+    integer         , intent(in   )           :: rangeNumber                                 
+    integer         , intent(in   ), optional :: rangeType                                   
+    double precision                          :: rangeValues (rangeNumber)                   
+    integer                                   :: iRange                   , rangeTypeActual  
+    
+    ! Find what type of range is required.                                                                                      
     if (present(rangeType)) then
        rangeTypeActual=rangeType
     else

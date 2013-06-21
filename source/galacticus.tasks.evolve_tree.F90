@@ -24,15 +24,15 @@ module Galacticus_Tasks_Evolve_Tree
   public :: Galacticus_Task_Evolve_Tree
 
   ! Flag to indicate if output times have been initialized.
-  logical          :: treeEvolveInitialized=.false.
-
-  ! Parameters controlling which trees will be processed.
-  integer          :: treeEvolveWorkerCount,treeEvolveWorkerNumber
-
-  ! Parameters controlling load average.
-  logical          :: treeEvolveLimitLoadAverage
-  double precision :: treeEvolveLoadAverageMaximum
+  logical          :: treeEvolveInitialized       =.false.                          
   
+  ! Parameters controlling which trees will be processed.                                                                               
+  integer          :: treeEvolveWorkerCount               , treeEvolveWorkerNumber  
+  
+  ! Parameters controlling load average.                                                                               
+  logical          :: treeEvolveLimitLoadAverage                                    
+  double precision :: treeEvolveLoadAverageMaximum                                  
+                                                                                 
 contains
 
   !# <galacticusTask>
@@ -64,21 +64,21 @@ contains
     include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
     !# </include>
     implicit none
-    type(mergerTree),     save, pointer      :: thisTree
-    logical,              save               :: finished,skipTree
-    integer,              save               :: iOutput
-    double precision,     save               :: outputTime
-    type(varying_string), save               :: message
-    character(len=20),    save               :: label
-    !$omp threadprivate(thisTree,finished,skipTree,iOutput,outputTime,message,label)
-    integer                                  :: iTree
-    integer             , save               :: activeTasks,totalTasks
-    double precision    , save, dimension(3) :: loadAverage
-    logical             , save               :: overloaded
-    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded)
-    character(len=32)                        :: treeEvolveLoadAverageMaximumText
-
-    ! Initialize the task if necessary.
+    type            (mergerTree    ), pointer     , save :: thisTree                                      
+    logical                                       , save :: finished                        , skipTree    
+    integer                                       , save :: iOutput                                       
+    double precision                              , save :: outputTime                                    
+    type            (varying_string)              , save :: message                                       
+    character       (len=20        )              , save :: label                                         
+    !$omp threadprivate(thisTree,finished,skipTree,iOutput,outputTime,message,label)                                                                                                   
+    integer                                              :: iTree                                         
+    integer                                       , save :: activeTasks                     , totalTasks  
+    double precision                , dimension(3), save :: loadAverage                                   
+    logical                                       , save :: overloaded                                    
+    !$omp threadprivate(activeTasks,totalTasks,loadAverage,overloaded)                                                                                                   
+    character       (len=32        )                     :: treeEvolveLoadAverageMaximumText              
+    
+    ! Initialize the task if necessary.                                                                                                   
     if (.not.treeEvolveInitialized) then
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.treeEvolveInitialized) then
@@ -242,12 +242,12 @@ contains
     include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
     !# </include>
     implicit none
-    integer            , intent(inout)          :: iTree
-    logical            , intent(  out)          :: skipTree
-    logical            , intent(inout)          :: finished
-    type   (mergerTree), intent(  out), pointer :: thisTree
+    integer            , intent(inout)          :: iTree     
+    logical            , intent(  out)          :: skipTree  
+    logical            , intent(inout)          :: finished  
+    type   (mergerTree), intent(  out), pointer :: thisTree  
     
-    ! Increment the tree counter.
+    ! Increment the tree counter.                                                      
     iTree=iTree+1
     ! Decide whether or not to skip this tree.
     skipTree=.not.(modulo(iTree-1+(iTree-1)/treeEvolveWorkerCount,treeEvolveWorkerCount) == treeEvolveWorkerNumber-1)

@@ -33,17 +33,16 @@ program Test_NFW96_Concentration_Dark_Energy
   use String_Handling
   use Unit_Tests
   implicit none
-  type (mergerTree        ), pointer                 :: thisTree
-  type (treeNode          ), pointer                 :: thisNode
-  class(nodeComponentBasic), pointer                 :: thisBasicComponent
-  integer                  , parameter, dimension(6) ::  chardenLogHaloMass    =[ 10,            11,            12,            13,            14,            15            ]
-  double precision         , parameter, dimension(6) ::  chardenConcentrationZ0=[ 10.2700200d00,  9.0204391d00,  7.8041310d00,  6.6154380d00,  5.4956946d00,  4.4538398d00 ] &
-       &                                          ,chardenConcentrationZ3=[  5.8715897d00,  5.4417138d00,  5.0239682d00,  4.6186433d00,  4.2366042d00,  3.8884208d00 ]
-  type (varying_string    )                          :: parameterFile,message
-  integer                                            :: iMass
-  double precision                                   :: ourConcentration
-
-  ! Read in basic code memory usage.
+  type            (mergerTree        )                         , pointer :: thisTree                                                                                                                                                                                                         
+  type            (treeNode          )                         , pointer :: thisNode                                                                                                                                                                                                         
+  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent                                                                                                                                                                                               
+  integer                             , dimension(6), parameter          :: chardenLogHaloMass    =[10,11,12,13,14,15]                                                                                                                                                                       
+  double precision                    , dimension(6), parameter          :: chardenConcentrationZ0=[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], chardenConcentrationZ3=[5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]  
+  type            (varying_string    )                                   :: message                                                                                                , parameterFile                                                                                           
+  integer                                                                :: iMass                                                                                                                                                                                                            
+  double precision                                                       :: ourConcentration                                                                                                                                                                                                 
+  
+  ! Read in basic code memory usage.                                                                                                                                                                                                                                                                                        
   call Code_Memory_Usage('tests.NFW96_concentration.dark_energy.size')
 
   ! Begin unit tests.

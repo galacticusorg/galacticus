@@ -26,18 +26,18 @@ module Star_Formation_Feedback_Spheroids
   public :: Star_Formation_Feedback_Spheroid_Outflow_Rate
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: starFormationFeedbackSpheroidsInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: starFormationFeedbackSpheroidsMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate_Template), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get => null()
+  logical                                                                    :: starFormationFeedbackSpheroidsInitialized        =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                                                      
+  type     (varying_string                                        )          :: starFormationFeedbackSpheroidsMethod                       
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                                      
+  procedure(Star_Formation_Feedback_Spheroid_Outflow_Rate_Template), pointer :: Star_Formation_Feedback_Spheroid_Outflow_Rate_Get=>null()  
   interface Star_Formation_Feedback_Spheroid_Outflow_Rate_Template
      double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate_Template(thisNode,starFormationRate,energyInputRate)
        import treeNode
-       type(treeNode),   intent(inout), pointer :: thisNode
-       double precision, intent(in)             :: starFormationRate,energyInputRate
+       type            (treeNode), intent(inout), pointer :: thisNode                            
+       double precision          , intent(in   )          :: energyInputRate, starFormationRate  
      end function Star_Formation_Feedback_Spheroid_Outflow_Rate_Template
   end interface
 
@@ -86,10 +86,10 @@ contains
   double precision function Star_Formation_Feedback_Spheroid_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
     !% Returns the outflow rate due to star formation in the spheroid component of {\tt thisNode}.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: starFormationRate,energyInputRate
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode                            
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
+    
+    ! Initialize the module.                                                                                       
     call Star_Formation_Feedback_Spheroids_Initialize
 
     ! Get the energy using the selected method.

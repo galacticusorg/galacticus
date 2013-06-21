@@ -29,22 +29,23 @@ module Spherical_Collapse_Matter_Dark_Energy
        & Spherical_Collapse_Matter_Dark_Energy_State_Store, Spherical_Collapse_Matter_Dark_Energy_State_Retrieve
   
   ! Variables to hold the tabulated critical overdensity data.
-  double precision                            :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
-  integer                         , parameter :: deltaTableNPointsPerDecade=100
-
-  ! Variables used in root finding.
-  double precision                            :: OmegaDE,OmegaM,tNow,hubbleParameterInvGyr,epsilonPerturbationShared&
-       &,perturbationRadiusInitial
-
-  ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                , parameter :: expansionFactorInitialFraction=1.0d-6
-
-  ! Calculation types.
-  integer                         , parameter :: calculationDeltaCrit=0, calculationDeltaVirial=1
-
-  ! Parameter controlling the epoch at which the energy of a perturbation is fixed when computing virial overdensities.
-  type            (varying_string)            :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt
-
+  double precision                            :: deltaTableTimeMaximum                                    =20.0d0, deltaTableTimeMinimum =1.0d0     
+  integer                         , parameter :: deltaTableNPointsPerDecade                               =100                                      
+  
+  ! Variables used in root finding.                                                                                                                                               
+  double precision                            :: OmegaDE                                                         , OmegaM                       , & 
+       &                                         epsilonPerturbationShared                                       , hubbleParameterInvGyr        , & 
+       &                                         perturbationRadiusInitial                                       , tNow                             
+  
+  ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.                                                                                                                                               
+  double precision                , parameter :: expansionFactorInitialFraction                           =1.0d-6                                   
+  
+  ! Calculation types.                                                                                                                                               
+  integer                         , parameter :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1         
+  
+  ! Parameter controlling the epoch at which the energy of a perturbation is fixed when computing virial overdensities.                                                                                                                                               
+  type            (varying_string)            :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt                                          
+                                                                                                                                                 
 contains
 
   !# <criticalOverdensityMethod>
@@ -54,9 +55,9 @@ contains
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                     ),          intent(in   ) :: criticalOverdensityMethod
-    procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), pointer, intent(inout) :: Critical_Overdensity_Tabulate
-
+    type     (varying_string                                     ), intent(in   )          :: criticalOverdensityMethod      
+    procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate  
+                                                                                                                          
     if (criticalOverdensityMethod == 'sphericalTopHatDarkEnergy') Critical_Overdensity_Tabulate => Spherical_Collapse_Dark_Energy_Critical_Overdensity
     return
   end subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize
@@ -68,9 +69,9 @@ contains
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
     use Input_Parameters
     use ISO_Varying_String
-    type     (varying_string                                        ),          intent(in   ) :: virialDensityContrastMethod
-    procedure(Spherical_Collapse_Dark_Energy_Virial_Density_Contrast), pointer, intent(inout) :: Virial_Density_Contrast_Tabulate
-
+    type     (varying_string                                        ), intent(in   )          :: virialDensityContrastMethod       
+    procedure(Spherical_Collapse_Dark_Energy_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate  
+                                                                                                                                
     if (virialDensityContrastMethod == 'sphericalTopHatDarkEnergy') then
        Virial_Density_Contrast_Tabulate => Spherical_Collapse_Dark_Energy_Virial_Density_Contrast
        ! Read parameters controlling the calculation.
@@ -95,10 +96,10 @@ contains
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables
     implicit none
-    double precision         , intent(in   )              :: time
-    class           (table1D), intent(inout), allocatable :: deltaCritTable
-
-    !$omp critical(Spherical_Collapse_Make_Table)
+    double precision                      , intent(in   ) :: time            
+    class           (table1D), allocatable, intent(inout) :: deltaCritTable  
+    
+    !$omp critical(Spherical_Collapse_Make_Table)                                                                      
     call Make_Table(time,deltaCritTable,calculationDeltaCrit)
     !$omp end critical(Spherical_Collapse_Make_Table)
 
@@ -109,10 +110,10 @@ contains
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
-    double precision         , intent(in   )              :: time
-    class           (table1D), intent(inout), allocatable :: deltaVirialTable
-
-    !$omp critical(Spherical_Collapse_Make_Table)
+    double precision                      , intent(in   ) :: time              
+    class           (table1D), allocatable, intent(inout) :: deltaVirialTable  
+    
+    !$omp critical(Spherical_Collapse_Make_Table)                                                                        
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
@@ -132,21 +133,26 @@ contains
     use ISO_Varying_String
     use Numerical_Constants_Math
     implicit none
-    double precision                , intent(in)                 :: time
-    integer                         , intent(in)                 :: calculationType
-    class           (table1D       ), intent(inout), allocatable :: deltaTable
-    double precision                , parameter                  :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    type            (rootFinder    ), save                       :: finder,maximumExpansionFinder
-    !$omp threadprivate(finder,maximumExpansionFinder) 
-    integer                                                      :: iTime,deltaTableNumberPoints
-    double precision                                             :: epsilonPerturbation,epsilonPerturbationMinimum &
-         &,epsilonPerturbationMaximum,aExpansionNow,normalization,maximumExpansionTime,maximumExpansionExpansionFactor&
-         &,maximumExpansionRadius,maximumExpansionDensityContrast,timeInitial,q,y,timeEnergyFixed,n,theta,phi
+    double precision                             , intent(in   ) :: time                                                                              
+    integer                                      , intent(in   ) :: calculationType                                                                   
+    class           (table1D       ), allocatable, intent(inout) :: deltaTable                                                                        
+    double precision                , parameter                  :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9     
+    type            (rootFinder    ), save                       :: finder                               , maximumExpansionFinder                     
+    !$omp threadprivate(finder,maximumExpansionFinder)                                                                                                                                                
+    integer                                                      :: deltaTableNumberPoints               , iTime                                      
+    double precision                                             :: aExpansionNow                        , epsilonPerturbation                    , & 
+         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , & 
+         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor        , & 
+         &                                                          maximumExpansionRadius               , maximumExpansionTime                   , & 
+         &                                                          n                                    , normalization                          , & 
+         &                                                          phi                                  , q                                      , & 
+         &                                                          theta                                , timeEnergyFixed                        , & 
+         &                                                          timeInitial                          , y                                          
     double complex :: a,b,x
-    type            (varying_string)                             :: message
-    character       (len=7         )                             :: label
-
-    ! Find minimum and maximum times to tabulate.
+    type     (varying_string) :: message  
+    character(len=7         ) :: label    
+    
+    ! Find minimum and maximum times to tabulate.                                   
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     ! Determine number of points to tabulate.
@@ -267,8 +273,8 @@ contains
     !% Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\tt epsilonPerturbation}.
     implicit none
-    double precision, intent(in   ) :: epsilonPerturbation
-
+    double precision, intent(in   ) :: epsilonPerturbation  
+                                                         
     call Perturbation_Dynamics_Solver(epsilonPerturbation,tNow,radiusPerturbation)
     return
   end function radiusPerturbation
@@ -277,8 +283,8 @@ contains
     !% Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation
     !% amplitude {\tt epsilonPerturbation}.
     implicit none
-    double precision, intent(in   ) :: time
-
+    double precision, intent(in   ) :: time  
+                                          
     call Perturbation_Dynamics_Solver(epsilonPerturbationShared,time,perturbationExpansionRate=expansionRatePerturbation)
     return
   end function expansionRatePerturbation
@@ -290,20 +296,20 @@ contains
     use FODEIV2
     use Cosmology_Functions
     implicit none
-    double precision                    , intent(in   )           :: epsilonPerturbation,time
-    double precision                    , intent(  out), optional :: perturbationRadius,perturbationExpansionRate
-    integer                             , parameter               :: nProperties=2
-    double precision                    , dimension(nProperties)  :: propertyValues
-    double precision                    , parameter               :: odeToleranceAbsolute=0.0d0, odeToleranceRelative=1.0d-12
-    type            (fodeiv2_system    )                          :: ode2System
-    type            (fodeiv2_driver    )                          :: ode2Driver
-    type            (c_ptr             )                          :: parameterPointer
-    logical                                                       :: odeReset
-    double precision                                              :: expansionFactorInitial,timeInitial &
-         &,perturbationOverdensityInitial,perturbationExpansionRateInitial
-    integer                                                       :: odeStatus
-
-    ! Specify a sufficiently early time.
+    double precision                                            , intent(in   )           :: epsilonPerturbation                 , time                                         
+    double precision                                            , intent(  out), optional :: perturbationExpansionRate           , perturbationRadius                           
+    integer                             , parameter                                       :: nProperties                   =2                                                   
+    double precision                    , dimension(nProperties)                          :: propertyValues                                                                     
+    double precision                    , parameter                                       :: odeToleranceAbsolute          =0.0d0, odeToleranceRelative            =1.0d-12     
+    type            (fodeiv2_system    )                                                  :: ode2System                                                                         
+    type            (fodeiv2_driver    )                                                  :: ode2Driver                                                                         
+    type            (c_ptr             )                                                  :: parameterPointer                                                                   
+    logical                                                                               :: odeReset                                                                           
+    double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial         , & 
+         &                                                                                   perturbationOverdensityInitial      , timeInitial                                  
+    integer                                                                               :: odeStatus                                                                          
+    
+    ! Specify a sufficiently early time.                                                                                                                                                                         
     expansionFactorInitial=expansionFactorInitialFraction
     ! Find the corresponding cosmic time.
     timeInitial=Cosmology_Age(Expansion_Factor(time)*expansionFactorInitial)
@@ -347,13 +353,13 @@ contains
     use FGSL
     use Cosmology_Functions
     implicit none
-    integer(c_int)                                       :: perturbationODEs
-    real(c_double),                          value       :: time
-    real(c_double),                          intent(in)  :: y   (2)
-    real(c_double),                          intent(out) :: dydt(2)
-    type(c_ptr),                             value       :: parameterPointer
-    double precision                                     :: expansionFactor
-
+    integer         (kind=c_int   )                       :: perturbationODEs     
+    real            (kind=c_double)               , value :: time                 
+    real            (kind=c_double), intent(in   )        :: y               (2)  
+    real            (kind=c_double), intent(  out)        :: dydt            (2)  
+    type            (c_ptr        )               , value :: parameterPointer     
+    double precision                                      :: expansionFactor      
+                                                                               
     if (y(1) <= 0.0d0) then
        dydt=0.0d0
     else
@@ -373,9 +379,9 @@ contains
   subroutine Spherical_Collapse_Matter_Dark_Energy_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     write (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Dark_Energy_State_Store
@@ -386,9 +392,9 @@ contains
   subroutine Spherical_Collapse_Matter_Dark_Energy_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     read (stateFile) deltaTableTimeMinimum,deltaTableTimeMaximum
     return
   end subroutine Spherical_Collapse_Matter_Dark_Energy_State_Retrieve

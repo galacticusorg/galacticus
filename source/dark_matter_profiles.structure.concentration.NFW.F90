@@ -25,12 +25,11 @@ module Dark_Matter_Profiles_Concentrations_NFW1996
   public :: Dark_Matter_Concentrations_NFW1996_Initialize
 
   ! Module global variable used in root finding.
-  double precision :: targetValue
+  double precision :: targetValue                              
   !$omp threadprivate(targetValue)
-
   ! Parameters of the fit.
-  double precision :: nfw96ConcentrationC,nfw96ConcentrationF
-
+  double precision :: nfw96ConcentrationC, nfw96ConcentrationF 
+  
 contains
 
   !# <darkMatterConcentrationMethod>
@@ -41,8 +40,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                           ),          intent(in   ) :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_NFW1996), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod         
+    procedure(Dark_Matter_Profile_Concentration_NFW1996), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get 
     
     if (darkMatterConcentrationMethod == 'NFW1996') then
        ! Return a pointer to our implementation.
@@ -85,15 +84,17 @@ contains
     use FGSL
     use Virial_Density_Contrast
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: fitParameterNuHalf=0.47693628d0
-    double precision                    , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    class           (nodeComponentBasic),                pointer :: thisBasicComponent
-    type            (rootFinder        ), save                   :: finder
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                                                    
+    double precision                    , parameter              :: fitParameterNuHalf         =0.47693628d0                                    
+    double precision                    , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6    
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                                          
+    type            (rootFinder        ), save                   :: finder                                                                      
     !$omp threadprivate(finder)
-    double precision                                             :: nodeMass,nodeTime,collapseMass,collapseCriticalOverdensity &
-         &,collapseTime ,collapseExpansionFactor,expansionFactor,collapseOverdensity
-
+    double precision                                             :: collapseCriticalOverdensity             , collapseExpansionFactor       , & 
+         &                                                          collapseMass                            , collapseOverdensity           , & 
+         &                                                          collapseTime                            , expansionFactor               , & 
+         &                                                          nodeMass                                , nodeTime                          
+    
     ! Get the basic component.
     thisBasicComponent         => thisNode%basic()
     ! Get the properties of the node.
@@ -128,7 +129,7 @@ contains
   double precision function NFW_Concentration_Function_Root(concentration)
     !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
     implicit none
-    double precision, intent(in   ) :: concentration
+    double precision, intent(in   ) :: concentration 
     
     NFW_Concentration_Function_Root=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-targetValue
     return

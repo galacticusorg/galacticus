@@ -25,16 +25,16 @@ module Supernovae_Population_III
   public :: SNePopIII_Cumulative_Energy
 
   ! Flag indicating whether this module has been initialized.
-  logical              :: supernovaePopIIIInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: supernovaePopIIIMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(SNePopIII_Cumulative_Template), pointer :: SNePopIII_Cumulative_Energy_Get => null()
+  logical                                           :: supernovaePopIIIInitialized    =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                           
+  type     (varying_string               )          :: supernovaePopIIIMethod                   
+  
+  ! Pointer to the function that actually does the calculation.                                                                                           
+  procedure(SNePopIII_Cumulative_Template), pointer :: SNePopIII_Cumulative_Energy_Get=>null()  
   abstract interface
     double precision function SNePopIII_Cumulative_Template(initialMass,age,metallicity)
-      double precision, intent(in) :: initialMass,age,metallicity
+      double precision, intent(in   ) :: age, initialMass, metallicity  
     end function SNePopIII_Cumulative_Template
   end interface
 
@@ -82,9 +82,9 @@ contains
   double precision function SNePopIII_Cumulative_Energy(initialMass,age,metallicity)
     !% Return the cumulative energy input from Population III supernovae from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-
-    ! Ensure module is initialized.
+    double precision, intent(in   ) :: age, initialMass, metallicity  
+    
+    ! Ensure module is initialized.                                                               
     call Supernovae_Population_III_Initialize
 
     ! Simply call the function which does the actual work.

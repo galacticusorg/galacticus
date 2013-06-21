@@ -56,12 +56,12 @@ $typeBoundRegex = "^\\s*(procedure|generic)\\s*::\\s*([a-z0-9_]+)\\s*=>\\s*([a-z
 
 # Specify regexs for intrinsic variable declarations.
 %intrinsicDeclarations = (
-    integer   => { variables => 3, regEx => "^\\s*integer\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    real      => { variables => 3, regEx => "^\\s*real\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    double    => { variables => 3, regEx => "^\\s*double\\s+precision\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:=\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    logical   => { variables => 3, regEx => "^\\s*logical\\s*(\\(\\s*kind\\s*=\\s*[a-z0-9_]+\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    character => { variables => 5, regEx => "^\\s*character\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
-    procedure => { variables => 3, regEx => "^\\s*procedure\\s*(\\(\\s*[a-z0-9_]*\\s*\\))*([\\sa-z0-9_,:\\+\\-\\*\\/\\(\\)]*::)*\\s*([\\sa-z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" }
+    integer   => { intrinsic => "integer", type => 1, attributes => 2, variables => 3, regEx => "^\\s*(?i)integer(?-i)\\s*(\\(\\s*kind\\s*=\\s*[a-zA-Z0-9_]+\\s*\\))*([\\sa-zA-Z0-9_,:\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    real      => { intrinsic => "real", type => 1, attributes => 2, variables => 3, regEx => "^\\s*(?i)real(?-i)\\s*(\\(\\s*kind\\s*=\\s*[a-zA-Z0-9_]+\\s*\\))*([\\sa-zA-Z0-9_,:\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9\\._,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    double    => { intrinsic => "double precision", type => 1, attributes => 2, variables => 3, regEx => "^\\s*(?i)double\\s+precision(?-i)\\s*(\\(\\s*kind\\s*=\\s*[a-zA-Z0-9_]+\\s*\\))*([\\sa-zA-Z0-9_,:=\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9\\._,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    logical   => { intrinsic => "logical", type => 1, attributes => 2, variables => 3, regEx => "^\\s*(?i)logical(?-i)\\s*(\\(\\s*kind\\s*=\\s*[a-zA-Z0-9_]+\\s*\\))*([\\sa-zA-Z0-9_,:\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    character => { intrinsic => "character", type => 1, attributes => 4, variables => 5, regEx => "^\\s*(?i)character(?-i)\\s*(\\((\\s*(len|kind)\\s*=\\s*[a-zA-Z0-9_,\\+\\-\\*\\(\\)]+\\s*)+\\))*([\\sa-zA-Z0-9_,:\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9_,:=>\\+\\-\\*\\/\\(\\)\\[\\]]+)\\s*\$" },
+    procedure => { intrinsic => "procedure", type => 1, attributes => 2, variables => 3, regEx => "^\\s*(?i)procedure(?-i)\\s*(\\(\\s*[a-zA-Z0-9_]*\\s*\\))*([\\sa-zA-Z0-9_,:\\+\\-\\*\\/\\(\\)]*)??::\\s*([\\sa-zA-Z0-9_,:=>\\+\\-\\*\\/\\(\\)]+)\\s*\$" },
     );
 
 # Specify unit opening regexs.
@@ -274,7 +274,7 @@ sub processFile {
 			  $variablesList = lc($$matchIndex);
 			  # Get ID of unit.
 			  $unitId = $unitIdList[$#unitIdList];
-			  @variables = &Extract_Variables($variablesList);
+			  @variables = &Fortran_Utils::Extract_Variables($variablesList);
 			  # Store the variable list.
 			  push(@{$units{$unitId}->{$intrinsicType}},@variables);
 			  # Mark line as processed.
@@ -287,7 +287,7 @@ sub processFile {
 		  if ( $processedLine =~ m/$derivedTypeRegex/i ) {
 		      $derivedType = $1;
 		      $variablesList = $3;
-		      @variables = &Extract_Variables($variablesList);		    
+		      @variables = &Fortran_Utils::Extract_Variables($variablesList);		    
 		      $unitId = $unitIdList[$#unitIdList];
 		      push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
 		      # Mark line as processed.
@@ -332,28 +332,6 @@ sub processFile {
 	    }
 	}
     }
-}
-
-sub Extract_Variables {
-    # Given the post-"::" section of a variable declaration line, return an array of all variable names.
-    $variableList = shift;
-    die("Code_Analyzer.pl (Extract_Variables) variable list contains '::' - most likely regex matching failed") if ( $variableList =~ m/::/ );
-    # Convert to lower case.
-    $variableList = lc($variableList);
-    # Remove whitespace.
-    $variableList =~ s/\s//g;
-    # Remove *'s (can appear for character variables.
-    $variableList =~ s/\*//g;
-    # Remove text within matching () pairs.
-    while ( $variableList =~ m/\(/ ) {
-	($extracted,$remainder,$prefix) = extract_bracketed($variableList,"()","[a-z0-9_,=>\\+\\-\\*\\/]+");
-	$variableList = $prefix.$remainder;
-    }
-    # Remove any definitions or associations.
-    $variableList =~ s/=[^,]*(,|$)//g;
-    # Split variables into an array and store.
-    @variables = split(/,/,$variableList);
-    return @variables;
 }
 
 sub Build_Modules_Hash {

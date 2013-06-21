@@ -36,9 +36,9 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type     (varying_string  ),          intent(in   ) :: coolingSpecificAngularMomentumMethod
-    procedure(Cooling_Specific_Angular_Momentum_Mean), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
-
+    type     (varying_string                        ), intent(in   )          :: coolingSpecificAngularMomentumMethod   
+    procedure(Cooling_Specific_Angular_Momentum_Mean), intent(inout), pointer :: Cooling_Specific_Angular_Momentum_Get  
+                                                                                                                     
     if (coolingSpecificAngularMomentumMethod == 'mean') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Mean
        ! Check that the required properties are gettable.
@@ -56,11 +56,11 @@ contains
     !% Return the specific angular momentum of cooling gas in the mean model.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                      , intent(in   )          :: radius
-    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-
-    ! Compute mean specific angular momentum from the hot halo component.
+    type            (treeNode            ), intent(inout), pointer :: thisNode              
+    double precision                      , intent(in   )          :: radius                
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent  
+    
+    ! Compute mean specific angular momentum from the hot halo component.                                                                                     
     thisHotHaloComponent => thisNode%hotHalo()
     Cooling_Specific_Angular_Momentum_Mean= thisHotHaloComponent%angularMomentum() &
          &                                 /thisHotHaloComponent%mass           ()

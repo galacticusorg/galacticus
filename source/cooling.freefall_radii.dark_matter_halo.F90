@@ -34,10 +34,10 @@ contains
     !% Initializes the ``darkMatterHalo'' freefall radius module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: freefallRadiusMethod
-    procedure(Freefall_Radius_Dark_Matter_Halo), pointer, intent(inout) :: Freefall_Radius_Get
-    procedure(Freefall_Radius_Growth_Rate_Dark_Matter_Halo), pointer, intent(inout) :: Freefall_Radius_Growth_Rate_Get
-    
+    type     (varying_string                              ), intent(in   )          :: freefallRadiusMethod             
+    procedure(Freefall_Radius_Dark_Matter_Halo            ), intent(inout), pointer :: Freefall_Radius_Get              
+    procedure(Freefall_Radius_Growth_Rate_Dark_Matter_Halo), intent(inout), pointer :: Freefall_Radius_Growth_Rate_Get  
+                                                                                                                     
     if (freefallRadiusMethod == 'darkMatterHalo') then
        Freefall_Radius_Get             => Freefall_Radius_Dark_Matter_Halo
        Freefall_Radius_Growth_Rate_Get => Freefall_Radius_Growth_Rate_Dark_Matter_Halo
@@ -51,10 +51,10 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: timeAvailable,timeAvailableIncreaseRate
-
-    ! Get the time available for freefall.
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision                                   :: timeAvailable, timeAvailableIncreaseRate  
+    
+    ! Get the time available for freefall.                                                                                             
     timeAvailable=Cooling_Freefall_Time_Available(thisNode)
     
     ! Get the rate of increase of the time available for freefall.
@@ -72,10 +72,10 @@ contains
     use Cooling_Freefall_Times_Available
     use Dark_Matter_Profiles
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: timeAvailable
-
-    ! Get the time available for freefall.
+    type            (treeNode), intent(inout), pointer :: thisNode       
+    double precision                                   :: timeAvailable  
+    
+    ! Get the time available for freefall.                                                                  
     timeAvailable=Cooling_Freefall_Time_Available(thisNode)
     
     ! Get freefall radius from dark matter profile.

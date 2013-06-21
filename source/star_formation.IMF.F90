@@ -35,88 +35,88 @@ module Star_Formation_IMF
        & IMF_Metal_Yield_Rate_NonInstantaneous, IMF_Energy_Input_Rate_NonInstantaneous, IMF_Name, IMF_Tabulate, IMF_Descriptor
 
   ! Flag to indicate if this module has been initialized.
-  logical :: imfInitialized=.false.
-
+  logical                                                                           :: imfInitialized                         =.false.                                   
+  
   ! Count of the number of available IMFs.
-  integer :: imfAvailableCount=0
-
+  integer                                                                           :: imfAvailableCount                      =0                                         
+  
   ! Array of IMF names.
-  type(varying_string), allocatable, dimension(:      ) :: imfNames,imfDescriptors
-
+  type            (varying_string     )           , allocatable, dimension(:      ) :: imfDescriptors                                 , imfNames                         
+  
   ! Tables of recycled fractions.
-  logical,              allocatable, dimension(:      ) :: recycledFractionTabulated
-  integer,              allocatable, dimension(:      ) :: recycledFractionIndex
-  double precision,     allocatable, dimension(:      ) :: recycledFractionTableAge,recycledFractionTableMetallicity
-  double precision,     allocatable, dimension(:,:,:  ) :: recycledFractionTable
-  integer,              parameter                       :: recycledFractionTableMetallicityCount  =10
-  integer,              parameter                       :: recycledFractionTableAgeCount          =50
-  double precision,     parameter                       :: recycledFractionTableMetallicityMinimum=1.0d-4
-  double precision,     parameter                       :: recycledFractionTableMetallicityMaximum=0.6d-1
-  double precision,     parameter                       :: recycledFractionTableAgeMinimum        =1.0d-3
-  double precision,     parameter                       :: recycledFractionTableAgeMaximum        =1.0d+2
-
+  logical                                         , allocatable, dimension(:      ) :: recycledFractionTabulated                                                         
+  integer                                         , allocatable, dimension(:      ) :: recycledFractionIndex                                                             
+  double precision                                , allocatable, dimension(:      ) :: recycledFractionTableAge                       , recycledFractionTableMetallicity 
+  double precision                                , allocatable, dimension(:,:,:  ) :: recycledFractionTable                                                             
+  integer                              , parameter                                  :: recycledFractionTableMetallicityCount  =10                                        
+  integer                              , parameter                                  :: recycledFractionTableAgeCount          =50                                        
+  double precision                     , parameter                                  :: recycledFractionTableMetallicityMinimum=1.0d-4                                    
+  double precision                     , parameter                                  :: recycledFractionTableMetallicityMaximum=0.6d-1                                    
+  double precision                     , parameter                                  :: recycledFractionTableAgeMinimum        =1.0d-3                                    
+  double precision                     , parameter                                  :: recycledFractionTableAgeMaximum        =1.0d+2                                    
+  
   ! Tables of metal yields fractions.
-  logical,              allocatable, dimension(:      ) :: metalYieldTabulated
-  integer,              allocatable, dimension(:      ) :: metalYieldIndex
-  double precision,     allocatable, dimension(:      ) :: metalYieldTableAge,metalYieldTableMetallicity
-  double precision,     allocatable, dimension(:,:,:,:) :: metalYieldTable
-  integer,              parameter                       :: metalYieldTableMetallicityCount  =10
-  integer,              parameter                       :: metalYieldTableAgeCount          =50
-  double precision,     parameter                       :: metalYieldTableMetallicityMinimum=1.0d-4
-  double precision,     parameter                       :: metalYieldTableMetallicityMaximum=0.6d-1
-  double precision,     parameter                       :: metalYieldTableAgeMinimum        =1.0d-3
-  double precision,     parameter                       :: metalYieldTableAgeMaximum        =1.0d+2
-
+  logical                                         , allocatable, dimension(:      ) :: metalYieldTabulated                                                               
+  integer                                         , allocatable, dimension(:      ) :: metalYieldIndex                                                                   
+  double precision                                , allocatable, dimension(:      ) :: metalYieldTableAge                             , metalYieldTableMetallicity       
+  double precision                                , allocatable, dimension(:,:,:,:) :: metalYieldTable                                                                   
+  integer                              , parameter                                  :: metalYieldTableMetallicityCount        =10                                        
+  integer                              , parameter                                  :: metalYieldTableAgeCount                =50                                        
+  double precision                     , parameter                                  :: metalYieldTableMetallicityMinimum      =1.0d-4                                    
+  double precision                     , parameter                                  :: metalYieldTableMetallicityMaximum      =0.6d-1                                    
+  double precision                     , parameter                                  :: metalYieldTableAgeMinimum              =1.0d-3                                    
+  double precision                     , parameter                                  :: metalYieldTableAgeMaximum              =1.0d+2                                    
+  
   ! Tables of cumulative energy inputs.
-  logical,              allocatable, dimension(:    ) :: energyInputTabulated
-  integer,              allocatable, dimension(:    ) :: energyInputIndex
-  double precision,     allocatable, dimension(:    ) :: energyInputTableAge,energyInputTableMetallicity
-  double precision,     allocatable, dimension(:,:,:) :: energyInputTable
-  integer,              parameter                     :: energyInputTableMetallicityCount  =10
-  integer,              parameter                     :: energyInputTableAgeCount          =50
-  double precision,     parameter                     :: energyInputTableMetallicityMinimum=1.0d-4
-  double precision,     parameter                     :: energyInputTableMetallicityMaximum=0.6d-1
-  double precision,     parameter                     :: energyInputTableAgeMinimum        =1.0d-3
-  double precision,     parameter                     :: energyInputTableAgeMaximum        =1.0d+2
-
+  logical                                         , allocatable, dimension(:    )   :: energyInputTabulated                                                              
+  integer                                         , allocatable, dimension(:    )   :: energyInputIndex                                                                  
+  double precision                                , allocatable, dimension(:    )   :: energyInputTableAge                            , energyInputTableMetallicity      
+  double precision                                , allocatable, dimension(:,:,:)   :: energyInputTable                                                                  
+  integer                              , parameter                                  :: energyInputTableMetallicityCount       =10                                        
+  integer                              , parameter                                  :: energyInputTableAgeCount               =50                                        
+  double precision                     , parameter                                  :: energyInputTableMetallicityMinimum     =1.0d-4                                    
+  double precision                     , parameter                                  :: energyInputTableMetallicityMaximum     =0.6d-1                                    
+  double precision                     , parameter                                  :: energyInputTableAgeMinimum             =1.0d-3                                    
+  double precision                     , parameter                                  :: energyInputTableAgeMaximum             =1.0d+2                                    
+  
   ! Module global variables used in integration.
-  integer                                             :: imfSelectedGlobal,atomIndexGlobal
-  double precision                                    :: metallicity,lifetime
-
+  integer                                                                           :: atomIndexGlobal                                , imfSelectedGlobal                
+  double precision                                                                  :: lifetime                                       , metallicity                      
+  
   ! Count of number of individual elements tracked.
-  integer                                             :: elementCount
-
+  integer                                                                           :: elementCount                                                                      
+  
   ! Pointer to the function that selects which IMF to use.
-  procedure(IMF_Select_Template), pointer :: IMF_Select_Do => null()
+  procedure       (IMF_Select_Template), pointer                                    :: IMF_Select_Do                          =>null()                                   
   abstract interface
      integer function IMF_Select_Template(starFormationRate,fuelAbundances,component)
        import abundances
-       double precision,          intent(in) :: starFormationRate
-       type(abundances), intent(in) :: fuelAbundances
-       integer,                   intent(in) :: component
+       double precision            , intent(in   ) :: starFormationRate 
+       type            (abundances), intent(in   ) :: fuelAbundances    
+       integer                     , intent(in   ) :: component         
      end function IMF_Select_Template
   end interface
 
   ! Current file format used for stellar population properties.
-  integer, parameter :: fileFormatCurrent=1
-
+  integer                         , parameter :: fileFormatCurrent                                      =1 
+  
   ! A unique label for output files.
-  type(varying_string) :: imfUniqueLabel
-
+  type            (varying_string)            :: imfUniqueLabel                                            
+  
   ! Options controlling instantaneous stellar evolution approximations.
-  logical          :: starFormationImfInstantaneousApproximation
-  double precision :: starFormationImfInstantaneousApproximationMassLongLived
-  double precision :: starFormationImfInstantaneousApproximationEffectiveAge
-
+  logical                                     :: starFormationImfInstantaneousApproximation                
+  double precision                            :: starFormationImfInstantaneousApproximationMassLongLived   
+  double precision                            :: starFormationImfInstantaneousApproximationEffectiveAge    
+  
 contains
 
   integer function IMF_Select(starFormationRate,fuelAbundances,component)
     !% Selects an IMF give an input {\tt starFormationRate} and {\tt fuelAbundances}.
     implicit none
-    double precision,          intent(in) :: starFormationRate
-    type(abundances), intent(in) :: fuelAbundances
-    integer,                   intent(in) :: component
-
+    double precision            , intent(in   ) :: starFormationRate 
+    type            (abundances), intent(in   ) :: fuelAbundances    
+    integer                     , intent(in   ) :: component         
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
     
@@ -129,8 +129,8 @@ contains
     !% Return the name of the IMF with the specified index.
     use Galacticus_Error
     implicit none
-    type(varying_string) :: IMF_Name
-    integer, intent(in) :: imfIndex
+    type   (varying_string)                :: IMF_Name 
+    integer                , intent(in   ) :: imfIndex 
     
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -147,8 +147,8 @@ contains
     !% Return a full descriptor for the IMF with the specified index.
     use Galacticus_Error
     implicit none
-    type(varying_string) :: IMF_Descriptor
-    integer, intent(in) :: imfIndex
+    type   (varying_string)                :: IMF_Descriptor 
+    integer                , intent(in   ) :: imfIndex       
     
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -167,8 +167,8 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string) :: imfSelectionMethod
-
+    type(varying_string) :: imfSelectionMethod 
+    
     ! Initialize the IMF subsystem if necessary.
     if (.not.imfInitialized) then
        !$omp critical(IMF_Initialize)
@@ -276,12 +276,12 @@ contains
     !% Returns a recycled fraction for the IMF suitable for use in the instantaneous recycling approximation.
     use Abundances_Structure
     implicit none
-    double precision,          intent(in) :: starFormationRate
-    type(abundances), intent(in) :: fuelAbundances
-    integer,                   intent(in) :: component
-    integer                               :: imfSelected
-    logical                               :: imfMatched
-
+    double precision            , intent(in   ) :: starFormationRate 
+    type            (abundances), intent(in   ) :: fuelAbundances    
+    integer                     , intent(in   ) :: component         
+    integer                                     :: imfSelected       
+    logical                                     :: imfMatched        
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -302,12 +302,12 @@ contains
     !% Returns a yield for the IMF suitable for use in the instantaneous recycling approximation.
     use Abundances_Structure
     implicit none
-    double precision,          intent(in) :: starFormationRate
-    type(abundances), intent(in) :: fuelAbundances
-    integer,                   intent(in) :: component
-    integer                               :: imfSelected
-    logical                               :: imfMatched
-
+    double precision            , intent(in   ) :: starFormationRate 
+    type            (abundances), intent(in   ) :: fuelAbundances    
+    integer                     , intent(in   ) :: component         
+    integer                                     :: imfSelected       
+    logical                                     :: imfMatched        
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -327,10 +327,10 @@ contains
   subroutine IMF_Tabulate(imfIndex,imfMass,imfPhi)
     !% Returns a tabulation of the IMF with sufficient resolution to resolve all features.
     implicit none
-    integer,          intent(in)                               :: imfIndex
-    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
-    logical                                                    :: imfMatched
-
+    integer                                    , intent(in   ) :: imfIndex           
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass   , imfPhi 
+    logical                                                    :: imfMatched         
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -347,9 +347,9 @@ contains
   double precision function IMF_Minimum_Mass(imfSelected)
     !% Returns the minimum mass in the selected IMF.
     implicit none
-    integer, intent(in) :: imfSelected
-    logical             :: imfMatched
-
+    integer, intent(in   ) :: imfSelected 
+    logical                :: imfMatched  
+    
     ! Get the minimum mass from the appropriate IMF.
     imfMatched=.false.
     !# <include directive="imfMinimumMass" type="functionCall" functionType="void">
@@ -363,9 +363,9 @@ contains
   double precision function IMF_Maximum_Mass(imfSelected)
     !% Returns the maximum mass in the selected IMF.
     implicit none
-    integer, intent(in) :: imfSelected
-    logical             :: imfMatched
-
+    integer, intent(in   ) :: imfSelected 
+    logical                :: imfMatched  
+    
     ! Get the maximum mass from the appropriate IMF.
     imfMatched=.false.
     !# <include directive="imfMaximumMass" type="functionCall" functionType="void">
@@ -379,10 +379,10 @@ contains
   double precision function IMF_Phi(initialMass,imfSelected)
     !% Returns the IMF, $\Phi(M)$, at mass $M=${\tt initialMass} for the selected IMF.
     implicit none
-    integer,          intent(in) :: imfSelected
-    double precision, intent(in) :: initialMass
-    logical                      :: imfMatched
-
+    integer         , intent(in   ) :: imfSelected 
+    double precision, intent(in   ) :: initialMass 
+    logical                         :: imfMatched  
+    
     ! Get the IMF for the selected IMF and initial stellar mass.
     imfMatched=.false.
     !# <include directive="imfPhi" type="functionCall" functionType="void">
@@ -415,32 +415,35 @@ contains
     use Dates_and_Times
     use Galacticus_Input_Paths
     implicit none
-    double precision,          intent(in)                    :: starFormationRate,ageMinimum
-    double precision,          intent(in),  optional         :: ageMaximum
-    type(abundances), intent(in)                    :: fuelAbundances
-    integer,                   intent(in)                    :: component
-    logical,                   allocatable, dimension(:    ) :: recycledFractionTabulatedTemporary
-    integer,                   allocatable, dimension(:    ) :: recycledFractionIndexTemporary
-    double precision,          allocatable, dimension(:,:,:) :: recycledFractionTableTemporary
-    double precision,                       dimension(2    ) :: recycleRate,metallicityFactors
-    type(fgsl_interp),         save                          ::                                      interpolationAgeObject
-    type(fgsl_interp_accel),   save                          :: interpolationMetallicityAccelerator ,interpolationAgeAccelerator
-    logical,                   save                          :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
-    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
-    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-    type(Node),                pointer                       :: doc,thisItem
-    type(NodeList),            pointer                       :: columnList,dataList
-    type(c_ptr)                                              :: parameterPointer
-    type(fgsl_function)                                      :: integrandFunction
-    type(fgsl_integration_workspace)                         :: integrationWorkspace
-    integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-         &,metallicityIndex,iRecycledFraction,ioErr,fileFormat
-    double precision                                         :: minimumMass,maximumMass,recycledFractionMaximum,recycledFractionMinimum
-    character(len=20)                                        :: progressMessage,parameterValue
-    type(xmlf_t)                                             :: recycledFractionDoc
-    type(varying_string)                                     :: fileName
-    logical                                                  :: makeFile
-
+    double precision                                                                          , intent(in   ) ::        ageMinimum                                         , starFormationRate                             
+    double precision                                                                          , intent(in   ) , optional::                                ageMaximum                                                       
+    type            (abundances                )                                              , intent(in   ) ::        fuelAbundances                                                                                     
+    integer                                                                                   , intent(in   ) ::        component                                                                                          
+    logical                                                    , allocatable, dimension(:    )                ::        recycledFractionTabulatedTemporary                                                                 
+    integer                                                    , allocatable, dimension(:    )                ::        recycledFractionIndexTemporary                                                                     
+    double precision                                           , allocatable, dimension(:,:,:)                ::        recycledFractionTableTemporary                                                                     
+    double precision                                                        , dimension(2    )                ::        metallicityFactors                                 , recycleRate                                   
+    type            (fgsl_interp               )         , save                                               ::        interpolationAgeObject                                                                             
+    type            (fgsl_interp_accel         )         , save                                               ::        interpolationAgeAccelerator                        , interpolationMetallicityAccelerator           
+    logical                                              , save                                               ::        interpolationAgeReset                       =.true., interpolationMetallicityReset      =.true.    
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    type            (Node                      ), pointer                                                     ::        doc                                                , thisItem                                      
+    type            (NodeList                  ), pointer                                                     ::        columnList                                         , dataList                                      
+    type            (c_ptr                     )                                                              ::        parameterPointer                                                                                   
+    type            (fgsl_function             )                                                              ::        integrandFunction                                                                                  
+    type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace                                                                               
+    integer                                                                                                   ::        fileFormat                                         , iAge                                      , & 
+         &                                                                                                              iMetallicity                                       , iRecycledFraction                         , & 
+         &                                                                                                              imfCount                                           , imfSelected                               , & 
+         &                                                                                                              ioErr                                              , metallicityIndex                          , & 
+         &                                                                                                              tableIndex                                                                                         
+    double precision                                                                                          ::        maximumMass                                        , minimumMass                               , & 
+         &                                                                                                              recycledFractionMaximum                            , recycledFractionMinimum                       
+    character       (len=20                    )                                                              ::        parameterValue                                     , progressMessage                               
+    type            (xmlf_t                    )                                                              ::        recycledFractionDoc                                                                                
+    type            (varying_string            )                                                              ::        fileName                                                                                           
+    logical                                                                                                   ::        makeFile                                                                                           
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -747,8 +750,8 @@ contains
     !% Returns true if the specified star is evolved by the given {\tt age}.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in) :: initialMass,metallicity,age
-
+    double precision, intent(in   ) :: age, initialMass, metallicity 
+    
     if (starFormationImfInstantaneousApproximation) then
        ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
        Star_Is_Evolved=(initialMass > starFormationImfInstantaneousApproximationMassLongLived)
@@ -764,10 +767,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics
     implicit none
-    real(c_double)        :: Recycled_Fraction_Integrand
-    real(c_double), value :: initialMass
-    type(c_ptr),    value :: parameterPointer
-
+    real(kind=c_double)        :: Recycled_Fraction_Integrand 
+    real(kind=c_double), value :: initialMass                 
+    type(c_ptr        ), value :: parameterPointer            
+    
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        Recycled_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Star_Ejected_Mass(initialMass,metallicity)
     else
@@ -799,33 +802,37 @@ contains
     use Dates_and_Times
     use Galacticus_Input_Paths
      implicit none
-     double precision,          intent(in)                      :: starFormationRate,ageMinimum
-     double precision,          intent(in),  optional           :: ageMaximum
-     integer,                   intent(in),  optional           :: abundanceIndex
-     type(abundances), intent(in)                      :: fuelAbundances
-     integer,                   intent(in)                      :: component
-     logical,                   allocatable, dimension(:      ) :: metalYieldTabulatedTemporary
-     integer,                   allocatable, dimension(:      ) :: metalYieldIndexTemporary
-     double precision,          allocatable, dimension(:,:,:,:) :: metalYieldTableTemporary
-     double precision,                       dimension(2      ) :: metalYieldRate,metallicityFactors
-     type(fgsl_interp),         save                            ::                                      interpolationAgeObject
-     type(fgsl_interp_accel),   save                            :: interpolationMetallicityAccelerator ,interpolationAgeAccelerator
-     logical,                   save                            :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
-     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
-     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-     type(Node),                pointer                         :: doc,thisItem
-     type(NodeList),            pointer                         :: columnList,dataList
-     type(c_ptr)                                                :: parameterPointer
-     type(fgsl_function)                                        :: integrandFunction
-     type(fgsl_integration_workspace)                           :: integrationWorkspace
-     integer                                                    :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-          &,metallicityIndex,iMetalYield,ioErr,abundanceIndexActual,iElement,fileFormat
-     double precision                                           :: minimumMass,maximumMass,yieldMinimum,yieldMaximum
-     character(len=20)                                          :: progressMessage,parameterValue
-     type(xmlf_t)                                               :: metalYieldDoc
-     type(varying_string)                                       :: fileName
-     logical                                                    :: makeFile
-
+     double precision                                                                            , intent(in   )           :: ageMinimum                         , starFormationRate                             
+     double precision                                                                            , intent(in   ), optional :: ageMaximum                                                                         
+     integer                                                                                     , intent(in   ), optional :: abundanceIndex                                                                     
+     type            (abundances                )                                                , intent(in   )           :: fuelAbundances                                                                     
+     integer                                                                                     , intent(in   )           :: component                                                                          
+     logical                                                    , allocatable, dimension(:      )                          :: metalYieldTabulatedTemporary                                                       
+     integer                                                    , allocatable, dimension(:      )                          :: metalYieldIndexTemporary                                                           
+     double precision                                           , allocatable, dimension(:,:,:,:)                          :: metalYieldTableTemporary                                                           
+     double precision                                                        , dimension(2      )                          :: metalYieldRate                     , metallicityFactors                            
+     type            (fgsl_interp               )         , save                                                           :: interpolationAgeObject                                                             
+     type            (fgsl_interp_accel         )         , save                                                           :: interpolationAgeAccelerator        , interpolationMetallicityAccelerator           
+     logical                                              , save                                                           :: interpolationAgeReset       =.true., interpolationMetallicityReset      =.true.    
+     !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &     !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+     type            (Node                      ), pointer                                                                 :: doc                                , thisItem                                      
+     type            (NodeList                  ), pointer                                                                 :: columnList                         , dataList                                      
+     type            (c_ptr                     )                                                                          :: parameterPointer                                                                   
+     type            (fgsl_function             )                                                                          :: integrandFunction                                                                  
+     type            (fgsl_integration_workspace)                                                                          :: integrationWorkspace                                                               
+     integer                                                                                                               :: abundanceIndexActual               , fileFormat                                , & 
+          &                                                                                                                   iAge                               , iElement                                  , & 
+          &                                                                                                                   iMetalYield                        , iMetallicity                              , & 
+          &                                                                                                                   imfCount                           , imfSelected                               , & 
+          &                                                                                                                   ioErr                              , metallicityIndex                          , & 
+          &                                                                                                                   tableIndex                                                                         
+     double precision                                                                                                      :: maximumMass                        , minimumMass                               , & 
+          &                                                                                                                   yieldMaximum                       , yieldMinimum                                  
+     character       (len=20                    )                                                                          :: parameterValue                     , progressMessage                               
+     type            (xmlf_t                    )                                                                          :: metalYieldDoc                                                                      
+     type            (varying_string            )                                                                          :: fileName                                                                           
+     logical                                                                                                               :: makeFile                                                                           
+     
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -1191,11 +1198,11 @@ contains
     use Stellar_Astrophysics
     use Supernovae_Type_Ia
     implicit none
-    real(c_double)        :: Metal_Yield_Integrand
-    real(c_double), value :: initialMass
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: yieldMass,sneiaLifetime
-
+    real(kind=c_double)        :: Metal_Yield_Integrand            
+    real(kind=c_double), value :: initialMass                      
+    type(c_ptr        ), value :: parameterPointer                 
+    real(kind=c_double)        :: sneiaLifetime        , yieldMass 
+    
     ! Include yields from isolated stars.
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
        select case (atomIndexGlobal)
@@ -1252,32 +1259,35 @@ contains
     use Dates_and_Times
     use Galacticus_Input_Paths
     implicit none
-    double precision,          intent(in)                    :: starFormationRate,ageMinimum
-    double precision,          intent(in),  optional         :: ageMaximum
-    type(abundances), intent(in)                    :: fuelAbundances
-    integer,                   intent(in)                    :: component
-    logical,                   allocatable, dimension(:    ) :: energyInputTabulatedTemporary
-    integer,                   allocatable, dimension(:    ) :: energyInputIndexTemporary
-    double precision,          allocatable, dimension(:,:,:) :: energyInputTableTemporary
-    double precision,                       dimension(2    ) :: energyInputRate,metallicityFactors
-    type(fgsl_interp),         save                          ::                                      interpolationAgeObject
-    type(fgsl_interp_accel),   save                          :: interpolationMetallicityAccelerator ,interpolationAgeAccelerator
-    logical,                   save                          :: interpolationMetallicityReset=.true.,interpolationAgeReset=.true.
-    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &
-    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
-    type(Node),                pointer                       :: doc,thisItem
-    type(NodeList),            pointer                       :: columnList,dataList
-    type(c_ptr)                                              :: parameterPointer
-    type(fgsl_function)                                      :: integrandFunction
-    type(fgsl_integration_workspace)                         :: integrationWorkspace
-    integer                                                  :: imfSelected,iAge,iMetallicity,imfCount,tableIndex&
-         &,metallicityIndex,iEnergyInput,ioErr,fileFormat
-    double precision                                         :: minimumMass,maximumMass,energyInputMinimum,energyInputMaximum
-    character(len=20)                                        :: progressMessage,parameterValue
-    type(xmlf_t)                                             :: energyInputDoc
-    type(varying_string)                                     :: fileName
-    logical                                                  :: makeFile
-
+    double precision                                                                          , intent(in   ) ::        ageMinimum                                    , starFormationRate                             
+    double precision                                                                          , intent(in   ) , optional::                           ageMaximum                                                       
+    type            (abundances                )                                              , intent(in   ) ::        fuelAbundances                                                                                
+    integer                                                                                   , intent(in   ) ::        component                                                                                     
+    logical                                                    , allocatable, dimension(:    )                ::        energyInputTabulatedTemporary                                                                 
+    integer                                                    , allocatable, dimension(:    )                ::        energyInputIndexTemporary                                                                     
+    double precision                                           , allocatable, dimension(:,:,:)                ::        energyInputTableTemporary                                                                     
+    double precision                                                        , dimension(2    )                ::        energyInputRate                               , metallicityFactors                            
+    type            (fgsl_interp               )         , save                                               ::        interpolationAgeObject                                                                        
+    type            (fgsl_interp_accel         )         , save                                               ::        interpolationAgeAccelerator                   , interpolationMetallicityAccelerator           
+    logical                                              , save                                               ::        interpolationAgeReset                  =.true., interpolationMetallicityReset      =.true.    
+    !$omp threadprivate(interpolationAgeObject,interpolationMetallicityAccelerator &    !$omp ,interpolationAgeAccelerator,interpolationMetallicityReset,interpolationAgeReset)
+    type            (Node                      ), pointer                                                     ::        doc                                           , thisItem                                      
+    type            (NodeList                  ), pointer                                                     ::        columnList                                    , dataList                                      
+    type            (c_ptr                     )                                                              ::        parameterPointer                                                                              
+    type            (fgsl_function             )                                                              ::        integrandFunction                                                                             
+    type            (fgsl_integration_workspace)                                                              ::        integrationWorkspace                                                                          
+    integer                                                                                                   ::        fileFormat                                    , iAge                                      , & 
+         &                                                                                                              iEnergyInput                                  , iMetallicity                              , & 
+         &                                                                                                              imfCount                                      , imfSelected                               , & 
+         &                                                                                                              ioErr                                         , metallicityIndex                          , & 
+         &                                                                                                              tableIndex                                                                                    
+    double precision                                                                                          ::        energyInputMaximum                            , energyInputMinimum                        , & 
+         &                                                                                                              maximumMass                                   , minimumMass                                   
+    character       (len=20                    )                                                              ::        parameterValue                                , progressMessage                               
+    type            (xmlf_t                    )                                                              ::        energyInputDoc                                                                                
+    type            (varying_string            )                                                              ::        fileName                                                                                      
+    logical                                                                                                   ::        makeFile                                                                                      
+    
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
 
@@ -1574,11 +1584,11 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Stellar_Feedback
     implicit none
-    real(c_double)        :: Cumulative_Energy_Integrand
-    real(c_double), value :: initialMass
-    type(c_ptr),    value :: parameterPointer
-    real(c_double)        :: energyLifetime
-
+    real(kind=c_double)        :: Cumulative_Energy_Integrand 
+    real(kind=c_double), value :: initialMass                 
+    type(c_ptr        ), value :: parameterPointer            
+    real(kind=c_double)        :: energyLifetime              
+    
     if (starFormationImfInstantaneousApproximation) then
        ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off
        ! contribute to the energy input (with an age equal to the specified effective age), while less massive stars contribute

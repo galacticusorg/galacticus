@@ -27,11 +27,10 @@ module Galactic_Structure_Surface_Densities
   public :: Galactic_Structure_Surface_Density
 
   ! Module scope variables used in mapping over components.
-  integer                        :: componentTypeShared,massTypeShared
-  logical                        :: haloLoadedShared
-  double precision, dimension(3) :: positionCylindricalShared
+  integer                        :: componentTypeShared      , massTypeShared 
+  logical                        :: haloLoadedShared                          
+  double precision, dimension(3) :: positionCylindricalShared                 
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared)
-
 contains
 
   double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,haloLoaded)
@@ -44,14 +43,15 @@ contains
     include 'galactic_structure.surface_density.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                 ), intent(inout), pointer  :: thisNode
-    integer                                    , intent(in   ), optional :: componentType,massType,coordinateSystem
-    logical                                    , intent(in   ), optional :: haloLoaded
-    double precision                           , intent(in   )           :: position(3)
-    procedure       (Component_Surface_Density),                pointer  :: componentSurfaceDensityFunction
-    integer                                                              :: coordinateSystemActual
-    double precision                                                     :: componentDensity
-
+    type            (treeNode                 ), intent(inout)          , pointer :: thisNode                                                
+    integer                                    , intent(in   ), optional          :: componentType                     , coordinateSystem, & 
+         &                                                                           massType                                                
+    logical                                    , intent(in   ), optional          :: haloLoaded                                              
+    double precision                           , intent(in   )                    :: position                       (3)                      
+    procedure       (Component_Surface_Density)                         , pointer :: componentSurfaceDensityFunction                         
+    integer                                                                       :: coordinateSystemActual                                  
+    double precision                                                              :: componentDensity                                        
+    
     ! Determine position in cylindrical coordinate system to use.
     if (present(coordinateSystem)) then
        coordinateSystemActual=coordinateSystem
@@ -101,8 +101,8 @@ contains
     !% Unary function returning the surface density in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component
- 
+    class(nodeComponent), intent(inout) :: component 
+    
     Component_Surface_Density=component%surfaceDensity(positionCylindricalShared,componentTypeShared&
          &,massTypeShared,haloLoadedShared)
     return

@@ -24,11 +24,11 @@ module Merger_Tree_Timesteps_Simple
   public :: Merger_Tree_Timestep_Simple
 
   ! Variable inidicating if module is initialized.
-  logical          :: timestepSimpleInitialized=.false.
-
+  logical          :: timestepSimpleInitialized=.false.                         
+  
   ! Parameters controlling the size of timesteps.
-  double precision :: timestepSimpleRelative,timestepSimpleAbsolute
-
+  double precision :: timestepSimpleAbsolute           , timestepSimpleRelative 
+  
 contains
 
   !# <timeStepsTask>
@@ -43,15 +43,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type(treeNode),            intent(inout), pointer           :: thisNode
-    procedure(),               intent(inout), pointer           :: End_Of_Timestep_Task
-    double precision,          intent(inout)                    :: timeStep
-    logical,                   intent(in   )                    :: report
-    type     (treeNode      ), intent(inout), pointer, optional :: lockNode
-    type     (varying_string), intent(inout),          optional :: lockType  
-    class(nodeComponentBasic),                pointer           :: thisBasicComponent
-    double precision                                            :: time,expansionFactor,expansionTimescale,ourTimeStep
-
+    type            (treeNode          ), intent(inout)          , pointer :: thisNode                                                 
+    procedure       (                  ), intent(inout)          , pointer :: End_Of_Timestep_Task                                     
+    double precision                    , intent(inout)                    :: timeStep                                                 
+    logical                             , intent(in   )                    :: report                                                   
+    type            (treeNode          ), intent(inout), optional, pointer :: lockNode                                                 
+    type            (varying_string    ), intent(inout), optional          :: lockType                                                 
+    class           (nodeComponentBasic)                         , pointer :: thisBasicComponent                                       
+    double precision                                                       :: expansionFactor     , expansionTimescale, ourTimeStep, & 
+         &                                                                    time                                                     
+    
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
        if (.not.timestepSimpleInitialized) then

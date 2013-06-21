@@ -32,8 +32,8 @@ contains
     !% Initializes the null chemical reaction network module.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in) :: chemicalReactionRatesMethods(:)
-
+    type(varying_string), intent(in   ) :: chemicalReactionRatesMethods(:)  
+                                                                         
     return
   end subroutine Chemical_Reaction_Rates_Null_Initialize
 
@@ -46,11 +46,11 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensity  
+    double precision                    , intent(in   ) :: temperature      
+    type            (radiationStructure), intent(in   ) :: radiation        
+    type            (chemicalAbundances), intent(inout) :: chemicalRates    
+                                                                         
     return
   end subroutine Chemical_Reaction_Rates_Null_Compute
 

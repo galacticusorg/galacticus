@@ -25,15 +25,14 @@ program Tests_Cosmic_Age_Dark_Energy_Omega_Minus_One_Third
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift=[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
-  double precision, parameter, dimension(8) :: ageOpen =[0.0790841462d0,0.0327062977d0,0.0128686687d0,0.0035287732d0&
-       &,0.0006745641d0,0.0001164482d0,0.0000227374d0,0.0000037552d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: age,expansionFactor
-
-  ! Read in basic code memory usage.
+  double precision                , dimension(8), parameter :: redshift     =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]                                                        
+  double precision                , dimension(8), parameter :: ageOpen      =[0.0790841462d0,0.0327062977d0,0.0128686687d0,0.0035287732d0,0.0006745641d0,0.0001164482d0,0.0000227374d0,0.0000037552d0]                   
+  type            (varying_string)                          :: parameterFile                                                                                                                                             
+  character       (len=1024      )                          :: message                                                                                                                                                   
+  integer                                                   :: iExpansion                                                                                                                                                
+  double precision                                          :: age                                                                                                                                    , expansionFactor  
+  
+  ! Read in basic code memory usage.                                                                                                                                                                                                                    
   call Code_Memory_Usage('tests.cosmic_age.dark_energy.omegaMinusOneThird.size')
 
   ! Begin unit tests.

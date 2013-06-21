@@ -49,18 +49,18 @@ module Array_Utilities
   end interface Array_Index
 
   ! Types of direction for monotonic arrays.
-  integer, parameter, public :: directionDecreasing=-1
-  integer, parameter, public :: directionIncreasing= 1
-
+  integer, parameter, public :: directionDecreasing=-1  
+  integer, parameter, public :: directionIncreasing=1   
+                                                     
 contains
 
   function Array_Reverse_Real(array) result (reversedArray)
     !% Reverses the direction of a real array.
     implicit none
-    real, intent(in)             :: array(:)
-    real, dimension(size(array)) :: reversedArray
-    integer                      :: i
-    
+    real   , intent(in   )          :: array        (:)  
+    real   , dimension(size(array)) :: reversedArray     
+    integer                         :: i                 
+                                                      
     forall (i=1:size(array))
        reversedArray(i)=array(size(array)+1-i)
     end forall
@@ -70,10 +70,10 @@ contains
   function Array_Reverse_Double(array) result (reversedArray)
     !% Reverses the direction of a double precision array.
     implicit none
-    double precision, intent(in)             :: array(:)
-    double precision, dimension(size(array)) :: reversedArray
-    integer                                  :: i
-    
+    double precision, intent(in   )          :: array        (:)  
+    double precision, dimension(size(array)) :: reversedArray     
+    integer                                  :: i                 
+                                                               
     forall (i=1:size(array))
        reversedArray(i)=array(size(array)+1-i)
     end forall
@@ -83,10 +83,10 @@ contains
   function Array_Cumulate_Double(array) result (cumulatedArray)
     !% Cumulates values in a double precision array.
     implicit none
-    double precision, intent(in)             :: array(:)
-    double precision, dimension(size(array)) :: cumulatedArray
-    integer                                  :: i
-    
+    double precision, intent(in   )          :: array         (:)  
+    double precision, dimension(size(array)) :: cumulatedArray     
+    integer                                  :: i                  
+                                                                
     cumulatedArray(1)=array(1)
     if (size(array) > 1) then
        do i=2,size(array)
@@ -99,13 +99,13 @@ contains
   logical function Array_Is_Monotonic_Double(array,direction,allowEqual)
     !% Checks if a double precision array is monotonic.
     implicit none
-    double precision, intent(in)           :: array(:)
-    integer,          intent(in), optional :: direction
-    logical,          intent(in), optional :: allowEqual
-    integer                                :: i
-    logical                                :: isIncreasing,allowEqualActual,arrayIsFlat
-
-    ! Single element arrays count as monotonic.
+    double precision, intent(in   )           :: array           (:)                             
+    integer         , intent(in   ), optional :: direction                                       
+    logical         , intent(in   ), optional :: allowEqual                                      
+    integer                                   :: i                                               
+    logical                                   :: allowEqualActual   , arrayIsFlat, isIncreasing  
+    
+    ! Single element arrays count as monotonic.                                                                                          
     if (size(array) <= 1) then
        Array_Is_Monotonic_Double=.true.
        return
@@ -185,10 +185,10 @@ contains
     !% Return an array of indices for which {\tt mask} is true.
     use Galacticus_Error
     implicit none
-    logical, intent(in)  :: mask(:)
-    integer, intent(out) :: indices(:)
-    integer              :: index,matchCount
-    
+    logical, intent(in   ) :: mask   (:)              
+    integer, intent(  out) :: indices(:)              
+    integer                :: index     , matchCount  
+                                                   
     matchCount=0
     indices   =0
     do index=1,size(mask)
@@ -204,11 +204,11 @@ contains
   function Array_Index_Double(array,indices) result (arraySubset)
     !% Return a subset of a double precision array given a set of indices into the array.
     implicit none
-    double precision, dimension(:),            intent(in) :: array
-    integer,          dimension(:),            intent(in) :: indices
-    double precision, dimension(size(indices))            :: arraySubset
-    integer                                               :: i
-
+    double precision, dimension(:)            , intent(in   ) :: array        
+    integer         , dimension(:)            , intent(in   ) :: indices      
+    double precision, dimension(size(indices))                :: arraySubset  
+    integer                                                   :: i            
+                                                                           
     forall(i=1:size(indices))
        arraySubset(i)=array(indices(i))
     end forall
@@ -218,11 +218,11 @@ contains
   function Array_Index_Integer(array,indices) result (arraySubset)
     !% Return a subset of an integer array given a set of indices into the array.
     implicit none
-    integer, dimension(:),            intent(in) :: array
-    integer, dimension(:),            intent(in) :: indices
-    integer, dimension(size(indices))            :: arraySubset
-    integer                                      :: i
-
+    integer, dimension(:)            , intent(in   ) :: array        
+    integer, dimension(:)            , intent(in   ) :: indices      
+    integer, dimension(size(indices))                :: arraySubset  
+    integer                                          :: i            
+                                                                  
     forall(i=1:size(indices))
        arraySubset(i)=array(indices(i))
     end forall
@@ -233,11 +233,11 @@ contains
     !% Return a subset of an integer array given a set of indices into the array.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), dimension(:),            intent(in) :: array
-    integer,                 dimension(:),            intent(in) :: indices
-    integer(kind=kind_int8), dimension(size(indices))            :: arraySubset
-    integer                                                      :: i
-
+    integer(kind=kind_int8), dimension(:)            , intent(in   ) :: array        
+    integer                , dimension(:)            , intent(in   ) :: indices      
+    integer(kind=kind_int8), dimension(size(indices))                :: arraySubset  
+    integer                                                          :: i            
+                                                                                  
     forall(i=1:size(indices))
        arraySubset(i)=array(indices(i))
     end forall
@@ -248,12 +248,12 @@ contains
     !% Return a subset of a 2D double precision array given a set of indices into the array.
     use Galacticus_Error
     implicit none
-    double precision, dimension(:,:), intent(in   ) :: array
-    integer,          dimension(:  ), intent(in   ) :: indices
-    integer,          optional      , intent(in   ) :: indexOn
-    double precision, dimension(:,:), allocatable   :: arraySubset
-    integer                                         :: i,indexOnActual
-
+    double precision             , dimension(:,:), intent(in   )           :: array                       
+    integer                      , dimension(:  ), intent(in   )           :: indices                     
+    integer                                      , intent(in   ), optional :: indexOn                     
+    double precision, allocatable, dimension(:,:)                          :: arraySubset                 
+    integer                                                                :: i          , indexOnActual  
+                                                                                                       
     indexOnActual=2
     if (present(indexOn)) then
        if (indexOn < 1 .or. indexOn > 2) call Galacticus_Error_Report('Array_Index_Double_2D','1≤indexOn≤2')
@@ -278,13 +278,13 @@ contains
     !% Checks if an integer array is monotonic.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), intent(in)           :: array(:)
-    integer,                 intent(in), optional :: direction
-    logical,                 intent(in), optional :: allowEqual
-    integer                                       :: i
-    logical                                       :: isIncreasing,allowEqualActual,arrayIsFlat
-
-    ! Single element arrays count as monotonic.
+    integer(kind=kind_int8), intent(in   )           :: array           (:)                             
+    integer                , intent(in   ), optional :: direction                                       
+    logical                , intent(in   ), optional :: allowEqual                                      
+    integer                                          :: i                                               
+    logical                                          :: allowEqualActual   , arrayIsFlat, isIncreasing  
+    
+    ! Single element arrays count as monotonic.                                                                                                 
     if (size(array) <= 1) then
        Array_Is_Monotonic_Integer8=.true.
        return

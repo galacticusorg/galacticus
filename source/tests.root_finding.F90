@@ -26,11 +26,11 @@ program Test_Root_Finding
   use Test_Root_Finding_Functions
   use, intrinsic :: ISO_C_Binding
   implicit none
-  type            (rootFinder)               :: finder
-  double precision                           :: xRoot,xGuess
-  double precision            , dimension(2) :: xRange
-
-  ! Begin unit tests.
+  type            (rootFinder)               :: finder         
+  double precision                           :: xGuess, xRoot  
+  double precision            , dimension(2) :: xRange         
+  
+  ! Begin unit tests.                                                          
   call Unit_Tests_Begin_Group("Root finding")
 
   ! Test root finding.

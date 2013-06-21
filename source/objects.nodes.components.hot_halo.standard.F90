@@ -171,30 +171,31 @@ module Node_Component_Hot_Halo_Standard
   !# </component>
 
   ! Internal count of abundances and chemicals.
-  integer                             :: abundancesCount,chemicalsCount
-
+  integer                                                   :: abundancesCount                                 , chemicalsCount                                  
+  
   ! Configuration variables.
-  logical                             :: starveSatellites,hotHaloOutflowReturnOnFormation,hotHaloExcessHeatDrivesOutflow&
-       &,hotHaloOutflowAngularMomentumAlwaysGrows,hotHaloNodeMergerLimitBaryonFraction
-  integer                             :: hotHaloCoolingFromNode
-  integer,          parameter         :: currentNode=0,formationNode=1
-  double precision                    :: hotHaloOutflowReturnRate,hotHaloAngularMomentumLossFraction,hotHaloExpulsionRateMaximum,hotHaloOutflowStrippingEfficiency
-
+  logical                                                   :: hotHaloExcessHeatDrivesOutflow                  , hotHaloNodeMergerLimitBaryonFraction        , & 
+       &                                                       hotHaloOutflowAngularMomentumAlwaysGrows        , hotHaloOutflowReturnOnFormation             , & 
+       &                                                       starveSatellites                                                                                  
+  integer                                                   :: hotHaloCoolingFromNode                                                                            
+  integer                                       , parameter :: currentNode                             =0      , formationNode                       =1          
+  double precision                                          :: hotHaloAngularMomentumLossFraction              , hotHaloExpulsionRateMaximum                 , & 
+       &                                                       hotHaloOutflowReturnRate                        , hotHaloOutflowStrippingEfficiency               
+  
   ! Quantities stored to avoid repeated computation.
-  logical                             :: gotCoolingRate=.false.,gotAngularMomentumCoolingRate=.false.
-  double precision                    :: coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining
+  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false.    
+  double precision                                          :: angularMomentumHeatingRateRemaining             , coolingRate                                 , & 
+       &                                                       massHeatingRateRemaining                                                                          
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,coolingRate,massHeatingRateRemaining,angularMomentumHeatingRateRemaining)
-
   ! Radiation structure.
-  type(radiationStructure          )  :: radiation
+  type            (radiationStructure          )            :: radiation                                                                                         
   !$omp threadprivate(radiation)
-
   ! Record of whether this module has been initialized.
-  logical                             :: moduleInitialized=.false.
-
+  logical                                                   :: moduleInitialized                       =.false.                                                  
+  
   ! Tracked properties control.
-  logical                             :: hotHaloTrackStrippedGas
-
+  logical                                                   :: hotHaloTrackStrippedGas                                                                           
+  
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -209,11 +210,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(varying_string              ) :: hotHaloCoolingFromText
-    type(nodeComponentHotHaloStandard) :: hotHaloComponent
-
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
+    type(varying_string              ) :: hotHaloCoolingFromText 
+    type(nodeComponentHotHaloStandard) :: hotHaloComponent       
+    
+    ! Initialize the module if necessary.    !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
     if (defaultHotHaloComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get numbers of abundance and chemicals properties.
@@ -414,7 +414,7 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Reset(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), intent(inout), pointer :: thisNode 
     
     gotCoolingRate               =.false.
     gotAngularMomentumCoolingRate=.false.
@@ -426,9 +426,9 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    class(nodeComponentHotHaloStandard), intent(inout) :: self
-    type (treeNode                    ), pointer       :: selfHost
-
+    class(nodeComponentHotHaloStandard), intent(inout) :: self     
+    type (treeNode                    ), pointer       :: selfHost 
+    
     selfHost => self%host()
     Node_Component_Hot_Halo_Standard_Outer_Radius=min(self%outerRadiusValue(),Dark_Matter_Halo_Virial_Radius(selfHost))
     return
@@ -442,10 +442,10 @@ contains
     use Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: parentNode
-    class(nodeComponentHotHalo), pointer                :: parentHotHaloComponent,thisHotHaloComponent
-    class(nodeComponentSpin   ), pointer                :: parentSpinComponent
+    type (treeNode            ), intent(inout), pointer :: thisNode                                     
+    type (treeNode            )               , pointer :: parentNode                                   
+    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent 
+    class(nodeComponentSpin   )               , pointer :: parentSpinComponent                          
     
     if (thisNode%isSatellite()) then
        if (starveSatellites) then
@@ -529,11 +529,11 @@ contains
     !% Add gas stripped from the hot halo to the stripped gas reservoirs under the assumption of uniformly distributed properties
     !% (e.g. fully-mixed metals).
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    double precision           ,          intent(in)    :: gasMassRate
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    double precision                                    :: gasMass
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode             
+    double precision                      , intent(in   )          :: gasMassRate          
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    double precision                                               :: gasMass              
+    
     ! Exit immediately for zero rate.
     if (gasMassRate == 0.0d0) return
 
@@ -559,12 +559,12 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    class(nodeComponentHotHalo),          intent(inout)           :: thisHotHaloComponent
-    double precision                   ,          intent(in   )           :: rate
-    logical                            ,          intent(inout), optional :: interrupt
-    procedure(Interrupt_Procedure_Template)                        , pointer, intent(inout), optional :: interruptProcedure
-    type (treeNode                    ), pointer                          :: thisNode
-    double precision                                                      :: massHeatingRate,inputMassHeatingRate,excessMassHeatingRate
+    class           (nodeComponentHotHalo        ), intent(inout)                    :: thisHotHaloComponent                                         
+    double precision                              , intent(in   )                    :: rate                                                         
+    logical                                       , intent(inout), optional          :: interrupt                                                    
+    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure                                           
+    type            (treeNode                    )                         , pointer :: thisNode                                                     
+    double precision                                                                 :: excessMassHeatingRate, inputMassHeatingRate, massHeatingRate 
     
      ! Trap cases where an attempt is made to remove energy via this input function.
      if (rate < 0.0d0) call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Heat_Source','attempt to remove energy via heat source pipe to hot halo')
@@ -610,16 +610,16 @@ contains
     use Cooling_Specific_Angular_Momenta
     use Abundances_Structure
     implicit none
-    type (treeNode            ), pointer, intent(inout)           :: thisNode
-    double precision           ,          intent(in   )           :: massRate
-    logical                    ,          intent(inout), optional :: interrupt
-    procedure(Interrupt_Procedure_Template)                , pointer, intent(inout), optional :: interruptProcedure
-    type (treeNode            ), pointer                          :: coolingFromNode
-    class(nodeComponentHotHalo), pointer                          :: thisHotHaloComponent,coolingFromHotHaloComponent
-    type (abundances          ), save                             :: abundancesCoolingRate
+    type            (treeNode                    ), intent(inout)          , pointer :: thisNode                                          
+    double precision                              , intent(in   )                    :: massRate                                          
+    logical                                       , intent(inout), optional          :: interrupt                                         
+    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure                                
+    type            (treeNode                    )                         , pointer :: coolingFromNode                                   
+    class           (nodeComponentHotHalo        )                         , pointer :: coolingFromHotHaloComponent, thisHotHaloComponent 
+    type            (abundances                  ), save                             :: abundancesCoolingRate                             
     !$omp threadprivate(abundancesCoolingRate)
-    double precision                                              :: angularMomentumCoolingRate,infallRadius
-
+    double precision                                                                 :: angularMomentumCoolingRate , infallRadius         
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -685,14 +685,14 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    double precision           ,          intent(in)    :: massRate
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    type (abundances          ), save                   :: abundancesRates
-    type (chemicalAbundances  ), save                   :: chemicalsRates
+    type            (treeNode            )      , intent(inout), pointer :: thisNode                              
+    double precision                            , intent(in   )          :: massRate                              
+    class           (nodeComponentHotHalo)                     , pointer :: thisHotHaloComponent                  
+    type            (abundances          ), save                         :: abundancesRates                       
+    type            (chemicalAbundances  ), save                         :: chemicalsRates                        
     !$omp threadprivate(abundancesRates,chemicalsRates)
-    double precision                                    :: massRateLimited,angularMomentumRate
-
+    double precision                                                     :: angularMomentumRate , massRateLimited 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
 
@@ -727,10 +727,11 @@ contains
     use Hot_Halo_Density_Profile
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode                    ), intent(inout), pointer :: thisNode
-    class(nodeComponentHotHaloStandard)                         :: thisHotHaloComponent
-    double precision                                            :: radiusOuter,radiusVirial,massOuter,massVirial
-
+    type            (treeNode                    ), intent(inout), pointer :: thisNode                                         
+    class           (nodeComponentHotHaloStandard)                         :: thisHotHaloComponent                             
+    double precision                                                       :: massOuter           , massVirial, radiusOuter, & 
+         &                                                                    radiusVirial                                     
+    
     radiusOuter =thisHotHaloComponent%outerRadius()
     radiusVirial=Dark_Matter_Halo_Virial_Radius (thisNode             )
     massOuter   =Hot_Halo_Enclosed_Mass         (thisNode,radiusOuter )
@@ -746,13 +747,13 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into the outflowed and stripped reservoirs.
     implicit none
-    class    (nodeComponentHotHalo), intent(inout)                    :: self
-    double precision                       , intent(in  )                     :: rate
-    logical                                , intent(inout), optional          :: interrupt
-    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
-    type     (treeNode                    ),                          pointer :: selfNode
-    double precision                                                          :: strippedOutflowFraction
-
+    class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self                    
+    double precision                                                          , intent(in   )                    :: rate                    
+    logical                                                                   , intent(inout), optional          :: interrupt               
+    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure      
+    type            (treeNode                                                )                         , pointer :: selfNode                
+    double precision                                                                                             :: strippedOutflowFraction 
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -772,13 +773,13 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Ang_Mom_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas angular momentum from a galaxy and deposit it into the outflowed reservoir.
     implicit none
-    class    (nodeComponentHotHalo), intent(inout)                    :: self
-    double precision                       , intent(in  )                     :: rate
-    logical                                , intent(inout), optional          :: interrupt
-    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
-    type     (treeNode                    ),                          pointer :: selfNode
-    double precision                                                          :: strippedOutflowFraction
-
+    class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self                    
+    double precision                                                          , intent(in   )                    :: rate                    
+    logical                                                                   , intent(inout), optional          :: interrupt               
+    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure      
+    type            (treeNode                                                )                         , pointer :: selfNode                
+    double precision                                                                                             :: strippedOutflowFraction 
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -797,13 +798,13 @@ contains
     !% Accept outflowing gas abundances from a galaxy and deposit it into the outflowed reservoir.
     use Abundances_Structure
     implicit none
-    class    (nodeComponentHotHalo), intent(inout)                    :: self
-    type     (abundances                  ), intent(in  )                     :: rate
-    logical                                , intent(inout), optional          :: interrupt
-    procedure(Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure
-    type     (treeNode                    ),                          pointer :: selfNode
-    double precision                                                          :: strippedOutflowFraction
-
+    class           (nodeComponentHotHalo                                    ), intent(inout)                    :: self                    
+    type            (abundances                                              ), intent(in   )                    :: rate                    
+    logical                                                                   , intent(inout), optional          :: interrupt               
+    procedure       (Interrupt_Procedure_Template                            ), intent(inout), optional, pointer :: interruptProcedure      
+    type            (treeNode                                                )                         , pointer :: selfNode                
+    double precision                                                                                             :: strippedOutflowFraction 
+    
     select type (self)
     class is (nodeComponentHotHaloStandard)
        ! Get the host node.
@@ -839,21 +840,28 @@ contains
     use Hot_Halo_Ram_Pressure_Stripping
     use Hot_Halo_Density_Profile
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    logical                    ,          intent(inout) :: interrupt
-    procedure(Interrupt_Procedure_Template)                , pointer, intent(inout) :: interruptProcedure
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    class(nodeComponentBasic  ), pointer                :: thisBasicComponent
-    double precision           , parameter              :: outerRadiusOverVirialRadiusMinimum=1.0d-3
-    type (abundances          ), save                   :: accretionRateAbundances,outflowedAbundances,abundancesReturnRate
-    type (chemicalAbundances  ), save                   :: accretionRateChemicals,chemicalMasses,chemicalDensities&
-         &,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate
-    !$omp threadprivate(accretionRateAbundances,outflowedAbundances,abundancesReturnRate,accretionRateChemicals,chemicalMasses)
-    !$omp threadprivate(chemicalDensities,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
-    double precision                                    :: massAccretionRate,failedMassAccretionRate,angularMomentumAccretionRate&
-         & ,massToDensityConversion,temperature,outflowedMass,massReturnRate,numberDensityHydrogen,hydrogenByMass&
-         &,angularMomentumReturnRate,densityAtOuterRadius,massLossRate,outerRadius,ramPressureRadius,outerRadiusGrowthRate
-
+    type            (treeNode                    )           , intent(inout), pointer :: thisNode                                                                
+    logical                                                  , intent(inout)          :: interrupt                                                               
+    procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure                                                      
+    class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent                                                    
+    class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent                                                      
+    double precision                              , parameter                         :: outerRadiusOverVirialRadiusMinimum=1.0d-3                               
+    type            (abundances                  ), save                              :: abundancesReturnRate                     , accretionRateAbundances  , & 
+         &                                                                               outflowedAbundances                                                     
+    type            (chemicalAbundances          ), save                              :: accretionRateChemicals                   , chemicalDensities        , & 
+         &                                                                               chemicalDensitiesRates                   , chemicalMasses           , & 
+         &                                                                               chemicalMassesRates                      , chemicalsChemicalRates   , & 
+         &                                                                               chemicalsCoolingRate                                                    
+    !$omp threadprivate(accretionRateAbundances,outflowedAbundances,abundancesReturnRate,accretionRateChemicals,chemicalMasses)    !$omp threadprivate(chemicalDensities,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
+    double precision                                                                  :: angularMomentumAccretionRate             , angularMomentumReturnRate, & 
+         &                                                                               densityAtOuterRadius                     , failedMassAccretionRate  , & 
+         &                                                                               hydrogenByMass                           , massAccretionRate        , & 
+         &                                                                               massLossRate                             , massReturnRate           , & 
+         &                                                                               massToDensityConversion                  , numberDensityHydrogen    , & 
+         &                                                                               outerRadius                              , outerRadiusGrowthRate    , & 
+         &                                                                               outflowedMass                            , ramPressureRadius        , & 
+         &                                                                               temperature                                                             
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
@@ -1004,13 +1012,14 @@ contains
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer,  intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                 :: thisHotHaloComponent
-    class(nodeComponentBasic  ), pointer                 :: thisBasicComponent
-    double precision           , parameter               :: scaleMassRelative  =1.0d-3
-    double precision           , parameter               :: scaleRadiusRelative=1.0d+0
-    double precision                                     :: massVirial,radiusVirial,velocityVirial
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                     
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                         
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                           
+    double precision                      , parameter              :: scaleMassRelative   =1.0d-3                  
+    double precision                      , parameter              :: scaleRadiusRelative =1.0d+0                  
+    double precision                                               :: massVirial                 , radiusVirial, & 
+         &                                                            velocityVirial                               
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of the standard class.
@@ -1052,14 +1061,15 @@ contains
     use Chemical_Abundances_Structure
     use Abundances_Structure
     implicit none
-    type (treeNode            ), pointer, intent(inout)     :: thisNode
-    class(nodeComponentHotHalo), pointer                    :: currentHotHaloComponent,thisHotHaloComponent
-    class(nodeComponentBasic  ), pointer                    :: thisBasicComponent
-    type (abundances          ), save                       :: accretedAbundances
-    type (chemicalAbundances  ), save                       :: accretedChemicals
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                         
+    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent    
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                               
+    type            (abundances          ), save                   :: accretedAbundances                               
+    type            (chemicalAbundances  ), save                   :: accretedChemicals                                
     !$omp threadprivate(accretedAbundances,accretedChemicals)
-    double precision                                        :: hotHaloMass,failedHotHaloMass,angularMomentum
-
+    double precision                                               :: angularMomentum        , failedHotHaloMass   , & 
+         &                                                            hotHaloMass                                      
+    
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(thisNode%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
 
@@ -1104,13 +1114,13 @@ contains
     use Galactic_Structure_Options
     use Cosmological_Parameters
     implicit none
-    type            (treeNode            ), pointer, intent(inout) :: thisNode
-    type            (treeNode            ), pointer                :: parentNode
-    class           (nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
-    class           (nodeComponentSpin   ), pointer                :: parentSpinComponent
-    class           (nodeComponentBasic  ), pointer                :: parentBasic
-    double precision                                               :: fractionRemove,baryonicMassMaximum,baryonicMassCurrent
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                                     
+    type            (treeNode            )               , pointer :: parentNode                                                   
+    class           (nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent                 
+    class           (nodeComponentSpin   )               , pointer :: parentSpinComponent                                          
+    class           (nodeComponentBasic  )               , pointer :: parentBasic                                                  
+    double precision                                               :: baryonicMassCurrent   , baryonicMassMaximum , fractionRemove 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
@@ -1224,11 +1234,11 @@ contains
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: hostNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,hostHotHaloComponent
-    class(nodeComponentSpin   ), pointer                :: hostSpinComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode                                   
+    type (treeNode            )               , pointer :: hostNode                                   
+    class(nodeComponentHotHalo)               , pointer :: hostHotHaloComponent, thisHotHaloComponent 
+    class(nodeComponentSpin   )               , pointer :: hostSpinComponent                          
+    
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
 
@@ -1312,9 +1322,9 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: parentNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
+    type (treeNode            ), intent(inout), pointer :: thisNode                                     
+    type (treeNode            )               , pointer :: parentNode                                   
+    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent 
     
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1373,9 +1383,9 @@ contains
     !% Get and store the cooling rate for {\tt thisNode}.
     use Cooling_Rates
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode             
+    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
        thisHotHaloComponent => thisNode%hotHalo()
@@ -1402,9 +1412,9 @@ contains
     use String_Handling
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode             
+    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    
     ! Create the component.
     thisHotHaloComponent => thisNode%hotHalo(autoCreate=.true.)
     ! Initialize the outer boundary to the virial radius.
@@ -1427,14 +1437,14 @@ contains
     use Numerical_Constants_Atomic
     use Numerical_Constants_Astronomical
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    type (abundances          ), save                   :: outflowedAbundances
-    type (chemicalAbundances  ), save                   :: chemicalDensities,chemicalMasses
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                          
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                              
+    type            (abundances          ), save                   :: outflowedAbundances                               
+    type            (chemicalAbundances  ), save                   :: chemicalDensities    , chemicalMasses             
     !$omp threadprivate(outflowedAbundances,chemicalDensities,chemicalMasses)
-    double precision                                    :: numberDensityHydrogen,temperature,hydrogenByMass&
-         &,massToDensityConversion
-
+    double precision                                               :: hydrogenByMass       , massToDensityConversion, & 
+         &                                                            numberDensityHydrogen, temperature                
+    
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return
 

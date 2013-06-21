@@ -26,14 +26,14 @@ program Tests_Sigma
   use Cosmological_Parameters
   use Numerical_Constants_Math
   implicit none
-  type(varying_string)                      :: parameterFile
-  integer,             parameter            :: massCount=10
-  double precision,    parameter            :: massMinimum=1.0d6,massMaximum=1.0d15
-  double precision,    dimension(massCount) :: mass,sigma,massFromSigma
-  integer                                   :: iMass
-  double precision                          :: radius8,mass8,sigma8
-
-  ! Read in basic code memory usage.
+  type            (varying_string)                       :: parameterFile                                      
+  integer                         , parameter            :: massCount    =10                                   
+  double precision                , parameter            :: massMaximum  =1.0d15, massMinimum  =1.0d6          
+  double precision                , dimension(massCount) :: mass                , massFromSigma      , sigma   
+  integer                                                :: iMass                                              
+  double precision                                       :: mass8               , radius8            , sigma8  
+  
+  ! Read in basic code memory usage.                                                                                                          
   call Code_Memory_Usage('tests.sigma.size')
 
   ! Begin unit tests.

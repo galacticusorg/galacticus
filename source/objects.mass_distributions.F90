@@ -26,7 +26,7 @@ module Mass_Distributions
 
   type, public                            :: massDistribution
      !% The basic mass distribution class. Has no symmetry and will abort on inqueries.
-     logical           :: dimensionless
+     logical :: dimensionless 
    contains
      !@ <objectMethods>
      !@   <object>massDistribution</object>
@@ -67,12 +67,12 @@ module Mass_Distributions
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_None
-     procedure         :: isDimensionless      => Mass_Distribution_Is_Dimensionless
-     procedure         :: density              => Mass_Distribution_Density_Null
-     procedure         :: densityRadialMoment  => Mass_Distribution_Density_Radial_Moment_Null
-     procedure         :: massEnclosedBySphere => Mass_Distribution_Mass_Enc_By_Sphere_Null
-     procedure         :: potential            => Mass_Distribution_Potential_Null
+     procedure, nopass :: symmetry            =>Mass_Distribution_Symmetry_None              
+     procedure         :: isDimensionless     =>Mass_Distribution_Is_Dimensionless           
+     procedure         :: density             =>Mass_Distribution_Density_Null               
+     procedure         :: densityRadialMoment =>Mass_Distribution_Density_Radial_Moment_Null 
+     procedure         :: massEnclosedBySphere=>Mass_Distribution_Mass_Enc_By_Sphere_Null    
+     procedure         :: potential           =>Mass_Distribution_Potential_Null             
   end type massDistribution
 
   type, public, extends(massDistribution) :: massDistributionSpherical
@@ -87,17 +87,16 @@ module Mass_Distributions
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Spherical
-     procedure         :: massEnclosedBySphere => Mass_Distribution_Mass_Enc_By_Sphere_Spherical
-     procedure         :: halfMassRadius       => Mass_Distribution_Half_Mass_Radius_Spherical
+     procedure, nopass :: symmetry            =>Mass_Distribution_Symmetry_Spherical           
+     procedure         :: massEnclosedBySphere=>Mass_Distribution_Mass_Enc_By_Sphere_Spherical 
+     procedure         :: halfMassRadius      =>Mass_Distribution_Half_Mass_Radius_Spherical   
   end type massDistributionSpherical
-  class(massDistributionSpherical), pointer :: massDistributionSphericalActive
+  class(massDistributionSpherical), pointer :: massDistributionSphericalActive 
   !$omp threadprivate(massDistributionSphericalActive)
-  
   type, public, extends(massDistribution) :: massDistributionCylindrical
      !% A cylindrical mass distribution class.
    contains
-     procedure, nopass :: symmetry             => Mass_Distribution_Symmetry_Cylindrical
+     procedure, nopass :: symmetry=>Mass_Distribution_Symmetry_Cylindrical 
   end type massDistributionCylindrical
 
   ! Include type definitions.
@@ -114,25 +113,25 @@ module Mass_Distributions
   !@  <entry label="massDistributionSymmetryCylindrical" />
   !@  <entry label="massDistributionSymmetrySpherical"   />
   !@ </enumeration>
-  integer, parameter, public :: massDistributionSymmetryNone       =0
-  integer, parameter, public :: massDistributionSymmetryCylindrical=1
-  integer, parameter, public :: massDistributionSymmetrySpherical  =2
-
+  integer                             , parameter, public :: massDistributionSymmetryNone       =0 
+  integer                             , parameter, public :: massDistributionSymmetryCylindrical=1 
+  integer                             , parameter, public :: massDistributionSymmetrySpherical  =2 
+  
   ! Template distributions.
-  type(massDistributionNFW        ) :: massDistributionTemplateNFW
-  type(massDistributionBetaProfile) :: massDistributionTemplateBetaProfile
-  type(massDistributionHernquist  ) :: massDistributionTemplateHernquist
-  type(massDistributionSersic     ) :: massDistributionTemplateSersic
-
+  type   (massDistributionNFW        )                    :: massDistributionTemplateNFW           
+  type   (massDistributionBetaProfile)                    :: massDistributionTemplateBetaProfile   
+  type   (massDistributionHernquist  )                    :: massDistributionTemplateHernquist     
+  type   (massDistributionSersic     )                    :: massDistributionTemplateSersic        
+  
 contains
 
   function Mass_Distribution_Create(type) result (newMassDistribution)
     !% Create a mass distribution given the name.
     use Galacticus_Error
     implicit none
-    class    (massDistribution), pointer       :: newMassDistribution
-    character(len=*           ), intent(in   ) :: type    
-
+    class    (massDistribution), pointer       :: newMassDistribution 
+    character(len=*           ), intent(in   ) :: type                
+    
     if      (trim(type) == "NFW"        ) then
        allocate(newMassDistribution,source=massDistributionTemplateNFW        )
     else if (trim(type) == "betaProfile") then
@@ -174,7 +173,7 @@ contains
   logical function Mass_Distribution_Is_Dimensionless(self)
     !% Return true if {\tt self} is a dimensionless mass distribution.
     implicit none
-    class(massDistribution), intent(in   ) :: self
+    class(massDistribution), intent(in   ) :: self 
     
     Mass_Distribution_Is_Dimensionless=self%dimensionless
     return
@@ -185,8 +184,8 @@ contains
     use Coordinates
     use Galacticus_Error
     implicit none
-    class(massDistribution), intent(in   ) :: self
-    class(coordinate      ), intent(in   ) :: coordinates
+    class(massDistribution), intent(in   ) :: self        
+    class(coordinate      ), intent(in   ) :: coordinates 
     
     call Galacticus_Error_Report('Mass_Distribution_Density_Null','this mass distribution has no density method defined')
     return
@@ -197,9 +196,9 @@ contains
     use Coordinates
     use Galacticus_Error
     implicit none
-    class(massDistribution), intent(in   )           :: self
-    double precision       , intent(in   )           :: moment
-    logical                , intent(  out), optional :: isInfinite
+    class           (massDistribution), intent(in   )           :: self       
+    double precision                  , intent(in   )           :: moment     
+    logical                           , intent(  out), optional :: isInfinite 
     
     call Galacticus_Error_Report('Mass_Distribution_Density_Radial_Moment_Null','this mass distribution has no radial density moment method defined')
     return
@@ -209,8 +208,8 @@ contains
     !% Aborts on attempts to get the mass enclosed by a sphere for mass distributions with no density defined.
     use Galacticus_Error
     implicit none
-    class(massDistribution), intent(in   ), target :: self
-    double precision       , intent(in   )         :: radius
+    class           (massDistribution), intent(in   ), target :: self   
+    double precision                  , intent(in   )         :: radius 
     
     call Galacticus_Error_Report('Mass_Distribution_Mass_Enc_By_Sphere_Null','this mass distribution has no massEnclosedBySphere defined')
     return
@@ -226,12 +225,12 @@ contains
     use Numerical_Constants_Math
     use FGSL
     implicit none
-    class(massDistributionSpherical ), intent(in   ), target :: self
-    double precision                 , intent(in   )         :: radius
-    type (c_ptr                     )                        :: parameterPointer
-    type (fgsl_function             )                        :: integrandFunction
-    type (fgsl_integration_workspace)                        :: integrationWorkspace
-    logical                                                  :: integrationReset
+    class           (massDistributionSpherical ), intent(in   ), target :: self                 
+    double precision                            , intent(in   )         :: radius               
+    type            (c_ptr                     )                        :: parameterPointer     
+    type            (fgsl_function             )                        :: integrandFunction    
+    type            (fgsl_integration_workspace)                        :: integrationWorkspace 
+    logical                                                             :: integrationReset     
     
     massDistributionSphericalActive => self
     integrationReset=.true.
@@ -247,11 +246,11 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Coordinates
     implicit none
-    real(c_double           )        :: Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand
-    real(c_double           ), value :: radius
-    type(c_ptr              ), value :: parameterPointer
-    type(coordinateSpherical)        :: position
-
+    real(kind=c_double      )        :: Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand 
+    real(kind=c_double      ), value :: radius                                                   
+    type(c_ptr              ), value :: parameterPointer                                         
+    type(coordinateSpherical)        :: position                                                 
+    
     position=[radius,0.0d0,0.0d0]
     Mass_Distribution_Mass_Enc_By_Sphere_Spherical_Integrand=radius**2*massDistributionSphericalActive%density(position)
     return
@@ -262,8 +261,8 @@ contains
     use Coordinates
     use Galacticus_Error
     implicit none
-    class(massDistribution), intent(in   ) :: self
-    class(coordinate      ), intent(in   ) :: coordinates
+    class(massDistribution), intent(in   ) :: self        
+    class(coordinate      ), intent(in   ) :: coordinates 
     
     call Galacticus_Error_Report('Mass_Distribution_Potential_Null','this mass distribution has no potential method defined')
     return
@@ -273,7 +272,7 @@ contains
     !% Aborts on attempts to get half-mass radius in spherical mass distributions.
     use Galacticus_Error
     implicit none
-    class(massDistributionSpherical), intent(in   ) :: self
+    class(massDistributionSpherical), intent(in   ) :: self 
     
     call Galacticus_Error_Report('Mass_Distribution_Half_Mass_Radius_Spherical','this mass distribution has no halfMassRadius method defined')
     return

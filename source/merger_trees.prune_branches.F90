@@ -24,14 +24,14 @@ module Merger_Trees_Prune_Branches
   public :: Merger_Tree_Prune_Branches
 
   ! Flag indicating if module is initialized.
-  logical          :: pruneBranchesModuleInitialized=.false.
-
-  ! Flag indicating if pruning is required.
-  logical          :: mergerTreePruneBranches
-
-  ! Mass below which branches should be pruned.
-  double precision :: mergerTreePruningMassThreshold
-
+  logical          :: pruneBranchesModuleInitialized=.false.  
+  
+  ! Flag indicating if pruning is required.                                                         
+  logical          :: mergerTreePruneBranches                 
+  
+  ! Mass below which branches should be pruned.                                                         
+  double precision :: mergerTreePruningMassThreshold          
+                                                           
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -43,13 +43,13 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type (mergerTree        ), intent(in), target :: thisTree
-    type (treeNode          ), pointer            :: thisNode,nextNode,previousNode
-    class(nodeComponentBasic), pointer            :: thisBasicComponent
-    type (mergerTree        ), pointer            :: currentTree
-    logical                                       :: didPruning
-
-    ! Check if module is initialized.
+    type   (mergerTree        ), intent(in   ), target :: thisTree                                    
+    type   (treeNode          ), pointer               :: nextNode          , previousNode, thisNode  
+    class  (nodeComponentBasic), pointer               :: thisBasicComponent                          
+    type   (mergerTree        ), pointer               :: currentTree                                 
+    logical                                            :: didPruning                                  
+    
+    ! Check if module is initialized.                                                                                               
     if (.not.pruneBranchesModuleInitialized) then
        !$omp critical (Merger_Tree_Prune_Branches_Initialize)
        if (.not.pruneBranchesModuleInitialized) then

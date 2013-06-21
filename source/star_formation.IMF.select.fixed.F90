@@ -24,8 +24,8 @@ module Star_Formation_IMF_Select_Fixed
   public :: IMF_Select_Fixed_Initialize
 
   ! Store the index of the selected IMF.
-  integer :: imfSelectedIndex
-
+  integer :: imfSelectedIndex  
+                            
 contains
 
   !# <imfSelectionMethod>
@@ -37,10 +37,10 @@ contains
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type(varying_string),          intent(in)    :: imfSelectionMethod,imfNames(:)
-    procedure(integer),   pointer, intent(inout) :: IMF_Select_Do
-    type(varying_string)                         :: imfSelectionFixed
-    
+    type     (varying_string), intent(in   )          :: imfNames         (:), imfSelectionMethod  
+    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do                             
+    type     (varying_string)                         :: imfSelectionFixed                         
+                                                                                                
     if (imfSelectionMethod == 'fixed') then
        IMF_Select_Do => IMF_Select_Fixed
        ! Get IMF choice.
@@ -65,10 +65,10 @@ contains
     !% Return our selection of stellar initial mass function.
     use Abundances_Structure
     implicit none
-    double precision,          intent(in) :: starFormationRate
-    type(abundances), intent(in) :: fuelAbundances
-    integer,                   intent(in) :: component
-
+    double precision            , intent(in   ) :: starFormationRate  
+    type            (abundances), intent(in   ) :: fuelAbundances     
+    integer                     , intent(in   ) :: component          
+                                                                   
     IMF_Select_Fixed=imfSelectedIndex
     return
   end function IMF_Select_Fixed

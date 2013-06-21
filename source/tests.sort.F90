@@ -22,10 +22,10 @@ program Test_Sort
   use Unit_Tests
   use Sort
   implicit none
-  integer,          dimension(19) :: integerArray
-  double precision, dimension(19) :: doubleArray
-
-  ! Begin unit tests.
+  integer         , dimension(19) :: integerArray  
+  double precision, dimension(19) :: doubleArray   
+  
+  ! Begin unit tests.                                              
   call Unit_Tests_Begin_Group("Sorting")
   
   ! Test integer sorting.

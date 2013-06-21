@@ -25,20 +25,20 @@ module Galacticus_Input_Paths
   public :: Galacticus_Input_Path
 
   ! The input path.
-  type(varying_string) :: galacticusInputPath
-
-  ! Flag indicating if we've retrieved the path yet.
-  logical              :: pathRetrieved=.false.
-
+  type   (varying_string) :: galacticusInputPath          
+  
+  ! Flag indicating if we've retrieved the path yet.                                                     
+  logical                 :: pathRetrieved      =.false.  
+                                                       
 contains
 
   function Galacticus_Input_Path()
     !% Returns the path that \glc\ should use as the root for all input data reads.
     implicit none
-    type(varying_string) :: Galacticus_Input_Path
-    integer              :: pathLength,pathStatus
-
-    ! Check if the path has been retrieved.
+    type   (varying_string) :: Galacticus_Input_Path              
+    integer                 :: pathLength           , pathStatus  
+    
+    ! Check if the path has been retrieved.                                                           
     if (.not.pathRetrieved) then
        !$omp critical (Galacticus_Path_Initialize)
        if (.not.pathRetrieved) then
@@ -65,10 +65,10 @@ contains
   subroutine Get_Path(pathLength)
     !% Retrieve the \glc\ input data path from the environment.
     implicit none
-    integer,                  intent(in) :: pathLength
-    character(len=pathLength+1)            :: pathName
+    integer                    , intent(in   ) :: pathLength  
+    character(len=pathLength+1)                :: pathName    
     
-    ! Get the path.
+    ! Get the path.                                                       
     call Get_Environment_Variable("GALACTICUS_ROOT_V092",value=pathName)
     ! Append a final "/" if necessary.
     if (pathName(pathLength:pathLength) /= "/") pathName=trim(pathName)//"/"

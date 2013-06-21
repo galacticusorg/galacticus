@@ -35,9 +35,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackSpheroidsMethod
-    procedure(Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
-    
+    type     (varying_string                                              ), intent(in   )          :: starFormationExpulsiveFeedbackSpheroidsMethod                
+    procedure(Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null), intent(inout), pointer :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get  
+                                                                                                                                                                 
     if (starFormationExpulsiveFeedbackSpheroidsMethod == 'null') Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null
      
     return
@@ -49,10 +49,10 @@ contains
     use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: starFormationRate,energyInputRate
-
-    ! Return a zero outflow rate.
+    type            (treeNode), intent(inout), pointer :: thisNode                            
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
+    
+    ! Return a zero outflow rate.                                                                                       
     Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null=0.0d0
     return
   end function Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Null

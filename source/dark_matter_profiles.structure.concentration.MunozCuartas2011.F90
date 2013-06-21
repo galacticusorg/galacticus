@@ -33,8 +33,8 @@ contains
     !% Initializes the ``Munoz-Cuartas2011'' halo concentration module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                    ),          intent(in   ) :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_MunozCuartas2011), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    type     (varying_string                                    ), intent(in   )          :: darkMatterConcentrationMethod         
+    procedure(Dark_Matter_Profile_Concentration_MunozCuartas2011), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get 
     
     if (darkMatterConcentrationMethod == 'Munoz-Cuartas2011') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_MunozCuartas2011
   
@@ -47,11 +47,15 @@ contains
     use Cosmology_Functions
     use Cosmological_Parameters
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    double precision         , parameter              :: w=0.029d0, m=0.097d0, alpha=-110.001d0, beta=2469.720d0, gamma=16.885d0
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: a,b,redshift,haloMassLogarithmic,concentrationLogarithmic
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                                               
+    double precision                    , parameter              :: alpha                   =-110.001d0, beta               =2469.720d0, & 
+         &                                                          gamma                   =16.885d0  , m                  =0.097d0   , & 
+         &                                                          w                       =0.029d0                                       
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                                     
+    double precision                                             :: a                                  , b                             , & 
+         &                                                          concentrationLogarithmic           , haloMassLogarithmic           , & 
+         &                                                          redshift                                                               
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.

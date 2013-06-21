@@ -29,18 +29,18 @@ module Freefall_Radii
   public :: Freefall_Radius, Freefall_Radius_Growth_Rate
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: freefallRadiusInitialized=.false.
-
-  ! Name of cooling radius available method used.
-  type(varying_string) :: freefallRadiusMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Freefall_Radius_Get_Template), pointer :: Freefall_Radius_Get => null()
-  procedure(Freefall_Radius_Get_Template), pointer :: Freefall_Radius_Growth_Rate_Get => null()
+  logical                                          :: freefallRadiusInitialized      =.false.  
+  
+  ! Name of cooling radius available method used.                                                                                          
+  type     (varying_string              )          :: freefallRadiusMethod                     
+  
+  ! Pointer to the function that actually does the calculation.                                                                                          
+  procedure(Freefall_Radius_Get_Template), pointer :: Freefall_Radius_Get            =>null()  
+  procedure(Freefall_Radius_Get_Template), pointer :: Freefall_Radius_Growth_Rate_Get=>null()  
   abstract interface
      double precision function Freefall_Radius_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Freefall_Radius_Get_Template
   end interface
   
@@ -85,9 +85,9 @@ contains
   double precision function Freefall_Radius(thisNode)
     !% Return the freefall radius for cooling calculations for {\tt thisNode} (in units of Mpc).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Freefall_Radius_Initialize
 
     ! Get the cooling radius using the selected method.
@@ -99,9 +99,9 @@ contains
   double precision function Freefall_Radius_Growth_Rate(thisNode)
     !% Return the rate at which the freefall radius for cooling calculations grows for {\tt thisNode} (in units of Mpc/Gyr).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Freefall_Radius_Initialize
 
     ! Get the cooling radius using the selected method.

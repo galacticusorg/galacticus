@@ -24,9 +24,9 @@ module Halo_Mass_Function_Sheth_Tormen
   public :: Halo_Mass_Function_Sheth_Tormen_Initialize
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMinimum=log(1.0d9), logMassMaximum=log(1.0d15)
-
+  integer         , parameter :: nPointsPerDecade=1000                                   
+  double precision            :: logMassMaximum  =log(1.0d15), logMassMinimum=log(1.0d9) 
+  
 contains
   
   !# <haloMassFunctionMethod>
@@ -36,8 +36,8 @@ contains
     !% Initializes the ``Sheth-Tormen mass function'' module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: haloMassFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod              
+    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get 
     
     if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Tormen_Differential
     return
@@ -50,10 +50,12 @@ contains
     use Critical_Overdensity
     use Cosmological_Parameters
     implicit none
-    double precision, intent(in) :: time,mass
-    double precision, parameter  :: a=0.707d0, p=0.3d0, normalization=0.3221836349d0
-    double precision             :: nu,nuPrime,alpha
-
+    double precision, intent(in   ) :: mass           , time                            
+    double precision, parameter     :: a      =0.707d0, normalization=0.3221836349d0, & 
+         &                             p      =0.3d0                                    
+    double precision                :: alpha          , nu                          , & 
+         &                             nuPrime                                          
+    
     ! Compute the mass function.
     nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
     nuPrime=a*nu

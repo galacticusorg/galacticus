@@ -31,10 +31,10 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Units
     implicit none
-    double precision, intent(in   ), dimension(:                 ) :: photonEnergy
-    double precision,                dimension(size(photonEnergy)) :: Atomic_Cross_Section_Compton,eta
-    double precision, parameter                                    :: electronEnergy=electronMass*speedLight**2/electronVolt/kilo
-    
+    double precision, dimension(:                 ), intent(in   ) :: photonEnergy                                                                    
+    double precision, dimension(size(photonEnergy))                :: Atomic_Cross_Section_Compton                                             , eta  
+    double precision, parameter                                    :: electronEnergy              =electronMass*speedLight**2/electronVolt/kilo       
+                                                                                                                                                   
     eta=photonEnergy/electronEnergy
     Atomic_Cross_Section_Compton=3.0d0*thomsonCrossSection*(hecto**2)*((1.0d0-(2.0d0*eta+2.0d0)/eta**2)*log(2.0d0*eta+1.0d0)&
          &+0.5d0+4.0d0/eta-0.5d0/(2.0d0*eta+1.0d0)**2)/8.0d0/eta

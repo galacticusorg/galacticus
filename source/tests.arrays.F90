@@ -24,58 +24,16 @@ program Test_Array_Monotonicity
   use Array_Utilities
   use Kind_Numbers
   implicit none
-  double precision,        target , dimension( 1,2) :: singleElementArrays       =reshape([                                                                         &
-       &                                                                                     1.23d0                                                                 &
-       &                                                                                   ,-2.31d0                                                                 &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(singleElementArrays)                                               &
-       &                                                                                 )
-  integer(kind=kind_int8), target , dimension( 1,2) :: singleElementArraysInteger=reshape([                                                                         &
-       &                                                                                     123                                                                    &
-       &                                                                                   ,-231                                                                    &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(singleElementArraysInteger)                                        &
-       &                                                                                 )
-  logical,                 target , dimension( 9,2) :: singleElementExpectations =reshape([                                                                         &
-       &                                                                                    .true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true.  &
-       &                                                                                   ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true. ,.true.  &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(singleElementExpectations)                                         &
-       &                                                                                 )
+  double precision                , dimension( 1,2), target :: singleElementArrays       =reshape([1.23d0,-2.31d0],shape(singleElementArrays))                                                                                                                       
+  integer         (kind=kind_int8), dimension( 1,2), target :: singleElementArraysInteger=reshape([123,-231],shape(singleElementArraysInteger))                                                                                                                      
+  logical                         , dimension( 9,2), target :: singleElementExpectations =reshape([.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.,.true.],shape(singleElementExpectations))  
   character(len=128),      target , dimension(   2) :: singleElementNames        =        [                                                                         &
        &                                                                                    'Single element array (positive value)'                                 &
        &                                                                                   ,'Single element array (negative value)'                                 &
        &                                                                                  ]
-  double precision,        target , dimension(10,6) :: tenElementArrays          =reshape([                                                                         &
-       &                                                                                    1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0            &
-       &                                                                                   ,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0       &
-       &                                                                                   ,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0            &
-       &                                                                                   ,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0            &
-       &                                                                                   ,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0       &
-       &                                                                                   ,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0            &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(tenElementArrays)                                                  &
-       &                                                                                 )
-  integer(kind=kind_int8),            target , dimension(10,6) :: tenElementArraysInteger   =reshape([                                                                         &
-       &                                                                                    10,20,30,40, 50, 60, 70, 80, 90, 100                                    &
-       &                                                                                   ,30,20,10,00,-10,-20,-30,-40,-50,-60                                     &
-       &                                                                                   ,10,00,30,40,-30, 50, 10, 80, 20, 30                                     &
-       &                                                                                   ,10,10,10,40, 50, 60, 70, 80, 90,100                                     &
-       &                                                                                   ,30,20,10,10,-10,-20,-30,-40,-50,-60                                     &
-       &                                                                                   ,10,00,30,30,-30, 50, 10, 80, 20, 30                                     &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(tenElementArrays)                                                  &
-       &                                                                                 )
-  logical,                 target , dimension( 9,6) :: tenElementExpectations    =reshape([                                                                         &
-       &                                                                                    .true. ,.true. ,.false.,.true. ,.true. ,.false.,.true. ,.true. ,.false. &
-       &                                                                                   ,.true. ,.false.,.true. ,.true. ,.false.,.true. ,.true. ,.false.,.true.  &
-       &                                                                                   ,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false. &
-       &                                                                                   ,.false.,.false.,.false.,.false.,.false.,.false.,.true. ,.true. ,.false. &
-       &                                                                                   ,.false.,.false.,.false.,.false.,.false.,.false.,.true. ,.false.,.true.  &
-       &                                                                                   ,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false. &
-       &                                                                                  ]                                                                         &
-       &                                                                                  ,shape(tenElementExpectations)                                            &
-       &                                                                                 )
+  double precision                , dimension(10,6), target :: tenElementArrays       =reshape([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,0.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,4.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0,1.0d0,1.0d0,1.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,10.0d0,3.0d0,2.0d0,1.0d0,1.0d0,-1.0d0,-2.0d0,-3.0d0,-4.0d0,-5.0d0,-6.0d0,1.0d0,0.0d0,3.0d0,3.0d0,-3.0d0,5.0d0,1.0d0,8.0d0,2.0d0,3.0d0],shape(tenElementArrays))                                                
+  integer         (kind=kind_int8), dimension(10,6), target :: tenElementArraysInteger=reshape([10,20,30,40,50,60,70,80,90,100,30,20,10,00,-10,-20,-30,-40,-50,-60,10,00,30,40,-30,50,10,80,20,30,10,10,10,40,50,60,70,80,90,100,30,20,10,10,-10,-20,-30,-40,-50,-60,10,00,30,30,-30,50,10,80,20,30],shape(tenElementArrays))                                                                                                                                                                                                                                    
+  logical                         , dimension( 9,6), target :: tenElementExpectations =reshape([.true.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.true.,.true.,.false.,.true.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.true.,.false.,.true.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.],shape(tenElementExpectations))  
   character(len=128),      target , dimension(   6) :: tenElementNames           =        [                                                                         &
        &                                                                                    'Increasing array (no equalities)     '                                 &
        &                                                                                   ,'Decreasing array (no equalities)     '                                 &
@@ -84,20 +42,20 @@ program Test_Array_Monotonicity
        &                                                                                   ,'Decreasing array (with equalities)   '                                 &
        &                                                                                   ,'Non-monotinic array (with equalities)'                                 &
        &                                                                                  ]
-  double precision,                 dimension(  10) :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0, 4.0d0, 5.0d0, 6.0d0, 7.0d0, 8.0d0, 9.0d0]
-  double precision,                 dimension(  10) :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0, 5.0d0, 4.0d0, 3.0d0, 2.0d0, 1.0d0, 0.0d0]
-  double precision,                 dimension(  10) :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]
-  real,                             dimension(  10) :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0, 4.0e0, 5.0e0, 6.0e0, 7.0e0, 8.0e0, 9.0e0]
-  real,                             dimension(  10) :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0, 5.0e0, 4.0e0, 3.0e0, 2.0e0, 1.0e0, 0.0e0]
-  double precision,        pointer, dimension( :,:) :: thisArraySet
-  integer(kind=kind_int8), pointer, dimension( :,:) :: thisArraySetInteger
-  logical,                 pointer, dimension( :,:) :: thisExpectations
-  character(len=128),      pointer, dimension(   :) :: thisNames
-  logical                                           :: isMonotonic
-  integer                                           :: iArraySet,iArray
-  type(varying_string)                              :: test
-
-  ! Begin unit tests.
+  double precision                , dimension(  10)          :: doubleArray         =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]                   
+  double precision                , dimension(  10)          :: doubleArrayReversed =[9.0d0,8.0d0,7.0d0,6.0d0,5.0d0,4.0d0,3.0d0,2.0d0,1.0d0,0.0d0]                   
+  double precision                , dimension(  10)          :: doubleArrayCumulated=[0.0d0,1.0d0,3.0d0,6.0d0,10.0d0,15.0d0,21.0d0,28.0d0,36.0d0,45.0d0]             
+  real                            , dimension(  10)          :: realArray           =[0.0e0,1.0e0,2.0e0,3.0e0,4.0e0,5.0e0,6.0e0,7.0e0,8.0e0,9.0e0]                   
+  real                            , dimension(  10)          :: realArrayReversed   =[9.0e0,8.0e0,7.0e0,6.0e0,5.0e0,4.0e0,3.0e0,2.0e0,1.0e0,0.0e0]                   
+  double precision                , dimension( :,:), pointer :: thisArraySet                                                                                         
+  integer         (kind=kind_int8), dimension( :,:), pointer :: thisArraySetInteger                                                                                  
+  logical                         , dimension( :,:), pointer :: thisExpectations                                                                                     
+  character       (len=128       ), dimension(   :), pointer :: thisNames                                                                                            
+  logical                                                    :: isMonotonic                                                                                          
+  integer                                                    :: iArray                                                                                  , iArraySet  
+  type            (varying_string)                           :: test                                                                                                 
+  
+  ! Begin unit tests.                                                                                                                                                                
   call Unit_Tests_Begin_Group("Array functions")
 
   ! Loop over all sets of arrays.

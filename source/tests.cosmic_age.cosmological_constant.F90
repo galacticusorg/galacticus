@@ -24,15 +24,14 @@ program Tests_Cosmic_Age_Cosmological_Constant
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift               =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
-  double precision, parameter, dimension(8) :: ageCosmologicalConstant=[0.0942699818d0,0.0402619685d0,0.0147878493d0,0.0037621019d0&
-       &,0.0006895264d0,0.0001172509d0,0.0000227901d0,0.0000037578d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: age,expansionFactor
-
-  ! Read in basic code memory usage.
+  double precision                , dimension(8), parameter :: redshift               =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]                                                        
+  double precision                , dimension(8), parameter :: ageCosmologicalConstant=[0.0942699818d0,0.0402619685d0,0.0147878493d0,0.0037621019d0,0.0006895264d0,0.0001172509d0,0.0000227901d0,0.0000037578d0]                   
+  type            (varying_string)                          :: parameterFile                                                                                                                                                       
+  character       (len=1024      )                          :: message                                                                                                                                                             
+  integer                                                   :: iExpansion                                                                                                                                                          
+  double precision                                          :: age                                                                                                                                              , expansionFactor  
+  
+  ! Read in basic code memory usage.                                                                                                                                                                                                                              
   call Code_Memory_Usage('tests.cosmic_age.cosmological_constant.size')
 
   ! Begin unit tests.

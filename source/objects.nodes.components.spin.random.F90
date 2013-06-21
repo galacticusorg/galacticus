@@ -50,11 +50,11 @@ module Node_Component_Spin_Random
   !# </component>
 
   ! Record of whether the module has been initialized.
-  logical          :: moduleInitialized=.false.
-
-  ! The factor by which the mass of a node must increase before its spin parameter is re-chosen.
-  double precision :: randomSpinResetMassFactor
-
+  logical          :: moduleInitialized        =.false.  
+  
+  ! The factor by which the mass of a node must increase before its spin parameter is re-chosen.                                                    
+  double precision :: randomSpinResetMassFactor          
+                                                      
 contains
 
   subroutine Node_Component_Spin_Random_Initialize()
@@ -96,13 +96,13 @@ contains
     use Cosmological_Parameters
     use Halo_Spin_Distributions
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    type (treeNode          ), pointer                :: relatedNode
-    class(nodeComponentSpin ), pointer                :: thisSpinComponent,relatedSpinComponent
-    class(nodeComponentBasic), pointer                :: relatedBasicComponent
-    double precision                                  :: previousSetMass,previousSetSpin
-
-    ! Check if we are the default method.
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                  
+    type            (treeNode          )               , pointer :: relatedNode                               
+    class           (nodeComponentSpin )               , pointer :: relatedSpinComponent , thisSpinComponent  
+    class           (nodeComponentBasic)               , pointer :: relatedBasicComponent                     
+    double precision                                             :: previousSetMass      , previousSetSpin    
+    
+    ! Check if we are the default method.                                                                                                       
     if (defaultSpinComponent%randomIsActive()) then
        ! Ensure the module is initialized.
        call Node_Component_Spin_Random_Initialize()
@@ -147,12 +147,12 @@ contains
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    type (treeNode          ), pointer                :: parentNode
-    class(nodeComponentSpin ), pointer                :: thisSpinComponent ,parentSpinComponent
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,parentBasicComponent
-
-    ! Ensure that the spin component is of the random class.
+    type (treeNode          ), intent(inout), pointer :: thisNode                                  
+    type (treeNode          )               , pointer :: parentNode                                
+    class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent   
+    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent  
+    
+    ! Ensure that the spin component is of the random class.                                                                                            
     thisSpinComponent => thisNode%spin()
     select type (thisSpinComponent)
     class is (nodeComponentSpinRandom)

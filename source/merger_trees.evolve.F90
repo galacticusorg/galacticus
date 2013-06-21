@@ -27,28 +27,27 @@ module Merger_Trees_Evolve
   public :: Merger_Tree_Evolve_To
 
   ! Flag indicating if evolver routine has been initialized.
-  logical          :: mergerTreeEvolveToInitialized=.false.
-
+  logical          :: mergerTreeEvolveToInitialized=.false.                       
+  
   ! Flag indicating whether or not to fail for trees which do not exist at the final output time.
-  logical          :: allTreesExistAtFinalTime
-
+  logical          :: allTreesExistAtFinalTime                                    
+  
   ! Flag indicating whether to dump merger tree structure after each evolutionary step.
-  logical          :: mergerTreesDumpStructure
-
+  logical          :: mergerTreesDumpStructure                                    
+  
   ! Variables which limit extent to which satellites can evolve past their parent.
-  logical          :: evolveToTimeInitialized=.false.
-  double precision :: timestepHostAbsolute,timestepHostRelative
-
+  logical          :: evolveToTimeInitialized      =.false.                       
+  double precision :: timestepHostAbsolute                 , timestepHostRelative 
+  
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
-     type   (deadlockList  ), pointer :: next => null()
-     type   (treeNode      ), pointer :: node,lockNode
-     integer(kind=kind_int8)          :: treeIndex
-     type   (varying_string)          :: lockType
+     type   (deadlockList  ), pointer :: next     =>null()       
+     type   (treeNode      ), pointer :: lockNode         , node 
+     integer(kind=kind_int8)          :: treeIndex               
+     type   (varying_string)          :: lockType                
   end type deadlockList
-  type(deadlockList), pointer :: deadlockHeadNode => null()
+  type(deadlockList), pointer :: deadlockHeadNode=>null() 
   !$omp threadprivate(deadlockHeadNode)
-
 contains
 
   subroutine Merger_Tree_Evolve_To(thisTree,endTime)
@@ -68,26 +67,29 @@ contains
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
-    type            (mergerTree                   ), intent(inout), target :: thisTree
-    double precision                               , intent(in   )         :: endTime
-    type            (treeNode                     ), pointer               :: thisNode,nextNode,parentNode,lockNode
-    double precision                               , parameter             :: timeTolerance=1.0d-5
-    double precision                               , parameter             :: largeTime    =1.0d10
-    procedure       (Interrupt_Procedure_Template ), pointer               :: interruptProcedure
-    procedure       (End_Of_Timestep_Task_Template), pointer               :: End_Of_Timestep_Task
-    integer                                        , parameter             :: verbosityLevel=3
-    class           (nodeComponentBasic           ), pointer               :: thisBasicComponent,parentBasicComponent&
-         &,baseNodeBasicComponent
-    type            (mergerTree                   ), pointer               :: currentTree
-    integer                                                                :: nodesEvolvedCount,nodesTotalCount,treeWalkCount&
-         &,treeWalkCountPreviousOutput,deadlockStatus
-    double precision                                                       :: endTimeThisNode,earliestTimeInTree,finalTimeInTree
-    logical                                                                :: interrupted,didEvolve
-    character       (len=12                       )                        :: label
-    character       (len=35)                                               :: message
-    type            (varying_string               )                        :: vMessage,lockType
-    logical                                                                :: anyTreeExistsAtOutputTime
-
+    type            (mergerTree                   )                    , intent(inout) , target::                         thisTree                                 
+    double precision                                                   , intent(in   ) ::      endTime                                                             
+    type            (treeNode                     )           , pointer                ::      lockNode                                  , nextNode            , & 
+         &                                                                                     parentNode                                , thisNode                
+    double precision                               , parameter                         ::      timeTolerance                      =1.0d-5                          
+    double precision                               , parameter                         ::      largeTime                          =1.0d10                          
+    procedure       (Interrupt_Procedure_Template )           , pointer                ::      interruptProcedure                                                  
+    procedure       (End_Of_Timestep_Task_Template)           , pointer                ::      End_Of_Timestep_Task                                                
+    integer                                        , parameter                         ::      verbosityLevel                     =3                               
+    class           (nodeComponentBasic           )           , pointer                ::      baseNodeBasicComponent                    , parentBasicComponent, & 
+         &                                                                                     thisBasicComponent                                                  
+    type            (mergerTree                   )           , pointer                ::      currentTree                                                         
+    integer                                                                            ::      deadlockStatus                            , nodesEvolvedCount   , & 
+         &                                                                                     nodesTotalCount                           , treeWalkCount       , & 
+         &                                                                                     treeWalkCountPreviousOutput                                         
+    double precision                                                                   ::      earliestTimeInTree                        , endTimeThisNode     , & 
+         &                                                                                     finalTimeInTree                                                     
+    logical                                                                            ::      didEvolve                                 , interrupted             
+    character       (len=12                       )                                    ::      label                                                               
+    character       (len=35                       )                                    ::      message                                                             
+    type            (varying_string               )                                    ::      lockType                                  , vMessage                
+    logical                                                                            ::      anyTreeExistsAtOutputTime                                           
+    
     ! Check if this routine is initialized.
     if (.not.mergerTreeEvolveToInitialized) then
        !$omp critical (Merger_Tree_Evolve_To_Initialize)
@@ -383,23 +385,24 @@ contains
     use Evolve_To_Time_Reports
     use Kind_Numbers
     implicit none
-    type(treeNode),            intent(inout), pointer           :: thisNode
-    double precision,          intent(in)                       :: endTime
-    type(treeNode),                           pointer           :: satelliteNode
-    procedure(End_Of_Timestep_Task_Template),               intent(out),   pointer           :: End_Of_Timestep_Task
-    logical,                   intent(in)                       :: report
-    type(treeNode),            intent(out),   pointer, optional :: lockNode
-    type(varying_string),      intent(out),            optional :: lockType  
-    procedure(End_Of_Timestep_Task_Template),                              pointer           :: End_Of_Timestep_Task_Internal
-    class(nodeComponentBasic),                pointer           :: thisBasicComponent,parentBasicComponent,satelliteBasicComponent,siblingBasicComponent
-    class(nodeComponentSatellite),            pointer           :: satelliteSatelliteComponent
-    type(nodeEvent),                          pointer           :: thisEvent
-    double precision                                            :: time,expansionFactor,expansionTimescale,hostTimeLimit
-    character(len=9)                                            :: timeFormatted
-    type(varying_string)                                        :: message
-
-    ! Initialize if not yet done.
-    !$omp critical (evolveToTimeInitialize)
+    type            (treeNode                     ), intent(inout)          , pointer :: thisNode                                                  
+    double precision                               , intent(in   )                    :: endTime                                                   
+    type            (treeNode                     )                         , pointer :: satelliteNode                                             
+    procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task                                      
+    logical                                        , intent(in   )                    :: report                                                    
+    type            (treeNode                     ), intent(  out), optional, pointer :: lockNode                                                  
+    type            (varying_string               ), intent(  out), optional          :: lockType                                                  
+    procedure       (End_Of_Timestep_Task_Template)                         , pointer :: End_Of_Timestep_Task_Internal                             
+    class           (nodeComponentBasic           )                         , pointer :: parentBasicComponent         , satelliteBasicComponent, & 
+         &                                                                               siblingBasicComponent        , thisBasicComponent         
+    class           (nodeComponentSatellite       )                         , pointer :: satelliteSatelliteComponent                               
+    type            (nodeEvent                    )                         , pointer :: thisEvent                                                 
+    double precision                                                                  :: expansionFactor              , expansionTimescale     , & 
+         &                                                                               hostTimeLimit                , time                       
+    character       (len=9                        )                                   :: timeFormatted                                             
+    type            (varying_string               )                                   :: message                                                   
+    
+    ! Initialize if not yet done.    !$omp critical (evolveToTimeInitialize)
     if (.not.evolveToTimeInitialized) then
        !@ <inputParameter>
        !@   <name>timestepHostRelative</name>
@@ -570,11 +573,11 @@ contains
   subroutine Deadlock_Add_Node(thisNode,treeIndex,lockNode,lockType)
     !% Add a node to the deadlocked nodes list.
     implicit none
-    type   (treeNode      ), pointer, intent(in   ) :: thisNode,lockNode
-    integer(kind=kind_int8),          intent(in   ) :: treeIndex
-    type   (varying_string),          intent(in   ) :: lockType
-    type   (deadlockList  ), pointer                :: deadlockThisNode
-
+    type   (treeNode      ), intent(in   ), pointer :: lockNode        , thisNode 
+    integer(kind=kind_int8), intent(in   )          :: treeIndex                  
+    type   (varying_string), intent(in   )          :: lockType                   
+    type   (deadlockList  )               , pointer :: deadlockThisNode           
+    
     ! Add a node to the deadlock linked list.
     if (associated(deadlockHeadNode)) then
        deadlockThisNode => deadlockHeadNode
@@ -598,16 +601,16 @@ contains
   subroutine Deadlock_Tree_Output(endTime)
     !% Output the deadlocked nodes in {\tt dot} format.
     implicit none
-    double precision                    , intent(in   ) :: endTime
-    type            (deadlockList      ), pointer       :: thisNode,testNode,lockNode
-    class           (nodeComponentBasic), pointer       :: thisBasicComponent
-    type            (treeNode          ), pointer       :: parentNode
-    logical                                             :: foundLockNode
-    integer                                             :: treeUnit
-    integer         (kind=kind_int8    )                :: uniqueID
-    logical                                             :: inCycle
-    character       (len=20            )                :: color,style
-
+    double precision                    , intent(in   ) :: endTime                                
+    type            (deadlockList      ), pointer       :: lockNode          , testNode, thisNode 
+    class           (nodeComponentBasic), pointer       :: thisBasicComponent                     
+    type            (treeNode          ), pointer       :: parentNode                             
+    logical                                             :: foundLockNode                          
+    integer                                             :: treeUnit                               
+    integer         (kind=kind_int8    )                :: uniqueID                               
+    logical                                             :: inCycle                                
+    character       (len=20            )                :: color             , style              
+    
     ! Begin tree.
     open(newUnit=treeUnit,file='galacticusDeadlockTree.gv',status='unknown',form='formatted')
     write (treeUnit,*) 'digraph Tree {'
@@ -694,14 +697,14 @@ contains
     !% Perform any events associated with {\tt thisNode}.
     use Merger_Trees
     implicit none
-    type (mergerTree        ), intent(in   )          :: thisTree
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    integer                  , intent(inout)          :: deadlockStatus
-    type (nodeEvent         ),                pointer :: thisEvent,lastEvent,nextEvent
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: nodeTime
-    logical                                           :: taskDone
-
+    type            (mergerTree        ), intent(in   )          :: thisTree                                 
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                 
+    integer                             , intent(inout)          :: deadlockStatus                           
+    type            (nodeEvent         )               , pointer :: lastEvent         , nextEvent, thisEvent 
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                       
+    double precision                                             :: nodeTime                                 
+    logical                                                      :: taskDone                                 
+    
     ! Get the current time.
     thisBasicComponent => thisNode          %basic()
     nodeTime           =  thisBasicComponent%time ()

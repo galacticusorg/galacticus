@@ -42,14 +42,14 @@ module Node_Component_Formation_Times_Cole2000
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized=.false.
-
-  ! Factor by which mass must increase to trigger a new formation event.
-  double precision :: haloReformationMassFactor
-
-  ! Switch indicating whether or not halo reformation should only be checked for at node promotion events.
-  logical          :: haloReformationOnPromotionOnly
-
+  logical          :: moduleInitialized             =.false.  
+  
+  ! Factor by which mass must increase to trigger a new formation event.                                                         
+  double precision :: haloReformationMassFactor               
+  
+  ! Switch indicating whether or not halo reformation should only be checked for at node promotion events.                                                         
+  logical          :: haloReformationOnPromotionOnly          
+                                                           
 contains
 
   subroutine Node_Component_Formation_Times_Cole2000_Initialize()
@@ -98,13 +98,13 @@ contains
   subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Check for need to update the formation time of a node in the {\tt Cole2000} formation time component.
     implicit none
-    type     (treeNode                  ), pointer, intent(inout) :: thisNode
-    logical                              ,          intent(inout) :: interrupt
-    procedure(Interrupt_Procedure_Template                          ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentFormationTime), pointer                :: thisFormationTimeComponent
-    class    (nodeComponentBasic        ), pointer                :: thisBasicComponent,formationBasicComponent
-
-    ! Get the hot halo component.
+    type     (treeNode                                              ), intent(inout), pointer :: thisNode                                        
+    logical                                                          , intent(inout)          :: interrupt                                       
+    procedure(Interrupt_Procedure_Template                          ), intent(inout), pointer :: interruptProcedure                              
+    class    (nodeComponentFormationTime                            )               , pointer :: thisFormationTimeComponent                      
+    class    (nodeComponentBasic                                    )               , pointer :: formationBasicComponent   , thisBasicComponent  
+    
+    ! Get the hot halo component.                                                                                                                                          
     thisFormationTimeComponent => thisNode%formationTime()
     if (defaultFormationTimeComponent%cole2000IsActive()) then
        ! Check if the halo has grown sufficiently in mass to trigger a new formation event.
@@ -127,11 +127,11 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(thisNode)
     implicit none
-    type (treeNode                  ), pointer, intent(inout) :: thisNode
-    class(nodeComponentFormationTime), pointer                :: thisFormationTimeComponent
-    class(nodeComponentBasic        ), pointer                :: parentBasicComponent,formationBasicComponent
- 
-    ! Get the formation time component.
+    type (treeNode                  ), intent(inout), pointer :: thisNode                                          
+    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent                        
+    class(nodeComponentBasic        )               , pointer :: formationBasicComponent   , parentBasicComponent  
+    
+    ! Get the formation time component.                                                                                                            
     thisFormationTimeComponent => thisNode%formationTime()
     ! Ensure that it is of specified class.
     select type (thisFormationTimeComponent)
@@ -152,10 +152,10 @@ contains
     use ISO_Varying_String
     use Events_Halo_Formation
     implicit none
-    type (treeNode                  ), pointer, intent(inout) :: thisNode
-    class(nodeComponentFormationTime), pointer                :: thisFormationTimeComponent
-
-    ! Ensure that this module has been initialized.
+    type (treeNode                  ), intent(inout), pointer :: thisNode                    
+    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent  
+    
+    ! Ensure that this module has been initialized.                                                                                      
     call Node_Component_Formation_Times_Cole2000_Initialize()
 
     ! Trigger a halo formation event.
@@ -186,9 +186,9 @@ contains
     !% Initialize the formation node pointer for any childless node.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! If this method is selected and the node has no child then initialize it.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! If this method is selected and the node has no child then initialize it.                                                 
     if (defaultFormationTimeComponent%cole2000IsActive().and..not.associated(thisNode%firstChild)) &
          & call Node_Component_Formation_Time_Cole2000_Create(thisNode)
 

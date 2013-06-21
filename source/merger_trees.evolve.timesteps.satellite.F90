@@ -24,14 +24,14 @@ module Merger_Tree_Timesteps_Satellite
   public :: Merger_Tree_Timestep_Satellite
 
   ! Flag indicating whether this module is initialized.
-  logical :: mergerTimestepsInitialized=.false.
-
+  logical          :: mergerTimestepsInitialized          =.false.                                       
+  
   ! Flag indicating if this module is limiting timesteps.
-  logical :: limitTimesteps
-
+  logical          :: limitTimesteps                                                                     
+  
   ! The largest time difference allowed between satellite and merge target at the time or merging.
-  double precision :: mergeTargetTimeOffsetMaximumAbsolute,mergeTargetTimeOffsetMaximumRelative
-
+  double precision :: mergeTargetTimeOffsetMaximumAbsolute        , mergeTargetTimeOffsetMaximumRelative 
+  
 contains
 
   !# <timeStepsTask>
@@ -47,18 +47,18 @@ contains
     use String_Handling
     use ISO_Varying_String
     implicit none
-    type     (treeNode                     ), intent(inout), pointer           :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
-    double precision,                         intent(inout)                    :: timeStep
-    logical,                                  intent(in)                       :: report
-    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
-    type     (varying_string               ), intent(inout),          optional :: lockType  
-    type     (treeNode                     ),                pointer           :: hostNode
-    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent,hostBasicComponent
-    class    (nodeComponentSatellite       ),                pointer           :: thisSatelliteComponent
-    double precision                                                           :: timeUntilMerging,timeStepAllowed,mergeTargetTimeMinimum&
-         &,mergeTargetTimeOffsetMaximum
-
+    type            (treeNode                     ), intent(inout)          , pointer :: thisNode                                                
+    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task                                    
+    double precision                               , intent(inout)                    :: timeStep                                                
+    logical                                        , intent(in   )                    :: report                                                  
+    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode                                                
+    type            (varying_string               ), intent(inout), optional          :: lockType                                                
+    type            (treeNode                     )                         , pointer :: hostNode                                                
+    class           (nodeComponentBasic           )                         , pointer :: hostBasicComponent    , thisBasicComponent              
+    class           (nodeComponentSatellite       )                         , pointer :: thisSatelliteComponent                                  
+    double precision                                                                  :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, & 
+         &                                                                               timeStepAllowed       , timeUntilMerging                
+    
     ! Initialize the module.
     if (.not.mergerTimestepsInitialized) then
        !$omp critical (Merger_Tree_Timestep_Satellite_Initialize)
@@ -163,13 +163,12 @@ contains
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
-    type   (mergerTree    ), intent(in   )          :: thisTree
-    type   (treeNode      ), intent(inout), pointer :: thisNode
-    integer                , intent(inout)          :: deadlockStatus
-    type   (varying_string)                         :: message
-
-    ! Report if necessary.
-    ! Report if necessary.
+    type   (mergerTree    ), intent(in   )          :: thisTree       
+    type   (treeNode      ), intent(inout), pointer :: thisNode       
+    integer                , intent(inout)          :: deadlockStatus 
+    type   (varying_string)                         :: message        
+    
+    ! Report if necessary.    ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['
        message=message//thisNode%index()//'] is being merged'

@@ -32,9 +32,9 @@ contains
     !% Initializes the ``Gao2008'' halo shape module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: darkMatterShapeMethod
-    procedure(Dark_Matter_Profile_Shape_Gao2008), pointer, intent(inout) :: Dark_Matter_Profile_Shape_Get
-    
+    type     (varying_string                   ), intent(in   )          :: darkMatterShapeMethod          
+    procedure(Dark_Matter_Profile_Shape_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Shape_Get  
+                                                                                                        
     if (darkMatterShapeMethod == 'Gao2008') Dark_Matter_Profile_Shape_Get => Dark_Matter_Profile_Shape_Gao2008
   
     return
@@ -51,12 +51,12 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    double precision         , parameter              :: nuMaximum=3.907d0
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: nu
+    type            (treeNode          ), intent(inout), pointer :: thisNode                    
+    double precision                    , parameter              :: nuMaximum         =3.907d0  
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent          
+    double precision                                             :: nu                          
     
-    ! Get the basic component.
+    ! Get the basic component.                                                                                         
     thisBasicComponent => thisNode%basic()
     ! Compute the shape parameter.
     nu=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())/Cosmological_Mass_Root_Variance(thisBasicComponent%mass())

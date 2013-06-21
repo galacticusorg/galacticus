@@ -27,16 +27,14 @@ module Hot_Halo_Ram_Pressure_Stripping_Font2008
   public :: Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
 
   ! Pointers to the host and satellite nodes.
-  type(treeNode),   pointer :: hostNode,satelliteNode
+  type            (treeNode), pointer :: hostNode                      , satelliteNode 
   !$omp threadprivate(hostNode,satelliteNode)
-
   ! The ram pressure force (per unit area) used in root finding.
-  double precision          :: ramPressureForce
+  double precision                    :: ramPressureForce                              
   !$omp threadprivate(ramPressureForce)
-
   ! Parameters of the ram pressure stripping model.
-  double precision          :: ramPressureStrippingFormFactor
-
+  double precision                    :: ramPressureStrippingFormFactor                
+  
 contains
 
   !# <hotHaloRamPressureStrippingMethod>
@@ -47,8 +45,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: hotHaloRamPressureStrippingMethod
-    procedure(Hot_Halo_Ram_Pressure_Stripping_Font2008_Get), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Stripping_Get
+    type     (varying_string                              ), intent(in   )          :: hotHaloRamPressureStrippingMethod   
+    procedure(Hot_Halo_Ram_Pressure_Stripping_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Stripping_Get 
     
     if (hotHaloRamPressureStrippingMethod == 'Font2008') then
        Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Font2008_Get
@@ -79,13 +77,13 @@ contains
     use Hot_Halo_Density_Profile
     use Root_Finder
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode
-    double precision            , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision            , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6
-    type            (rootFinder), save                   :: finder
-    !$omp threadprivate(finder) 
-    double precision                                     :: virialRadius
- 
+    type            (treeNode  ), intent(inout), pointer :: thisNode                                                        
+    double precision            , parameter              :: toleranceAbsolute             =0.0d0 , toleranceRelative=1.0d-3 
+    double precision            , parameter              :: radiusSmallestOverRadiusVirial=1.0d-6                           
+    type            (rootFinder), save                   :: finder                                                          
+    !$omp threadprivate(finder)
+    double precision                                     :: virialRadius                                                    
+    
     ! Get the virial radius of the satellite.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
     ! Test whether thisNode is a satellite.
@@ -143,9 +141,10 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: enclosedMass,hotHaloDensity,gravitationalBindingForce
-
+    double precision, intent(in   ) :: radius                                       
+    double precision                :: enclosedMass  , gravitationalBindingForce, & 
+         &                             hotHaloDensity                               
+    
     enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,massType=massTypeAll,componentType=componentTypeAll)
     hotHaloDensity           =Hot_Halo_Density(satelliteNode,radius)
     gravitationalBindingForce=ramPressureStrippingFormFactor*gravitationalConstantGalacticus*enclosedMass*hotHaloDensity/radius

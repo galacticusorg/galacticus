@@ -34,18 +34,21 @@ program Tests_Excursion_Sets
   use Numerical_Constants_Math
   use IO_HDF5
   implicit none
-  integer,                             parameter                   :: massCount=200
-  double precision,                    parameter                   :: massMinimum=1.0d6,massMaximum=1.0d16
-  integer,                             parameter                   :: fileNameLengthMaximum=1024
-  double precision,                    allocatable, dimension(:  ) :: haloMass,variance,barrier,firstCrossingProbability,haloMassFunction,wavenumber,powerSpectrum
-  double precision,                    allocatable, dimension(:,:) :: firstCrossingRate
-  integer                                                          :: iMass,jMass
-  double precision                                                 :: time,varianceProgenitor
-  character(len=fileNameLengthMaximum)                             :: fileCharacter
-  type(varying_string)                                             :: parameterFile,outputFileName
-  type(hdf5Object)                                                 :: outputFile
-
-  ! Read in basic code memory usage.
+  integer                                                                 , parameter :: massCount            =200                                        
+  double precision                                                        , parameter :: massMaximum          =1.0d16, massMinimum             =1.0d6     
+  integer                                                                 , parameter :: fileNameLengthMaximum=1024                                       
+  double precision                           , allocatable, dimension(:  )            :: barrier                     , firstCrossingProbability       , & 
+       &                                                                                 haloMass                    , haloMassFunction               , & 
+       &                                                                                 powerSpectrum               , variance                       , & 
+       &                                                                                 wavenumber                                                       
+  double precision                           , allocatable, dimension(:,:)            :: firstCrossingRate                                                
+  integer                                                                             :: iMass                       , jMass                              
+  double precision                                                                    :: time                        , varianceProgenitor                 
+  character       (len=fileNameLengthMaximum)                                         :: fileCharacter                                                    
+  type            (varying_string           )                                         :: outputFileName              , parameterFile                      
+  type            (hdf5Object               )                                         :: outputFile                                                       
+  
+  ! Read in basic code memory usage.                                                                                                                                                     
   call Code_Memory_Usage('Excursion_Sets.size')
 
   ! Get the name of the parameter file from the first command line argument.

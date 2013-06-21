@@ -25,8 +25,8 @@ module Cooling_Time_Available_White_Frenk
   public :: Cooling_Time_Available_WF_Initialize
 
   ! Parameter which interpolates between age of Universe and dynamical time for the time available for cooling.
-  double precision :: coolingTimeAvailableAgeFactor
-
+  double precision :: coolingTimeAvailableAgeFactor  
+                                                  
 contains
 
   !# <coolingTimeAvailableMethod>
@@ -39,10 +39,10 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: coolingTimeAvailableMethod
-    procedure(Cooling_Time_Available_WF), pointer, intent(inout) :: Cooling_Time_Available_Get
-    procedure(Cooling_Time_Available_Increase_Rate_WF), pointer, intent(inout) :: Cooling_Time_Available_Increase_Rate_Get
-    
+    type     (varying_string                         ), intent(in   )          :: coolingTimeAvailableMethod                
+    procedure(Cooling_Time_Available_WF              ), intent(inout), pointer :: Cooling_Time_Available_Get                
+    procedure(Cooling_Time_Available_Increase_Rate_WF), intent(inout), pointer :: Cooling_Time_Available_Increase_Rate_Get  
+                                                                                                                         
     if (coolingTimeAvailableMethod == 'White-Frenk1991') then
        Cooling_Time_Available_Get               => Cooling_Time_Available_WF
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_WF
@@ -69,10 +69,10 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-
-    ! Get the basic component.
+    type (treeNode          ), intent(inout), pointer :: thisNode            
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
+    
+    ! Get the basic component.                                                                      
     thisBasicComponent => thisNode%basic()
     ! Return the appropriate time.
     if (coolingTimeAvailableAgeFactor == 1.0d0) then
@@ -94,9 +94,9 @@ contains
     !% of 1, even though technically it can depend on halo properties.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Simply return unit rate.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Simply return unit rate.                                                 
     Cooling_Time_Available_Increase_Rate_WF=1.0d0
     return
   end function Cooling_Time_Available_Increase_Rate_WF

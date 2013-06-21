@@ -33,9 +33,9 @@ contains
     !% Initializes the ``Zhao2009'' halo concentration module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                            ),          intent(in   ) :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_Zhao2009), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
-    
+    type     (varying_string                            ), intent(in   )          :: darkMatterConcentrationMethod          
+    procedure(Dark_Matter_Profile_Concentration_Zhao2009), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get  
+                                                                                                                         
     if (darkMatterConcentrationMethod == 'Zhao2009')                                          &
          & Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Zhao2009
   
@@ -47,13 +47,13 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    double precision         , parameter              :: concentrationMinimum =4.00d0
-    double precision         , parameter              :: formationMassFraction=0.04d0
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: timeNode,timeFormation
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                
+    double precision                    , parameter              :: concentrationMinimum =4.00d0            
+    double precision                    , parameter              :: formationMassFraction=0.04d0            
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                      
+    double precision                                             :: timeFormation               , timeNode  
     
-    ! Get the basic component.
+    ! Get the basic component.                                                                                                     
     thisBasicComponent => thisNode%basic()
   
     ! Compute the concentration.

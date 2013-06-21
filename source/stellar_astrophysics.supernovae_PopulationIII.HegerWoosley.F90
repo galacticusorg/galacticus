@@ -24,9 +24,9 @@ module Supernovae_Population_III_HegerWoosley
   public :: Supernovae_Population_III_HegerWoosley_Initialize
   
   ! Variables holding the supernovae data tables.
-  integer                                     :: supernovaeTableCount
-  double precision, allocatable, dimension(:) :: supernovaeTableHeliumCoreMass,supernovaeTableEnergy
-
+  integer                                     :: supernovaeTableCount                                 
+  double precision, allocatable, dimension(:) :: supernovaeTableEnergy, supernovaeTableHeliumCoreMass 
+  
 contains
 
   !# <supernovaePopIIIMethod>
@@ -40,12 +40,14 @@ contains
     use FoX_dom
     use Memory_Management
     implicit none
-    type(varying_string),                 intent(in)    :: supernovaePopIIIMethod
-    procedure(double precision), pointer, intent(inout) :: SNePopIII_Cumulative_Energy_Get
-    type(Node),                  pointer                :: doc,massElement,energyElement,thisDatum
-    type(NodeList),              pointer                :: massList,energyList,massDataList,energyDataList
-    integer                                             :: ioErr,iSupernovae
-
+    type     (varying_string  ), intent(in   )          :: supernovaePopIIIMethod                            
+    procedure(double precision), intent(inout), pointer :: SNePopIII_Cumulative_Energy_Get                   
+    type     (Node            )               , pointer :: doc                            , energyElement, & 
+         &                                                 massElement                    , thisDatum        
+    type     (NodeList        )               , pointer :: energyDataList                 , energyList   , & 
+         &                                                 massDataList                   , massList         
+    integer                                             :: iSupernovae                    , ioErr            
+    
     if (supernovaePopIIIMethod == 'Heger-Woosley2002') then
        ! Set up pointers to our procedures.
        SNePopIII_Cumulative_Energy_Get => SNePopIII_Cumulative_Energy_HegerWoosley
@@ -95,13 +97,13 @@ contains
     use Numerical_Interpolation
     use FGSL
     implicit none
-    double precision,        intent(in) :: initialMass,age,metallicity
-    double precision                    :: lifetime,massHeliumCore
-    type(fgsl_interp),       save       :: interpolationObject
-    type(fgsl_interp_accel), save       :: interpolationAccelerator
-    logical,                 save       :: interpolationReset=.true.
+    double precision                   , intent(in   ) :: age                            , initialMass   , & 
+         &                                                metallicity                                        
+    double precision                                   :: lifetime                       , massHeliumCore    
+    type            (fgsl_interp      ), save          :: interpolationObject                                
+    type            (fgsl_interp_accel), save          :: interpolationAccelerator                           
+    logical                            , save          :: interpolationReset      =.true.                    
     !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
-
     ! Get the lifetime of a star of this initial mass and metallicity.
     lifetime=Star_Lifetime(initialMass,metallicity)
 

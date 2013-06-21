@@ -25,17 +25,17 @@ module Stellar_Astrophysics_Winds
   public :: Stellar_Winds_Mass_Loss_Rate, Stellar_Winds_Terminal_Velocity
 
   ! Flag indicating whether this module has been initialized.
-  logical              :: stellarWindsInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: stellarWindsMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Mass_Loss_Rate_Get    => null()
-  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Terminal_Velocity_Get => null()
+  logical                                        :: stellarWindsInitialized            =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                            
+  type     (varying_string            )          :: stellarWindsMethod                           
+  
+  ! Pointer to the function that actually does the calculation.                                                                                            
+  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Mass_Loss_Rate_Get   =>null()  
+  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Terminal_Velocity_Get=>null()  
   abstract interface
     double precision function Stellar_Winds_Get_Template(initialMass,age,metallicity)
-      double precision, intent(in) :: initialMass,age,metallicity
+      double precision, intent(in   ) :: age, initialMass, metallicity  
     end function Stellar_Winds_Get_Template
   end interface
 
@@ -83,9 +83,9 @@ contains
   double precision function Stellar_Winds_Mass_Loss_Rate(initialMass,age,metallicity)
     !% Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-
-    ! Ensure module is initialized.
+    double precision, intent(in   ) :: age, initialMass, metallicity  
+    
+    ! Ensure module is initialized.                                                               
     call Stellar_Winds_Initialize
 
     ! Simply call the function which does the actual work.
@@ -96,9 +96,9 @@ contains
   double precision function Stellar_Winds_Terminal_Velocity(initialMass,age,metallicity)
     !% Return the terminal velocity (in km/s) of winds from stars of given {\tt initialMass}, {\tt age} and {\tt metallicity}.
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-
-    ! Ensure module is initialized.
+    double precision, intent(in   ) :: age, initialMass, metallicity  
+    
+    ! Ensure module is initialized.                                                               
     call Stellar_Winds_Initialize
 
     ! Simply call the function which does the actual work.

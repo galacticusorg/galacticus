@@ -26,19 +26,19 @@ program Test_ODE_Solver
   use Test_ODE_Solver_Functions
   use, intrinsic :: ISO_C_Binding
   implicit none
-  double precision,         dimension(10) :: xEnd
-  double precision,         dimension( 2) :: y
-  type(fgsl_odeiv_step)                   :: odeStepper
-  type(fgsl_odeiv_control)                :: odeController
-  type(fgsl_odeiv_evolve)                 :: odeEvolver
-  type(fgsl_odeiv_system)                 :: odeSystem
-  logical                                 :: odeReset
-  type(c_ptr)                             :: parameterPointer
-  integer                                 :: i
-  double precision                        :: xStart
-  character(len=32)                       :: message
-
-  ! Begin unit tests.
+  double precision                    , dimension(10) :: xEnd              
+  double precision                    , dimension( 2) :: y                 
+  type            (fgsl_odeiv_step   )                :: odeStepper        
+  type            (fgsl_odeiv_control)                :: odeController     
+  type            (fgsl_odeiv_evolve )                :: odeEvolver        
+  type            (fgsl_odeiv_system )                :: odeSystem         
+  logical                                             :: odeReset          
+  type            (c_ptr             )                :: parameterPointer  
+  integer                                             :: i                 
+  double precision                                    :: xStart            
+  character       (len=32            )                :: message           
+  
+  ! Begin unit tests.                                                                      
   call Unit_Tests_Begin_Group("ODE solver")
 
   ! Sinusoid.

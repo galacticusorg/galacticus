@@ -27,8 +27,8 @@ module Galactic_Structure_Radii_Fixed
   public :: Galactic_Structure_Radii_Fixed_Initialize
 
   ! The ratio of galaxy size to the product of spin parameter and virial radius.
-  double precision :: galacticStructureRadiiFixedFactor
-
+  double precision :: galacticStructureRadiiFixedFactor  
+                                                      
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -39,9 +39,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Fixed),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
-    
+    type     (varying_string                      ), intent(in   )          :: galacticStructureRadiusSolverMethod  
+    procedure(Galactic_Structure_Radii_Solve_Fixed), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do    
+                                                                                                                 
     if (galacticStructureRadiusSolverMethod == 'fixed') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Fixed
        !@ <inputParameter>
@@ -66,13 +66,13 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type(treeNode),                    intent(inout), pointer :: thisNode
-    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
-    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
-    logical                                                   :: componentActive
-    double precision                                          :: specificAngularMomentum
-
-    ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                               
+    procedure       (Structure_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()  
+    procedure       (Structure_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()  
+    logical                                                          :: componentActive                                        
+    double precision                                                 :: specificAngularMomentum                                
+    
+    ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.                                                                                                                        
     thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
 
@@ -86,14 +86,14 @@ contains
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),                    pointer, intent(inout) :: thisNode
-    double precision,                           intent(in)    :: specificAngularMomentum
-    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
-    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
-    class    (nodeComponentSpin     ), pointer                :: thisSpinComponent
-    double precision                                          :: radius,velocity
-
-    ! Return immediately if the specific angular momentum is zero.
+    type            (treeNode              ), intent(inout), pointer :: thisNode                               
+    double precision                        , intent(in   )          :: specificAngularMomentum                
+    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get  
+    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set  
+    class           (nodeComponentSpin     )               , pointer :: thisSpinComponent                      
+    double precision                                                 :: radius                 , velocity      
+    
+    ! Return immediately if the specific angular momentum is zero.                                                                                                        
     if (specificAngularMomentum <= 0.0d0) return
     
     ! Find the radius of the component, assuming radius scales fixedly with angular momentum.

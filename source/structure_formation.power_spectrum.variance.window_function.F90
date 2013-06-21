@@ -26,15 +26,15 @@ module Power_Spectrum_Window_Functions
   public :: Power_Spectrum_Window_Function, Power_Spectrum_Window_Function_Wavenumber_Maximum
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: moduleInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: powerSpectrumWindowFunctionMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                    => null()
-  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => null()
-
+  logical                                                               :: moduleInitialized                                    =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                                                     
+  type     (varying_string                                   )          :: powerSpectrumWindowFunctionMethod                              
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                                     
+  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                   =>null()  
+  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get=>null()  
+                                                                                                                                       
 contains
 
   subroutine Power_Spectrum_Window_Functions_Initialize
@@ -80,9 +80,9 @@ contains
     !% Returns the window function for power spectrum variance computation at the specified {\tt wavenumber} (in Mpc$^{-1}$) for a
     !% given {\tt smoothingMass} (in $M_\odot$).
     implicit none
-    double precision, intent(in) :: wavenumber,smoothingMass
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: smoothingMass, wavenumber  
+    
+    ! Initialize the module.                                                           
     call Power_Spectrum_Window_Functions_Initialize
 
     ! Call the function that does the work.
@@ -94,9 +94,9 @@ contains
     !% Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a
     !% given {\tt smoothingMass} (in $M_\odot$).
     implicit none
-    double precision, intent(in) :: smoothingMass
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: smoothingMass  
+    
+    ! Initialize the module.                                               
     call Power_Spectrum_Window_Functions_Initialize
 
     ! Call the function that does the work.

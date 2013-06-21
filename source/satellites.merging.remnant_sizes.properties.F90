@@ -23,9 +23,9 @@ module Satellite_Merging_Remnant_Sizes_Properties
   public
   
   ! Value indicating that there was no change in the remnant spheroid.
-  double precision, parameter :: remnantNoChangeValue=-1.0d0
-
-  double precision :: remnantRadius,remnantCircularVelocity,remnantSpecificAngularMomentum
-  !$omp threadprivate(remnantRadius,remnantCircularVelocity,remnantSpecificAngularMomentum)
+  double precision, parameter :: remnantNoChangeValue          =-1.0d0                   
   
+  double precision            :: remnantCircularVelocity              , remnantRadius, & 
+       &                         remnantSpecificAngularMomentum                          
+  !$omp threadprivate(remnantRadius,remnantCircularVelocity,remnantSpecificAngularMomentum)
 end module Satellite_Merging_Remnant_Sizes_Properties

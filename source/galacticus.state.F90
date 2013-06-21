@@ -27,14 +27,14 @@ module Galacticus_State
   public :: Galacticus_State_Snapshot, Galacticus_State_Store, Galacticus_State_Retrieve
 
   ! Flag indicating if we have retrieved the internal state already.
-  logical              :: stateHasBeenRetrieved=.false.
-
-  ! Root name for state files.
-  type(varying_string) :: stateFileRoot,stateRetrieveFileRoot
-
-  ! Flag indicating if module has been initialized.
-  logical              :: stateInitialized=.false.
-
+  logical                 :: stateHasBeenRetrieved=.false.                         
+  
+  ! Root name for state files.                                                                              
+  type   (varying_string) :: stateFileRoot                , stateRetrieveFileRoot  
+  
+  ! Flag indicating if module has been initialized.                                                                              
+  logical                 :: stateInitialized     =.false.                         
+                                                                                
 contains
 
   subroutine Galacticus_State_Snapshot
@@ -62,12 +62,12 @@ contains
     include 'galacticus.state.store.modules.inc'
     !# </include>
     implicit none
-    type(varying_string), intent(in), optional :: logMessage
-    integer                                    :: stateUnit,iError
-    type(fgsl_file)                            :: fgslStateFile
-    type(varying_string)                       :: fileName,fileNameFGSL,fileNameLog
-
-    ! Ensure that module is initialized.
+    type   (varying_string), intent(in   ), optional :: logMessage                                
+    integer                                          :: iError       , stateUnit                  
+    type   (fgsl_file     )                          :: fgslStateFile                             
+    type   (varying_string)                          :: fileName     , fileNameFGSL, fileNameLog  
+    
+    ! Ensure that module is initialized.                                                                                           
     call State_Initialize
 
     ! Check if a file has been specified.
@@ -120,11 +120,11 @@ contains
     include 'galacticus.state.retrieve.modules.inc'
     !# </include>
     implicit none
-    integer              :: stateUnit,iError
-    type(fgsl_file)      :: fgslStateFile
-    type(varying_string) :: fileName,fileNameFGSL
-
-    ! Check if we have already retrieved the internal state.
+    integer                 :: iError       , stateUnit     
+    type   (fgsl_file     ) :: fgslStateFile                
+    type   (varying_string) :: fileName     , fileNameFGSL  
+    
+    ! Check if we have already retrieved the internal state.                                                     
     if (.not.stateHasBeenRetrieved) then
 
        ! Ensure that module is initialized.

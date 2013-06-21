@@ -22,13 +22,15 @@ program Test_Interpolation_2D
   use Unit_Tests
   use Numerical_Interpolation_2D_Irregular
   implicit none
-  double precision,              dimension(30) :: xTable,yTable,zTable
-  double precision ,             dimension(10) :: x,y,z,zExpected
-  type(interp2dIrregularObject)                :: interpolationWorkspace
-  logical                                      :: resetInterpolation=.true.
-  integer                                      :: i
-
-  ! Begin unit tests.
+  double precision                         , dimension(30) :: xTable                       , yTable    , & 
+       &                                                      zTable                                       
+  double precision                         , dimension(10) :: x                            , y         , & 
+       &                                                      z                            , zExpected     
+  type            (interp2dIrregularObject)                :: interpolationWorkspace                       
+  logical                                                  :: resetInterpolation    =.true.                
+  integer                                                  :: i                                            
+  
+  ! Begin unit tests.                                                                                                      
   call Unit_Tests_Begin_Group("2D interpolation")
 
   xTable=[                &

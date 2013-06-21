@@ -25,13 +25,14 @@ program Tests_Comoving_Distance_Open
   use Cosmology_Functions_Options
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift    =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  double precision, parameter, dimension(8) :: distanceOpen=[2.836546d0,19.566092d0,36.248716d0,53.313669d0,67.286209d0,75.856732d0,80.401477d0,83.217159d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: time,timeLookup,distance,distanceModulus
-
+  double precision                , dimension(8), parameter :: redshift     =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                                                            
+  double precision                , dimension(8), parameter :: distanceOpen =[2.836546d0,19.566092d0,36.248716d0,53.313669d0,67.286209d0,75.856732d0,80.401477d0,83.217159d0]                     
+  type            (varying_string)                          :: parameterFile                                                                                                                      
+  character       (len=1024      )                          :: message                                                                                                                            
+  integer                                                   :: iExpansion                                                                                                                         
+  double precision                                          :: distance                                                                                                      , distanceModulus, & 
+       &                                                       time                                                                                                          , timeLookup         
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.comoving_distance.open.size')
 

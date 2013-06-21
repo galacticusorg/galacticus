@@ -24,8 +24,8 @@ module Excursion_Sets_Barriers_Remap_Null
        & Excursion_Sets_Barrier_Gradient_Remap_Null
 
   ! Record of whether this remap method is active.
-  logical :: methodIsActive=.false.,methodRatesIsActive=.false.
-
+  logical :: methodIsActive=.false., methodRatesIsActive=.false.  
+                                                               
 contains
 
   !# <excursionSetBarrierRemapInitialize>
@@ -35,11 +35,11 @@ contains
     !% Initialize the null excursion set barrier remapping module.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in   ), dimension(:) :: excursionSetBarrierRemapMethods
-    type(varying_string), intent(inout)               :: barrierName
-    logical             , intent(in   )               :: ratesCalculation
-    integer             , intent(inout)               :: matchedCount
-
+    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods  
+    type   (varying_string)              , intent(inout) :: barrierName                      
+    logical                              , intent(in   ) :: ratesCalculation                 
+    integer                              , intent(inout) :: matchedCount                     
+                                                                                          
     if (any(excursionSetBarrierRemapMethods == 'null')) then
        ! Record that our method is active.
        if (ratesCalculation) then
@@ -61,11 +61,11 @@ contains
   subroutine Excursion_Sets_Barrier_Remap_Null(barrier,variance,time,ratesCalculation,iRemap)
     !% Return the barrier for excursion set calculations unmodified.
     implicit none
-    double precision, intent(inout) :: barrier
-    double precision, intent(in   ) :: variance,time
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-
+    double precision, intent(inout) :: barrier                     
+    double precision, intent(in   ) :: time            , variance  
+    logical         , intent(in   ) :: ratesCalculation            
+    integer         , intent(in   ) :: iRemap                      
+                                                                
     return
   end subroutine Excursion_Sets_Barrier_Remap_Null
 
@@ -75,11 +75,11 @@ contains
   subroutine Excursion_Sets_Barrier_Gradient_Remap_Null(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
     !% Return the gradient of the barrier for excursion set calculations unmodified.
     implicit none
-    double precision, intent(inout) :: barrierGradient
-    double precision, intent(in   ) :: barrier,variance,time
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-
+    double precision, intent(inout) :: barrierGradient                   
+    double precision, intent(in   ) :: barrier         , time, variance  
+    logical         , intent(in   ) :: ratesCalculation                  
+    integer         , intent(in   ) :: iRemap                            
+                                                                      
     return
   end subroutine Excursion_Sets_Barrier_Gradient_Remap_Null
   

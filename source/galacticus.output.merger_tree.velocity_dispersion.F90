@@ -27,44 +27,45 @@ module Galacticus_Output_Trees_Velocity_Dispersion
        & Galacticus_Output_Tree_Velocity_Dispersion_Names
 
   ! Flag indicating whether or not velocity dispersion information is to be output.
-  logical                                            :: outputVelocityDispersionData
-
+  logical :: outputVelocityDispersionData                    
+  
   ! Flag indicating whether or not this module has been initialized.
-  logical                                            :: outputVelocityDispersionDataInitialized=.false.
-
+  logical :: outputVelocityDispersionDataInitialized=.false. 
+  
   ! Radii at which velocity dispersion is to be output.
-  integer                                            :: radiiCount
+  integer :: radiiCount                                      
   type radiusSpecifier
-     type            (varying_string) :: name
-     integer                          :: type,mass,component,weightBy,weightByIndex,direction,integralWeightBy&
-          &,integralWeightByIndex
-     logical                          :: loaded
-     double precision                 :: value,fraction
+     type            (varying_string) :: name                                                      
+     integer                          :: component            , direction    , integralWeightBy, & 
+          &                              integralWeightByIndex, mass         , type            , & 
+          &                              weightBy             , weightByIndex                      
+     logical                          :: loaded                                                    
+     double precision                 :: fraction             , value                              
   end type radiusSpecifier
-  type            (radiusSpecifier), dimension(:), allocatable :: radii
-  type            (varying_string ), dimension(:), allocatable :: outputVelocityDispersionRadii
-  logical                                                      :: diskIsNeeded,spheroidIsNeeded,virialRadiusIsNeeded &
-       &,darkMatterScaleRadiusIsNeeded
-  integer                          , parameter                 :: radiusTypeRadius                   =0
-  integer                          , parameter                 :: radiusTypeVirialRadius             =1
-  integer                          , parameter                 :: radiusTypeDarkMatterScaleRadius    =2
-  integer                          , parameter                 :: radiusTypeDiskRadius               =3
-  integer                          , parameter                 :: radiusTypeSpheroidRadius           =4
-  integer                          , parameter                 :: radiusTypeDiskHalfMassRadius       =5
-  integer                          , parameter                 :: radiusTypeSpheroidHalfMassRadius   =6
-  integer                          , parameter                 :: radiusTypeGalacticMassFraction     =7
-  integer                          , parameter                 :: radiusTypeGalacticLightFraction    =8
-  integer                          , parameter                 :: directionRadial                    =0
-  integer                          , parameter                 :: directionLineOfSight               =1
-  integer                          , parameter                 :: directionLineOfSightInteriorAverage=2
-
+  type            (radiusSpecifier)           , allocatable, dimension(:) :: radii                                                          
+  type            (varying_string )           , allocatable, dimension(:) :: outputVelocityDispersionRadii                                  
+  logical                                                                 :: darkMatterScaleRadiusIsNeeded        , diskIsNeeded        , & 
+       &                                                                     spheroidIsNeeded                     , virialRadiusIsNeeded    
+  integer                          , parameter                            :: radiusTypeRadius                   =0                          
+  integer                          , parameter                            :: radiusTypeVirialRadius             =1                          
+  integer                          , parameter                            :: radiusTypeDarkMatterScaleRadius    =2                          
+  integer                          , parameter                            :: radiusTypeDiskRadius               =3                          
+  integer                          , parameter                            :: radiusTypeSpheroidRadius           =4                          
+  integer                          , parameter                            :: radiusTypeDiskHalfMassRadius       =5                          
+  integer                          , parameter                            :: radiusTypeSpheroidHalfMassRadius   =6                          
+  integer                          , parameter                            :: radiusTypeGalacticMassFraction     =7                          
+  integer                          , parameter                            :: radiusTypeGalacticLightFraction    =8                          
+  integer                          , parameter                            :: directionRadial                    =0                          
+  integer                          , parameter                            :: directionLineOfSight               =1                          
+  integer                          , parameter                            :: directionLineOfSightInteriorAverage=2                          
+  
   ! Module scope variables used in integrations.
-  type            (treeNode       ), pointer                    :: activeNode
-  logical                                                       :: haloLoaded
-  integer                                                       :: massType,componentType,weightBy,weightIndex
-  double precision                                              :: radiusOuter,radiusImpact
+  type            (treeNode       ), pointer                              :: activeNode                                                     
+  logical                                                                 :: haloLoaded                                                     
+  integer                                                                 :: componentType                        , massType            , & 
+       &                                                                     weightBy                             , weightIndex             
+  double precision                                                        :: radiusImpact                         , radiusOuter             
   !$omp threadprivate(activeNode,radiusOuter,haloLoaded,massType,componentType,weightBy,weightIndex,radiusImpact)
-
 contains
 
   subroutine Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -76,13 +77,13 @@ contains
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type     (varying_string), dimension(6) :: radiusDefinition
-    type     (varying_string), dimension(3) :: fractionDefinition
-    type     (varying_string), dimension(2) :: weightingDefinition
-    type     (varying_string)               :: valueDefinition
-    character(len=20        )               :: radiusLabel,fractionLabel
-    integer                                 :: i
-
+    type     (varying_string), dimension(6) :: radiusDefinition                 
+    type     (varying_string), dimension(3) :: fractionDefinition               
+    type     (varying_string), dimension(2) :: weightingDefinition              
+    type     (varying_string)               :: valueDefinition                  
+    character(len=20        )               :: fractionLabel      , radiusLabel 
+    integer                                 :: i                                
+    
     if (.not.outputVelocityDispersionDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Velocity_Dispersion_Initialize)
        if (.not.outputVelocityDispersionDataInitialized) then
@@ -258,14 +259,14 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer      :: thisNode
-    double precision, intent(in   )               :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       :: i
-
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    integer                                                          :: i                                                  
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
 
@@ -295,9 +296,9 @@ contains
   subroutine Galacticus_Output_Tree_Velocity_Dispersion_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of velocity dispersion properties to be written to the \glc\ output file.
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision          , intent(in   )          :: time                                      
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -323,23 +324,24 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    double precision                                , intent(in   )          :: time
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    integer                                         , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty&
-         & ,doubleBufferCount
-    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer(:,:)
-    double precision                                , intent(inout)          :: doubleBuffer (:,:)
-    class           (nodeComponentDisk             ),                pointer :: thisDisk
-    class           (nodeComponentSpheroid         ),                pointer :: thisSpheroid
-    class           (nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfile
-    double precision                                , parameter              :: outerRadiusMultiplier=10.0d0
-    type            (c_ptr                         )                         :: parameterPointer
-    type            (fgsl_function                 )                         :: integrandFunction
-    type            (fgsl_integration_workspace    )                         :: integrationWorkspace
-    integer                                                                  :: i
-    logical                                                                  :: scaleIsZero
-    double precision                                                         :: radius,radiusVirial,radiusFromFraction&
-         &,velocityDensityIntegrand,densityIntegrand,radiusZero
+    double precision                                , intent(in   )          :: time                                                           
+    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                       
+    integer                                         , intent(inout)          :: doubleBufferCount                , doubleProperty          , & 
+         &                                                                      integerBufferCount               , integerProperty             
+    integer         (kind=kind_int8                ), intent(inout)          :: integerBuffer        (:,:)                                     
+    double precision                                , intent(inout)          :: doubleBuffer         (:,:)                                     
+    class           (nodeComponentDisk             )               , pointer :: thisDisk                                                       
+    class           (nodeComponentSpheroid         )               , pointer :: thisSpheroid                                                   
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfile                                          
+    double precision                                , parameter              :: outerRadiusMultiplier     =10.0d0                              
+    type            (c_ptr                         )                         :: parameterPointer                                               
+    type            (fgsl_function                 )                         :: integrandFunction                                              
+    type            (fgsl_integration_workspace    )                         :: integrationWorkspace                                           
+    integer                                                                  :: i                                                              
+    logical                                                                  :: scaleIsZero                                                    
+    double precision                                                         :: densityIntegrand                 , radius                  , & 
+         &                                                                      radiusFromFraction               , radiusVirial            , & 
+         &                                                                      radiusZero                       , velocityDensityIntegrand    
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -460,13 +462,13 @@ contains
     use Numerical_Integration
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real            (c_double                  )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
-    real            (c_double                  ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunction
-    type            (fgsl_integration_workspace)        :: integrationWorkspace
-    double precision                                    :: velocityDensityIntegrand
-
+    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd 
+    real            (kind=c_double             ), value :: radius                                                        
+    type            (c_ptr                     ), value :: parameterPointer                                              
+    type            (fgsl_function             )        :: integrandFunction                                             
+    type            (fgsl_integration_workspace)        :: integrationWorkspace                                          
+    double precision                                    :: velocityDensityIntegrand                                      
+    
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd=0.0d0
     else
@@ -502,13 +504,13 @@ contains
     use Numerical_Integration
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real            (c_double                  )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
-    real            (c_double                  ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunction
-    type            (fgsl_integration_workspace)        :: integrationWorkspace
-    double precision                                    :: densityIntegrand
-
+    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd 
+    real            (kind=c_double             ), value :: radius                                                  
+    type            (c_ptr                     ), value :: parameterPointer                                        
+    type            (fgsl_function             )        :: integrandFunction                                       
+    type            (fgsl_integration_workspace)        :: integrationWorkspace                                    
+    double precision                                    :: densityIntegrand                                        
+    
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd=0.0d0
     else 
@@ -533,7 +535,7 @@ contains
     !% radiusImpact}.
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in) :: radius
+    double precision, intent(in   ) :: radius 
     
     ! Test size of sphere relative to cylinder.
     if (radius <= radiusImpact) then
@@ -552,12 +554,12 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in) :: radius
-    type            (c_ptr                     )             :: parameterPointer
-    type            (fgsl_function             )             :: integrandFunction
-    type            (fgsl_integration_workspace)             :: integrationWorkspace
-    double precision                                         :: velocityDensityIntegral,densityIntegral
-
+    double precision                            , intent(in   ) :: radius                                        
+    type            (c_ptr                     )                :: parameterPointer                              
+    type            (fgsl_function             )                :: integrandFunction                             
+    type            (fgsl_integration_workspace)                :: integrationWorkspace                          
+    double precision                                            :: densityIntegral     , velocityDensityIntegral 
+    
     velocityDensityIntegral=Integrate(radius,radiusOuter&
          &,Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd ,parameterPointer ,integrandFunction&
          &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
@@ -578,10 +580,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     implicit none
-    real(c_double)        :: Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-
+    real(kind=c_double)        :: Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand 
+    real(kind=c_double), value :: radius                                                        
+    type(c_ptr        ), value :: parameterPointer                                              
+    
     if (radius == 0.0d0) then
        Galacticus_Output_Trees_Velocity_Dispersion_Density_Integrand=0.0d0
     else
@@ -607,10 +609,10 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real(c_double)        :: Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd
-    real(c_double), value :: radius
-    type(c_ptr),    value :: parameterPointer
-
+    real(kind=c_double)        :: Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd 
+    real(kind=c_double), value :: radius                                                       
+    type(c_ptr        ), value :: parameterPointer                                             
+    
     if (radius <= radiusImpact) then
        Galacticus_Output_Trees_Vlcty_Dispersion_Vlcty_Dnsty_Intgrnd=0.0d0
     else

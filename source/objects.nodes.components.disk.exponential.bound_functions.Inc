@@ -21,8 +21,8 @@ subroutine Node_Component_Disk_Exponential_Attach_Pipes(self)
   !% Attach cooling pipes to the exponential disk component.
   use Galacticus_Error
   implicit none
-  class(nodeComponentDiskExponential), intent(in) :: self
-  type (nodeComponentHotHalo        )             :: hotHalo
+  class(nodeComponentDiskExponential), intent(in   ) :: self    
+  type (nodeComponentHotHalo        )                :: hotHalo 
   
   if (hotHalo%hotHaloCoolingMassRateIsAttached           ()) &
        call Galacticus_Error_Report('Node_Component_Disk_Exponential_Attach_Pipes','expected to find unclaimed hot halo mass cooling pipe'            )
@@ -39,9 +39,9 @@ end subroutine Node_Component_Disk_Exponential_Attach_Pipes
 double precision function Node_Component_Disk_Exponential_Half_Mass_Radius(self)
   !% Return the half-mass radius of the exponential disk.
   implicit none
-  class(nodeComponentDiskExponential), intent(inout) :: self
-  double precision                   , parameter     :: halfMassRadiusToScaleRadius=1.678346990d0
-
+  class           (nodeComponentDiskExponential), intent(inout) :: self                                      
+  double precision                              , parameter     :: halfMassRadiusToScaleRadius=1.678346990d0 
+  
   Node_Component_Disk_Exponential_Half_Mass_Radius=self%radius()*halfMassRadiusToScaleRadius
   return
 end function Node_Component_Disk_Exponential_Half_Mass_Radius
@@ -51,13 +51,13 @@ double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,rad
   use Galactic_Structure_Options
   use Node_Component_Disk_Exponential_Data
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType,weightBy,weightIndex
-  double precision                              , intent(in   )           :: radius
-  logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                                                        :: fractionalRadius,diskRadius
+  class           (nodeComponentDiskExponential), intent(inout)           :: self                                                   
+  integer                                       , intent(in   )           :: componentType, massType        , weightBy, weightIndex 
+  double precision                              , intent(in   )           :: radius                                                 
+  logical                                       , intent(in   ), optional :: haloLoaded                                             
+  double precision                                                        :: diskRadius   , fractionalRadius                        
   
-  ! Return immediately if disk component is not requested.    
+  ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
   ! Get the total mass.
@@ -99,16 +99,17 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   use Coordinate_Systems
   use Node_Component_Disk_Exponential_Data
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType,weightBy,weightIndex
-  double precision                              , intent(in   )           :: positionSpherical(3)
-  logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                              , parameter               :: diskHeightToRadiusRatio=0.1d0
-  double precision                              , parameter               :: coshArgumentMaximum=50.0d0
-  double precision                                                        :: fractionalRadius,fractionalHeight&
-       &,positionCylindrical(3),coshTerm
+  class           (nodeComponentDiskExponential)           , intent(inout)           :: self                                                         
+  integer                                                  , intent(in   )           :: componentType                    , massType              , & 
+       &                                                                                weightBy                         , weightIndex               
+  double precision                                         , intent(in   )           :: positionSpherical      (3)                                   
+  logical                                                  , intent(in   ), optional :: haloLoaded                                                   
+  double precision                              , parameter                          :: diskHeightToRadiusRatio   =0.1d0                             
+  double precision                              , parameter                          :: coshArgumentMaximum       =50.0d0                            
+  double precision                                                                   :: coshTerm                         , fractionalHeight      , & 
+       &                                                                                fractionalRadius                 , positionCylindrical(3)    
   
-  ! Return immediately if disk component is not requested.    
+  ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
   ! Determine mass/luminosity type.
@@ -153,14 +154,15 @@ double precision function Node_Component_Disk_Exponential_Potential(self,radius,
   use Galactic_Structure_Options
   use Node_Component_Disk_Exponential_Data
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType
-  double precision                              , intent(in   )           :: radius
-  logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                              , parameter               :: radiusLimitPointMass=500.0d0
-  double precision                                                        :: halfRadius,correctionSmallRadius,componentMass
+  class           (nodeComponentDiskExponential), intent(inout)           :: self                                                   
+  integer                                       , intent(in   )           :: componentType               , massType                 
+  double precision                              , intent(in   )           :: radius                                                 
+  logical                                       , intent(in   ), optional :: haloLoaded                                             
+  double precision                              , parameter               :: radiusLimitPointMass=500.0d0                           
+  double precision                                                        :: componentMass               , correctionSmallRadius, & 
+       &                                                                     halfRadius                                             
   
-  ! Return immediately if disk component is not requested.    
+  ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Potential=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return
   ! Avoid an arithmetic exception at radius zero.
@@ -208,12 +210,12 @@ double precision function Node_Component_Disk_Exponential_Rotation_Curve(self,ra
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType
-  double precision                              , intent(in   )           :: radius
-  logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                                                        :: fractionalRadius,fractionalRadiusFactor,diskRadius&
-       &,componentMass,halfRadius
+  class           (nodeComponentDiskExponential), intent(inout)           :: self                                                    
+  integer                                       , intent(in   )           :: componentType         , massType                        
+  double precision                              , intent(in   )           :: radius                                                  
+  logical                                       , intent(in   ), optional :: haloLoaded                                              
+  double precision                                                        :: componentMass         , diskRadius, fractionalRadius, & 
+       &                                                                     fractionalRadiusFactor, halfRadius                      
   
   ! Set to zero by default.
   Node_Component_Disk_Exponential_Rotation_Curve=0.0d0       
@@ -257,11 +259,11 @@ double precision function Node_Component_Disk_Exponential_Rotation_Curve_Gradien
   use Numerical_Constants_Physical
   use Numerical_Constants_Prefixes
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType
-  double precision                              , intent(in   )           :: radius
-  logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                                                        :: componentMass,besselArgument,besselFactor
+  class           (nodeComponentDiskExponential), intent(inout)           :: self                                        
+  integer                                       , intent(in   )           :: componentType , massType                    
+  double precision                              , intent(in   )           :: radius                                      
+  logical                                       , intent(in   ), optional :: haloLoaded                                  
+  double precision                                                        :: besselArgument, besselFactor, componentMass 
   
   ! Set to zero by default.
   Node_Component_Disk_Exponential_Rotation_Curve_Gradient=0.0d0
@@ -297,14 +299,14 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   use Numerical_Constants_Math
   use Node_Component_Disk_Exponential_Data
   implicit none
-  class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType,massType
-  double precision                              , intent(in   )           :: positionCylindrical(3)
-  logical                                       , intent(in   ), optional :: haloLoaded
-  type            (treeNode                    ), pointer                 :: selfNode
-  double precision                                                        :: fractionalRadius
-    
-    ! Return immediately if disk component is not requested.    
+  class           (nodeComponentDiskExponential), intent(inout)           :: self                             
+  integer                                       , intent(in   )           :: componentType         , massType 
+  double precision                              , intent(in   )           :: positionCylindrical(3)           
+  logical                                       , intent(in   ), optional :: haloLoaded                       
+  type            (treeNode                    ), pointer                 :: selfNode                         
+  double precision                                                        :: fractionalRadius                 
+  
+    ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Surface_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDisk)) return    
   ! Check whether this is a new node.

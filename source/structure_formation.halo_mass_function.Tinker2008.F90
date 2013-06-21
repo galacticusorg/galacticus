@@ -24,9 +24,11 @@ module Halo_Mass_Function_Tinker2008
   public :: Halo_Mass_Function_Tinker2008_Initialize
 
   ! Variables to hold the table of parameters vs. overdensity.
-  integer                                     :: deltaTableNumberPoints
-  double precision, allocatable, dimension(:) :: deltaTableDelta,deltaTableNormalization,deltaTableA,deltaTableB,deltaTableC
-
+  integer                                     :: deltaTableNumberPoints                      
+  double precision, allocatable, dimension(:) :: deltaTableA            , deltaTableB    , & 
+       &                                         deltaTableC            , deltaTableDelta, & 
+       &                                         deltaTableNormalization                     
+  
 contains
   
   !# <haloMassFunctionMethod>
@@ -40,13 +42,16 @@ contains
     use Galacticus_Input_Paths
     use Memory_Management
     implicit none
-    type(varying_string),                 intent(in)    :: haloMassFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
-    type(Node),                  pointer                :: doc,columnsElement,columnElement,datum
-    type(NodeList),              pointer                :: deltaList,normalizationList,parameterAList,parameterBList,parameterCList
-    integer                                             :: iDatum,ioErr
-    double precision                                    :: datumValue
-
+    type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod                                    
+    procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get                       
+    type            (Node            )               , pointer :: columnElement                      , columnsElement   , & 
+         &                                                        datum                              , doc                  
+    type            (NodeList        )               , pointer :: deltaList                          , normalizationList, & 
+         &                                                        parameterAList                     , parameterBList   , & 
+         &                                                        parameterCList                                            
+    integer                                                    :: iDatum                             , ioErr                
+    double precision                                           :: datumValue                                                
+    
     if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Tinker2008
 
@@ -106,17 +111,21 @@ contains
     use Numerical_Interpolation
     use Linear_Growth
     implicit none
-    double precision,        intent(in) :: time,mass
-    double precision                    :: sigma,alpha
-    type(fgsl_interp),       save       :: interpolationObject
-    type(fgsl_interp_accel), save       :: interpolationAccelerator
-    logical,                 save       :: resetInterpolation=.true.
+    double precision                   , intent(in   ) :: mass                           , time              
+    double precision                                   :: alpha                          , sigma             
+    type            (fgsl_interp      ), save          :: interpolationObject                                
+    type            (fgsl_interp_accel), save          :: interpolationAccelerator                           
+    logical                            , save          :: resetInterpolation      =.true.                    
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision,        save       :: timePrevious=-1.0d0
+    double precision                   , save          :: timePrevious            =-1.0d0                    
     !$omp threadprivate(timePrevious)
-    double precision,        save       :: expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c
+    double precision                   , save          :: Delta                          , a             , & 
+         &                                                a0                             , alphaDelta    , & 
+         &                                                b                              , b0            , & 
+         &                                                c                              , c0            , & 
+         &                                                expansionFactor                , growthFactor  , & 
+         &                                                normalization                  , normalization0    
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
-
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= timePrevious) then
        ! Get halo virial density contrast, expansion factor and growth factor.

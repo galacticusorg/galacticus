@@ -34,10 +34,10 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type(varying_string),                 intent(in)    :: infallRadiusMethod
-    procedure(Infall_Radius_Cooling_Radius), pointer, intent(inout) :: Infall_Radius_Get
-    procedure(Infall_Radius_Growth_Rate_Cooling_Radius), pointer, intent(inout) :: Infall_Radius_Growth_Rate_Get
-    
+    type     (varying_string                          ), intent(in   )          :: infallRadiusMethod             
+    procedure(Infall_Radius_Cooling_Radius            ), intent(inout), pointer :: Infall_Radius_Get              
+    procedure(Infall_Radius_Growth_Rate_Cooling_Radius), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get  
+                                                                                                               
     if (infallRadiusMethod == 'coolingRadius') then
        Infall_Radius_Get             => Infall_Radius_Cooling_Radius
        Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Radius
@@ -50,8 +50,8 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     Infall_Radius_Cooling_Radius=Cooling_Radius(thisNode)
     return
   end function Infall_Radius_Cooling_Radius
@@ -61,8 +61,8 @@ contains
     use Galacticus_Nodes
     use Cooling_Radii
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     Infall_Radius_Growth_Rate_Cooling_Radius=Cooling_Radius_Growth_Rate(thisNode)
     return
   end function Infall_Radius_Growth_Rate_Cooling_Radius

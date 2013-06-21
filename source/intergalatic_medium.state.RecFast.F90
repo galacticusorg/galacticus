@@ -42,14 +42,15 @@ contains
     use Input_Parameters
     use Galacticus_Input_Paths
     implicit none
-    type(varying_string),                 intent(in   ) :: intergalaticMediumStateMethod
-    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Electron_Fraction_Get
-    procedure(double precision), pointer, intent(inout) :: Intergalactic_Medium_Temperature_Get
-    character(len=32)                                   :: parameterLabel
-    type(varying_string)                                :: parameterFile,recfastFile,command
-    type(xmlf_t)                                        :: parameterDoc
-
-    ! Test if our method has been selected.    
+    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod                                
+    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get                   
+    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get                         
+    character(len=32          )                         :: parameterLabel                                               
+    type     (varying_string  )                         :: command                                   , parameterFile, & 
+         &                                                 recfastFile                                                  
+    type     (xmlf_t          )                         :: parameterDoc                                                 
+    
+    ! Test if our method has been selected.
     if (intergalaticMediumStateMethod == 'RecFast') then
        ! Set procedure pointers (use those from the ``file'' implementation).
        Intergalactic_Medium_Electron_Fraction_Get => Intergalactic_Medium_Electron_Fraction_File

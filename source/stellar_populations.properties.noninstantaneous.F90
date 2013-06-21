@@ -24,18 +24,19 @@ module Stellar_Population_Properties_Noninstantaneous
   public :: Stellar_Population_Properties_Noninstantaneous_Initialize
 
   ! Count of number of elements (plus total metals) that are to be tracked.
-  integer            :: elementsCount
+  integer            :: elementsCount                                            
   ! Count of the number of histories required by this implementation.
-  integer            :: historyCount
+  integer            :: historyCount                                             
   ! Indices for histories.
-  integer, parameter :: recycledRateIndex          =1
-  integer, parameter :: energyInputRateIndex       =2
-  integer, parameter :: returnedMetalRateBeginIndex=3
-  integer            :: returnedMetalRateEndIndex,metalYieldRateBeginIndex,metalYieldRateEndIndex
-
+  integer, parameter :: recycledRateIndex          =1                            
+  integer, parameter :: energyInputRateIndex       =2                            
+  integer, parameter :: returnedMetalRateBeginIndex=3                            
+  integer            :: metalYieldRateBeginIndex     , metalYieldRateEndIndex, & 
+       &                returnedMetalRateEndIndex                                
+  
   ! Number of times to store in histories.
-  integer            :: noninstantHistoryTimesCount
-
+  integer            :: noninstantHistoryTimesCount                              
+  
 contains
 
   !# <stellarPopulationPropertiesMethod>
@@ -49,11 +50,11 @@ contains
     use Input_Parameters
     use Abundances_Structure
     implicit none
-    type(varying_string),          intent(in)    :: stellarPopulationPropertiesMethod
-    procedure(Stellar_Population_Properties_History_Count_Noninstantaneous),   pointer, intent(inout) :: Stellar_Population_Properties_History_Count_Get
-    procedure(Stellar_Population_Properties_Rates_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_Rates_Get
-    procedure(Stellar_Population_Properties_History_Create_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_History_Create_Do
-    procedure(Stellar_Population_Properties_Scales_Noninstantaneous),          pointer, intent(inout) :: Stellar_Population_Properties_Scales_Get
+    type     (varying_string                                               ), intent(in   )          :: stellarPopulationPropertiesMethod               
+    procedure(Stellar_Population_Properties_History_Count_Noninstantaneous ), intent(inout), pointer :: Stellar_Population_Properties_History_Count_Get 
+    procedure(Stellar_Population_Properties_Rates_Noninstantaneous         ), intent(inout), pointer :: Stellar_Population_Properties_Rates_Get         
+    procedure(Stellar_Population_Properties_History_Create_Noninstantaneous), intent(inout), pointer :: Stellar_Population_Properties_History_Create_Do 
+    procedure(Stellar_Population_Properties_Scales_Noninstantaneous        ), intent(inout), pointer :: Stellar_Population_Properties_Scales_Get        
     
     if (stellarPopulationPropertiesMethod == 'noninstantaneous') then
        Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Noninstantaneous    
@@ -107,23 +108,27 @@ contains
     use Numerical_Interpolation
     use FGSL
     implicit none
-    double precision         , intent(  out)                           :: stellarMassRate,fuelMassRate,energyInputRate
-    type (abundances        ), intent(inout)                           :: stellarAbundancesRates,fuelAbundancesRates
-    double precision         , intent(  out), dimension(:)             :: stellarLuminositiesRates
-    double precision         , intent(in   )                           :: starFormationRate
-    type (abundances        ), intent(in   )                           :: fuelAbundances
-    integer,                   intent(in   )                           :: component
-    type (treeNode          ), intent(inout), pointer                  :: thisNode
-    type (history           ), intent(inout)                           :: thisHistory
-    class(nodeComponentBasic), pointer                                 :: thisBasicComponent
-    double precision,                         dimension(elementsCount) :: fuelMetallicity,stellarMetalsRateOfChange&
-         &,fuelMetalsRateOfChange,metalReturnRate,metalYieldRate
-    integer                                                            :: imfSelected,iHistory,iElement
-    double precision                                                   :: ageMinimum,ageMaximum,currentTime,recyclingRate&
-         &,historyFactors(2)
-    type (fgsl_interp_accel )                                          :: interpolationAccelerator
-    logical                                                            :: interpolationReset
-
+    double precision                                              , intent(  out)          :: energyInputRate          , fuelMassRate             , & 
+         &                                                                                    stellarMassRate                                         
+    type            (abundances        )                          , intent(inout)          :: fuelAbundancesRates      , stellarAbundancesRates       
+    double precision                    , dimension(:)            , intent(  out)          :: stellarLuminositiesRates                                
+    double precision                                              , intent(in   )          :: starFormationRate                                       
+    type            (abundances        )                          , intent(in   )          :: fuelAbundances                                          
+    integer                                                       , intent(in   )          :: component                                               
+    type            (treeNode          )                          , intent(inout), pointer :: thisNode                                                
+    type            (history           )                          , intent(inout)          :: thisHistory                                             
+    class           (nodeComponentBasic)                                         , pointer :: thisBasicComponent                                      
+    double precision                    , dimension(elementsCount)                         :: fuelMetallicity          , fuelMetalsRateOfChange   , & 
+         &                                                                                    metalReturnRate          , metalYieldRate           , & 
+         &                                                                                    stellarMetalsRateOfChange                               
+    integer                                                                                :: iElement                 , iHistory                 , & 
+         &                                                                                    imfSelected                                             
+    double precision                                                                       :: ageMaximum               , ageMinimum               , & 
+         &                                                                                    currentTime              , historyFactors        (2), & 
+         &                                                                                    recyclingRate                                           
+    type            (fgsl_interp_accel )                                                   :: interpolationAccelerator                                
+    logical                                                                                :: interpolationReset                                      
+    
     ! Get the current time.
     thisBasicComponent => thisNode%basic()
     currentTime=thisBasicComponent%time()
@@ -194,15 +199,15 @@ contains
     use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision, intent(in   )                         :: stellarMass
-    type(abundances), intent(in   )                         :: stellarAbundances
-    type(history   ), intent(inout)                         :: thisHistory
-    double precision, parameter                             :: stellarMassMinimum      =1.0d0
-    double precision, parameter                             :: stellarAbundancesMinimum=1.0d0
-    double precision, dimension(elementsCount)              :: stellarAbundancesUnpacked
-    double precision, dimension(:            ), allocatable :: timeSteps
-    integer                                                 :: scaleIndex
-
+    double precision                                                              , intent(in   ) :: stellarMass                     
+    type            (abundances)                                                  , intent(in   ) :: stellarAbundances               
+    type            (history   )                                                  , intent(inout) :: thisHistory                     
+    double precision                                                   , parameter                :: stellarMassMinimum       =1.0d0 
+    double precision                                                   , parameter                :: stellarAbundancesMinimum =1.0d0 
+    double precision                         , dimension(elementsCount)                           :: stellarAbundancesUnpacked       
+    double precision            , allocatable, dimension(:            )                           :: timeSteps                       
+    integer                                                                                       :: scaleIndex                      
+    
     ! Get timesteps.
     call thisHistory%timeSteps(timeSteps)
 
@@ -237,11 +242,11 @@ contains
     use Numerical_Ranges
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (history           ), intent(inout)          :: thisHistory
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: timeBegin,timeEnd  
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                    
+    type            (history           ), intent(inout)          :: thisHistory                 
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent          
+    double precision                                             :: timeBegin         , timeEnd 
+    
     ! Decide on start and end times for the history.
     thisBasicComponent => thisNode%basic()
     timeBegin=thisBasicComponent%time()

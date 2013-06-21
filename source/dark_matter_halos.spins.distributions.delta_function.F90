@@ -26,8 +26,8 @@ module Halo_Spin_Distributions_Delta_Function
   public :: Halo_Spin_Distribution_Delta_Function_Initialize
 
   ! Parameters of the spin distribution.
-  double precision :: deltaFunctionSpinDistributionSpin
-
+  double precision :: deltaFunctionSpinDistributionSpin  
+                                                      
 contains
 
   !# <haloSpinDistributionMethod>
@@ -38,9 +38,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
-    procedure(Halo_Spin_Distribution_Delta_Function), pointer, intent(inout) :: Halo_Spin_Sample_Get
-    
+    type     (varying_string                       ), intent(in   )          :: haloSpinDistributionMethod  
+    procedure(Halo_Spin_Distribution_Delta_Function), intent(inout), pointer :: Halo_Spin_Sample_Get        
+                                                                                                         
     if (haloSpinDistributionMethod == 'deltaFunction') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Delta_Function
        !@ <inputParameter>
@@ -62,8 +62,8 @@ contains
     !% Return a halo spin from a delta function distribution.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     Halo_Spin_Distribution_Delta_Function=deltaFunctionSpinDistributionSpin
     return
   end function Halo_Spin_Distribution_Delta_Function

@@ -17,31 +17,32 @@
 
 type, public, extends(massDistributionSpherical) :: massDistributionSersic
    !% The S\'ersic density profile.
-   double precision  :: radiusHalfMass,densityNormalization,mass
+   double precision :: densityNormalization, mass, radiusHalfMass  
  contains
-   procedure :: initialize              => Mass_Distribution_Sersic_Initialize
-   procedure :: density                 => Mass_Distribution_Sersic_Density
-   procedure :: densityRadialMoment     => Mass_Distribution_Sersic_Density_Radial_Moment
-   procedure :: massEnclosedBySphere    => Mass_Distribution_Sersic_Mass_Enc_By_Sphere
-   procedure :: potential               => Mass_Distribution_Sersic_Potential
-   procedure :: halfMassRadius          => Mass_Distribution_Sersic_Half_Mass_Radius
-   procedure :: halfMassRadiusProjected => Mass_Distribution_Sersic_Half_Mass_Radius_Projected
+   procedure :: initialize             =>Mass_Distribution_Sersic_Initialize                  
+   procedure :: density                =>Mass_Distribution_Sersic_Density                     
+   procedure :: densityRadialMoment    =>Mass_Distribution_Sersic_Density_Radial_Moment       
+   procedure :: massEnclosedBySphere   =>Mass_Distribution_Sersic_Mass_Enc_By_Sphere          
+   procedure :: potential              =>Mass_Distribution_Sersic_Potential                   
+   procedure :: halfMassRadius         =>Mass_Distribution_Sersic_Half_Mass_Radius            
+   procedure :: halfMassRadiusProjected=>Mass_Distribution_Sersic_Half_Mass_Radius_Projected  
 end type massDistributionSersic
 
 ! Public functions.
 public :: Sersic_Profile_Tabulate_State_Retrieve,Sersic_Profile_Tabulate_State_Store
 
 ! Tabulation of the Sérsic profile.
-logical                                                        :: sersicProfileTabulated=.false.
-double precision                                               :: sersicProfileIndex,sersicCoefficient,sersicRadiusStart
-logical                                                        :: sersicTableInitialized=.false.
-integer                                                        :: sersicTableCount
-double precision                                               :: sersicTableRadiusMinimum   =1.0d-3, &
-     &                                                            sersicTableRadiusMaximum   =1.0d+3
-double precision                                               :: sersicTable3dHalfMassRadius=1.0d+0
-double precision                                               :: sersicTable2dHalfMassRadius
-integer                            , parameter                 :: sersicTablePointsPerDecade=1000
-double precision                   , allocatable, dimension(:) :: sersicTableRadius,sersicTableDensity,sersicTableEnclosedMass,sersicTablePotential
-type            (fgsl_interp      )                            :: sersicTableInterpolationObject
-type            (fgsl_interp_accel)                            :: sersicTableInterpolationAccelerator
-logical                                                        :: sersicTableInterpolationReset=.true.
+logical                                                        :: sersicProfileTabulated             =.false.                                      
+double precision                                               :: sersicCoefficient                          , sersicProfileIndex              , & 
+     &                                                            sersicRadiusStart                                                                
+logical                                                        :: sersicTableInitialized             =.false.                                      
+integer                                                        :: sersicTableCount                                                                 
+double precision                                               :: sersicTableRadiusMaximum           =1.0d+3 , sersicTableRadiusMinimum=1.0d-3     
+double precision                                               :: sersicTable3dHalfMassRadius        =1.0d+0                                       
+double precision                                               :: sersicTable2dHalfMassRadius                                                      
+integer                            , parameter                 :: sersicTablePointsPerDecade         =1000                                         
+double precision                   , allocatable, dimension(:) :: sersicTableDensity                         , sersicTableEnclosedMass         , & 
+     &                                                            sersicTablePotential                       , sersicTableRadius                   
+type            (fgsl_interp      )                            :: sersicTableInterpolationObject                                                   
+type            (fgsl_interp_accel)                            :: sersicTableInterpolationAccelerator                                              
+logical                                                        :: sersicTableInterpolationReset      =.true.                                       

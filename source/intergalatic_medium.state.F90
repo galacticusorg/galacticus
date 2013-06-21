@@ -27,33 +27,36 @@ module Intergalactic_Medium_State
        & Intergalactic_Medium_State_State_Retrieve, Intergalactic_Medium_State_State_Store
 
   ! Flag to indicate if this module has been initialized.  
-  logical :: igmStateInitialized=.false.
-
+  logical                                                     :: igmStateInitialized                       =.false. 
+  
   ! Pointer to the function that actually does the calculation.
-  procedure(Intergalactic_Medium_State_Get_Template), pointer :: Intergalactic_Medium_Electron_Fraction_Get => null()
-  procedure(Intergalactic_Medium_State_Get_Template), pointer :: Intergalactic_Medium_Temperature_Get       => null()
+  procedure(Intergalactic_Medium_State_Get_Template), pointer :: Intergalactic_Medium_Electron_Fraction_Get=>null() 
+  procedure(Intergalactic_Medium_State_Get_Template), pointer :: Intergalactic_Medium_Temperature_Get      =>null() 
   abstract interface
      double precision function Intergalactic_Medium_State_Get_Template(time)
-       double precision, intent(in) :: time
+       double precision, intent(in   ) :: time 
      end function Intergalactic_Medium_State_Get_Template
   end interface
 
   ! Electron scattering optical depth tables.
-  integer,          parameter                 :: electronScatteringTablePointsPerDecade=100
-  logical                                     :: electronScatteringTableInitialized=.false.
-  integer                                     :: electronScatteringTableNumberPoints
-  double precision, allocatable, dimension(:) :: electronScatteringTableTime,electronScatteringTableOpticalDepth&
-       &,electronScatteringTableOpticalDepthFullyIonized
-  double precision                            :: electronScatteringTableTimeMinimum,electronScatteringTableTimeMaximum
-
+  integer                            , parameter                 :: electronScatteringTablePointsPerDecade          =100                                                                
+  logical                                                        :: electronScatteringTableInitialized              =.false.                                                            
+  integer                                                        :: electronScatteringTableNumberPoints                                                                                 
+  double precision                   , allocatable, dimension(:) :: electronScatteringTableOpticalDepth                     , electronScatteringTableOpticalDepthFullyIonized       , & 
+       &                                                            electronScatteringTableTime                                                                                         
+  double precision                                               :: electronScatteringTableTimeMaximum                      , electronScatteringTableTimeMinimum                        
+  
   ! Interpolator variables.
-  type(fgsl_interp)                           :: interpolationObject      ,interpolationOpticalDepthObject      ,interpolationOpticalDepthFullyIonizedObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator ,interpolationOpticalDepthAccelerator ,interpolationOpticalDepthFullyIonizedAccelerator
-  logical                                     :: interpolationReset=.true.,interpolationOpticalDepthReset=.true.,interpolationOpticalDepthFullyIonizedReset=.true.
-
+  type            (fgsl_interp      )                            :: interpolationObject                                     , interpolationOpticalDepthFullyIonizedObject           , & 
+       &                                                            interpolationOpticalDepthObject                                                                                     
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                , interpolationOpticalDepthAccelerator                  , & 
+       &                                                            interpolationOpticalDepthFullyIonizedAccelerator                                                                    
+  logical                                                        :: interpolationOpticalDepthFullyIonizedReset      =.true. , interpolationOpticalDepthReset                 =.true., & 
+       &                                                            interpolationReset                              =.true.                                                             
+  
   ! Option controlling whether electron scattering optical depth calculations should assume a fully ionized universe.
-  logical                                     :: fullyIonized
-
+  logical                                                        :: fullyIonized                                                                                                        
+  
 contains
 
   subroutine Intergalactic_Medium_State_Initialize
@@ -65,7 +68,7 @@ contains
     include 'intergalactic_medium.state.modules.inc'
     !# </include>
     implicit none
-    type(varying_string) :: intergalaticMediumStateMethod
+    type(varying_string) :: intergalaticMediumStateMethod 
     
     ! Initialize if necessary.
     if (.not.igmStateInitialized) then
@@ -101,8 +104,8 @@ contains
   double precision function Intergalactic_Medium_Electron_Fraction(time)
     !% Return the electron fraction in the intergalactic medium at the specified {\tt time}.
     implicit none
-    double precision, intent(in) :: time
-
+    double precision, intent(in   ) :: time 
+    
     ! Initialize the module.
     call Intergalactic_Medium_State_Initialize
   
@@ -113,8 +116,8 @@ contains
   double precision function Intergalactic_Medium_Temperature(time)
     !% Return the temperature of the intergalactic medium at the specified {\tt time}.
     implicit none
-    double precision, intent(in) :: time
-
+    double precision, intent(in   ) :: time 
+    
     ! Initialize the module.
     call Intergalactic_Medium_State_Initialize
   
@@ -127,10 +130,10 @@ contains
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    double precision, intent(in)           :: time
-    logical         , intent(in), optional :: assumeFullyIonized
-    logical                                :: assumeFullyIonizedActual
-
+    double precision, intent(in   )           :: time                     
+    logical         , intent(in   ), optional :: assumeFullyIonized       
+    logical                                   :: assumeFullyIonizedActual 
+    
     ! Ensure that the table is initialized.
     call IGM_State_Electron_Scattering_Tabulate(time)
 
@@ -160,11 +163,11 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
-    double precision, intent(in)           :: opticalDepth
-    logical         , intent(in), optional :: assumeFullyIonized
-    logical                                :: assumeFullyIonizedActual
-    double precision                       :: time
-
+    double precision, intent(in   )           :: opticalDepth             
+    logical         , intent(in   ), optional :: assumeFullyIonized       
+    logical                                   :: assumeFullyIonizedActual 
+    double precision                          :: time                     
+    
     ! Check for invalid input.
     if (opticalDepth < 0.0d0) call Galacticus_Error_Report('Intergalactic_Medium_Electron_Scattering_Time','optical depth must be non-negative')
 
@@ -208,12 +211,12 @@ contains
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    double precision                , intent(in) :: time
-    type(c_ptr)                                  :: parameterPointer
-    type(fgsl_function)                          :: integrandFunction
-    type(fgsl_integration_workspace)             :: integrationWorkspace
-    integer                                      :: iTime
-
+    double precision                            , intent(in   ) :: time                 
+    type            (c_ptr                     )                :: parameterPointer     
+    type            (fgsl_function             )                :: integrandFunction    
+    type            (fgsl_integration_workspace)                :: integrationWorkspace 
+    integer                                                     :: iTime                
+    
     !$omp critical (IGM_State_Electron_Scattering_Interpolation)
     if (.not.electronScatteringTableInitialized.or.time < electronScatteringTableTimeMinimum) then
        ! Find minimum and maximum times to tabulate.
@@ -270,11 +273,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    real(c_double)          :: IGM_State_Electron_Scattering_Integrand
-    real(c_double), value   :: time
-    type(c_ptr),    value   :: parameterPointer
-    double precision        :: expansionFactor,electronFraction
-
+    real            (kind=c_double)        :: IGM_State_Electron_Scattering_Integrand                  
+    real            (kind=c_double), value :: time                                                     
+    type            (c_ptr        ), value :: parameterPointer                                         
+    double precision                       :: electronFraction                       , expansionFactor 
+    
     expansionFactor=Expansion_Factor(time)
     if (fullyIonized) then
        electronFraction=hydrogenByMassPrimordial/atomicMassHydrogen+2.0d0*heliumByMassPrimordial/atomicMassHelium
@@ -291,9 +294,9 @@ contains
   subroutine Intergalactic_Medium_State_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) 
     return
   end subroutine Intergalactic_Medium_State_State_Store
@@ -304,9 +307,9 @@ contains
   subroutine Intergalactic_Medium_State_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     ! Read the table state.
     read (stateFile) 
     ! Force retabulation.

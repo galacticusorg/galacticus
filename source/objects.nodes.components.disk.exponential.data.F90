@@ -24,58 +24,54 @@ module Node_Component_Disk_Exponential_Data
   public
 
   ! Record of unique ID of node which we last computed results for.
-  integer(kind=kind_int8)                     :: lastUniqueID=-1
+  integer         (kind=kind_int8          )                            :: lastUniqueID                                 =-1                                                                                                                                            
   !$omp threadprivate(lastUniqueID)
-  
   ! Records of previously computed and stored quantities.
-  logical                                     :: surfaceDensityCentralGasComputed,surfaceDensityCentralStellarComputed&
-       &,surfaceDensityCentralTotalComputed 
+  logical                                                               :: surfaceDensityCentralGasComputed                                                           , surfaceDensityCentralStellarComputed                                                       , & 
+       &                                                                   surfaceDensityCentralTotalComputed                                                                                                                                                          
   !$omp threadprivate(surfaceDensityCentralGasComputed,surfaceDensityCentralStellarComputed,surfaceDensityCentralTotalComputed)
-  double precision                            :: surfaceDensityCentralGas,surfaceDensityCentralStellar,surfaceDensityCentralTotal
+  double precision                                                      :: surfaceDensityCentralGas                                                                   , surfaceDensityCentralStellar                                                               , & 
+       &                                                                   surfaceDensityCentralTotal                                                                                                                                                                  
   !$omp threadprivate(surfaceDensityCentralGas,surfaceDensityCentralStellar,surfaceDensityCentralTotal)
-  logical                                     :: radiusScaleDiskComputed
+  logical                                                               :: radiusScaleDiskComputed                                                                                                                                                                     
   !$omp threadprivate(radiusScaleDiskComputed)
-  double precision                            :: radiusScaleDisk
+  double precision                                                      :: radiusScaleDisk                                                                                                                                                                             
   !$omp threadprivate(radiusScaleDisk)
-
   ! Luminosity work arrays.
-  double precision, allocatable, dimension(:) :: luminositiesDisk
+  double precision                          , allocatable, dimension(:) :: luminositiesDisk                                                                                                                                                                            
   !$omp threadprivate(luminositiesDisk)
-
   ! Tabulation of the exponential disk rotation curve.
-  integer,          parameter                 :: rotationCurvePointsPerDecade=10
-  integer                                     :: rotationCurvePointsCount
-  logical                                     :: rotationCurveInitialized=.false.
-  double precision, parameter                 :: rotationCurveHalfRadiusMinimumDefault=1.0d-6,rotationCurveHalfRadiusMaximumDefault=10.0d0
-  double precision                            :: rotationCurveHalfRadiusMinimum=rotationCurveHalfRadiusMinimumDefault&
-       &,rotationCurveHalfRadiusMaximum=rotationCurveHalfRadiusMaximumDefault
-  double precision                            :: scaleLengthFactor,diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor
-  logical                                     :: scaleLengthFactorSet=.false.
-  type(table1DLogarithmicLinear)              :: rotationCurveTable
-
+  integer                                   , parameter                 :: rotationCurvePointsPerDecade                 =10                                                                                                                                            
+  integer                                                               :: rotationCurvePointsCount                                                                                                                                                                    
+  logical                                                               :: rotationCurveInitialized                     =.false.                                                                                                                                       
+  double precision                          , parameter                 :: rotationCurveHalfRadiusMaximumDefault        =10.0d0                                       , rotationCurveHalfRadiusMinimumDefault        =1.0d-6                                           
+  double precision                                                      :: rotationCurveHalfRadiusMaximum               =rotationCurveHalfRadiusMaximumDefault        , rotationCurveHalfRadiusMinimum               =rotationCurveHalfRadiusMinimumDefault            
+  double precision                                                      :: diskRadiusSolverFlatVsSphericalFactor                                                      , diskStructureSolverSpecificAngularMomentum                                                 , & 
+       &                                                                   scaleLengthFactor                                                                                                                                                                           
+  logical                                                               :: scaleLengthFactorSet                         =.false.                                                                                                                                       
+  type            (table1DLogarithmicLinear)                            :: rotationCurveTable                                                                                                                                                                          
+  
   ! Tabulation of the exponential disk rotation curve gradient.
-  integer,          parameter                 :: rotationCurveGradientPointsPerDecade=10
-  integer                                     :: rotationCurveGradientPointsCount
-  logical                                     :: rotationCurveGradientInitialized=.false.
-  double precision, parameter                 :: rotationCurveGradientHalfRadiusMinimumDefault=1.0d-6,rotationCurveGradientHalfRadiusMaximumDefault=10.0d0
-  double precision                            :: rotationCurveGradientHalfRadiusMinimum=rotationCurveGradientHalfRadiusMinimumDefault&
-       &,rotationCurveGradientHalfRadiusMaximum=rotationCurveGradientHalfRadiusMaximumDefault
-  type(table1DLogarithmicLinear)              :: rotationCurveGradientTable
-
-  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
-  ! rotation curves.
-  double precision, parameter                 :: fractionalRadiusMaximum=30.0d0
-
+  integer                                   , parameter                 :: rotationCurveGradientPointsPerDecade         =10                                                                                                                                            
+  integer                                                               :: rotationCurveGradientPointsCount                                                                                                                                                            
+  logical                                                               :: rotationCurveGradientInitialized             =.false.                                                                                                                                       
+  double precision                          , parameter                 :: rotationCurveGradientHalfRadiusMaximumDefault=10.0d0                                       , rotationCurveGradientHalfRadiusMinimumDefault=1.0d-6                                           
+  double precision                                                      :: rotationCurveGradientHalfRadiusMaximum       =rotationCurveGradientHalfRadiusMaximumDefault, rotationCurveGradientHalfRadiusMinimum       =rotationCurveGradientHalfRadiusMinimumDefault    
+  type            (table1DLogarithmicLinear)                            :: rotationCurveGradientTable                                                                                                                                                                  
+  
+  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing  ! rotation curves.
+  double precision                          , parameter                 :: fractionalRadiusMaximum                      =30.0d0                                                                                                                                        
+  
   ! Parameter controlling the scale height of the disk.
-  double precision                            :: heightToRadialScaleDisk
+  double precision                                                      :: heightToRadialScaleDisk                                                                                                                                                                     
 contains
 
   subroutine Node_Component_Disk_Exponential_Reset(uniqueID)
     !% Reset calculations for the exponential disk component.
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), intent(in   ) :: uniqueID
-
+    integer(kind=kind_int8), intent(in   ) :: uniqueID 
+    
     radiusScaleDiskComputed             =.false.
     surfaceDensityCentralGasComputed    =.false.
     surfaceDensityCentralStellarComputed=.false.
@@ -87,7 +83,7 @@ contains
   double precision function Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless(radius)
     !% Returns the fractional mass enclosed within {\tt radius} in a dimensionless exponential disk.
     implicit none
-    double precision, intent(in) :: radius
+    double precision, intent(in   ) :: radius 
     
     Node_Component_Disk_Exponential_Enclosed_Mass_Dimensionless=1.0d0-(1.0d0+radius)*exp(-radius)
     return
@@ -100,11 +96,11 @@ contains
      use Numerical_Interpolation
      use Bessel_Functions
      implicit none
-     double precision, intent(in) :: halfRadius
-     double precision, parameter  :: halfRadiusSmall=1.0d-3
-     integer                      :: iPoint
-     double precision             :: x
-
+     double precision, intent(in   ) :: halfRadius             
+     double precision, parameter     :: halfRadiusSmall=1.0d-3 
+     integer                         :: iPoint                 
+     double precision                :: x                      
+     
 
      ! For small half-radii, use a series expansion for a more accurate result.
      if (halfRadius <= 0.0d0) then
@@ -159,12 +155,12 @@ contains
     use Numerical_Interpolation
     use Bessel_Functions
     implicit none
-    double precision, intent(in) :: halfRadius
-    double precision, parameter  :: halfRadiusSmall=1.0d-3
-    double precision, parameter  :: halfRadiusLarge=1.0d+2
-    integer                      :: iPoint
-    double precision             :: x
-
+    double precision, intent(in   ) :: halfRadius             
+    double precision, parameter     :: halfRadiusSmall=1.0d-3 
+    double precision, parameter     :: halfRadiusLarge=1.0d+2 
+    integer                         :: iPoint                 
+    double precision                :: x                      
+    
     ! For small and large half-radii, use a series expansion for a more accurate result.
     if (halfRadius == 0.0d0) then
        Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs=0.0d0
@@ -230,9 +226,9 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet,&
                     & rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum
     return
@@ -245,9 +241,9 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     ! Read the minimum and maximum tabulated times.
     read (stateFile) rotationCurveHalfRadiusMinimum,rotationCurveHalfRadiusMaximum,scaleLengthFactor,scaleLengthFactorSet,&
                    & rotationCurveGradientHalfRadiusMinimum,rotationCurveGradientHalfRadiusMaximum

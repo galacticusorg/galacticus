@@ -24,13 +24,13 @@ module Supernovae_Type_Ia_Nagashima
   public :: Supernovae_Type_Ia_Nagashima_Initialize
   
   ! Parameters of the distribution of binaries from Nagashima et al. (2005; MNRAS; 358; 1427; eqn. 17).
-  double precision :: binaryMassMinimum  =3.00d0, binaryMassMaximum=12.0d0
-  double precision :: typeIaNormalization=0.07d0, gamma            = 2.0d0
-
+  double precision                            :: binaryMassMaximum=12.0d0, binaryMassMinimum  =3.00d0 
+  double precision                            :: gamma            =2.0d0 , typeIaNormalization=0.07d0 
+  
   ! Total yield of metals from Type Ia supernova.
-  double precision                            :: totalYield
-  double precision, allocatable, dimension(:) :: elementYield
-
+  double precision                            :: totalYield                                           
+  double precision, allocatable, dimension(:) :: elementYield                                         
+  
 contains
 
   !# <supernovaeIaMethod>
@@ -48,14 +48,16 @@ contains
     use Memory_Management
     use Galacticus_Input_Paths
     implicit none
-    type            (varying_string                   ),          intent(in   ) :: supernovaeIaMethod
-    procedure       (SNeIa_Cumulative_Number_Nagashima), pointer, intent(inout) :: SNeIa_Cumulative_Number_Get
-    procedure       (SNeIa_Cumulative_Yield_Nagashima ), pointer, intent(inout) :: SNeIa_Cumulative_Yield_Get
-    type            (Node                             ), pointer                :: doc,thisIsotope,thisYield,thisAtom
-    type            (NodeList                         ), pointer                :: isotopesList,propertyList
-    integer                                                                     :: iIsotope,ioErr,atomicNumber,atomicIndex
-    double precision                                                            :: isotopeYield
-
+    type            (varying_string                   ), intent(in   )          :: supernovaeIaMethod                           
+    procedure       (SNeIa_Cumulative_Number_Nagashima), intent(inout), pointer :: SNeIa_Cumulative_Number_Get                  
+    procedure       (SNeIa_Cumulative_Yield_Nagashima ), intent(inout), pointer :: SNeIa_Cumulative_Yield_Get                   
+    type            (Node                             )               , pointer :: doc                        , thisAtom    , & 
+         &                                                                         thisIsotope                , thisYield       
+    type            (NodeList                         )               , pointer :: isotopesList               , propertyList    
+    integer                                                                     :: atomicIndex                , atomicNumber, & 
+         &                                                                         iIsotope                   , ioErr           
+    double precision                                                            :: isotopeYield                                 
+    
     if (supernovaeIaMethod == 'Nagashima') then
        ! Set up pointers to our procedures.
        SNeIa_Cumulative_Number_Get => SNeIa_Cumulative_Number_Nagashima
@@ -107,9 +109,9 @@ contains
     !% mass function.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    double precision             :: dyingStarMass,muMinimum
-
+    double precision, intent(in   ) :: age          , initialMass, metallicity 
+    double precision                :: dyingStarMass, muMinimum                
+    
     ! Check if initial mass is within the range of binary masses that lead to Type Ia supernovae.
     if (initialMass > binaryMassMinimum .and. initialMass < binaryMassMaximum) then
        
@@ -138,10 +140,10 @@ contains
     !% assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in)           :: initialMass,age,metallicity
-    integer,          intent(in), optional :: atomIndex
-    double precision                       :: yield
-
+    double precision, intent(in   )           :: age      , initialMass, metallicity 
+    integer         , intent(in   ), optional :: atomIndex                           
+    double precision                          :: yield                               
+    
     if (present(atomIndex)) then
        ! Return yield for requested atomic index.
        yield=elementYield(atomIndex)

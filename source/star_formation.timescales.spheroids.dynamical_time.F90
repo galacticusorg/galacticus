@@ -24,7 +24,8 @@ module Star_Formation_Timescale_Spheroids_Dynamical_Time
   public :: Star_Formation_Timescale_Spheroids_Dynamical_Time_Initialize
 
   ! Parameters of the timescale model.
-  double precision :: starFormationSpheroidEfficiency,starFormationSpheroidVelocityExponent,starFormationSpheroidMinimumTimescale
+  double precision :: starFormationSpheroidEfficiency      , starFormationSpheroidMinimumTimescale, & 
+       &              starFormationSpheroidVelocityExponent                                           
   
 contains
 
@@ -37,8 +38,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: starFormationTimescaleSpheroidsMethod
-    procedure(Star_Formation_Timescale_Spheroid_Dynamical_Time), pointer, intent(inout) :: Star_Formation_Timescale_Spheroid_Get
+    type     (varying_string                                  ), intent(in   )          :: starFormationTimescaleSpheroidsMethod 
+    procedure(Star_Formation_Timescale_Spheroid_Dynamical_Time), intent(inout), pointer :: Star_Formation_Timescale_Spheroid_Get 
     
     if (starFormationTimescaleSpheroidsMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Spheroid_Get => Star_Formation_Timescale_Spheroid_Dynamical_Time
@@ -96,11 +97,11 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
-    double precision            , parameter              :: velocityZeroPoint=200.0d0 ! (km/s)
-    double precision                                     :: spheroidVelocity,dynamicalTime
-
+    type            (treeNode             ), intent(inout), pointer :: thisNode                                                   
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                                      
+    double precision                       , parameter              :: velocityZeroPoint    =200.0d0                   !   (km/s) 
+    double precision                                                :: dynamicalTime                , spheroidVelocity            
+    
     ! Get spheroid circular velocity.
     thisSpheroidComponent => thisNode%spheroid()
     spheroidVelocity=thisSpheroidComponent%velocity()

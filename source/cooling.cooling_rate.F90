@@ -26,21 +26,21 @@ module Cooling_Rates
   public :: Cooling_Rate, Cooling_Rate_Hot_Halo_Output_Names, Cooling_Rate_Hot_Halo_Output_Count, Cooling_Rate_Hot_Halo_Output
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: coolingRateInitialized      =.false.
-  logical              :: coolingRateOutputInitialized=.false.
-
+  logical                                       :: coolingRateInitialized      =.false. 
+  logical                                       :: coolingRateOutputInitialized=.false. 
+  
   ! Name of cooling rate available method used.
-  type(varying_string) :: coolingRateMethod
-
+  type     (varying_string           )          :: coolingRateMethod                    
+  
   ! Option controlling whether cooling rates are output.
-  logical              :: outputHotHaloCoolingRates
-
+  logical                                       :: outputHotHaloCoolingRates            
+  
   ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Rate_Get_Template), pointer :: Cooling_Rate_Get => null()
+  procedure(Cooling_Rate_Get_Template), pointer :: Cooling_Rate_Get            =>null() 
   abstract interface
      double precision function Cooling_Rate_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode 
      end function Cooling_Rate_Get_Template
   end interface
   
@@ -119,8 +119,8 @@ contains
     include 'cooling.cooling_rate.modifier.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     ! Initialize the module.
     call Cooling_Rate_Initialize()
 
@@ -148,12 +148,12 @@ contains
     use Abundances_Structure
     use ISO_Varying_String
     implicit none
-    type (treeNode            ), intent(inout), pointer      :: thisNode
-    double precision           , intent(in   )               :: time
-    integer                    , intent(inout)               :: integerProperty,doubleProperty
-    character(len=*)           , intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision           , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    type            (treeNode            )              , intent(inout), pointer :: thisNode                                           
+    double precision                                    , intent(in   )          :: time                                               
+    integer                                             , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*               ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                                          integerPropertyComments, integerPropertyNames      
+    double precision                      , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
     
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
@@ -183,11 +183,11 @@ contains
   subroutine Cooling_Rate_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision           , intent(in   )          :: time
-    integer                    , intent(inout)          :: integerPropertyCount,doublePropertyCount
-    integer                    , parameter              :: propertyCount=1
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                    
+    double precision                      , intent(in   )          :: time                                        
+    integer                               , intent(inout)          :: doublePropertyCount  , integerPropertyCount 
+    integer                               , parameter              :: propertyCount      =1                       
+    
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
 
@@ -205,13 +205,13 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )              :: time
-    type            (treeNode      ), intent(inout), pointer     :: thisNode
-    integer                         , intent(inout)              :: integerProperty,integerBufferCount,doubleProperty&
-         &,doubleBufferCount
-    integer         (kind=kind_int8), intent(inout)              :: integerBuffer(:,:)
-    double precision                , intent(inout)              :: doubleBuffer (:,:)
-
+    double precision                , intent(in   )          :: time                                                          
+    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
+         &                                                      integerProperty                                               
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
+    
     ! Initialize the module.
     call Cooling_Rate_Output_Initialize()
 

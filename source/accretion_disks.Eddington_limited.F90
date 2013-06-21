@@ -26,8 +26,8 @@ module Accretion_Disks_Eddington
   public :: Accretion_Disks_Eddington_Initialize
 
   ! Efficiency parameters for the accretion disk model.
-  double precision :: accretionDiskJetPowerEddington,accretionDiskRadiativeEfficiencyEddington
-
+  double precision :: accretionDiskJetPowerEddington, accretionDiskRadiativeEfficiencyEddington  
+                                                                                              
 contains
 
   !# <accretionDisksMethod>
@@ -39,11 +39,11 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: accretionDisksMethod
-    procedure(Accretion_Disk_Radiative_Efficiency_Eddington), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get
-    procedure(Black_Hole_Spin_Up_Rate_Eddington), pointer, intent(inout) :: Black_Hole_Spin_Up_Rate_Get
-    procedure(Accretion_Disk_Jet_Power_Eddington), pointer, intent(inout) :: Accretion_Disk_Jet_Power_Get
-    
+    type     (varying_string                               ), intent(in   )          :: accretionDisksMethod                     
+    procedure(Accretion_Disk_Radiative_Efficiency_Eddington), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get  
+    procedure(Black_Hole_Spin_Up_Rate_Eddington            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get              
+    procedure(Accretion_Disk_Jet_Power_Eddington           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get             
+                                                                                                                              
     if (accretionDisksMethod == 'eddingtonLimited') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Eddington
        Black_Hole_Spin_Up_Rate_Get             => Black_Hole_Spin_Up_Rate_Eddington
@@ -79,9 +79,9 @@ contains
     use Black_Hole_Fundamentals
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+                                                                               
     Accretion_Disk_Radiative_Efficiency_Eddington=accretionDiskRadiativeEfficiencyEddington
     return
   end function Accretion_Disk_Radiative_Efficiency_Eddington
@@ -93,9 +93,9 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+                                                                               
     Accretion_Disk_Jet_Power_Eddington=accretionDiskJetPowerEddington*Black_Hole_Eddington_Accretion_Rate(thisBlackHole)*(speedLight/kilo)**2
     return
   end function Accretion_Disk_Jet_Power_Eddington
@@ -105,9 +105,9 @@ contains
     !% disk. This is always zero, as no physical model is specified for this accretion disk method.
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+                                                                               
     Black_Hole_Spin_Up_Rate_Eddington=0.0d0
     return
   end function Black_Hole_Spin_Up_Rate_Eddington

@@ -27,18 +27,19 @@ module Star_Formation_IMF_Salpeter
        &, Star_Formation_IMF_Phi_Salpeter
 
   ! Index assigned to this IMF.
-  integer :: imfIndex=-1
-
+  integer                                    :: imfIndex                        =-1                                                  
+  
   ! Flag indicating if the module has been initialized.
-  logical :: imfSalpeterInitialized=.false.
-
+  logical                                    :: imfSalpeterInitialized          =.false.                                             
+  
   ! Parameters of the IMF.
-  double precision :: imfSalpeterRecycledInstantaneous, imfSalpeterYieldInstantaneous
-
+  double precision                           :: imfSalpeterRecycledInstantaneous        , imfSalpeterYieldInstantaneous              
+  
   ! Fixed parameters of the IMF.
-  integer,          parameter                :: imfPieceCount=1
-  double precision, dimension(imfPieceCount) :: massLower=[0.1d0],massUpper=[125.0d0],massExponent=[-2.35d0],imfNormalization
-
+  integer         , parameter                :: imfPieceCount                   =1                                                   
+  double precision, dimension(imfPieceCount) :: imfNormalization                        , massExponent                 =[-2.35d0], & 
+       &                                        massLower                       =[0.1d0], massUpper                    =[125.0d0]    
+  
 contains
 
   !# <imfRegister>
@@ -47,8 +48,8 @@ contains
   subroutine Star_Formation_IMF_Register_Salpeter(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount
-
+    integer, intent(inout) :: imfAvailableCount 
+    
     imfAvailableCount=imfAvailableCount+1
     imfIndex=imfAvailableCount
     return
@@ -61,8 +62,8 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
-
+    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:) 
+    
     imfNames      (imfIndex)="Salpeter"
     imfDescriptors(imfIndex)="Salpeter"
     return
@@ -118,10 +119,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_Salpeter(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: minimumMass
-
+    integer         , intent(in   ) :: imfSelected 
+    logical         , intent(inout) :: imfMatched  
+    double precision, intent(  out) :: minimumMass 
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        minimumMass=massLower(1)
@@ -136,10 +137,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_Salpeter(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: maximumMass
-
+    integer         , intent(in   ) :: imfSelected 
+    logical         , intent(inout) :: imfMatched  
+    double precision, intent(  out) :: maximumMass 
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        maximumMass=massUpper(imfPieceCount)
@@ -155,11 +156,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(in)    :: initialMass
-    double precision, intent(out)   :: imfPhi
-
+    integer         , intent(in   ) :: imfSelected 
+    logical         , intent(inout) :: imfMatched  
+    double precision, intent(in   ) :: initialMass 
+    double precision, intent(  out) :: imfPhi      
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
@@ -174,10 +175,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_Salpeter(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: recycledFraction
-
+    integer         , intent(in   ) :: imfSelected      
+    logical         , intent(inout) :: imfMatched       
+    double precision, intent(  out) :: recycledFraction 
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        recycledFraction=imfSalpeterRecycledInstantaneous
@@ -192,10 +193,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_Salpeter(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: yield
-
+    integer         , intent(in   ) :: imfSelected 
+    logical         , intent(inout) :: imfMatched  
+    double precision, intent(  out) :: yield       
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        yield=imfSalpeterYieldInstantaneous
@@ -213,11 +214,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)                               :: imfSelected
-    logical,          intent(inout)                            :: imfMatched
-    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
-    integer,          parameter                                :: nPoints=100
-
+    integer                                    , intent(in   ) :: imfSelected             
+    logical                                    , intent(inout) :: imfMatched              
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi 
+    integer         , parameter                                :: nPoints    =100         
+    
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Salpeter
        call Alloc_Array(imfMass,[nPoints])

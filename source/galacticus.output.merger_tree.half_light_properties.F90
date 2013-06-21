@@ -25,17 +25,17 @@ module Galacticus_Output_Tree_Half_Light_Properties
   public :: Galacticus_Output_Tree_Half_Light, Galacticus_Output_Tree_Half_Light_Property_Count, Galacticus_Output_Tree_Half_Light_Names
 
   ! Flag indicating if this module is initialize.
-  logical :: outputHalfLightDataInitialized
-
+  logical :: outputHalfLightDataInitialized 
+  
   ! Number of luminosities.
-  integer :: luminositiesCount
-
+  integer :: luminositiesCount              
+  
   ! Number of properties.
-  integer :: halfLightPropertyCount
-
+  integer :: halfLightPropertyCount         
+  
   ! Flag indicating whether or not half-light data is to be output.
-  logical :: outputHalfLightData
-
+  logical :: outputHalfLightData            
+  
 contains
 
   subroutine Galacticus_Output_Tree_Half_Light_Initialize
@@ -85,14 +85,14 @@ contains
     use Numerical_Constants_Astronomical
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type     (treeNode), intent(inout), pointer      :: thisNode
-    double precision   , intent(in   )               :: time
-    integer            , intent(inout)               :: integerProperty,doubleProperty
-    character(len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision   , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                          :: iLuminosity
-
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    integer                                                          :: iLuminosity                                        
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
 
@@ -135,9 +135,9 @@ contains
   subroutine Galacticus_Output_Tree_Half_Light_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer         , intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision          , intent(in   )          :: time                                      
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
@@ -158,14 +158,15 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
-    integer                                         :: iLuminosity
-    double precision                                :: halfLightRadius,massEnclosed
-
+    double precision                , intent(in   )          :: time                                                          
+    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
+         &                                                      integerProperty                                               
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
+    integer                                                  :: iLuminosity                                                   
+    double precision                                         :: halfLightRadius       , massEnclosed                          
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Half_Light_Initialize
 

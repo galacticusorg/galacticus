@@ -25,8 +25,8 @@ module Star_Formation_Feedback_Disks_Power_Law
   public :: Star_Formation_Feedback_Disks_Power_Law_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: diskOutflowVelocity,diskOutflowExponent
-  
+  double precision :: diskOutflowExponent, diskOutflowVelocity  
+                                                             
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
-    
+    type     (varying_string                                     ), intent(in   )          :: starFormationFeedbackDisksMethod               
+    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get  
+                                                                                                                                          
     if (starFormationFeedbackDisksMethod == 'powerLaw') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Power_Law
        ! Get parameters of for the feedback calculation.
@@ -85,12 +85,12 @@ contains
     use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    double precision        , intent(in)             :: starFormationRate,energyInputRate
-    double precision                                 :: diskVelocity,outflowRateToStarFormationRate
-
-    ! Get the disk.
+    type            (treeNode         ), intent(inout), pointer :: thisNode                                           
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                  
+    double precision                   , intent(in   )          :: energyInputRate  , starFormationRate               
+    double precision                                            :: diskVelocity     , outflowRateToStarFormationRate  
+    
+    ! Get the disk.                                                                                                               
     thisDiskComponent => thisNode%disk()
 
     ! Get disk circular velocity.

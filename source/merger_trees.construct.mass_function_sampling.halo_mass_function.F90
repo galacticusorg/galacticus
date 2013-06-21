@@ -32,9 +32,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: haloMassFunctionSamplingMethod
-    procedure(double precision), pointer, intent(inout) :: Merger_Tree_Construct_Mass_Function_Sampling_Get
-    
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod                    
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get  
+                                                                                                          
     if (haloMassFunctionSamplingMethod == 'haloMassFunction') Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
@@ -43,8 +43,8 @@ contains
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
     use Halo_Mass_Function
     implicit none
-    double precision, intent(in) :: mass,time,massMinimum,massMaximum
-
+    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
+                                                                          
     Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=mass*Halo_Mass_Function_Differential(time,mass)
     return
   end function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF

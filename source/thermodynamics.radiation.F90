@@ -22,9 +22,9 @@ module Thermodynamics_Radiation
   public :: Blackbody_Emission
 
   ! Define labels that specify if the computed radiance is per unit wavelength or per unit frequency.
-  integer, public, parameter :: radianceTypeWavelength=0
-  integer, public, parameter :: radianceTypeFrequency =1
-
+  integer, parameter, public :: radianceTypeWavelength=0  
+  integer, parameter, public :: radianceTypeFrequency =1  
+                                                       
 contains
 
   double precision function Blackbody_Emission(wavelength,temperature,radianceType)
@@ -34,13 +34,13 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision, intent(in)           :: wavelength,temperature
-    integer,          intent(in), optional :: radianceType
-    double precision, parameter            :: exponentialArgumentMaximum=100.0d0
-    double precision                       :: exponentialArgument
-    integer                                :: radianceTypeActual
-
-    ! Return zero emission for non-positive temperatures.
+    double precision, intent(in   )           :: temperature                       , wavelength  
+    integer         , intent(in   ), optional :: radianceType                                    
+    double precision, parameter               :: exponentialArgumentMaximum=100.0d0              
+    double precision                          :: exponentialArgument                             
+    integer                                   :: radianceTypeActual                              
+    
+    ! Return zero emission for non-positive temperatures.                                                                                          
     if (temperature <= 0.0d0) then
        Blackbody_Emission=0.0d0
        return

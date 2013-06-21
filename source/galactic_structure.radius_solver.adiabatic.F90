@@ -28,17 +28,16 @@ module Galactic_Structure_Radii_Adiabatic
   public :: Galactic_Structure_Radii_Adiabatic_Initialize
 
   ! Parameter controlling the accuracy of the solutions sought.
-  double precision        :: adiabaticContractionSolutionTolerance
-
+  double precision                    :: adiabaticContractionSolutionTolerance                                          
+  
   ! Module variables used to communicate current state of radius solver.
-  integer                 :: iterationCount,activeComponentCount
-  double precision        :: fitMeasure,haloFraction
-  type(treeNode), pointer :: haloNode
+  integer                             :: activeComponentCount                    , iterationCount                       
+  double precision                    :: fitMeasure                              , haloFraction                         
+  type            (treeNode), pointer :: haloNode                                                                       
   !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction,haloNode)
-
   ! Options controlling the solver.
-  logical                 :: adiabaticContractionIncludeBaryonGravity,adiabaticContractionUseFormationHalo
-
+  logical                             :: adiabaticContractionIncludeBaryonGravity, adiabaticContractionUseFormationHalo 
+  
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -49,8 +48,8 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),          intent(in)    :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Adiabatic),          pointer, intent(inout) :: Galactic_Structure_Radii_Solve_Do
+    type     (varying_string                          ), intent(in   )          :: galacticStructureRadiusSolverMethod 
+    procedure(Galactic_Structure_Radii_Solve_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do   
     
     if (galacticStructureRadiusSolverMethod == 'adiabatic') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Adiabatic
@@ -101,15 +100,15 @@ contains
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type(treeNode),                    intent(inout), pointer :: thisNode
-    integer,                           parameter              :: iterationMaximum=100
-    procedure(Structure_Get_Template),                pointer :: Radius_Get => null(), Velocity_Get => null()
-    procedure(Structure_Set_Template),                pointer :: Radius_Set => null(), Velocity_Set => null()
+    type            (treeNode               ), intent(inout), pointer :: thisNode                                              
+    integer                                  , parameter              :: iterationMaximum       =100                           
+    procedure       (Structure_Get_Template )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null() 
+    procedure       (Structure_Set_Template )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null() 
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    class    (nodeComponentBasic     ),               pointer :: thisBasicComponent
-    logical                                                   :: componentActive
-    double precision                                          :: specificAngularMomentum
-
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent                                    
+    logical                                                           :: componentActive                                       
+    double precision                                                  :: specificAngularMomentum                               
+    
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
     thisNode%isPhysicallyPlausible=.true.
     include 'galactic_structure.radius_solver.plausible.inc'
@@ -164,15 +163,17 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(treeNode),                    pointer, intent(inout) :: thisNode
-    double precision,                           intent(in)    :: specificAngularMomentum
-    procedure(Structure_Get_Template), pointer, intent(in)    :: Radius_Get, Velocity_Get
-    procedure(Structure_Set_Template), pointer, intent(in)    :: Radius_Set, Velocity_Set
-    character(len=14)                                         :: label
-    type(varying_string)                                      :: message
-    double precision                                          :: radius,velocity ,radiusInitial,haloMassInitial&
-         &,darkMatterMassFinal,darkMatterVelocitySquared ,baryonicVelocitySquared,radiusNew
-
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                          
+    double precision                        , intent(in   )          :: specificAngularMomentum                           
+    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get               , Velocity_Get           
+    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set               , Velocity_Set           
+    character       (len=14                )                         :: label                                             
+    type            (varying_string        )                         :: message                                           
+    double precision                                                 :: baryonicVelocitySquared  , darkMatterMassFinal, & 
+         &                                                              darkMatterVelocitySquared, haloMassInitial    , & 
+         &                                                              radius                   , radiusInitial      , & 
+         &                                                              radiusNew                , velocity               
+    
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 

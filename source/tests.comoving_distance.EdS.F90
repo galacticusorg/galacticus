@@ -25,13 +25,14 @@ program Tests_Comoving_Distance_EdS
   use Cosmology_Functions_Options
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift   =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  double precision, parameter, dimension(8) :: distanceEdS=[27.903129d0,175.614328d0,299.792345d0,409.979133d0,491.894753d0,539.916697d0,564.991337d0,580.449076d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: time,timeLookup,distance,distanceModulus
-
+  double precision                , dimension(8), parameter :: redshift     =[0.1d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                                                                    
+  double precision                , dimension(8), parameter :: distanceEdS  =[27.903129d0,175.614328d0,299.792345d0,409.979133d0,491.894753d0,539.916697d0,564.991337d0,580.449076d0]                     
+  type            (varying_string)                          :: parameterFile                                                                                                                              
+  character       (len=1024      )                          :: message                                                                                                                                    
+  integer                                                   :: iExpansion                                                                                                                                 
+  double precision                                          :: distance                                                                                                              , distanceModulus, & 
+       &                                                       time                                                                                                                  , timeLookup         
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.comoving_distance.EdS.size')
 

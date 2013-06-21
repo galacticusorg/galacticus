@@ -25,14 +25,14 @@ module Black_Hole_Binary_Initial_Radii
   public :: Black_Hole_Binary_Initial_Radius
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                              :: blackHoleBinaryInitialRadiiInitialized=.false.
-
-  ! Name of mass movement method used.
-  type(varying_string)                                 :: blackHoleBinaryInitialRadiiMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Black_Hole_Binary_Initial_Radius), pointer :: Black_Hole_Binary_Initial_Radius_Get => null()
+  logical                                              :: blackHoleBinaryInitialRadiiInitialized=.false.  
   
+  ! Name of mass movement method used.                                                                                                     
+  type     (varying_string                  )          :: blackHoleBinaryInitialRadiiMethod               
+  
+  ! Pointer to the subroutine that returns descriptors for mass movement.                                                                                                     
+  procedure(Black_Hole_Binary_Initial_Radius), pointer :: Black_Hole_Binary_Initial_Radius_Get  =>null()  
+                                                                                                       
 contains
 
   double precision function Black_Hole_Binary_Initial_Radius(thisNode,hostNode)
@@ -44,8 +44,8 @@ contains
     include 'black_holes.binary.initial_radius.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode,hostNode
-
+    type(treeNode), intent(inout), pointer :: hostNode, thisNode  
+                                                               
     if (.not.blackHoleBinaryInitialRadiiInitialized) then
        !$omp critical(blackHoleBinaryInitialRadiiInitialize)
        if (.not.blackHoleBinaryInitialRadiiInitialized) then

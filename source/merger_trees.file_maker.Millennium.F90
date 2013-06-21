@@ -35,16 +35,16 @@ contains
     use File_Utilities
     use Galacticus_Error
     implicit none
-    character(len=*),     intent(in)    :: nodesFile,particlesFile
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer,              intent(in)    :: generation
-    integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop,fileUnit
-    character(len=1024)                 :: sqlQuery
-    logical                             :: traceParticles
-    double precision                    :: particleMass
-
+    character       (len=*         ), intent(in   ) :: nodesFile     , particlesFile                                     
+    type            (mergerTreeData), intent(inout) :: mergerTrees                                                       
+    integer                         , intent(in   ) :: generation                                                        
+    integer                                         :: fileUnit      , lineCountData, lineCountTotal, lineNumberStart, & 
+         &                                             lineNumberStop                                                    
+    character       (len=1024      )                :: sqlQuery                                                          
+    logical                                         :: traceParticles                                                    
+    double precision                                :: particleMass                                                      
+    
     ! Process the nodes file.
-
     ! Determine if particles are being traced.
     traceParticles=(trim(particlesFile) /= "none")
 

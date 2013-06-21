@@ -39,9 +39,9 @@ contains
     !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
-    real, intent(in)           :: value1,value2
-    real, intent(in), optional :: absTol,relTol
-    
+    real, intent(in   )           :: value1, value2  
+    real, intent(in   ), optional :: absTol, relTol  
+                                                  
     Values_Differ_Real=.false.
     if (present(absTol)) Values_Differ_Real=(abs(value1-value2) > absTol)
     if (present(relTol)) Values_Differ_Real=Values_Differ_Real.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
@@ -53,9 +53,9 @@ contains
     !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
-    double precision, intent(in)           :: value1,value2
-    double precision, intent(in), optional :: absTol,relTol
-    
+    double precision, intent(in   )           :: value1, value2  
+    double precision, intent(in   ), optional :: absTol, relTol  
+                                                              
     Values_Differ_Double=.false.
     if (present(absTol)) Values_Differ_Double=(abs(value1-value2) > absTol)
     if (present(relTol)) Values_Differ_Double=Values_Differ_Double.or.(abs(value1-value2) > 0.5d0*abs(value1+value2)*relTol)
@@ -67,10 +67,10 @@ contains
     !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
-    real,   intent(in)           :: value1,value2
-    real,   intent(in), optional :: absTol,relTol
-    logical                      :: agreeAbsolutely,agreeRelatively
-
+    real   , intent(in   )           :: value1         , value2           
+    real   , intent(in   ), optional :: absTol         , relTol           
+    logical                          :: agreeAbsolutely, agreeRelatively  
+                                                                       
     if (.not.(present(absTol).or.present(relTol))) then
        Values_Agree_Real=(value1 == value2)
        return
@@ -94,10 +94,10 @@ contains
     !% Returns true if {\tt value1} and {\tt value2} agree to within {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
-    double precision, intent(in)           :: value1,value2
-    double precision, intent(in), optional :: absTol,relTol
-    logical                                :: agreeAbsolutely,agreeRelatively
-
+    double precision, intent(in   )           :: value1         , value2           
+    double precision, intent(in   ), optional :: absTol         , relTol           
+    logical                                   :: agreeAbsolutely, agreeRelatively  
+                                                                                
     if (.not.(present(absTol).or.present(relTol))) then
        Values_Agree_Double=(value1 == value2)
        return

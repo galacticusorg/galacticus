@@ -22,17 +22,17 @@ function PositionPresetPosition(self)
   use Numerical_Interpolation
   use FGSL
   implicit none
-  double precision                  , dimension(:), allocatable  :: PositionPresetPosition
-  class(nodeComponentPositionPreset), intent(inout)              :: self
-  type (treeNode                   ), pointer                    :: selfNode
-  class(nodeComponentBasic         ), pointer                    :: selfBasicComponent
-  integer                           , parameter                  :: historyBegin=1,historyEnd=3
-  integer                                                        :: iTime
-  logical                                                        :: usingHistory,interpolationReset
-  type (fgsl_interp_accel)                                       :: interpolationAccelerator
-  type (history)                                                 :: positionHistory
+  double precision                             , allocatable  , dimension(:) :: PositionPresetPosition                      
+  class           (nodeComponentPositionPreset), intent(inout)               :: self                                        
+  type            (treeNode                   ), pointer                     :: selfNode                                    
+  class           (nodeComponentBasic         ), pointer                     :: selfBasicComponent                          
+  integer                                      , parameter                   :: historyBegin            =1, historyEnd  =3  
+  integer                                                                    :: iTime                                       
+  logical                                                                    :: interpolationReset        , usingHistory    
+  type            (fgsl_interp_accel          )                              :: interpolationAccelerator                    
+  type            (history                    )                              :: positionHistory                             
   
-  ! Check if this node has a position history attached to it.
+  ! Check if this node has a position history attached to it.                                                                                                                       
   usingHistory   =.false.
   positionHistory=self%positionHistory()
   if (positionHistory%exists()) then
@@ -56,17 +56,17 @@ function PositionPresetVelocity(self)
   use Numerical_Interpolation
   use FGSL
   implicit none
-  double precision                  , dimension(:), allocatable  :: PositionPresetVelocity
-  class(nodeComponentPositionPreset), intent(inout)              :: self
-  type (treeNode                   ), pointer                    :: selfNode
-  class(nodeComponentBasic         ), pointer                    :: selfBasicComponent
-  integer                           , parameter                  :: historyBegin=4,historyEnd=6
-  integer                                                        :: iTime
-  logical                                                        :: usingHistory,interpolationReset
-  type (fgsl_interp_accel)                                       :: interpolationAccelerator
-  type (history)                                                 :: positionHistory
+  double precision                             , allocatable  , dimension(:) :: PositionPresetVelocity                      
+  class           (nodeComponentPositionPreset), intent(inout)               :: self                                        
+  type            (treeNode                   ), pointer                     :: selfNode                                    
+  class           (nodeComponentBasic         ), pointer                     :: selfBasicComponent                          
+  integer                                      , parameter                   :: historyBegin            =4, historyEnd  =6  
+  integer                                                                    :: iTime                                       
+  logical                                                                    :: interpolationReset        , usingHistory    
+  type            (fgsl_interp_accel          )                              :: interpolationAccelerator                    
+  type            (history                    )                              :: positionHistory                             
   
-  ! Check if this node has a position history attached to it.
+  ! Check if this node has a position history attached to it.                                                                                                                       
   usingHistory   =.false.
   positionHistory=self%positionHistory()
   if (positionHistory%exists()) then

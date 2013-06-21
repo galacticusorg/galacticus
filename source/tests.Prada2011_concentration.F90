@@ -29,17 +29,17 @@ program Test_Prada2011_Concentration
   use Galacticus_Nodes
   use Unit_Tests
   implicit none
-  type (mergerTree        ), pointer                         :: thisTree
-  type (treeNode          ), pointer                         :: thisNode
-  class(nodeComponentBasic), pointer :: thisBasicComponent
-  type (varying_string    )                                  :: parameterFile,message
-  integer                  ,                       parameter :: massCount=4
-  double precision         , dimension(massCount), parameter :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]
-  double precision         , dimension(massCount), parameter :: pradaLogConcentration=[ 0.966d0, 0.887d0, 0.804d0, 0.728d0]
-  double precision         , dimension(massCount)            :: ourLogConcentration
-  integer                                                    :: iMass
-
-  ! Read in basic code memory usage.
+  type            (mergerTree        )                                 , pointer :: thisTree                                                                    
+  type            (treeNode          )                                 , pointer :: thisNode                                                                    
+  class           (nodeComponentBasic)                                 , pointer :: thisBasicComponent                                                          
+  type            (varying_string    )                                           :: message                                                    , parameterFile  
+  integer                                                   , parameter          :: massCount            =4                                                     
+  double precision                    , dimension(massCount), parameter          :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]                 
+  double precision                    , dimension(massCount), parameter          :: pradaLogConcentration=[0.966d0,0.887d0,0.804d0,0.728d0]                     
+  double precision                    , dimension(massCount)                     :: ourLogConcentration                                                         
+  integer                                                                        :: iMass                                                                       
+  
+  ! Read in basic code memory usage.                                                                                                                                                           
   call Code_Memory_Usage('tests.Prada2011_concentration.size')
 
   ! Begin unit tests.

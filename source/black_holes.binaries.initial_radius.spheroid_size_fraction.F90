@@ -26,8 +26,8 @@ module Black_Hole_Binary_Initial_Radii_Spheroid_Size
   public :: Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize
 
   ! The fraction of the spheroid radius at which merging black holes should be placed.
-  double precision :: blackHoleInitialRadiusSpheroidRadiusRatio
-
+  double precision :: blackHoleInitialRadiusSpheroidRadiusRatio  
+                                                              
 contains
 
   !# <blackHoleBinaryInitialRadiiMethod>
@@ -38,9 +38,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: blackHoleBinaryInitialRadiiMethod
-    procedure(Black_Hole_Binary_Initial_Radius_Spheroid_Size), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
-    
+    type     (varying_string                                ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod     
+    procedure(Black_Hole_Binary_Initial_Radius_Spheroid_Size), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get  
+                                                                                                                            
     if (blackHoleBinaryInitialRadiiMethod == 'spheroidRadiusFraction') then
        Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Spheroid_Size
        !@ <inputParameter>
@@ -63,10 +63,10 @@ contains
     !% host and satellite spheroids.
     use Galacticus_Nodes
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode,hostNode
-    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent,hostSpheroidComponent
-
-    ! Get the spheroid components.
+    type (treeNode             ), intent(inout), pointer :: hostNode             , thisNode               
+    class(nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent  
+    
+    ! Get the spheroid components.                                                                                                   
     thisSpheroidComponent => thisNode%spheroid()
     hostSpheroidComponent => hostNode%spheroid()
     ! Compute the initial radius.

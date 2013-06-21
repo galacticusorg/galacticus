@@ -25,12 +25,13 @@ module Power_Spectrum_Tasks
   public :: Power_Spectrum_Compute, Power_Spectrum_Open_File, Power_Spectrum_Close_File, Power_Spectrum_Output
   
   ! HDF5 object for the output file.
-  type(hdf5Object), public :: powerSpectrumOutputFile
-
+  type            (hdf5Object), public                    :: powerSpectrumOutputFile                                  
+  
   ! Arrays of power spectrum data.
-  double precision, allocatable, dimension(:) :: powerSpectrum_wavenumber,powerSpectrum_power,powerSpectrum_sigma&
-       &,powerSpectrum_sigmaGradient,powerSpectrum_mass
-
+  double precision            , allocatable, dimension(:) :: powerSpectrum_mass      , powerSpectrum_power        , & 
+       &                                                     powerSpectrum_sigma     , powerSpectrum_sigmaGradient, & 
+       &                                                     powerSpectrum_wavenumber                                 
+  
 contains
   
   subroutine Power_Spectrum_Open_File(outputFileName)
@@ -38,8 +39,8 @@ contains
     use ISO_Varying_String
     use HDF5
     implicit none
-    type(varying_string), intent(in) :: outputFileName
-
+    type(varying_string), intent(in   ) :: outputFileName 
+    
     ! Open the output file.
     call powerSpectrumOutputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
     
@@ -66,20 +67,11 @@ contains
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none
-    integer          :: powerSpectraPointsPerDecade,powerSpectraCount,iWavenumber
-    double precision :: powerSpectraWavenumberMinimum,powerSpectraWavenumberMaximum
-
-    ! Find the wavenumber range and increment size.
-    !@ <inputParameter>
-    !@   <name>powerSpectraWavenumberMinimum</name>
-    !@   <defaultValue>$10^{-3}$ Mpc$^{-1}$</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The minimum wavenumber at which to tabulate power spectra.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
+    integer          :: iWavenumber                  , powerSpectraCount            , & 
+         &              powerSpectraPointsPerDecade                                     
+    double precision :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum    
+    
+    ! Find the wavenumber range and increment size.    !@ <inputParameter>    !@   <name>powerSpectraWavenumberMinimum</name>    !@   <defaultValue>$10^{-3}$ Mpc$^{-1}$</defaultValue>    !@   <attachedTo>module</attachedTo>    !@   <description>    !@     The minimum wavenumber at which to tabulate power spectra.    !@   </description>    !@   <type>real</type>    !@   <cardinality>1</cardinality>    !@ </inputParameter>
     call Get_Input_Parameter('powerSpectraWavenumberMinimum',powerSpectraWavenumberMinimum,defaultValue=1.0d-3)
     !@ <inputParameter>
     !@   <name>powerSpectraWavenumberMaximum</name>
@@ -136,8 +128,8 @@ contains
     !% Outputs power spectrum data.
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: thisDataset,powerSpectrumGroup
-
+    type(hdf5Object) :: powerSpectrumGroup, thisDataset 
+    
     ! Write power spectrum datasets.
     powerSpectrumGroup=powerSpectrumOutputFile%openGroup('powerSpectrum','Group containing datasets relating to&
          & the power spectrum.')

@@ -30,45 +30,45 @@ module IO_HDF5
   public :: hdf5Object, IO_HDF5_Set_Defaults
 
   ! Record of initialization of this module.
-  logical :: hdf5IsInitalized=.false.
-  integer :: initializationsCount=0
-
+  logical                                                :: hdf5IsInitalized       =.false. 
+  integer                                                :: initializationsCount   =0       
+  
   ! Type of HDF5 objects.
-  integer, parameter :: hdf5ObjectTypeNull     =0
-  integer, parameter :: hdf5ObjectTypeFile     =1
-  integer, parameter :: hdf5ObjectTypeGroup    =2
-  integer, parameter :: hdf5ObjectTypeDataset  =3
-  integer, parameter :: hdf5ObjectTypeAttribute=4
-
+  integer                            , parameter         :: hdf5ObjectTypeNull     =0       
+  integer                            , parameter         :: hdf5ObjectTypeFile     =1       
+  integer                            , parameter         :: hdf5ObjectTypeGroup    =2       
+  integer                            , parameter         :: hdf5ObjectTypeDataset  =3       
+  integer                            , parameter         :: hdf5ObjectTypeAttribute=4       
+  
   ! Data types.
-  integer, parameter, public :: hdf5DataTypeNull     =0
-  integer, parameter, public :: hdf5DataTypeInteger  =1
-  integer, parameter, public :: hdf5DataTypeInteger8 =2
-  integer, parameter, public :: hdf5DataTypeDouble   =3
-  integer, parameter, public :: hdf5DataTypeCharacter=4
-
+  integer                            , parameter, public :: hdf5DataTypeNull       =0       
+  integer                            , parameter, public :: hdf5DataTypeInteger    =1       
+  integer                            , parameter, public :: hdf5DataTypeInteger8   =2       
+  integer                            , parameter, public :: hdf5DataTypeDouble     =3       
+  integer                            , parameter, public :: hdf5DataTypeCharacter  =4       
+  
   ! Chunking and compression parameters.
-  integer                    :: hdf5CompressionLevel=-1
-  integer(kind=HSIZE_T)      :: hdf5ChunkSize       =-1
-
+  integer                                                :: hdf5CompressionLevel   =-1      
+  integer(kind=HSIZE_T)                                  :: hdf5ChunkSize          =-1      
+  
   ! Arrays of compatible datatypes.
-  integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_DOUBLES
-  integer(kind=HID_T), public, dimension(5) :: H5T_NATIVE_INTEGERS
-  integer(kind=HID_T), public, dimension(3) :: H5T_NATIVE_INTEGER_8S
-  integer(kind=HID_T), public, dimension(8) :: H5T_NATIVE_INTEGER_8AS
-
+  integer(kind=HID_T  ), dimension(5)           , public :: H5T_NATIVE_DOUBLES              
+  integer(kind=HID_T  ), dimension(5)           , public :: H5T_NATIVE_INTEGERS             
+  integer(kind=HID_T  ), dimension(3)           , public :: H5T_NATIVE_INTEGER_8S           
+  integer(kind=HID_T  ), dimension(8)           , public :: H5T_NATIVE_INTEGER_8AS          
+  
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
      private
-     logical                   :: isOpenValue
-     logical                   :: isOverwritable
-     integer(kind=HID_T)       :: objectID
-     type(varying_string)      :: objectLocation
-     type(varying_string)      :: objectName
-     integer                   :: hdf5ObjectType
-     integer                   :: chunkSize   ,compressionLevel
-     logical                   :: chunkSizeSet,compressionLevelSet
-     type(hdf5Object), pointer :: parentObject
+     logical                          :: isOpenValue                         
+     logical                          :: isOverwritable                      
+     integer(kind=HID_T    )          :: objectID                            
+     type   (varying_string)          :: objectLocation                      
+     type   (varying_string)          :: objectName                          
+     integer                          :: hdf5ObjectType                      
+     integer                          :: chunkSize     , compressionLevel    
+     logical                          :: chunkSizeSet  , compressionLevelSet 
+     type   (hdf5Object    ), pointer :: parentObject                        
    contains
      !@ <objectMethods>
      !@   <object>hdf5Object</object>
@@ -229,23 +229,23 @@ module IO_HDF5
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} attributeName\argin, \intzero\ [attributeDataType]\argin,  \textcolor{red}{\textless integer(kind=HSIZE\_T)(:)\textgreater} [attributeDimensions]\argin, \logicalzero\ [isOverwritable]\argin, \textcolor{red}{\textless integer(kind=HID\_T)\textgreater} [useDataType]\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: destroy             => IO_HDF5_Destroy  
-     procedure :: pathTo              => IO_HDF5_Path_To
-     procedure :: openFile            => IO_HDF5_Open_File
-     procedure :: openGroup           => IO_HDF5_Open_Group
-     procedure :: openDataset         => IO_HDF5_Open_Dataset
-     procedure :: openAttribute       => IO_HDF5_Open_Attribute
-     procedure :: close               => IO_HDF5_Close
-     procedure :: IO_HDF5_Write_Attribute_Integer_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Integer_1D
-     procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Integer8_1D
-     procedure :: IO_HDF5_Write_Attribute_Double_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Double_1D
-     procedure :: IO_HDF5_Write_Attribute_Character_Scalar
-     procedure :: IO_HDF5_Write_Attribute_Character_1D
-     procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
-     procedure :: IO_HDF5_Write_Attribute_VarString_1D
+     procedure :: destroy                                 =>IO_HDF5_Destroy        
+     procedure :: pathTo                                  =>IO_HDF5_Path_To        
+     procedure :: openFile                                =>IO_HDF5_Open_File      
+     procedure :: openGroup                               =>IO_HDF5_Open_Group     
+     procedure :: openDataset                             =>IO_HDF5_Open_Dataset   
+     procedure :: openAttribute                           =>IO_HDF5_Open_Attribute 
+     procedure :: close                                   =>IO_HDF5_Close          
+     procedure :: IO_HDF5_Write_Attribute_Integer_Scalar                           
+     procedure :: IO_HDF5_Write_Attribute_Integer_1D                               
+     procedure :: IO_HDF5_Write_Attribute_Integer8_Scalar                          
+     procedure :: IO_HDF5_Write_Attribute_Integer8_1D                              
+     procedure :: IO_HDF5_Write_Attribute_Double_Scalar                            
+     procedure :: IO_HDF5_Write_Attribute_Double_1D                                
+     procedure :: IO_HDF5_Write_Attribute_Character_Scalar                         
+     procedure :: IO_HDF5_Write_Attribute_Character_1D                             
+     procedure :: IO_HDF5_Write_Attribute_VarString_Scalar                         
+     procedure :: IO_HDF5_Write_Attribute_VarString_1D                             
      generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Integer_Scalar  , &
           &                              IO_HDF5_Write_Attribute_Integer_1D      , &
           &                              IO_HDF5_Write_Attribute_Integer8_Scalar , &
@@ -256,15 +256,15 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
           &                              IO_HDF5_Write_Attribute_VarString_1D
-     procedure :: IO_HDF5_Write_Dataset_Integer_1D
-     procedure :: IO_HDF5_Write_Dataset_Integer8_1D
-     procedure :: IO_HDF5_Write_Dataset_Double_1D
-     procedure :: IO_HDF5_Write_Dataset_Double_2D
-     procedure :: IO_HDF5_Write_Dataset_Double_3D
-     procedure :: IO_HDF5_Write_Dataset_Double_4D
-     procedure :: IO_HDF5_Write_Dataset_Double_5D
-     procedure :: IO_HDF5_Write_Dataset_Character_1D
-     procedure :: IO_HDF5_Write_Dataset_VarString_1D
+     procedure :: IO_HDF5_Write_Dataset_Integer_1D   
+     procedure :: IO_HDF5_Write_Dataset_Integer8_1D  
+     procedure :: IO_HDF5_Write_Dataset_Double_1D    
+     procedure :: IO_HDF5_Write_Dataset_Double_2D    
+     procedure :: IO_HDF5_Write_Dataset_Double_3D    
+     procedure :: IO_HDF5_Write_Dataset_Double_4D    
+     procedure :: IO_HDF5_Write_Dataset_Double_5D    
+     procedure :: IO_HDF5_Write_Dataset_Character_1D 
+     procedure :: IO_HDF5_Write_Dataset_VarString_1D 
      generic   :: writeDataset        => IO_HDF5_Write_Dataset_Integer_1D        , &
           &                              IO_HDF5_Write_Dataset_Integer8_1D       , &
           &                              IO_HDF5_Write_Dataset_Double_1D         , &
@@ -274,21 +274,21 @@ module IO_HDF5
           &                              IO_HDF5_Write_Dataset_Double_5D         , &
           &                              IO_HDF5_Write_Dataset_Character_1D      , &
           &                              IO_HDF5_Write_Dataset_VarString_1D
-     procedure :: IO_HDF5_Read_Attribute_Integer_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_Integer8_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_Double_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_Character_Scalar
-     procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Static
-     procedure :: IO_HDF5_Read_Attribute_VarString_Scalar
-     procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Static
+     procedure :: IO_HDF5_Read_Attribute_Integer_Scalar                 
+     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable   
+     procedure :: IO_HDF5_Read_Attribute_Integer_1D_Array_Static        
+     procedure :: IO_HDF5_Read_Attribute_Integer8_Scalar                
+     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Allocatable  
+     procedure :: IO_HDF5_Read_Attribute_Integer8_1D_Array_Static       
+     procedure :: IO_HDF5_Read_Attribute_Double_Scalar                  
+     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Attribute_Double_1D_Array_Static         
+     procedure :: IO_HDF5_Read_Attribute_Character_Scalar               
+     procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable 
+     procedure :: IO_HDF5_Read_Attribute_Character_1D_Array_Static      
+     procedure :: IO_HDF5_Read_Attribute_VarString_Scalar               
+     procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Allocatable 
+     procedure :: IO_HDF5_Read_Attribute_VarString_1D_Array_Static      
      generic   :: readAttribute       => IO_HDF5_Read_Attribute_Integer_Scalar                , &
           &                              IO_HDF5_Read_Attribute_Integer_1D_Array_Allocatable  , &
           &                              IO_HDF5_Read_Attribute_Integer8_Scalar               , &
@@ -304,24 +304,24 @@ module IO_HDF5
           &                              IO_HDF5_Read_Attribute_Double_1D_Array_Static        , &
           &                              IO_HDF5_Read_Attribute_Character_1D_Array_Static     , &
           &                              IO_HDF5_Read_Attribute_VarString_1D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Integer8_1D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Double_1D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Double_2D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Double_3D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Double_4D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Double_5D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_Character_1D_Array_Static
-     procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
-     procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Static
+     procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable   
+     procedure :: IO_HDF5_Read_Dataset_Integer_1D_Array_Static        
+     procedure :: IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable  
+     procedure :: IO_HDF5_Read_Dataset_Integer8_1D_Array_Static       
+     procedure :: IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Dataset_Double_1D_Array_Static         
+     procedure :: IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Dataset_Double_2D_Array_Static         
+     procedure :: IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Dataset_Double_3D_Array_Static         
+     procedure :: IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Dataset_Double_4D_Array_Static         
+     procedure :: IO_HDF5_Read_Dataset_Double_5D_Array_Allocatable    
+     procedure :: IO_HDF5_Read_Dataset_Double_5D_Array_Static         
+     procedure :: IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable 
+     procedure :: IO_HDF5_Read_Dataset_Character_1D_Array_Static      
+     procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable 
+     procedure :: IO_HDF5_Read_Dataset_VarString_1D_Array_Static      
      generic   :: readDataset         => IO_HDF5_Read_Dataset_Integer_1D_Array_Allocatable    , &
           &                              IO_HDF5_Read_Dataset_Integer8_1D_Array_Allocatable   , &
           &                              IO_HDF5_Read_Dataset_Double_1D_Array_Allocatable     , &
@@ -340,19 +340,19 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Double_5D_Array_Static          , &
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
-     procedure :: size                => IO_HDF5_Dataset_Size
-     procedure :: hasAttribute        => IO_HDF5_Has_Attribute
-     procedure :: hasGroup            => IO_HDF5_Has_Group
-     procedure :: hasDataset          => IO_HDF5_Has_Dataset
-     procedure :: assertAttributeType => IO_HDF5_Assert_Attribute_Type
-     procedure :: assertDatasetType   => IO_HDF5_Assert_Dataset_Type
-     procedure :: isReference         => IO_HDF5_Is_Reference
-     procedure :: isOpen              => IO_HDF5_Is_Open
-     procedure :: createReference1D   => IO_HDF5_Create_Reference_Scalar_To_1D
-     procedure :: createReference2D   => IO_HDF5_Create_Reference_Scalar_To_2D
-     procedure :: createReference3D   => IO_HDF5_Create_Reference_Scalar_To_3D
-     procedure :: createReference4D   => IO_HDF5_Create_Reference_Scalar_To_4D
-     procedure :: createReference5D   => IO_HDF5_Create_Reference_Scalar_To_5D
+     procedure :: size               =>IO_HDF5_Dataset_Size                  
+     procedure :: hasAttribute       =>IO_HDF5_Has_Attribute                 
+     procedure :: hasGroup           =>IO_HDF5_Has_Group                     
+     procedure :: hasDataset         =>IO_HDF5_Has_Dataset                   
+     procedure :: assertAttributeType=>IO_HDF5_Assert_Attribute_Type         
+     procedure :: assertDatasetType  =>IO_HDF5_Assert_Dataset_Type           
+     procedure :: isReference        =>IO_HDF5_Is_Reference                  
+     procedure :: isOpen             =>IO_HDF5_Is_Open                       
+     procedure :: createReference1D  =>IO_HDF5_Create_Reference_Scalar_To_1D 
+     procedure :: createReference2D  =>IO_HDF5_Create_Reference_Scalar_To_2D 
+     procedure :: createReference3D  =>IO_HDF5_Create_Reference_Scalar_To_3D 
+     procedure :: createReference4D  =>IO_HDF5_Create_Reference_Scalar_To_4D 
+     procedure :: createReference5D  =>IO_HDF5_Create_Reference_Scalar_To_5D 
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API.
@@ -360,35 +360,37 @@ module IO_HDF5
      function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
        !% Template for a C function that returns the H5T_C_S1 datatype ID.
        import
-       integer(hid_t)        :: H5T_C_S1_Get
+       integer(kind=hid_t) :: H5T_C_S1_Get 
      end function H5T_C_S1_Get     
      function H5Awrite(attr_id,mem_type_id,buf) bind(c, name='H5Awrite')
        !% Template for the HDF5 C API attribute write function.
        import
-       integer(c_int)        :: H5Awrite
-       integer(c_int), value :: attr_id,mem_type_id
-       type(c_ptr),    value :: buf
+       integer(kind=c_int)        :: H5Awrite              
+       integer(kind=c_int), value :: attr_id , mem_type_id 
+       type   (c_ptr     ), value :: buf                   
      end function H5Awrite
      function H5Aread(attr_id,mem_type_id,buf) bind(c, name='H5Aread')
        !% Template for the HDF5 C API attribute read function.
        import
-       integer(c_int)        :: H5Aread
-       integer(c_int), value :: attr_id,mem_type_id
-       type(c_ptr),    value :: buf
+       integer(kind=c_int)        :: H5Aread              
+       integer(kind=c_int), value :: attr_id, mem_type_id 
+       type   (c_ptr     ), value :: buf                  
      end function H5Aread
      function H5Dwrite(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dwrite')
        !% Template for the HDF5 C API dataset write function.
        import
-       integer(c_int)        :: H5Dwrite
-       integer(c_int), value :: dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id
-       type(c_ptr),    value :: buf
+       integer(kind=c_int)        :: H5Dwrite                                                   
+       integer(kind=c_int), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, & 
+            &                        xfer_plist_id                                              
+       type   (c_ptr     ), value :: buf                                                        
      end function H5Dwrite
      function H5Dread(dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id,buf) bind(c, name='H5Dread')
        !% Template for the HDF5 C API dataset read function.
        import
-       integer(c_int)        :: H5Dread
-       integer(c_int), value :: dataset_id,mem_type_id,mem_space_id,file_space_id,xfer_plist_id
-       type(c_ptr),    value :: buf
+       integer(kind=c_int)        :: H5Dread                                                    
+       integer(kind=c_int), value :: dataset_id   , file_space_id, mem_space_id, mem_type_id, & 
+            &                        xfer_plist_id                                              
+       type   (c_ptr     ), value :: buf                                                        
      end function H5Dread
   end interface
 
@@ -400,8 +402,8 @@ contains
     !% Initialize the HDF5 subsystem.
     use Galacticus_Error
     implicit none
-    integer :: errorCode
-
+    integer :: errorCode 
+    
     if (.not.hdf5IsInitalized) then
        call h5open_f(errorCode)
        if (errorCode < 0) call Galacticus_Error_Report('IO_HDF5_Initialize','failed to initialize HDF5 subsystem')
@@ -425,8 +427,8 @@ contains
     !% Uninitialize the HDF5 subsystem.
     use Galacticus_Error
     implicit none
-    integer :: errorCode
-
+    integer :: errorCode 
+    
     if (hdf5IsInitalized) then
        initializationsCount=initializationsCount-1
        if (initializationsCount == 0) then
@@ -451,9 +453,9 @@ contains
     !% Sets the compression level and chunk size for dataset output.
     use Galacticus_Error
     implicit none
-    integer(kind=HSIZE_T), intent(in), optional :: chunkSize
-    integer,               intent(in), optional :: compressionLevel
-
+    integer(kind=HSIZE_T), intent(in   ), optional :: chunkSize        
+    integer              , intent(in   ), optional :: compressionLevel 
+    
     !$omp critical(HDF5_Access)
     if (present(chunkSize)) then
        if (chunkSize        ==  0) call Galacticus_Error_Report('IO_HDF5_Set_Defaults','zero chunksize is invalid'        )
@@ -473,8 +475,8 @@ contains
   subroutine IO_HDF5_Destroy(thisObject)
     !% Destroy an HDF5 object by destroying its associated varying string objects.
     implicit none
-    class(hdf5Object), intent(inout) :: thisObject
-
+    class(hdf5Object), intent(inout) :: thisObject 
+    
     call thisObject%objectLocation%destroy()
     call thisObject%objectName    %destroy()
     return
@@ -483,8 +485,8 @@ contains
   logical function IO_HDF5_Is_Open(thisObject)
     !% Returns true if {\tt thisObject} is open.
     implicit none
-    class(hdf5Object), intent(in) :: thisObject
-
+    class(hdf5Object), intent(in   ) :: thisObject 
+    
     IO_HDF5_Is_Open=thisObject%isOpenValue
     return
   end function IO_HDF5_Is_Open
@@ -492,9 +494,9 @@ contains
   function IO_HDF5_Path_To(thisObject) result (pathToObject)
     !% Returns the path to {\tt thisObject}.
     implicit none
-    class(hdf5Object),   intent(in) :: thisObject
-    type(varying_string)            :: pathToObject
-
+    class(hdf5Object    ), intent(in   ) :: thisObject   
+    type (varying_string)                :: pathToObject 
+    
     pathToObject=thisObject%objectLocation//"/"//thisObject%objectName
     return
   end function IO_HDF5_Path_To
@@ -505,14 +507,15 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    class(hdf5Object),   intent(inout)             :: thisObject
-    integer(hid_t)     , allocatable, dimension(:) :: openObjectIDs
-    integer(size_t)    , parameter                 :: objectNameSizeMaximum=1024
-    integer                                        :: errorCode
-    integer(size_t)                                :: openObjectCount,i,objectNameSize
-    type(varying_string)                           :: message
-    character(len=objectNameSizeMaximum)           :: objectName
-
+    class    (hdf5Object               ), intent(inout)               :: thisObject                                    
+    integer  (kind=hid_t               ), allocatable  , dimension(:) :: openObjectIDs                                 
+    integer  (kind=size_t              ), parameter                   :: objectNameSizeMaximum=1024                    
+    integer                                                           :: errorCode                                     
+    integer  (kind=size_t              )                              :: i                         , objectNameSize, & 
+         &                                                               openObjectCount                               
+    type     (varying_string           )                              :: message                                       
+    character(len=objectNameSizeMaximum)                              :: objectName                                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -594,11 +597,11 @@ contains
     !% Return datatypes for character data of a given length. Types are for Fortran native and C native types.
     use Galacticus_Error
     implicit none
-    integer(kind=HID_T),  dimension(2) :: IO_HDF5_Character_Types
-    integer,              intent(in)   :: stringLength
-    integer                            :: errorCode
-    type(varying_string)               :: message
-
+    integer(kind=HID_T    ), dimension(2)  :: IO_HDF5_Character_Types 
+    integer                , intent(in   ) :: stringLength            
+    integer                                :: errorCode               
+    type   (varying_string)                :: message                 
+    
     call h5tcopy_f(H5T_NATIVE_CHARACTER,IO_HDF5_Character_Types(1),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
@@ -630,15 +633,15 @@ contains
     use Galacticus_Error
     use File_Utilities
     implicit none
-    class(hdf5Object),              intent(inout) :: fileObject
-    character(len=*),     optional, intent(in)    :: fileName
-    logical,              optional, intent(in)    :: overWrite,readOnly,objectsOverwritable
-    integer,              optional, intent(in)    :: chunkSize,compressionLevel
-    integer                                       :: errorCode,fileAccess
-    logical                                       :: overWriteActual
-    type(varying_string)                          :: message
-    integer(hid_t)                                :: accessList
-
+    class    (hdf5Object    ), intent(inout)           :: fileObject                                      
+    character(len=*         ), intent(in   ), optional :: fileName                                        
+    logical                  , intent(in   ), optional :: objectsOverwritable, overWrite       , readOnly 
+    integer                  , intent(in   ), optional :: chunkSize          , compressionLevel           
+    integer                                            :: errorCode          , fileAccess                 
+    logical                                            :: overWriteActual                                 
+    type     (varying_string)                          :: message                                         
+    integer  (kind=hid_t    )                          :: accessList                                      
+    
     ! Initialize the HDF5 library.
     call IO_HDF5_Initialize
 
@@ -747,20 +750,17 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type(hdf5Object)                             :: groupObject
-    character(len=*),     intent(in)             :: groupName
-    character(len=*),     intent(in),   optional :: commentText
-    logical,              intent(in),   optional :: objectsOverwritable
-    integer,              intent(in),   optional :: chunkSize,compressionLevel
-    class(hdf5Object),    intent(in),   target   :: inObject
-    ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(varying_string), save                   :: message,locationPath
-    integer                                      :: errorCode
-    integer(kind=HID_T)                          :: locationID
-
+    type     (hdf5Object    )                          :: groupObject                           
+    character(len=*         ), intent(in   )           :: groupName                             
+    character(len=*         ), intent(in   ), optional :: commentText                           
+    logical                  , intent(in   ), optional :: objectsOverwritable                   
+    integer                  , intent(in   ), optional :: chunkSize          , compressionLevel 
+    class    (hdf5Object    ), intent(in   ), target   :: inObject                              
+    ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (varying_string), save                    :: locationPath       , message          
+    integer                                            :: errorCode                             
+    integer  (kind=HID_T    )                          :: locationID                            
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -860,11 +860,12 @@ contains
     !% Check if {\tt thisObject} has a group with the given {\tt groupName}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in) :: thisObject
-    character(len=*),    intent(in) :: groupName
-    integer                         :: errorCode,storageType,linkCount,creationOrderMaximum
-    type(varying_string)            :: message
-
+    class    (hdf5Object    ), intent(in   ) :: thisObject                                    
+    character(len=*         ), intent(in   ) :: groupName                                     
+    integer                                  :: creationOrderMaximum, errorCode, linkCount, & 
+         &                                      storageType                                   
+    type     (varying_string)                :: message                                       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -897,18 +898,19 @@ contains
     !% Open an attribute in {\tt inObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(in),   target                 :: inObject
-    type(hdf5Object)                                            :: attributeObject
-    character(len=*),      intent(in)                           :: attributeName
-    integer,               intent(in),   optional               :: attributeDataType
-    integer(kind=HSIZE_T), intent(in),   optional, dimension(:) :: attributeDimensions
-    logical,               intent(in),   optional               :: isOverwritable
-    integer(kind=HID_T),   intent(in),   optional               :: useDataType
-    integer                                                     :: errorCode,attributeRank
-    integer(kind=HID_T)                                         :: locationID,dataTypeID,dataSpaceID
-    integer(kind=HSIZE_T),                         dimension(7) :: attributeDimensionsActual
-    type(varying_string)                                        :: message,locationPath
-
+    class    (hdf5Object    )              , intent(in   ), target   :: inObject                                 
+    type     (hdf5Object    )                                        :: attributeObject                          
+    character(len=*         )              , intent(in   )           :: attributeName                            
+    integer                                , intent(in   ), optional :: attributeDataType                        
+    integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: attributeDimensions                      
+    logical                                , intent(in   ), optional :: isOverwritable                           
+    integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType                              
+    integer                                                          :: attributeRank            , errorCode     
+    integer  (kind=HID_T    )                                        :: dataSpaceID              , dataTypeID, & 
+         &                                                              locationID                               
+    integer  (kind=HSIZE_T  ), dimension(7)                          :: attributeDimensionsActual                
+    type     (varying_string)                                        :: locationPath             , message       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1016,15 +1018,15 @@ contains
     !% Open and write an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    integer,               intent(in)              :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
-    integer                                        :: errorCode
-    logical                                        :: preExisted
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-
+    class    (hdf5Object    ), intent(inout), target   :: thisObject                   
+    character(len=*         ), intent(in   ), optional :: attributeName                
+    integer                  , intent(in   )           :: attributeValue               
+    integer  (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions          
+    integer                                            :: errorCode                    
+    logical                                            :: preExisted                   
+    type     (hdf5Object    )                          :: attributeObject              
+    type     (varying_string)                          :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1092,15 +1094,15 @@ contains
     !% Open and write an integer 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target       :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    integer,               intent(in),    dimension(:) :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
-    integer                                            :: errorCode
-    logical                                            :: preExisted
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                   
+    character(len=*         )              , intent(in   ), optional :: attributeName                
+    integer                  , dimension(:), intent(in   )           :: attributeValue               
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions          
+    integer                                                          :: errorCode                    
+    logical                                                          :: preExisted                   
+    type     (hdf5Object    )                                        :: attributeObject              
+    type     (varying_string)                                        :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1172,15 +1174,15 @@ contains
     use Galacticus_Error
     use Kind_Numbers
     implicit none
-    class(hdf5Object),       intent(inout), target   :: thisObject
-    character(len=*),        intent(in),    optional :: attributeName
-    integer(kind=kind_int8), intent(in),    target   :: attributeValue
-    integer                                          :: errorCode
-    logical                                          :: preExisted
-    type(hdf5Object)                                 :: attributeObject
-    type(varying_string)                             :: message,attributeNameActual
-    type(c_ptr)                                      :: dataBuffer
-
+    class    (hdf5Object    ), intent(inout), target   :: thisObject                   
+    character(len=*         ), intent(in   ), optional :: attributeName                
+    integer  (kind=kind_int8), intent(in   ), target   :: attributeValue               
+    integer                                            :: errorCode                    
+    logical                                            :: preExisted                   
+    type     (hdf5Object    )                          :: attributeObject              
+    type     (varying_string)                          :: attributeNameActual, message 
+    type     (c_ptr         )                          :: dataBuffer                   
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1253,17 +1255,17 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class(hdf5Object),       intent(inout), target                   :: thisObject
-    character(len=*),        intent(in   ), optional                 :: attributeName
-    integer(kind=kind_int8), intent(in   ),             dimension(:) :: attributeValue
-    integer(kind=HSIZE_T),                              dimension(1) :: attributeDimensions
-    integer(kind=kind_int8), allocatable,   target,     dimension(:) :: attributeValueContiguous
-    integer                                                          :: errorCode
-    logical                                                          :: preExisted
-    type(hdf5Object)                                                 :: attributeObject
-    type(varying_string)                                             :: message,attributeNameActual
-    type(c_ptr)                                                      :: dataBuffer
-
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                        
+    character(len=*         )                           , intent(in   ), optional :: attributeName                     
+    integer  (kind=kind_int8)             , dimension(:), intent(in   )           :: attributeValue                    
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions               
+    integer  (kind=kind_int8), allocatable, dimension(:)               , target   :: attributeValueContiguous          
+    integer                                                                       :: errorCode                         
+    logical                                                                       :: preExisted                        
+    type     (hdf5Object    )                                                     :: attributeObject                   
+    type     (varying_string)                                                     :: attributeNameActual     , message 
+    type     (c_ptr         )                                                     :: dataBuffer                        
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1340,15 +1342,15 @@ contains
     !% Open and write an double scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    double precision,      intent(in)              :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
-    integer                                        :: errorCode
-    logical                                        :: preExisted
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-
+    class           (hdf5Object    ), intent(inout), target   :: thisObject                   
+    character       (len=*         ), intent(in   ), optional :: attributeName                
+    double precision                , intent(in   )           :: attributeValue               
+    integer         (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions          
+    integer                                                   :: errorCode                    
+    logical                                                   :: preExisted                   
+    type            (hdf5Object    )                          :: attributeObject              
+    type            (varying_string)                          :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1418,15 +1420,15 @@ contains
     !% Open and write an double 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    double precision,      intent(in),    dimension(:) :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
-    integer                                            :: errorCode
-    logical                                            :: preExisted
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    class           (hdf5Object    )              , intent(inout), target   :: thisObject                   
+    character       (len=*         )              , intent(in   ), optional :: attributeName                
+    double precision                , dimension(:), intent(in   )           :: attributeValue               
+    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions          
+    integer                                                                 :: errorCode                    
+    logical                                                                 :: preExisted                   
+    type            (hdf5Object    )                                        :: attributeObject              
+    type            (varying_string)                                        :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1497,16 +1499,16 @@ contains
     !% Open and write an character scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    character(len=*),      intent(in)              :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions
-    integer(kind=HID_T)                            :: dataTypeID
-    integer                                        :: errorCode
-    logical                                        :: preExisted
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-
+    class    (hdf5Object    ), intent(inout), target   :: thisObject                   
+    character(len=*         ), intent(in   ), optional :: attributeName                
+    character(len=*         ), intent(in   )           :: attributeValue               
+    integer  (kind=HSIZE_T  ), dimension(1)            :: attributeDimensions          
+    integer  (kind=HID_T    )                          :: dataTypeID                   
+    integer                                            :: errorCode                    
+    logical                                            :: preExisted                   
+    type     (hdf5Object    )                          :: attributeObject              
+    type     (varying_string)                          :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1595,16 +1597,16 @@ contains
     !% Open and write an character 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    character(len=*),      intent(in),    dimension(:) :: attributeValue
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions
-    integer(kind=HID_T)                            :: dataTypeID
-    integer                                            :: errorCode
-    logical                                            :: preExisted
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                   
+    character(len=*         )              , intent(in   ), optional :: attributeName                
+    character(len=*         ), dimension(:), intent(in   )           :: attributeValue               
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions          
+    integer  (kind=HID_T    )                                        :: dataTypeID                   
+    integer                                                          :: errorCode                    
+    logical                                                          :: preExisted                   
+    type     (hdf5Object    )                                        :: attributeObject              
+    type     (varying_string)                                        :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1687,10 +1689,10 @@ contains
     !% Open and write a varying string scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    type(varying_string),  intent(in)              :: attributeValue
-
+    class    (hdf5Object    ), intent(inout), target   :: thisObject     
+    character(len=*         ), intent(in   ), optional :: attributeName  
+    type     (varying_string), intent(in   )           :: attributeValue 
+    
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Attribute_Character_Scalar(thisObject,char(attributeValue),attributeName)
 
@@ -1701,10 +1703,10 @@ contains
     !% Open and write a varying string 1-D array attribute in {\tt thisObject}.
     use String_Handling
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    type(varying_string),  intent(in),    dimension(:) :: attributeValue
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject     
+    character(len=*         )              , intent(in   ), optional :: attributeName  
+    type     (varying_string), dimension(:), intent(in   )           :: attributeValue 
+    
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Attribute_Character_1D(thisObject,Convert_VarString_To_Char(attributeValue),attributeName)
 
@@ -1715,18 +1717,18 @@ contains
     !% Open and read an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    integer,               intent(out)             :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    logical,               intent(in),    optional :: allowPseudoScalar
-    integer,               dimension(1)            :: pseudoScalarValue
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions,attributeMaximumDimensions
-    integer(kind=HID_T)                            :: attributeDataspaceID
-    integer                                        :: errorCode
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-    logical                                        :: matches,allowPseudoScalarActual
-
+    integer                                , intent(  out)           :: attributeValue                                      
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                                          
+    character(len=*         )              , intent(in   ), optional :: attributeName                                       
+    logical                                , intent(in   ), optional :: allowPseudoScalar                                   
+    integer                  , dimension(1)                          :: pseudoScalarValue                                   
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions    , attributeMaximumDimensions 
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID                                
+    integer                                                          :: errorCode                                           
+    type     (hdf5Object    )                                        :: attributeObject                                     
+    type     (varying_string)                                        :: attributeNameActual    , message                    
+    logical                                                          :: allowPseudoScalarActual, matches                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1829,15 +1831,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    integer,               intent(out),   allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional                  :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
-    integer                                                         :: errorCode
-    integer(kind=HID_T)                                             :: attributeDataspaceID
-    type(hdf5Object)                                                :: attributeObject
-    type(varying_string)                                            :: message,attributeNameActual
-
+    integer                  , allocatable, dimension(:), intent(  out)           :: attributeValue                                   
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                                       
+    character(len=*         )                           , intent(in   ), optional :: attributeName                                    
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions 
+    integer                                                                       :: errorCode                                        
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID                             
+    type     (hdf5Object    )                                                     :: attributeObject                                  
+    type     (varying_string)                                                     :: attributeNameActual , message                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -1924,15 +1926,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    integer,               intent(out),   dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
-    integer                                            :: errorCode
-    integer(kind=HID_T)                                :: attributeDataspaceID
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    integer                  , dimension(:), intent(  out)           :: attributeValue                                   
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                                       
+    character(len=*         )              , intent(in   ), optional :: attributeName                                    
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions 
+    integer                                                          :: errorCode                                        
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID                             
+    type     (hdf5Object    )                                        :: attributeObject                                  
+    type     (varying_string)                                        :: attributeNameActual , message                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2021,19 +2023,19 @@ contains
     use Kind_Numbers
     use Galacticus_Error
     implicit none
-    integer(kind=kind_int8), intent(out),   target   :: attributeValue
-    class(hdf5Object),       intent(inout), target   :: thisObject
-    character(len=*),        intent(in),    optional :: attributeName
-    logical,                 intent(in),    optional :: allowPseudoScalar
-    integer(kind=kind_int8), dimension(1)            :: pseudoScalarValue
-    integer(kind=HSIZE_T),   dimension(1)            :: attributeDimensions,attributeMaximumDimensions
-    integer(kind=HID_T)                              :: attributeDataspaceID
-    integer                                          :: errorCode
-    type(hdf5Object)                                 :: attributeObject
-    type(varying_string)                             :: message,attributeNameActual
-    logical                                          :: matches,allowPseudoScalarActual
-    type(c_ptr)                                      :: dataBuffer
-
+    integer  (kind=kind_int8)              , intent(  out)          , target :: attributeValue                                      
+    class    (hdf5Object    )              , intent(inout)          , target :: thisObject                                          
+    character(len=*         )              , intent(in   ), optional         :: attributeName                                       
+    logical                                , intent(in   ), optional         :: allowPseudoScalar                                   
+    integer  (kind=kind_int8), dimension(1)                                  :: pseudoScalarValue                                   
+    integer  (kind=HSIZE_T  ), dimension(1)                                  :: attributeDimensions    , attributeMaximumDimensions 
+    integer  (kind=HID_T    )                                                :: attributeDataspaceID                                
+    integer                                                                  :: errorCode                                           
+    type     (hdf5Object    )                                                :: attributeObject                                     
+    type     (varying_string)                                                :: attributeNameActual    , message                    
+    logical                                                                  :: allowPseudoScalarActual, matches                    
+    type     (c_ptr         )                                                :: dataBuffer                                          
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2137,16 +2139,16 @@ contains
     use Memory_Management
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), intent(out),   target,  allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),        intent(in),    optional                           :: attributeName
-    integer(kind=HSIZE_T),                                        dimension(1) :: attributeDimensions,attributeMaximumDimensions
-    integer                                                                    :: errorCode
-    integer(kind=HID_T)                                                        :: attributeDataspaceID
-    type(hdf5Object)                                                           :: attributeObject
-    type(varying_string)                                                       :: message,attributeNameActual
-    type(c_ptr)                                                                :: dataBuffer
-
+    integer  (kind=kind_int8), allocatable, dimension(:), intent(  out), target   :: attributeValue                                   
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                                       
+    character(len=*         )                           , intent(in   ), optional :: attributeName                                    
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions 
+    integer                                                                       :: errorCode                                        
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID                             
+    type     (hdf5Object    )                                                     :: attributeObject                                  
+    type     (varying_string)                                                     :: attributeNameActual , message                    
+    type     (c_ptr         )                                                     :: dataBuffer                                       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2234,17 +2236,17 @@ contains
     use Memory_Management
     use Kind_Numbers
     implicit none
-    integer(kind=kind_int8), intent(out),             dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),        intent(in),    optional               :: attributeName
-    integer(kind=HSIZE_T),   dimension(1)                          :: attributeDimensions,attributeMaximumDimensions
-    integer(kind=kind_int8), allocatable,   target,   dimension(:) :: attributeValueContiguous
-    integer                                                        :: errorCode
-    integer(kind=HID_T)                                            :: attributeDataspaceID
-    type(hdf5Object)                                               :: attributeObject
-    type(varying_string)                                           :: message,attributeNameActual
-    type(c_ptr)                                                    :: dataBuffer
-
+    integer  (kind=kind_int8)             , dimension(:), intent(  out)           :: attributeValue                                       
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                                           
+    character(len=*         )                           , intent(in   ), optional :: attributeName                                        
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions     , attributeMaximumDimensions 
+    integer  (kind=kind_int8), allocatable, dimension(:)               , target   :: attributeValueContiguous                             
+    integer                                                                       :: errorCode                                            
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID                                 
+    type     (hdf5Object    )                                                     :: attributeObject                                      
+    type     (varying_string)                                                     :: attributeNameActual     , message                    
+    type     (c_ptr         )                                                     :: dataBuffer                                           
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2336,18 +2338,18 @@ contains
     !% Open and read an double scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    double precision,      intent(out)             :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    logical,               intent(in),    optional :: allowPseudoScalar
-    integer(kind=HSIZE_T), dimension(1)            :: attributeDimensions,attributeMaximumDimensions
-    double precision,      dimension(1)            :: pseudoScalarValue
-    integer(kind=HID_T)                            :: attributeDataspaceID
-    integer                                        :: errorCode
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-    logical                                        :: matches,allowPseudoScalarActual
-
+    double precision                              , intent(  out)           :: attributeValue                                      
+    class           (hdf5Object    )              , intent(inout), target   :: thisObject                                          
+    character       (len=*         )              , intent(in   ), optional :: attributeName                                       
+    logical                                       , intent(in   ), optional :: allowPseudoScalar                                   
+    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions    , attributeMaximumDimensions 
+    double precision                , dimension(1)                          :: pseudoScalarValue                                   
+    integer         (kind=HID_T    )                                        :: attributeDataspaceID                                
+    integer                                                                 :: errorCode                                           
+    type            (hdf5Object    )                                        :: attributeObject                                     
+    type            (varying_string)                                        :: attributeNameActual    , message                    
+    logical                                                                 :: allowPseudoScalarActual, matches                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2450,15 +2452,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,      intent(out),   allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional                  :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
-    integer                                                         :: errorCode
-    integer(kind=HID_T)                                             :: attributeDataspaceID
-    type(hdf5Object)                                                :: attributeObject
-    type(varying_string)                                            :: message,attributeNameActual
-
+    double precision                , allocatable, dimension(:), intent(  out)           :: attributeValue                                   
+    class           (hdf5Object    )                           , intent(inout), target   :: thisObject                                       
+    character       (len=*         )                           , intent(in   ), optional :: attributeName                                    
+    integer         (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions 
+    integer                                                                              :: errorCode                                        
+    integer         (kind=HID_T    )                                                     :: attributeDataspaceID                             
+    type            (hdf5Object    )                                                     :: attributeObject                                  
+    type            (varying_string)                                                     :: attributeNameActual , message                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2545,15 +2547,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,      intent(out),   dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
-    integer                                            :: errorCode
-    integer(kind=HID_T)                                :: attributeDataspaceID
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    double precision                , dimension(:), intent(  out)           :: attributeValue                                   
+    class           (hdf5Object    )              , intent(inout), target   :: thisObject                                       
+    character       (len=*         )              , intent(in   ), optional :: attributeName                                    
+    integer         (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions 
+    integer                                                                 :: errorCode                                        
+    integer         (kind=HID_T    )                                        :: attributeDataspaceID                             
+    type            (hdf5Object    )                                        :: attributeObject                                  
+    type            (varying_string)                                        :: attributeNameActual , message                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2641,19 +2643,19 @@ contains
     !% Open and read an character scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    character(len=*),                   intent(out)             :: attributeValue
-    class(hdf5Object),                  intent(inout), target   :: thisObject
-    character(len=*),                   intent(in),    optional :: attributeName
-    logical,                            intent(in),    optional :: allowPseudoScalar
-    integer(kind=HSIZE_T),              dimension(1)            :: attributeDimensions,attributeMaximumDimensions
-    character(len=len(attributeValue)), dimension(1)            :: pseudoScalarValue
-    integer(kind=HID_T)                                         :: attributeDataspaceID
-    integer(kind=HID_T)                                         :: dataTypeID(2)
-    integer                                                     :: errorCode
-    type(hdf5Object)                                            :: attributeObject
-    type(varying_string)                                        :: message,attributeNameActual
-    logical                                                     :: matches,allowPseudoScalarActual
-
+    character(len=*                  )              , intent(  out)           :: attributeValue                                         
+    class    (hdf5Object             )              , intent(inout), target   :: thisObject                                             
+    character(len=*                  )              , intent(in   ), optional :: attributeName                                          
+    logical                                         , intent(in   ), optional :: allowPseudoScalar                                      
+    integer  (kind=HSIZE_T           ), dimension(1)                          :: attributeDimensions       , attributeMaximumDimensions 
+    character(len=len(attributeValue)), dimension(1)                          :: pseudoScalarValue                                      
+    integer  (kind=HID_T             )                                        :: attributeDataspaceID                                   
+    integer  (kind=HID_T             )                                        :: dataTypeID             (2)                             
+    integer                                                                   :: errorCode                                              
+    type     (hdf5Object             )                                        :: attributeObject                                        
+    type     (varying_string         )                                        :: attributeNameActual       , message                    
+    logical                                                                   :: allowPseudoScalarActual   , matches                    
+    
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -2772,15 +2774,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    character(len=*),      intent(out),   allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional                  :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                             :: attributeDimensions,attributeMaximumDimensions
-    integer                                                         :: errorCode
-    integer(kind=HID_T)                                             :: attributeDataspaceID,dataTypeID(2)
-    type(hdf5Object)                                                :: attributeObject
-    type(varying_string)                                            :: message,attributeNameActual
-
+    character(len=*         ), allocatable, dimension(:), intent(  out)           :: attributeValue                                      
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                                          
+    character(len=*         )                           , intent(in   ), optional :: attributeName                                       
+    integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions    
+    integer                                                                       :: errorCode                                           
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID, dataTypeID                (2) 
+    type     (hdf5Object    )                                                     :: attributeObject                                     
+    type     (varying_string)                                                     :: attributeNameActual , message                       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2882,15 +2884,15 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    character(len=*),      intent(out),   dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    integer(kind=HSIZE_T), dimension(1)                :: attributeDimensions,attributeMaximumDimensions
-    integer                                            :: errorCode
-    integer(kind=HID_T)                                :: attributeDataspaceID,dataTypeID(2)
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    character(len=*         ), dimension(:), intent(  out)           :: attributeValue                                      
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                                          
+    character(len=*         )              , intent(in   ), optional :: attributeName                                       
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions    
+    integer                                                          :: errorCode                                           
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID, dataTypeID                (2) 
+    type     (hdf5Object    )                                        :: attributeObject                                     
+    type     (varying_string)                                        :: attributeNameActual , message                       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -2993,16 +2995,16 @@ contains
     !% Open and read an varying string scalar attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(varying_string),  intent(out)             :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional :: attributeName
-    logical,               intent(in),    optional :: allowPseudoScalar
-    integer(kind=HID_T)                            :: dataTypeID
-    integer(kind=SIZE_T)                           :: dataTypeSize
-    integer                                        :: errorCode
-    type(hdf5Object)                               :: attributeObject
-    type(varying_string)                           :: message,attributeNameActual
-
+    type     (varying_string), intent(  out)           :: attributeValue               
+    class    (hdf5Object    ), intent(inout), target   :: thisObject                   
+    character(len=*         ), intent(in   ), optional :: attributeName                
+    logical                  , intent(in   ), optional :: allowPseudoScalar            
+    integer  (kind=HID_T    )                          :: dataTypeID                   
+    integer  (kind=SIZE_T   )                          :: dataTypeSize                 
+    integer                                            :: errorCode                    
+    type     (hdf5Object    )                          :: attributeObject              
+    type     (varying_string)                          :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3080,13 +3082,13 @@ contains
     !% Open and read an varying string scalar attribute in {\tt thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
     implicit none
-    type(varying_string),       intent(out)             :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),           intent(in),    optional :: attributeName
-    logical,                    intent(in),    optional :: allowPseudoScalar
-    integer(kind=SIZE_T),       intent(in)              :: dataTypeSize
-    character(len=dataTypeSize)                         :: temporaryBuffer
-
+    type     (varying_string  ), intent(  out)           :: attributeValue    
+    class    (hdf5Object      ), intent(inout), target   :: thisObject        
+    character(len=*           ), intent(in   ), optional :: attributeName     
+    logical                    , intent(in   ), optional :: allowPseudoScalar 
+    integer  (kind=SIZE_T     ), intent(in   )           :: dataTypeSize      
+    character(len=dataTypeSize)                          :: temporaryBuffer   
+    
     ! Call the character version of this routine to perform the red.
     call IO_HDF5_Read_Attribute_Character_Scalar(thisObject,attributeName,temporaryBuffer,allowPseudoScalar)
 
@@ -3100,15 +3102,15 @@ contains
     !% Open and read an varying string 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(varying_string),  intent(out),   allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional                  :: attributeName
-    integer(kind=HID_T)                                             :: dataTypeID
-    integer(kind=SIZE_T)                                            :: dataTypeSize
-    integer                                                         :: errorCode
-    type(hdf5Object)                                                :: attributeObject
-    type(varying_string)                                            :: message,attributeNameActual
-
+    type     (varying_string), allocatable, dimension(:), intent(  out)           :: attributeValue               
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                   
+    character(len=*         )                           , intent(in   ), optional :: attributeName                
+    integer  (kind=HID_T    )                                                     :: dataTypeID                   
+    integer  (kind=SIZE_T   )                                                     :: dataTypeSize                 
+    integer                                                                       :: errorCode                    
+    type     (hdf5Object    )                                                     :: attributeObject              
+    type     (varying_string)                                                     :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3187,12 +3189,12 @@ contains
     !% which it can be read.
     use Memory_Management
     implicit none
-    type(varying_string),        intent(out),   allocatable, dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),            intent(in),    optional                  :: attributeName
-    integer(kind=SIZE_T),        intent(in)                               :: dataTypeSize
-    character(len=dataTypeSize),                allocatable, dimension(:) :: temporaryBuffer
-
+    type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: attributeValue  
+    class    (hdf5Object      )                           , intent(inout), target   :: thisObject      
+    character(len=*           )                           , intent(in   ), optional :: attributeName   
+    integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize    
+    character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer 
+    
     ! Call the character version of this routine to perform the red.
     call IO_HDF5_Read_Attribute_Character_1D_Array_Allocatable(thisObject,attributeName,temporaryBuffer)
 
@@ -3209,15 +3211,15 @@ contains
     !% Open and read an varying string 1-D array attribute in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(varying_string),  intent(out),   dimension(:) :: attributeValue
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: attributeName
-    integer(kind=HID_T)                                :: dataTypeID
-    integer(kind=SIZE_T)                               :: dataTypeSize
-    integer                                            :: errorCode
-    type(hdf5Object)                                   :: attributeObject
-    type(varying_string)                               :: message,attributeNameActual
-
+    type     (varying_string), dimension(:), intent(  out)           :: attributeValue               
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                   
+    character(len=*         )              , intent(in   ), optional :: attributeName                
+    integer  (kind=HID_T    )                                        :: dataTypeID                   
+    integer  (kind=SIZE_T   )                                        :: dataTypeSize                 
+    integer                                                          :: errorCode                    
+    type     (hdf5Object    )                                        :: attributeObject              
+    type     (varying_string)                                        :: attributeNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3296,12 +3298,12 @@ contains
     !% which it can be read.
     use Memory_Management
     implicit none
-    type(varying_string),        intent(out),   dimension(:)                    :: attributeValue
-    class(hdf5Object),           intent(inout), target                          :: thisObject
-    character(len=*),            intent(in),    optional                        :: attributeName
-    integer(kind=SIZE_T),        intent(in)                                     :: dataTypeSize
-    character(len=dataTypeSize),                dimension(size(attributeValue)) :: temporaryBuffer
-
+    type     (varying_string  ), dimension(:)                   , intent(  out)           :: attributeValue  
+    class    (hdf5Object      )                                 , intent(inout), target   :: thisObject      
+    character(len=*           )                                 , intent(in   ), optional :: attributeName   
+    integer  (kind=SIZE_T     )                                 , intent(in   )           :: dataTypeSize    
+    character(len=dataTypeSize), dimension(size(attributeValue))                          :: temporaryBuffer 
+    
     ! Call the character version of this routine to perform the red.
     call IO_HDF5_Read_Attribute_Character_1D_Array_Static(thisObject,attributeName,temporaryBuffer)
 
@@ -3315,11 +3317,11 @@ contains
     !% Check if {\tt thisObject} has an attribute with the given {\tt attributeName}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in) :: thisObject
-    character(len=*),    intent(in) :: attributeName
-    integer                         :: errorCode
-    type(varying_string)            :: message
-
+    class    (hdf5Object    ), intent(in   ) :: thisObject    
+    character(len=*         ), intent(in   ) :: attributeName 
+    integer                                  :: errorCode     
+    type     (varying_string)                :: message       
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3342,16 +3344,16 @@ contains
     !% Asserts that an attribute is of a certain type and rank.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in)                :: attributeObject
-    integer,             intent(in)                :: attributeAssertedRank
-    integer(kind=HID_T), intent(in),  dimension(:) :: attributeAssertedType
-    logical,             intent(out), optional     :: matches
-    integer                                        :: errorCode,attributeRank
-    integer(kind=HID_T)                            :: attributeTypeID,attributeDataspaceID
-    logical                                        :: isCorrectType
-    integer                                        :: iType
-    type(varying_string)                           :: message
-
+    class  (hdf5Object    )              , intent(in   )           :: attributeObject                        
+    integer                              , intent(in   )           :: attributeAssertedRank                  
+    integer(kind=HID_T    ), dimension(:), intent(in   )           :: attributeAssertedType                  
+    logical                              , intent(  out), optional :: matches                                
+    integer                                                        :: attributeRank        , errorCode       
+    integer(kind=HID_T    )                                        :: attributeDataspaceID , attributeTypeID 
+    logical                                                        :: isCorrectType                          
+    integer                                                        :: iType                                  
+    type   (varying_string)                                        :: message                                
+    
     ! Set the return value if present.
     if (present(matches)) matches=.true.
 
@@ -3421,14 +3423,14 @@ contains
     !% Return the size of the {\tt dim}$^{\rm th}$ dimension of dataset {\tt datasetObject}.
     use Galacticus_Error
     implicit none
-    integer(kind=HSIZE_T  )                            :: IO_HDF5_Dataset_Size
-    class  (hdf5Object    ), intent(in)                :: datasetObject
-    integer                , intent(in)                :: dim
-    integer(kind=HSIZE_T  ), allocatable, dimension(:) :: dimensions,maximumDimensions
-    integer                                            :: errorCode,datasetRank
-    integer(kind=HID_T    )                            :: datasetDataspaceID
-    type   (varying_string)                            :: message
-
+    integer(kind=HSIZE_T  )                              :: IO_HDF5_Dataset_Size                    
+    class  (hdf5Object    ), intent(in   )               :: datasetObject                           
+    integer                , intent(in   )               :: dim                                     
+    integer(kind=HSIZE_T  ), allocatable  , dimension(:) :: dimensions          , maximumDimensions 
+    integer                                              :: datasetRank         , errorCode         
+    integer(kind=HID_T    )                              :: datasetDataspaceID                      
+    type   (varying_string)                              :: message                                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3487,21 +3489,25 @@ contains
     !% Open an dataset in {\tt inObject}.
     use Galacticus_Error
     implicit none
-    type(hdf5Object)                                            :: datasetObject
-    character(len=*),      intent(in)                           :: datasetName
-    character(len=*),      intent(in),   optional               :: commentText
-    integer,               intent(in),   optional               :: datasetDataType,chunkSize,compressionLevel
-    integer(kind=HSIZE_T), intent(in),   optional, dimension(:) :: datasetDimensions
-    logical,               intent(in),   optional               :: isOverwritable,appendTo
-    integer(kind=HID_T),   intent(in),   optional               :: useDataType
-    class(hdf5Object),     intent(in),   target                 :: inObject
-    integer(kind=HSIZE_T),                         dimension(7) :: datasetDimensionsActual,datasetDimensionsMaximum,chunkDimensions
-    integer(kind=HSIZE_T)                                       :: chunkSizeActual
-    integer                                                     :: errorCode,datasetRank,compressionLevelActual
-    integer(kind=HID_T)                                         :: locationID,dataTypeID,dataSpaceID,propertyList
-    logical                                                     :: appendToActual
-    type(varying_string)                                        :: message,locationPath
-
+    type     (hdf5Object    )                                        :: datasetObject                                        
+    character(len=*         )              , intent(in   )           :: datasetName                                          
+    character(len=*         )              , intent(in   ), optional :: commentText                                          
+    integer                                , intent(in   ), optional :: chunkSize               , compressionLevel       , & 
+         &                                                              datasetDataType                                      
+    integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions                                    
+    logical                                , intent(in   ), optional :: appendTo                , isOverwritable             
+    integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType                                          
+    class    (hdf5Object    )              , intent(in   ), target   :: inObject                                             
+    integer  (kind=HSIZE_T  ), dimension(7)                          :: chunkDimensions         , datasetDimensionsActual, & 
+         &                                                              datasetDimensionsMaximum                             
+    integer  (kind=HSIZE_T  )                                        :: chunkSizeActual                                      
+    integer                                                          :: compressionLevelActual  , datasetRank            , & 
+         &                                                              errorCode                                            
+    integer  (kind=HID_T    )                                        :: dataSpaceID             , dataTypeID             , & 
+         &                                                              locationID              , propertyList               
+    logical                                                          :: appendToActual                                       
+    type     (varying_string)                                        :: locationPath            , message                    
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3738,12 +3744,12 @@ contains
     !% Check if {\tt thisObject} has a dataset with the given {\tt datasetName}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in) :: thisObject
-    character(len=*),    intent(in) :: datasetName
-    integer                         :: errorCode
-    integer(kind=HID_T)             :: datasetID
-    type(varying_string)            :: message
-
+    class    (hdf5Object    ), intent(in   ) :: thisObject  
+    character(len=*         ), intent(in   ) :: datasetName 
+    integer                                  :: errorCode   
+    integer  (kind=HID_T    )                :: datasetID   
+    type     (varying_string)                :: message     
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -3780,15 +3786,15 @@ contains
     !% Asserts that an dataset is of a certain type and rank.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in)               :: datasetObject
-    integer,             intent(in)               :: datasetAssertedRank
-    integer(kind=HID_T), intent(in), dimension(:) :: datasetAssertedType
-    integer                                       :: errorCode,datasetRank
-    integer(kind=HID_T)                           :: datasetTypeID,datasetDataspaceID
-    logical                                       :: isCorrectType
-    integer                                       :: iType
-    type(varying_string)                          :: message
-
+    class  (hdf5Object    )              , intent(in   ) :: datasetObject                      
+    integer                              , intent(in   ) :: datasetAssertedRank                
+    integer(kind=HID_T    ), dimension(:), intent(in   ) :: datasetAssertedType                
+    integer                                              :: datasetRank        , errorCode     
+    integer(kind=HID_T    )                              :: datasetDataspaceID , datasetTypeID 
+    logical                                              :: isCorrectType                      
+    integer                                              :: iType                              
+    type   (varying_string)                              :: message                            
+    
     ! Check the dataset type
     call h5dget_type_f(datasetObject%objectID,datasetTypeID,errorCode)
     if (errorCode /= 0) then
@@ -3843,20 +3849,21 @@ contains
     !% Open and write an integer 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: datasetName,commentText
-    integer,               intent(in),    dimension(:) :: datasetValue
-    logical,               intent(in),    optional     :: appendTo
-    integer,               intent(in),    optional     :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional     :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(1) :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                            :: errorCode,datasetRank
-    integer(kind=HID_T)                                :: newDataspaceID,dataspaceID
-    logical                                            :: preExisted,appendToActual
-    type(hdf5Object)                                   :: datasetObject
-    type(varying_string)                               :: message,datasetNameActual
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                                           
+    character(len=*         )              , intent(in   ), optional :: commentText                , datasetName             
+    integer                  , dimension(:), intent(in   )           :: datasetValue                                         
+    logical                                , intent(in   ), optional :: appendTo                                             
+    integer                                , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type     (hdf5Object    )              , intent(  out), optional :: datasetReturned                                      
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , & 
+         &                                                              hyperslabStart             , newDatasetDimensions, & 
+         &                                                              newDatasetDimensionsMaximum                          
+    integer                                                          :: datasetRank                , errorCode               
+    integer  (kind=HID_T    )                                        :: dataspaceID                , newDataspaceID          
+    logical                                                          :: appendToActual             , preExisted              
+    type     (hdf5Object    )                                        :: datasetObject                                        
+    type     (varying_string)                                        :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -4007,23 +4014,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    integer,                 intent(out),             dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional               :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
-    integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                 :: referencedRegion
-    integer                                                        :: errorCode
-    integer(kind=HID_T)                                            :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                        :: isReference,readSubsection
-    type(hdf5Object)                                               :: datasetObject
-    type(varying_string)                                           :: message,datasetNameActual
-    type(c_ptr)                                                    :: dataBuffer
-
+    integer                     , dimension(:), intent(  out)           :: datasetValue                                    
+    class    (hdf5Object       )              , intent(inout)           :: thisObject                                      
+    character(len=*            )              , intent(in   ), optional :: datasetName                                     
+    integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin         , readCount                   
+    integer  (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                 referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion                                
+    integer                                                             :: errorCode                                       
+    integer  (kind=HID_T       )                                        :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                 memorySpaceID     , storedDatasetID             
+    logical                                                             :: isReference       , readSubsection              
+    type     (hdf5Object       )                                        :: datasetObject                                   
+    type     (varying_string   )                                        :: datasetNameActual , message                     
+    type     (c_ptr            )                                        :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -4292,23 +4298,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    integer,                 intent(out),   allocatable, dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                  :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount 
-    integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                    :: referencedRegion
-    integer                                                           :: errorCode
-    integer(kind=HID_T)                                               :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                           :: isReference,readSubsection
-    type(hdf5Object)                                                  :: datasetObject
-    type(varying_string)                                              :: message,datasetNameActual
-    type(c_ptr)                                                       :: dataBuffer
-
+    integer                     , allocatable, dimension(:), intent(  out)           :: datasetValue                                    
+    class    (hdf5Object       )                           , intent(inout)           :: thisObject                                      
+    character(len=*            )                           , intent(in   ), optional :: datasetName                                     
+    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin         , readCount                   
+    integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                              referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion                                
+    integer                                                                          :: errorCode                                       
+    integer  (kind=HID_T       )                                                     :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                              memorySpaceID     , storedDatasetID             
+    logical                                                                          :: isReference       , readSubsection              
+    type     (hdf5Object       )                                                     :: datasetObject                                   
+    type     (varying_string   )                                                     :: datasetNameActual , message                     
+    type     (c_ptr            )                                                     :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -4576,22 +4581,23 @@ contains
     use Kind_Numbers
     use Memory_Management
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),        intent(in),    optional             :: datasetName,commentText
-    integer(kind=kind_int8), intent(in),    dimension(:)         :: datasetValue
-    logical,                 intent(in),    optional             :: appendTo
-    integer,                 intent(in),    optional             :: chunkSize,compressionLevel
-    type(hdf5Object),        intent(out),   optional             :: datasetReturned
-    integer(kind=kind_int8), allocatable,   dimension(:), target :: datasetValueContiguous
-    integer(kind=HSIZE_T),                  dimension(1)         :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                                      :: errorCode,datasetRank
-    integer(kind=HID_T)                                          :: newDataspaceID,dataspaceID
-    logical                                                      :: preExisted,appendToActual
-    type(hdf5Object)                                             :: datasetObject
-    type(varying_string)                                         :: message,datasetNameActual
-    type(c_ptr)                                                  :: dataBuffer
-
+    class    (hdf5Object    )                           , intent(inout)          , target :: thisObject                                           
+    character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName             
+    integer  (kind=kind_int8)             , dimension(:), intent(in   )                   :: datasetValue                                         
+    logical                                             , intent(in   ), optional         :: appendTo                                             
+    integer                                             , intent(in   ), optional         :: chunkSize                  , compressionLevel        
+    type     (hdf5Object    )                           , intent(  out), optional         :: datasetReturned                                      
+    integer  (kind=kind_int8), allocatable, dimension(:)                         , target :: datasetValueContiguous                               
+    integer  (kind=HSIZE_T  )             , dimension(1)                                  :: datasetDimensions          , hyperslabCount      , & 
+         &                                                                                   hyperslabStart             , newDatasetDimensions, & 
+         &                                                                                   newDatasetDimensionsMaximum                          
+    integer                                                                               :: datasetRank                , errorCode               
+    integer  (kind=HID_T    )                                                             :: dataspaceID                , newDataspaceID          
+    logical                                                                               :: appendToActual             , preExisted              
+    type     (hdf5Object    )                                                             :: datasetObject                                        
+    type     (varying_string)                                                             :: datasetNameActual          , message                 
+    type     (c_ptr         )                                                             :: dataBuffer                                           
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -4747,24 +4753,23 @@ contains
     use Kind_Numbers
     use Memory_Management
     implicit none
-    integer(kind=kind_int8), intent(out),             dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional               :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount !&& 
-    integer(kind=HSIZE_T),   dimension(1)                          :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    integer(kind=kind_int8), allocatable,   target,   dimension(:) :: datasetValueContiguous
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                 :: referencedRegion
-    integer                                                        :: errorCode
-    integer(kind=HID_T)                                            :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                        :: isReference,readSubsection
-    type(hdf5Object)                                               :: datasetObject
-    type(varying_string)                                           :: message,datasetNameActual
-    type(c_ptr)                                                    :: dataBuffer
-
+    integer  (kind=kind_int8   )             , dimension(:)        , intent(  out)           :: datasetValue                                              
+    class    (hdf5Object       )                                   , intent(inout)           :: thisObject                                                
+    character(len=*            )                                   , intent(in   ), optional :: datasetName                                               
+    integer  (kind=HSIZE_T     )             , dimension(1)        , intent(in   ), optional :: readBegin             , readCount                    !  &&
+    integer  (kind=HSIZE_T     )             , dimension(1)                                  :: datasetDimensions     , datasetMaximumDimensions, &       
+         &                                                                                      referenceEnd          , referenceStart                    
+    integer  (kind=kind_int8   ), allocatable, dimension(:), target                          :: datasetValueContiguous                                    
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save                     , target                          :: referencedRegion                                          
+    integer                                                                                  :: errorCode                                                 
+    integer  (kind=HID_T       )                                                             :: datasetDataspaceID    , dereferencedObjectID    , &       
+         &                                                                                      memorySpaceID         , storedDatasetID                   
+    logical                                                                                  :: isReference           , readSubsection                    
+    type     (hdf5Object       )                                                             :: datasetObject                                             
+    type     (varying_string   )                                                             :: datasetNameActual     , message                           
+    type     (c_ptr            )                                                             :: dataBuffer                                                
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -5037,23 +5042,22 @@ contains
     use Kind_Numbers
     use Memory_Management
     implicit none
-    integer(kind=kind_int8), intent(out),   allocatable, dimension(:), target :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                          :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1)         :: readBegin,readCount 
-    integer(kind=HSIZE_T),   dimension(1)                                     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,                                     target :: referencedRegion
-    integer                                                                   :: errorCode
-    integer(kind=HID_T)                                                       :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                                   :: isReference,readSubsection
-    type(hdf5Object)                                                          :: datasetObject
-    type(varying_string)                                                      :: message,datasetNameActual
-    type(c_ptr)                                                               :: dataBuffer
-
+    integer  (kind=kind_int8   ), allocatable, dimension(:), intent(  out)          , target :: datasetValue                                    
+    class    (hdf5Object       )                           , intent(inout)                   :: thisObject                                      
+    character(len=*            )                           , intent(in   ), optional         :: datasetName                                     
+    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional         :: readBegin         , readCount                   
+    integer  (kind=HSIZE_T     )             , dimension(1)                                  :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                      referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save                                              , target :: referencedRegion                                
+    integer                                                                                  :: errorCode                                       
+    integer  (kind=HID_T       )                                                             :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                      memorySpaceID     , storedDatasetID             
+    logical                                                                                  :: isReference       , readSubsection              
+    type     (hdf5Object       )                                                             :: datasetObject                                   
+    type     (varying_string   )                                                             :: datasetNameActual , message                     
+    type     (c_ptr            )                                                             :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -5319,20 +5323,21 @@ contains
     !% Open and write a double 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional     :: datasetName,commentText
-    double precision,      intent(in),    dimension(:) :: datasetValue
-    logical,               intent(in),    optional     :: appendTo
-    integer,               intent(in),    optional     :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional     :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(1) :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                            :: errorCode,datasetRank
-    integer(kind=HID_T)                                :: newDataspaceID,dataspaceID
-    logical                                            :: preExisted,appendToActual
-    type(hdf5Object)                                   :: datasetObject
-    type(varying_string)                               :: message,datasetNameActual
-
+    class           (hdf5Object    )              , intent(inout), target   :: thisObject                                           
+    character       (len=*         )              , intent(in   ), optional :: commentText                , datasetName             
+    double precision                , dimension(:), intent(in   )           :: datasetValue                                         
+    logical                                       , intent(in   ), optional :: appendTo                                             
+    integer                                       , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type            (hdf5Object    )              , intent(  out), optional :: datasetReturned                                      
+    integer         (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , & 
+         &                                                                     hyperslabStart             , newDatasetDimensions, & 
+         &                                                                     newDatasetDimensionsMaximum                          
+    integer                                                                 :: datasetRank                , errorCode               
+    integer         (kind=HID_T    )                                        :: dataspaceID                , newDataspaceID          
+    logical                                                                 :: appendToActual             , preExisted              
+    type            (hdf5Object    )                                        :: datasetObject                                        
+    type            (varying_string)                                        :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -5483,23 +5488,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),             dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional               :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
-    integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                 :: referencedRegion
-    integer                                                        :: errorCode
-    integer(kind=HID_T)                                            :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                        :: isReference,readSubsection
-    type(hdf5Object)                                               :: datasetObject
-    type(varying_string)                                           :: message,datasetNameActual
-    type(c_ptr)                                                    :: dataBuffer
-
+    double precision                   , dimension(:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )              , intent(inout)           :: thisObject                                      
+    character       (len=*            )              , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                        referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save        , target                  :: referencedRegion                                
+    integer                                                                    :: errorCode                                       
+    integer         (kind=HID_T       )                                        :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                        memorySpaceID     , storedDatasetID             
+    logical                                                                    :: isReference       , readSubsection              
+    type            (hdf5Object       )                                        :: datasetObject                                   
+    type            (varying_string   )                                        :: datasetNameActual , message                     
+    type            (c_ptr            )                                        :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -5767,23 +5771,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),   allocatable, dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                  :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount
-    integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                    :: referencedRegion
-    integer                                                           :: errorCode
-    integer(kind=HID_T)                                               :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                           :: isReference,readSubsection
-    type(hdf5Object)                                                  :: datasetObject
-    type(varying_string)                                              :: message,datasetNameActual
-    type(c_ptr)                                                       :: dataBuffer
-
+    double precision                   , allocatable, dimension(:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                           , intent(inout)           :: thisObject                                      
+    character       (len=*            )                           , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                     referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                :: referencedRegion                                
+    integer                                                                                 :: errorCode                                       
+    integer         (kind=HID_T       )                                                     :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                     memorySpaceID     , storedDatasetID             
+    logical                                                                                 :: isReference       , readSubsection              
+    type            (hdf5Object       )                                                     :: datasetObject                                   
+    type            (varying_string   )                                                     :: datasetNameActual , message                     
+    type            (c_ptr            )                                                     :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -6055,20 +6058,23 @@ contains
     !% Open and write a double 2-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target         :: thisObject
-    character(len=*),      intent(in),    optional       :: datasetName,commentText
-    double precision,      intent(in),    dimension(:,:) :: datasetValue
-    logical,               intent(in),    optional       :: appendTo
-    integer,               intent(in),    optional       :: appendDimension,chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional       :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(2)   :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount,newDatasetDimensionsFiltered
-    integer                                              :: errorCode,datasetRank,appendDimensionActual
-    integer(kind=HID_T)                                  :: newDataspaceID,dataspaceID
-    logical                                              :: preExisted,appendToActual
-    type(hdf5Object)                                     :: datasetObject
-    type(varying_string)                                 :: message,datasetNameActual
-
+    class           (hdf5Object    )                , intent(inout), target   :: thisObject                                                   
+    character       (len=*         )                , intent(in   ), optional :: commentText                 , datasetName                    
+    double precision                , dimension(:,:), intent(in   )           :: datasetValue                                                 
+    logical                                         , intent(in   ), optional :: appendTo                                                     
+    integer                                         , intent(in   ), optional :: appendDimension             , chunkSize                  , & 
+         &                                                                       compressionLevel                                             
+    type            (hdf5Object    )                , intent(  out), optional :: datasetReturned                                              
+    integer         (kind=HSIZE_T  ), dimension(2)                            :: datasetDimensions           , hyperslabCount             , & 
+         &                                                                       hyperslabStart              , newDatasetDimensions       , & 
+         &                                                                       newDatasetDimensionsFiltered, newDatasetDimensionsMaximum    
+    integer                                                                   :: appendDimensionActual       , datasetRank                , & 
+         &                                                                       errorCode                                                    
+    integer         (kind=HID_T    )                                          :: dataspaceID                 , newDataspaceID                 
+    logical                                                                   :: appendToActual              , preExisted                     
+    type            (hdf5Object    )                                          :: datasetObject                                                
+    type            (varying_string)                                          :: datasetNameActual           , message                        
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -6231,23 +6237,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),             dimension(:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                 :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(2)   :: readBegin,readCount 
-    integer(kind=HSIZE_T),                            dimension(2)   :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                   :: referencedRegion
-    integer                                                          :: errorCode
-    integer(kind=HID_T)                                              :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                          :: isReference,readSubsection
-    type(hdf5Object)                                                 :: datasetObject
-    type(varying_string)                                             :: message,datasetNameActual
-    type(c_ptr)                                                      :: dataBuffer
-
+    double precision                   , dimension(:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                , intent(inout)           :: thisObject                                      
+    character       (len=*            )                , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     ), dimension(2)  , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     ), dimension(2)                            :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                          referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save          , target                  :: referencedRegion                                
+    integer                                                                      :: errorCode                                       
+    integer         (kind=HID_T       )                                          :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                          memorySpaceID     , storedDatasetID             
+    logical                                                                      :: isReference       , readSubsection              
+    type            (hdf5Object       )                                          :: datasetObject                                   
+    type            (varying_string   )                                          :: datasetNameActual , message                     
+    type            (c_ptr            )                                          :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -6516,23 +6521,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),   allocatable, dimension(:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                    :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(2)   :: readBegin,readCount
-    integer(kind=HSIZE_T),                               dimension(2)   :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                      :: referencedRegion
-    integer                                                             :: errorCode
-    integer(kind=HID_T)                                                 :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                             :: isReference,readSubsection
-    type(hdf5Object)                                                    :: datasetObject
-    type(varying_string)                                                :: message,datasetNameActual
-    type(c_ptr)                                                         :: dataBuffer
-
+    double precision                   , allocatable, dimension(:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                             , intent(inout)           :: thisObject                                      
+    character       (len=*            )                             , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     )             , dimension(2)  , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     )             , dimension(2)                            :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                       referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                  :: referencedRegion                                
+    integer                                                                                   :: errorCode                                       
+    integer         (kind=HID_T       )                                                       :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                       memorySpaceID     , storedDatasetID             
+    logical                                                                                   :: isReference       , readSubsection              
+    type            (hdf5Object       )                                                       :: datasetObject                                   
+    type            (varying_string   )                                                       :: datasetNameActual , message                     
+    type            (c_ptr            )                                                       :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -6798,20 +6802,21 @@ contains
     !% Open and write a double 3-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional         :: datasetName,commentText
-    double precision,      intent(in),    dimension(:,:,:) :: datasetValue
-    logical,               intent(in),    optional         :: appendTo
-    integer,               intent(in),    optional         :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional         :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(3)     :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                                :: errorCode,datasetRank
-    integer(kind=HID_T)                                    :: newDataspaceID,dataspaceID
-    logical                                                :: preExisted,appendToActual
-    type(hdf5Object)                                       :: datasetObject
-    type(varying_string)                                   :: message,datasetNameActual
-
+    class           (hdf5Object    )                  , intent(inout), target   :: thisObject                                           
+    character       (len=*         )                  , intent(in   ), optional :: commentText                , datasetName             
+    double precision                , dimension(:,:,:), intent(in   )           :: datasetValue                                         
+    logical                                           , intent(in   ), optional :: appendTo                                             
+    integer                                           , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type            (hdf5Object    )                  , intent(  out), optional :: datasetReturned                                      
+    integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions          , hyperslabCount      , & 
+         &                                                                         hyperslabStart             , newDatasetDimensions, & 
+         &                                                                         newDatasetDimensionsMaximum                          
+    integer                                                                     :: datasetRank                , errorCode               
+    integer         (kind=HID_T    )                                            :: dataspaceID                , newDataspaceID          
+    logical                                                                     :: appendToActual             , preExisted              
+    type            (hdf5Object    )                                            :: datasetObject                                        
+    type            (varying_string)                                            :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -6969,23 +6974,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),             dimension(:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                   :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(3)     :: readBegin,readCount
-    integer(kind=HSIZE_T),                            dimension(3)     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                     :: referencedRegion
-    integer                                                            :: errorCode
-    integer(kind=HID_T)                                                :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                            :: isReference,readSubsection
-    type(hdf5Object)                                                   :: datasetObject
-    type(varying_string)                                               :: message,datasetNameActual
-    type(c_ptr)                                                        :: dataBuffer
-
+    double precision                   , dimension(:,:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                  , intent(inout)           :: thisObject                                      
+    character       (len=*            )                  , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     ), dimension(3)    , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     ), dimension(3)                              :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                            referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save            , target                  :: referencedRegion                                
+    integer                                                                        :: errorCode                                       
+    integer         (kind=HID_T       )                                            :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                            memorySpaceID     , storedDatasetID             
+    logical                                                                        :: isReference       , readSubsection              
+    type            (hdf5Object       )                                            :: datasetObject                                   
+    type            (varying_string   )                                            :: datasetNameActual , message                     
+    type            (c_ptr            )                                            :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -7254,23 +7258,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),   allocatable, dimension(:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                      :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(3)     :: readBegin,readCount
-    integer(kind=HSIZE_T),                               dimension(3)     :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                        :: referencedRegion
-    integer                                                               :: errorCode
-    integer(kind=HID_T)                                                   :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                               :: isReference,readSubsection
-    type(hdf5Object)                                                      :: datasetObject
-    type(varying_string)                                                  :: message,datasetNameActual
-    type(c_ptr)                                                           :: dataBuffer
-
+    double precision                   , allocatable, dimension(:,:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                               , intent(inout)           :: thisObject                                      
+    character       (len=*            )                               , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     )             , dimension(3)    , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     )             , dimension(3)                              :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                         referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                    :: referencedRegion                                
+    integer                                                                                     :: errorCode                                       
+    integer         (kind=HID_T       )                                                         :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                         memorySpaceID     , storedDatasetID             
+    logical                                                                                     :: isReference       , readSubsection              
+    type            (hdf5Object       )                                                         :: datasetObject                                   
+    type            (varying_string   )                                                         :: datasetNameActual , message                     
+    type            (c_ptr            )                                                         :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -7536,20 +7539,21 @@ contains
     !% Open and write a double 4-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional           :: datasetName,commentText
-    double precision,      intent(in),    dimension(:,:,:,:) :: datasetValue
-    logical,               intent(in),    optional           :: appendTo
-    integer,               intent(in),    optional           :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional           :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(4)       :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                                  :: errorCode,datasetRank
-    integer(kind=HID_T)                                      :: newDataspaceID,dataspaceID
-    logical                                                  :: preExisted,appendToActual
-    type(hdf5Object)                                         :: datasetObject
-    type(varying_string)                                     :: message,datasetNameActual
-
+    class           (hdf5Object    )                    , intent(inout), target   :: thisObject                                           
+    character       (len=*         )                    , intent(in   ), optional :: commentText                , datasetName             
+    double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue                                         
+    logical                                             , intent(in   ), optional :: appendTo                                             
+    integer                                             , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type            (hdf5Object    )                    , intent(  out), optional :: datasetReturned                                      
+    integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions          , hyperslabCount      , & 
+         &                                                                           hyperslabStart             , newDatasetDimensions, & 
+         &                                                                           newDatasetDimensionsMaximum                          
+    integer                                                                       :: datasetRank                , errorCode               
+    integer         (kind=HID_T    )                                              :: dataspaceID                , newDataspaceID          
+    logical                                                                       :: appendToActual             , preExisted              
+    type            (hdf5Object    )                                              :: datasetObject                                        
+    type            (varying_string)                                              :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -7707,23 +7711,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),             dimension(:,:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                     :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(4)       :: readBegin,readCount
-    integer(kind=HSIZE_T),                            dimension(4)       :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                       :: referencedRegion
-    integer                                                              :: errorCode
-    integer(kind=HID_T)                                                  :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                              :: isReference,readSubsection
-    type(hdf5Object)                                                     :: datasetObject
-    type(varying_string)                                                 :: message,datasetNameActual
-    type(c_ptr)                                                          :: dataBuffer
-
+    double precision                   , dimension(:,:,:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                    , intent(inout)           :: thisObject                                      
+    character       (len=*            )                    , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     ), dimension(4)      , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     ), dimension(4)                                :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                              referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save              , target                  :: referencedRegion                                
+    integer                                                                          :: errorCode                                       
+    integer         (kind=HID_T       )                                              :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                              memorySpaceID     , storedDatasetID             
+    logical                                                                          :: isReference       , readSubsection              
+    type            (hdf5Object       )                                              :: datasetObject                                   
+    type            (varying_string   )                                              :: datasetNameActual , message                     
+    type            (c_ptr            )                                              :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -7992,23 +7995,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),   allocatable, dimension(:,:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                        :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(4)       :: readBegin,readCount 
-    integer(kind=HSIZE_T),                               dimension(4)       :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                          :: referencedRegion
-    integer                                                                 :: errorCode
-    integer(kind=HID_T)                                                     :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                                 :: isReference,readSubsection
-    type(hdf5Object)                                                        :: datasetObject
-    type(varying_string)                                                    :: message,datasetNameActual
-    type(c_ptr)                                                             :: dataBuffer
-
+    double precision                   , allocatable, dimension(:,:,:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                                 , intent(inout)           :: thisObject                                      
+    character       (len=*            )                                 , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     )             , dimension(4)      , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     )             , dimension(4)                                :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                           referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                      :: referencedRegion                                
+    integer                                                                                       :: errorCode                                       
+    integer         (kind=HID_T       )                                                           :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                           memorySpaceID     , storedDatasetID             
+    logical                                                                                       :: isReference       , readSubsection              
+    type            (hdf5Object       )                                                           :: datasetObject                                   
+    type            (varying_string   )                                                           :: datasetNameActual , message                     
+    type            (c_ptr            )                                                           :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -8274,20 +8276,21 @@ contains
     !% Open and write a double 5-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target   :: thisObject
-    character(len=*),      intent(in),    optional             :: datasetName,commentText
-    double precision,      intent(in),    dimension(:,:,:,:,:) :: datasetValue
-    logical,               intent(in),    optional             :: appendTo
-    integer,               intent(in),    optional             :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional             :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(5)         :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                                    :: errorCode,datasetRank
-    integer(kind=HID_T)                                        :: newDataspaceID,dataspaceID
-    logical                                                    :: preExisted,appendToActual
-    type(hdf5Object)                                           :: datasetObject
-    type(varying_string)                                       :: message,datasetNameActual
-
+    class           (hdf5Object    )                      , intent(inout), target   :: thisObject                                           
+    character       (len=*         )                      , intent(in   ), optional :: commentText                , datasetName             
+    double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue                                         
+    logical                                               , intent(in   ), optional :: appendTo                                             
+    integer                                               , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type            (hdf5Object    )                      , intent(  out), optional :: datasetReturned                                      
+    integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions          , hyperslabCount      , & 
+         &                                                                             hyperslabStart             , newDatasetDimensions, & 
+         &                                                                             newDatasetDimensionsMaximum                          
+    integer                                                                         :: datasetRank                , errorCode               
+    integer         (kind=HID_T    )                                                :: dataspaceID                , newDataspaceID          
+    logical                                                                         :: appendToActual             , preExisted              
+    type            (hdf5Object    )                                                :: datasetObject                                        
+    type            (varying_string)                                                :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -8445,23 +8448,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),             dimension(:,:,:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                       :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(5)         :: readBegin,readCount !&& 
-    integer(kind=HSIZE_T),                            dimension(5)         :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                         :: referencedRegion
-    integer                                                                :: errorCode
-    integer(kind=HID_T)                                                    :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                                :: isReference,readSubsection
-    type(hdf5Object)                                                       :: datasetObject
-    type(varying_string)                                                   :: message,datasetNameActual
-    type(c_ptr)                                                            :: dataBuffer
-
+    double precision                   , dimension(:,:,:,:,:), intent(  out)           :: datasetValue                                          
+    class           (hdf5Object       )                      , intent(inout)           :: thisObject                                            
+    character       (len=*            )                      , intent(in   ), optional :: datasetName                                           
+    integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !  &&
+    integer         (kind=HSIZE_T     ), dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, &       
+         &                                                                                referenceEnd      , referenceStart                    
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save                , target                  :: referencedRegion                                      
+    integer                                                                            :: errorCode                                             
+    integer         (kind=HID_T       )                                                :: datasetDataspaceID, dereferencedObjectID    , &       
+         &                                                                                memorySpaceID     , storedDatasetID                   
+    logical                                                                            :: isReference       , readSubsection                    
+    type            (hdf5Object       )                                                :: datasetObject                                         
+    type            (varying_string   )                                                :: datasetNameActual , message                           
+    type            (c_ptr            )                                                :: dataBuffer                                            
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -8730,23 +8732,22 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    double precision,        intent(out),   allocatable, dimension(:,:,:,:,:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional                          :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(5)         :: readBegin,readCount
-    integer(kind=HSIZE_T),                               dimension(5)         :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                            :: referencedRegion
-    integer                                                                   :: errorCode
-    integer(kind=HID_T)                                                       :: datasetDataspaceID,dereferencedObjectID,storedDatasetID,memorySpaceID
-    logical                                                                   :: isReference,readSubsection
-    type(hdf5Object)                                                          :: datasetObject
-    type(varying_string)                                                      :: message,datasetNameActual
-    type(c_ptr)                                                               :: dataBuffer
-
+    double precision                   , allocatable, dimension(:,:,:,:,:), intent(  out)           :: datasetValue                                    
+    class           (hdf5Object       )                                   , intent(inout)           :: thisObject                                      
+    character       (len=*            )                                   , intent(in   ), optional :: datasetName                                     
+    integer         (kind=HSIZE_T     )             , dimension(5)        , intent(in   ), optional :: readBegin         , readCount                   
+    integer         (kind=HSIZE_T     )             , dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, & 
+         &                                                                                             referenceEnd      , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type            (hdset_reg_ref_t_f), save       , target                                        :: referencedRegion                                
+    integer                                                                                         :: errorCode                                       
+    integer         (kind=HID_T       )                                                             :: datasetDataspaceID, dereferencedObjectID    , & 
+         &                                                                                             memorySpaceID     , storedDatasetID             
+    logical                                                                                         :: isReference       , readSubsection              
+    type            (hdf5Object       )                                                             :: datasetObject                                   
+    type            (varying_string   )                                                             :: datasetNameActual , message                     
+    type            (c_ptr            )                                                             :: dataBuffer                                      
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -9011,20 +9012,22 @@ contains
     !% Open and write a character 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),     intent(inout), target       :: thisObject
-    character(len=*),      intent(in),    optional     :: datasetName,commentText
-    character(len=*),      intent(in),    dimension(:) :: datasetValue
-    logical,               intent(in),    optional     :: appendTo
-    integer,               intent(in),    optional     :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional     :: datasetReturned
-    integer(kind=HSIZE_T),                dimension(1) :: datasetDimensions,newDatasetDimensions,newDatasetDimensionsMaximum&
-         &,hyperslabStart,hyperslabCount
-    integer                                            :: errorCode,datasetRank
-    integer(kind=HID_T)                                :: newDataspaceID,dataTypeID,dataspaceID
-    logical                                            :: preExisted,appendToActual
-    type(hdf5Object)                                   :: datasetObject
-    type(varying_string)                               :: message,datasetNameActual
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                                           
+    character(len=*         )              , intent(in   ), optional :: commentText                , datasetName             
+    character(len=*         ), dimension(:), intent(in   )           :: datasetValue                                         
+    logical                                , intent(in   ), optional :: appendTo                                             
+    integer                                , intent(in   ), optional :: chunkSize                  , compressionLevel        
+    type     (hdf5Object    )              , intent(  out), optional :: datasetReturned                                      
+    integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , & 
+         &                                                              hyperslabStart             , newDatasetDimensions, & 
+         &                                                              newDatasetDimensionsMaximum                          
+    integer                                                          :: datasetRank                , errorCode               
+    integer  (kind=HID_T    )                                        :: dataTypeID                 , dataspaceID         , & 
+         &                                                              newDataspaceID                                       
+    logical                                                          :: appendToActual             , preExisted              
+    type     (hdf5Object    )                                        :: datasetObject                                        
+    type     (varying_string)                                        :: datasetNameActual          , message                 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -9193,13 +9196,13 @@ contains
     !% Open and write a varying string 1-D array dataset in {\tt thisObject}.
     use String_Handling
     implicit none
-    class(hdf5Object),     intent(inout), target       :: thisObject
-    character(len=*),      intent(in),    optional     :: datasetName,commentText
-    type(varying_string),  intent(in),    dimension(:) :: datasetValue
-    logical,               intent(in),    optional     :: appendTo
-    integer,               intent(in),    optional     :: chunkSize,compressionLevel
-    type(hdf5Object),      intent(out),   optional     :: datasetReturned
-
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                        
+    character(len=*         )              , intent(in   ), optional :: commentText    , datasetName      
+    type     (varying_string), dimension(:), intent(in   )           :: datasetValue                      
+    logical                                , intent(in   ), optional :: appendTo                          
+    integer                                , intent(in   ), optional :: chunkSize      , compressionLevel 
+    type     (hdf5Object    )              , intent(  out), optional :: datasetReturned                   
+    
     ! Call the character version of this routine to perform the write.
     call IO_HDF5_Write_Dataset_Character_1D(thisObject,Convert_VarString_To_Char(datasetValue),datasetName,commentText,appendTo&
          &,chunkSize,compressionLevel,datasetReturned)
@@ -9212,24 +9215,23 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    character(len=*),        intent(out),             dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                         :: thisObject
-    character(len=*),        intent(in),    optional               :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional, dimension(1) :: readBegin,readCount
-    integer(kind=HSIZE_T),                            dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                 :: referencedRegion
-    integer                                                        :: errorCode
-    integer(kind=HID_T)                                            :: datasetDataspaceID,dereferencedObjectID,storedDatasetID&
-         &,memorySpaceID,dataTypeID(2)
-    logical                                                        :: isReference,readSubsection
-    type(hdf5Object)                                               :: datasetObject
-    type(varying_string)                                           :: message,datasetNameActual
-    type(c_ptr)                                                    :: dataBuffer
-
+    character(len=*            ), dimension(:), intent(  out)           :: datasetValue                                         
+    class    (hdf5Object       )              , intent(inout)           :: thisObject                                           
+    character(len=*            )              , intent(in   ), optional :: datasetName                                          
+    integer  (kind=HSIZE_T     ), dimension(1), intent(in   ), optional :: readBegin              , readCount                   
+    integer  (kind=HSIZE_T     ), dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, & 
+         &                                                                 referenceEnd           , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion                                     
+    integer                                                             :: errorCode                                            
+    integer  (kind=HID_T       )                                        :: dataTypeID          (2), datasetDataspaceID      , & 
+         &                                                                 dereferencedObjectID   , memorySpaceID           , & 
+         &                                                                 storedDatasetID                                      
+    logical                                                             :: isReference            , readSubsection              
+    type     (hdf5Object       )                                        :: datasetObject                                        
+    type     (varying_string   )                                        :: datasetNameActual      , message                     
+    type     (c_ptr            )                                        :: dataBuffer                                           
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -9512,24 +9514,23 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    character(len=*),        intent(out),   allocatable, dimension(:) :: datasetValue
-    class(hdf5Object),       intent(inout)                            :: thisObject
-    character(len=*),        intent(in),    optional                  :: datasetName
-    integer(kind=HSIZE_T),   intent(in),    optional,    dimension(1) :: readBegin,readCount 
-    integer(kind=HSIZE_T),                               dimension(1) :: datasetDimensions,datasetMaximumDimensions,referenceStart,referenceEnd
-    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
-    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
-    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being
-    ! deallocated. This isn't an elegant solution, but it works.
-    type(hdset_reg_ref_t_f), save,          target                    :: referencedRegion
-    integer                                                           :: errorCode
-    integer(kind=HID_T)                                               :: datasetDataspaceID,dereferencedObjectID,storedDatasetID&
-         &,memorySpaceID,dataTypeID(2)
-    logical                                                           :: isReference,readSubsection
-    type(hdf5Object)                                                  :: datasetObject
-    type(varying_string)                                              :: message,datasetNameActual
-    type(c_ptr)                                                       :: dataBuffer
-
+    character(len=*            ), allocatable, dimension(:), intent(  out)           :: datasetValue                                         
+    class    (hdf5Object       )                           , intent(inout)           :: thisObject                                           
+    character(len=*            )                           , intent(in   ), optional :: datasetName                                          
+    integer  (kind=HSIZE_T     )             , dimension(1), intent(in   ), optional :: readBegin              , readCount                   
+    integer  (kind=HSIZE_T     )             , dimension(1)                          :: datasetDimensions      , datasetMaximumDimensions, & 
+         &                                                                              referenceEnd           , referenceStart              
+    ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results    ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete    ! instead of delete[] or vice-verse). Presumably this is an HDF5 library error. Saving the variable prevents it from being    ! deallocated. This isn't an elegant solution, but it works.
+    type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion                                     
+    integer                                                                          :: errorCode                                            
+    integer  (kind=HID_T       )                                                     :: dataTypeID          (2), datasetDataspaceID      , & 
+         &                                                                              dereferencedObjectID   , memorySpaceID           , & 
+         &                                                                              storedDatasetID                                      
+    logical                                                                          :: isReference            , readSubsection              
+    type     (hdf5Object       )                                                     :: datasetObject                                        
+    type     (varying_string   )                                                     :: datasetNameActual      , message                     
+    type     (c_ptr            )                                                     :: dataBuffer                                           
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -9809,15 +9810,15 @@ contains
     !% Open and read an varying string 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(varying_string),  intent(out),   allocatable, dimension(:) :: datasetValue
-    class(hdf5Object),     intent(inout), target                    :: thisObject
-    character(len=*),      intent(in),    optional                  :: datasetName
-    integer(kind=HID_T)                                             :: dataTypeID
-    integer(kind=SIZE_T)                                            :: dataTypeSize
-    integer                                                         :: errorCode
-    type(hdf5Object)                                                :: datasetObject
-    type(varying_string)                                            :: message,datasetNameActual
-
+    type     (varying_string), allocatable, dimension(:), intent(  out)           :: datasetValue               
+    class    (hdf5Object    )                           , intent(inout), target   :: thisObject                 
+    character(len=*         )                           , intent(in   ), optional :: datasetName                
+    integer  (kind=HID_T    )                                                     :: dataTypeID                 
+    integer  (kind=SIZE_T   )                                                     :: dataTypeSize               
+    integer                                                                       :: errorCode                  
+    type     (hdf5Object    )                                                     :: datasetObject              
+    type     (varying_string)                                                     :: datasetNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -9896,12 +9897,12 @@ contains
     !% which it can be read.
     use Memory_Management
     implicit none
-    type(varying_string),        intent(out),   allocatable, dimension(:) :: datasetValue
-    class(hdf5Object),           intent(inout), target                    :: thisObject
-    character(len=*),            intent(in),    optional                  :: datasetName
-    integer(kind=SIZE_T),        intent(in)                               :: dataTypeSize
-    character(len=dataTypeSize),                allocatable, dimension(:) :: temporaryBuffer
-
+    type     (varying_string  ), allocatable, dimension(:), intent(  out)           :: datasetValue    
+    class    (hdf5Object      )                           , intent(inout), target   :: thisObject      
+    character(len=*           )                           , intent(in   ), optional :: datasetName     
+    integer  (kind=SIZE_T     )                           , intent(in   )           :: dataTypeSize    
+    character(len=dataTypeSize), allocatable, dimension(:)                          :: temporaryBuffer 
+    
     ! Call the character version of this routine to perform the red.
     call IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable(thisObject,datasetName,temporaryBuffer)
 
@@ -9918,15 +9919,15 @@ contains
     !% Open and read an varying string 1-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
-    type(varying_string),  intent(out),   dimension(:) :: datasetValue
-    class(hdf5Object),     intent(inout), target       :: thisObject
-    character(len=*),      intent(in),    optional     :: datasetName
-    integer(kind=HID_T)                                :: dataTypeID
-    integer(kind=SIZE_T)                               :: dataTypeSize
-    integer                                            :: errorCode
-    type(hdf5Object)                                   :: datasetObject
-    type(varying_string)                               :: message,datasetNameActual
-
+    type     (varying_string), dimension(:), intent(  out)           :: datasetValue               
+    class    (hdf5Object    )              , intent(inout), target   :: thisObject                 
+    character(len=*         )              , intent(in   ), optional :: datasetName                
+    integer  (kind=HID_T    )                                        :: dataTypeID                 
+    integer  (kind=SIZE_T   )                                        :: dataTypeSize               
+    integer                                                          :: errorCode                  
+    type     (hdf5Object    )                                        :: datasetObject              
+    type     (varying_string)                                        :: datasetNameActual, message 
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10005,12 +10006,12 @@ contains
     !% which it can be read.
     use Memory_Management
     implicit none
-    type(varying_string),        intent(out),   dimension(:)                  :: datasetValue
-    class(hdf5Object),           intent(inout), target                        :: thisObject
-    character(len=*),            intent(in),    optional                      :: datasetName
-    integer(kind=SIZE_T),        intent(in)                                   :: dataTypeSize
-    character(len=dataTypeSize),                dimension(size(datasetValue)) :: temporaryBuffer
-
+    type     (varying_string  ), dimension(:)                 , intent(  out)           :: datasetValue    
+    class    (hdf5Object      )                               , intent(inout), target   :: thisObject      
+    character(len=*           )                               , intent(in   ), optional :: datasetName     
+    integer  (kind=SIZE_T     )                               , intent(in   )           :: dataTypeSize    
+    character(len=dataTypeSize), dimension(size(datasetValue))                          :: temporaryBuffer 
+    
     ! Call the character version of this routine to perform the red.
     call IO_HDF5_Read_Dataset_Character_1D_Array_Static(thisObject,datasetName,temporaryBuffer)
 
@@ -10026,17 +10027,18 @@ contains
     !% Create a scalar reference to the 1-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    class(hdf5Object),       intent(inout), target       :: fromGroup
-    type(hdf5Object),        intent(inout), target       :: toDataset
-    character(len=*),        intent(in)                  :: referenceName
-    integer(kind=HSIZE_T),   intent(in),    dimension(1) :: referenceStart,referenceCount
-    integer(kind=HSIZE_T),                  dimension(1) :: datasetDimensions,hyperslabStart,hyperslabCount
-    type(hdset_reg_ref_t_f), target                      :: dataReference
-    integer                                              :: errorCode
-    integer(kind=HID_T)                                  :: dataSubsetSpaceID,dataSetID,dataSpaceID,datasetRank
-    type(varying_string)                                 :: message
-    type(c_ptr)                                          :: dataBuffer
-
+    class    (hdf5Object       )              , intent(inout), target :: fromGroup                                               
+    type     (hdf5Object       )              , intent(inout), target :: toDataset                                               
+    character(len=*            )              , intent(in   )         :: referenceName                                           
+    integer  (kind=HSIZE_T     ), dimension(1), intent(in   )         :: referenceCount   , referenceStart                       
+    integer  (kind=HSIZE_T     ), dimension(1)                        :: datasetDimensions, hyperslabCount, hyperslabStart       
+    type     (hdset_reg_ref_t_f)                             , target :: dataReference                                           
+    integer                                                           :: errorCode                                               
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, & 
+         &                                                               datasetRank                                             
+    type     (varying_string   )                                      :: message                                                 
+    type     (c_ptr            )                                      :: dataBuffer                                              
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10139,17 +10141,18 @@ contains
     !% Create a scalar reference to the 2-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    class(hdf5Object),       intent(inout), target       :: fromGroup
-    type(hdf5Object),        intent(inout), target       :: toDataset
-    character(len=*),        intent(in)                  :: referenceName
-    integer(kind=HSIZE_T),   intent(in),    dimension(2) :: referenceStart,referenceCount
-    integer(kind=HSIZE_T),                  dimension(2) :: datasetDimensions,hyperslabStart,hyperslabCount
-    type(hdset_reg_ref_t_f), target                      :: dataReference
-    integer                                              :: errorCode
-    integer(kind=HID_T)                                  :: dataSubsetSpaceID,dataSetID,dataSpaceID,datasetRank
-    type(varying_string)                                 :: message
-    type(c_ptr)                                          :: dataBuffer
-
+    class    (hdf5Object       )              , intent(inout), target :: fromGroup                                               
+    type     (hdf5Object       )              , intent(inout), target :: toDataset                                               
+    character(len=*            )              , intent(in   )         :: referenceName                                           
+    integer  (kind=HSIZE_T     ), dimension(2), intent(in   )         :: referenceCount   , referenceStart                       
+    integer  (kind=HSIZE_T     ), dimension(2)                        :: datasetDimensions, hyperslabCount, hyperslabStart       
+    type     (hdset_reg_ref_t_f)                             , target :: dataReference                                           
+    integer                                                           :: errorCode                                               
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, & 
+         &                                                               datasetRank                                             
+    type     (varying_string   )                                      :: message                                                 
+    type     (c_ptr            )                                      :: dataBuffer                                              
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10252,17 +10255,18 @@ contains
     !% Create a scalar reference to the 3-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    class(hdf5Object),       intent(inout), target       :: fromGroup
-    type(hdf5Object),        intent(inout), target       :: toDataset
-    character(len=*),        intent(in)                  :: referenceName
-    integer(kind=HSIZE_T),   intent(in),    dimension(3) :: referenceStart,referenceCount
-    integer(kind=HSIZE_T),                  dimension(3) :: datasetDimensions,hyperslabStart,hyperslabCount
-    type(hdset_reg_ref_t_f), target                      :: dataReference
-    integer                                              :: errorCode
-    integer(kind=HID_T)                                  :: dataSubsetSpaceID,dataSetID,dataSpaceID,datasetRank
-    type(varying_string)                                 :: message
-    type(c_ptr)                                          :: dataBuffer
-
+    class    (hdf5Object       )              , intent(inout), target :: fromGroup                                               
+    type     (hdf5Object       )              , intent(inout), target :: toDataset                                               
+    character(len=*            )              , intent(in   )         :: referenceName                                           
+    integer  (kind=HSIZE_T     ), dimension(3), intent(in   )         :: referenceCount   , referenceStart                       
+    integer  (kind=HSIZE_T     ), dimension(3)                        :: datasetDimensions, hyperslabCount, hyperslabStart       
+    type     (hdset_reg_ref_t_f)                             , target :: dataReference                                           
+    integer                                                           :: errorCode                                               
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, & 
+         &                                                               datasetRank                                             
+    type     (varying_string   )                                      :: message                                                 
+    type     (c_ptr            )                                      :: dataBuffer                                              
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10365,17 +10369,18 @@ contains
     !% Create a scalar reference to the 4-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    class(hdf5Object),       intent(inout), target       :: fromGroup
-    type(hdf5Object),        intent(inout), target       :: toDataset
-    character(len=*),        intent(in)                  :: referenceName
-    integer(kind=HSIZE_T),   intent(in),    dimension(4) :: referenceStart,referenceCount
-    integer(kind=HSIZE_T),                  dimension(4) :: datasetDimensions,hyperslabStart,hyperslabCount
-    type(hdset_reg_ref_t_f), target                      :: dataReference
-    integer                                              :: errorCode
-    integer(kind=HID_T)                                  :: dataSubsetSpaceID,dataSetID,dataSpaceID,datasetRank
-    type(varying_string)                                 :: message
-    type(c_ptr)                                          :: dataBuffer
-
+    class    (hdf5Object       )              , intent(inout), target :: fromGroup                                               
+    type     (hdf5Object       )              , intent(inout), target :: toDataset                                               
+    character(len=*            )              , intent(in   )         :: referenceName                                           
+    integer  (kind=HSIZE_T     ), dimension(4), intent(in   )         :: referenceCount   , referenceStart                       
+    integer  (kind=HSIZE_T     ), dimension(4)                        :: datasetDimensions, hyperslabCount, hyperslabStart       
+    type     (hdset_reg_ref_t_f)                             , target :: dataReference                                           
+    integer                                                           :: errorCode                                               
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, & 
+         &                                                               datasetRank                                             
+    type     (varying_string   )                                      :: message                                                 
+    type     (c_ptr            )                                      :: dataBuffer                                              
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10478,17 +10483,18 @@ contains
     !% Create a scalar reference to the 5-D {\tt toDataset} in the HDF5 group {\tt fromGroup}. 
     use Galacticus_Error
     implicit none
-    class(hdf5Object),       intent(inout), target       :: fromGroup
-    type(hdf5Object),        intent(inout), target       :: toDataset
-    character(len=*),        intent(in)                  :: referenceName
-    integer(kind=HSIZE_T),   intent(in),    dimension(5) :: referenceStart,referenceCount
-    integer(kind=HSIZE_T),                  dimension(5) :: datasetDimensions,hyperslabStart,hyperslabCount
-    type(hdset_reg_ref_t_f), target                      :: dataReference
-    integer                                              :: errorCode
-    integer(kind=HID_T)                                  :: dataSubsetSpaceID,dataSetID,dataSpaceID,datasetRank
-    type(varying_string)                                 :: message
-    type(c_ptr)                                          :: dataBuffer
-
+    class    (hdf5Object       )              , intent(inout), target :: fromGroup                                               
+    type     (hdf5Object       )              , intent(inout), target :: toDataset                                               
+    character(len=*            )              , intent(in   )         :: referenceName                                           
+    integer  (kind=HSIZE_T     ), dimension(5), intent(in   )         :: referenceCount   , referenceStart                       
+    integer  (kind=HSIZE_T     ), dimension(5)                        :: datasetDimensions, hyperslabCount, hyperslabStart       
+    type     (hdset_reg_ref_t_f)                             , target :: dataReference                                           
+    integer                                                           :: errorCode                                               
+    integer  (kind=HID_T       )                                      :: dataSetID        , dataSpaceID   , dataSubsetSpaceID, & 
+         &                                                               datasetRank                                             
+    type     (varying_string   )                                      :: message                                                 
+    type     (c_ptr            )                                      :: dataBuffer                                              
+    
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
 
@@ -10591,12 +10597,12 @@ contains
     !% Return true if the input dataset is a scalar reference.
     use Galacticus_Error
     implicit none
-    class(hdf5Object),   intent(in) :: thisDataset
-    integer                         :: errorCode
-    integer(kind=HID_T)             :: dataTypeID
-    type(varying_string)            :: message
-
-    ! Ensure that the dataset is open.    
+    class  (hdf5Object    ), intent(in   ) :: thisDataset 
+    integer                                :: errorCode   
+    integer(kind=HID_T    )                :: dataTypeID  
+    type   (varying_string)                :: message     
+    
+    ! Ensure that the dataset is open.
     if (.not.thisDataset%isOpenValue) then
        message="attempt to check if reference on unopen dataset '"//thisDataset%objectName//"'"
        call Galacticus_Error_Report('IO_HDF5_Is_Reference',message)

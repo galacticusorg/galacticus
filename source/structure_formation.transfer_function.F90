@@ -23,26 +23,26 @@ module Transfer_Functions
   public :: Transfer_Function, Transfer_Function_Logarithmic_Derivative, Transfer_Function_State_Retrieve
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                        :: transferFunctionInitialized=.false., tablesInitialized=.false.
-
-  ! Variables to hold the tabulated transfer function data.
-  integer                                        :: transferFunctionNumberPoints=-1
-  double precision,    allocatable, dimension(:) :: transferFunctionLogWavenumber,transferFunctionLogT
-  type(fgsl_interp)                              :: interpolationObject
-  type(fgsl_interp_accel)                        :: interpolationAccelerator
-  logical                                        :: resetInterpolation=.true.
-
-  ! Name of transfer function method used.
-  type(varying_string)                           :: transferFunctionMethod
-
-  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
-  procedure(Transfer_Function_Tabulate_Template), pointer :: Transfer_Function_Tabulate => null()
+  logical                                                                          :: tablesInitialized           =.false., transferFunctionInitialized  =.false.  
+  
+  ! Variables to hold the tabulated transfer function data.                                                                                                                                                              
+  integer                                                                          :: transferFunctionNumberPoints=-1                                              
+  double precision                                     , allocatable, dimension(:) :: transferFunctionLogT                , transferFunctionLogWavenumber          
+  type            (fgsl_interp                        )                            :: interpolationObject                                                          
+  type            (fgsl_interp_accel                  )                            :: interpolationAccelerator                                                     
+  logical                                                                          :: resetInterpolation          =.true.                                          
+  
+  ! Name of transfer function method used.                                                                                                                                                              
+  type            (varying_string                     )                            :: transferFunctionMethod                                                       
+  
+  ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.                                                                                                                                                              
+  procedure       (Transfer_Function_Tabulate_Template), pointer                   :: Transfer_Function_Tabulate  =>null()                                         
   interface Transfer_Function_Tabulate_Template
      subroutine Transfer_Function_Tabulate_Template(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber &
           &,transferFunctionLogT)
-    double precision,                            intent(in)    :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
-    integer,                                     intent(out)   :: transferFunctionNumberPoints
+    double precision                           , intent(in   ) :: logWavenumber                                                
+    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber  
+    integer                                    , intent(  out) :: transferFunctionNumberPoints                                 
   end subroutine Transfer_Function_Tabulate_Template
  end interface
   
@@ -52,10 +52,10 @@ contains
     !% Return the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: wavenumber
-    double precision             :: logWavenumber
-
-    ! Get logarithm of wavenumber.
+    double precision, intent(in   ) :: wavenumber     
+    double precision                :: logWavenumber  
+    
+    ! Get logarithm of wavenumber.                                               
     logWavenumber=log(wavenumber)
 
     !$omp critical(Transfer_Function_Initialization) 
@@ -87,10 +87,10 @@ contains
     !% Return the logarithmic derivative of the transfer function for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: wavenumber
-    double precision             :: logWavenumber
-
-    ! Get logarithm of wavenumber.
+    double precision, intent(in   ) :: wavenumber     
+    double precision                :: logWavenumber  
+    
+    ! Get logarithm of wavenumber.                                               
     logWavenumber=log(wavenumber)
 
     !$omp critical(Transfer_Function_Initialization) 
@@ -127,8 +127,8 @@ contains
     include 'structure_formation.transfer_function.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: logWavenumber
-
+    double precision, intent(in   ) :: logWavenumber  
+                                                   
     if (.not.transferFunctionInitialized) then
        ! Get the transfer function method parameter.
        !@ <inputParameter>
@@ -165,9 +165,9 @@ contains
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
     use Memory_Management
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     transferFunctionNumberPoints=0
     if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
     if (allocated(transferFunctionLogT         )) call Dealloc_Array(transferFunctionLogT         )

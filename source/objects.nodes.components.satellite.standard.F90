@@ -69,17 +69,17 @@ module Node_Component_Satellite_Standard
   !# </component>
 
   ! Record of whether the module has been initialized.
-  logical            :: moduleInitialized=.false.
-
+  logical            :: moduleInitialized                   =.false. 
+  
   ! Option indicating whether or not satellite virial orbital parameters will be stored.
-  logical            :: satelliteOrbitStoreOrbitalParameters
-
+  logical            :: satelliteOrbitStoreOrbitalParameters         
+  
   ! Option indicating whether or not to reset satellite orbits on halo formation events.
-  logical            :: satelliteOrbitResetOnHaloFormation
-
+  logical            :: satelliteOrbitResetOnHaloFormation           
+  
   ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical, parameter :: acceptUnboundOrbits=.false.
-
+  logical, parameter :: acceptUnboundOrbits                 =.false. 
+  
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -93,10 +93,9 @@ contains
      use Galacticus_Display
      use String_Handling
      implicit none
-     type(nodeComponentSatelliteStandard) :: satelliteComponent
-
-     ! Test whether module is already initialize.
-     !$omp critical (Node_Component_Satellite_Standard_Initialize)
+     type(nodeComponentSatelliteStandard) :: satelliteComponent 
+     
+     ! Test whether module is already initialize.     !$omp critical (Node_Component_Satellite_Standard_Initialize)
      if (satelliteComponent%standardIsActive().and..not.moduleInitialized) then
         ! Determine if satellite orbits are to be stored.
         !@ <inputParameter>
@@ -140,8 +139,8 @@ contains
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(thisNode)
     !% Initialize the standard satellite component.
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     if (thisNode%isSatellite()) call Node_Component_Satellite_Standard_Create(thisNode)
     return
   end subroutine Node_Component_Satellite_Standard_Tree_Initialize
@@ -153,12 +152,12 @@ contains
     !% Compute the time until satellite merging rate of change.
     use Dark_Matter_Halos_Mass_Loss_Rates
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    logical,                                intent(inout) :: interrupt
-    procedure(),                   pointer, intent(inout) :: interruptProcedure
-    class(nodeComponentSatellite), pointer                :: satelliteComponent
-    double precision                                      :: massLossRate
-
+    type            (treeNode              ), intent(inout), pointer :: thisNode           
+    logical                                 , intent(inout)          :: interrupt          
+    procedure       (                      ), intent(inout), pointer :: interruptProcedure 
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent 
+    double precision                                                 :: massLossRate       
+    
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.
@@ -178,10 +177,10 @@ contains
     use Virial_Orbits
     use Kepler_Orbits
     implicit none
-    type (keplerOrbit                   )                :: Node_Component_Satellite_Standard_Virial_Orbit
-    class(nodeComponentSatelliteStandard), intent(inout) :: self
-    type (treeNode                      ), pointer       :: selfNode,hostNode
-
+    type (keplerOrbit                   )                :: Node_Component_Satellite_Standard_Virial_Orbit           
+    class(nodeComponentSatelliteStandard), intent(inout) :: self                                                     
+    type (treeNode                      ), pointer       :: hostNode                                      , selfNode 
+    
     selfNode => self%host()
     if (selfNode%isSatellite().or..not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent)) then
        if (satelliteOrbitStoreOrbitalParameters) then
@@ -201,12 +200,12 @@ contains
     use Kepler_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    class(nodeComponentSatellite), intent(inout) :: self
-    type (keplerOrbit                   ), intent(in) :: thisOrbit
-    type (treeNode                      ), pointer       :: selfNode
-    double precision                                     :: mergeTime
-    type (keplerOrbit                   ) :: virialOrbit
- 
+    class           (nodeComponentSatellite        ), intent(inout) :: self        
+    type            (keplerOrbit                   ), intent(in   ) :: thisOrbit   
+    type            (treeNode                      ), pointer       :: selfNode    
+    double precision                                                :: mergeTime   
+    type            (keplerOrbit                   )                :: virialOrbit 
+    
     select type (self)
     class is (nodeComponentSatelliteStandard)
        ! Ensure the orbit is defined.
@@ -229,11 +228,11 @@ contains
   subroutine Node_Component_Satellite_Standard_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    class(nodeComponentSatellite), pointer                :: satelliteComponent
-    class(nodeComponentBasic    ), pointer                :: thisBasicComponent
-    double precision,              parameter              :: timeScale=1.0d-3, massScaleFractional=1.0d-6
-
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                     
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent                           
+    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent                           
+    double precision                        , parameter              :: massScaleFractional=1.0d-6, timeScale=1.0d-3 
+    
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
     ! Ensure that it is of the standard class.
@@ -255,9 +254,9 @@ contains
   subroutine Node_Component_Satellite_Standard_Halo_Formation_Task(thisNode)
     !% Reset the orbits of satellite galaxies on halo formation events.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    type(treeNode), pointer                :: satelliteNode
-
+    type(treeNode), intent(inout), pointer :: thisNode      
+    type(treeNode)               , pointer :: satelliteNode 
+    
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
 
@@ -288,14 +287,14 @@ contains
     use Virial_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    type(treeNode),                pointer, intent(inout) :: thisNode
-    type(treeNode),                pointer                :: hostNode
-    class(nodeComponentSatellite), pointer                :: satelliteComponent
-    class(nodeComponentBasic    ), pointer                :: basicComponent
-    logical                                               :: isNewSatellite
-    double precision                                      :: mergeTime
-    type(keplerOrbit)                                     :: thisOrbit
-
+    type            (treeNode              ), intent(inout), pointer :: thisNode           
+    type            (treeNode              )               , pointer :: hostNode           
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent 
+    class           (nodeComponentBasic    )               , pointer :: basicComponent     
+    logical                                                          :: isNewSatellite     
+    double precision                                                 :: mergeTime          
+    type            (keplerOrbit           )                         :: thisOrbit          
+    
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
 

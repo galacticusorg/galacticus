@@ -27,22 +27,24 @@ module Merger_Tree_Timesteps_History
   public :: Merger_Tree_Timestep_History, Merger_Tree_History_Write
 
   ! Variable inidicating if module is initialized and active.
-  logical          :: timestepHistoryInitialized=.false.
-  logical          :: diskActive,spheroidActive
-
+  logical                                                        :: timestepHistoryInitialized      =.false.                                   
+  logical                                                        :: diskActive                              , spheroidActive                   
+  
   ! Variables which control the distribution of timesteps.
-  integer          :: timestepHistorySteps
-  double precision :: timestepHistoryBegin,timestepHistoryEnd
-
+  integer                                                        :: timestepHistorySteps                                                       
+  double precision                                               :: timestepHistoryBegin                    , timestepHistoryEnd               
+  
   ! Storage arrays.
-  double precision, dimension(:), allocatable :: historyTime,historyExpansion,historyStarFormationRate&
-       &,historyDiskStarFormationRate,historySpheroidStarFormationRate,historyDiskStellarDensity,historySpheroidStellarDensity&
-       &,historyStellarDensity,historyGasDensity,historyNodeDensity,historyHotGasDensity
-
+  double precision                   , allocatable, dimension(:) :: historyDiskStarFormationRate            , historyDiskStellarDensity    , & 
+       &                                                            historyExpansion                        , historyGasDensity            , & 
+       &                                                            historyHotGasDensity                    , historyNodeDensity           , & 
+       &                                                            historySpheroidStarFormationRate        , historySpheroidStellarDensity, & 
+       &                                                            historyStarFormationRate                , historyStellarDensity        , & 
+       &                                                            historyTime                                                                
+  
   ! Interpolation variables.
-  type(fgsl_interp_accel)                     :: interpolationAccelerator
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                                   
   !$omp threadprivate(interpolationAccelerator)
-
 contains
 
   !# <timeStepsTask>
@@ -59,15 +61,15 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type     (treeNode                     ), intent(inout), pointer           :: thisNode
-    procedure(End_Of_Timestep_Task_Template), intent(inout), pointer           :: End_Of_Timestep_Task
-    double precision                        , intent(inout)                    :: timeStep
-    logical                                 , intent(in   )                    :: report
-    type     (treeNode                     ), intent(inout), pointer, optional :: lockNode
-    type     (varying_string               ), intent(inout),          optional :: lockType  
-    class    (nodeComponentBasic           ),                pointer           :: thisBasicComponent
-    integer                                                                    :: timeIndex
-    double precision                                                           :: time,ourTimeStep
+    type            (treeNode                     ), intent(inout)          , pointer :: thisNode                   
+    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task       
+    double precision                               , intent(inout)                    :: timeStep                   
+    logical                                        , intent(in   )                    :: report                     
+    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode                   
+    type            (varying_string               ), intent(inout), optional          :: lockType                   
+    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent         
+    integer                                                                           :: timeIndex                  
+    double precision                                                                  :: ourTimeStep         , time 
     
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
@@ -175,15 +177,16 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type (mergerTree           ), intent(in   )          :: thisTree
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    integer                     , intent(inout)          :: deadlockStatus
-    class(nodeComponentBasic   ),                pointer :: thisBasicComponent
-    class(nodeComponentDisk    ),                pointer :: thisDiskComponent
-    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
-    integer                                              :: timeIndex
-    double precision                                     :: time,diskStarFormationRate,spheroidStarFormationRate,hotGasMass
-
+    type            (mergerTree           ), intent(in   )          :: thisTree                                 
+    type            (treeNode             ), intent(inout), pointer :: thisNode                                 
+    integer                                , intent(inout)          :: deadlockStatus                           
+    class           (nodeComponentBasic   )               , pointer :: thisBasicComponent                       
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                        
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                    
+    integer                                                         :: timeIndex                                
+    double precision                                                :: diskStarFormationRate    , hotGasMass, & 
+         &                                                             spheroidStarFormationRate, time          
+    
     ! Get components.
     thisBasicComponent    => thisNode%basic   ()
     thisDiskComponent     => thisNode%disk    ()
@@ -256,8 +259,8 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: historyGroup,historyDataset
-
+    type(hdf5Object) :: historyDataset, historyGroup 
+    
     ! Output the history data if and only if any has been collated.
     if (timestepHistoryInitialized) then
        !@ <outputType>

@@ -2,6 +2,9 @@
 
 package Fortran_Utils;
 use File::Copy;
+use Text::Balanced qw (extract_bracketed);
+use Text::Table;
+use Data::Dumper;
 
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
@@ -187,6 +190,329 @@ sub Get_Fortran_Line {
     $_[1] = $rawLine;
     $_[2] = $processedLine;
     $_[3] = $bufferedComments;
+}
+
+sub Format_Variable_Defintions {
+    # Generate formatted variable definitions.
+    my $variables = shift;
+    my %options;
+    if ( $#_ >= 1 ) {(%options) = @_};
+    $options{'variableWidth'} = -1
+	unless ( exists($options{'variableWidth'}) );
+    $options{'alignVariables'} = 0
+	unless ( exists($options{'alignVariables'}) );
+    # Record of inline comments.
+    my @inlineComments;
+    # Scan data content searching for repeated attributes.
+    my %attributes;
+    foreach my $datum ( @{$variables} ) {
+	if ( exists($datum->{'attributes'}) ) {
+	    foreach ( @{$datum->{'attributes'}} ) {
+		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
+		++$attributes{$attributeName}->{'count'};
+		$attributes{$attributeName}->{'column'} = -1;
+	    }
+	}
+    }
+    # Find column for aligned attributes.
+    my $columnCountMaximum = -1;
+    foreach my $datum ( @{$variables} ) {
+	if ( exists($datum->{'attributes'}) ) {
+	    my $columnCount  = -1;
+	    foreach ( sort(@{$datum->{'attributes'}}) ) {
+		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
+		++$columnCount;
+		if ( $attributes{$attributeName}->{'count'} > 1 ) {
+		    if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
+			foreach my $otherAttribute ( sort(keys(%attributes)) ) {
+			    ++$attributes{$otherAttribute}->{'column'}
+			    if (
+				$attributes{$otherAttribute}->{'column'} >= $columnCount &&
+				$attributes{$otherAttribute}->{'count' } > 1             &&
+				$otherAttribute ne $attributeName
+				);
+			}
+			$attributes{$attributeName}->{'column'} = $columnCount;
+		    }
+		    $columnCount = $attributes{$attributeName}->{'column'};
+		}
+	    }
+	    $columnCountMaximum = $columnCount+1
+		if ( $columnCount+1 > $columnCountMaximum );
+	}
+    }
+    foreach ( keys(%attributes) ) {
+	$columnCountMaximum = $attributes{$_}->{'column'}
+	if ( $attributes{$_}->{'column'} > $columnCountMaximum);
+    }
+    ++$columnCountMaximum;
+    my @attributeColumns;
+    push @attributeColumns, {is_sep => 1, body => ""},{align => "left"} foreach (1..$columnCountMaximum);
+
+    # Find the number of columns to use for variables.
+    my @variablesColumns;
+    my $variableColumnCount;
+    if ( $options{'alignVariables'} == 1 ) {
+	my $variableLengthMaximum = 0;
+	my $variableColumnCountMaximum    = 0;
+	foreach my $definition ( @{$variables} ) {
+	    $variableColumnCountMaximum = scalar(@{$definition->{'variables'}})
+		if ( scalar(@{$definition->{'variables'}}) > $variableColumnCountMaximum );
+	    foreach ( @{$definition->{'variables'}} ) {
+		$variableLengthMaximum = length($_)
+		    if ( length($_) > $variableLengthMaximum );
+	    }
+	}
+	if ( $options{'variableWidth'} > 0 ) {
+	    $variableColumnCount = int($options{'variableWidth'}/($variableLengthMaximum+2));
+	    $variableColumnCount = 2
+		if ( $variableColumnCount < 2 );
+	} else {
+	    $variableColumnCount = $variableColumnCountMaximum;
+	}
+	push @variablesColumns, {is_sep => 1, body => ""}, {align => "left"} foreach (1..5*$variableColumnCount);
+    } else {
+	push @variablesColumns, {is_sep => 1, body => " :: "}, {align => "left"};
+    }
+
+    # Construct indentation.
+    my $indent = "    ";
+    $indent = " " x $options{'indent'}
+    if ( exists($options{'indent'}) );
+    # Create a table for data content.
+    my @columnsDef = 
+	(
+	 {
+	     is_sep => 1,
+	     body   => $indent
+	 },
+	 {
+	     align  => "left"
+	 },
+	 {
+	     is_sep => 1,
+	     body   => ""
+	 },
+	 {
+	     align  => "left"
+	 },
+	 {
+	     is_sep => 1,
+	     body   => ""
+	 },
+	 {
+	     align  => "left"
+	 },
+	 {
+	     is_sep => 1,
+	     body   => ""
+	 },
+	 {
+	     align  => "left"
+	 },
+	 @attributeColumns
+	);
+    if ( $options{'alignVariables'} == 1 ) {
+	push(
+	    @columnsDef,   
+	    {
+		align  => "left"
+	    },
+	    @variablesColumns,
+	    {
+		is_sep => 1,
+		body   => ""
+	    },
+	    {
+		align  => "left"
+	    },
+	    {
+		align  => "left"
+	    }
+	    );
+    } else {
+	push(
+	    @columnsDef,   
+	    @variablesColumns,
+	    {
+		align  => "left"
+	    }
+	    );
+    }
+    my $dataTable = Text::Table->new(@columnsDef);
+
+    # Iterate over all data content.
+    foreach ( @{$variables} ) {
+	# Construct the type definition.
+	my @typeDefinition = ( "", "", "" );
+	@typeDefinition = ( "(", $_->{'type'}, ")" )
+	    if ( exists($_->{'type'}) );
+	# Add attributes.
+	my @attributeList;
+	if ( exists($_->{'attributes'}) ) {
+	    foreach ( sort(@{$_->{'attributes'}}) ) {
+		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
+		if ( $attributes{$attributeName}->{'column'} >= 0 ) {
+		    push(@attributeList,"")
+			while ( scalar(@attributeList) < $attributes{$attributeName}->{'column'} );
+		}
+		push(@attributeList,", ".$_);
+	    }
+	    push(@attributeList,"")
+		while ( scalar(@attributeList) < $columnCountMaximum);
+	} else {
+	    @attributeList = ("") x $columnCountMaximum;
+	}
+	# Construct any comment.
+	my $comment = "";
+	$comment = " ! ".$_->{'comment'}
+	    if ( exists($_->{'comment'}) );
+	# Add a row to the table.
+	if ( $options{'alignVariables'} == 1 ) {
+	    for(my $i=0;$i<scalar(@{$_->{'variables'}});$i+=$variableColumnCount) {
+		my $i0 = $i;
+		my $i1 = $i+$variableColumnCount-1;
+		$i1 = $#{$_->{'variables'}}
+		   if ( $i1 > $#{$_->{'variables'}} );
+		my @thisVariables = @{$_->{'variables'}}[$i0..$i1];
+		my @splitVariables;
+		for(my $j=0;$j<scalar(@thisVariables);++$j) {
+		    if ( $thisVariables[$j] =~ m/([a-zA-Z0-9_]+)\s*(\([a-zA-Z0-9:,\(\)]+\))??(\s*=\s*(.*?)\s*)??$/ ) {
+			my $variableName = $1;
+			$variableName = ", ".$variableName
+			    if ( $j > 0 );
+			my $dimensions   = $2;
+			my $assignment   = $4;
+			$assignment = "=".$assignment
+			    if ( defined($assignment) );
+			my @dimensioner;
+			if ( defined($dimensions) ) {
+			    $dimensions =~ s/^\(//;
+			    $dimensions =~ s/\)$//;
+			    @dimensioner = ( "(", $dimensions, ")" );
+			} else {
+			    @dimensioner = ( "", "", "" );
+			}
+			push(@splitVariables,$variableName,@dimensioner,$assignment);
+		    } else {
+			print "Variable ".$thisVariables[$j]." is unmatched\n";
+			die;
+		    }
+		}
+		my $continuation = "";
+		$continuation = ", &"
+		    if ( $i+$variableColumnCount < scalar(@{$_->{'variables'}}) );
+		if ( $i == 0 ) {
+		    $dataTable->add(
+			$_->{'intrinsic'},
+			@typeDefinition,
+			@attributeList,
+			":: ",
+			@splitVariables,
+			$continuation,
+			$comment
+			);
+		} else {
+		    $dataTable->add(
+			"     &",
+			map("",@typeDefinition),
+			map("",@attributeList ),
+			"",
+			@splitVariables,
+			$continuation,
+			""
+			);
+		}
+	    }
+	} else {
+	    $dataTable->add(
+		$_->{'intrinsic'},
+		@typeDefinition,
+		@attributeList,
+		join(", ",@{$_->{'variables'}}),
+		$comment
+		);
+	}
+	# Add a comment after this row.
+	if ( exists($_->{'commentAfter'}) ) {
+	    push(@inlineComments,$_->{'commentAfter'});
+	    $dataTable->add("%C".scalar(@inlineComments));
+   	}
+    }
+    # Get the formatted table.
+    my $formattedVariables = $dataTable->table();
+    # Reinsert inline comments.
+    for(my $i=scalar(@inlineComments);$i>=1;--$i) {	
+	chomp($inlineComments[$i-1]);
+	$inlineComments[$i-1] =~ s/^\s*//;
+	$inlineComments[$i-1] =~ s/\s*$//;
+	$formattedVariables =~ s/\%C$i\s*\n/$inlineComments[$i-1]\n/;
+    }
+    $formattedVariables =~ s/\%BLANKLINE//g;
+    # Return the table.
+    return $formattedVariables;
+}
+
+sub Extract_Variables {
+    # Given the post-"::" section of a variable declaration line, return an array of all variable names.
+    $variableList = shift;
+    my %options;
+    if ( $#_ >= 1 ) {(%options) = @_};
+    $options{'lowerCase'} = 1
+	unless ( exists($options{'lowerCase'}) );
+    $options{'keepQualifier'} = 0
+	unless ( exists($options{'keepQualifiers'}) );
+    $options{'removeSpaces'} = 1
+	unless ( exists($options{'removeSpaces'}) );
+    die("Fortran::Utils::Extract_Variables: variable list contains '::' - most likely regex matching failed") if ( $variableList =~ m/::/ );
+    # Convert to lower case.
+    $variableList = lc($variableList)
+	if ( $options{'lowerCase'} == 1 );
+    # Remove whitespace.
+    if ( $options{'removeSpaces'} == 1 ) {
+	$variableList =~ s/\s//g;
+    } else {
+	$variableList =~ s/\s*$//;
+    }
+    # Remove *'s (can appear for character variables).
+    unless ( $options{'removeSpaces'} == 0 ) {
+	if ( $options{'keepQualifiers'} == 0 ) {
+	    $variableList =~ s/\*//g;
+	} else {
+            $variableList =~ s/\*/\%\%ASTERISK\%\%/g;
+	}
+    }
+    # Remove text within matching () pairs.
+    while ( $variableList =~ m/[\(\[]/ ) {
+	($extracted,$remainder,$prefix) = extract_bracketed($variableList,"()[]","[\\sa-zA-Z0-9_,:=>\%\\+\\-\\*\\/\.]+");
+	if ( $options{'keepQualifiers'} == 0 ) {
+	    $variableList = $prefix.$remainder;
+	} else {
+	    $extracted =~ s/\(/\%\%OPEN\%\%/g;
+	    $extracted =~ s/\)/\%\%CLOSE\%\%/g;
+	    $extracted =~ s/\[/\%\%OPENSQ\%\%/g;
+	    $extracted =~ s/\]/\%\%CLOSESQ\%\%/g;
+	    $extracted =~ s/,/\%\%COMMA\%\%/g;
+	    $variableList = $prefix.$extracted.$remainder;
+	}
+    }
+    # Remove any definitions or associations.
+    $variableList =~ s/=[^,]*(,|$)//g
+	if ( $options{'keepQualifiers'} == 0 );
+    # Split variables into an array and store.
+    @variables = split(/\s*,\s*/,$variableList);
+    if ( $options{'keepQualifiers'} == 1 ) {
+	foreach ( @variables ) {
+	    $_ =~ s/\%\%OPEN\%\%/\(/g;
+	    $_ =~ s/\%\%CLOSE\%\%/\)/g;
+	    $_ =~ s/\%\%OPENSQ\%\%/\[/g;
+	    $_ =~ s/\%\%CLOSESQ\%\%/\]/g;
+	    $_ =~ s/\%\%COMMA\%\%/,/g;
+	    $_ =~ s/\%\%ASTERISK\%\%/\*/g;
+	}
+    }
+    # Return the list.
+    return @variables;
 }
 
 1;

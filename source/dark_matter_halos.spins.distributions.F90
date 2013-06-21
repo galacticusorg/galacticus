@@ -26,17 +26,17 @@ module Halo_Spin_Distributions
   public :: Halo_Spin_Distribution_Sample
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: haloSpinDistributionInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: haloSpinDistributionMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Halo_Spin_Sample_Get_Template), pointer :: Halo_Spin_Sample_Get => null()
+  logical                                           :: haloSpinDistributionInitialized=.false.  
+  
+  ! Name of cooling rate available method used.                                                                                           
+  type     (varying_string               )          :: haloSpinDistributionMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                           
+  procedure(Halo_Spin_Sample_Get_Template), pointer :: Halo_Spin_Sample_Get           =>null()  
   interface Halo_Spin_Sample_Get_Template
      double precision function Halo_Spin_Sample_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Halo_Spin_Sample_Get_Template
   end interface
   
@@ -50,9 +50,9 @@ contains
     include 'dark_matter_halos.spins.distributions.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize if necessary.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize if necessary.                                                 
     if (.not.haloSpinDistributionInitialized) then
        !$omp critical(Halo_Spin_Distribution_Initialization) 
        if (.not.haloSpinDistributionInitialized) then

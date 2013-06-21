@@ -24,8 +24,8 @@ module Hot_Halo_Density_Profile_Cored_Isothermal
   public :: Hot_Halo_Density_Cored_Isothermal
 
   ! Record of whether an active component can supply the hot halo mass property.
-  logical :: hotHaloActive
-
+  logical :: hotHaloActive 
+  
 contains
 
   !# <hotHaloDensityMethod>
@@ -38,12 +38,12 @@ contains
     use Input_Parameters
     use Galacticus_Nodes
     implicit none
-    type(varying_string),                 intent(in)    :: hotHaloDensityMethod
-    procedure(Hot_Halo_Density_Cored_Isothermal_Get), pointer, intent(inout) :: Hot_Halo_Density_Get
-    procedure(Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get), pointer, intent(inout) :: Hot_Halo_Density_Log_Slope_Get
-    procedure(Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get), pointer, intent(inout) :: Hot_Halo_Enclosed_Mass_Get
-    procedure(Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get), pointer, intent(inout) :: Hot_Halo_Profile_Rotation_Normalization_Get
-    procedure(Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get), pointer, intent(inout) :: Hot_Halo_Profile_Radial_Moment_Get
+    type     (varying_string                                              ), intent(in   )          :: hotHaloDensityMethod                        
+    procedure(Hot_Halo_Density_Cored_Isothermal_Get                       ), intent(inout), pointer :: Hot_Halo_Density_Get                        
+    procedure(Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get             ), intent(inout), pointer :: Hot_Halo_Density_Log_Slope_Get              
+    procedure(Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get         ), intent(inout), pointer :: Hot_Halo_Enclosed_Mass_Get                  
+    procedure(Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get), intent(inout), pointer :: Hot_Halo_Profile_Rotation_Normalization_Get 
+    procedure(Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get         ), intent(inout), pointer :: Hot_Halo_Profile_Radial_Moment_Get          
     
     if (hotHaloDensityMethod == 'coredIsothermal') then
        Hot_Halo_Density_Get                        => Hot_Halo_Density_Cored_Isothermal_Get
@@ -60,12 +60,12 @@ contains
   double precision function Density_Normalization_Factor(coreRadius,outerRadius)
     !% Computes the density profile normalization factor for a given core radius and outer radius.
     implicit none
-    double precision, intent(in) :: coreRadius,outerRadius
-    double precision             :: outerRadiusOverCoreRadius    
-    double precision, save       :: outerRadiusOverCoreRadiusPrevious=-1.0d0,densityNormalizationPrevious
+    double precision, intent(in   ) :: coreRadius                           , outerRadius                              
+    double precision                :: outerRadiusOverCoreRadius                                                       
+    double precision, save          :: densityNormalizationPrevious         , outerRadiusOverCoreRadiusPrevious=-1.0d0 
     !$omp threadprivate(outerRadiusOverCoreRadiusPrevious,densityNormalizationPrevious)
-    double precision, parameter  :: outerRadiusOverCoreRadiusSmall=1.0d-6
-
+    double precision, parameter     :: outerRadiusOverCoreRadiusSmall=1.0d-6                                           
+    
     outerRadiusOverCoreRadius=outerRadius/coreRadius
     if (outerRadiusOverCoreRadius /= outerRadiusOverCoreRadiusPrevious) then
        outerRadiusOverCoreRadiusPrevious=outerRadiusOverCoreRadius
@@ -90,11 +90,12 @@ contains
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Numerical_Constants_Math
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision           , intent(in   )          :: radius
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                                    :: hotGasMass,outerRadius,coreRadius,densityNormalization
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                                  
+    double precision                      , intent(in   )          :: radius                                                    
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                                      
+    double precision                                               :: coreRadius          , densityNormalization, hotGasMass, & 
+         &                                                            outerRadius                                               
+    
     thisHotHaloComponent => thisNode%hotHalo()
     hotGasMass           =  thisHotHaloComponent%mass       ()
     outerRadius          =  thisHotHaloComponent%outerRadius()
@@ -109,10 +110,10 @@ contains
     use Galacticus_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
-    double precision                         :: coreRadius,radiusInCoreUnitsSquared
-
+    type            (treeNode), intent(inout), pointer :: thisNode                             
+    double precision          , intent(in   )          :: radius                               
+    double precision                                   :: coreRadius, radiusInCoreUnitsSquared 
+    
     coreRadius              =Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)
     radiusInCoreUnitsSquared=(radius/coreRadius)**2
     Hot_Halo_Density_Cored_Isothermal_Log_Slope_Get=-2.0d0*radiusInCoreUnitsSquared/(1.0d0+radiusInCoreUnitsSquared)
@@ -125,11 +126,11 @@ contains
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Galactic_Structure_Options
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision,            intent(in   )          :: radius
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                                    :: hotGasMass,outerRadius,coreRadius
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                      
+    double precision                      , intent(in   )          :: radius                                        
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                          
+    double precision                                               :: coreRadius          , hotGasMass, outerRadius 
+    
     ! Return immediately with zero mass if no active component can supply a hot halo mass.
     if (.not.hotHaloActive) then
        Hot_Halo_Density_Cored_Isothermal_Enclosed_Mass_Get=0.0d0
@@ -162,10 +163,10 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                                    :: radiusOuter,radiusCoreOverRadiusOuter
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                               
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                   
+    double precision                                               :: radiusCoreOverRadiusOuter, radiusOuter 
+    
     ! Get outer radius and ratio of core radius to virial radius.
     thisHotHaloComponent => thisNode            %hotHalo    ()
     radiusOuter          =  thisHotHaloComponent%outerRadius()
@@ -203,12 +204,13 @@ contains
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                      , intent(in   )          :: moment,radius
-    double precision                                               :: radiusOuter,radiusCore,radiusOuterOverRadiusCore,hotGasMass&
-         & ,densityNormalization
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                  
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                      
+    double precision                      , intent(in   )          :: moment                   , radius         
+    double precision                                               :: densityNormalization     , hotGasMass , & 
+         &                                                            radiusCore               , radiusOuter, & 
+         &                                                            radiusOuterOverRadiusCore                 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
 

@@ -25,18 +25,18 @@ module Stellar_Astrophysics_Tracks
   public :: Stellar_Luminosity, Stellar_Effective_Temperature
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: stellarTracksInitialized=.false.
-
-  ! Name of cosmology functions method used.
-  type(varying_string) :: stellarTracksMethod
-
-  ! Pointer to the functions that actually do the calculations.
-  procedure(Stellar_Tracks_Template), pointer :: Stellar_Luminosity_Get            => null()
-  procedure(Stellar_Tracks_Template), pointer :: Stellar_Effective_Temperature_Get => null()
-
+  logical                                     :: stellarTracksInitialized         =.false.  
+  
+  ! Name of cosmology functions method used.                                                                                       
+  type     (varying_string         )          :: stellarTracksMethod                        
+  
+  ! Pointer to the functions that actually do the calculations.                                                                                       
+  procedure(Stellar_Tracks_Template), pointer :: Stellar_Luminosity_Get           =>null()  
+  procedure(Stellar_Tracks_Template), pointer :: Stellar_Effective_Temperature_Get=>null()  
+                                                                                         
   abstract interface
      double precision function Stellar_Tracks_Template(initialMass,metallicity,age)
-       double precision, intent(in) :: initialMass,metallicity,age
+       double precision, intent(in   ) :: age, initialMass, metallicity  
      end function Stellar_Tracks_Template
   end interface
 
@@ -84,9 +84,9 @@ contains
   double precision function Stellar_Luminosity(initialMass,metallicity,age)
     !% Returns the bolometric luminosity of a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity,age
+    double precision, intent(in   ) :: age, initialMass, metallicity  
     
-    ! Initialize the module.
+    ! Initialize the module.                                                               
     call Stellar_Tracks_Initialize
     
     ! Get the answer using the selected method.
@@ -98,9 +98,9 @@ contains
   double precision function Stellar_Effective_Temperature(initialMass,metallicity,age)
     !% Returns the effective temperature of a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity,age
+    double precision, intent(in   ) :: age, initialMass, metallicity  
     
-    ! Initialize the module.
+    ! Initialize the module.                                                               
     call Stellar_Tracks_Initialize
     
     ! Get the answer using the selected method.

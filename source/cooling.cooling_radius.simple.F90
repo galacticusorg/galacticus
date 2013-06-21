@@ -32,38 +32,31 @@ module Cooling_Radii_Simple
   public :: Cooling_Radius_Simple_Initialize, Cooling_Radius_Simple_Reset
 
   ! Module global variable that stores the time available for cooling.
-  double precision :: coolingTimeAvailable
+  double precision                              :: coolingTimeAvailable                                                           
   !$omp threadprivate(coolingTimeAvailable)
-
   ! Module global pointer to the active node.
-  type(treeNode), pointer :: activeNode
+  type            (treeNode          ), pointer :: activeNode                                                                     
   !$omp threadprivate(activeNode)
-
   ! Internal record of the number of abundance and chemical properties.
-  integer :: abundancesCount,chemicalsCount
-
+  integer                                       :: abundancesCount                      , chemicalsCount                          
+  
   ! Record of unique ID of node which we last computed results for.
-  integer(kind=kind_int8) :: lastUniqueID=-1
+  integer         (kind=kind_int8    )          :: lastUniqueID                 =-1                                               
   !$omp threadprivate(lastUniqueID)
-
   ! Record of whether or not cooling radius has already been computed for this node.
-  logical :: coolingRadiusComputed=.false.,coolingRadiusGrowthRateComputed=.false.
+  logical                                       :: coolingRadiusComputed        =.false., coolingRadiusGrowthRateComputed=.false. 
   !$omp threadprivate(coolingRadiusComputed,coolingRadiusGrowthRateComputed)
-
   ! Stored values of cooling radius.
-  double precision :: coolingRadiusStored,coolingRadiusGrowthRateStored
+  double precision                              :: coolingRadiusGrowthRateStored        , coolingRadiusStored                     
   !$omp threadprivate(coolingRadiusStored,coolingRadiusGrowthRateStored)
-
   ! Abundances and chemical objects used in cooling calculations.
-  type(abundances)          :: gasAbundances
+  type            (abundances        )          :: gasAbundances                                                                  
   !$omp threadprivate(gasAbundances)
-  type(chemicalAbundances)  :: chemicalMasses,chemicalDensities
+  type            (chemicalAbundances)          :: chemicalDensities                    , chemicalMasses                          
   !$omp threadprivate(chemicalMasses,chemicalDensities)
-
   ! Radiation structure used in cooling calculations.
-  type(radiationStructure)           :: radiation
+  type            (radiationStructure)          :: radiation                                                                      
   !$omp threadprivate(radiation)
-
 contains
 
   !# <coolingRadiusMethod>
@@ -74,9 +67,9 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: coolingRadiusMethod
-    procedure(Cooling_Radius_Simple), pointer, intent(inout) :: Cooling_Radius_Get
-    procedure(Cooling_Radius_Growth_Rate_Simple), pointer, intent(inout) :: Cooling_Radius_Growth_Rate_Get
+    type     (varying_string                   ), intent(in   )          :: coolingRadiusMethod            
+    procedure(Cooling_Radius_Simple            ), intent(inout), pointer :: Cooling_Radius_Get             
+    procedure(Cooling_Radius_Growth_Rate_Simple), intent(inout), pointer :: Cooling_Radius_Growth_Rate_Get 
     
     if (coolingRadiusMethod == 'simple') then
        Cooling_Radius_Get             => Cooling_Radius_Simple
@@ -104,8 +97,8 @@ contains
     !% Reset the cooling radius calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     coolingRadiusComputed          =.false.
     coolingRadiusGrowthRateComputed=.false.
     lastUniqueID                   =thisNode%uniqueID()
@@ -123,12 +116,14 @@ contains
     use Cooling_Times
     use Cooling_Times_Available
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                                               :: outerRadius,coolingRadius,coolingTimeAvailable &
-         &,coolingTimeAvailableIncreaseRate ,densityLogSlope,temperatureLogSlope,density,temperature,coolingTimeDensityLogSlope &
-         &,coolingTimeTemperatureLogSlope
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                                        
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                                            
+    double precision                                               :: coolingRadius                   , coolingTimeAvailable      , & 
+         &                                                            coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, & 
+         &                                                            coolingTimeTemperatureLogSlope  , density                   , & 
+         &                                                            densityLogSlope                 , outerRadius               , & 
+         &                                                            temperature                     , temperatureLogSlope           
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
 
@@ -192,14 +187,14 @@ contains
     use Cooling_Times_Available
     use Root_Finder
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                      , parameter              :: zeroRadius=0.0d0
-    double precision                      , parameter              :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (rootFinder          ), save                   :: finder
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                             
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                                 
+    double precision                      , parameter              :: zeroRadius          =0.0d0                           
+    double precision                      , parameter              :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6 
+    type            (rootFinder          ), save                   :: finder                                               
     !$omp threadprivate(finder)
-    double precision                                               :: outerRadius 
-
+    double precision                                               :: outerRadius                                          
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Radius_Simple_Reset(thisNode)
 
@@ -255,10 +250,10 @@ contains
     !% calculations.
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type (treeNode            ), intent(inout), pointer     :: thisNode
-    class(nodeComponentHotHalo),                pointer     :: thisHotHaloComponent
-    double precision                                        :: massToDensityConversion    
- 
+    type            (treeNode            ), intent(inout), pointer :: thisNode                
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent    
+    double precision                                               :: massToDensityConversion 
+    
     ! Get node components.
     thisHotHaloComponent => thisNode%hotHalo()
 
@@ -288,9 +283,9 @@ contains
     use Hot_Halo_Density_Profile
     use Hot_Halo_Temperature_Profile
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: coolingTime,density,temperature
-
+    double precision, intent(in   ) :: radius                            
+    double precision                :: coolingTime, density, temperature 
+    
     ! Compute density, temperature and abundances.
     density    =Hot_Halo_Density    (activeNode,radius)
     temperature=Hot_Halo_Temperature(activeNode,radius)

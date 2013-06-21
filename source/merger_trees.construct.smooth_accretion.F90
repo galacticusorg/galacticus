@@ -28,11 +28,12 @@ module Merger_Tree_Smooth_Accretion
   public :: Merger_Tree_Smooth_Accretion_Initialize
 
   ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeHaloMass,mergerTreeBuildTreesBaseTime,mergerTreeHaloMassResolution&
-       &,mergerTreeHaloMassDeclineFactor,mergerTreeBaseRedshift
-
+  double precision :: mergerTreeBaseRedshift              , mergerTreeBuildTreesBaseTime   , & 
+       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor, & 
+       &              mergerTreeHaloMassResolution                                             
+  
   ! Flag indicating whether or not we've already built the tree.
-  logical          :: treeWasBuilt=.false.
+  logical          :: treeWasBuilt                =.false.                                     
   
 contains
 
@@ -44,9 +45,9 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type(varying_string),          intent(in)    :: mergerTreeConstructMethod
-    procedure(),          pointer, intent(inout) :: Merger_Tree_Construct
-
+    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod 
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct     
+    
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'smoothAccretion') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -107,15 +108,15 @@ contains
     use Kind_Numbers
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type (mergerTree        ), intent(inout) :: thisTree
-    logical,                   intent(in   ) :: skipTree
-    type (treeNode          ), pointer       :: currentNode,newNode
-    class(nodeComponentBasic), pointer       :: newBasicComponent,baseBasicComponent
-    integer(kind=kind_int8)                  :: nodeIndex
-    double precision                         :: mergerTreeBaseTime,expansionFactorBase,nodeMass,nodeTime
-
-    ! Build the merger tree.
-    !$omp critical (Merger_Tree_Build_Do)
+    type            (mergerTree        )         , intent(inout) :: thisTree                                             
+    logical                                      , intent(in   ) :: skipTree                                             
+    type            (treeNode          ), pointer                :: currentNode        , newNode                         
+    class           (nodeComponentBasic), pointer                :: baseBasicComponent , newBasicComponent               
+    integer         (kind=kind_int8    )                         :: nodeIndex                                            
+    double precision                                             :: expansionFactorBase, mergerTreeBaseTime, nodeMass, & 
+         &                                                          nodeTime                                             
+    
+    ! Build the merger tree.    !$omp critical (Merger_Tree_Build_Do)
     if (.not.treeWasBuilt) then
        ! Give the tree an index.
        thisTree%index=1

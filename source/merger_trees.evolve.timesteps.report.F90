@@ -32,13 +32,13 @@ contains
     use String_Handling
     use Kind_Numbers
     implicit none
-    character(len=*         ), intent(in)           :: message
-    double precision         , intent(in)           :: time
-    integer  (kind=kind_int8), intent(in), optional :: index
-    type     (varying_string)                       :: vMessage
-    character(len=12        )                       :: label 
-    character(len=32        )                       :: paddedMessage
-    
+    character       (len=*         ), intent(in   )           :: message        
+    double precision                , intent(in   )           :: time           
+    integer         (kind=kind_int8), intent(in   ), optional :: index          
+    type            (varying_string)                          :: vMessage       
+    character       (len=12        )                          :: label          
+    character       (len=32        )                          :: paddedMessage  
+                                                                             
     write (paddedMessage,'(a32  )') message
     write (label        ,'(e12.6)') time
     vMessage=paddedMessage//label

@@ -28,9 +28,9 @@ module Dates_and_Times
   character(len=3), dimension(12), parameter :: months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
   ! Tables used to determine what day of the week each month starts on.
-  integer, dimension(12) :: monthTableLeapYear   =[6,2,3,6,1,4,6,2,5,0,3,5]
-  integer, dimension(12) :: monthTableNonLeapYear=[0,3,3,6,1,4,6,2,5,0,3,5]
-
+  integer, dimension(12) :: monthTableLeapYear   =[6,2,3,6,1,4,6,2,5,0,3,5]  
+  integer, dimension(12) :: monthTableNonLeapYear=[0,3,3,6,1,4,6,2,5,0,3,5]  
+                                                                          
 contains
 
   function Formatted_Date_and_Time()
@@ -38,14 +38,17 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(varying_string) :: Formatted_Date_and_Time
-    integer              :: timeValues(8),century,year,dayOfWeek,c,y,m
-    logical              :: isLeapYear
-    character(len=2)     :: label
-    character(len=2)     :: hourOffset,minuteOffset
-    character(len=1)     :: signOffset
-
-    ! Get the date and time in numerical form.
+    type     (varying_string) :: Formatted_Date_and_Time                      
+    integer                   :: c                         , century      , & 
+         &                       dayOfWeek                 , m            , & 
+         &                       timeValues             (8), y            , & 
+         &                       year                                         
+    logical                   :: isLeapYear                                   
+    character(len=2         ) :: label                                        
+    character(len=2         ) :: hourOffset                , minuteOffset     
+    character(len=1         ) :: signOffset                                   
+    
+    ! Get the date and time in numerical form.                                                                       
     call Date_and_Time(values=timeValues)
 
     ! Compute the day of the week (following the algorithm at:

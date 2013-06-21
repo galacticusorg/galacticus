@@ -42,9 +42,9 @@ contains
     !% Display an error message.
     use ISO_Varying_String
     implicit none
-    character(len=*),     intent(in) :: unitName
-    type(varying_string), intent(in) :: message
-
+    character(len=*         ), intent(in   ) :: unitName  
+    type     (varying_string), intent(in   ) :: message   
+                                                       
     call Galacticus_Error_Report_Char(unitName,char(message))
     
     return
@@ -54,9 +54,9 @@ contains
     !% Display an error message (optionally reporting the unit name in which the error originated) and stop.
     !$ use OMP_Lib
     implicit none
-    character(len=*), intent(in), optional :: unitName,message
-    integer                                :: error
-
+    character(len=*), intent(in   ), optional :: message, unitName  
+    integer                                   :: error              
+                                                                 
     if (present(unitName)) write (0,'(a,a,a)') 'Fatal error in ',trim(unitName),'():'
     if (present(message )) write (0,'(a)'    ) trim(message)
     !$ if (omp_in_parallel()) then
@@ -75,8 +75,8 @@ contains
     !% Register signal handlers.
     use FGSL
     implicit none
-    type(fgsl_error_handler_t) :: galacticusGslErrorHandler,standardGslErrorHandler
-
+    type(fgsl_error_handler_t) :: galacticusGslErrorHandler, standardGslErrorHandler  
+                                                                                   
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
@@ -90,8 +90,8 @@ contains
     !% Handle {\tt SIGINT} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
-    integer :: error
-
+    integer :: error  
+                   
     write (0,*) 'Galacticus was interrupted - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -109,8 +109,8 @@ contains
     !% Handle {\tt SIGSEGV} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
-    integer :: error
-
+    integer :: error  
+                   
     write (0,*) 'Galacticus experienced a segfault - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -128,8 +128,8 @@ contains
     !% Handle {\tt SIGFPE} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
     implicit none
-    integer :: error
-
+    integer :: error  
+                   
     write (0,*) 'Galacticus experienced a floating point exception - will try to flush data before exiting.'
     !$ if (omp_in_parallel()) then
     !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -148,11 +148,11 @@ contains
     !$ use OMP_Lib
     use FGSL
     use, intrinsic :: ISO_C_Binding
-    type     (c_ptr                         ), value :: reason, file
-    integer  (c_int                         ), value :: line, errorNumber
-    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message
-    integer                                          :: error
-
+    type     (c_ptr                         ), value :: file       , reason  
+    integer  (kind=c_int                    ), value :: errorNumber, line    
+    character(kind=FGSL_Char,len=FGSL_StrMax)        :: message              
+    integer                                          :: error                
+                                                                          
     message=FGSL_StrError(errorNumber)
     write (0,*) 'Galacticus experienced an error in the GSL library - will try to flush data before exiting.'
     write (0,*) ' => Error occurred in ',trim(FGSL_Name(file  )),' at line ',line

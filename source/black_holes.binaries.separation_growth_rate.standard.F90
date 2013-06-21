@@ -30,11 +30,11 @@ module Black_Hole_Binary_Separations_Standard
   public :: Black_Hole_Binary_Separation_Growth_Rate_Standard_Init
   
   ! Option indicating whether the density of stars in the loss cone should evolve or remain fixed.
-  logical :: stellarDensityChangeBinaryMotion
-
+  logical :: stellarDensityChangeBinaryMotion           
+  
   ! Option indicating whether or not to compute velocity dispersions.
-  logical :: blackHoleBinariesComputeVelocityDispersion
-
+  logical :: blackHoleBinariesComputeVelocityDispersion 
+  
 contains
 
   !# <blackHoleBinarySeparationGrowthRateMethod>
@@ -46,9 +46,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: blackHoleBinarySeparationGrowthRateMethod
-    procedure(Black_Hole_Binary_Separation_Growth_Rate_Standard), pointer, intent(inout) :: Black_Hole_Binary_Separation_Growth_Rate_Get
-
+    type     (varying_string                                   ), intent(in   )          :: blackHoleBinarySeparationGrowthRateMethod    
+    procedure(Black_Hole_Binary_Separation_Growth_Rate_Standard), intent(inout), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get 
+    
     if (blackHoleBinarySeparationGrowthRateMethod == 'standard') then
        Black_Hole_Binary_Separation_Growth_Rate_Get => Black_Hole_Binary_Separation_Growth_Rate_Standard
        !@ <inputParameter>
@@ -97,19 +97,23 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
-    type            (treeNode              ),                pointer :: thisNode
-    class           (nodeComponentBlackHole),                pointer :: centralBlackHoleComponent
-    class           (nodeComponentSpheroid ),                pointer :: thisSpheroidComponent
-    double precision                        , parameter              :: hardeningRateDimensionless    =15.0d0
-    double precision                        , parameter              :: outerRadiusMultiplier         =10.0d0
-    double precision                        , parameter              :: dynamicalFrictionMinimumRadius=0.1d0
-    double precision                                                 :: rateScattering, rateGravitationalWaves,&
-         & dynamicalFrictionAcceleration, densitySpheroid, densityDarkMatter, dynamicalFrictionXSpheroid,&
-         & dynamicalFrictionXDarkMatter, coulombLogarithmSpheroid , coulombLogarithmDarkMatter, densityStellar,&
-         & stellarDensityFractionRemaining ,rateScatteringDynamicalFriction, rateScatteringStars, velocityDispersionSpheroid,&
-         & velocityDispersionDarkMatter, radiusHardBinary,rotationCurveGradient
-    character(len=24)                                                :: message
+    class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent                                                     
+    type            (treeNode              )               , pointer :: thisNode                                                                   
+    class           (nodeComponentBlackHole)               , pointer :: centralBlackHoleComponent                                                  
+    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent                                                      
+    double precision                        , parameter              :: hardeningRateDimensionless     =15.0d0                                     
+    double precision                        , parameter              :: outerRadiusMultiplier          =10.0d0                                     
+    double precision                        , parameter              :: dynamicalFrictionMinimumRadius =0.1d0                                      
+    double precision                                                 :: coulombLogarithmDarkMatter            , coulombLogarithmSpheroid       , & 
+         &                                                              densityDarkMatter                     , densitySpheroid                , & 
+         &                                                              densityStellar                        , dynamicalFrictionAcceleration  , & 
+         &                                                              dynamicalFrictionXDarkMatter          , dynamicalFrictionXSpheroid     , & 
+         &                                                              radiusHardBinary                      , rateGravitationalWaves         , & 
+         &                                                              rateScattering                        , rateScatteringDynamicalFriction, & 
+         &                                                              rateScatteringStars                   , rotationCurveGradient          , & 
+         &                                                              stellarDensityFractionRemaining       , velocityDispersionDarkMatter   , & 
+         &                                                              velocityDispersionSpheroid                                                 
+    character       (len=24                )                         :: message                                                                    
     
     ! Get the host node.
     thisNode                  => thisBlackHoleComponent%host()

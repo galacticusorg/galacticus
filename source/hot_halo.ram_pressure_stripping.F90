@@ -25,14 +25,14 @@ module Hot_Halo_Ram_Pressure_Stripping
   public :: Hot_Halo_Ram_Pressure_Stripping_Radius
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: hotHaloRamPressureStrippingInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: hotHaloRamPressureStrippingMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Ram_Pressure_Stripping_Radius), pointer :: Hot_Halo_Ram_Pressure_Stripping_Radius_Get => null()
-
+  logical                                                    :: hotHaloRamPressureStrippingInitialized    =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                               
+  type     (varying_string                        )          :: hotHaloRamPressureStrippingMethod                   
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                               
+  procedure(Hot_Halo_Ram_Pressure_Stripping_Radius), pointer :: Hot_Halo_Ram_Pressure_Stripping_Radius_Get=>null()  
+                                                                                                                 
 contains
 
   double precision function Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
@@ -44,9 +44,9 @@ contains
     include 'hot_halo.ram_pressure_stripping.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize if necessary.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize if necessary.                                                 
     if (.not.hotHaloRamPressureStrippingInitialized) then
        !$omp critical(Hot_Halo_Ram_Pressure_Stripping_Initialization) 
        if (.not.hotHaloRamPressureStrippingInitialized) then

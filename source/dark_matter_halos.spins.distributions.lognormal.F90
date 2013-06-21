@@ -27,13 +27,12 @@ module Halo_Spin_Distributions_Lognormal
        & Halo_Spin_Distribution_Lognormal_State_Store, Halo_Spin_Distribution_Lognormal_State_Retrieve
 
   ! Parameters of the spin distribution.
-  double precision :: lognormalSpinDistributionMedian,lognormalSpinDistributionSigma
-
+  double precision           :: lognormalSpinDistributionMedian       , lognormalSpinDistributionSigma 
+  
   ! Random number objects
-  type(fgsl_rng) :: randomSequenceObject,clonedPseudoSequenceObject
-  logical        :: resetRandomSequence=.true.,resetRandomSequenceSnapshot
+  type            (fgsl_rng) :: clonedPseudoSequenceObject            , randomSequenceObject           
+  logical                    :: resetRandomSequence            =.true., resetRandomSequenceSnapshot    
   !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
-
 contains
 
   !# <haloSpinDistributionMethod>
@@ -44,8 +43,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: haloSpinDistributionMethod
-    procedure(Halo_Spin_Distribution_Lognormal), pointer, intent(inout) :: Halo_Spin_Sample_Get
+    type     (varying_string                  ), intent(in   )          :: haloSpinDistributionMethod 
+    procedure(Halo_Spin_Distribution_Lognormal), intent(inout), pointer :: Halo_Spin_Sample_Get       
     
     if (haloSpinDistributionMethod == 'lognormal') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Lognormal
@@ -81,9 +80,9 @@ contains
     use Galacticus_Nodes
     use Gaussian_Random
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: randomDeviate,logLambda
-
+    type            (treeNode), intent(inout), pointer :: thisNode                 
+    double precision                                   :: logLambda, randomDeviate 
+    
     randomDeviate=Gaussian_Random_Get(randomSequenceObject,lognormalSpinDistributionSigma,resetRandomSequence)
     logLambda=lognormalSpinDistributionMedian+randomDeviate
     Halo_Spin_Distribution_Lognormal=exp(logLambda)
@@ -110,9 +109,9 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) resetRandomSequenceSnapshot
     if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
@@ -126,9 +125,9 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     read (stateFile) resetRandomSequence
     if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
     return

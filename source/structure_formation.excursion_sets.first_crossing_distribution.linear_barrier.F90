@@ -35,10 +35,10 @@ contains
     !% Initialize the linear barrier first crossing distribution for excursion sets module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: excursionSetFirstCrossingMethod
-    procedure(double precision), pointer, intent(inout) :: Excursion_Sets_First_Crossing_Probability_Get&
-         &,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get
-
+    type     (varying_string  ), intent(in   )          :: excursionSetFirstCrossingMethod                                                          
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get, Excursion_Sets_First_Crossing_Rate_Get, & 
+         &                                                 Excursion_Sets_Non_Crossing_Rate_Get                                                     
+    
     if (excursionSetFirstCrossingMethod == 'linearBarrier') then
        Excursion_Sets_First_Crossing_Probability_Get => Excursion_Sets_First_Crossing_Probability_Linear
        Excursion_Sets_First_Crossing_Rate_Get        => Excursion_Sets_First_Crossing_Rate_Linear
@@ -53,8 +53,8 @@ contains
     use Numerical_Constants_Math
     use Excursion_Sets_Barriers
     implicit none
-    double precision, intent(in) :: variance,time
-
+    double precision, intent(in   ) :: time, variance 
+    
     Excursion_Sets_First_Crossing_Probability_Linear=Excursion_Sets_Barrier(0.0d0,time)*exp(-0.5d0&
          &*Excursion_Sets_Barrier(variance,time)**2/variance)/variance/sqrt(2.0d0*Pi*variance)
     return
@@ -68,10 +68,11 @@ contains
     use Numerical_Constants_Math
     use Excursion_Sets_Barriers
     implicit none
-    double precision, intent(in) :: variance,varianceProgenitor,time
-    double precision, parameter  :: fractionalTimeChange=1.0d-3
-    double precision             :: timeProgenitor
-
+    double precision, intent(in   ) :: time                       , variance, & 
+         &                             varianceProgenitor                       
+    double precision, parameter     :: fractionalTimeChange=1.0d-3              
+    double precision                :: timeProgenitor                           
+    
     ! Compute a slightly earlier time for the progenitor
     timeProgenitor=time*(1.0d0-fractionalTimeChange)
     if (variance >= varianceProgenitor) then
@@ -91,8 +92,8 @@ contains
     use Numerical_Constants_Math
     use Excursion_Sets_Barriers
     implicit none
-    double precision, intent(in) :: variance,time
-
+    double precision, intent(in   ) :: time, variance 
+    
     Excursion_Sets_Non_Crossing_Rate_Linear=0.0d0
     return
   end function Excursion_Sets_Non_Crossing_Rate_Linear
@@ -101,7 +102,7 @@ contains
     !% The effective barrier for conditional excursion sets.
     use Excursion_Sets_Barriers
     implicit none
-    double precision, intent(in) :: variance0,variance,time0,time
+    double precision, intent(in   ) :: time, time0, variance, variance0 
     
     Excursion_Sets_Barrier_Effective=                                         &
          &                            Excursion_Sets_Barrier(variance ,time ) &

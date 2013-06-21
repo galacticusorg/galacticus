@@ -53,14 +53,14 @@ module Node_Component_Satellite_Very_Simple
   !# </component>
 
   ! Flag indicating whether or not to reset satellite orbits on halo formation events.
-  logical            :: satelliteOrbitResetOnHaloFormation
-
-  ! Option controlling whether or not unbound virial orbits are acceptable.
-  logical, parameter :: acceptUnboundOrbits=.false.
-
-  ! Record of whether this module has been initialized.
-  logical            :: moduleInitialized=.false.
-
+  logical            :: satelliteOrbitResetOnHaloFormation          
+  
+  ! Option controlling whether or not unbound virial orbits are acceptable.                                                               
+  logical, parameter :: acceptUnboundOrbits               =.false.  
+  
+  ! Record of whether this module has been initialized.                                                               
+  logical            :: moduleInitialized                 =.false.  
+                                                                 
 contains
 
   subroutine Node_Component_Satellite_Very_Simple_Initialize()
@@ -98,10 +98,10 @@ contains
   subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task(thisNode)
     !% Reset the orbits of satellite galaxies on halo formation events.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    type(treeNode), pointer                :: satelliteNode
-
-    ! Return immediately if this method is not active.
+    type(treeNode), intent(inout), pointer :: thisNode       
+    type(treeNode)               , pointer :: satelliteNode  
+    
+    ! Return immediately if this method is not active.                                                      
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
 
     ! Return immediately if orbits are not to be reset.
@@ -123,8 +123,8 @@ contains
   subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(thisNode)
     !% Initialize the very simple satellite component.
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     if (thisNode%isSatellite()) call Node_Component_Satellite_Very_Simple_Create(thisNode)
     return
   end subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize
@@ -143,14 +143,14 @@ contains
     use Satellite_Merging_Timescales
     use Kepler_Orbits
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    type (treeNode              ), pointer                :: hostNode
-    class(nodeComponentSatellite), pointer                :: satelliteComponent
-    logical                                               :: isNewSatellite
-    double precision                                      :: mergeTime
-    type (keplerOrbit           )                         :: thisOrbit
-
-    ! Return immediately if this method is not active.
+    type            (treeNode              ), intent(inout), pointer :: thisNode            
+    type            (treeNode              )               , pointer :: hostNode            
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent  
+    logical                                                          :: isNewSatellite      
+    double precision                                                 :: mergeTime           
+    type            (keplerOrbit           )                         :: thisOrbit           
+    
+    ! Return immediately if this method is not active.                                                                                     
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
 
     ! Get the satellite component.

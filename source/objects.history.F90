@@ -25,9 +25,9 @@ module Histories
 
   type history
      !% The history object type.
-     double precision, allocatable, dimension(:  ) :: time
-     double precision, allocatable, dimension(:,:) :: data
-     integer                                       :: rangeType
+     double precision, allocatable, dimension(:  ) :: time      
+     double precision, allocatable, dimension(:,:) :: data      
+     integer                                       :: rangeType 
    contains
      !@ <objectMethods>
      !@   <object>history</object>
@@ -164,52 +164,52 @@ module Histories
      !@     <arguments>\doubleone\ historyArray\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                 :: add                    => History_Add
-     procedure                 :: subtract               => History_Subtract
-     procedure                 :: divide                 => History_Divide
+     procedure :: add     =>History_Add      
+     procedure :: subtract=>History_Subtract 
+     procedure :: divide  =>History_Divide   
      generic                   :: operator(+)            => add
      generic                   :: operator(-)            => subtract
      generic                   :: operator(/)            => divide
-     procedure                 :: isZero                 => History_Is_Zero
-     procedure :: builder    => History_Builder
-     procedure :: dump       => History_Dump
-     procedure :: dumpRaw    => History_Dump_Raw
-     procedure :: readRaw    => History_Read_Raw
-     procedure :: create     => History_Create
-     procedure :: clone      => History_Clone
-     procedure :: destroy    => History_Destroy
-     procedure :: trim       => History_Trim
-     procedure :: extend     => History_Extend
-     procedure :: increment  => History_Increment
-     procedure :: combine    => History_Combine
-     procedure :: reset      => History_Reset
-     procedure :: setToUnity => History_Set_To_Unity
-     procedure :: exists     => History_Exists
-     procedure :: timeSteps  => History_Timesteps
-     procedure                 :: serializeCount         => History_Serialize_Count
-     procedure                 :: serialize              => History_Serialize
-     procedure                 :: deserialize            => History_Deserialize
+     procedure :: isZero        =>History_Is_Zero         
+     procedure :: builder       =>History_Builder         
+     procedure :: dump          =>History_Dump            
+     procedure :: dumpRaw       =>History_Dump_Raw        
+     procedure :: readRaw       =>History_Read_Raw        
+     procedure :: create        =>History_Create          
+     procedure :: clone         =>History_Clone           
+     procedure :: destroy       =>History_Destroy         
+     procedure :: trim          =>History_Trim            
+     procedure :: extend        =>History_Extend          
+     procedure :: increment     =>History_Increment       
+     procedure :: combine       =>History_Combine         
+     procedure :: reset         =>History_Reset           
+     procedure :: setToUnity    =>History_Set_To_Unity    
+     procedure :: exists        =>History_Exists          
+     procedure :: timeSteps     =>History_Timesteps       
+     procedure :: serializeCount=>History_Serialize_Count 
+     procedure :: serialize     =>History_Serialize       
+     procedure :: deserialize   =>History_Deserialize     
   end type history
 
   ! A null history object.
-  type(history),    public            :: nullHistory
-
+  type            (history)           , public :: nullHistory                       
+  
   ! Earliest and latest times for history storage.
-  double precision, public            :: historyStorageEarliestTime= 0.1d0
-  double precision, public            :: historyStorageLatestTime  =15.0d0
-
+  double precision                    , public :: historyStorageEarliestTime=0.1d0  
+  double precision                    , public :: historyStorageLatestTime  =15.0d0 
+  
   ! Labels for targets when adding to histories.
-  integer,          public, parameter :: historyData  =1
-  integer,          public, parameter :: historyRates =2
-  integer,          public, parameter :: historyScales=3
-
+  integer                  , parameter, public :: historyData               =1      
+  integer                  , parameter, public :: historyRates              =2      
+  integer                  , parameter, public :: historyScales             =3      
+  
 contains
 
   subroutine History_Set_Times(timeEarliest,timeLatest)
     !% Extend the range of history times to include the given {\tt timeEarliest} and {\tt timeLatest}.
     implicit none
-    double precision, intent(in), optional :: timeEarliest,timeLatest
-
+    double precision, intent(in   ), optional :: timeEarliest, timeLatest 
+    
     if (present(timeEarliest)) historyStorageEarliestTime=min(historyStorageEarliestTime,timeEarliest)
     if (present(timeLatest  )) historyStorageLatestTime  =max(historyStorageLatestTime  ,timeLatest  )
     return
@@ -221,12 +221,12 @@ contains
     use Numerical_Ranges
     use Galacticus_Error
     implicit none
-    class(history),   intent(inout)        :: thisHistory
-    integer,          intent(in)           :: historyCount,timesCount
-    double precision, intent(in), optional :: timeBegin,timeEnd
-    integer,          intent(in), optional :: rangeType
-    integer                                :: rangeTypeActual
-
+    class           (history), intent(inout)           :: thisHistory                 
+    integer                  , intent(in   )           :: historyCount   , timesCount 
+    double precision         , intent(in   ), optional :: timeBegin      , timeEnd    
+    integer                  , intent(in   ), optional :: rangeType                   
+    integer                                            :: rangeTypeActual             
+    
     if (allocated(thisHistory%time)) then
        call Galacticus_Error_Report('History_Create','this history appears to have been created already')
     else
@@ -257,11 +257,11 @@ contains
     !% Destroy a history.
     use Memory_Management
     implicit none
-    class(history), intent(inout)          :: thisHistory
-    logical,        intent(in),   optional :: recordMemory
-    integer                                :: timesCount,historyCount
-    logical                                :: recordMemoryActual
-
+    class  (history), intent(inout)           :: thisHistory                    
+    logical         , intent(in   ), optional :: recordMemory                   
+    integer                                   :: historyCount      , timesCount 
+    logical                                   :: recordMemoryActual             
+    
     if (allocated(thisHistory%time)) then
        timesCount  =size(thisHistory%time      )
        historyCount=size(thisHistory%data,dim=2)
@@ -288,9 +288,9 @@ contains
     use FoX_DOM
     use Galacticus_Error
     implicit none
-    class(history), intent(inout) :: self
-    type (node   ), pointer       :: historyDefinition
-
+    class(history), intent(inout) :: self              
+    type (node   ), pointer       :: historyDefinition 
+    
     call Galacticus_Error_Report('History_Builder','building of history objects is not yet supported')
     return
   end subroutine History_Builder
@@ -300,11 +300,11 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     implicit none
-    class    (history       ), intent(in   ) :: self
-    integer                                  :: i,j
-    type     (varying_string)                :: message
-    character(len=12        )                :: label
-
+    class    (history       ), intent(in   ) :: self       
+    integer                                  :: i      , j 
+    type     (varying_string)                :: message    
+    character(len=12        )                :: label      
+    
     if (allocated(self%time)) then
        do i=1,size(self%time)
           write (label,'(i3)') i
@@ -324,9 +324,9 @@ contains
   subroutine History_Dump_Raw(self,fileHandle)
     !% Dumps a history object in binary.
     implicit none
-    class  (history), intent(in   ) :: self
-    integer         , intent(in   ) :: fileHandle
-
+    class  (history), intent(in   ) :: self       
+    integer         , intent(in   ) :: fileHandle 
+    
     write (fileHandle) self%rangeType
     write (fileHandle) allocated(self%time)
     if (allocated(self%time)) then
@@ -341,10 +341,10 @@ contains
     !% Read a history object in binary.
     use Memory_Management
     implicit none
-    class  (history), intent(inout) :: self
-    integer         , intent(in   ) :: fileHandle
-    logical                         :: isAllocated
-    integer         , dimension(2)  :: historyShape
+    class  (history), intent(inout) :: self         
+    integer         , intent(in   ) :: fileHandle   
+    logical                         :: isAllocated  
+    integer         , dimension(2)  :: historyShape 
     
     read (fileHandle) self%rangeType
     read (fileHandle) isAllocated
@@ -362,7 +362,7 @@ contains
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     use Memory_Management
     implicit none
-    class(history), intent(inout) :: thisHistory
+    class(history), intent(inout) :: thisHistory 
     
     if (allocated(thisHistory%time)) thisHistory%data=0.0d0
     return
@@ -372,7 +372,7 @@ contains
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
     use Memory_Management
     implicit none
-    class(history), intent(inout) :: thisHistory
+    class(history), intent(inout) :: thisHistory 
     
     if (allocated(thisHistory%time)) thisHistory%data=1.0d0
     return
@@ -381,7 +381,7 @@ contains
   logical function History_Exists(thisHistory)
     !% Returns true if the history has been created.
     implicit none
-    class(history), intent(in) :: thisHistory
+    class(history), intent(in   ) :: thisHistory 
     
     History_Exists=allocated(thisHistory%time)
     return
@@ -391,9 +391,9 @@ contains
     !% Clone a history object.
     use Memory_Management
     implicit none
-    class(history), intent(inout) :: self
-    type (history), intent(in   ) :: historyToClone
-
+    class(history), intent(inout) :: self           
+    type (history), intent(in   ) :: historyToClone 
+    
     if (allocated(self%time)) call Dealloc_Array(self%time,memoryType=memoryTypeNodes)
     if (allocated(self%data)) call Dealloc_Array(self%data,memoryType=memoryTypeNodes)
     if (allocated(historyToClone%time)) then
@@ -411,8 +411,8 @@ contains
   logical function History_Is_Zero(self)
     !% Test whether a history object is all zero.
     implicit none
-    class(history), intent(in) :: self
-
+    class(history), intent(in   ) :: self 
+    
     History_Is_Zero=.true.
     if (allocated(self%data)) then
        if (any(self%data /= 0.0d0)) History_Is_Zero=.false.
@@ -424,10 +424,10 @@ contains
     !% Add two history objects.
     use Galacticus_Error
     implicit none
-    type (history)                       :: History_Add
-    class(history), intent(in)           :: history1
-    class(history), intent(in), optional :: history2
-
+    type (history)                          :: History_Add 
+    class(history), intent(in   )           :: history1    
+    class(history), intent(in   ), optional :: history2    
+    
     ! Clone the first history.
     if (.not.(history1%exists().or.history2%exists())) then
        call History_Add%reset()
@@ -448,10 +448,10 @@ contains
     !% Subtract two history objects.
     use Galacticus_Error
     implicit none
-    type (history)                       :: History_Subtract
-    class(history), intent(in)           :: history1
-    class(history), intent(in), optional :: history2
-
+    type (history)                          :: History_Subtract 
+    class(history), intent(in   )           :: history1         
+    class(history), intent(in   ), optional :: history2         
+    
     if (present(history2)) then
        if (any(shape(history1%data) /= shape(history2%data))) call Galacticus_Error_Report('History_Subtract','mismatch in history object shape')
        History_Subtract%data= history1%data-history2%data
@@ -464,8 +464,8 @@ contains
   integer function History_Serialize_Count(self)
     !% Return the number of properties required to track a history.
     implicit none
-    class(history), intent(in) :: self
-
+    class(history), intent(in   ) :: self 
+    
     if (allocated(self%data)) then
        History_Serialize_Count=size(self%data)
     else
@@ -477,9 +477,9 @@ contains
   subroutine History_Deserialize(self,historyArray)
     !% Pack history from an array into a history structure.
     implicit none
-    class(history)  , intent(inout)               :: self
-    double precision, intent(in   ), dimension(:) :: historyArray
-
+    class           (history)              , intent(inout) :: self         
+    double precision         , dimension(:), intent(in   ) :: historyArray 
+    
     ! Extract data from array.
     if (allocated(self%data)) self%data=reshape(historyArray,shape(self%data))
     return
@@ -488,9 +488,9 @@ contains
   subroutine History_Serialize(self,historyArray)
     !% Pack history from an array into an history structure.
     implicit none
-    class(history)  , intent(in   )               :: self
-    double precision, intent(  out), dimension(:) :: historyArray(:)
-
+    class           (history)              , intent(in   ) :: self            
+    double precision         , dimension(:), intent(  out) :: historyArray(:) 
+    
     ! Place data into array.
     if (allocated(self%data)) historyArray(:)=reshape(self%data,shape(historyArray))
     return
@@ -505,12 +505,14 @@ contains
     use Memory_Management
     use, intrinsic :: ISO_C_Binding 
     implicit none
-    class(history),   intent(inout)        :: thisHistory
-    double precision, intent(in)           :: currentTime
-    integer,          intent(in), optional :: minimumPointsToRemove
-    type(history)                          :: temporaryHistory
-    integer                                :: minimumPointsToRemoveActual,currentPointCount,iTrim,historyCount,newPointCount
-
+    class           (history), intent(inout)           :: thisHistory                                           
+    double precision         , intent(in   )           :: currentTime                                           
+    integer                  , intent(in   ), optional :: minimumPointsToRemove                                 
+    type            (history)                          :: temporaryHistory                                      
+    integer                                            :: currentPointCount    , historyCount               , & 
+         &                                                iTrim                , minimumPointsToRemoveActual, & 
+         &                                                newPointCount                                         
+    
     ! Return if no history exists.
     if (.not.allocated(thisHistory%time)) return
 
@@ -567,13 +569,14 @@ contains
      use Numerical_Interpolation
      use Galacticus_Error
      implicit none
-     class(history          ), intent(inout) :: thisHistory
-     type (history          ), intent(in   ) :: addHistory
-     integer                                 :: addHistoryPointCount,iPoint,interpolationPoint,iHistory
-     double precision                        :: interpolationFactors(2)
-     type (fgsl_interp_accel)                :: interpolationAccelerator
-     logical                                 :: interpolationReset
-
+     class           (history          ), intent(inout) :: thisHistory                                        
+     type            (history          ), intent(in   ) :: addHistory                                         
+     integer                                            :: addHistoryPointCount       , iHistory          , & 
+          &                                                iPoint                     , interpolationPoint    
+     double precision                                   :: interpolationFactors    (2)                        
+     type            (fgsl_interp_accel)                :: interpolationAccelerator                           
+     logical                                            :: interpolationReset                                 
+     
      select type (thisHistory)
      type is (history)
        
@@ -643,11 +646,14 @@ contains
      use Arrays_Search
      use Numerical_Ranges
      implicit none
-     class(history)  , intent(inout) :: thisHistory
-     type (history)  , intent(in   ) :: combineHistory
-     integer                         :: combineHistoryPointCount,iPoint,jPoint ,timeBeginIndex ,timeEndIndex ,combineCount
-     double precision                :: timeBegin,timeEnd,fractionContributed
-
+     class           (history), intent(inout) :: thisHistory                                      
+     type            (history), intent(in   ) :: combineHistory                                   
+     integer                                  :: combineCount       , combineHistoryPointCount, & 
+          &                                      iPoint             , jPoint                  , & 
+          &                                      timeBeginIndex     , timeEndIndex                
+     double precision                         :: fractionContributed, timeBegin               , & 
+          &                                      timeEnd                                          
+     
      select type (thisHistory)
      type is (history)
      
@@ -716,10 +722,10 @@ contains
    function History_Divide(self,divisor)
      !% Divides history data by a double precision {\tt divisor}.
      implicit none
-     type (history)               :: History_Divide
-     class(history)  , intent(in) :: self
-     double precision, intent(in) :: divisor
-    
+     type            (history)                :: History_Divide 
+     class           (history), intent(in   ) :: self           
+     double precision         , intent(in   ) :: divisor        
+     
      select type(self)
      type is (history)
         History_Divide=self
@@ -735,18 +741,20 @@ contains
      use ISO_Varying_String
      use String_Handling
      implicit none
-     class(history),   intent(inout)                         :: thisHistory
-     double precision, intent(in),  dimension(2  ), optional :: timeRange
-     double precision, intent(in),  dimension(:  ), optional :: times
-     double precision, allocatable, dimension(:  )           :: newTimes
-     double precision, allocatable, dimension(:,:)           :: historyDataTemporary
-     double precision,              dimension(2  )           :: timeRangeActual
-     integer                                                 :: timeCount,timeBeginIndex,timeEndIndex,rangeType,historyCount&
-          &,addCount,addCountStart,addCountEnd,newTimesAtStart,newTimesAtEnd
-     logical                                                 :: useRange
-     double precision                                        :: timeBegin,timeEnd,timeDelta
-     type(varying_string)                                    :: message
-
+     class           (history       )                             , intent(inout)           :: thisHistory                                              
+     double precision                             , dimension(2  ), intent(in   ), optional :: timeRange                                                
+     double precision                             , dimension(:  ), intent(in   ), optional :: times                                                    
+     double precision                , allocatable, dimension(:  )                          :: newTimes                                                 
+     double precision                , allocatable, dimension(:,:)                          :: historyDataTemporary                                     
+     double precision                             , dimension(2  )                          :: timeRangeActual                                          
+     integer                                                                                :: addCount            , addCountEnd   , addCountStart  , & 
+          &                                                                                    historyCount        , newTimesAtEnd , newTimesAtStart, & 
+          &                                                                                    rangeType           , timeBeginIndex, timeCount      , & 
+          &                                                                                    timeEndIndex                                             
+     logical                                                                                :: useRange                                                 
+     double precision                                                                       :: timeBegin           , timeDelta     , timeEnd            
+     type            (varying_string)                                                       :: message                                                  
+     
      ! Determine the range of times that must be covered.
      if (present(timeRange)) then
         timeRangeActual=timeRange
@@ -853,9 +861,9 @@ contains
     !% Write the history state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Store
@@ -867,9 +875,9 @@ contains
     !% Retrieve the history state from the file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     read (stateFile) historyStorageEarliestTime,historyStorageLatestTime
     return
   end subroutine Histories_State_Retrieve
@@ -879,11 +887,11 @@ contains
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    class(history),   intent(in)                               :: thisHistory
-    double precision, intent(inout), allocatable, dimension(:) :: timeSteps
-    integer                                                    :: iTime
-    double precision                                           :: ratio
-
+    class           (history)                           , intent(in   ) :: thisHistory 
+    double precision         , allocatable, dimension(:), intent(inout) :: timeSteps   
+    integer                                                             :: iTime       
+    double precision                                                    :: ratio       
+    
     call Alloc_Array(timeSteps,shape(thisHistory%time),memoryType=memoryTypeNodes)
     select case (thisHistory%rangeType)
     case (rangeTypeLogarithmic)

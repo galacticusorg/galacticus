@@ -35,15 +35,15 @@ module Galactic_Structure_Options
   !@  <entry label="massTypeStellar"   />
   !@  <entry label="massTypeBlackHole" />
   !@ </enumeration>
-  integer         , parameter                               :: massTypeCount    = 7
-  integer         , parameter                               :: massTypeUnknown  =-1
-  integer         , parameter                               :: massTypeAll      = 0
-  integer         , parameter                               :: massTypeDark     = 1
-  integer         , parameter                               :: massTypeBaryonic = 2
-  integer         , parameter                               :: massTypeGalactic = 3
-  integer         , parameter                               :: massTypeGaseous  = 4
-  integer         , parameter                               :: massTypeStellar  = 5
-  integer         , parameter                               :: massTypeBlackHole= 6
+  integer, parameter :: massTypeCount    =7  
+  integer, parameter :: massTypeUnknown  =-1 
+  integer, parameter :: massTypeAll      =0  
+  integer, parameter :: massTypeDark     =1  
+  integer, parameter :: massTypeBaryonic =2  
+  integer, parameter :: massTypeGalactic =3  
+  integer, parameter :: massTypeGaseous  =4  
+  integer, parameter :: massTypeStellar  =5  
+  integer, parameter :: massTypeBlackHole=6  
   character(len=9), parameter, dimension(0:massTypeCount-1) :: massTypesName    = &
        &                                                        [                 &
        &                                                         'all      ',     &
@@ -67,14 +67,14 @@ module Galactic_Structure_Options
   !@  <entry label="componentTypeDarkHalo"  />
   !@  <entry label="componentTypeBlackHole" />
   !@ </enumeration>
-  integer         , parameter                                    :: componentTypeCount    = 6
-  integer         , parameter                                    :: componentTypeUnknown  =-1
-  integer         , parameter                                    :: componentTypeAll      = 0
-  integer         , parameter                                    :: componentTypeDisk     = 1
-  integer         , parameter                                    :: componentTypeSpheroid = 2
-  integer         , parameter                                    :: componentTypeHotHalo  = 3
-  integer         , parameter                                    :: componentTypeDarkHalo = 4
-  integer         , parameter                                    :: componentTypeBlackHole= 5
+  integer, parameter :: componentTypeCount    =6  
+  integer, parameter :: componentTypeUnknown  =-1 
+  integer, parameter :: componentTypeAll      =0  
+  integer, parameter :: componentTypeDisk     =1  
+  integer, parameter :: componentTypeSpheroid =2  
+  integer, parameter :: componentTypeHotHalo  =3  
+  integer, parameter :: componentTypeDarkHalo =4  
+  integer, parameter :: componentTypeBlackHole=5  
   character(len=9), parameter, dimension(0:componentTypeCount-1) :: componentTypesName    = &
        &                                                        [                           &
        &                                                         'all      ',               &
@@ -93,33 +93,27 @@ module Galactic_Structure_Options
   !@  <entry label="coordinateSystemCylindrical" />
   !@  <entry label="coordinateSystemCartesian"   />
   !@ </enumeration>
-  integer,          parameter :: coordinateSystemSpherical  =1
-  integer,          parameter :: coordinateSystemCylindrical=2
-  integer,          parameter :: coordinateSystemCartesian  =3
-
-  ! Weighting options.
-  !@ <enumeration>
-  !@  <name>weightBy</name>
-  !@  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
-  !@  <entry label="weightByMass"       />
-  !@  <entry label="weightByLuminosity" />
-  !@ </enumeration>
-  integer,          parameter :: weightByMass      =0
-  integer,          parameter :: weightByLuminosity=1
-  integer,          parameter :: weightIndexNull   =0
-
+  integer         , parameter :: coordinateSystemSpherical  =1      
+  integer         , parameter :: coordinateSystemCylindrical=2      
+  integer         , parameter :: coordinateSystemCartesian  =3      
+  
+  ! Weighting options.  !@ <enumeration>  !@  <name>weightBy</name>  !@  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>  !@  <entry label="weightByMass"       />  !@  <entry label="weightByLuminosity" />  !@ </enumeration>
+  integer         , parameter :: weightByMass               =0      
+  integer         , parameter :: weightByLuminosity         =1      
+  integer         , parameter :: weightIndexNull            =0      
+  
   ! Suitably large value to represent infinite radius.
-  double precision, parameter :: radiusLarge=1.0d10
-
+  double precision, parameter :: radiusLarge                =1.0d10 
+  
 contains
 
   integer function Galactic_Structure_Mass_Type_Decode(massTypeName)
     !% Decode a mass type from a string, returning the appropriate identifier.
     use Galacticus_Error
     implicit none
-    character(len=*), intent(in   ) :: massTypeName
-    integer                         :: i
-
+    character(len=*), intent(in   ) :: massTypeName 
+    integer                         :: i            
+    
     Galactic_Structure_Mass_Type_Decode=massTypeUnknown
     do i=0,massTypeCount-1
        if (trim(massTypeName) == trim(massTypesName(i))) then
@@ -136,9 +130,9 @@ contains
     !% Decode a component type from a string, returning the appropriate identifier.
     use Galacticus_Error
     implicit none
-    character(len=*), intent(in   ) :: componentTypeName
-    integer                         :: i
-
+    character(len=*), intent(in   ) :: componentTypeName 
+    integer                         :: i                 
+    
     Galactic_Structure_Component_Type_Decode=componentTypeUnknown
     do i=0,componentTypeCount-1
        if (trim(componentTypeName) == trim(componentTypesName(i))) then

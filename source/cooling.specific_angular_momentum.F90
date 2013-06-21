@@ -29,14 +29,14 @@ module Cooling_Specific_Angular_Momenta
   public :: Cooling_Specific_Angular_Momentum
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: coolingAngularMomentumInitialized=.false.
-
-  ! Name of cooling radius available method used.
-  type(varying_string) :: coolingSpecificAngularMomentumMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Cooling_Specific_Angular_Momentum), pointer :: Cooling_Specific_Angular_Momentum_Get => null()
+  logical                                               :: coolingAngularMomentumInitialized    =.false.  
   
+  ! Name of cooling radius available method used.                                                                                                     
+  type     (varying_string                   )          :: coolingSpecificAngularMomentumMethod           
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                     
+  procedure(Cooling_Specific_Angular_Momentum), pointer :: Cooling_Specific_Angular_Momentum_Get=>null()  
+                                                                                                       
 contains
 
   subroutine Cooling_Specific_Angular_Momentum_Initialize
@@ -78,10 +78,10 @@ contains
   double precision function Cooling_Specific_Angular_Momentum(thisNode,radius)
     !% Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    double precision, intent(in)           :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Cooling_Specific_Angular_Momentum_Initialize
 
     ! Get the cooling radius using the selected method.

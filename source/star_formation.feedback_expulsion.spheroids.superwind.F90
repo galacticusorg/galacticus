@@ -26,8 +26,8 @@ module Star_Formation_Expulsive_Feedback_Spheroids_Superwind
   public :: Star_Formation_Expulsive_Feedback_Spheroids_SW_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: spheroidSuperwindMassLoading,spheroidSuperwindVelocity
-  
+  double precision :: spheroidSuperwindMassLoading, spheroidSuperwindVelocity  
+                                                                            
 contains
 
   !# <starFormationExpulsiveFeedbackSpheroidsMethod>
@@ -39,9 +39,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: starFormationExpulsiveFeedbackSpheroidsMethod
-    procedure(Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW), pointer, intent(inout) :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get
-    
+    type     (varying_string                                            ), intent(in   )          :: starFormationExpulsiveFeedbackSpheroidsMethod                
+    procedure(Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW), intent(inout), pointer :: Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get  
+                                                                                                                                                               
     if (starFormationExpulsiveFeedbackSpheroidsMethod == 'superwind') then
        Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_Get => Star_Formation_Expulsive_Feedback_Spheroid_Outflow_Rate_SW
        ! Get parameters of for the feedback calculation.
@@ -88,12 +88,12 @@ contains
     use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode
-    double precision            , intent(in)             :: starFormationRate,energyInputRate
-    class(nodeComponentSpheroid),                pointer :: thisSpheroidComponent
-    double precision                                     :: spheroidVelocity,outflowRateToStarFormationRate
-
-    ! Get spheroid circular velocity.
+    type            (treeNode             ), intent(inout), pointer :: thisNode                                           
+    double precision                       , intent(in   )          :: energyInputRate               , starFormationRate  
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                              
+    double precision                                                :: outflowRateToStarFormationRate, spheroidVelocity   
+    
+    ! Get spheroid circular velocity.                                                                                                                   
     thisSpheroidComponent => thisNode%spheroid()
     spheroidVelocity=thisSpheroidComponent%velocity()
 

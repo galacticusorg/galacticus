@@ -21,10 +21,10 @@ subroutine Node_Component_Hot_Halo_Standard_Mass_Sink(self,setValue)
   !% Account for a sink of gaseous material in the standard hot halo hot gas.
   use Galacticus_Error
   implicit none
-  class(nodeComponentHotHaloStandard), intent(inout) :: self
-  double precision                   , intent(in   ) :: setValue
+  class           (nodeComponentHotHaloStandard), intent(inout) :: self      
+  double precision                              , intent(in   ) :: setValue  
   
-  ! Trap cases where an attempt is made to add gas via this sink function.
+  ! Trap cases where an attempt is made to add gas via this sink function.                                                                        
   if (setValue > 0.0d0) call Galacticus_Error_Report('Node_Component_Hot_Halo_Standard_Mass_Sink','attempt to add mass via sink in hot halo')
   
   ! Proportionally adjust the rates of all components of the hot gas reservoir.
@@ -37,11 +37,11 @@ subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate(self,gasMassRate)
   !% Adjusts the rates of all components of the hot gas reservoir under the assumption of uniformly distributed properties
   !% (e.g. fully-mixed metals).
   implicit none
-  class(nodeComponentHotHaloStandard), intent(inout) :: self
-  double precision                   , intent(in   ) :: gasMassRate
-  double precision                                   :: gasMass
+  class           (nodeComponentHotHaloStandard), intent(inout) :: self         
+  double precision                              , intent(in   ) :: gasMassRate  
+  double precision                                              :: gasMass      
   
-  ! Exit immediately for zero rate.
+  ! Exit immediately for zero rate.                                                                           
   if (gasMassRate == 0.0d0) return
   ! Get the gas mass present.
   gasMass=self%mass()

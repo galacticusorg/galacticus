@@ -30,75 +30,75 @@ module Cosmology_Functions
        & Comoving_Volume_Element_Time, Cosmology_Dark_Energy_Equation_Of_State, Cosmology_Dark_Energy_Exponent
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: cosmologyInitialized=.false.
-
-  ! Name of cosmology functions method used.
-  type(varying_string) :: cosmologyMethod
-
-  ! Pointer to the functions that actually do the calculations.
-  procedure(Cosmology_Logical_Function_Double_Template),          pointer :: Expansion_Factor_Is_Valid_Get               => null()
-  procedure(Cosmology_Logical_Function_Double_Template),          pointer :: Cosmic_Time_Is_Valid_Get                    => null()
-  procedure(Cosmology_Double_Function_dCollapse_Template),        pointer :: Cosmology_Age_Get                           => null()
-  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Factor_Get                        => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Hubble_Parameter_Get                        => null()
-  procedure(Cosmology_Density_Scaling_Template),                  pointer :: Early_Time_Density_Scaling_Get              => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Matter_Total_Get                      => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: Omega_Dark_Energy_Get                       => null()
-  procedure(Cosmology_Double_Function_ddCollapse_Template),       pointer :: CMB_Temperature_Get                         => null()
-  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Expansion_Rate_Get                          => null()
-  procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Dark_Energy_Equality_Get    => null()
-  procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Curvature_Equality_Get      => null()
-  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Epoch_of_Matter_Domination_Get              => null()
-  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Comoving_Distance_Get                       => null()
-  procedure(Cosmology_Double_Function_Double_Template),           pointer :: Time_From_Comoving_Distance_Get             => null()
-  procedure(Cosmology_Comoving_Distance_Conversion_Template),     pointer :: Comoving_Distance_Conversion_Get            => null()
-  procedure(Cosmology_Dark_Energy_Equation_Of_State            ), pointer :: Cosmology_Dark_Energy_Equation_Of_State_Get => null()
-  procedure(Cosmology_Dark_Energy_Exponent                     ), pointer :: Cosmology_Dark_Energy_Exponent_Get          => null()
-
+  logical                                                                 :: cosmologyInitialized                       =.false.  
+  
+  ! Name of cosmology functions method used.                                                                                                                             
+  type     (varying_string                                     )          :: cosmologyMethod                                      
+  
+  ! Pointer to the functions that actually do the calculations.                                                                                                                             
+  procedure(Cosmology_Logical_Function_Double_Template         ), pointer :: Expansion_Factor_Is_Valid_Get              =>null()  
+  procedure(Cosmology_Logical_Function_Double_Template         ), pointer :: Cosmic_Time_Is_Valid_Get                   =>null()  
+  procedure(Cosmology_Double_Function_dCollapse_Template       ), pointer :: Cosmology_Age_Get                          =>null()  
+  procedure(Cosmology_Double_Function_Double_Template          ), pointer :: Expansion_Factor_Get                       =>null()  
+  procedure(Cosmology_Double_Function_ddCollapse_Template      ), pointer :: Hubble_Parameter_Get                       =>null()  
+  procedure(Cosmology_Density_Scaling_Template                 ), pointer :: Early_Time_Density_Scaling_Get             =>null()  
+  procedure(Cosmology_Double_Function_ddCollapse_Template      ), pointer :: Omega_Matter_Total_Get                     =>null()  
+  procedure(Cosmology_Double_Function_ddCollapse_Template      ), pointer :: Omega_Dark_Energy_Get                      =>null()  
+  procedure(Cosmology_Double_Function_ddCollapse_Template      ), pointer :: CMB_Temperature_Get                        =>null()  
+  procedure(Cosmology_Double_Function_Double_Template          ), pointer :: Expansion_Rate_Get                         =>null()  
+  procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Dark_Energy_Equality_Get   =>null()  
+  procedure(Cosmology_Double_Function_Optional_Integer_Template), pointer :: Epoch_of_Matter_Curvature_Equality_Get     =>null()  
+  procedure(Cosmology_Double_Function_Double_Template          ), pointer :: Epoch_of_Matter_Domination_Get             =>null()  
+  procedure(Cosmology_Double_Function_Double_Template          ), pointer :: Comoving_Distance_Get                      =>null()  
+  procedure(Cosmology_Double_Function_Double_Template          ), pointer :: Time_From_Comoving_Distance_Get            =>null()  
+  procedure(Cosmology_Comoving_Distance_Conversion_Template    ), pointer :: Comoving_Distance_Conversion_Get           =>null()  
+  procedure(Cosmology_Dark_Energy_Equation_Of_State            ), pointer :: Cosmology_Dark_Energy_Equation_Of_State_Get=>null()  
+  procedure(Cosmology_Dark_Energy_Exponent                     ), pointer :: Cosmology_Dark_Energy_Exponent_Get         =>null()  
+                                                                                                                               
   abstract interface
      double precision function Cosmology_Comoving_Distance_Conversion_Template(output,distanceModulus,redshift)
-       integer         , intent(in)           :: output
-       double precision, intent(in), optional :: distanceModulus,redshift
+       integer         , intent(in   )           :: output                     
+       double precision, intent(in   ), optional :: distanceModulus, redshift  
      end function Cosmology_Comoving_Distance_Conversion_Template
   end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_Optional_Integer_Template(inputParameter)
-       integer, intent(in   ), optional :: inputParameter
+       integer, intent(in   ), optional :: inputParameter  
      end function Cosmology_Double_Function_Optional_Integer_Template
   end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_Double_Template(inputParameter)
-       double precision, intent(in) :: inputParameter
+       double precision, intent(in   ) :: inputParameter  
      end function Cosmology_Double_Function_Double_Template
   end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_dCollapse_Template(inputParameter,collapsingPhase)
-       double precision, intent(in)           :: inputParameter
-       logical,          intent(in), optional :: collapsingPhase
+       double precision, intent(in   )           :: inputParameter   
+       logical         , intent(in   ), optional :: collapsingPhase  
      end function Cosmology_Double_Function_dCollapse_Template
   end interface
 
   abstract interface
      double precision function Cosmology_Double_Function_ddCollapse_Template(inputParameter1,inputParameter2,collapsingPhase)
-       double precision, intent(in), optional :: inputParameter1,inputParameter2
-       logical,          intent(in), optional :: collapsingPhase
+       double precision, intent(in   ), optional :: inputParameter1, inputParameter2  
+       logical         , intent(in   ), optional :: collapsingPhase                   
      end function Cosmology_Double_Function_ddCollapse_Template
   end interface
 
   abstract interface
      logical function Cosmology_Logical_Function_Double_Template(inputParameter)
-       double precision, intent(in) :: inputParameter
+       double precision, intent(in   ) :: inputParameter  
      end function Cosmology_Logical_Function_Double_Template
   end interface
 
   abstract interface
      subroutine Cosmology_Density_Scaling_Template(dominateFactor,densityPower,aDominant,Omega_Dominant)
-       double precision, intent(in)            :: dominateFactor
-       double precision, intent(out)           :: densityPower,aDominant
-       double precision, intent(out), optional :: Omega_Dominant
+       double precision, intent(in   )           :: dominateFactor                
+       double precision, intent(  out)           :: aDominant     , densityPower  
+       double precision, intent(  out), optional :: Omega_Dominant                
      end subroutine Cosmology_Density_Scaling_Template
   end interface
 
@@ -167,9 +167,9 @@ contains
   logical function Expansion_Factor_Is_Valid(aExpansion)
     !% Returns true if the given expansion factor is valid one for this cosmology.
     implicit none
-    double precision, intent(in) :: aExpansion
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: aExpansion  
+    
+    ! Initialize the module.                                            
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -181,9 +181,9 @@ contains
   logical function Cosmic_Time_Is_Valid(time)
     !% Returns true if the given cosmic time is valid one for this cosmology.
     implicit none
-    double precision, intent(in) :: time
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: time  
+    
+    ! Initialize the module.                                      
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -195,10 +195,10 @@ contains
   double precision function Cosmology_Age(aExpansion,collapsingPhase)
     !% Return the age of the universe (in Gyr) at given expansion factor.
     implicit none
-    double precision, intent(in)           :: aExpansion
-    logical,          intent(in), optional :: collapsingPhase
-
-    ! Initialize the module.
+    double precision, intent(in   )           :: aExpansion       
+    logical         , intent(in   ), optional :: collapsingPhase  
+    
+    ! Initialize the module.                                                           
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -210,9 +210,9 @@ contains
   double precision function Expansion_Factor(tCosmological)
     !% Returns the expansion factor at cosmological time {\tt tCosmological}.
     implicit none
-    double precision, intent(in) :: tCosmological
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: tCosmological  
+    
+    ! Initialize the module.                                               
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -224,9 +224,9 @@ contains
   function Expansion_Factor_C(tCosmological) bind(c,name="Expansion_Factor")
     !% A C-bound wrapper function for \hyperlink{cosmology.functions.F90:cosmology_functions:expansion_factor}{\tt Expansion\_Factor()}.
     implicit none
-    real(c_double)        :: Expansion_Factor_C
-    real(c_double), value :: tCosmological
-
+    real(kind=c_double)        :: Expansion_Factor_C  
+    real(kind=c_double), value :: tCosmological       
+                                                   
     Expansion_Factor_C=Expansion_Factor(tCosmological)
     return
   end function Expansion_Factor_C
@@ -234,9 +234,9 @@ contains
   double precision function Expansion_Rate(aExpansion)
     !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\tt aExpansion}.
     implicit none
-    double precision, intent(in) :: aExpansion
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: aExpansion  
+    
+    ! Initialize the module.                                            
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -248,10 +248,10 @@ contains
   double precision function Hubble_Parameter(tCosmological,aExpansion,collapsingPhase)
     !% Returns the Hubble parameter at the request cosmological time, {\tt tCosmological}, or expansion factor, {\tt aExpansion}.
     implicit none
-    double precision, intent(in), optional :: tCosmological,aExpansion
-    logical,          intent(in), optional :: collapsingPhase
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: aExpansion     , tCosmological  
+    logical         , intent(in   ), optional :: collapsingPhase                 
+    
+    ! Initialize the module.                                                                          
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -263,11 +263,11 @@ contains
   subroutine Early_Time_Density_Scaling(dominateFactor,densityPower,aDominant,Omega_Dominant)
     !% Compute the scaling of density with expansion factor at early times in the universe.  
     implicit none
-    double precision, intent(in)            :: dominateFactor
-    double precision, intent(out)           :: densityPower,aDominant
-    double precision, intent(out), optional :: Omega_Dominant
-
-    ! Initialize the module.
+    double precision, intent(in   )           :: dominateFactor                
+    double precision, intent(  out)           :: aDominant     , densityPower  
+    double precision, intent(  out), optional :: Omega_Dominant                
+    
+    ! Initialize the module.                                                                        
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -279,9 +279,9 @@ contains
   double precision function Epoch_of_Matter_Domination(dominateFactor)
     !% Compute the epoch at which matter dominates over other forms of energy by a given factor.
     implicit none
-    double precision, intent(in) :: dominateFactor
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: dominateFactor  
+    
+    ! Initialize the module.                                                
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -293,10 +293,10 @@ contains
   double precision function Omega_Matter_Total(tCosmological,aExpansion,collapsingPhase)
     !% Return the matter density parameter at expansion factor {\tt aExpansion}.
     implicit none
-    double precision, intent(in), optional :: tCosmological,aExpansion
-    logical,          intent(in), optional :: collapsingPhase
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: aExpansion     , tCosmological  
+    logical         , intent(in   ), optional :: collapsingPhase                 
+    
+    ! Initialize the module.                                                                          
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -308,10 +308,10 @@ contains
   double precision function Omega_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
     !% Return the dark energy density parameter at expansion factor {\tt aExpansion}.
     implicit none
-    double precision, intent(in), optional :: tCosmological,aExpansion
-    logical,          intent(in), optional :: collapsingPhase
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: aExpansion     , tCosmological  
+    logical         , intent(in   ), optional :: collapsingPhase                 
+    
+    ! Initialize the module.                                                                          
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -323,10 +323,10 @@ contains
   double precision function CMB_Temperature(tCosmological,aExpansion,collapsingPhase)
     !% Return the temperature of the cosmic microwave background at {\tt aExpansion}.
     implicit none
-    double precision, intent(in), optional :: tCosmological,aExpansion
-    logical,          intent(in), optional :: collapsingPhase
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: aExpansion     , tCosmological  
+    logical         , intent(in   ), optional :: collapsingPhase                 
+    
+    ! Initialize the module.                                                                          
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -338,9 +338,9 @@ contains
   double precision function Epoch_of_Matter_Dark_Energy_Equality(requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     implicit none
-    integer, intent(in), optional :: requestType
-
-    ! Initialize the module.
+    integer, intent(in   ), optional :: requestType  
+    
+    ! Initialize the module.                                              
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -352,9 +352,9 @@ contains
   double precision function Epoch_of_Matter_Curvature_Equality(requestType)
     !% Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
     implicit none
-    integer, intent(in) :: requestType
-
-    ! Initialize the module.
+    integer, intent(in   ) :: requestType  
+    
+    ! Initialize the module.                                    
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -366,8 +366,8 @@ contains
   elemental double precision function Redshift_from_Expansion_Factor(expansionFactor)
     !% Returns redshift for a given expansion factor.
     implicit none
-    double precision, intent(in) :: expansionFactor
-
+    double precision, intent(in   ) :: expansionFactor  
+                                                     
     Redshift_from_Expansion_Factor=1.0d0/expansionFactor-1.0d0
     return
   end function Redshift_from_Expansion_Factor
@@ -375,8 +375,8 @@ contains
   elemental double precision function Expansion_Factor_from_Redshift(redshift)
     !% Returns expansion factor given a redshift.
     implicit none
-    double precision, intent(in) :: redshift
-
+    double precision, intent(in   ) :: redshift  
+                                              
     Expansion_Factor_from_Redshift=1.0d0/(1.0d0+redshift)
     return
   end function Expansion_Factor_from_Redshift
@@ -388,8 +388,8 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: time
-
+    double precision, intent(in   ) :: time  
+                                          
     Comoving_Volume_Element_Redshift=Comoving_Distance(time)**2*(speedLight/kilo)/Hubble_Parameter(tCosmological=time)
     return
   end function Comoving_Volume_Element_Redshift
@@ -401,8 +401,8 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in) :: time
-
+    double precision, intent(in   ) :: time  
+                                          
     Comoving_Volume_Element_Time=Comoving_Distance(time)**2*(gigaYear*speedLight/megaParsec)/Expansion_Factor(time)
     return
   end function Comoving_Volume_Element_Time
@@ -410,9 +410,9 @@ contains
   double precision function Comoving_Distance(time)
     !% Return the comoving distance to the given cosmic {\tt time}.
     implicit none
-    double precision, intent(in) :: time
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: time  
+    
+    ! Initialize the module.                                      
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -424,9 +424,9 @@ contains
   double precision function Time_From_Comoving_Distance(comovingDistance)
     !% Return the cosmic time corresponding to the given {\tt comovingDistance}.
     implicit none
-    double precision, intent(in) :: comovingDistance
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: comovingDistance  
+    
+    ! Initialize the module.                                                  
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -438,10 +438,10 @@ contains
   double precision function Comoving_Distance_Conversion(output,distanceModulus,redshift)
     !% Convert between different measures of comoving distance.
     implicit none
-    integer         , intent(in)           :: output
-    double precision, intent(in), optional :: distanceModulus,redshift
-
-    ! Initialize the module.
+    integer         , intent(in   )           :: output                     
+    double precision, intent(in   ), optional :: distanceModulus, redshift  
+    
+    ! Initialize the module.                                                                     
     call Cosmology_Functions_Initialize
 
     ! Get the answer using the selected method.
@@ -453,9 +453,9 @@ contains
   double precision function Cosmology_Dark_Energy_Equation_Of_State(time,expansionFactor)
     !% Return the dark energy equation of state.
     implicit none
-    double precision, intent(in   ), optional :: time,expansionFactor
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: expansionFactor, time  
+    
+    ! Initialize the module.                                                                 
     call Cosmology_Functions_Initialize
     ! Get the answer using the selected method.
     Cosmology_Dark_Energy_Equation_Of_State=Cosmology_Dark_Energy_Equation_Of_State_Get(time,expansionFactor)
@@ -465,9 +465,9 @@ contains
   double precision function Cosmology_Dark_Energy_Exponent(time,expansionFactor)
     !% Return the dark energy equation of state.
     implicit none
-    double precision, intent(in   ), optional :: time,expansionFactor
-
-    ! Initialize the module.
+    double precision, intent(in   ), optional :: expansionFactor, time  
+    
+    ! Initialize the module.                                                                 
     call Cosmology_Functions_Initialize
     ! Get the answer using the selected method.
     Cosmology_Dark_Energy_Exponent=Cosmology_Dark_Energy_Exponent_Get(time,expansionFactor)

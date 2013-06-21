@@ -29,18 +29,18 @@ module Cooling_Infall_Radii
   public :: Infall_Radius, Infall_Radius_Growth_Rate
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: infallRadiusInitialized=.false.
-
-  ! Name of cooling radius available method used.
-  type(varying_string) :: infallRadiusMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Infall_Radius_Get_Template), pointer :: Infall_Radius_Get             => null()
-  procedure(Infall_Radius_Get_Template), pointer :: Infall_Radius_Growth_Rate_Get => null()
+  logical                                        :: infallRadiusInitialized      =.false.  
+  
+  ! Name of cooling radius available method used.                                                                                      
+  type     (varying_string            )          :: infallRadiusMethod                     
+  
+  ! Pointer to the function that actually does the calculation.                                                                                      
+  procedure(Infall_Radius_Get_Template), pointer :: Infall_Radius_Get            =>null()  
+  procedure(Infall_Radius_Get_Template), pointer :: Infall_Radius_Growth_Rate_Get=>null()  
   abstract interface
      double precision function Infall_Radius_Get_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Infall_Radius_Get_Template
   end interface
   
@@ -85,9 +85,9 @@ contains
   double precision function Infall_Radius(thisNode)
     !% Return the infall radius for {\tt thisNode} (in units of Mpc).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Infall_Radius_Initialize
 
     ! Get the cooling radius using the selected method.
@@ -99,9 +99,9 @@ contains
   double precision function Infall_Radius_Growth_Rate(thisNode)
     !% Return the rate at which the infall radius grows for {\tt thisNode} (in units of Mpc/Gyr).
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Infall_Radius_Initialize
 
     ! Get the cooling radius using the selected method.

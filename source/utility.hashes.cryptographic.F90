@@ -27,9 +27,9 @@ module Hashes_Cryptographic
      subroutine md5(textLength,text,hash) bind(c,name='md5')
        !% Template for a C function that returns the MD5 of the input.
        import
-       integer  (kind=c_int ), value :: textLength
-       character(kind=c_char)        :: hash(35)
-       character(kind=c_char)        :: text(textLength)
+       integer  (kind=c_int ), value :: textLength              
+       character(kind=c_char)        :: hash      (35        )  
+       character(kind=c_char)        :: text      (textLength)  
      end subroutine md5
   end interface
 
@@ -39,13 +39,13 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(varying_string) :: Hash_MD5
-    type(varying_string), intent(in) :: text
-    character(kind=c_char), allocatable, dimension(:) :: textC
-    character(kind=c_char), dimension(35) :: hash
-    integer(kind=c_int) :: textLen
-    integer :: i
-
+    type     (varying_string)                               :: Hash_MD5  
+    type     (varying_string), intent(in   )                :: text      
+    character(kind=c_char   ), allocatable  , dimension(:)  :: textC     
+    character(kind=c_char   )               , dimension(35) :: hash      
+    integer  (kind=c_int    )                               :: textLen   
+    integer                                                 :: i         
+                                                                      
     textLen=len(text)+1
     allocate(textC(textLen))
     do i=1,textLen-1

@@ -22,8 +22,8 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
   use Node_Component_Spheroid_Standard_Data
   use Mass_Distributions
   implicit none
-  class(nodeComponentSpheroidStandard), intent(inout) :: self
-  
+  class(nodeComponentSpheroidStandard), intent(inout) :: self  
+                                                            
   select type (spheroidMassDistribution)
   class is (massDistributionSpherical)
      Node_Component_Spheroid_Standard_Half_Mass_Radius=self%radius()*spheroidMassDistribution%halfMassRadius()
@@ -36,13 +36,13 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   use Node_Component_Spheroid_Standard_Data
   use Galactic_Structure_Options
   implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType,massType,weightBy,weightIndex
-  double precision                               , intent(in   )           :: radius
-  logical                                        , intent(in   ), optional :: haloLoaded
-  double precision                                                         :: fractionalRadius,spheroidRadius
-
-  ! Return if the spheroid component is not selected.
+  class           (nodeComponentSpheroidStandard), intent(inout)           :: self                                                     
+  integer                                        , intent(in   )           :: componentType   , massType      , weightBy, weightIndex  
+  double precision                               , intent(in   )           :: radius                                                   
+  logical                                        , intent(in   ), optional :: haloLoaded                                               
+  double precision                                                         :: fractionalRadius, spheroidRadius                         
+  
+  ! Return if the spheroid component is not selected.                                                                                                                                  
   Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
   ! Get the total mass.

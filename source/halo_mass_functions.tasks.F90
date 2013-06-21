@@ -25,20 +25,25 @@ module Halo_Mass_Function_Tasks
   public :: Halo_Mass_Function_Compute, Halo_Mass_Function_Open_File, Halo_Mass_Function_Close_File, Halo_Mass_Function_Output
   
   ! HDF5 object for the output file.
-  type(hdf5Object), public :: haloMassFunctionOutputFile
-
+  type            (hdf5Object), public                      :: haloMassFunctionOutputFile                                                    
+  
   ! Arrays of halo mass function data.
-  double precision, allocatable, dimension(:,:) :: haloMassFunction_Mass,haloMassFunction_dndM,haloMassFunction_dndlnM &
-       &,haloMassFunction_bias,haloMassFunction_sigma,haloMassFunction_nu,haloMassFunction_virialTemperature&
-       &,haloMassFunction_virialVelocity ,haloMassFunction_virialRadius,haloMassFunction_cumulative,haloMassFunction_massFraction
+  double precision            , allocatable, dimension(:,:) :: haloMassFunction_Mass                 , haloMassFunction_bias             , & 
+       &                                                       haloMassFunction_cumulative           , haloMassFunction_dndM             , & 
+       &                                                       haloMassFunction_dndlnM               , haloMassFunction_massFraction     , & 
+       &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , & 
+       &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, & 
+       &                                                       haloMassFunction_virialVelocity                                               
   
   ! Arrays of output time data.
-  double precision, allocatable, dimension(:  ) :: outputRedshifts,outputExpansionFactors,outputTimes,outputGrowthFactors &
-       &,outputCriticalOverdensities,outputVirialDensityContrast,outputCharacteristicMass
-
+  double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , & 
+       &                                                       outputExpansionFactors                , outputGrowthFactors               , & 
+       &                                                       outputRedshifts                       , outputTimes                       , & 
+       &                                                       outputVirialDensityContrast                                                   
+  
   ! The upper limit to halo mass used when computing cumulative mass functions.
-  double precision, parameter                   :: haloMassEffectiveInfinity=1.0d16
-
+  double precision            , parameter                   :: haloMassEffectiveInfinity      =1.0d16                                        
+  
 contains
   
   subroutine Halo_Mass_Function_Open_File(outputFileName)
@@ -46,8 +51,8 @@ contains
     use ISO_Varying_String
     use HDF5
     implicit none
-    type(varying_string), intent(in) :: outputFileName
-
+    type(varying_string), intent(in   ) :: outputFileName 
+    
     ! Open the output file.
     call haloMassFunctionOutputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
     
@@ -83,11 +88,17 @@ contains
     use Galacticus_Display
     use Galacticus_Calculations_Resets
     implicit none
-    class(nodeComponentBasic), pointer :: thisBasicComponent
-    integer                            :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput,verbosityLevel
-    double precision                   :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum
-    type (mergerTree        )          :: thisTree
-
+    class           (nodeComponentBasic), pointer :: thisBasicComponent                                                
+    integer                                       :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, & 
+         &                                           iMass                       , iOutput                         , & 
+         &                                           outputCount                 , verbosityLevel                      
+    double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum        
+    type            (mergerTree        )          :: thisTree                                                          
+    
+    ! Get the verbosity level parameter.    !@ <inputParameter>    !@   <name>verbosityLevel</name>    !@   <defaultValue>1</defaultValue>    !@   <attachedTo>module</attachedTo>    !@   <description>    !@     The level of verbosity for \glc\ (higher values give more verbosity).    !@   </description>    !@   <type>integer</type>    !@   <cardinality>1</cardinality>    !@ </inputParameter>
+    call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+    call Galacticus_Verbosity_Level_Set(verbosityLevel)
+    
     ! Get the verbosity level parameter.
     !@ <inputParameter>
     !@   <name>verbosityLevel</name>
@@ -98,7 +109,7 @@ contains
     !@   </description>
     !@   <type>integer</type>
     !@   <cardinality>1</cardinality>
-    !@ </inputParameter>
+    !@ </inputParameter>                                                                                                                 
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
@@ -212,10 +223,10 @@ contains
           ! Compute halo properties.
           haloMassFunction_dndM             (iMass,iOutput)=Halo_Mass_Function_Differential(outputTimes(iOutput),haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_dndlnM           (iMass,iOutput)=haloMassFunction_dndM(iMass,iOutput)*haloMassFunction_Mass(iMass,iOutput)
-          haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput)&
-               &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
-          haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput)&
-               &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          ! haloMassFunction_cumulative       (iMass,iOutput)=Halo_Mass_Function_Integrated(outputTimes(iOutput)&
+          !      & haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
+          ! haloMassFunction_massFraction     (iMass,iOutput)=Halo_Mass_Fraction_Integrated(outputTimes(iOutput)&
+          !      &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
           haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias              (thisTree%baseNode)
@@ -234,7 +245,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none
-    type(hdf5Object) :: outputsGroup,thisDataset,massFunctionGroup
+    type(hdf5Object) :: massFunctionGroup, outputsGroup, thisDataset 
     
     ! Open the group for output time information.
     outputsGroup=haloMassFunctionOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')

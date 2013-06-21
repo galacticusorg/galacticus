@@ -37,16 +37,16 @@ contains
     include 'merger_trees.evolve.timesteps.moduleUse.inc'
     !# </include>
     implicit none
-    type(treeNode),                           intent(inout),   pointer           :: thisNode
-    double precision,                         intent(in)                         :: evolveToTime
-    procedure(End_Of_Timestep_Task_Template),                              intent(out),     pointer           :: End_Of_Timestep_Task
-    logical,                                  intent(in)                         :: report
-    type(treeNode),                           intent(inout),   pointer, optional :: lockNode
-    type(varying_string),                     intent(inout),            optional :: lockType  
-    procedure(End_Of_Timestep_Task_Template),                  pointer           :: End_Of_Timestep_Task_Internal
-    class(nodeComponentBasic),                                 pointer           :: thisBasicComponent
-
-    ! Call the function to get the timestep.
+    type            (treeNode                     ), intent(inout)          , pointer :: thisNode                       
+    double precision                               , intent(in   )                    :: evolveToTime                   
+    procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task           
+    logical                                        , intent(in   )                    :: report                         
+    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode                       
+    type            (varying_string               ), intent(inout), optional          :: lockType                       
+    procedure       (End_Of_Timestep_Task_Template)                         , pointer :: End_Of_Timestep_Task_Internal  
+    class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent             
+    
+    ! Call the function to get the timestep.                                                                                                                 
     thisBasicComponent => thisNode%basic()
     Time_Step_Get=evolveToTime-thisBasicComponent%time()
     End_Of_Timestep_Task_Internal => null()

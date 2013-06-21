@@ -33,9 +33,9 @@ contains
     include 'merger_trees.initialize.tasks.modules.inc'
     !# </include>
     implicit none
-    type(mergerTree), intent(inout) :: thisTree
-    type(treeNode),   pointer       :: thisNode
-
+    type(mergerTree), intent(inout) :: thisTree  
+    type(treeNode  ), pointer       :: thisNode  
+                                              
     if (.not.thisTree%initialized) then
        thisNode => thisTree%baseNode
        do while (associated(thisNode))

@@ -42,8 +42,8 @@ contains
   logical function File_Exists_VarStr(FileName)
     !% Checks for existance of file {\tt FileName} (version for varying string argument).
     implicit none
-    type(varying_string), intent(in) :: FileName
-
+    type(varying_string), intent(in   ) :: FileName 
+    
     File_Exists_VarStr=File_Exists_Char(char(FileName))
     return
   end function File_Exists_VarStr
@@ -51,8 +51,8 @@ contains
   logical function File_Exists_Char(FileName)
     !% Checks for existance of file {\tt FileName} (version for character argument).
     implicit none
-    character(len=*), intent(in) :: FileName
-
+    character(len=*), intent(in   ) :: FileName 
+    
     inquire(file=FileName,exist=File_Exists_Char)
     return
   end function File_Exists_Char
@@ -61,9 +61,9 @@ contains
     !% Returns the number of lines in the file {\tt in\_file} (version for varying string argument).
     use Galacticus_Error
     implicit none
-    type (varying_string), intent(in)           :: in_file
-    character,             intent(in), optional :: comment_char*(1)
-
+    type     (varying_string), intent(in   )           :: in_file      
+    character(len=1         ), intent(in   ), optional :: comment_char 
+    
     if (present(comment_char)) then
        Count_Lines_in_File_VarStr=Count_Lines_in_File_Char(char(in_file),comment_char)
     else
@@ -76,12 +76,11 @@ contains
     !% Returns the number of lines in the file {\tt in\_file} (version for character argument).
     use Galacticus_Error
     implicit none
-    character, intent(in)           :: in_file*(*)
-    character, intent(in), optional :: comment_char*(1)
-    character                       :: first_char*(1)
-    integer,   save                 :: io_status,i_unit
+    character(len=*), intent(in   )           :: in_file                 
+    character(len=1), intent(in   ), optional :: comment_char            
+    character(len=1)                          :: first_char              
+    integer         , save                    :: i_unit      , io_status 
     !$omp threadprivate(io_status,i_unit)
-
     open(newunit=i_unit,file=in_file,status='old',form='formatted',iostat=io_status)
     if (io_status /= 0) then
        write (0,*) 'Count_Lines_in_File(): FATAL - cannot open file ',trim(in_file)
