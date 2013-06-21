@@ -365,7 +365,9 @@ contains
     integer(kind=kind_int8    )                :: thisTreeIndex            
     type   (varying_string    )                :: message                  
     
-    ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same    ! tree.    !$omp critical (Merger_Tree_Build_Do)
+    ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
+    ! tree.
+    !$omp critical (Merger_Tree_Build_Do)
     if (nextTreeIndex <= treeCount) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve

@@ -71,7 +71,17 @@ contains
          &              powerSpectraPointsPerDecade                                     
     double precision :: powerSpectraWavenumberMaximum, powerSpectraWavenumberMinimum    
     
-    ! Find the wavenumber range and increment size.    !@ <inputParameter>    !@   <name>powerSpectraWavenumberMinimum</name>    !@   <defaultValue>$10^{-3}$ Mpc$^{-1}$</defaultValue>    !@   <attachedTo>module</attachedTo>    !@   <description>    !@     The minimum wavenumber at which to tabulate power spectra.    !@   </description>    !@   <type>real</type>    !@   <cardinality>1</cardinality>    !@ </inputParameter>
+    ! Find the wavenumber range and increment size.
+    !@ <inputParameter>
+    !@   <name>powerSpectraWavenumberMinimum</name>
+    !@   <defaultValue>$10^{-3}$ Mpc$^{-1}$</defaultValue>
+    !@   <attachedTo>module</attachedTo>
+    !@   <description>
+    !@     The minimum wavenumber at which to tabulate power spectra.
+    !@   </description>
+    !@   <type>real</type>
+    !@   <cardinality>1</cardinality>
+    !@ </inputParameter>
     call Get_Input_Parameter('powerSpectraWavenumberMinimum',powerSpectraWavenumberMinimum,defaultValue=1.0d-3)
     !@ <inputParameter>
     !@   <name>powerSpectraWavenumberMaximum</name>

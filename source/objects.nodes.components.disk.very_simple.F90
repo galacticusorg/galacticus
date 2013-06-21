@@ -71,7 +71,8 @@ contains
     implicit none
     type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent 
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>

@@ -31,7 +31,8 @@ module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009
        &                                  dSigmadMassLogarithmicObserved       , deltaCriticalObserved                                                      , & 
        &                                  pObserved                            , sObserved                                                                  , & 
        &                                  sigmaObserved                        , wObserved                                                                      
-  !$omp threadprivate (baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved,sObserved,wObserved,pObserved)  !$omp threadprivate (deltaCriticalObserved)
+  !$omp threadprivate (baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved,sObserved,wObserved,pObserved)
+  !$omp threadprivate (deltaCriticalObserved)
   ! Variables used in the ODE solver.
   type            (fgsl_odeiv_step   ) :: odeStepper                                                                                                            
   type            (fgsl_odeiv_control) :: odeController                                                                                                         

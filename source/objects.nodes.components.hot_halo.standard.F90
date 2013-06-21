@@ -213,7 +213,8 @@ contains
     type(varying_string              ) :: hotHaloCoolingFromText 
     type(nodeComponentHotHaloStandard) :: hotHaloComponent       
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
     if (defaultHotHaloComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get numbers of abundance and chemicals properties.
@@ -852,7 +853,8 @@ contains
          &                                                                               chemicalDensitiesRates                   , chemicalMasses           , & 
          &                                                                               chemicalMassesRates                      , chemicalsChemicalRates   , & 
          &                                                                               chemicalsCoolingRate                                                    
-    !$omp threadprivate(accretionRateAbundances,outflowedAbundances,abundancesReturnRate,accretionRateChemicals,chemicalMasses)    !$omp threadprivate(chemicalDensities,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
+    !$omp threadprivate(accretionRateAbundances,outflowedAbundances,abundancesReturnRate,accretionRateChemicals,chemicalMasses)
+    !$omp threadprivate(chemicalDensities,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
     double precision                                                                  :: angularMomentumAccretionRate             , angularMomentumReturnRate, & 
          &                                                                               densityAtOuterRadius                     , failedMassAccretionRate  , & 
          &                                                                               hydrogenByMass                           , massAccretionRate        , & 

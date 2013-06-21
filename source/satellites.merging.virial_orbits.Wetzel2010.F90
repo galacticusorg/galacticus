@@ -105,12 +105,12 @@ contains
     use Kepler_Orbits
     implicit none
     type            (keplerOrbit       )                                          :: thisOrbit                                                                              
-    type            (treeNode          )                 , intent(inout), pointer :: hostNode                                              , thisNode                       
+    type            (treeNode          )                 , intent(inout), pointer :: hostNode                       , thisNode                       
     logical                                              , intent(in   )          :: acceptUnboundOrbits                                                                    
-    class           (nodeComponentBasic)                                , pointer :: hostBasicComponent                                    , thisBasicComponent             
-    double precision                          , parameter                         :: toleranceAbsolute       =0.0d0                        , toleranceRelative   =1.0d-2    
-    double precision                          , parameter                         :: circularityMaximum      =1.0d0                        , circularityMinimum  =0.0d0     
-    double precision                          , parameter                         :: expansionFactorMinimum  =1.0d0/(1.0d0+redshiftMaximum), redshiftMaximum     =5.0d0     
+    class           (nodeComponentBasic)                                , pointer :: hostBasicComponent             , thisBasicComponent             
+    double precision                          , parameter                         :: toleranceAbsolute       =0.0d0 , toleranceRelative     =1.0d-2    
+    double precision                          , parameter                         :: circularityMaximum      =1.0d0 , circularityMinimum    =0.0d0     
+    double precision                          , parameter                         :: redshiftMaximum         =5.0d0 , expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
     type            (fgsl_interp       ), save                                    :: interpolationObject                                                                    
     type            (fgsl_interp_accel ), save                                    :: interpolationAccelerator                                                               
     logical                             , save                                    :: interpolationReset      =.true.                                                        

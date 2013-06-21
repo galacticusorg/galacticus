@@ -76,7 +76,8 @@ contains
          &                              j                , jTime    , jVariance    
     double precision                 :: summedProbability                          
     
-    ! Determine if we need to make the table.    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_Init)
+    ! Determine if we need to make the table.
+    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_Init)
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum).or.(time < timeMinimum).or.(time > timeMaximum)
     if (makeTable) then
        ! Construct the table of variance on which we will solve for the first crossing distribution.

@@ -90,7 +90,8 @@ contains
     type            (fgsl_integration_workspace)                                                               :: integrationWorkspace                                 
     type            (varying_string            )                                                               :: message                                              
     
-    ! Determine if we have created space for this IMF yet.    !$omp critical (Luminosity_Tables_Initialize)
+    ! Determine if we have created space for this IMF yet.
+    !$omp critical (Luminosity_Tables_Initialize)
     if (.not.moduleInitialized) then
        ! Read the parameter controlling integration tolerance.
        !@ <inputParameter>
@@ -286,7 +287,13 @@ contains
     type            (c_ptr        ), value :: parameterPointer            
     double precision                       :: wavelengthRedshifted        
     
-    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a    ! bolometer/calorimeter type detector).
+    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
+    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
+    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
+    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
+    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
+    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
+    ! bolometer/calorimeter type detector).
     wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
     Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
          &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(wavelengthRedshifted,redshiftTabulate)/wavelength

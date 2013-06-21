@@ -125,7 +125,8 @@ contains
     implicit none
     type(nodeComponentBlackHoleStandard) :: blackHoleStandard 
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Black_Hole_Standard_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Black_Hole_Standard_Initialize)
     if (.not.moduleInitialized) then
        ! Get accretion rate enhancement factors.
        !@ <inputParameter>

@@ -57,7 +57,9 @@ module Cosmology_Functions_Matter_Dark_Energy
   type            (fgsl_interp_accel )                            :: interpolationAccelerator                                                                                       , interpolationAcceleratorInverse                                                                 
   logical                                                         :: resetInterpolation         =.true.                                                                                                                                                                               
   logical                                                         :: resetInterpolationInverse  =.true.                                                                                                                                                                               
-  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
+  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)
+  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)
+  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
   ! Variables used in the ODE solver.
   type            (fgsl_odeiv_step   )                            :: odeStepper                                                                                                                                                                                                       
   type            (fgsl_odeiv_control)                            :: odeController                                                                                                                                                                                                    
@@ -177,7 +179,8 @@ contains
     logical         , intent(in   ), optional :: collapsingPhase       
     logical                                   :: collapsingPhaseActual 
     
-    ! Initialize the module if necessary.    ! Validate the input.
+    ! Initialize the module if necessary.
+    ! Validate the input.
     if (.not.Expansion_Factor_Is_Valid_Matter_Dark_Energy(aExpansion)) call Galacticus_Error_Report('Cosmology_Age_Matter_Dark_Energy'&
          &,'expansion factor is invalid')
 
@@ -832,7 +835,8 @@ contains
     integer           , intent(in   ) :: stateFile     
     type   (fgsl_file), intent(in   ) :: fgslStateFile 
     
-    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they    ! were originally constructed.
+    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they
+    ! were originally constructed.
     write (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
     write (stateFile) ageTableTime,ageTableExpansionFactor
     return

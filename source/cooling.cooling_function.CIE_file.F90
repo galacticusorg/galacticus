@@ -421,7 +421,8 @@ contains
     double precision                                                   :: datumValues                 (1)                          
     character       (len=32        )                                   :: limitType                                                
     
-    !$omp critical (FoX_DOM_Access)    ! Parse the XML file.
+    !$omp critical (FoX_DOM_Access)
+    ! Parse the XML file.
     call Galacticus_Display_Indent('Parsing file: '//coolingFunctionFileToRead,verbosityWorking)
     call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     doc => parseFile(char(coolingFunctionFileToRead),iostat=ioErr)

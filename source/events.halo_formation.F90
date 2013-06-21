@@ -34,7 +34,9 @@ contains
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode 
     
-    ! Allow arbitrary routines to perform tasks.    !# <include directive="haloFormationTask" type="functionCall" functionType="void">    !#  <functionArgs>thisNode</functionArgs>
+    ! Allow arbitrary routines to perform tasks.
+    !# <include directive="haloFormationTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
     include 'events.halo_formation.inc'
     !# </include>
 

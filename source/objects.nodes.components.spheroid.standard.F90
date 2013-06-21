@@ -191,7 +191,8 @@ contains
     logical                                         :: densityMoment2IsInfinite                   , densityMoment3IsInfinite                    
     type            (varying_string               ) :: spheroidMassDistributionName                                                             
     
-    ! Initialize the module if necessary.    !$omp critical (Node_Component_Spheroid_Standard_Initialize)
+    ! Initialize the module if necessary.
+    !$omp critical (Node_Component_Spheroid_Standard_Initialize)
     if (defaultSpheroidComponent%standardIsActive().and..not.moduleInitialized) then
 
        ! Get number of abundance properties.

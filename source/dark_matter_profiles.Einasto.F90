@@ -337,7 +337,8 @@ contains
     double precision                :: alpha        , enclosedMass                   , & 
          &                             radius                                            
     
-    !$omp critical (Einasto_Interpolate_Specific_Angular_Momentum)    ! Always check if we need to make the table.
+    !$omp critical (Einasto_Interpolate_Specific_Angular_Momentum)
+    ! Always check if we need to make the table.
     makeTable=.true.
     do while (makeTable)
        ! Assume table does not need remaking.
@@ -566,7 +567,8 @@ contains
     type            (fgsl_function             )                :: integrandFunction                                 
     type            (fgsl_integration_workspace)                :: integrationWorkspace                              
     
-    !$omp critical (Einasto_Interpolation)    ! Assume table does not need remaking.
+    !$omp critical (Einasto_Interpolation)
+    ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
     if (.not.energyTableInitialized) makeTable=.true.
@@ -834,7 +836,8 @@ contains
     type            (fgsl_function             )                :: integrandFunction                                                  
     type            (fgsl_integration_workspace)                :: integrationWorkspace                                               
     
-    !$omp critical (Einasto_Fourier_Interpolation)    ! Assume table does not need remaking.
+    !$omp critical (Einasto_Fourier_Interpolation)
+    ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
     if (.not.fourierProfileTableInitialized) makeTable=.true.

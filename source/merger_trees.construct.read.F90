@@ -76,7 +76,8 @@ module Merger_Tree_Read
   ! Volume weight factor for trees.
   double precision                                                                                :: treeVolumeWeightCurrent                     , treeVolumeWeightUniform                   
   double precision                                         , allocatable, dimension(:)            :: treeVolumeWeight                                                                        
-  !$omp threadprivate(treeVolumeWeightCurrent)  ! Size of the simulation box.
+  !$omp threadprivate(treeVolumeWeightCurrent)
+  ! Size of the simulation box.
   double precision                                                                                :: lengthSimulationBox                                                                     
   
   ! Flag indicating whether mismatches in cosmological parameters should be considered fatal.
@@ -134,7 +135,8 @@ module Merger_Tree_Read
   class           (nodeComponentBasic            ), pointer                                       :: activeBasicComponent                                                                    
   type            (treeNode                      ), pointer                                       :: activeNode                                                                              
   double precision                                                                                :: halfMassRadius                                                                          
-  !$omp threadprivate(activeDarkMatterProfileComponent,activeBasicComponent,activeNode,halfMassRadius)  ! Sorted node index list.
+  !$omp threadprivate(activeDarkMatterProfileComponent,activeBasicComponent,activeNode,halfMassRadius)
+  ! Sorted node index list.
   integer         (kind=kind_int8                )         , allocatable, dimension(:)            :: descendentLocations                         , nodeLocations                             
   integer         (kind=kind_int8                )         , allocatable, dimension(:)            :: descendentIndicesSorted                     , nodeIndicesSorted                         
   
@@ -730,7 +732,8 @@ contains
     logical                                                                                      :: haveTree                         
     type            (varying_string                )                                             :: message                          
     
-    !$omp critical(mergerTreeReadTree)    ! Increment the tree to read index.
+    !$omp critical(mergerTreeReadTree)
+    ! Increment the tree to read index.
     nextTreeToRead=nextTreeToRead+1
     ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
     ! that contain 1 or fewer nodes and these are unprocessable.
@@ -956,7 +959,8 @@ contains
     integer         (kind=kind_int8)                                             :: iNode                                               
     integer                                                                      :: iOutput        , scaleFactorExponentAngularMomentum 
     
-    !$omp critical(HDF5_Access)    ! nodeIndex
+    !$omp critical(HDF5_Access)
+    ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
     ! hostIndex
     call haloTreesGroup%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount)
@@ -1644,7 +1648,8 @@ contains
     double precision                                                                               :: radiusScale                                                           
     logical                                                                                        :: excessiveHalfMassRadii                , excessiveScaleRadii           
     type            (rootFinder                    )           , save                              :: finder                                                                
-    !$omp threadprivate(finder)    ! Initialize our root finder.
+    !$omp threadprivate(finder)
+    ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Half_Mass_Radius_Root              )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -1760,7 +1765,8 @@ contains
     integer                                              :: iNode         
     logical                                              :: endOfBranch   
     
-    ! First make a copy of the currently assigned isolated node indices. These will be used    ! later to reference the nodes which are the primary node associated with objects in nodeList.
+    ! First make a copy of the currently assigned isolated node indices. These will be used
+    ! later to reference the nodes which are the primary node associated with objects in nodeList.
     nodes%primaryIsolatedNodeIndex=nodes%isolatedNodeIndex
     ! Iterate over nodes.
     do iNode=1,size(nodes)

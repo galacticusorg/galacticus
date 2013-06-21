@@ -144,7 +144,9 @@ contains
     character       (len=6         )                 :: label                                            
     type            (varying_string)                 :: message                                          
     
-    ! Determine if we need to make the table.    !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)    ! Read tables from file if possible.
+    ! Determine if we need to make the table.
+    !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
+    ! Read tables from file if possible.
     if (.not.tableInitialized.and.excursionSetFirstCrossingFarahiFileName /= 'none') call Excursion_Sets_First_Crossing_Farahi_Read_File()
     ! Construct the table if necessary.
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < timeMinimum).or.(time > timeMaximum)
@@ -304,7 +306,9 @@ contains
     real            (kind=kind_quad)                              :: crossingFraction                 , effectiveBarrierInitial  , & 
          &                                                           sigma1f                          , varianceTableStepRate        
     
-    ! Determine if we need to make the table.    !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)    ! Read tables from file if possible.
+    ! Determine if we need to make the table.
+    !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
+    ! Read tables from file if possible.
     if (.not.tableInitializedRate.and.excursionSetFirstCrossingFarahiFileName /= 'none') call Excursion_Sets_First_Crossing_Farahi_Read_File()
     makeTable=.not.tableInitializedRate.or.(varianceProgenitor > varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < timeMinimumRate).or.(time > timeMaximumRate)
     if (makeTable) then

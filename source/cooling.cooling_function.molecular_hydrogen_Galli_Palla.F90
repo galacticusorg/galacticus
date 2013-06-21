@@ -204,7 +204,9 @@ contains
          &                                                 coolingFunctionLowDensityLimitTemperatureLogGradient              , temperaturePrevious1                        =-1, & 
          &                                                 temperaturePrevious2                                           =-1, temperaturePrevious3                        =-1, & 
          &                                                 temperaturePrevious4                                           =-1                                                     
-    !$omp threadprivate(temperaturePrevious1,temperaturePrevious2,temperaturePrevious3,temperaturePrevious4)    !$omp threadprivate(coolingFunctionLowDensityLimitTemperatureLogGradient)    !$omp threadprivate(coolingFunctionH2PlusElectronTemperatureLogGradient,coolingFunctionH2PlusHTemperatureLogGradient)
+    !$omp threadprivate(temperaturePrevious1,temperaturePrevious2,temperaturePrevious3,temperaturePrevious4)
+    !$omp threadprivate(coolingFunctionLowDensityLimitTemperatureLogGradient)
+    !$omp threadprivate(coolingFunctionH2PlusElectronTemperatureLogGradient,coolingFunctionH2PlusHTemperatureLogGradient)
     double precision                                    :: coolingFunction                                                   , coolingFunctionLocalThermodynamicEquilibrium   , & 
          &                                                 coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient   , coolingFunctionLowDensityLimit                 , & 
          &                                                 coolingFunctionLowDensityLimitTemperatureGradient                 , coolingFunctionRotationalTemperatureGradient   , & 
@@ -350,7 +352,8 @@ contains
          &                             numberDensityCriticalOverNumberDensityHydrogen                                                     
     double precision, save          :: coolingFunctionLowDensityLimitStored          , coolingFunctionRotationalTemperaturePart       , & 
          &                             coolingFunctionVibrationalTemperaturePart     , temperaturePrevious                     =-1.0d0    
-    !$omp threadprivate(temperaturePrevious,coolingFunctionRotationalTemperaturePart,coolingFunctionVibrationalTemperaturePart)    !$omp threadprivate(coolingFunctionLowDensityLimitStored)
+    !$omp threadprivate(temperaturePrevious,coolingFunctionRotationalTemperaturePart,coolingFunctionVibrationalTemperaturePart)
+    !$omp threadprivate(coolingFunctionLowDensityLimitStored)
     double precision                :: logarithmic10Temperature                      , temperatureThousand                                
     
     if (temperature /= temperaturePrevious) then

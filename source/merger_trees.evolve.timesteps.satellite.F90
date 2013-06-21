@@ -168,7 +168,8 @@ contains
     integer                , intent(inout)          :: deadlockStatus 
     type   (varying_string)                         :: message        
     
-    ! Report if necessary.    ! Report if necessary.
+    ! Report if necessary.
+    ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
        message='Satellite node ['
        message=message//thisNode%index()//'] is being merged'

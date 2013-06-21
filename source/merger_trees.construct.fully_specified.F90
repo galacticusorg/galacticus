@@ -80,7 +80,8 @@ contains
     integer(kind=kind_int8)                             :: indexValue                             
     logical                                             :: processTree                            
     
-    !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)    ! If the tree is already processed, return.
+    !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)
+    ! If the tree is already processed, return.
     processTree=.true.
     if (treeProcessed) processTree=.false.
     ! Mark that the tree has now been processed.
