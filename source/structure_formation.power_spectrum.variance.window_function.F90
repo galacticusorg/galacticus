@@ -23,7 +23,7 @@ module Power_Spectrum_Window_Functions
   use ISO_Varying_String
   implicit none
   private
-  public :: Power_Spectrum_Window_Function
+  public :: Power_Spectrum_Window_Function, Power_Spectrum_Window_Function_Wavenumber_Maximum
   
   ! Flag to indicate if this module has been initialized.  
   logical              :: moduleInitialized=.false.
@@ -32,7 +32,8 @@ module Power_Spectrum_Window_Functions
   type(varying_string) :: powerSpectrumWindowFunctionMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Power_Spectrum_Window_Function), pointer :: Power_Spectrum_Window_Function_Get => null()
+  procedure(Power_Spectrum_Window_Function                   ), pointer :: Power_Spectrum_Window_Function_Get                    => null()
+  procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => null()
 
 contains
 
@@ -63,10 +64,10 @@ contains
           call Get_Input_Parameter('powerSpectrumWindowFunctionMethod',powerSpectrumWindowFunctionMethod,defaultValue='topHat')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="powerSpectrumWindowFunctionMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get</functionArgs>
+          !#  <functionArgs>powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get</functionArgs>
           include 'structure_formation.power_spectrum.variance.window_function.inc'
           !# </include>
-          if (.not.associated(Power_Spectrum_Window_Function_Get)) call Galacticus_Error_Report('Power_Spectrum_Window_Functions_Initialize'&
+          if (.not.(associated(Power_Spectrum_Window_Function_Get).and.associated(Power_Spectrum_Window_Function_Wavenumber_Maximum_Get))) call Galacticus_Error_Report('Power_Spectrum_Window_Functions_Initialize'&
                &,'method '//char(powerSpectrumWindowFunctionMethod)//' is unrecognized')
           moduleInitialized=.true.
        end if
@@ -88,5 +89,19 @@ contains
     Power_Spectrum_Window_Function=Power_Spectrum_Window_Function_Get(wavenumber,smoothingMass)
     return
   end function Power_Spectrum_Window_Function
+
+  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass)
+    !% Returns the maximum wavenumber for which the window function for power spectrum variance computation is non-zero for a
+    !% given {\tt smoothingMass} (in $M_\odot$).
+    implicit none
+    double precision, intent(in) :: smoothingMass
+
+    ! Initialize the module.
+    call Power_Spectrum_Window_Functions_Initialize
+
+    ! Call the function that does the work.
+    Power_Spectrum_Window_Function_Wavenumber_Maximum=Power_Spectrum_Window_Function_Wavenumber_Maximum_Get(smoothingMass)
+    return
+  end function Power_Spectrum_Window_Function_Wavenumber_Maximum
   
 end module Power_Spectrum_Window_Functions

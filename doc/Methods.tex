@@ -3767,9 +3767,11 @@ Here, {\tt Power\_Spectrum\_Window\_Functions\_Top\_Hat\_Initialize} is the name
     implicit none
     type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
     procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
     
     if (powerSpectrumWindowFunctionMethod == 'myMethod') then
-       Power_Spectrum_Window_Function_Get => My_Method_Do
+       Power_Spectrum_Window_Function_Get                    => My_Window_Function
+       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => My_Window_Function_Maximum_Wavelength
        .
        .
        .
@@ -3777,13 +3779,13 @@ Here, {\tt Power\_Spectrum\_Window\_Functions\_Top\_Hat\_Initialize} is the name
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt powerSpectrumWindowFunctionMethod} input parameter. The procedure pointer {\tt Power\_Spectrum\_Window\_Function\_Get} must be set to point to a function which returns the window function for a given wavenumber and mass. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt powerSpectrumWindowFunctionMethod} input parameter. The procedure pointers {\tt Power\_Spectrum\_Window\_Function\_Get}, and {\tt Power\_Spectrum\_Window\_Function\_Wavenumber\_Maximum\_Get} must be set to point to functions which return the window function for a given wavenumber and mass, and the maximum wavenumber for which that window function is non-zero respectively. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The window function function must have the form:
 \begin{verbatim}
    subroutine Power_Spectrum_Window_Function(wavenumber,smoothingMass)
     implicit none
-    double precision,                            intent(in)    :: wavenumber,smoothingMass
+    double precision, intent(in   ) :: wavenumber,smoothingMass
      .
     .
     .
@@ -3791,6 +3793,19 @@ The window function function must have the form:
    end subroutine Power_Spectrum_Window_Function
 \end{verbatim}
 The function should return the window function for the specified {\tt wavenumber} (given in Mpc$^{-1}$) and the given {\tt smoothingMass} (given in $M_\odot$).
+
+The window function maximum wavenumber function must have the form:
+\begin{verbatim}
+   subroutine Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass)
+    implicit none
+    double precision, intent(in   ) :: smoothingMass
+     .
+    .
+    .
+    return
+   end subroutine Power_Spectrum_Window_Function_Wavenumber_Maximum
+\end{verbatim}
+The function should return the largest wavenumber for which the window function is non-zero for the given {\tt smoothingMass} (given in $M_\odot$). If the window function is non-zero as $k\rightarrow\infty$ then a suitably large value (e.g. $10^{30}$Mpc$^{-1}$) should be returned.
 
 Currently defined power spectrum variance window function methods are:
 \begin{description}

@@ -101,7 +101,9 @@ contains
        message=message//"  Critical_Density(): "//trim(label)
        call Galacticus_Error_Report("Power_Spectrum",message)
     end if
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
+    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     ! Compute the power spectrum.
     Power_Spectrum=Primordial_Power_Spectrum_Transferred(wavenumber)
     ! Scale by the normalization factor.
@@ -117,28 +119,29 @@ contains
     double precision             :: h,logMass
     
     ! Ensure that the sigma(M) tabulation exists.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
 
     ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
     do while (sigma < sigmaTable%y(-1))
-       call Initialize_Cosmological_Mass_Variance(log(sigmaTable%x(-1))+1.0d0)
+       call Initialize_Cosmological_Mass_Variance(sigmaTable%x(-1)*2.0d0)
     end do
 
     ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
     if (sigma > sigmaTable%y(1)) then
        Mass_from_Cosmolgical_Root_Variance=exp(sigmaTable%x(1))
-       return
+    else
+       ! Find the largest mass corresponding to this sigma.
+       iMass=sigmaTable%size()
+       do while (iMass > 1 .and. sigmaTable%y(iMass-1) < sigma)
+          iMass=iMass-1
+       end do
+       
+       h=(sigma-sigmaTable%y(iMass))/(sigmaTable%y(iMass-1)-sigmaTable%y(iMass))
+       logMass=log(sigmaTable%x(iMass))*(1.0d0-h)+log(sigmaTable%x(iMass-1))*h
+       Mass_from_Cosmolgical_Root_Variance=exp(logMass)
     end if
-
-    ! Find the largest mass corresponding to this sigma.
-    iMass=sigmaTable%size()
-    do while (iMass > 1 .and. sigmaTable%y(iMass-1) < sigma)
-       iMass=iMass-1
-    end do
-
-    h=(sigma-sigmaTable%y(iMass))/(sigmaTable%y(iMass-1)-sigmaTable%y(iMass))
-    logMass=log(sigmaTable%x(iMass))*(1.0d0-h)+log(sigmaTable%x(iMass-1))*h
-    Mass_from_Cosmolgical_Root_Variance=exp(logMass)
+    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     return
   end function Mass_from_Cosmolgical_Root_Variance
 
@@ -149,10 +152,10 @@ contains
     double precision, intent(in) :: mass
 
     ! Check if we need to initialize this function.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     
     ! Interpolate in tabulated function and return result.
-    !$omp critical(Cosmological_Mass_Variance_Interpolate)
     Cosmological_Mass_Root_Variance=sigmaTable%interpolate(mass)
     !$omp end critical(Cosmological_Mass_Variance_Interpolate)
     return
@@ -177,7 +180,9 @@ contains
     double precision, intent(out) :: sigma,sigmaLogarithmicDerivative
 
     ! Check if we need to initialize this function.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
+    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     
     ! Interpolate in tabulated function and return result.
     !$omp critical(Cosmological_Mass_Variance_Interpolate)
@@ -192,7 +197,9 @@ contains
     implicit none
 
     ! Ensure the module has been initialized.
+    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
+    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     ! Return the value of sigma_8.
     sigma_8=sigma_8_Value
     return
@@ -216,7 +223,6 @@ contains
     logical                                   :: remakeTable
     double precision                          :: massActual
     
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     ! Compute the normalization if required.
     remakeTable=.false.
     if (.not.sigmaInitialized) then
@@ -267,7 +273,6 @@ contains
        sigmaNormalization=sigma_8_Value
        call Cosmological_Mass_Variance_Tabulate(massActual,massNormalization,sigmaNormalization,sigmaTable)
     end if
-    !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     return
   end subroutine Initialize_Cosmological_Mass_Variance
  
