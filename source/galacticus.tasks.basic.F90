@@ -30,9 +30,9 @@ contains
     use Input_Parameters
     use Galacticus_Output_Open
     implicit none
-    logical, save :: doneStart=.false.
-    integer       :: verbosityLevel
-
+    logical, save :: doneStart     =.false.  
+    integer       :: verbosityLevel          
+                                          
     if (.not.doneStart) then
        ! Get the verbosity level parameter.
        !@ <inputParameter>
@@ -66,8 +66,8 @@ contains
     use Galacticus_Output_Open
     use Galacticus_Output_Merger_Tree
     implicit none
-    logical, save :: doneEnd=.false.
-
+    logical, save :: doneEnd=.false.  
+                                   
     if (.not.doneEnd) then
 
        ! Finalize outputs.

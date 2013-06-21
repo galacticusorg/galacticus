@@ -24,15 +24,15 @@ module Galacticus_Merger_Tree_Output_Filter_Luminosities
   public :: Galacticus_Merger_Tree_Output_Filter_Luminosity,Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize
 
   ! Flags indicating if the module has been initialized and if this filter is active.
-  logical                                     :: luminosityFilterInitialized=.false.
-  logical                                     :: luminosityFilterActive
-
-  ! Internal record of the number of luminosities in use.
-  integer                                     :: luminosityCount
-
-  ! The absolute magnitude thresholds for this filter.
-  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds
-
+  logical                                     :: luminosityFilterInitialized                =.false.  
+  logical                                     :: luminosityFilterActive                               
+  
+  ! Internal record of the number of luminosities in use.                                                                                                 
+  integer                                     :: luminosityCount                                      
+  
+  ! The absolute magnitude thresholds for this filter.                                                                                                 
+  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds          
+                                                                                                   
 contains
 
   !# <mergerTreeOutputFilterInitialize>
@@ -46,9 +46,9 @@ contains
     use Memory_Management
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type(varying_string), intent(in), dimension(:) :: filterNames
-
-    ! Initialize the filter if necessary.
+    type(varying_string), dimension(:), intent(in   ) :: filterNames  
+    
+    ! Initialize the filter if necessary.                                                               
     if (.not.luminosityFilterInitialized) then
        ! Determine if this filter has been selected.
        luminosityFilterActive=any(filterNames == "luminosity")
@@ -94,13 +94,13 @@ contains
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    logical                  , intent(inout)          :: doOutput
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    integer                                           :: iLuminosity
-    double precision                                  :: time,luminosity,abMagnitude
-
-    ! Return immediately if this filter is not active.
+    type            (treeNode          ), intent(inout), pointer :: thisNode                              
+    logical                             , intent(inout)          :: doOutput                              
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                    
+    integer                                                      :: iLuminosity                           
+    double precision                                             :: abMagnitude       , luminosity, time  
+    
+    ! Return immediately if this filter is not active.                                                                                                   
     if (.not.luminosityFilterActive) return
     
     ! Get the basic component.

@@ -32,9 +32,9 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in)    :: satelliteMergingMethod
-    procedure(Satellite_Time_Until_Merging_Lacey_Cole), pointer, intent(inout) :: Satellite_Time_Until_Merging
-
+    type     (varying_string                         ), intent(in   )          :: satelliteMergingMethod        
+    procedure(Satellite_Time_Until_Merging_Lacey_Cole), intent(inout), pointer :: Satellite_Time_Until_Merging  
+                                                                                                             
     if (satelliteMergingMethod == 'Lacey-Cole') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Initialize
@@ -47,15 +47,16 @@ contains
     use Dynamical_Friction_Timescale_Utilities
     use Kepler_Orbits
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    type (keplerOrbit       ),          intent(inout) :: thisOrbit
-    type (treeNode          ), pointer                :: hostNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
-    double precision,          parameter              :: inverseTwoB1=1.169335453d0 ! 1/2/B(1).
-    double precision                                  :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
-         &,massRatio
-
-    ! Find the host node.
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                                                         
+    type            (keplerOrbit       ), intent(inout)          :: thisOrbit                                                                        
+    type            (treeNode          )               , pointer :: hostNode                                                                         
+    class           (nodeComponentBasic)               , pointer :: hostBasicComponent                         , thisBasicComponent                  
+    double precision                    , parameter              :: inverseTwoB1                 =1.169335453d0                     !  1/2/B(1).     
+    double precision                                             :: equivalentCircularOrbitRadius              , massRatio                       , & 
+         &                                                          orbitalCircularity                         , radialScale                     , & 
+         &                                                          velocityScale                                                                    
+    
+    ! Find the host node.                                                                                                                                              
     hostNode => thisNode%parent
     ! Get velocity scale.
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)

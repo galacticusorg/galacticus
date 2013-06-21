@@ -28,9 +28,9 @@ contains
     !% Computes the Gaussian distribution with dispersion {\tt sigma} at argument {\tt x}.
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in) :: x,sigma
-
-    ! Evaluate the Gaussian distribution.
+    double precision, intent(in   ) :: sigma, x  
+    
+    ! Evaluate the Gaussian distribution.                                          
     Gaussian_Distribution=exp(-0.5*(x/sigma)**2)/sqrt(2.0d0*Pi)/sigma
     return
   end function Gaussian_Distribution

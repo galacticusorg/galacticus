@@ -26,26 +26,27 @@ module Merger_Tree_Build
   public :: Merger_Tree_Build_Initialize
 
   ! Variables giving the mass range and sampling frequency for mass function sampling.
-  double precision     :: mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum,mergerTreeBuildTreesBaseRedshift &
-       &,mergerTreeBuildTreesBaseTime,mergerTreeBuildTreesPerDecade
-  integer              :: mergerTreeBuildTreesBeginAtTree
-  type(varying_string) :: mergerTreeBuildTreesHaloMassDistribution,mergerTreeBuildTreeMassesFile
-
+  double precision                                                          :: mergerTreeBuildHaloMassMaximum               , mergerTreeBuildHaloMassMinimum          , & 
+       &                                                                       mergerTreeBuildTreesBaseRedshift             , mergerTreeBuildTreesBaseTime            , & 
+       &                                                                       mergerTreeBuildTreesPerDecade                                                              
+  integer                                                                   :: mergerTreeBuildTreesBeginAtTree                                                            
+  type            (varying_string              )                            :: mergerTreeBuildTreeMassesFile                , mergerTreeBuildTreesHaloMassDistribution    
+  
   ! Direction in which to process trees.
-  logical              :: mergerTreeBuildTreesProcessDescending
-
+  logical                                                                   :: mergerTreeBuildTreesProcessDescending                                                      
+  
   ! Array of halo masses to use.
-  integer                                     :: treeCount,nextTreeIndex
-  double precision, allocatable, dimension(:) :: treeHaloMass,treeWeight
-
+  integer                                                                   :: nextTreeIndex                                , treeCount                                   
+  double precision                              , allocatable, dimension(:) :: treeHaloMass                                 , treeWeight                                  
+  
   ! Name of merger tree builder method.
-  type(varying_string) :: mergerTreeBuildMethod
+  type            (varying_string              )                            :: mergerTreeBuildMethod                                                                      
   ! Pointer to the subroutine that builds the merger tree.
-  procedure(Merger_Tree_Builder_Template), pointer :: Merger_Tree_Builder => null()
+  procedure       (Merger_Tree_Builder_Template), pointer                   :: Merger_Tree_Builder                  =>null()                                              
   abstract interface
      subroutine Merger_Tree_Builder_Template(thisTree)
        import mergerTree
-       type(mergerTree), intent(inout) :: thisTree
+       type(mergerTree), intent(inout) :: thisTree 
      end subroutine Merger_Tree_Builder_Template
   end interface
   
@@ -73,24 +74,29 @@ contains
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
-    type(varying_string),          intent(in)       :: mergerTreeConstructMethod
-    procedure(),          pointer, intent(inout)    :: Merger_Tree_Construct
-    type(Node),           pointer                   :: doc,thisTree
-    type(NodeList),       pointer                   :: rootMassList
-    integer,              parameter                 :: massFunctionSamplePerDecade=100
-    double precision,     parameter                 :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3
-    double precision,     allocatable, dimension(:) :: massFunctionSampleLogMass,massFunctionSampleProbability,massFunctionSampleLogMassMonotonic
-    integer                                         :: iTree,ioErr,iSample,jSample,massFunctionSampleCount
-    type(fgsl_qrng)                                 :: quasiSequenceObject
-    logical                                         :: quasiSequenceReset=.true.
-    double precision                                :: expansionFactor,massMinimum,massMaximum,massFunctionSampleLogPrevious,probability
-    type(fgsl_function)                             :: integrandFunction
-    type(fgsl_integration_workspace)                :: integrationWorkspace
-    type(fgsl_interp)                               :: interpolationObject
-    type(fgsl_interp_accel)                         :: interpolationAccelerator
-    type(c_ptr)                                     :: parameterPointer
-    logical                                         :: integrandReset=.true.,interpolationReset=.true.
-
+    type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod                                                          
+    procedure       (                          )             , intent(inout), pointer :: Merger_Tree_Construct                                                              
+    type            (Node                      )                            , pointer :: doc                                 , thisTree                                     
+    type            (NodeList                  )                            , pointer :: rootMassList                                                                       
+    integer                                     , parameter                           :: massFunctionSamplePerDecade  =100                                                  
+    double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3    
+    double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , & 
+         &                                                                               massFunctionSampleProbability                                                      
+    integer                                                                           :: iSample                             , iTree                                    , & 
+         &                                                                               ioErr                               , jSample                                  , & 
+         &                                                                               massFunctionSampleCount                                                            
+    type            (fgsl_qrng                 )                                      :: quasiSequenceObject                                                                
+    logical                                                                           :: quasiSequenceReset           =.true.                                               
+    double precision                                                                  :: expansionFactor                     , massFunctionSampleLogPrevious            , & 
+         &                                                                               massMaximum                         , massMinimum                              , & 
+         &                                                                               probability                                                                        
+    type            (fgsl_function             )                                      :: integrandFunction                                                                  
+    type            (fgsl_integration_workspace)                                      :: integrationWorkspace                                                               
+    type            (fgsl_interp               )                                      :: interpolationObject                                                                
+    type            (fgsl_interp_accel         )                                      :: interpolationAccelerator                                                           
+    type            (c_ptr                     )                                      :: parameterPointer                                                                   
+    logical                                                                           :: integrandReset               =.true., interpolationReset                =.true.    
+    
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -337,10 +343,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Merger_Trees_Mass_Function_Sampling
     implicit none
-    real(c_double)        :: Mass_Function_Sampling_Integrand
-    real(c_double), value :: logMass
-    type(c_ptr),    value :: parameterPointer
-
+    real(kind=c_double)        :: Mass_Function_Sampling_Integrand 
+    real(kind=c_double), value :: logMass                          
+    type(c_ptr        ), value :: parameterPointer                 
+    
     Mass_Function_Sampling_Integrand=Merger_Tree_Construct_Mass_Function_Sampling(10.0d0**logMass,mergerTreeBuildTreesBaseTime,mergerTreeBuildHaloMassMinimum,mergerTreeBuildHaloMassMaximum)
     return
   end function Mass_Function_Sampling_Integrand
@@ -352,16 +358,14 @@ contains
     use Kind_Numbers
     use String_Handling
     implicit none
-    type(mergerTree),          intent(inout) :: thisTree
-    logical,                   intent(in)    :: skipTree
-    class(nodeComponentBasic), pointer       :: baseNodeBasicComponent
-    integer(kind=kind_int8),   parameter     :: baseNodeIndex=1
-    integer(kind=kind_int8)                  :: thisTreeIndex
-    type(varying_string)                     :: message
-
-    ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
-    ! tree.
-    !$omp critical (Merger_Tree_Build_Do)
+    type   (mergerTree        ), intent(inout) :: thisTree                 
+    logical                    , intent(in   ) :: skipTree                 
+    class  (nodeComponentBasic), pointer       :: baseNodeBasicComponent   
+    integer(kind=kind_int8    ), parameter     :: baseNodeIndex         =1 
+    integer(kind=kind_int8    )                :: thisTreeIndex            
+    type   (varying_string    )                :: message                  
+    
+    ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same    ! tree.    !$omp critical (Merger_Tree_Build_Do)
     if (nextTreeIndex <= treeCount) then
        ! Retrieve stored internal state if possible.
        call Galacticus_State_Retrieve

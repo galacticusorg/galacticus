@@ -26,14 +26,14 @@ program Tests_Bug745815
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
-  type(varying_string)            :: parameterFile
-  type(mergerTree)                :: thisTree
-  type(treeNodeList)              :: nodes(5)
-  logical                         :: nodeFound(5)
-  type(treeNode),         pointer :: thisNode
-  integer(kind=kind_int8)         :: iNode
-
-  ! Read in basic code memory usage.
+  type   (varying_string)          :: parameterFile     
+  type   (mergerTree    )          :: thisTree          
+  type   (treeNodeList  )          :: nodes        (5)  
+  logical                          :: nodeFound    (5)  
+  type   (treeNode      ), pointer :: thisNode          
+  integer(kind=kind_int8)          :: iNode             
+  
+  ! Read in basic code memory usage.                                                   
   call Code_Memory_Usage('tests.bug745815.size')
 
   ! Begin unit tests.

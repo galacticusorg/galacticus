@@ -36,12 +36,12 @@ contains
     use Numerical_Ranges
     use Memory_Management
     implicit none
-    type(varying_string),          intent(in)    :: starFormationHistoriesMethod
-    procedure(Star_Formation_History_Create_Null),          pointer, intent(inout) :: Star_Formation_History_Create_Do
-    procedure(Star_Formation_History_Scales_Null),          pointer, intent(inout) :: Star_Formation_History_Scales_Do
-    procedure(Star_Formation_History_Record_Null),          pointer, intent(inout) :: Star_Formation_History_Record_Do
-    procedure(Star_Formation_History_Output_Null),          pointer, intent(inout) :: Star_Formation_History_Output_Do
-    
+    type     (varying_string                    ), intent(in   )          :: starFormationHistoriesMethod      
+    procedure(Star_Formation_History_Create_Null), intent(inout), pointer :: Star_Formation_History_Create_Do  
+    procedure(Star_Formation_History_Scales_Null), intent(inout), pointer :: Star_Formation_History_Scales_Do  
+    procedure(Star_Formation_History_Record_Null), intent(inout), pointer :: Star_Formation_History_Record_Do  
+    procedure(Star_Formation_History_Output_Null), intent(inout), pointer :: Star_Formation_History_Output_Do  
+                                                                                                            
     if (starFormationHistoriesMethod == 'null') then
        ! Associate procedure pointers.
        Star_Formation_History_Create_Do => Star_Formation_History_Create_Null
@@ -58,10 +58,10 @@ contains
     use Numerical_Ranges
     use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    type(history),    intent(inout)          :: thisHistory
-
-    ! Do nothing.
+    type(treeNode), intent(inout), pointer :: thisNode     
+    type(history ), intent(inout)          :: thisHistory  
+    
+    ! Do nothing.                                                    
     return
   end subroutine Star_Formation_History_Create_Null
 
@@ -73,12 +73,12 @@ contains
     use Abundances_Structure
     use Arrays_Search
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode
-    type            (history   ), intent(inout)          :: thisHistory
-    type            (abundances), intent(in   )          :: fuelAbundances
-    double precision            , intent(in   )          :: starFormationRate
-
-    ! Ensure the history does not exist.
+    type            (treeNode  ), intent(inout), pointer :: thisNode           
+    type            (history   ), intent(inout)          :: thisHistory        
+    type            (abundances), intent(in   )          :: fuelAbundances     
+    double precision            , intent(in   )          :: starFormationRate  
+    
+    ! Ensure the history does not exist.                                                                        
     call thisHistory%destroy()
     return
   end subroutine Star_Formation_History_Record_Null
@@ -93,14 +93,14 @@ contains
     use String_Handling
     use Kind_Numbers
     implicit none
-    type(treeNode),          intent(inout), pointer :: thisNode
-    logical,                 intent(in)             :: nodePassesFilter
-    type(history),           intent(inout)          :: thisHistory
-    integer,                 intent(in)             :: iOutput
-    integer(kind=kind_int8), intent(in)             :: treeIndex
-    character(len=*),        intent(in)             :: componentLabel
- 
-    ! Do nothing.
+    type     (treeNode      ), intent(inout), pointer :: thisNode          
+    logical                  , intent(in   )          :: nodePassesFilter  
+    type     (history       ), intent(inout)          :: thisHistory       
+    integer                  , intent(in   )          :: iOutput           
+    integer  (kind=kind_int8), intent(in   )          :: treeIndex         
+    character(len=*         ), intent(in   )          :: componentLabel    
+    
+    ! Do nothing.                                                                    
     return
   end subroutine Star_Formation_History_Output_Null
 
@@ -111,11 +111,11 @@ contains
     use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision,          intent(in)    :: stellarMass
-    type(abundances), intent(in)    :: stellarAbundances
-    type(history),             intent(inout) :: thisHistory
-
-    ! Do nothing.
+    double precision            , intent(in   ) :: stellarMass        
+    type            (abundances), intent(in   ) :: stellarAbundances  
+    type            (history   ), intent(inout) :: thisHistory        
+    
+    ! Do nothing.                                                               
     return
   end subroutine Star_Formation_History_Scales_Null
 

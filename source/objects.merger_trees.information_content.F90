@@ -31,12 +31,12 @@ contains
     use Merger_Trees
     use Galacticus_Nodes
     implicit none
-    type(mergerTree), intent(in) :: thisTree
-    type(treeNode),   pointer    :: thisNode,childNode
-    integer                      :: leafCount,childCount
-    double precision             :: logPermittedBifurcations,logPossibleBifurcations  
-
-    ! Walk the tree, counting the number of leaves and accumulated the log of the number of permitted bifurcations.
+    type            (mergerTree), intent(in   ) :: thisTree                                           
+    type            (treeNode  ), pointer       :: childNode               , thisNode                 
+    integer                                     :: childCount              , leafCount                
+    double precision                            :: logPermittedBifurcations, logPossibleBifurcations  
+    
+    ! Walk the tree, counting the number of leaves and accumulated the log of the number of permitted bifurcations.                                                                                               
     leafCount               =0
     logPermittedBifurcations=0.0d0
     thisNode => thisTree%baseNode

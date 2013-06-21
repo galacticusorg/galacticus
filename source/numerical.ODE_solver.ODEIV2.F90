@@ -39,31 +39,32 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    double precision,            intent(in   )           :: x1,toleranceAbsolute,toleranceRelative
-    type(c_ptr),                 intent(in   )           :: parameterPointer
-    integer,                     intent(in   )           :: yCount
-    double precision,            intent(inout)           :: x0,y(yCount)
-    double precision,            intent(in   ), optional :: yScale(yCount)
-    type(fodeiv2_driver),        intent(inout)           :: odeDriver
-    type(fodeiv2_system),        intent(inout)           :: odeSystem
-    logical,                     intent(inout), optional :: reset
-    procedure(),                 pointer,       optional :: errorHandler
-    type(fodeiv2_step_type),     intent(in   ), optional :: algorithm
-    integer                ,     intent(  out), optional :: odeStatus
+    double precision                   , intent(in   )                    :: toleranceAbsolute        , toleranceRelative        , x1  
+    type            (c_ptr            ), intent(in   )                    :: parameterPointer                                          
+    integer                            , intent(in   )                    :: yCount                                                    
+    double precision                   , intent(inout)                    :: x0                       , y                (yCount)      
+    double precision                   , intent(in   ), optional          :: yScale           (yCount)                                 
+    type            (fodeiv2_driver   ), intent(inout)                    :: odeDriver                                                 
+    type            (fodeiv2_system   ), intent(inout)                    :: odeSystem                                                 
+    logical                            , intent(inout), optional          :: reset                                                     
+    procedure       (                 )               , optional, pointer :: errorHandler                                              
+    type            (fodeiv2_step_type), intent(in   ), optional          :: algorithm                                                 
+    integer                            , intent(  out), optional          :: odeStatus                                                 
 #ifdef PROFILE
-    type(c_funptr),              intent(in)              :: Error_Analyzer
+    type(c_funptr), intent(in   ) :: Error_Analyzer  
 #endif
-    integer(kind=4),             external                :: odeFunction
-    integer,                     parameter               :: genericFailureCountMaximum=10
-    double precision,            parameter               :: yScaleUniform=1.0d0, dydtScaleUniform=0.0d0
-    integer                                              :: status
-    integer(c_size_t)                                    :: odeNumber
-    double precision                                     :: x,h,x1Internal
-    logical                                              :: resetActual,forwardEvolve
-    type(fodeiv2_step_type)                              :: algorithmActual
-    type(varying_string)                                 :: message
-
-    ! Number of ODEs to solve.
+    integer         (kind=4           ), external  :: odeFunction                                               
+    integer                            , parameter :: genericFailureCountMaximum=10                             
+    double precision                   , parameter :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0     
+    integer                                        :: status                                                    
+    integer         (kind=c_size_t    )            :: odeNumber                                                 
+    double precision                               :: h                               , x                   , & 
+         &                                            x1Internal                                                
+    logical                                        :: forwardEvolve                   , resetActual             
+    type            (fodeiv2_step_type)            :: algorithmActual                                           
+    type            (varying_string   )            :: message                                                   
+    
+    ! Number of ODEs to solve.                                                                                                         
     odeNumber=yCount
 
     ! Decide whether to reset.
@@ -148,9 +149,9 @@ contains
   subroutine ODEIV2_Solver_Free(odeDriver,odeSystem)
     !% Free up workspace allocated to ODE solving.
     implicit none
-    type(fodeiv2_driver), intent(inout) :: odeDriver
-    type(fodeiv2_system), intent(inout) :: odeSystem
-
+    type(fodeiv2_driver), intent(inout) :: odeDriver  
+    type(fodeiv2_system), intent(inout) :: odeSystem  
+                                                   
     call Fodeiv2_Driver_Free(odeDriver)
     call Fodeiv2_System_Free(odeSystem)
     return

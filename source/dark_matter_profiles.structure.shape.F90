@@ -26,17 +26,17 @@ module Dark_Matter_Profiles_Shapes
   public :: Dark_Matter_Profile_Shape
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: darkMatterShapeInitialized=.false.
-
-  ! Name of dark matter profile shape method used.
-  type(varying_string) :: darkMatterShapeMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Shape_Get => null()
+  logical                                          :: darkMatterShapeInitialized   =.false.  
+  
+  ! Name of dark matter profile shape method used.                                                                                        
+  type     (varying_string              )          :: darkMatterShapeMethod                  
+  
+  ! Pointer to the function that actually does the calculation.                                                                                        
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Shape_Get=>null()  
   abstract interface
      double precision function Dark_Matter_Profile_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Dark_Matter_Profile_Template
   end interface
 
@@ -84,9 +84,9 @@ contains
   double precision function Dark_Matter_Profile_Shape(thisNode)
     !% Returns the shape of the dark matter profile of {\tt thisNode}.
     implicit none
-    type(treeNode),pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Dark_Matter_Shapes_Initialize
 
     ! Get the shape using the selected method.

@@ -21,6 +21,7 @@ use Scalar::Util 'reftype';
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require File::Changes;
+require Fortran::Utils;
 require Galacticus::Build::Hooks;
 
 # Insert hooks for our functions.
@@ -1445,7 +1446,7 @@ sub Generate_Deferred_Procedure_Pointers {
 	}
     }
     # Insert data content.
-    $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
 }
 
 sub Generate_Node_Event_Interface {
@@ -1477,7 +1478,7 @@ sub Generate_Node_Event_Interface {
     $buildData->{'content'} .= "  abstract interface\n";
     $buildData->{'content'} .= "    logical function nodeEventTask(thisEvent,thisNode,deadlockStatus)\n";
     $buildData->{'content'} .= "      import nodeEvent,treeNode\n";
-    $buildData->{'content'} .= &Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
+    $buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent, indent => 2)."\n";
     $buildData->{'content'} .= "    end function nodeEventTask\n";
     $buildData->{'content'} .= "  end interface\n";
 }
@@ -1881,7 +1882,7 @@ sub Generate_Initialization_Function {
 		);
     	}
     }
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Check for already initialized.
     $functionCode .= "   !\$omp critical (Galacticus_Nodes_Initialize)\n";
     $functionCode .= "   if (.not.moduleIsInitialized) then\n";
@@ -2036,7 +2037,7 @@ sub Generate_Map_Functions {
     $functionCode .= "  subroutine mapComponentsVoid(self,mapFunction)\n";
     $functionCode .= "    !% Map a void function over components.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[19,0]).")) then\n";
 	$functionCode .= "      do i=1,size(self%component".padComponentClass(ucfirst($_),[19,0]).")\n";
@@ -2089,7 +2090,7 @@ sub Generate_Map_Functions {
     $functionCode  = "  double precision function mapComponentsDouble0(self,mapFunction,reduction)\n";
     $functionCode .= "    !% Map a scalar double function over components with a specified {\\tt reduction}.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    select case (reduction)\n";
     $functionCode .= "    case (reductionSummation)\n";
     $functionCode .= "      mapComponentsDouble0=0.0d0\n";
@@ -2152,7 +2153,7 @@ sub Generate_Node_Dump_Function {
     $functionCode .= "    use Galacticus_Display\n";
     $functionCode .= "    use String_Handling\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over pointers.
     $functionCode .= "    message='Dumping node '\n";
     $functionCode .= "    message=message//self%index()\n";
@@ -2207,7 +2208,7 @@ sub Generate_Node_Dump_Function {
     $functionCode  = "  subroutine Node_Dump_Raw(self,fileHandle)\n";
     $functionCode .= "    !% Dump node content in binary.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    write (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
@@ -2272,7 +2273,7 @@ sub Generate_Node_Dump_Function {
     $functionCode  = "  subroutine Node_Read_Raw(self,fileHandle)\n";
     $functionCode .= "    !% Dump node content in binary.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    read (fileHandle) self%isPhysicallyPlausible\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
@@ -2354,7 +2355,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output_Count(self,integerPropertyCount,doublePropertyCount,time)\n";
     $functionCode .= "    !% Increment the count of properties to output for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -2414,7 +2415,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)\n";
     $functionCode .= "    !% Establish the names of properties to output for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -2474,7 +2475,7 @@ sub Generate_Node_Output_Functions {
     $functionCode  = "  subroutine Node_Output(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)\n";
     $functionCode .= "    ! Output properties for this node.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Iterate over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -2531,7 +2532,7 @@ sub Generate_Node_Property_Name_From_Index_Function {
     $functionCode .= "    !% Return the name of a property given its index.\n";
     $functionCode .= "    use ISO_Varying_String\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 
     # Loop over all component classes
     $functionCode .= "  name='unknown'\n";
@@ -2590,7 +2591,7 @@ sub Generate_Node_Serialization_Functions {
     $functionCode .= "  function SerializeToArrayCount(self) result (count)\n";
     $functionCode .= "    !% Return a count of the size of the serialized {\\tt treeNode} object.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    count=0\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
@@ -2649,7 +2650,7 @@ sub Generate_Node_Serialization_Functions {
 	$functionCode .= "    !% Serialize ".$content."s to array.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    offset=1\n";
 	# Loop over all component classes
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
@@ -2711,7 +2712,7 @@ sub Generate_Node_Serialization_Functions {
 	$functionCode .= "    !% Deserialize ".$content."s from {\\tt array}.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    offset=1\n";
 	# Loop over all component classes
 	foreach ( @{$buildData->{'componentClassList'}} ) {	    
@@ -2770,7 +2771,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Rates_Initialize(self)\n";
     $functionCode .= "    !% Initialize the rates in components of tree node {\\tt self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -2804,7 +2805,7 @@ sub Generate_Node_ODE_Initialization_Functions {
     $functionCode  = "  subroutine Tree_Node_ODE_Step_Scales_Initialize(self)\n";
     $functionCode .= "    !% Initialize the scales in components of tree node {\\tt self} in preparation for an ODE solver step.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
      	$functionCode .= "    if (allocated(self%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -2883,7 +2884,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    use String_Handling\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dump()\n"
@@ -2971,7 +2972,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw(self,fileHandle)\n";
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%dumpRaw(fileHandle)\n"
@@ -3051,7 +3052,7 @@ sub Generate_Implementation_Dump_Functions {
 	$functionCode .= "    !% Read the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Dump the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%readRaw(fileHandle)\n"
@@ -3208,7 +3209,7 @@ sub Generate_Implementation_Initializor_Functions {
 	    $functionCode .= "    use ".$_."\n";
 	}
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Initialize the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%initialize()\n"
@@ -3281,7 +3282,7 @@ sub Generate_Implementation_Builder_Functions {
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Initialize the component.
 	    $functionCode .= "    call self%initialize()\n";
@@ -3449,7 +3450,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= "    use ".$_."\n"
 	    foreach ( keys(%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Act on the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n"
@@ -3625,7 +3626,7 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= "    use ".$_."\n"
 	    foreach ( keys(%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	unless ( $component->{'name'} eq "null" ) {
 	    # Act on the parent type if necessary.
 	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n"
@@ -3814,7 +3815,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
 	$functionCode .= "    !% Return the name of the property of given index for a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, first call on the extended type.
 	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
@@ -3888,7 +3889,7 @@ sub Generate_Implementation_Name_From_Index_Functions {
     $functionCode .= "    !% Return the name of the property of given index.\n";
     $functionCode .= "    use ISO_Varying_String\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Node_Component_Name_From_Index\n\n";
     # Insert into the function list.
@@ -3928,7 +3929,7 @@ sub Generate_Implementation_Serialization_Functions {
   	$functionCode  = "  integer function Node_Component_".ucfirst($componentID)."_Count(self)\n";
 	$functionCode .= "    !% Return a count of the serialization of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, get the count of the extended type.
 	$functionCode .= "    Node_Component_".ucfirst($componentID)."_Count=";
 	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
@@ -4067,7 +4068,7 @@ sub Generate_Implementation_Serialization_Functions {
 		    );
 		$serializationCode = "    offset=1\n".$serializationCode;
 	    }
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= $serializationCode
 		if ( defined($serializationCode) );
 	    $functionCode .= "    return\n";
@@ -4158,7 +4159,7 @@ sub Generate_Implementation_Serialization_Functions {
 		    );
 		$deserializationCode = "    offset=1\n".$deserializationCode;
 	    }
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= $deserializationCode
 		if ( defined($deserializationCode) );
 	    $functionCode .= "    return\n";
@@ -4200,7 +4201,7 @@ sub Generate_Component_Count_Functions {
     	$functionCode  = "  integer function ".$componentClassName."CountLinked(self)\n";
 	$functionCode .= "    !% Returns the number of {\\tt ".$componentClassName."} components in {\\tt self}.\n";
     	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    select type (self)\n";
     	$functionCode .= "    class is (treeNode)\n";
 	$functionCode .= "     if (allocated(self%component".ucfirst($componentClassName).")) then\n";
@@ -4277,7 +4278,7 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "    !% Returns the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
 	$functionCode .= "    use Galacticus_Error\n";   
  	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode .= "    select type (self)\n";
     	$functionCode .= "    class is (treeNode)\n";
     	$functionCode .= "       instanceActual=1\n";
@@ -4330,7 +4331,7 @@ sub Generate_Component_Get_Functions {
    	$functionCode  = "  subroutine ".$componentClassName."CreateByInterrupt(self)\n";
 	$functionCode .= "    !% Create the {\\tt ".$componentClassName."} component of {\\tt self} via an interrupt.\n";
     	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".$componentClassName." => self%".$componentClassName."(autoCreate=.true.)\n";
 	# Loop over instances of this class, and call custom create routines if necessary.
 	my $foundCreateFunctions = 0;
@@ -4411,7 +4412,7 @@ sub Generate_Component_Destruction_Functions {
     	my $functionCode = "  subroutine ".$componentClassName."DestroyLinked(self)\n";
 	$functionCode   .= "    !% Destroy the {\\tt ".$componentClassName."} component of {\\tt self}.\n";
     	$functionCode   .= "    implicit none\n";
-	$functionCode   .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode   .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     	$functionCode   .= "    if (allocated(self%component".ucfirst($componentClassName).")) then\n";
 	$functionCode   .= "      do i=1,size(self%component".ucfirst($componentClassName).")\n";
 	$functionCode   .= "        call        self%component".ucfirst($componentClassName)."(i)%destroy()\n";
@@ -4471,7 +4472,7 @@ sub Generate_Component_Creation_Functions {
 	$functionCode .= "    use Galacticus_Display\n";
 	$functionCode .= "    use String_Handling\n";
     	$functionCode .= "    implicit none\n";
- 	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+ 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    if (Galacticus_Verbosity_Level() >= verbosityInfo) then\n";
 	$functionCode .= "      message='Creating ".$componentClassName." in node '\n";
 	$functionCode .= "      message=message//self%index()\n";
@@ -4545,7 +4546,7 @@ sub Generate_Node_Copy_Function {
     $functionCode .= "  subroutine Tree_Node_Copy_Node_To(self,targetNode,skipFormationNode)\n";
     $functionCode .= "    !% Make a copy of {\\tt self} in {\\tt targetNode}.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    skipFormationNodeActual=.false.\n";
     $functionCode .= "    if (present(skipFormationNode)) skipFormationNodeActual=skipFormationNode\n";
     $functionCode .= "    targetNode%".padComponentClass($_,[8,14])." =  self%".$_."\n"
@@ -4628,7 +4629,7 @@ sub Generate_Node_Move_Function {
     $functionCode .= "  subroutine Tree_Node_Move_Components(self,targetNode)\n";
     $functionCode .= "    !% Move components from {\\tt self} to {\\tt targetNode}.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     # Loop over all component classes
     foreach ( @{$buildData->{'componentClassList'}} ) {	    
 	$functionCode .= "    if (allocated(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
@@ -4697,7 +4698,7 @@ sub Generate_Deferred_Function_Attacher {
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
 	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."Deferred       => deferredFunction\n";
 	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttachedValue=  .true.\n";
 	$functionCode .= "    return\n";
@@ -4794,7 +4795,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  function ".$componentName.ucfirst($propertyName)."Get(self)\n";
 		    $functionCode .= "    !% Get the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentClassName.ucfirst($propertyName)."GetDeferred(self)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
@@ -4834,7 +4835,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Set(self,setValue)\n";
 		    $functionCode .= "    !% Set the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
@@ -4886,7 +4887,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode  = "  subroutine ".$componentName.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Rate\n\n";
@@ -4989,7 +4990,7 @@ sub Generate_GSR_Functions {
 			$functionCode  = "  function ".$componentID.ucfirst($propertyName)."Get".$suffix."(self)\n";
 			$functionCode .= "    !% Return the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    ".$componentID.$propertyName."Get".$suffix."=self%".$linkedDataName."%value\n";
 			$functionCode .= "    return\n";
 			$functionCode .= "  end function ".$componentID.ucfirst($propertyName)."Get".$suffix."\n\n";
@@ -5030,7 +5031,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    !% Set the {\\tt ".$propertyName."} property of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    use Memory_Management\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			# For non-real properties we also set the rate and scale content. This ensures that they get reallocated to
 			# the correct size.
 			my @setContent = ( "value" );
@@ -5085,7 +5086,7 @@ sub Generate_GSR_Functions {
 		    $functionCode  = "  integer function ".$componentID.ucfirst($propertyName)."Count(self)\n";
 		    $functionCode .= "    !% Return a count of the number of scalar properties in the {\\tt ".$propertyName."} property of the {\\tt ".lcfirst($componentID)."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    switch ( $linkedData->{'rank'} ) {
 			case ( 0 ) {
 			    $functionCode .= "    ".$componentID.$propertyName."Count=1\n";
@@ -5141,7 +5142,7 @@ sub Generate_GSR_Functions {
 			$functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Rate(self,setValue,interrupt,interruptProcedure)\n";
 			$functionCode .= "    !% Accumulate to the {\\tt ".$propertyName."} property rate of change of the {\\tt ".$componentID."} component implementation.\n";
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			if ( $linkedData->{'type'} eq "real" ) {
 			    $functionCode .= "    self%".$linkedDataName."%rate=self%".$linkedDataName."%rate+setValue\n";
 			} else {
@@ -5202,7 +5203,7 @@ sub Generate_GSR_Functions {
 			$functionCode .= "    use Galacticus_Error\n"
 			    if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" );
 			$functionCode .= "    implicit none\n";
-			$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+			$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			$functionCode .= "    thisNode => self%host()\n";
 			$functionCode .= "    this".ucfirst($componentClassName)." => thisNode%".$componentClassName."()\n";
 			if ( $property->{'attributes'}->{'createIfNeeded'} eq "true" ) {
@@ -5286,7 +5287,7 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    !% Accept a rate set for the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class. Trigger an interrupt to create the component.\n";
 			    $functionCode .= "    use Galacticus_Error\n";
 			    $functionCode .= "    implicit none\n";
-			    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+			    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
 				switch ( $linkedData->{'type'} ) {
@@ -5345,7 +5346,7 @@ sub Generate_GSR_Functions {
 		    $functionCode  = "  subroutine ".$componentID.ucfirst($propertyName)."Scale(self,setValue)\n";
 		    $functionCode .= "    !% Set the {\\tt ".$propertyName."} property scale of the {\\tt ".$componentID."} component implementation.\n";
 		    $functionCode .= "    implicit none\n";
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
  		    $functionCode .= "    self%".$linkedDataName."%scale=setValue\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentID.ucfirst($propertyName)."Scale\n\n";
@@ -5390,7 +5391,7 @@ sub Generate_Tree_Node_Creation_Function {
     $functionCode .= "    !% Initialize a {\\tt treeNode} object.\n";
     $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    ! Ensure pointers are nullified.\n";
     $functionCode .= "    nullify (self%".padComponentClass($_,[9,14]).")\n"
 	foreach ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode", "event" );
@@ -5448,7 +5449,7 @@ sub Generate_Tree_Node_Destruction_Function {
     $functionCode .= "  subroutine treeNodeDestroy(self)\n";
     $functionCode .= "    !% Destroy a {\\tt treeNode} object.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
      	$functionCode .= "    call self%".padComponentClass(lc($componentClass)."Destroy",[7,0])."()\n";
     }
@@ -5534,7 +5535,7 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "    !% Build components in a {\\tt treeNode} object given an XML definition.\n";
     $functionCode .= "    use FoX_Dom\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
@@ -5596,7 +5597,7 @@ sub Generate_Type_Name_Functions {
 	$functionCode  = "  function Node_Component_".ucfirst($_)."_Type(self)\n";
 	$functionCode .= "     !% Returns the type for the ".$_." component.\n";
 	$functionCode .= "     implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "     ".padComponentClass("Node_Component_".ucfirst($_)."_Type",[20,0])."='nodeComponent:".$_."'\n";
 	$functionCode .= "     return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($_)."_Type\n\n";
@@ -5634,7 +5635,7 @@ sub Generate_Type_Name_Functions {
   	$functionCode  = "  function Node_Component_".ucfirst($componentName)."_Type(self)\n";
 	$functionCode .= "    !% Returns the type for the ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ".padImplementationProperty("Node_Component_".ucfirst($componentName)."_Type",[20,0])."='nodeComponent:".$component->{'class'}.":".$component->{'name'}."'\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end function Node_Component_".ucfirst($componentName)."_Type\n\n";
@@ -5676,7 +5677,7 @@ sub Generate_Component_Assignment_Function {
     $functionCode  = "  subroutine Node_Component_Assign(to,from)\n";
     $functionCode .= "    !% Assign a node component to another node component.\n";
     $functionCode .= "    implicit none\n";
-    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    to%hostNode => from%hostNode\n";
     $functionCode .= "    select type (to)\n";
     foreach my $componentName ( @{$buildData->{'componentIdList'}} ) {
@@ -5732,7 +5733,7 @@ sub Generate_Component_Class_Destruction_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Destroy(self)\n";
 	$functionCode .= "    !% Destroys a ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    ! Do nothing.\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Destroy\n\n";
@@ -5788,7 +5789,7 @@ sub Generate_Component_Class_Removal_Functions {
 	$functionCode .= "    !% Removes an instance of the ".$componentClassName." component, shifting other instances to keep the array contiguous.\n";
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    instanceCount=self%".$componentClassName."count()\n";
 	$functionCode .= "    if (instance < 1 .or. instance > instanceCount) call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Remove','instance out of range')\n";
 	$functionCode .= "    call self%component".ucfirst($componentClassName)."(instance)%destroy()\n";
@@ -5872,7 +5873,7 @@ sub Generate_Component_Class_Move_Functions {
 	$functionCode .= "    !% Move instances of the ".$componentClassName." component, from one node to another.\n";
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    instanceCount=self      %".$componentClassName."count()\n";
 	$functionCode .= "    targetCount  =targetNode%".$componentClassName."count()\n";
 	$functionCode .= "    if (instanceCount == 0) return\n";
@@ -5951,7 +5952,7 @@ sub Generate_Component_Class_Dump_Functions {
 	$functionCode .= "    use Galacticus_Display\n";
 	$functionCode .= "    use ISO_Varying_String\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    call Galacticus_Display_Indent('".$componentClassName.": ".(" " x ($fullyQualifiedNameLengthMax-length($componentClassName)))."generic')\n";
 	$functionCode .= "    call Galacticus_Display_Unindent('done')\n";
 	$functionCode .= "    return\n";
@@ -5991,7 +5992,7 @@ sub Generate_Component_Class_Initializor_Functions {
 	$functionCode .= "    !% Initialize a generic ".$componentClassName." component.\n";
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Initializor','can not initialize a generic component')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Initializor\n";
@@ -6037,7 +6038,7 @@ sub Generate_Component_Class_Builder_Functions {
 	$functionCode .= "    use FoX_DOM\n";
 	$functionCode .= "    use Galacticus_Error\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    call Galacticus_Error_Report('Node_Component_".ucfirst($componentClassName)."_Builder','can not build a generic component')\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentClassName)."_Builder\n";
@@ -6096,7 +6097,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output_Count(self,integerPropertyCount,doublePropertyCount,time,instance)\n";
 	$functionCode .= "    !% Increment the count of properties to output for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
 	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
 	$functionCode .= "    call selfDefault%outputCount(integerPropertyCount,doublePropertyCount,time,instance)\n";
@@ -6158,7 +6159,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentClassName)."_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
 	$functionCode .= "    !% Establish property names for a generic ".$componentClassName." component.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	$functionCode .= "    allocate(selfDefault,source=default".ucfirst($componentClassName)."Component)\n";
 	$functionCode .= "    selfDefault%hostNode => self%hostNode\n";
 	$functionCode .= "    call selfDefault%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n";
@@ -6289,7 +6290,7 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= "    use ".$_."\n" 
 	    foreach ( keys(%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	my %typeMap =
 	    (
 	     real    => "double",
@@ -6468,7 +6469,7 @@ sub Generate_Component_Implementation_Destruction_Functions {
 	$functionCode .= "    !% Destroy a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
 	$functionCode .= "    use Memory_Management\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# Iterate over properties.
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -6543,7 +6544,7 @@ sub Generate_ODE_Initialization_Functions {
   	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Rates_Init(self)\n";
 	$functionCode .= "    !% Initialize rates in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, first call on the extended type.
 	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
@@ -6592,7 +6593,7 @@ sub Generate_ODE_Initialization_Functions {
   	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Scales_Init(self)\n";
 	$functionCode .= "    !% Initialize scales in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	# If this component is an extension, first call on the extended type.
 	if ( exists($buildData->{'components'}->{$componentID}->{'extends'}) ) {
 	    my $extends = $buildData->{'components'}->{$componentID}->{'extends'};
@@ -6682,7 +6683,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  subroutine ".$componentClassName."NullBindingSet".$label.$intent."(self,setValue)\n";
 	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingSet".$label.$intent."\n";
 	    # Insert into the function list.
@@ -6715,7 +6716,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  subroutine ".$componentClassName."NullBindingRate".$label.$intent."(self,setValue,interrupt,interruptProcedure)\n";
 	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
 	    $functionCode .= "  end subroutine ".$componentClassName."NullBindingRate".$label.$intent."\n";
 	    # Insert into the function list.
@@ -6742,7 +6743,7 @@ sub Generate_Null_Binding_Functions {
 	    $functionCode  = "  function ".$componentClassName."NullBinding".$label.$intent."(self)\n";
 	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
 	    $functionCode .= "    implicit none\n";
-	    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
 	    $functionCode .= "  end function ".$componentClassName."NullBinding".$label.$intent."\n\n";
 	    # Insert into the function list.
@@ -6880,7 +6881,7 @@ sub Generate_Component_Class_Default_Value_Functions {
 			)
 			foreach ( keys(%requiredComponents) );
 		    # Insert data content.
-		    $functionCode .= &Format_Variable_Defintions(\@dataContent)."\n";
+		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 		    # Insert code to set required default.
 		    $functionCode .= $defaultLines;
 		    # Insert code to return zero values by default.
@@ -7040,7 +7041,7 @@ sub Insert_Type_Definitions {
 	# Declare contents private.
 	$buildData->{'content'} .= "    private\n";
 	# Process any data content.
-	$buildData->{'content'} .= &Format_Variable_Defintions($type->{'dataContent'})
+	$buildData->{'content'} .= &Fortran_Utils::Format_Variable_Defintions($type->{'dataContent'})
 	    if ( exists($type->{'dataContent'}) );
 	# Generate and insert a type-bound function table.
 	if ( exists($type->{'boundFunctions'}) ) {
@@ -7070,146 +7071,6 @@ sub Insert_Contains {
     # Insert the "contains" line.
     my $buildData = shift;
     $buildData->{'content'} .= "contains\n\n";
-}
-
-sub Format_Variable_Defintions {
-    # Generate formatted variable definitions.
-    my $variables = shift;
-    my %options;
-    if ( $#_ >= 1 ) {(%options) = @_};
-    # Scan data content searching for repeated attributes.
-    my %attributes;
-    foreach my $datum ( @{$variables} ) {
-	if ( exists($datum->{'attributes'}) ) {
-	    foreach ( @{$datum->{'attributes'}} ) {
-		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
-		++$attributes{$attributeName}->{'count'};
-		$attributes{$attributeName}->{'column'} = -1;
-	    }
-	}
-    }
-    # Find column for aligned attributes.
-    my $columnCountMaximum = -1;
-    foreach my $datum ( @{$variables} ) {
-	if ( exists($datum->{'attributes'}) ) {
-	    my $columnCount  = -1;
-	    foreach ( sort(@{$datum->{'attributes'}}) ) {
-		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
-		++$columnCount;
-		if ( $attributes{$attributeName}->{'count'} > 1 ) {
-		    if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
-			foreach my $otherAttribute ( sort(keys(%attributes)) ) {
-			    ++$attributes{$otherAttribute}->{'column'}
-			    if (
-				$attributes{$otherAttribute}->{'column'} >= $columnCount &&
-				$attributes{$otherAttribute}->{'count' } > 1             &&
-				$otherAttribute ne $attributeName
-				);
-			}
-			$attributes{$attributeName}->{'column'} = $columnCount;
-		    }
-		    $columnCount = $attributes{$attributeName}->{'column'};
-		}
-	    }
-	    $columnCountMaximum = $columnCount+1
-		if ( $columnCount+1 > $columnCountMaximum );
-	}
-    }
-    foreach ( keys(%attributes) ) {
-	$columnCountMaximum = $attributes{$_}->{'column'}
-	if ( $attributes{$_}->{'column'} > $columnCountMaximum);
-    }
-    ++$columnCountMaximum;
-    my @attributeColumns;
-    push @attributeColumns, {is_sep => 1, body => ""},{align => "left"} foreach (1..$columnCountMaximum);
-    # Construct indentation.
-    my $indent = "    ";
-    $indent = " " x $options{'indent'}
-    if ( exists($options{'indent'}) );
-    # Create a table for data content.
-    my $dataTable = Text::Table->new
-	(
-	 {
-	     is_sep => 1,
-	     body   => $indent
-	 },
-	 {
-	     align  => "left"
-	 },
-	 {
-	     is_sep => 1,
-	     body   => ""
-	 },
-	 {
-	     align  => "left"
-	 },
-	 {
-	     is_sep => 1,
-	     body   => ""
-	 },
-	 {
-	     align  => "left"
-	 },
-	 {
-	     is_sep => 1,
-	     body   => ""
-	 },
-	 {
-	     align  => "left"
-	 },
-	 @attributeColumns,
-	 {
-	     is_sep => 1,
-	     body   => " :: "
-	 },
-	 {
-	     align  => "left"
-	 },
-	 {
-	     is_sep => 1,
-	     body   => ""
-	 },
-	 {
-	     align  => "left"
-	 }
-	);
-    # Iterate over all data content.
-    foreach ( @{$variables} ) {
-	# Construct the type definition.
-	my @typeDefinition = ( "", "", "" );
-	@typeDefinition = ( "(", $_->{'type'}, ")" )
-	    if ( exists($_->{'type'}) );
-	# Add attributes.
-	my @attributeList;
-	if ( exists($_->{'attributes'}) ) {
-	    foreach ( sort(@{$_->{'attributes'}}) ) {
-		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
-		if ( $attributes{$attributeName}->{'column'} >= 0 ) {
-		    push(@attributeList,"")
-			while ( scalar(@attributeList) < $attributes{$attributeName}->{'column'} );
-		}
-		push(@attributeList,", ".$_);
-	    }
-	    push(@attributeList,"")
-		while ( scalar(@attributeList) < $columnCountMaximum);
-	} else {
-	    @attributeList = ("") x $columnCountMaximum;
-	}
-	# Construct any comment.
-	my $comment = "";
-	$comment = " ! ".$_->{'comment'}
-	if ( exists($_->{'comment'}) );
-	# Add a row to the table.
-	$dataTable->add(
-	    $_->{'intrinsic'},
-	    @typeDefinition,
-	    @attributeList,
-	    join(",",@{$_->{'variables'}}),
-	    $comment
-	    );
-    }
-    # Return the data content table.
-    return $dataTable->table();
 }
 
 1;

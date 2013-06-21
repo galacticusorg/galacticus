@@ -26,22 +26,22 @@ module Transfer_Function_Eisenstein_Hu
        & Transfer_Function_Eisenstein_Hu_State_Retrieve
   
   ! Flag to indicate if this module has been initialized.
-  logical                     :: transferFunctionInitialized=.false.
-
-  ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum=log(10.0d0)
-  double precision            :: logWavenumberMinimum=log(1.0d-5)
-  integer,          parameter :: numberPointsPerDecade=1000
-
-  ! Neutrino properties.
-  double precision            :: effectiveNumberNeutrinos,summedNeutrinoMasses
-
-  ! Warm dark matter cut-off scale.
-  double precision            :: transferFunctionWdmCutOffScale
-  double precision            :: transferFunctionWdmEpsilon
-  double precision            :: transferFunctionWdmEta
-  double precision            :: transferFunctionWdmNu
-
+  logical                     :: transferFunctionInitialized   =.false.                            
+  
+  ! Wavenumber range and fineness of gridding.                                                                                              
+  double precision            :: logWavenumberMaximum          =log(10.0d0)                        
+  double precision            :: logWavenumberMinimum          =log(1.0d-5)                        
+  integer         , parameter :: numberPointsPerDecade         =1000                               
+  
+  ! Neutrino properties.                                                                                              
+  double precision            :: effectiveNumberNeutrinos                  , summedNeutrinoMasses  
+  
+  ! Warm dark matter cut-off scale.                                                                                              
+  double precision            :: transferFunctionWdmCutOffScale                                    
+  double precision            :: transferFunctionWdmEpsilon                                        
+  double precision            :: transferFunctionWdmEta                                            
+  double precision            :: transferFunctionWdmNu                                             
+                                                                                                
 contains
   
   !# <transferFunctionMethod>
@@ -51,9 +51,9 @@ contains
     !% Initializes the ``transfer function from Eisenstein \& Hu'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string                      ),          intent(in   ) :: transferFunctionMethod
-    procedure(Transfer_Function_Eisenstein_Hu_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
-    
+    type     (varying_string                      ), intent(in   )          :: transferFunctionMethod      
+    procedure(Transfer_Function_Eisenstein_Hu_Make), intent(inout), pointer :: Transfer_Function_Tabulate  
+                                                                                                        
     if (transferFunctionMethod == 'Eisenstein-Hu1999') then
        Transfer_Function_Tabulate => Transfer_Function_Eisenstein_Hu_Make
        !@ <inputParameter>
@@ -136,14 +136,26 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision,                            intent(in)    :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
-    integer,                                     intent(out)   :: transferFunctionNumberPoints
-    integer                                                    :: iWavenumber
-    double precision                                           :: qEH,wavenumber,Theta27,zeq,b1,b2,zd,yd,s,fv,Nv,fb ,fc,fcb,fvb&
-         &,pc,pcb,alphav,Gammaeff,qeff,betac,L,C,Tsup,qv,Bk,transferFunctionWdmFactor
- 
-    ! Set wavenumber range and number of points in table.
+    double precision                           , intent(in   ) :: logWavenumber                                                   
+    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber     
+    integer                                    , intent(  out) :: transferFunctionNumberPoints                                    
+    integer                                                    :: iWavenumber                                                     
+    double precision                                           :: Bk                          , C                             , & 
+         &                                                        Gammaeff                    , L                             , & 
+         &                                                        Nv                          , Theta27                       , & 
+         &                                                        Tsup                        , alphav                        , & 
+         &                                                        b1                          , b2                            , & 
+         &                                                        betac                       , fb                            , & 
+         &                                                        fc                          , fcb                           , & 
+         &                                                        fv                          , fvb                           , & 
+         &                                                        pc                          , pcb                           , & 
+         &                                                        qEH                         , qeff                          , & 
+         &                                                        qv                          , s                             , & 
+         &                                                        transferFunctionWdmFactor   , wavenumber                    , & 
+         &                                                        yd                          , zd                            , & 
+         &                                                        zeq                                                             
+    
+    ! Set wavenumber range and number of points in table.                                                                                                                           
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
     logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
     transferFunctionNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(numberPointsPerDecade)/ln10)
@@ -233,9 +245,9 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     write (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Transfer_Function_Eisenstein_Hu_State_Store
@@ -247,10 +259,10 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
-    ! Read the minimum and maximum tabulated times.
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+    
+    ! Read the minimum and maximum tabulated times.                                                 
     read (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Transfer_Function_Eisenstein_Hu_State_Retrieve

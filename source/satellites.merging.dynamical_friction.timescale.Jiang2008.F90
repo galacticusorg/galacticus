@@ -32,9 +32,9 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in)    :: satelliteMergingMethod
-    procedure(Satellite_Time_Until_Merging_Jiang2008), pointer, intent(inout) :: Satellite_Time_Until_Merging
-
+    type     (varying_string                        ), intent(in   )          :: satelliteMergingMethod       
+    procedure(Satellite_Time_Until_Merging_Jiang2008), intent(inout), pointer :: Satellite_Time_Until_Merging 
+    
     if (satelliteMergingMethod == 'Jiang2008') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Jiang2008
     return
   end subroutine Satellite_Time_Until_Merging_Jiang2008_Initialize
@@ -48,15 +48,17 @@ contains
     use Kepler_Orbits
     use Satellite_Orbits
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    type (keplerOrbit       ),          intent(inout) :: thisOrbit
-    type (treeNode          ), pointer                :: hostNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,hostBasicComponent
-    logical,                   parameter              :: acceptUnboundOrbits=.false.
-    double precision,          parameter              :: a=0.94d0, b=0.60d0, C=0.43d0, d=0.60d0 ! Fitting parameters from Jiang's paper.
-    double precision                                  :: equivalentCircularOrbitRadius,orbitalCircularity ,velocityScale,radialScale&
-         &,massRatio
-
+    type            (treeNode          )           , intent(inout), pointer :: thisNode                                                                                                       
+    type            (keplerOrbit       )           , intent(inout)          :: thisOrbit                                                                                                      
+    type            (treeNode          )                          , pointer :: hostNode                                                                                                       
+    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                   , thisBasicComponent                                                      
+    logical                             , parameter                         :: acceptUnboundOrbits          =.false.                                                                          
+    double precision                    , parameter                         :: C                            =0.43d0 , a                 =0.94d0, &  !   Fitting parameters from Jiang's paper.
+         &                                                                     b                            =0.60d0 , d                 =0.60d0                                               
+    double precision                                                        :: equivalentCircularOrbitRadius        , massRatio                , &                                            
+         &                                                                     orbitalCircularity                   , radialScale              , &                                            
+         &                                                                     velocityScale                                                                                                  
+    
     ! Find the host node.
     hostNode => thisNode%parent
     ! Get the equivalent circular orbit.

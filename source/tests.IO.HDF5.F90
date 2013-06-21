@@ -24,42 +24,44 @@ program Tests_IO_HDF5
   use ISO_Varying_String
   use Memory_Management
   implicit none
-  type(hdf5Object),        target                                 :: fileObject,groupObject,datasetObject
-  integer                                                         :: integerValue,integerValueReread,iPass
-  logical                                                         :: appendableOK
-  integer,                 dimension(10)                          :: integerValueArray
-  integer,                 dimension(10)                          :: integerValueArrayRereadStatic
-  integer,                 dimension( :),             allocatable :: integerValueArrayReread
-  integer(kind=kind_int8)                                         :: integer8Value,integer8ValueReread
-  integer(kind=kind_int8), dimension(10)                          :: integer8ValueArray
-  integer(kind=kind_int8), dimension(10)                          :: integer8ValueArrayRereadStatic
-  integer(kind=kind_int8), dimension( :),             allocatable :: integer8ValueArrayReread
-  double precision                                                :: doubleValue,doubleValueReread
-  double precision,        dimension(10)                          :: doubleValueArray
-  double precision,        dimension(10)                          :: doubleValueArrayRereadStatic
-  double precision,        dimension( :),             allocatable :: doubleValueArrayReread
-  character(len=32)                                               :: characterValue,characterValueReread
-  character(len=32),       dimension(10)                          :: characterValueArray
-  character(len=32),       dimension(10)                          :: characterValueArrayRereadStatic
-  character(len=32),       dimension( :),             allocatable :: characterValueArrayReread
-  type(varying_string)                                            :: varStringValue,varStringValueReread
-  type(varying_string),    dimension(10)                          :: varStringValueArray
-  type(varying_string),    dimension(10)                          :: varStringValueArrayRereadStatic
-  type(varying_string),    dimension( :),             allocatable :: varStringValueArrayReread
-  double precision,        dimension(10,10)                       :: doubleValueArray2d
-  double precision,        dimension(10,10)                       :: doubleValueArray2dRereadStatic
-  double precision,        dimension( :, :),          allocatable :: doubleValueArray2dReread
-  double precision,        dimension(10,10,10)                    :: doubleValueArray3d
-  double precision,        dimension(10,10,10)                    :: doubleValueArray3dRereadStatic
-  double precision,        dimension( :, :, :),       allocatable :: doubleValueArray3dReread
-  double precision,        dimension(10,10,10,10)                 :: doubleValueArray4d
-  double precision,        dimension(10,10,10,10)                 :: doubleValueArray4dRereadStatic
-  double precision,        dimension( :, :, :, :),    allocatable :: doubleValueArray4dReread
-  double precision,        dimension(10,10,10,10,10)              :: doubleValueArray5d
-  double precision,        dimension(10,10,10,10,10)              :: doubleValueArray5dRereadStatic
-  double precision,        dimension( :, :, :, :, :), allocatable :: doubleValueArray5dReread
-
-  ! Read in basic code memory usage.
+  type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , & 
+       &                                                                      groupObject                                               
+  integer                                                                  :: iPass                          , integerValue         , & 
+       &                                                                      integerValueReread                                        
+  logical                                                                  :: appendableOK                                              
+  integer                                      , dimension(10)             :: integerValueArray                                         
+  integer                                      , dimension(10)             :: integerValueArrayRereadStatic                             
+  integer                         , allocatable, dimension( :)             :: integerValueArrayReread                                   
+  integer         (kind=kind_int8)                                         :: integer8Value                  , integer8ValueReread      
+  integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArray                                        
+  integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArrayRereadStatic                            
+  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread                                  
+  double precision                                                         :: doubleValue                    , doubleValueReread        
+  double precision                             , dimension(10)             :: doubleValueArray                                          
+  double precision                             , dimension(10)             :: doubleValueArrayRereadStatic                              
+  double precision                , allocatable, dimension( :)             :: doubleValueArrayReread                                    
+  character       (len=32        )                                         :: characterValue                 , characterValueReread     
+  character       (len=32        )             , dimension(10)             :: characterValueArray                                       
+  character       (len=32        )             , dimension(10)             :: characterValueArrayRereadStatic                           
+  character       (len=32        ), allocatable, dimension( :)             :: characterValueArrayReread                                 
+  type            (varying_string)                                         :: varStringValue                 , varStringValueReread     
+  type            (varying_string)             , dimension(10)             :: varStringValueArray                                       
+  type            (varying_string)             , dimension(10)             :: varStringValueArrayRereadStatic                           
+  type            (varying_string), allocatable, dimension( :)             :: varStringValueArrayReread                                 
+  double precision                             , dimension(10,10)          :: doubleValueArray2d                                        
+  double precision                             , dimension(10,10)          :: doubleValueArray2dRereadStatic                            
+  double precision                , allocatable, dimension( :, :)          :: doubleValueArray2dReread                                  
+  double precision                             , dimension(10,10,10)       :: doubleValueArray3d                                        
+  double precision                             , dimension(10,10,10)       :: doubleValueArray3dRereadStatic                            
+  double precision                , allocatable, dimension( :, :, :)       :: doubleValueArray3dReread                                  
+  double precision                             , dimension(10,10,10,10)    :: doubleValueArray4d                                        
+  double precision                             , dimension(10,10,10,10)    :: doubleValueArray4dRereadStatic                            
+  double precision                , allocatable, dimension( :, :, :, :)    :: doubleValueArray4dReread                                  
+  double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5d                                        
+  double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic                            
+  double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread                                  
+  
+  ! Read in basic code memory usage.                                                                                                                                   
   call Code_Memory_Usage('tests.IO.HDF5.size')
 
   ! Begin unit tests.

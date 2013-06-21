@@ -34,9 +34,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: hotHaloRamPressureForceMethod
-    procedure(Hot_Halo_Ram_Pressure_Force_Null_Get), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Force_Get
-    
+    type     (varying_string                      ), intent(in   )          :: hotHaloRamPressureForceMethod    
+    procedure(Hot_Halo_Ram_Pressure_Force_Null_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get  
+                                                                                                             
     if (hotHaloRamPressureForceMethod == 'null') Hot_Halo_Ram_Pressure_Force_Get => Hot_Halo_Ram_Pressure_Force_Null_Get
     return
   end subroutine Hot_Halo_Ram_Pressure_Force_Null_Initialize
@@ -45,8 +45,8 @@ contains
     !% Computes the ram pressure force from the hot halo in the {\tt null} implementation. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type (treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     Hot_Halo_Ram_Pressure_Force_Null_Get=0.0d0
     return
   end function Hot_Halo_Ram_Pressure_Force_Null_Get

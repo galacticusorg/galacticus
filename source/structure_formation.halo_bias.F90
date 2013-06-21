@@ -26,23 +26,23 @@ module Dark_Matter_Halo_Biases
   public :: Dark_Matter_Halo_Bias
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                      :: haloBiasInitialized=.false.
-
-  ! Name of halo bias method used.
-  type(varying_string)                         :: darkMatterHaloBiasMethod
-
-  ! Pointer to the function that returns halo bias.
-  procedure(Halo_Bias_Node_Template), pointer :: Dark_Matter_Halo_Bias_Node_Get => null()
-  procedure(Halo_Bias_Template     ), pointer :: Dark_Matter_Halo_Bias_Get      => null()
+  logical                                     :: haloBiasInitialized           =.false.  
+  
+  ! Name of halo bias method used.                                                                                    
+  type     (varying_string         )          :: darkMatterHaloBiasMethod                
+  
+  ! Pointer to the function that returns halo bias.                                                                                    
+  procedure(Halo_Bias_Node_Template), pointer :: Dark_Matter_Halo_Bias_Node_Get=>null()  
+  procedure(Halo_Bias_Template     ), pointer :: Dark_Matter_Halo_Bias_Get     =>null()  
   abstract interface
      double precision function Halo_Bias_Node_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Halo_Bias_Node_Template
   end interface
   abstract interface
      double precision function Halo_Bias_Template(mass,time)
-       double precision, intent(in) :: mass,time
+       double precision, intent(in   ) :: mass, time  
      end function Halo_Bias_Template
   end interface
 
@@ -95,9 +95,9 @@ contains
   double precision function Dark_Matter_Halo_Bias_By_Node(thisNode)
     !% Computes the bias for a dark matter halo.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Ensure the module is initalized.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Ensure the module is initalized.                                                 
     call Dark_Matter_Halo_Bias_Initialize
 
     ! Get the dark matter halo bias.
@@ -109,9 +109,9 @@ contains
   double precision function Dark_Matter_Halo_Bias_By_Mass(mass,time)
     !% Computes the bias for a dark matter halo.
     implicit none
-    double precision, intent(in) :: mass,time
-
-    ! Ensure the module is initalized.
+    double precision, intent(in   ) :: mass, time  
+    
+    ! Ensure the module is initalized.                                            
     call Dark_Matter_Halo_Bias_Initialize
 
     ! Get the dark matter halo bias.

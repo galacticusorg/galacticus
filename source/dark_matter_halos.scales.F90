@@ -32,24 +32,22 @@ module Dark_Matter_Halo_Scales
        & Dark_Matter_Halo_Scales_State_Store,Dark_Matter_Halo_Scales_State_Retrieve
 
   ! Record of unique ID of node which we last computed results for.
-  integer(kind=kind_int8) :: lastUniqueID=-1
+  integer         (kind=kind_int8          )            :: lastUniqueID                   =-1                                         
   !$omp threadprivate(lastUniqueID)
-
   ! Record of whether or not halo scales have already been computed for this node.
-  logical :: virialRadiusComputed=.false.,virialTemperatureComputed=.false.,virialVelocityComputed=.false.,dynamicalTimescaleComputed=.false.
+  logical                                               :: dynamicalTimescaleComputed     =.false., virialRadiusComputed  =.false., & 
+       &                                                   virialTemperatureComputed      =.false., virialVelocityComputed=.false.    
   !$omp threadprivate(virialRadiusComputed,virialTemperatureComputed,virialVelocityComputed,dynamicalTimescaleComputed)
-
   ! Stored values of halo scales.
-  double precision :: virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored
+  double precision                                      :: dynamicalTimescaleStored               , virialRadiusStored            , & 
+       &                                                   virialTemperatureStored                , virialVelocityStored              
   !$omp threadprivate(virialRadiusStored,virialTemperatureStored,virialVelocityStored,dynamicalTimescaleStored)
-
   ! Table for fast lookup of the mean density of halos.
-  double precision               :: meanDensityTimeMinimum=-1.0d0,meanDensityTimeMaximum=-1.0d0
-  integer, parameter             :: meanDensityTablePointsPerDecade=100
-  type(table1DLogarithmicLinear) :: meanDensityTable
-  logical                        :: resetMeanDensityTable
+  double precision                                      :: meanDensityTimeMaximum         =-1.0d0 , meanDensityTimeMinimum=-1.0d0     
+  integer                                   , parameter :: meanDensityTablePointsPerDecade=100                                        
+  type            (table1DLogarithmicLinear)            :: meanDensityTable                                                           
+  logical                                               :: resetMeanDensityTable                                                      
   !$omp threadprivate(meanDensityTable,meanDensityTimeMinimum,meanDensityTimeMaximum,resetMeanDensityTable)
-
 contains
 
   !# <calculationResetTask>
@@ -58,8 +56,8 @@ contains
   subroutine Dark_Matter_Halo_Scales_Reset(thisNode)
     !% Reset the cooling radius calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     virialRadiusComputed      =.false.
     virialTemperatureComputed =.false.
     virialVelocityComputed    =.false.
@@ -73,8 +71,8 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
@@ -94,9 +92,9 @@ contains
     !% Returns the virial velocity scale for {\tt thisNode}.
     use Numerical_Constants_Physical
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-
+    type (treeNode          ), intent(inout), pointer :: thisNode           
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
@@ -119,9 +117,9 @@ contains
   double precision function Dark_Matter_Halo_Virial_Velocity_Growth_Rate(thisNode)
     !% Returns the growth rate of the virial velocity scale for {\tt thisNode}.
     implicit none
-    type(treeNode),            intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-
+    type (treeNode          ), intent(inout), pointer :: thisNode           
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Virial_Velocity_Growth_Rate=0.5d0*Dark_Matter_Halo_Virial_Velocity(thisNode) &
@@ -136,8 +134,8 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),  intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
@@ -157,9 +155,9 @@ contains
     !% Returns the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-
+    type (treeNode          ), intent(inout), pointer :: thisNode           
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Dark_Matter_Halo_Scales_Reset(thisNode)
 
@@ -182,9 +180,9 @@ contains
     !% Returns the growth rate of the virial radius scale for {\tt thisNode}.
     use Numerical_Constants_Math
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-
+    type (treeNode          ), intent(inout), pointer :: thisNode           
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Virial_Radius_Growth_Rate=(1.0d0/3.0d0)*Dark_Matter_Halo_Virial_Radius(thisNode)&
@@ -199,11 +197,11 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    integer                                           :: i,meanDensityTablePoints
-    double precision                                  :: time
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                   
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                         
+    integer                                                      :: i                 , meanDensityTablePoints 
+    double precision                                             :: time                                       
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Get the time at which this halo was last an isolated halo.
@@ -237,12 +235,11 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: time,aExpansion
-    double precision,          save                   :: timePrevious=-1.0d0,densityGrowthRatePrevious
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                       
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                             
+    double precision                                             :: aExpansion               , time                
+    double precision                    , save                   :: densityGrowthRatePrevious, timePrevious=-1.0d0 
     !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
-
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
        Dark_Matter_Halo_Mean_Density_Growth_Rate=0.0d0
@@ -275,9 +272,9 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum
     return
   end subroutine Dark_Matter_Halo_Scales_State_Store
@@ -289,9 +286,9 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     read (stateFile) meanDensityTimeMinimum,meanDensityTimeMaximum    
     ! Ensure that interpolation objects will get reset.
     resetMeanDensityTable=.true.

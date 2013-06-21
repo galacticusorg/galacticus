@@ -36,15 +36,16 @@ contains
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
     implicit none
-    character(len=*),     intent(in)    :: nodesFile
-    type(mergerTreeData), intent(inout) :: mergerTrees
-    integer                             :: lineCountTotal,lineCountData,lineNumberStart,lineNumberStop
-    double precision                    :: sigma_8,powerSpectrumIndex,boxSize
-    type(varying_string)                :: transferFunction,source
-    logical                             :: haloMassesIncludeSubhalos
-
+    character       (len=*         ), intent(in   ) :: nodesFile                                        
+    type            (mergerTreeData), intent(inout) :: mergerTrees                                      
+    integer                                         :: lineCountData            , lineCountTotal    , & 
+         &                                             lineNumberStart          , lineNumberStop        
+    double precision                                :: boxSize                  , powerSpectrumIndex, & 
+         &                                             sigma_8                                          
+    type            (varying_string)                :: source                   , transferFunction      
+    logical                                         :: haloMassesIncludeSubhalos                        
+    
     ! Process the file.
-
     ! Find number of lines in file, with and without comments.
     lineCountTotal=Count_Lines_in_File(nodesFile    )
     lineCountData =Count_Lines_in_File(nodesFile,"#")

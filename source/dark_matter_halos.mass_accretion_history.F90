@@ -26,18 +26,18 @@ module Dark_Matter_Halo_Mass_Accretion_Histories
   public :: Dark_Matter_Halo_Mass_Accretion_Time
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: darkMatterAccretionHistoryInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: darkMatterAccretionHistoryMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Accretion_Template), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get => null()
+  logical                                            :: darkMatterAccretionHistoryInitialized   =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                     
+  type     (varying_string                )          :: darkMatterAccretionHistoryMethod                  
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                     
+  procedure(Dark_Matter_Accretion_Template), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get=>null()  
   abstract interface
      double precision function Dark_Matter_Accretion_Template(baseNode,nodeMass)
        import treeNode
-       type(treeNode),   intent(inout), pointer :: baseNode
-       double precision, intent(in)             :: nodeMass
+       type            (treeNode), intent(inout), pointer :: baseNode  
+       double precision          , intent(in   )          :: nodeMass  
      end function Dark_Matter_Accretion_Template
   end interface
 
@@ -85,10 +85,10 @@ contains
   double precision function Dark_Matter_Halo_Mass_Accretion_Time(baseNode,nodeMass)
     !% Returns the time for {\tt thisNode} in {\tt thisTree} according to the mass accretion history.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: baseNode
-    double precision,          intent(in)    :: nodeMass
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: baseNode  
+    double precision          , intent(in   )          :: nodeMass  
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Mass_Accretion_Initialize
 
     ! Get the time for the node.

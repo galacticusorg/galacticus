@@ -19,5 +19,5 @@
 
 module Merger_Trees_Evolve_Deadlock_Status
   !% Provides an enumeration for tree deadlock statuses.
-  integer , parameter :: isDeadlocked=2,isReporting=1,isNotDeadlocked=0
+  integer, parameter :: isDeadlocked=2, isNotDeadlocked=0, isReporting=1  
 end module Merger_Trees_Evolve_Deadlock_Status

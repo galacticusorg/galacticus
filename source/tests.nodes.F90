@@ -28,16 +28,16 @@ program Test_Nodes
   use Array_Utilities
   use Test_Nodes_Tasks
   implicit none
-  type (treeNode)                                                 :: thisNode  
-  type (treeNode)                     , pointer                   :: hostNode
-  class(nodeComponent                ), pointer                   :: thisComponent
-  double precision                    , parameter                 :: propertyValueSet=1.23456789d0
-  double precision                    ,              dimension(2) :: serializedArray
-  double precision                    , allocatable, dimension(:) :: propertyArray
-  double precision                                                :: propertyValueGet
-  type (varying_string               )                            :: parameterFile
-
-  ! Read in basic code memory usage.
+  type            (treeNode                     )                                     :: thisNode                       
+  type            (treeNode                     )                           , pointer :: hostNode                       
+  class           (nodeComponent                )                           , pointer :: thisComponent                  
+  double precision                               , parameter                          :: propertyValueSet=1.23456789d0  
+  double precision                                            , dimension(2)          :: serializedArray                
+  double precision                               , allocatable, dimension(:)          :: propertyArray                  
+  double precision                                                                    :: propertyValueGet               
+  type            (varying_string               )                                     :: parameterFile                  
+  
+  ! Read in basic code memory usage.                                                                                                                   
   call Code_Memory_Usage('tests.nodes.size')
 
   ! Open the parameter file.

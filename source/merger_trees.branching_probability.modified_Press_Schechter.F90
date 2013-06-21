@@ -26,22 +26,24 @@ module Modified_Press_Schechter_Branching
   public :: Modified_Press_Schechter_Branching_Initialize
   
   ! Parent halo shared variables.
-  double precision             :: parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek, &
-       & probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor
+  double precision            :: branchingProbabilityPreFactor                               , modificationG0Gamma2Factor  , & 
+       &                         parentDelta                                                 , parentHaloMass              , & 
+       &                         parentSigma                                                 , parentSigmaSquared          , & 
+       &                         probabilityMinimumMass                                      , probabilitySeek                 
   !$omp threadprivate(parentHaloMass,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass,modificationG0Gamma2Factor,branchingProbabilityPreFactor)
-
   ! Parameters of the merger rate modification function.
-  double precision             :: modifiedPressSchechterG0,modifiedPressSchechterGamma1,modifiedPressSchechterGamma2
-
+  double precision            :: modifiedPressSchechterG0                                    , modifiedPressSchechterGamma1, & 
+       &                         modifiedPressSchechterGamma2                                                                  
+  
   ! Accuracy parameter to ensure that merger rate function (which is correct to 1st order) is sufficiently accurate.
-  double precision             :: modifiedPressSchechterFirstOrderAccuracy
-
+  double precision            :: modifiedPressSchechterFirstOrderAccuracy                                                      
+  
   ! Precomputed numerical factors.
-  double precision, parameter  :: sqrtTwoOverPi=sqrt(2.0d0/Pi)
-
+  double precision, parameter :: sqrtTwoOverPi                                =sqrt(2.0d0/Pi)                                  
+  
   ! Branching probability integrand integration tolerance.
-  double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-3
-
+  double precision, parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-3                                          
+  
 contains
   
   !# <treeBranchingMethod>
@@ -53,9 +55,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: treeBranchingMethod
-    procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
-         &,Tree_Maximum_Step
+    type     (varying_string  ), intent(in   )          :: treeBranchingMethod                                 
+    procedure(double precision), intent(inout), pointer :: Tree_Branch_Mass   , Tree_Branching_Probability , & 
+         &                                                 Tree_Maximum_Step  , Tree_Subresolution_Fraction    
     
     if (treeBranchingMethod == 'modifiedPress-Schechter') then
        Tree_Branching_Probability  => Modified_Press_Schechter_Branching_Probability
@@ -124,11 +126,11 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Root_Finder
     implicit none
-    double precision            , intent(in   ) :: haloMass,deltaCritical,massResolution,probability
-    double precision            , parameter     :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    type            (rootFinder), save          :: finder
+    double precision            , intent(in   ) :: deltaCritical          , haloMass                , & 
+         &                                         massResolution         , probability                 
+    double precision            , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-9    
+    type            (rootFinder), save          :: finder                                               
     !$omp threadprivate(finder)
-
     ! Initialize global variables.
     parentHaloMass        =haloMass
     parentSigma           =Cosmological_Mass_Root_Variance(haloMass)
@@ -157,11 +159,11 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: massMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type(c_ptr)                                                 :: parameterPointer
-
+    double precision                            , intent(in   ) :: massMaximum          
+    type            (fgsl_function             )                :: integrandFunction    
+    type            (fgsl_integration_workspace)                :: integrationWorkspace 
+    type            (c_ptr                     )                :: parameterPointer     
+    
     Modified_Press_Schechter_Branch_Mass_Root=probabilitySeek-branchingProbabilityPreFactor*Integrate(probabilityMinimumMass&
          &,massMaximum ,Branching_Probability_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
          &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
@@ -173,10 +175,10 @@ contains
     !% Return the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
     implicit none
-    double precision, intent(in) :: haloMass,deltaCritical,massResolution
-    double precision, parameter  :: largeStep=1.0d10 ! Effectively infinitely large step in w(=delta_crit).
-    double precision             :: parentHalfMassSigma
-
+    double precision, intent(in   ) :: deltaCritical             , haloMass                                                         , massResolution 
+    double precision, parameter     :: largeStep          =1.0d10           !   Effectively infinitely large step in w(=delta_crit).                 
+    double precision                :: parentHalfMassSigma                                                                                           
+    
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        parentSigma        =Cosmological_Mass_Root_Variance(      haloMass)
@@ -195,12 +197,12 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision,                 intent(in) :: haloMass,deltaCritical,massResolution
-    type(c_ptr)                                  :: parameterPointer
-    type(fgsl_function)                          :: integrandFunction
-    type(fgsl_integration_workspace)             :: integrationWorkspace
-    double precision                             :: massMinimum,massMaximum
-
+    double precision                            , intent(in   ) :: deltaCritical       , haloMass   , massResolution 
+    type            (c_ptr                     )                :: parameterPointer                                  
+    type            (fgsl_function             )                :: integrandFunction                                 
+    type            (fgsl_integration_workspace)                :: integrationWorkspace                              
+    double precision                                            :: massMaximum         , massMinimum                 
+    
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
        parentHaloMass=haloMass
@@ -225,11 +227,12 @@ contains
     !% terms of the $_2F_1$ hypergeometric function.
     use Hypergeometric_Functions
     implicit none
-    double precision, intent(in) :: haloMass,deltaCritical,massResolution
-    double precision, save       :: resolutionSigma,massResolutionPrevious=-1.0d0
+    double precision, intent(in   ) :: deltaCritical                , haloMass                      , & 
+         &                             massResolution                                                   
+    double precision, save          :: massResolutionPrevious=-1.0d0, resolutionSigma                   
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision             :: resolutionSigmaOverParentSigma,hyperGeometricFactor
-
+    double precision                :: hyperGeometricFactor         , resolutionSigmaOverParentSigma    
+    
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass=haloMass
     parentSigma   =Cosmological_Mass_Root_Variance(haloMass)
@@ -256,11 +259,11 @@ contains
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)          :: Branching_Probability_Integrand
-    real(c_double), value   :: childHaloMass
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: childSigma,childAlpha
-
+    real(kind=c_double)        :: Branching_Probability_Integrand             
+    real(kind=c_double), value :: childHaloMass                               
+    type(c_ptr        ), value :: parameterPointer                            
+    real(kind=c_double)        :: childAlpha                     , childSigma 
+    
     call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
@@ -271,8 +274,8 @@ contains
     !% mass is not included here---instead it is included in a multiplicative prefactor by which
     !% integrals over this function are multiplied.
     implicit none
-    double precision, intent(in) :: childHaloMass,childSigma,childAlpha
-
+    double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma 
+    
     Progenitor_Mass_Function=Merging_Rate(childSigma,childAlpha)*Modification_Function(childSigma)/(childHaloMass**2)
     return
   end function Progenitor_Mass_Function
@@ -282,9 +285,9 @@ contains
     !% here---instead it is included in a multiplicative prefactor by which integrals over this
     !% function are multiplied.
     implicit none
-    double precision, intent(in) :: childSigma,childAlpha
-    double precision             :: childSigmaSquared
-
+    double precision, intent(in   ) :: childAlpha       , childSigma 
+    double precision                :: childSigmaSquared             
+    
     childSigmaSquared=childSigma**2
     Merging_Rate=(childSigmaSquared/((childSigmaSquared-parentSigmaSquared)**1.5d0))*abs(childAlpha)
     return
@@ -297,8 +300,8 @@ contains
     !% here---instead they are included in a multiplicative prefactor by which integrals over
     !% this function are multiplied.
     implicit none
-    double precision, intent(in) :: childSigma
-
+    double precision, intent(in   ) :: childSigma 
+    
     Modification_Function=childSigma**modifiedPressSchechterGamma1
     return
   end function Modification_Function

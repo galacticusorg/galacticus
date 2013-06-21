@@ -27,27 +27,27 @@ module Power_Spectra
        & sigma_8, Cosmological_Mass_Root_Variance_Logarithmic_Derivative, Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative
 
   ! Flag to indicate if the power spectrum has been normalized.  
-  logical                                       :: sigmaInitialized   =.false.
-  logical                                       :: sigmaNormalized    =.false.
-  double precision                , parameter   :: radiusNormalization=8.0d0   ! Radius for sigma(M) normalization in Mpc/h.
-  double precision                              :: massNormalization           ! Mass for sigma(M) normalization in M_Solar.
-  double precision                              :: sigmaNormalization =1.0d0   ! Normalization for sigma(M).
-  double precision                              :: sigma_8_Value               ! Power spectrum normalization parameter.
-
+  logical                                                                     :: sigmaInitialized                   =.false.                                                 
+  logical                                                                     :: sigmaNormalized                    =.false.                                                 
+  double precision                                              , parameter   :: radiusNormalization                =8.0d0   !   Radius for sigma(M) normalization in Mpc/h. 
+  double precision                                                            :: massNormalization                           !   Mass for sigma(M) normalization in M_Solar. 
+  double precision                                                            :: sigmaNormalization                 =1.0d0   !   Normalization for sigma(M).                 
+  double precision                                                            :: sigma_8_Value                               !   Power spectrum normalization parameter.     
+  
   ! Variables to hold the tabulated sigma(M) data.
-  class           (table1D       ), allocatable :: sigmaTable
-
+  class           (table1D                                     ), allocatable :: sigmaTable                                                                                  
+  
   ! Name of mass variance method used.
-  type            (varying_string)              :: cosmologicalMassVarianceMethod
-
+  type            (varying_string                              )              :: cosmologicalMassVarianceMethod                                                              
+  
   ! Pointer to the subroutine that tabulates the virial overdensity and template interface for that subroutine.
-  procedure(Cosmological_Mass_Variance_Tabulate_Template), pointer :: Cosmological_Mass_Variance_Tabulate => null()
+  procedure       (Cosmological_Mass_Variance_Tabulate_Template), pointer     :: Cosmological_Mass_Variance_Tabulate=>null()                                                 
   abstract interface
      subroutine Cosmological_Mass_Variance_Tabulate_Template(mass,massNormalization,sigmaNormalization,sigmaTable)
        import table1D
-       double precision         , intent(in   )              :: mass,massNormalization
-       double precision         , intent(inout)              :: sigmaNormalization
-       class           (table1D), intent(inout), allocatable :: sigmaTable
+       double precision                      , intent(in   ) :: mass              , massNormalization 
+       double precision                      , intent(inout) :: sigmaNormalization                    
+       class           (table1D), allocatable, intent(inout) :: sigmaTable                            
      end subroutine Cosmological_Mass_Variance_Tabulate_Template
   end interface
   
@@ -57,8 +57,8 @@ contains
     !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in) :: wavenumber
-
+    double precision, intent(in   ) :: wavenumber 
+    
     Power_Spectrum_Dimensionless=4.0d0*Pi*wavenumber**3*Power_Spectrum(wavenumber)/(2.0d0*Pi)**3
     return
   end function Power_Spectrum_Dimensionless
@@ -68,8 +68,8 @@ contains
     use Transfer_Functions
     use Primordial_Power_Spectra
     implicit none
-    double precision, intent(in) :: wavenumber
-
+    double precision, intent(in   ) :: wavenumber 
+    
     Power_Spectrum_Logarithmic_Derivative=                                                                    &
          &                                       Primordial_Power_Spectrum_Logarithmic_Derivative(wavenumber) &
          &                                +2.0d0*        Transfer_Function_Logarithmic_Derivative(wavenumber)
@@ -84,11 +84,11 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
-    double precision                , intent(in   ) :: wavenumber
-    double precision                                :: mass
-    character       (len=15        )                :: label
-    type            (varying_string)                :: message
-
+    double precision                , intent(in   ) :: wavenumber 
+    double precision                                :: mass       
+    character       (len=15        )                :: label      
+    type            (varying_string)                :: message    
+    
     ! Ensure that the normalization of the power spectrum has been computed.
     mass=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()/waveNumber**3
     if (mass <= 0.0d0) then
@@ -114,12 +114,11 @@ contains
   double precision function Mass_from_Cosmolgical_Root_Variance(sigma)
     !% Computes the mass corresponding to the given fractional mass fluctuation in real-space spherical top hats.
     implicit none
-    double precision, intent(in) :: sigma
-    integer                      :: iMass
-    double precision             :: h,logMass
+    double precision, intent(in   ) :: sigma          
+    integer                         :: iMass          
+    double precision                :: h    , logMass 
     
-    ! Ensure that the sigma(M) tabulation exists.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    ! Ensure that the sigma(M) tabulation exists.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance()
 
     ! If the requested sigma is below the lowest value tabulated, attempt to tabulate to higher mass (lower sigma).
@@ -149,10 +148,9 @@ contains
     !% Computes the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass}.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in) :: mass
-
-    ! Check if we need to initialize this function.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    double precision, intent(in   ) :: mass 
+    
+    ! Check if we need to initialize this function.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     
     ! Interpolate in tabulated function and return result.
@@ -165,9 +163,9 @@ contains
     !% Computes the logarithmic derivative in the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt
     !% mass}.
     implicit none
-    double precision, intent(in) :: mass
-    double precision             :: sigma
-
+    double precision, intent(in   ) :: mass  
+    double precision                :: sigma 
+    
     call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(mass,sigma,Cosmological_Mass_Root_Variance_Logarithmic_Derivative)
     return
   end function Cosmological_Mass_Root_Variance_Logarithmic_Derivative
@@ -176,11 +174,10 @@ contains
     !% Returns both the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass} and its logarithmic derivative.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in)  :: mass
-    double precision, intent(out) :: sigma,sigmaLogarithmicDerivative
-
-    ! Check if we need to initialize this function.
-    !$omp critical (Cosmological_Mass_Variance_Interpolate)
+    double precision, intent(in   ) :: mass                              
+    double precision, intent(  out) :: sigma, sigmaLogarithmicDerivative 
+    
+    ! Check if we need to initialize this function.    !$omp critical (Cosmological_Mass_Variance_Interpolate)
     call Initialize_Cosmological_Mass_Variance(mass)
     !$omp end critical (Cosmological_Mass_Variance_Interpolate)
     
@@ -219,9 +216,9 @@ contains
     include 'structure_formation.cosmological_mass_variance.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in   ), optional :: mass
-    logical                                   :: remakeTable
-    double precision                          :: massActual
+    double precision, intent(in   ), optional :: mass        
+    logical                                   :: remakeTable 
+    double precision                          :: massActual  
     
     ! Compute the normalization if required.
     remakeTable=.false.

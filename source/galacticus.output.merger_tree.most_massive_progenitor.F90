@@ -24,14 +24,14 @@ module Galacticus_Output_Most_Massive_Progenitors
   public :: Galacticus_Output_Most_Massive_Progenitor, Galacticus_Output_Most_Massive_Progenitor_Property_Count, Galacticus_Output_Most_Massive_Progenitor_Names
 
   ! Number of properties.
-  integer, parameter :: propertyCount=1
-
-  ! Record of module initialization.
-  logical            :: moduleIsInitialized=.false.
-
-  ! Output option.
-  logical            :: outputMostMassiveProgenitor
-
+  integer, parameter :: propertyCount              =1        
+  
+  ! Record of module initialization.                                                        
+  logical            :: moduleIsInitialized        =.false.  
+  
+  ! Output option.                                                        
+  logical            :: outputMostMassiveProgenitor          
+                                                          
 contains
 
   subroutine Galacticus_Output_Most_Massive_Progenitor_Initialize()
@@ -71,14 +71,14 @@ contains
     !% Set the names of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type(treeNode)  , intent(inout), pointer      :: thisNode
-    double precision, intent(in)                  :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-
-    ! Ensure the module is initialized.
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                            
+    double precision                        , intent(in   )          :: time                                                
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty            
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames    , & 
+         &                                                              integerPropertyComments, integerPropertyNames       
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI     
+    
+    ! Ensure the module is initialized.                                                                                                                     
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 
     if (outputMostMassiveProgenitor) then
@@ -106,11 +106,11 @@ contains
     !% Account for the number of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
-
-    ! Ensure the module is initialized.
+    type            (treeNode), intent(inout), pointer :: thisNode                                   
+    double precision          , intent(in   )          :: time                                       
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount  
+    
+    ! Ensure the module is initialized.                                                                                              
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 
     if (outputMostMassiveProgenitor) integerPropertyCount=integerPropertyCount+propertyCount
@@ -127,19 +127,20 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision           , intent(in)             :: time
-    type   (treeNode          ), intent(inout), pointer :: thisNode
-    integer                    , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8    ), intent(inout)          :: integerBuffer(:,:)
-    double precision,            intent(inout)          :: doubleBuffer(:,:)
-    double precision,            save                   :: timePrevious    =-1.0d0
-    integer(kind=kind_int8    ), save                   :: uniqueIdPrevious=-1,uniqueIdMatched
-    !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)
-    type   (treeNode          ),                pointer :: currentNode
-    class  (nodeComponentBasic),                pointer :: currentBasicComponent
-    double precision                                    :: mostMassiveProgenitorMass
-
-    ! Ensure the module is initialized.
+    double precision                          , intent(in   )          :: time                                                           
+    type            (treeNode          )      , intent(inout), pointer :: thisNode                                                       
+    integer                                   , intent(inout)          :: doubleBufferCount                    , doubleProperty      , & 
+         &                                                                integerBufferCount                   , integerProperty         
+    integer         (kind=kind_int8    )      , intent(inout)          :: integerBuffer            (:,:)                                 
+    double precision                          , intent(inout)          :: doubleBuffer             (:,:)                                 
+    double precision                    , save                         :: timePrevious                  =-1.0d0                          
+    integer         (kind=kind_int8    ), save                         :: uniqueIdMatched                      , uniqueIdPrevious=-1     
+    !$omp threadprivate(timePrevious,uniqueIdPrevious,uniqueIdMatched)                                                                                                                                  
+    type            (treeNode          )                     , pointer :: currentNode                                                    
+    class           (nodeComponentBasic)                     , pointer :: currentBasicComponent                                          
+    double precision                                                   :: mostMassiveProgenitorMass                                      
+    
+    ! Ensure the module is initialized.                                                                                                                                  
     call Galacticus_Output_Most_Massive_Progenitor_Initialize()
 
     if (outputMostMassiveProgenitor) then

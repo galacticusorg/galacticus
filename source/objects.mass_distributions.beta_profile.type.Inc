@@ -17,8 +17,8 @@
 
 type, public, extends(massDistributionSpherical) :: massDistributionBetaProfile
    !% The $\beta$-profile: $\rho(r)=\rho_0/[1+(r/r_{\rm core})^2]^{3\beta/2}$
-   double precision  :: coreRadius,beta,densityNormalization
+   double precision :: beta, coreRadius, densityNormalization  
  contains
-   procedure :: initialize => Mass_Distribution_Beta_Profile_Initialize
-   procedure :: density    => Mass_Distribution_Beta_Profile_Density
+   procedure :: initialize=>Mass_Distribution_Beta_Profile_Initialize  
+   procedure :: density   =>Mass_Distribution_Beta_Profile_Density     
 end type massDistributionBetaProfile

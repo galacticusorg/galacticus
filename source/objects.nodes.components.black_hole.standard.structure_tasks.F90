@@ -41,14 +41,14 @@ contains
     use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: componentType,massType
-    double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
-    double precision                                                  :: componentMass
-
-    ! Set to zero by default.
+    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
+    integer                                 , intent(in   )           :: componentType         , massType  
+    double precision                        , intent(in   )           :: radius                            
+    logical                                 , intent(in   ), optional :: haloLoaded                        
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
+    double precision                                                  :: componentMass                     
+    
+    ! Set to zero by default.                                                                                                    
     Node_Component_Black_Hole_Standard_Rotation_Curve=0.0d0
     ! Get the black hole component and check that it is of the standard class.
     thisBlackHoleComponent => thisNode%blackHole(instance=1)
@@ -79,13 +79,13 @@ contains
     use Galactic_Structure_Options
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: componentType,massType
-    double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
-    double precision                                                  :: componentMass
-
+    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
+    integer                                 , intent(in   )           :: componentType         , massType  
+    double precision                        , intent(in   )           :: radius                            
+    logical                                 , intent(in   ), optional :: haloLoaded                        
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
+    double precision                                                  :: componentMass                     
+                                                                                                        
     Node_Component_Black_Hole_Standard_Potential=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
@@ -116,14 +116,14 @@ contains
     use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
-    type            (treeNode              ), intent(inout), pointer  :: thisNode
-    integer                                 , intent(in   )           :: componentType,massType
-    double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBlackHole),                pointer  :: thisBlackHoleComponent
-    double precision                                                  :: componentMass
-
-    ! Set to zero by default.
+    type            (treeNode              ), intent(inout), pointer  :: thisNode                          
+    integer                                 , intent(in   )           :: componentType         , massType  
+    double precision                        , intent(in   )           :: radius                            
+    logical                                 , intent(in   ), optional :: haloLoaded                        
+    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent            
+    double precision                                                  :: componentMass                     
+    
+    ! Set to zero by default.                                                                                                    
     Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return

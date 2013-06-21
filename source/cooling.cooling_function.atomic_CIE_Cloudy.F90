@@ -26,25 +26,25 @@ module Cooling_Functions_Atomic_CIE_Cloudy
        & Cooling_Function_Density_Slope_Atomic_CIE_Cloudy, Cooling_Function_Temperature_Slope_Atomic_CIE_Cloudy
   
   ! Flag indicating whether or not this cooling function is selected.
-  logical                     :: functionSelected=.false.
-
+  logical :: functionSelected          =.false. 
+  
   ! Flag to indicate if this module has been initialized.
-  logical                     :: coolingFunctionInitialized=.false.
-
+  logical :: coolingFunctionInitialized=.false. 
+  
   ! File name for the cooling function and ionization state data.
   character(len=55)           :: coolingFunctionFile='data/cooling/cooling_function_Atomic_CIE_Cloudy.xml'
   character(len=55)           :: chemicalStateFile  ='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
-  double precision, parameter :: metallicityMaximumDefault=30.0d0 ! Thirty times Solar.
-  double precision            :: metallicityMaximum
-
+  double precision, parameter :: metallicityMaximumDefault=30.0d0 !   Thirty times Solar. 
+  double precision            :: metallicityMaximum                                       
+  
   ! Maximum metallicity that we will ever tabulate. More than this should be physically implausible.
-  double precision, parameter :: metallicityMaximumLimit  =30.0d0 ! Thirty times Solar.
-
+  double precision, parameter :: metallicityMaximumLimit  =30.0d0 !   Thirty times Solar. 
+  
   ! Factor by which metallicity must exceed currently tabulated maximum before we retabulate.
-  double precision, parameter :: metallicityTolerance     =0.1d0
-
+  double precision, parameter :: metallicityTolerance     =0.1d0                          
+  
 contains
   
   !# <coolingFunctionMethods>
@@ -54,9 +54,9 @@ contains
   subroutine Cooling_Function_Atomic_CIE_Cloudy_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
     implicit none
-    type(varying_string), intent(in   ) :: coolingFunctionMethods(:)
-    integer,              intent(inout) :: coolingFunctionsMatched
- 
+    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:) 
+    integer                , intent(inout) :: coolingFunctionsMatched    
+    
     ! Check if this cooling function has been selected.
     if (any(coolingFunctionMethods == 'atomicCIECloudy')) then
        functionSelected=.true.
@@ -74,14 +74,12 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    type(abundances), intent(in) :: gasAbundances
-    logical                               :: makeFile
-    character(len=32)                     :: metallicityLabel
-    type(varying_string)                  :: command,coolingFunctionFileVarString
-
-    ! Generate the name of the data file and an XML input parameter file.
-    !$omp critical (Cooling_Function_Atomic_CIE_Cloudy_Initialize)
-    ! Determine if we need to reinitialize this module.
+    type     (abundances    ), intent(in   ) :: gasAbundances                                  
+    logical                                  :: makeFile                                       
+    character(len=32        )                :: metallicityLabel                               
+    type     (varying_string)                :: command         , coolingFunctionFileVarString 
+    
+    ! Generate the name of the data file and an XML input parameter file.    !$omp critical (Cooling_Function_Atomic_CIE_Cloudy_Initialize)    ! Determine if we need to reinitialize this module.
     if (.not.coolingFunctionInitialized) then
        makeFile=.true.
     else
@@ -135,12 +133,12 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in)  :: gasAbundances
-    type(chemicalAbundances), intent(in)  :: chemicalDensities
-    type(radiationStructure),          intent(in)  :: radiation
-    double precision,                  intent(out) :: coolingFunction
-
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
+    type            (abundances        ), intent(in   ) :: gasAbundances                      
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                  
+    type            (radiationStructure), intent(in   ) :: radiation                          
+    double precision                    , intent(  out) :: coolingFunction                    
+    
     ! Check if this cooling function has been selected.
     if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        
@@ -170,13 +168,13 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in)  :: gasAbundances
-    type(chemicalAbundances), intent(in)  :: chemicalDensities
-    type(radiationStructure),          intent(in)  :: radiation
-    double precision,                  intent(out) :: coolingFunctionDensitySlope
-    double precision                                :: coolingFunction
-
+    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature 
+    type            (abundances        ), intent(in   ) :: gasAbundances                            
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                        
+    type            (radiationStructure), intent(in   ) :: radiation                                
+    double precision                    , intent(  out) :: coolingFunctionDensitySlope              
+    double precision                                    :: coolingFunction                          
+    
     ! Check if this cooling function has been selected.
     if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        
@@ -207,13 +205,13 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)  :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in)  :: gasAbundances
-    type(chemicalAbundances), intent(in)  :: chemicalDensities
-    type(radiationStructure),          intent(in)  :: radiation
-    double precision,                  intent(out) :: coolingFunctionTemperatureSlope
-    double precision                               :: coolingFunction
-
+    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature 
+    type            (abundances        ), intent(in   ) :: gasAbundances                                
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                            
+    type            (radiationStructure), intent(in   ) :: radiation                                    
+    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope              
+    double precision                                    :: coolingFunction                              
+    
     ! Check if this cooling function has been selected.
     if (functionSelected .and. numberDensityHydrogen > 0.0d0) then
        

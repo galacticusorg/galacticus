@@ -28,11 +28,11 @@ module Cooling_Functions
   public :: Cooling_Function, Cooling_Function_Density_Log_Slope, Cooling_Function_Temperature_Log_Slope
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                         :: coolingFunctionInitialized=.false.
-
-  ! Name of cooling time available method used.
-  type(varying_string), allocatable, dimension(:) :: coolingFunctionMethods
-
+  logical                                            :: coolingFunctionInitialized=.false.  
+  
+  ! Name of cooling time available method used.                                                                                       
+  type   (varying_string), allocatable, dimension(:) :: coolingFunctionMethods              
+                                                                                         
 contains
 
   !# <include directive="coolingFunctionMethods" type="methodNames" function="Cooling_Function_Not_Matched" methodRank="1" >
@@ -48,9 +48,9 @@ contains
     include 'cooling.cooling_function.modules.inc'
     !# </include>
     implicit none
-    integer :: coolingFunctionsCount,coolingFunctionsMatched
+    integer :: coolingFunctionsCount, coolingFunctionsMatched  
     
-    ! Initialize if necessary.
+    ! Initialize if necessary.                                                        
     if (.not.coolingFunctionInitialized) then
        !$omp critical(Cooling_Function_Initialization) 
        if (.not.coolingFunctionInitialized) then
@@ -94,13 +94,13 @@ contains
     include 'cooling.cooling_function.compute.modules.inc'
     !# </include>
     implicit none
-    double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-    double precision                              :: thisCoolingFunction
-
-    ! Initialize the module.
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature  
+    type            (abundances        ), intent(in   ) :: gasAbundances                       
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                   
+    type            (radiationStructure), intent(in   ) :: radiation                           
+    double precision                                    :: thisCoolingFunction                 
+    
+    ! Initialize the module.                                                                                        
     call Cooling_Function_Initialize
   
     Cooling_Function=0.0d0
@@ -120,13 +120,13 @@ contains
     include 'cooling.cooling_function.computeDensitySlope.moduleUse.inc'
     !# </include>
     implicit none
-    double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-    double precision                              :: thisCoolingFunctionDensitySlope,coolingFunction
-
-    ! Initialize the module.
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature                      
+    type            (abundances        ), intent(in   ) :: gasAbundances                                           
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                       
+    type            (radiationStructure), intent(in   ) :: radiation                                               
+    double precision                                    :: coolingFunction      , thisCoolingFunctionDensitySlope  
+    
+    ! Initialize the module.                                                                                                            
     call Cooling_Function_Initialize
   
     Cooling_Function_Density_Log_Slope=0.0d0
@@ -156,13 +156,13 @@ contains
     include 'cooling.cooling_function.computeTemperatureSlope.moduleUse.inc'
     !# </include>
     implicit none
-    double precision,                  intent(in) :: temperature,numberDensityHydrogen
-    type(abundances),         intent(in) :: gasAbundances
-    type(chemicalAbundances), intent(in) :: chemicalDensities
-    type(radiationStructure),          intent(in) :: radiation
-    double precision                              :: thisCoolingFunctionTemperatureSlope,coolingFunction
-
-    ! Initialize the module.
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature                          
+    type            (abundances        ), intent(in   ) :: gasAbundances                                               
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                           
+    type            (radiationStructure), intent(in   ) :: radiation                                                   
+    double precision                                    :: coolingFunction      , thisCoolingFunctionTemperatureSlope  
+    
+    ! Initialize the module.                                                                                                                
     call Cooling_Function_Initialize
   
     Cooling_Function_Temperature_Log_Slope=0.0d0

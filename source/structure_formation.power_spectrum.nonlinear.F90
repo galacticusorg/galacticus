@@ -26,14 +26,14 @@ module Power_Spectra_Nonlinear
   public :: Power_Spectrum_Nonlinear
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: moduleIsInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: powerSpectrumNonlinearMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Power_Spectrum_Nonlinear), pointer :: Power_Spectrum_Nonlinear_Get => null()
-
+  logical                                      :: moduleIsInitialized         =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                   
+  type     (varying_string          )          :: powerSpectrumNonlinearMethod          
+  
+  ! Pointer to the function that actually does the calculation.                                                                                   
+  procedure(Power_Spectrum_Nonlinear), pointer :: Power_Spectrum_Nonlinear_Get=>null()  
+                                                                                     
 contains
 
   subroutine Power_Spectrum_Nonlinear_Initialize
@@ -79,9 +79,9 @@ contains
   double precision function Power_Spectrum_Nonlinear(waveNumber,time)
     !% Return the nonlinear power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$] at the given cosmic {\tt time} [Gyr].
     implicit none
-    double precision, intent(in) :: waveNumber,time
-
-    ! Initialize the module.
+    double precision, intent(in   ) :: time, waveNumber  
+    
+    ! Initialize the module.                                                  
     call Power_Spectrum_Nonlinear_Initialize()
 
     ! Get the power spectrum using the selected method.

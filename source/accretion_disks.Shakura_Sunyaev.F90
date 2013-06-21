@@ -35,10 +35,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: accretionDisksMethod
-    procedure(Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev), pointer, intent(inout) :: Accretion_Disk_Radiative_Efficiency_Get
-    procedure(Black_Hole_Spin_Up_Rate_Shakura_Sunyaev), pointer, intent(inout) :: Black_Hole_Spin_Up_Rate_Get
-    procedure(Accretion_Disk_Jet_Power_Shakura_Sunyaev), pointer, intent(inout) :: Accretion_Disk_Jet_Power_Get
+    type     (varying_string                                     ), intent(in   )          :: accretionDisksMethod                    
+    procedure(Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get 
+    procedure(Black_Hole_Spin_Up_Rate_Shakura_Sunyaev            ), intent(inout), pointer :: Black_Hole_Spin_Up_Rate_Get             
+    procedure(Accretion_Disk_Jet_Power_Shakura_Sunyaev           ), intent(inout), pointer :: Accretion_Disk_Jet_Power_Get            
     
     if (accretionDisksMethod == 'Shakura-Sunyaev') then
        Accretion_Disk_Radiative_Efficiency_Get => Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
@@ -53,9 +53,9 @@ contains
     use Black_Hole_Fundamentals
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole     
+    double precision                        , intent(in   ) :: massAccretionRate 
+    
     Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev=1.0d0-Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)
     return
   end function Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev
@@ -70,15 +70,16 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                        , parameter     :: alphaViscosity                =0.01d0
-    double precision                        , parameter     :: alphaViscosityNormalized      =alphaViscosity/0.01d0
-    double precision                        , parameter     :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision                        , parameter     :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2
-    double precision                        , parameter     :: meierMassNormalization        =1.0d9
-    double precision                                        :: blackHoleSpin,accretionRateDimensionless,blackHoleMassDimensionless
-
+    class           (nodeComponentBlackHole)           , intent(inout) :: thisBlackHole                                                                                                
+    double precision                                   , intent(in   ) :: massAccretionRate                                                                                            
+    double precision                        , parameter                :: alphaViscosity                =0.01d0                                                                        
+    double precision                        , parameter                :: alphaViscosityNormalized      =alphaViscosity/0.01d0                                                         
+    double precision                        , parameter                :: powerNormalizationKerr        =(10.0d0**42.7)*ergs*gigaYear/massSolar/kilo**2                                
+    double precision                        , parameter                :: powerNormalizationSchwarzchild=(10.0d0**41.7)*ergs*gigaYear/massSolar/kilo**2                                
+    double precision                        , parameter                :: meierMassNormalization        =1.0d9                                                                         
+    double precision                                                   :: accretionRateDimensionless                                                   , blackHoleMassDimensionless, & 
+         &                                                                blackHoleSpin                                                                                                
+    
     ! Return immediately for non-positive accretion rates.
     if (massAccretionRate <= 0.0d0) then
        Accretion_Disk_Jet_Power_Shakura_Sunyaev=0.0d0
@@ -112,10 +113,10 @@ contains
     use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-    double precision                                        :: spinToMassRateOfChangeRatio
-
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole               
+    double precision                        , intent(in   ) :: massAccretionRate           
+    double precision                                        :: spinToMassRateOfChangeRatio 
+    
     spinToMassRateOfChangeRatio=Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units=unitsGravitational,orbit=orbitPrograde)&
          &-2.0d0*thisBlackHole%spin()*Black_Hole_ISCO_Specific_Energy(thisBlackHole,units=unitsGravitational,orbit&
          &=orbitPrograde)

@@ -28,21 +28,18 @@ module Star_Formation_Timescale_Disks_Halo_Scaling
   public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize, Star_Formation_Timescale_Disks_Halo_Scaling_Reset
 
   ! Parameters of the timescale model.
-  double precision :: starFormationTimescaleDisksHaloScalingTimescale&
-       &,starFormationTimescaleDisksHaloScalingVirialVelocityExponent,starFormationTimescaleDisksHaloScalingRedshiftExponent
-
-  ! Record of unique ID of node which we last computed results for.
-  integer(kind=kind_int8) :: lastUniqueID=-1
-  !$omp threadprivate(lastUniqueID)
-
-  ! Record of whether or not timescale has already been computed for this node.
-  logical :: timescaleComputed=.false.
-  !$omp threadprivate(timescaleComputed)
-
-  ! Stored values of the timescale.
-  double precision :: timeScaleStored
-  !$omp threadprivate(timescaleStored)
+  double precision                 :: starFormationTimescaleDisksHaloScalingRedshiftExponent              , starFormationTimescaleDisksHaloScalingTimescale, & 
+       &                              starFormationTimescaleDisksHaloScalingVirialVelocityExponent                                                             
   
+  ! Record of unique ID of node which we last computed results for.
+  integer         (kind=kind_int8) :: lastUniqueID                                                =-1                                                          
+  !$omp threadprivate(lastUniqueID)
+  ! Record of whether or not timescale has already been computed for this node.
+  logical                          :: timescaleComputed                                           =.false.                                                     
+  !$omp threadprivate(timescaleComputed)
+  ! Stored values of the timescale.
+  double precision                 :: timeScaleStored                                                                                                          
+  !$omp threadprivate(timescaleStored)
 contains
 
   !# <starFormationTimescaleDisksMethod>
@@ -54,8 +51,8 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none    
-    type(varying_string),                 intent(in)    :: starFormationTimescaleDisksMethod
-    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
+    type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod 
+    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
     
     if (starFormationTimescaleDisksMethod == 'haloScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling
@@ -105,11 +102,11 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision         , parameter              :: virialVelocityNormalization=200.0d0
-    double precision                                  :: expansionFactor,virialVelocity
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                            
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                  
+    double precision                    , parameter              :: virialVelocityNormalization=200.0d0                 
+    double precision                                             :: expansionFactor                    , virialVelocity 
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
 
@@ -145,8 +142,8 @@ contains
     !% Reset the halo scaling disk star formation timescale calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     timescaleComputed=.false.
     lastUniqueID     =thisNode%uniqueID()
     return

@@ -26,17 +26,17 @@ module Galactic_Dynamics_Bar_Instabilities
   public :: Bar_Instability_Timescale
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: barInstabilitiesInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: barInstabilityMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Bar_Instability_Template), pointer :: Bar_Instability_Timescale_Get => null()
+  logical                                      :: barInstabilitiesInitialized  =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                    
+  type     (varying_string          )          :: barInstabilityMethod                   
+  
+  ! Pointer to the function that actually does the calculation.                                                                                    
+  procedure(Bar_Instability_Template), pointer :: Bar_Instability_Timescale_Get=>null()  
   abstract interface
      double precision function Bar_Instability_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Bar_Instability_Template
   end interface
 
@@ -85,9 +85,9 @@ contains
     !% Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value
     !% indicates no instability.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Galactic_Dynamics_Bar_Instability_Initialize
 
     ! Get the timescale using the selected method.

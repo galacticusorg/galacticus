@@ -24,14 +24,14 @@ module Satellite_Merging_Remnant_Sizes_Covington2008
   public :: Satellite_Merging_Remnant_Sizes_Covington2008_Initialize
 
   ! Parameter controlling the orbital energy used in the calculation.
-  double precision :: mergerRemnantSizeOrbitalEnergy
-
+  double precision :: mergerRemnantSizeOrbitalEnergy           
+  
   ! Parameter controlling the radiative efficiency used in the calculation.
-  double precision :: mergerRemnantRadiativeEfficiency
-
+  double precision :: mergerRemnantRadiativeEfficiency         
+  
   ! Record of whether we've already issued a warning about low specific angular momentum.
-  logical          :: warningGiven=.false.
-
+  logical          :: warningGiven                    =.false. 
+  
 contains
 
   !# <satelliteMergingRemnantSizeMethod>
@@ -42,8 +42,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
-    procedure(Satellite_Merging_Remnant_Size_Covington2008),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
+    type     (varying_string                              ), intent(in   )          :: satelliteMergingRemnantSizeMethod 
+    procedure(Satellite_Merging_Remnant_Size_Covington2008), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do 
     
     if (satelliteMergingRemnantSizeMethod == 'Covington2008') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Covington2008
@@ -86,20 +86,25 @@ contains
     use Satellite_Merging_Remnant_Sizes_Progenitors
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode
-    type(treeNode),                         pointer  :: hostNode
-    double precision,        parameter               :: bindingEnergyFormFactor             =0.5d+00
-    double precision,        parameter               :: absoluteMassTolerance               =1.0d-06
-    double precision,        parameter               :: relativeMassTolerance               =1.0d-09
-    double precision,        parameter               :: specificAngularMomentumFractionSmall=1.0d-12
-    double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass&
-         &,remnantSpheroidMass,gasFractionInitial,radiatedEnergy,finalEnergy,radiusVirial,velocityVirial
-    character(len= 2)                                :: joinString
-    character(len=70)                                :: dataString
-    type(varying_string)                             :: message
-    logical                                          :: errorCondition
-
+    type            (treeNode      ), intent(inout), pointer :: thisNode                                                             
+    type            (treeNode      )               , pointer :: hostNode                                                             
+    double precision                , parameter              :: bindingEnergyFormFactor             =0.5d+00                         
+    double precision                , parameter              :: absoluteMassTolerance               =1.0d-06                         
+    double precision                , parameter              :: relativeMassTolerance               =1.0d-09                         
+    double precision                , parameter              :: specificAngularMomentumFractionSmall=1.0d-12                         
+    double precision                                         :: angularMomentumFactor                       , finalEnergy        , & 
+         &                                                      gasFractionInitial                          , hostMass           , & 
+         &                                                      hostRadius                                  , hostSpheroidMass   , & 
+         &                                                      hostSpheroidMassPreMerger                   , progenitorsEnergy  , & 
+         &                                                      radiatedEnergy                              , radiusVirial       , & 
+         &                                                      remnantSpheroidGasMass                      , remnantSpheroidMass, & 
+         &                                                      satelliteMass                               , satelliteRadius    , & 
+         &                                                      satelliteSpheroidMass                       , velocityVirial         
+    character       (len= 2        )                         :: joinString                                                           
+    character       (len=70        )                         :: dataString                                                           
+    type            (varying_string)                         :: message                                                              
+    logical                                                  :: errorCondition                                                       
+    
     ! Get the host node.
     hostNode => thisNode%mergesWith()
 

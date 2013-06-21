@@ -24,11 +24,11 @@ program Tests_Kepler_Orbits
   use Kepler_Orbits
   use Numerical_Constants_Physical
   implicit none
-  type(varying_string) :: parameterFile
-  type(keplerOrbit)    :: thisOrbit
-  double precision     :: valueExpected,valueActual,velocityScale
-
-  ! Read in basic code memory usage.
+  type            (varying_string) :: parameterFile                                
+  type            (keplerOrbit   ) :: thisOrbit                                    
+  double precision                 :: valueActual  , valueExpected, velocityScale  
+  
+  ! Read in basic code memory usage.                                                                              
   call Code_Memory_Usage('tests.kepler_orbits.size')
 
   ! Begin unit tests.

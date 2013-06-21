@@ -27,11 +27,12 @@ program Tests_Power_Spectrum
   use Numerical_Constants_Math
   use Cosmological_Parameters
   implicit none
-  double precision                , parameter :: radiusNormalization=8.0d0   ! Radius for sigma(M) normalization in Mpc/h.
-  type            (varying_string)            :: parameterFile
-  double precision                            :: mass,ratio,sigma
-
-  ! Read in basic code memory usage.
+  double precision                , parameter :: radiusNormalization=8.0d0        !  Radius for sigma(M) normalization in Mpc/h.     
+  type            (varying_string)            :: parameterFile                                                                       
+  double precision                            :: mass                     , ratio                                                , & 
+       &                                         sigma                                                                               
+  
+  ! Read in basic code memory usage.                                                                                                                                
   call Code_Memory_Usage('tests.power_spectrum.size')
   ! Read parameters.
   parameterFile='testSuite/parameters/powerSpectrum.xml'

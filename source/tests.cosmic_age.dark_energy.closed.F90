@@ -27,13 +27,14 @@ program Tests_Cosmic_Age_Dark_Energy_Closed
   use Numerical_Constants_Math
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]
-  double precision, parameter, dimension(8) :: ageClosed=[3.436956d-02,8.612654d-03,2.775283d-03,6.703704d-04,1.204878d-04,2.036305d-05,3.950938d-06,6.510672d-07]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: age,expansionFactor,timeTurnaround,expansionFactorSymmetric
-
+  double precision                , dimension(8), parameter :: redshift                =[0.0000d0,1.0000d0,3.0000d0,9.0000d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]                                          
+  double precision                , dimension(8), parameter :: ageClosed               =[3.436956d-02,8.612654d-03,2.775283d-03,6.703704d-04,1.204878d-04,2.036305d-05,3.950938d-06,6.510672d-07]                     
+  type            (varying_string)                          :: parameterFile                                                                                                                                          
+  character       (len=1024      )                          :: message                                                                                                                                                
+  integer                                                   :: iExpansion                                                                                                                                             
+  double precision                                          :: age                                                                                                                               , expansionFactor, & 
+       &                                                       expansionFactorSymmetric                                                                                                          , timeTurnaround     
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.cosmic_age.dark_energy.closed.size')
 

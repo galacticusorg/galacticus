@@ -55,11 +55,11 @@ module Node_Component_Disk_Very_Simple
   !# </component>
 
   ! Record of whether this module has been initialized.
-  logical            :: moduleInitialized=.false.
-
+  logical          :: moduleInitialized          =.false.                                    
+  
   ! Parameters controlling the physical implementation.
-  double precision   :: diskOutflowTimescaleMinimum,diskStarFormationTimescaleMinimum
-
+  double precision :: diskOutflowTimescaleMinimum        , diskStarFormationTimescaleMinimum 
+  
 contains
   
   !# <mergerTreePreTreeConstructionTask>
@@ -69,10 +69,9 @@ contains
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
     implicit none
-    type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent
-
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
+    type(nodeComponentDiskVerySimple) :: diskVerySimpleComponent 
+    
+    ! Initialize the module if necessary.    !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
     if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
        ! Read parameters controlling the physical implementation.
        !@ <inputParameter>
@@ -114,13 +113,13 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type     (treeNode          ), pointer, intent(inout) :: thisNode
-    class    (nodeComponentDisk ), pointer                :: thisDiskComponent
-    double precision             , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                      :: fractionalError,diskMass
-    character(len=20            )                         :: valueString
-    type     (varying_string    )                         :: message
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                      
+    class           (nodeComponentDisk )               , pointer :: thisDiskComponent                             
+    double precision                    , save                   :: fractionalErrorMaximum=0.0d0                  
+    double precision                                             :: diskMass                    , fractionalError 
+    character       (len=20            )                         :: valueString                                   
+    type            (varying_string    )                         :: message                                       
+    
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if a very simple disk component exists.
@@ -177,15 +176,16 @@ contains
     use Stellar_Feedback
     use Dark_Matter_Halo_Scales
     implicit none
-    type     (treeNode             ), pointer, intent(inout) :: thisNode
-    class    (nodeComponentDisk    ), pointer                :: thisDiskComponent
-    class    (nodeComponentHotHalo ), pointer                :: thisHotHaloComponent
-    logical                         ,          intent(inout) :: interrupt
-    procedure(                     ), pointer, intent(inout) :: interruptProcedureReturn
-    procedure(                     ), pointer                :: interruptProcedure
-    double precision                                         :: starFormationRate,fuelMass,massOutflowRate,diskMass&
-         &,energyInputRate,diskDynamicalTime
-  
+    type            (treeNode             ), intent(inout), pointer :: thisNode                                       
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                              
+    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent                           
+    logical                                , intent(inout)          :: interrupt                                      
+    procedure       (                     ), intent(inout), pointer :: interruptProcedureReturn                       
+    procedure       (                     )               , pointer :: interruptProcedure                             
+    double precision                                                :: diskDynamicalTime       , diskMass         , & 
+         &                                                             energyInputRate         , fuelMass         , & 
+         &                                                             massOutflowRate         , starFormationRate    
+    
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
     ! Get the disk and check that it is of our class.
@@ -227,11 +227,11 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     implicit none
-    type (treeNode         ), pointer, intent(inout) :: thisNode
-    class(nodeComponentDisk), pointer                :: thisDiskComponent
-    double precision        , parameter              :: massMinimum=100.0d0
-    double precision                                 :: mass
-
+    type            (treeNode         ), intent(inout), pointer :: thisNode                  
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent         
+    double precision                   , parameter              :: massMinimum      =100.0d0 
+    double precision                                            :: mass                      
+    
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
     ! Check if a very simple disk component exists.
@@ -255,10 +255,10 @@ contains
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
     implicit none
-    type (treeNode         ), pointer, intent(inout) :: thisNode
-    type (treeNode         ), pointer                :: hostNode
-    class(nodeComponentDisk), pointer                :: thisDiskComponent,hostDiskComponent
-
+    type (treeNode         ), intent(inout), pointer :: thisNode                             
+    type (treeNode         )               , pointer :: hostNode                             
+    class(nodeComponentDisk)               , pointer :: hostDiskComponent, thisDiskComponent 
+    
     ! Check that the disk is of the verySimple class.
     thisDiskComponent => thisNode%disk()
     select type (thisDiskComponent)
@@ -320,10 +320,10 @@ contains
     use Star_Formation_Timescales_Disks
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    class(nodeComponentDisk ), pointer                :: thisDiskComponent
-    double precision                                  :: starFormationTimescale,gasMass,diskDynamicalTime
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                           
+    class           (nodeComponentDisk )               , pointer :: thisDiskComponent                                  
+    double precision                                             :: diskDynamicalTime, gasMass, starFormationTimescale 
+    
     ! Get the disk component.
     thisDiskComponent => thisNode%disk()
 

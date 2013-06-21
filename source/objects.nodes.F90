@@ -39,79 +39,78 @@ module Galacticus_Nodes
   
   type, private :: nodeDataLogicalScalar
      !% Type describing a non-evolvable scalar logical property of a node component.
-     logical                                     :: value
+     logical :: value 
   end type nodeDataLogicalScalar
 
   type, private :: nodeDataIntegerScalar
      !% Type describing a non-evolvable scalar integer property of a node component.
-     integer                                     :: value
+     integer :: value 
   end type nodeDataIntegerScalar
 
   type, private :: nodeDataDoubleScalarEvolvable
      !% Type describing an evolvable scalar double property of a node component.
-     double precision                            :: value,rate,scale
+     double precision :: rate, scale, value 
   end type nodeDataDoubleScalarEvolvable
 
   type, private :: nodeDataDoubleScalar
      !% Type describing a non-evolvable scalar double property of a node component.
-     double precision                            :: value
+     double precision :: value 
   end type nodeDataDoubleScalar
 
   type, private :: nodeDataDouble1dEvolvable
      !% Type describing an evolvable 1-D double property of a node component.
-     double precision, allocatable, dimension(:) :: value,rate,scale
+     double precision, allocatable, dimension(:) :: rate, scale, value 
   end type nodeDataDouble1dEvolvable
   
   type, private :: nodeDataDouble1d
      !% Type describing a non-evolvable 1-D double property of a node component.
-     double precision, allocatable, dimension(:) :: value
+     double precision, allocatable, dimension(:) :: value 
   end type nodeDataDouble1d
 
   type, private :: nodeDataAbundancesScalarEvolvable
      !% Type describing an evolvable scalar {\\tt abundances} property of a node component.
-     type(abundances        )                    :: value,rate,scale
+     type(abundances        ) :: rate, scale, value 
   end type nodeDataAbundancesScalarEvolvable
 
   type, private :: nodeDataChemicalAbundancesScalarEvolvable
      !% Type describing an evolvable scalar {\\tt chemicalAbundances} property of a node component.
-     type(chemicalAbundances)                    :: value,rate,scale
+     type(chemicalAbundances) :: rate, scale, value 
   end type nodeDataChemicalAbundancesScalarEvolvable
 
   type, private :: nodeDataHistoryScalarEvolvable
      !% Type describing an evolvable scalar {\\tt history} property of a node component.
-     type(history           )                    :: value,rate,scale
+     type(history           ) :: rate, scale, value 
   end type nodeDataHistoryScalarEvolvable
 
   type, private :: nodeDataHistoryScalar
      !% Type describing an non-evolvable scalar {\\tt history} property of a node component.
-     type(history           )                    :: value
+     type(history           ) :: value 
   end type nodeDataHistoryScalar
 
   type, private :: nodeDataKeplerOrbitScalar
      !% Type describing a non-evolvable scalar {\\tt keplerOrbit} property of a node component.
-     type(keplerOrbit       )                    :: value
+     type(keplerOrbit       ) :: value 
   end type nodeDataKeplerOrbitScalar
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
-     type(treeNode), pointer :: node
+     type(treeNode), pointer :: node 
   end type treeNodeList
 
   ! Zero dimension arrays to be returned as defaults.
-  double precision, dimension(0) :: nullDouble1d
-
+  double precision                , dimension(0)         :: nullDouble1d         
+  
   ! Labels for function mapping reduction types.
-  integer, public, parameter :: reductionSummation=1
-  integer, public, parameter :: reductionProduct  =2
-
+  integer                         , parameter   , public :: reductionSummation=1 
+  integer                         , parameter   , public :: reductionProduct  =2 
+  
   ! Unique ID counter.
-  integer(kind=kind_int8)    :: uniqueIdCount     =0
-
+  integer         (kind=kind_int8)                       :: uniqueIdCount     =0 
+  
   ! Event ID counter.
-  integer(kind=kind_int8)    :: eventID           =0
-
-  ! Include node methods.
-  !# <include directive="component" type="component">
+  integer         (kind=kind_int8)                       :: eventID           =0 
+  
+  ! Include node methods.  !# <include directive="component" type="component">
   include 'objects.nodes.components.inc'
   !# </include>
 
@@ -120,8 +119,8 @@ module Galacticus_Nodes
   function Tree_Node_Type(self)
     !% Returns the name of a {\tt treeNode} object.
     implicit none
-    class(treeNode      ), intent(in) :: self
-    type (varying_string)             :: Tree_Node_Type
+    class(treeNode      ), intent(in   ) :: self           
+    type (varying_string)                :: Tree_Node_Type 
     
     Tree_Node_Type="treeNode"
     return
@@ -130,9 +129,9 @@ module Galacticus_Nodes
   function Tree_Node_Index(self)
     !% Returns the index of a {\tt treeNode}.
     implicit none
-    class  (treeNode      ), intent(in), target  :: self         
-    type   (treeNode      ),             pointer :: workNode
-    integer(kind=kind_int8)                      :: Tree_Node_Index
+    class  (treeNode      ), intent(in   ), target :: self            
+    type   (treeNode      ), pointer               :: workNode        
+    integer(kind=kind_int8)                        :: Tree_Node_Index 
     
     select type (self)
     type is (treeNode)
@@ -149,9 +148,9 @@ module Galacticus_Nodes
   subroutine Tree_Node_Index_Set(self,index)
     !% Sets the index of a {\tt treeNode}.
     implicit none
-    class  (treeNode      ), intent(inout) :: self         
-    integer(kind=kind_int8), intent(in   ) :: index
-
+    class  (treeNode      ), intent(inout) :: self  
+    integer(kind=kind_int8), intent(in   ) :: index 
+    
     self%indexValue=index
     return
   end subroutine Tree_Node_Index_Set
@@ -159,9 +158,9 @@ module Galacticus_Nodes
   function Tree_Node_Unique_ID(self)
     !% Returns the unique ID of a {\tt treeNode}.
     implicit none
-    class  (treeNode      ), intent(in) :: self         
-    integer(kind=kind_int8)             :: Tree_Node_Unique_ID
-
+    class  (treeNode      ), intent(in   ) :: self                
+    integer(kind=kind_int8)                :: Tree_Node_Unique_ID 
+    
     Tree_Node_Unique_ID=self%uniqueIdValue
     return
   end function Tree_Node_Unique_ID
@@ -170,9 +169,9 @@ module Galacticus_Nodes
     !% Sets the index of a {\tt treeNode}.
     use Galacticus_Error
     implicit none
-    class  (treeNode      ), intent(inout)           :: self         
-    integer(kind=kind_int8), intent(in   ), optional :: uniqueID
-
+    class  (treeNode      ), intent(inout)           :: self     
+    integer(kind=kind_int8), intent(in   ), optional :: uniqueID 
+    
     if (present(uniqueID)) then
        self%uniqueIdValue=uniqueID
     else
@@ -188,9 +187,9 @@ module Galacticus_Nodes
   function Tree_Node_Create_Event(self) result (newEvent)
     !% Create a new event in a tree node.
     implicit none
-    type (nodeEvent), pointer       :: newEvent,thisEvent
-    class(treeNode ), intent(inout) :: self
-
+    type (nodeEvent), pointer       :: newEvent, thisEvent 
+    class(treeNode ), intent(inout) :: self                
+    
     allocate(newEvent)
     nullify(newEvent%next)
     !$omp atomic
@@ -211,11 +210,11 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_Paired_Event(self,event)
     !% Removed a paired event from {\tt self}. Matching is done on the basis of event ID.
     implicit none
-    class  (treeNode ), intent(inout) :: self
-    type   (nodeEvent), intent(in   ) :: event
-    type   (nodeEvent), pointer       :: pairEvent,lastEvent,nextEvent
-    logical                           :: pairMatched
-
+    class  (treeNode ), intent(inout) :: self                              
+    type   (nodeEvent), intent(in   ) :: event                             
+    type   (nodeEvent), pointer       :: lastEvent  , nextEvent, pairEvent 
+    logical                           :: pairMatched                       
+    
     ! Locate the paired event in self and remove it.
     pairEvent => self%event
     lastEvent => self%event
@@ -246,8 +245,8 @@ module Galacticus_Nodes
   logical function Tree_Node_Is_Primary_Progenitor(self)
     !% Returns true if {\tt self} is the primary progenitor of its parent node.
     implicit none
-    class(treeNode), intent(inout) :: self
-
+    class(treeNode), intent(inout) :: self 
+    
     select type (self)
     type is (treeNode)
        if (associated(self%parent)) then
@@ -262,10 +261,10 @@ module Galacticus_Nodes
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
     !% Return true if {\tt self} is a progenitor of the node with index {\tt targetNodeIndex}.
     implicit none
-    class  (treeNode      ), intent(in), target  :: self
-    integer(kind=kind_int8), intent(in)          :: targetNodeIndex
-    type   (treeNode      ),             pointer :: workNode
-
+    class  (treeNode      ), intent(in   ), target :: self            
+    integer(kind=kind_int8), intent(in   )         :: targetNodeIndex 
+    type   (treeNode      ), pointer               :: workNode        
+    
     Tree_Node_Is_Primary_Progenitor_Of_Index=.false.
     select type (self)
     type is (treeNode)
@@ -285,10 +284,10 @@ module Galacticus_Nodes
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
     !% Return true if {\tt self} is a progenitor of {\tt targetNode}.
     implicit none
-    class(treeNode), intent(in), target  :: self
-    type(treeNode),  intent(in), pointer :: targetNode
-    type(treeNode),              pointer :: workNode
-
+    class(treeNode), intent(in   ), target  :: self       
+    type (treeNode), intent(in   ), pointer :: targetNode 
+    type (treeNode)               , pointer :: workNode   
+    
     Tree_Node_Is_Primary_Progenitor_Of_Node=.false.
     select type (self)
     type is (treeNode)
@@ -308,9 +307,9 @@ module Galacticus_Nodes
   logical function Tree_Node_Is_On_Main_Branch(self)
     !% Returns true if {\tt self} is on the main branch.
     implicit none
-    class(treeNode), intent(inout), target  :: self
-    type (treeNode),                pointer :: workNode
-
+    class(treeNode), intent(inout), target :: self     
+    type (treeNode), pointer               :: workNode 
+    
     Tree_Node_Is_On_Main_Branch=.not.associated(self%parent)
     select type (self)
     type is (treeNode)
@@ -327,9 +326,9 @@ module Galacticus_Nodes
   logical function Tree_Node_Is_Satellite(self)
     !% Returns true if {\tt self} is a satellite.
     implicit none
-    class(treeNode), target, intent(in) :: self
-    type (treeNode), pointer            :: parentNode,childNode,selfActual
-
+    class(treeNode), intent(in   ), target :: self                              
+    type (treeNode), pointer               :: childNode, parentNode, selfActual 
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -356,9 +355,9 @@ module Galacticus_Nodes
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !% Returns a pointer to the final satellite node associated with {\tt self}.
     implicit none
-    class(treeNode), intent(in)              :: self
-    type (treeNode), pointer :: satelliteNode
-
+    class(treeNode), intent(in   ) :: self          
+    type (treeNode), pointer       :: satelliteNode 
+    
     satelliteNode => self%firstSatellite
     do while (associated(satelliteNode%sibling))
        satelliteNode => satelliteNode%sibling
@@ -369,9 +368,9 @@ module Galacticus_Nodes
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
     !% Returns a pointer to the earliest progenitor of {\tt self}.
     implicit none
-    type (treeNode), pointer       :: progenitorNode
-    class(treeNode), intent(inout) :: self
-
+    type (treeNode), pointer       :: progenitorNode 
+    class(treeNode), intent(inout) :: self           
+    
     select type (self)
     type is (treeNode)
        progenitorNode => self
@@ -385,9 +384,9 @@ module Galacticus_Nodes
   function Tree_Node_Merges_With_Node(thisNode)
     !% Returns a pointer to the node with which {\tt thisNode} will merge.
     implicit none
-    class(treeNode), intent(in) :: thisNode
-    type (treeNode), pointer    :: Tree_Node_Merges_With_Node
-        
+    class(treeNode), intent(in   ) :: thisNode                   
+    type (treeNode), pointer       :: Tree_Node_Merges_With_Node 
+    
     ! Check if a specific merge node has been set.
     if (associated(thisNode%mergeTarget)) then
        ! One has, so simply return it.
@@ -405,10 +404,10 @@ module Galacticus_Nodes
     use ISO_Varying_String
     use String_Handling
     implicit none
-    class(treeNode),     target,  intent(in) :: self
-    type(treeNode),      pointer             :: hostNode,thisNode,previousNode,selfActual
-    type(varying_string)                     :: message
-
+    class(treeNode      ), intent(in   ), target :: self                                         
+    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode 
+    type (varying_string)                        :: message                                      
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -444,10 +443,10 @@ module Galacticus_Nodes
     use ISO_Varying_String
     use String_Handling
     implicit none
-    class(treeNode),     target,  intent(in) :: self
-    type(treeNode),      pointer             :: hostNode,thisNode,previousNode,selfActual
-    type(varying_string)                     :: message
-
+    class(treeNode      ), intent(in   ), target :: self                                         
+    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode 
+    type (varying_string)                        :: message                                      
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -486,10 +485,10 @@ module Galacticus_Nodes
     !% of the tree. Once the entire tree has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the tree is walked in this way.
     implicit none
-    class(treeNode), target,  intent(inout) :: self
-    type(treeNode),  pointer, intent(inout) :: nextNode
-    type(treeNode),  pointer                :: workNode,selfActual
-
+    class(treeNode), intent(inout), target  :: self                 
+    type (treeNode), intent(inout), pointer :: nextNode             
+    type (treeNode)               , pointer :: selfActual, workNode 
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -520,10 +519,10 @@ module Galacticus_Nodes
   subroutine Tree_Node_Walk_Tree_Under_Construction(self,nextNode)
     !% This function provides a mechanism for walking through a merger tree that is being built.
     implicit none
-    class (treeNode), target,  intent(inout) :: self
-    type (treeNode),  pointer, intent(inout) :: nextNode
-    type (treeNode),  pointer                :: workNode
-
+    class(treeNode), intent(inout), target  :: self     
+    type (treeNode), intent(inout), pointer :: nextNode 
+    type (treeNode)               , pointer :: workNode 
+    
     select type (self)
     type is (treeNode)
        workNode => self
@@ -567,10 +566,10 @@ module Galacticus_Nodes
     !% used in testing whether a node is a satellite---if they are destroyed prior to the test being made then problems with
     !% dangling pointers will occur.
     implicit none
-    class (treeNode), target , intent(inout) :: self
-    type (treeNode),  pointer, intent(inout) :: nextNode
-    type (treeNode),  pointer                :: workNode,selfActual
-
+    class(treeNode), intent(inout), target  :: self                 
+    type (treeNode), intent(inout), pointer :: nextNode             
+    type (treeNode)               , pointer :: selfActual, workNode 
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -618,10 +617,10 @@ module Galacticus_Nodes
     !% of the branch. Once the entire branch has been walked, a {\tt null()} pointer will be returned, indicating that there
     !% are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     implicit none
-    class (treeNode), target,  intent(inout) :: self
-    type (treeNode),  pointer, intent(inout) :: startNode,nextNode
-    type (treeNode),  pointer                :: workNode,selfActual
-
+    class(treeNode), intent(inout), target  :: self                  
+    type (treeNode), intent(inout), pointer :: nextNode  , startNode 
+    type (treeNode)               , pointer :: selfActual, workNode  
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -658,10 +657,10 @@ module Galacticus_Nodes
     !% branches rely on this since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to
     !% the test being made then problems with dangling pointers will occur.
     implicit none
-    class(treeNode), target,  intent(inout) :: self
-    type (treeNode), pointer, intent(inout) :: startNode,nextNode
-    type (treeNode), pointer                :: workNode,selfActual
-
+    class(treeNode), intent(inout), target  :: self                  
+    type (treeNode), intent(inout), pointer :: nextNode  , startNode 
+    type (treeNode)               , pointer :: selfActual, workNode  
+    
     select type (self)
     type is (treeNode)
        selfActual => self
@@ -706,9 +705,9 @@ module Galacticus_Nodes
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
     !% Descend to the deepest progenitor (satellites and children) of {\tt self}.
     implicit none
-    type(treeNode), intent(in), pointer :: self
-    type(treeNode),             pointer :: progenitorNode
-
+    type(treeNode), intent(in   ), pointer :: self           
+    type(treeNode)               , pointer :: progenitorNode 
+    
     ! Begin at the input node.
     progenitorNode => self
 
@@ -728,8 +727,8 @@ module Galacticus_Nodes
   function Node_Component_Generic_Type(self)
     !% Returns the name of a generic tree node component.
     implicit none
-    class(nodeComponent), intent(in) :: self
-    type(varying_string)             :: Node_Component_Generic_Type
+    class(nodeComponent ), intent(in   ) :: self                        
+    type (varying_string)                :: Node_Component_Generic_Type 
     
     Node_Component_Generic_Type="nodeComponent"
     return
@@ -738,8 +737,8 @@ module Galacticus_Nodes
   subroutine Node_Component_Generic_Destroy(self)
     !% Destroy a generic tree node component.
     implicit none
-    class(nodeComponent), intent(inout) :: self
-
+    class(nodeComponent), intent(inout) :: self 
+    
     ! Do nothing.
     return
   end subroutine Node_Component_Generic_Destroy
@@ -747,36 +746,36 @@ module Galacticus_Nodes
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !% Initialize a generic tree node component for an ODE solver step.
     implicit none
-    class(nodeComponent), intent(inout) :: self
-
+    class(nodeComponent), intent(inout) :: self 
+    
     return
   end subroutine Node_Component_ODE_Step_Initialize_Null
 
   subroutine Node_Component_Dump_Null(self)
     !% Dump a generic tree node component.
     implicit none
-    class(nodeComponent), intent(in   ) :: self
-
+    class(nodeComponent), intent(in   ) :: self 
+    
     return
   end subroutine Node_Component_Dump_Null
 
   subroutine Node_Component_Dump_Raw_Null(self,fileHandle)
     !% Dump a generic tree node component in binary.
     implicit none
-    class(nodeComponent), intent(in   ) :: self
-    integer             , intent(in   ) :: fileHandle
-
+    class  (nodeComponent), intent(in   ) :: self       
+    integer               , intent(in   ) :: fileHandle 
+    
     return
   end subroutine Node_Component_Dump_Raw_Null
 
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
     !% Dump a generic tree node component.
     implicit none
-    class           (nodeComponent), intent(inout) :: self
-    integer                        , intent(inout) :: integerPropertyCount,doublePropertyCount
-    double precision               , intent(in   ) :: time                                    
-    integer                        , intent(in   ) :: instance
-
+    class           (nodeComponent), intent(inout) :: self                                      
+    integer                        , intent(inout) :: doublePropertyCount, integerPropertyCount 
+    double precision               , intent(in   ) :: time                                      
+    integer                        , intent(in   ) :: instance                                  
+    
     return
   end subroutine Node_Component_Output_Count_Null
 
@@ -784,14 +783,14 @@ module Galacticus_Nodes
        &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
     !% Dump a generic tree node component.
     implicit none
-    class           (nodeComponent),                intent(inout) :: self
-    double precision                              , intent(in   ) :: time
-    integer                                       , intent(inout) :: integerProperty,doubleProperty
-    character       (len=*         ), dimension(:), intent(inout) :: integerPropertyNames,integerPropertyComments &
-         & ,doublePropertyNames,doublePropertyComments
-    double precision                , dimension(:), intent(inout) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-    integer                                       , intent(in   ) :: instance
-
+    class           (nodeComponent )              , intent(inout) :: self                                               
+    double precision                              , intent(in   ) :: time                                               
+    integer                                       , intent(inout) :: doubleProperty         , integerProperty           
+    character       (len=*         ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                           integerPropertyComments, integerPropertyNames      
+    double precision                , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    integer                                       , intent(in   ) :: instance                                           
+    
     return
   end subroutine Node_Component_Output_Names_Null
 
@@ -799,21 +798,22 @@ module Galacticus_Nodes
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Dump a generic tree node component.
     implicit none
-    class           (nodeComponent)    , intent(inout) :: self
-    double precision                   , intent(in   ) :: time
-    integer                            , intent(inout) :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer         (kind=kind_int8   ), intent(inout) :: integerBuffer(:,:)
-    double precision                   , intent(inout) :: doubleBuffer (:,:)
-    integer                            , intent(in   ) :: instance
-
+    class           (nodeComponent    ), intent(inout) :: self                                                          
+    double precision                   , intent(in   ) :: time                                                          
+    integer                            , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
+         &                                                integerProperty                                               
+    integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)                                        
+    double precision                   , intent(inout) :: doubleBuffer     (:,:)                                        
+    integer                            , intent(in   ) :: instance                                                      
+    
     return
   end subroutine Node_Component_Output_Null
 
   integer function Node_Component_Serialize_Count_Zero(self)
     !% Return the serialization count of a generic tree node component.
     implicit none
-    class(nodeComponent), intent(in) :: self
-
+    class(nodeComponent), intent(in   ) :: self 
+    
     Node_Component_Serialize_Count_Zero=0
     return
   end function Node_Component_Serialize_Count_Zero
@@ -821,27 +821,27 @@ module Galacticus_Nodes
   subroutine Node_Component_Serialize_Null(self,array)
     !% Serialize a generic tree node component.
     implicit none
-    class(nodeComponent), intent(in   )               :: self
-    double precision,     intent(  out), dimension(:) :: array
-
+    class           (nodeComponent)              , intent(in   ) :: self  
+    double precision               , dimension(:), intent(  out) :: array 
+    
     return
   end subroutine Node_Component_Serialize_Null
 
   subroutine Node_Component_Deserialize_Null(self,array)
     !% Deserialize a generic tree node component.
     implicit none
-    class(nodeComponent), intent(inout)               :: self
-    double precision,     intent(in   ), dimension(:) :: array
-
+    class           (nodeComponent)              , intent(inout) :: self  
+    double precision               , dimension(:), intent(in   ) :: array 
+    
     return
   end subroutine Node_Component_Deserialize_Null
 
   function Node_Component_Host_Node(self)
     !% Return the host tree node of a tree node component.
     implicit none
-    class(nodeComponent), intent(in) :: self
-    type(treeNode),       pointer    :: Node_Component_Host_Node
-
+    class(nodeComponent), intent(in   ) :: self                     
+    type (treeNode     ), pointer       :: Node_Component_Host_Node 
+    
     Node_Component_Host_Node => self%hostNode
     return
   end function Node_Component_Host_Node
@@ -849,26 +849,26 @@ module Galacticus_Nodes
   subroutine Node_Component_Null_Void0_InOut(self)
     !% A null {\tt void} function for rank 0 {\tt nodeComponent} arrays.
     implicit none
-    class(nodeComponent), intent(inout) :: self                        
-
+    class(nodeComponent), intent(inout) :: self 
+    
     return
   end subroutine Node_Component_Null_Void0_InOut
 
   double precision function Node_Component_Null_Double0_InOut(self)
     !% A null {\tt double} function for rank 0 {\tt nodeComponent} arrays..
     implicit none
-    class(nodeComponent), intent(inout) :: self                        
-
+    class(nodeComponent), intent(inout) :: self 
+    
     return
   end function Node_Component_Null_Double0_InOut
 
   double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% A null implementation of the enclosed mass in a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)           :: self
-    integer                        , intent(in   )           :: componentType,massType,weightBy,weightIndex
-    double precision               , intent(in   )           :: radius
-    logical                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponent), intent(inout)           :: self                                           
+    integer                        , intent(in   )           :: componentType, massType, weightBy, weightIndex 
+    double precision               , intent(in   )           :: radius                                         
+    logical                        , intent(in   ), optional :: haloLoaded                                     
     
     Node_Component_Enclosed_Mass_Null=0.0d0
     return
@@ -877,10 +877,11 @@ module Galacticus_Nodes
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% A null implementation of the density in a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)               :: self
-    integer                        , intent(in   )               :: componentType,massType,weightBy,weightIndex
-    double precision               , intent(in   ), dimension(3) :: positionSpherical
-    logical                        , intent(in   ), optional     :: haloLoaded
+    class           (nodeComponent)              , intent(inout)           :: self                                     
+    integer                                      , intent(in   )           :: componentType    , massType, weightBy, & 
+         &                                                                    weightIndex                              
+    double precision               , dimension(3), intent(in   )           :: positionSpherical                        
+    logical                                      , intent(in   ), optional :: haloLoaded                               
     
     Node_Component_Density_Null=0.0d0
     return
@@ -889,10 +890,10 @@ module Galacticus_Nodes
   double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,haloLoaded)
     !% A null implementation of the surface density in a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)               :: self
-    integer                        , intent(in   )               :: componentType,massType
-    double precision               , intent(in   ), dimension(3) :: positionCylindrical
-    logical                        , intent(in   ), optional     :: haloLoaded
+    class           (nodeComponent)              , intent(inout)           :: self                          
+    integer                                      , intent(in   )           :: componentType      , massType 
+    double precision               , dimension(3), intent(in   )           :: positionCylindrical           
+    logical                                      , intent(in   ), optional :: haloLoaded                    
     
     Node_Component_Surface_Density_Null=0.0d0
     return
@@ -901,10 +902,10 @@ module Galacticus_Nodes
   double precision function Node_Component_Potential_Null(self,radius,componentType,massType,haloLoaded)
     !% A null implementation of the gravitational potential in a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)           :: self
-    integer                        , intent(in   )           :: componentType,massType
-    double precision               , intent(in   )           :: radius
-    logical                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponent), intent(inout)           :: self                    
+    integer                        , intent(in   )           :: componentType, massType 
+    double precision               , intent(in   )           :: radius                  
+    logical                        , intent(in   ), optional :: haloLoaded              
     
     Node_Component_Potential_Null=0.0d0
     return
@@ -913,10 +914,10 @@ module Galacticus_Nodes
   double precision function Node_Component_Rotation_Curve_Null(self,radius,componentType,massType,haloLoaded)
     !% A null implementation of the rotation curve due to a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)           :: self
-    integer                        , intent(in   )           :: componentType,massType
-    double precision               , intent(in   )           :: radius
-    logical                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponent), intent(inout)           :: self                    
+    integer                        , intent(in   )           :: componentType, massType 
+    double precision               , intent(in   )           :: radius                  
+    logical                        , intent(in   ), optional :: haloLoaded              
     
     Node_Component_Rotation_Curve_Null=0.0d0
     return
@@ -925,10 +926,10 @@ module Galacticus_Nodes
   double precision function Node_Component_Rotation_Curve_Gradient_Null(self,radius,componentType,massType,haloLoaded)
     !% A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
     implicit none
-    class           (nodeComponent), intent(inout)           :: self
-    integer                        , intent(in   )           :: componentType,massType
-    double precision               , intent(in   )           :: radius
-    logical                        , intent(in   ), optional :: haloLoaded
+    class           (nodeComponent), intent(inout)           :: self                    
+    integer                        , intent(in   )           :: componentType, massType 
+    double precision               , intent(in   )           :: radius                  
+    logical                        , intent(in   ), optional :: haloLoaded              
     
     Node_Component_Rotation_Curve_Gradient_Null=0.0d0
     return

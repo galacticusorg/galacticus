@@ -26,10 +26,10 @@ module Merger_Trees_Construct_Fully_Specified
   public :: Merger_Tree_Construct_Fully_Specified_Initialize
 
   ! Record of whether the tree has yet been processed.
-  logical                 :: treeProcessed=.false.
-
+  logical                 :: treeProcessed                            =.false. 
+  
   ! Name of the file to read the merger tree definition from.
-  type   (varying_string) :: mergerTreeConstructFullySpecifiedFileName
+  type   (varying_string) :: mergerTreeConstructFullySpecifiedFileName         
   
 contains
 
@@ -40,9 +40,9 @@ contains
     !% Initializes the merger tree construction ``fully-specified'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string),          intent(in   ) :: mergerTreeConstructMethod
-    procedure(              ), pointer, intent(inout) :: Merger_Tree_Construct
-
+    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod 
+    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct     
+    
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'fullySpecified') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -71,17 +71,16 @@ contains
     use Memory_Management
     use Galacticus_Display
     implicit none
-    type   (mergerTree  )  , intent(inout)               :: thisTree
-    logical                , intent(in   )               :: skipTree
-    type   (treeNodeList  ), allocatable  , dimension(:) :: nodeArray
-    type   (node          ), pointer                     :: doc,nodeDefinition
-    type   (nodeList      ), pointer                     :: nodes
-    integer                                              :: i,ioErr,nodeCount
-    integer(kind=kind_int8)                              :: indexValue
-    logical                                              :: processTree
-
-    !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)
-    ! If the tree is already processed, return.
+    type   (mergerTree    )             , intent(inout) :: thisTree                               
+    logical                             , intent(in   ) :: skipTree                               
+    type   (treeNodeList  ), allocatable, dimension(:)  :: nodeArray                              
+    type   (node          ), pointer                    :: doc        , nodeDefinition            
+    type   (nodeList      ), pointer                    :: nodes                                  
+    integer                                             :: i          , ioErr         , nodeCount 
+    integer(kind=kind_int8)                             :: indexValue                             
+    logical                                             :: processTree                            
+    
+    !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)    ! If the tree is already processed, return.
     processTree=.true.
     if (treeProcessed) processTree=.false.
     ! Mark that the tree has now been processed.
@@ -157,12 +156,12 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    integer  (kind=kind_int8)                         :: Node_Definition_Index
-    type     (node          ), intent(in   ), pointer :: nodeDefinition
-    character(len=*         ), intent(in   )          :: indexType
-    type     (nodeList      ),                pointer :: indexElements
-    type     (node          ),                pointer :: indexElement
-    integer                                           :: indexValue
+    integer  (kind=kind_int8)                         :: Node_Definition_Index 
+    type     (node          ), intent(in   ), pointer :: nodeDefinition        
+    character(len=*         ), intent(in   )          :: indexType             
+    type     (nodeList      )               , pointer :: indexElements         
+    type     (node          )               , pointer :: indexElement          
+    integer                                           :: indexValue            
     
     ! Find all matching tags.
     indexElements => getElementsByTagname(nodeDefinition,indexType)
@@ -182,11 +181,11 @@ contains
     use Kind_Numbers
     use Galacticus_Error
     implicit none
-    type   (treeNode      ), pointer                     :: node
-    type   (treeNodeList  ), intent(in   ), dimension(:) :: nodeArray
-    integer(kind=kind_int8), intent(in   )               :: indexValue
-    integer                                              :: i
-
+    type   (treeNode      ), pointer                     :: node       
+    type   (treeNodeList  ), dimension(:), intent(in   ) :: nodeArray  
+    integer(kind=kind_int8)              , intent(in   ) :: indexValue 
+    integer                                              :: i          
+    
     node => null()
     if (indexValue < 0_kind_int8) return
     do i=1,size(nodeArray)

@@ -27,30 +27,32 @@ module Generalized_Press_Schechter_Branching
   public :: Generalized_Press_Schechter_Branching_Initialize
   
   ! Parent halo shared variables.
-  double precision :: parentHaloMass,parentTime,parentDTimeDDeltaCritical,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass
+  double precision            :: parentDTimeDDeltaCritical                                   , parentDelta    , & 
+       &                         parentHaloMass                                              , parentSigma    , & 
+       &                         parentSigmaSquared                                          , parentTime     , & 
+       &                         probabilityMinimumMass                                      , probabilitySeek    
   !$omp threadprivate(parentHaloMass,parentTime,parentDTimeDDeltaCritical,parentSigma,parentSigmaSquared,parentDelta,probabilitySeek,probabilityMinimumMass)
-
   ! Accuracy parameter to ensure that steps in critical overdensity do not become too large.
-  double precision :: generalizedPressSchechterDeltaStepMaximum
-
+  double precision            :: generalizedPressSchechterDeltaStepMaximum                                        
+  
   ! Minimum mass to which subresolution fractions will be integrated.
-  double precision :: generalizedPressSchechterMinimumMass
-
+  double precision            :: generalizedPressSchechterMinimumMass                                             
+  
   ! Precomputed numerical factors.
-  double precision, parameter  :: sqrtTwoOverPi=sqrt(2.0d0/Pi)
-
+  double precision, parameter :: sqrtTwoOverPi                                =sqrt(2.0d0/Pi)                     
+  
   ! Branching probability integrand integration tolerance.
-  double precision, parameter  :: branchingProbabilityIntegrandToleraceRelative=1.0d-2
-
+  double precision, parameter :: branchingProbabilityIntegrandToleraceRelative=1.0d-2                             
+  
   ! The maximum sigma that we expect to find.
-  double precision             :: sigmaMaximum
-
+  double precision            :: sigmaMaximum                                                                     
+  
   ! Record of whether we have tested the excursion set routines.
-  logical                      :: excursionSetsTested=.false.
-
+  logical                     :: excursionSetsTested                          =.false.                            
+  
   ! Control for inclusion of smooth accretion rates.
-  logical                      :: generalizedPressSchechterSmoothAccretion
-
+  logical                     :: generalizedPressSchechterSmoothAccretion                                         
+  
 contains
   
   !# <treeBranchingMethod>
@@ -62,9 +64,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: treeBranchingMethod
-    procedure(double precision), pointer, intent(inout) :: Tree_Branching_Probability,Tree_Subresolution_Fraction,Tree_Branch_Mass&
-         &,Tree_Maximum_Step
+    type     (varying_string  ), intent(in   )          :: treeBranchingMethod                                 
+    procedure(double precision), intent(inout), pointer :: Tree_Branch_Mass   , Tree_Branching_Probability , & 
+         &                                                 Tree_Maximum_Step  , Tree_Subresolution_Fraction    
     
     if (treeBranchingMethod == 'generalizedPress-Schechter') then
        Tree_Branching_Probability  => Generalized_Press_Schechter_Branching_Probability
@@ -116,8 +118,8 @@ contains
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    double precision :: presentTime,varianceMaximum,testResult
-
+    double precision :: presentTime, testResult, varianceMaximum 
+    
     !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
     if (.not.excursionSetsTested) then
        presentTime    =Cosmology_Age(1.0d0)
@@ -141,14 +143,14 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ) :: haloMass,deltaCritical,massResolution,probability
-    double precision                , parameter     :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-9
-    double precision                , parameter     :: smallProbabilityFraction=1.0d-3
-    type            (varying_string)                :: message
-    character       (len=26        )                :: label
-    type            (rootFinder    ), save          :: finder
+    double precision                , intent(in   ) :: deltaCritical                  , haloMass                , & 
+         &                                             massResolution                 , probability                 
+    double precision                , parameter     :: toleranceAbsolute       =0.0d0 , toleranceRelative=1.0d-9    
+    double precision                , parameter     :: smallProbabilityFraction=1.0d-3                              
+    type            (varying_string)                :: message                                                      
+    character       (len=26        )                :: label                                                        
+    type            (rootFinder    ), save          :: finder                                                       
     !$omp threadprivate(finder)
-
     ! Ensure excursion set calculations have sufficient range in sigma.
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Initialize global variables.
@@ -209,11 +211,11 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: massMaximum
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    type            (c_ptr                     )                :: parameterPointer
-
+    double precision                            , intent(in   ) :: massMaximum          
+    type            (fgsl_function             )                :: integrandFunction    
+    type            (fgsl_integration_workspace)                :: integrationWorkspace 
+    type            (c_ptr                     )                :: parameterPointer     
+    
     Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
          &,Branching_Probability_Integrand_Generalized,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
          &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
@@ -226,8 +228,8 @@ contains
     !% deltaCritical} should be allowed to take.
     use Numerical_Integration
     implicit none
-    double precision, intent(in) :: haloMass,deltaCritical,massResolution
-
+    double precision, intent(in   ) :: deltaCritical, haloMass, massResolution 
+    
     Generalized_Press_Schechter_Branching_Maximum_Step=generalizedPressSchechterDeltaStepMaximum
     return
   end function Generalized_Press_Schechter_Branching_Maximum_Step
@@ -238,12 +240,12 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
     implicit none
-    double precision,                 intent(in) :: haloMass,deltaCritical,massResolution
-    type(c_ptr)                                  :: parameterPointer
-    type(fgsl_function)                          :: integrandFunction
-    type(fgsl_integration_workspace)             :: integrationWorkspace
-    double precision                             :: massMinimum,massMaximum
-
+    double precision                            , intent(in   ) :: deltaCritical       , haloMass   , massResolution 
+    type            (c_ptr                     )                :: parameterPointer                                  
+    type            (fgsl_function             )                :: integrandFunction                                 
+    type            (fgsl_integration_workspace)                :: integrationWorkspace                              
+    double precision                                            :: massMaximum         , massMinimum                 
+    
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass>2.0d0*massResolution) then
@@ -272,14 +274,16 @@ contains
     use Excursion_Sets_First_Crossings
     use Merger_Tree_Branching_Modifiers
     implicit none
-    double precision, intent(in)     :: haloMass,deltaCritical,massResolution
-    double precision, save           :: resolutionSigma,massResolutionPrevious=-1.0d0
+    double precision                            , intent(in   ) :: deltaCritical                        , haloMass       , & 
+         &                                                         massResolution                                            
+    double precision                            , save          :: massResolutionPrevious        =-1.0d0, resolutionSigma    
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                 :: resolutionSigmaOverParentSigma,massMinimum,massMaximum
-    type(c_ptr)                      :: parameterPointer
-    type(fgsl_function)              :: integrandFunction
-    type(fgsl_integration_workspace) :: integrationWorkspace
-
+    double precision                                            :: massMaximum                          , massMinimum    , & 
+         &                                                         resolutionSigmaOverParentSigma                            
+    type            (c_ptr                     )                :: parameterPointer                                          
+    type            (fgsl_function             )                :: integrandFunction                                         
+    type            (fgsl_integration_workspace)                :: integrationWorkspace                                      
+    
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
     parentHaloMass           =haloMass
@@ -317,11 +321,11 @@ contains
     !% Integrand for the branching probability.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)          :: Branching_Probability_Integrand_Generalized
-    real(c_double), value   :: childHaloMass
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: childSigma,childAlpha
-
+    real(kind=c_double)        :: Branching_Probability_Integrand_Generalized             
+    real(kind=c_double), value :: childHaloMass                                           
+    type(c_ptr        ), value :: parameterPointer                                        
+    real(kind=c_double)        :: childAlpha                                 , childSigma 
+    
     call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
     Branching_Probability_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     return
@@ -331,11 +335,11 @@ contains
     !% Integrand for the subresolution fraction.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double)          :: Subresolution_Fraction_Integrand_Generalized
-    real(c_double), value   :: childHaloMass
-    type(c_ptr),    value   :: parameterPointer
-    real(c_double)          :: childSigma,childAlpha
-
+    real(kind=c_double)        :: Subresolution_Fraction_Integrand_Generalized             
+    real(kind=c_double), value :: childHaloMass                                            
+    type(c_ptr        ), value :: parameterPointer                                         
+    real(kind=c_double)        :: childAlpha                                  , childSigma 
+    
     if (childHaloMass>0.0d0) then
        call Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(childHaloMass,childSigma,childAlpha)
        Subresolution_Fraction_Integrand_Generalized=Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)*(childHaloMass&
@@ -349,8 +353,8 @@ contains
   double precision function Progenitor_Mass_Function(childHaloMass,childSigma,childAlpha)
     !% Progenitor mass function from Press-Schechter.
     implicit none
-    double precision, intent(in) :: childHaloMass,childSigma,childAlpha
-
+    double precision, intent(in   ) :: childAlpha, childHaloMass, childSigma 
+    
     Progenitor_Mass_Function=(parentHaloMass/childHaloMass**2)*Merging_Rate(childSigma,childAlpha)
     return
   end function Progenitor_Mass_Function
@@ -366,9 +370,9 @@ contains
     use Merger_Tree_Branching_Modifiers
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision, intent(in) :: childSigma,childAlpha
-    double precision             :: childSigmaSquared
-
+    double precision, intent(in   ) :: childAlpha       , childSigma 
+    double precision                :: childSigmaSquared             
+    
     childSigmaSquared=childSigma**2
     Merging_Rate=-2.0d0*Excursion_Sets_First_Crossing_Rate(parentSigmaSquared,childSigmaSquared,parentTime)*childSigmaSquared&
          &*abs(childAlpha)*parentDTimeDDeltaCritical*Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)

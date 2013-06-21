@@ -25,16 +25,16 @@ module Merger_Trees_Mass_Function_Sampling
   public :: Merger_Tree_Construct_Mass_Function_Sampling
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: haloMassFunctionSamplingInitialized=.false.
-
-  ! Name of conditional stellar mass function method used.
-  type(varying_string) :: haloMassFunctionSamplingMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Merger_Tree_Construct_Mass_Function_Sampling_Template), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get => null()
+  logical                                                                   :: haloMassFunctionSamplingInitialized             =.false.  
+  
+  ! Name of conditional stellar mass function method used.                                                                                                                                    
+  type     (varying_string                                       )          :: haloMassFunctionSamplingMethod                            
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                                    
+  procedure(Merger_Tree_Construct_Mass_Function_Sampling_Template), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get=>null()  
   abstract interface
      double precision function Merger_Tree_Construct_Mass_Function_Sampling_Template(mass,time,massMinimum,massMaximum)
-       double precision, intent(in) :: mass,time,massMinimum,massMaximum
+       double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
      end function Merger_Tree_Construct_Mass_Function_Sampling_Template
   end interface
 
@@ -84,9 +84,9 @@ contains
   double precision function Merger_Tree_Construct_Mass_Function_Sampling(mass,time,massMinimum,massMaximum)
     !% Returns the sampling rate for merger trees of the given {\tt mass}, per decade of halo mass.
     implicit none
-    double precision, intent(in) :: mass,time,massMinimum,massMaximum
+    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
     
-    ! Initialize the module.
+    ! Initialize the module.                                                                      
     call Merger_Trees_Mass_Function_Sampling_Initialize
 
     ! Get the sampling rate using the selected method.

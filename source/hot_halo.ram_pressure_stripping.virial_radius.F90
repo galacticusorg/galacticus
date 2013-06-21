@@ -36,9 +36,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: hotHaloRamPressureStrippingMethod
-    procedure(Hot_Halo_Ram_Pressure_Stripping_Virial_Radius), pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Stripping_Get
-    
+    type     (varying_string                               ), intent(in   )          :: hotHaloRamPressureStrippingMethod    
+    procedure(Hot_Halo_Ram_Pressure_Stripping_Virial_Radius), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Stripping_Get  
+                                                                                                                          
     if (hotHaloRamPressureStrippingMethod == 'virialRadius') Hot_Halo_Ram_Pressure_Stripping_Get => Hot_Halo_Ram_Pressure_Stripping_Virial_Radius
     return
   end subroutine Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize
@@ -49,8 +49,8 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode  
+                                                     
     Hot_Halo_Ram_Pressure_Stripping_Virial_Radius=Dark_Matter_Halo_Virial_Radius(thisNode)
     return
   end function Hot_Halo_Ram_Pressure_Stripping_Virial_Radius

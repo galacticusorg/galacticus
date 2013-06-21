@@ -25,16 +25,16 @@ module Accretion_Disks
   public :: Accretion_Disk_Radiative_Efficiency,Black_Hole_Spin_Up_Rate,Accretion_Disk_Jet_Power
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                      :: accretionDisksInitialized=.false.
-
-  ! Name of mass movement method used.
-  type(varying_string)                         :: accretionDisksMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Accretion_Disk_Radiative_Efficiency), pointer :: Accretion_Disk_Radiative_Efficiency_Get => null()
-  procedure(Black_Hole_Spin_Up_Rate),             pointer :: Black_Hole_Spin_Up_Rate_Get             => null()
-  procedure(Accretion_Disk_Jet_Power),            pointer :: Accretion_Disk_Jet_Power_Get            => null()
-
+  logical                                                 :: accretionDisksInitialized              =.false.  
+  
+  ! Name of mass movement method used.                                                                                                         
+  type     (varying_string                     )          :: accretionDisksMethod                             
+  
+  ! Pointer to the subroutine that returns descriptors for mass movement.                                                                                                         
+  procedure(Accretion_Disk_Radiative_Efficiency), pointer :: Accretion_Disk_Radiative_Efficiency_Get=>null()  
+  procedure(Black_Hole_Spin_Up_Rate            ), pointer :: Black_Hole_Spin_Up_Rate_Get            =>null()  
+  procedure(Accretion_Disk_Jet_Power           ), pointer :: Accretion_Disk_Jet_Power_Get           =>null()  
+                                                                                                           
 contains
 
   subroutine Accretion_Disks_Initialize
@@ -81,10 +81,10 @@ contains
     !% Computes the radiative efficiency for an accretion disk.
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
-    ! Ensure the module is initalized.
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+    
+    ! Ensure the module is initalized.                                                                           
     call Accretion_Disks_Initialize()
 
     ! Get the radiative efficiency.
@@ -97,10 +97,10 @@ contains
     !% Computes the jet power for an accretion disk in units of $M_\odot$ (km/s)$^2$ Gyr$^{-1}$.
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
-    ! Ensure the module is initalized.
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+    
+    ! Ensure the module is initalized.                                                                           
     call Accretion_Disks_Initialize
 
     ! Get the radiative efficiency.
@@ -114,10 +114,10 @@ contains
     !% disk.
     use Galacticus_Nodes
     implicit none
-    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
-    double precision                        , intent(in   ) :: massAccretionRate
-
-    ! Ensure the module is initalized.
+    class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole      
+    double precision                        , intent(in   ) :: massAccretionRate  
+    
+    ! Ensure the module is initalized.                                                                           
     call Accretion_Disks_Initialize
 
     ! Get the spin up rate.

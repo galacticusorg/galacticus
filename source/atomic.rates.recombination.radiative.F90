@@ -25,17 +25,17 @@ module Atomic_Rates_Recombination_Radiative
   public :: Atomic_Rate_Recombination_Radiative
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: recombinationRateInitialized=.false.
-
-  ! Name of ionization state method used.
-  type(varying_string) :: atomicRadiativeRecombinationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Rate_Recombination_Radiative_Template), pointer :: Atomic_Rate_Recombination_Radiative_Get => null()
+  logical                                                          :: recombinationRateInitialized           =.false.  
+  
+  ! Name of ionization state method used.                                                                                                                  
+  type     (varying_string                              )          :: atomicRadiativeRecombinationMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                  
+  procedure(Atomic_Rate_Recombination_Radiative_Template), pointer :: Atomic_Rate_Recombination_Radiative_Get=>null()  
   abstract interface
      double precision function Atomic_Rate_Recombination_Radiative_Template(atomicNumber,ionizationState,temperature)
-       integer,          intent(in) :: atomicNumber,ionizationState
-       double precision, intent(in) :: temperature
+       integer         , intent(in   ) :: atomicNumber, ionizationState  
+       double precision, intent(in   ) :: temperature                    
      end function Atomic_Rate_Recombination_Radiative_Template
   end interface
   
@@ -83,10 +83,10 @@ contains
 
   double precision function Atomic_Rate_Recombination_Radiative(atomicNumber,ionizationState,temperature)
     implicit none
-    integer,          intent(in) :: atomicNumber,ionizationState
-    double precision, intent(in) :: temperature
-
-    ! Initialize the module.
+    integer         , intent(in   ) :: atomicNumber, ionizationState  
+    double precision, intent(in   ) :: temperature                    
+    
+    ! Initialize the module.                                                               
     call Atomic_Rate_Recombination_Radiative_Initialize
 
     ! Call the routine to do the calculation.

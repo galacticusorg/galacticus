@@ -24,13 +24,13 @@ module Excursion_Sets_Barriers_Remap_SMT
        & Excursion_Sets_Barrier_Gradient_Remap_SMT
 
   ! Parameters of the remapping function
-  double precision, parameter :: smtFitParameterA=0.707d0
-  double precision, parameter :: smtFitParameterB=0.500d0
-  double precision, parameter :: smtFitParameterC=0.600d0
-
-  ! Record of the position of this remapping in the list of those to be applied.
-  integer                     :: methodPosition=-1,methodRatesPosition=-1
-
+  double precision, parameter :: smtFitParameterA=0.707d0                          
+  double precision, parameter :: smtFitParameterB=0.500d0                          
+  double precision, parameter :: smtFitParameterC=0.600d0                          
+  
+  ! Record of the position of this remapping in the list of those to be applied.                                                                              
+  integer                     :: methodPosition  =-1     , methodRatesPosition=-1  
+                                                                                
 contains
 
   !# <excursionSetBarrierRemapInitialize>
@@ -40,12 +40,12 @@ contains
     !% Initialize the \cite{sheth_ellipsoidal_2001} excursion set barrier remapping module.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(in   ), dimension(:) :: excursionSetBarrierRemapMethods
-    type(varying_string), intent(inout)               :: barrierName
-    logical             , intent(in   )               :: ratesCalculation
-    integer             , intent(inout)               :: matchedCount
-    integer                                           :: i,position
-
+    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods            
+    type   (varying_string)              , intent(inout) :: barrierName                                
+    logical                              , intent(in   ) :: ratesCalculation                           
+    integer                              , intent(inout) :: matchedCount                               
+    integer                                              :: i                              , position  
+                                                                                                    
     if (any(excursionSetBarrierRemapMethods == 'Sheth-Mo-Tormen')) then
        ! Locate the position of the scale method in the list.
        position=-1
@@ -75,11 +75,11 @@ contains
   subroutine Excursion_Sets_Barrier_Remap_SMT(barrier,variance,time,ratesCalculation,iRemap)
     !% Return the barrier for excursion set calculations remapped according to \cite{sheth_ellipsoidal_2001}.
     implicit none
-    double precision, intent(inout) :: barrier
-    double precision, intent(in   ) :: variance,time
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-
+    double precision, intent(inout) :: barrier                     
+    double precision, intent(in   ) :: time            , variance  
+    logical         , intent(in   ) :: ratesCalculation            
+    integer         , intent(in   ) :: iRemap                      
+                                                                
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=sqrt(smtFitParameterA)*barrier*(1.0d0+smtFitParameterB*(variance/smtFitParameterA/barrier**2)**smtFitParameterC)
     return
   end subroutine Excursion_Sets_Barrier_Remap_SMT
@@ -90,11 +90,11 @@ contains
   subroutine Excursion_Sets_Barrier_Gradient_Remap_SMT(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
     !% Return the gradient of the barrier for excursion set calculations remapped according to \cite{sheth_ellipsoidal_2001}.
     implicit none
-    double precision, intent(inout) :: barrierGradient
-    double precision, intent(in   ) :: barrier,variance,time
-    logical         , intent(in   ) :: ratesCalculation
-    integer         , intent(in   ) :: iRemap
-
+    double precision, intent(inout) :: barrierGradient                   
+    double precision, intent(in   ) :: barrier         , time, variance  
+    logical         , intent(in   ) :: ratesCalculation                  
+    integer         , intent(in   ) :: iRemap                            
+                                                                      
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) then
        if (variance <= 0.0d0) then
           barrierGradient=0.0d0

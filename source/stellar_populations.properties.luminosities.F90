@@ -23,26 +23,28 @@ module Stellar_Population_Properties_Luminosities
        & Stellar_Population_Luminosities_Output_Count, Stellar_Population_Luminosities_Output, Stellar_Population_Luminosities_Index
 
   ! Flag specifying if module has been initialized.
-  logical                                         :: luminositiesInitialized=.false.
-
+  logical                                                     :: luminositiesInitialized      =.false.                                    
+  
   ! Arrays which hold the luminosity specifications.
-  integer                                         :: luminosityCount
-  integer,              allocatable, dimension(:) :: luminosityFilterIndex,luminosityIndex
-  double precision,     allocatable, dimension(:) :: luminosityRedshift,luminosityCosmicTime
-  type(varying_string), allocatable, dimension(:) :: luminosityFilter,luminosityType,luminosityName
+  integer                                                     :: luminosityCount                                                          
+  integer                         , allocatable, dimension(:) :: luminosityFilterIndex                , luminosityIndex                   
+  double precision                , allocatable, dimension(:) :: luminosityCosmicTime                 , luminosityRedshift                
+  type            (varying_string), allocatable, dimension(:) :: luminosityFilter                     , luminosityName                , & 
+       &                                                         luminosityType                                                           
   
   ! Luminosity output options.
-  integer            :: luminosityOutputOption
-  integer, parameter :: luminosityOutputOptionAll=0, luminosityOutputOptionFuture=1, luminosityOutputOptionPresent=2 
-
+  integer                                                     :: luminosityOutputOption                                                   
+  integer                         , parameter                 :: luminosityOutputOptionAll    =0      , luminosityOutputOptionFuture=1, & 
+       &                                                         luminosityOutputOptionPresent=2                                          
+  
 contains
 
   integer function Stellar_Population_Luminosities_Output_Count(time)
     !% Return a count of the number of luminosities to be output at {\tt time}.
     implicit none
-    double precision, intent(in) :: time
-    integer                      :: luminosityIndex
-
+    double precision, intent(in   ) :: time            
+    integer                         :: luminosityIndex 
+    
     Stellar_Population_Luminosities_Output_Count=0
     do luminosityIndex=1,luminosityCount
        if (Stellar_Population_Luminosities_Output(luminosityIndex,time)) Stellar_Population_Luminosities_Output_Count&
@@ -55,10 +57,10 @@ contains
     !% Return true or false depending on whether {\tt luminosityIndex} should be output at {\tt time}.
     use Galacticus_Error
     implicit none
-    integer,          intent(in) :: luminosityIndex
-    double precision, intent(in) :: time
-    double precision, parameter  :: timeTolerance=1.0d-3
-
+    integer         , intent(in   ) :: luminosityIndex        
+    double precision, intent(in   ) :: time                   
+    double precision, parameter     :: timeTolerance  =1.0d-3 
+    
     select case (luminosityOutputOption)
     case (luminosityOutputOptionAll)
        Stellar_Population_Luminosities_Output=.true.
@@ -76,8 +78,8 @@ contains
     !% Return a name for the specified entry in the luminosity list.
     use ISO_Varying_String
     implicit none
-    type(varying_string)             :: Stellar_Population_Luminosities_Name
-    integer,              intent(in) :: index
+    type   (varying_string)                :: Stellar_Population_Luminosities_Name 
+    integer                , intent(in   ) :: index                                
     
     Stellar_Population_Luminosities_Name=luminosityName(index)
     return
@@ -88,8 +90,8 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
-    type   (varying_string), intent(in   ) :: name
-    integer                                :: i
+    type   (varying_string), intent(in   ) :: name 
+    integer                                :: i    
     
     do i=1,luminosityCount
        if (name == luminosityName(i)) then
@@ -107,12 +109,12 @@ contains
     use Abundances_Structure
     use Stellar_Population_Luminosities
     implicit none
-    double precision,          dimension(luminosityCount) :: Stellar_Population_Luminosities_Get
-    integer,                   intent(in)                 :: imfSelected
-    double precision,          intent(in)                 :: time
-    type(abundances),          intent(in)                 :: abundancesStellar
-    double precision,          dimension(luminosityCount) :: ages
-
+    double precision                           , dimension(luminosityCount) :: Stellar_Population_Luminosities_Get 
+    integer                     , intent(in   )                             :: imfSelected                         
+    double precision            , intent(in   )                             :: time                                
+    type            (abundances), intent(in   )                             :: abundancesStellar                   
+    double precision                           , dimension(luminosityCount) :: ages                                
+    
     ! Ensure module is initialized.
     call Stellar_Population_Properties_Luminosities_Initialize
 
@@ -144,11 +146,11 @@ contains
     use Instruments_Filters
     use Cosmology_Functions
     implicit none
-    integer              :: iLuminosity
-    double precision     :: expansionFactor
-    character(len=10)    :: redshiftLabel
-    type(varying_string) :: luminosityOutputOptionText
-
+    integer                          :: iLuminosity                
+    double precision                 :: expansionFactor            
+    character       (len=10        ) :: redshiftLabel              
+    type            (varying_string) :: luminosityOutputOptionText 
+    
     ! Initialize the module if necessary.
     if (.not.luminositiesInitialized) then
        !$omp critical (Stellar_Population_Properties_Luminosities_Initialize)

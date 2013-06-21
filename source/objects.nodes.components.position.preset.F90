@@ -66,9 +66,9 @@ contains
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, update the position of {\tt
     !% thisNode} to that of the parent.
     implicit none
-    type (treeNode             ), pointer, intent(inout) :: thisNode
-    class(nodeComponentPosition), pointer                :: thisPositionComponent,parentPositionComponent
-
+    type (treeNode             ), intent(inout), pointer :: thisNode                                        
+    class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent  
+                                                                                                         
     thisPositionComponent => thisNode%position()
     select type (thisPositionComponent)
     class is (nodeComponentPositionPreset)

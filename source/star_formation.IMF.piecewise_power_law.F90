@@ -27,18 +27,19 @@ module Star_Formation_IMF_PiecewisePowerLaw
        & Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw , Star_Formation_IMF_Phi_PiecewisePowerLaw
 
   ! Index assigned to this IMF.
-  integer :: imfIndex=-1
-
-  ! Flag indicating if the module has been initialized.
-  logical :: imfPiecewisePowerLawInitialized=.false.
-
-  ! Parameters of the IMF.
-  double precision :: imfPiecewisePowerLawRecycledInstantaneous, imfPiecewisePowerLawYieldInstantaneous
-
-  ! Fixed parameters of the IMF.
-  integer                                     :: imfPieceCount
-  double precision, dimension(:), allocatable :: massLower,massUpper,massExponent,imfNormalization
-
+  integer                                     :: imfIndex                                 =-1                                                  
+  
+  ! Flag indicating if the module has been initialized.                                                                                                                                          
+  logical                                     :: imfPiecewisePowerLawInitialized          =.false.                                             
+  
+  ! Parameters of the IMF.                                                                                                                                          
+  double precision                            :: imfPiecewisePowerLawRecycledInstantaneous        , imfPiecewisePowerLawYieldInstantaneous     
+  
+  ! Fixed parameters of the IMF.                                                                                                                                          
+  integer                                     :: imfPieceCount                                                                                 
+  double precision, allocatable, dimension(:) :: imfNormalization                                 , massExponent                           , & 
+       &                                         massLower                                        , massUpper                                  
+                                                                                                                                            
 contains
 
   !# <imfRegister>
@@ -47,8 +48,8 @@ contains
   subroutine Star_Formation_IMF_Register_PiecewisePowerLaw(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount
-
+    integer, intent(inout) :: imfAvailableCount  
+                                              
     imfAvailableCount=imfAvailableCount+1
     imfIndex         =imfAvailableCount
     return
@@ -61,11 +62,11 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
-    type(varying_string)                :: imfDescriptor
-    character(len=7)                    :: label
-    integer                             :: iPiece
-
+    type     (varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)  
+    type     (varying_string)                :: imfDescriptor                   
+    character(len=7         )                :: label                           
+    integer                                  :: iPiece                          
+                                                                             
     call Star_Formation_IMF_Initialize_PiecewisePowerLaw
     imfDescriptor="PiecewisePowerLaw"
     do iPiece=1,imfPieceCount
@@ -88,9 +89,9 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    double precision, dimension(:), allocatable :: massPoints
-    logical                                     :: pieceWiseImfIsDefined
-
+    double precision, allocatable, dimension(:) :: massPoints             
+    logical                                     :: pieceWiseImfIsDefined  
+                                                                       
     if (.not.imfPiecewisePowerLawInitialized) then
        !$omp critical (IMF_PiecewisePowerLaw_Initialize)
        if (.not.imfPiecewisePowerLawInitialized) then
@@ -187,10 +188,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_PiecewisePowerLaw(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: minimumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: minimumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        minimumMass=massLower(1)
@@ -205,10 +206,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_PiecewisePowerLaw(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: maximumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: maximumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        maximumMass=massUpper(imfPieceCount)
@@ -224,11 +225,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(in)    :: initialMass
-    double precision, intent(out)   :: imfPhi
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(in   ) :: initialMass  
+    double precision, intent(  out) :: imfPhi       
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
@@ -243,10 +244,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_PiecewisePowerLaw(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: recycledFraction
-
+    integer         , intent(in   ) :: imfSelected       
+    logical         , intent(inout) :: imfMatched        
+    double precision, intent(  out) :: recycledFraction  
+                                                      
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        recycledFraction=imfPiecewisePowerLawRecycledInstantaneous
@@ -261,10 +262,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_PiecewisePowerLaw(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: yield
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: yield        
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        yield=imfPiecewisePowerLawYieldInstantaneous
@@ -282,11 +283,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)                               :: imfSelected
-    logical,          intent(inout)                            :: imfMatched
-    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
-    integer,          parameter                                :: nPoints=100
-
+    integer                                    , intent(in   ) :: imfSelected              
+    logical                                    , intent(inout) :: imfMatched               
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi  
+    integer         , parameter                                :: nPoints    =100          
+                                                                                        
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_PiecewisePowerLaw
        call Alloc_Array(imfMass,[nPoints])

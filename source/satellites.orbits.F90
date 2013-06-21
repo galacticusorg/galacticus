@@ -25,13 +25,11 @@ module Satellite_Orbits
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Pericenter_Phase_Space_Coordinates
   
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
-  double precision          :: orbitalEnergyInternal,orbitalAngularMomentumInternal
+  double precision                    :: orbitalAngularMomentumInternal, orbitalEnergyInternal 
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
-  
   ! Node used in root finding calculations.
-  type(treeNode),   pointer :: activeNode
+  type            (treeNode), pointer :: activeNode                                            
   !$omp threadprivate(activeNode)
-
 contains
   
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
@@ -40,13 +38,13 @@ contains
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), pointer  , intent(inout) :: hostNode
-    type            (keplerOrbit      ),            intent(inout) :: thisOrbit
-    double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                     :: finder
-    !$omp threadprivate(finder) 
-    type            (keplerOrbit      )                           :: currentOrbit
-
+    type            (treeNode         ), intent(inout), pointer :: hostNode                                          
+    type            (keplerOrbit      ), intent(inout)          :: thisOrbit                                         
+    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6 
+    type            (rootFinder       ), save                   :: finder                                            
+    !$omp threadprivate(finder)
+    type            (keplerOrbit      )                         :: currentOrbit                                      
+    
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
 
@@ -76,8 +74,8 @@ contains
     !% Root function used in finding equivalent circular orbits.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radius
-
+    double precision, intent(in   ) :: radius 
+    
     Equivalent_Circular_Orbit_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0&
          &*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
     return
@@ -88,14 +86,14 @@ contains
     use Root_Finder
     use Kepler_Orbits
     implicit none
-    type            (treeNode         ), pointer  , intent(inout) :: hostNode
-    type            (keplerOrbit      ),            intent(inout) :: thisOrbit
-    double precision                   ,            intent(  out) :: radius,velocity
-    double precision                   , parameter                :: toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                     :: finder
-    !$omp threadprivate(finder) 
-    type            (keplerOrbit      )                           :: currentOrbit
-
+    type            (treeNode         ), intent(inout), pointer :: hostNode                                          
+    type            (keplerOrbit      ), intent(inout)          :: thisOrbit                                         
+    double precision                   , intent(  out)          :: radius                 , velocity                 
+    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6 
+    type            (rootFinder       ), save                   :: finder                                            
+    !$omp threadprivate(finder)
+    type            (keplerOrbit      )                         :: currentOrbit                                      
+    
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
     ! Extract the orbital energy and angular momentum.
@@ -131,8 +129,8 @@ contains
     !% Root function used in finding orbital pericentric radius.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radius
-
+    double precision, intent(in   ) :: radius 
+    
     Pericenter_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0*(orbitalAngularMomentumInternal/radius)**2-orbitalEnergyInternal
     return
   end function Pericenter_Solver
@@ -150,11 +148,12 @@ contains
     use Numerical_Constants_Physical
     use Kepler_Orbits
     implicit none
-    type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential
-    type            (keplerOrbit), intent(inout)          :: thisOrbit
-    type            (treeNode   ), intent(inout), pointer :: currentHost
-    double precision                                      :: radiusVirialOriginal,velocityVirialOriginal,potentialHost
-
+    type            (keplerOrbit)                         :: Satellite_Orbit_Convert_To_Current_Potential                          
+    type            (keplerOrbit), intent(inout)          :: thisOrbit                                                             
+    type            (treeNode   ), intent(inout), pointer :: currentHost                                                           
+    double precision                                      :: potentialHost                               , radiusVirialOriginal, & 
+         &                                                   velocityVirialOriginal                                                
+    
     ! Compute the properties of the initial orbit, and the current potential.
     radiusVirialOriginal  =gravitationalConstantGalacticus*thisOrbit%hostMass()/thisOrbit%velocityScale()**2
     velocityVirialOriginal=                                                     thisOrbit%velocityScale()

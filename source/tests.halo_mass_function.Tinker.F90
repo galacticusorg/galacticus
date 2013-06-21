@@ -31,13 +31,13 @@ program Tests_Halo_Mass_Function_Tinker
   use File_Utilities
   use Critical_Overdensity
   implicit none
-  type            (varying_string)                            :: parameterFile
-  integer                                                     :: i,fUnit,massCount
-  double precision                                            :: time
-  double precision                , allocatable, dimension(:) :: mass,massFunction,massFunctionTinker
-  logical                         , allocatable, dimension(:) :: success
-
-  ! Read in basic code memory usage.
+  type            (varying_string)                            :: parameterFile                                    
+  integer                                                     :: fUnit        , i           , massCount           
+  double precision                                            :: time                                             
+  double precision                , allocatable, dimension(:) :: mass         , massFunction, massFunctionTinker  
+  logical                         , allocatable, dimension(:) :: success                                          
+  
+  ! Read in basic code memory usage.                                                                                                             
   call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')
 
   ! Begin unit tests.

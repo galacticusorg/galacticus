@@ -25,13 +25,13 @@ module Black_Hole_Binary_Mergers
   public :: Black_Hole_Binary_Merger
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                      :: blackHoleBinaryMergersInitialized=.false.
-
+  logical                                      :: blackHoleBinaryMergersInitialized=.false. 
+  
   ! Name of mass movement method used.
-  type(varying_string)                         :: blackHoleBinaryMergersMethod
-
+  type     (varying_string          )          :: blackHoleBinaryMergersMethod              
+  
   ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Black_Hole_Binary_Merger), pointer :: Black_Hole_Binary_Merger_Do => null()
+  procedure(Black_Hole_Binary_Merger), pointer :: Black_Hole_Binary_Merger_Do      =>null() 
   
 contains
 
@@ -44,9 +44,10 @@ contains
     include 'black_holes.binary_mergers.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in)  :: blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB
-    double precision, intent(out) :: blackHoleMassFinal,blackHoleSpinFinal
-
+    double precision, intent(in   ) :: blackHoleMassA    , blackHoleMassB    , blackHoleSpinA, & 
+         &                             blackHoleSpinB                                            
+    double precision, intent(  out) :: blackHoleMassFinal, blackHoleSpinFinal                    
+    
     if (.not.blackHoleBinaryMergersInitialized) then
        !$omp critical(blackHoleBinaryMergersInitialize)
        if (.not.blackHoleBinaryMergersInitialized) then

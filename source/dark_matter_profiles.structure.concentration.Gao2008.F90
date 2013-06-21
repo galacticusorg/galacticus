@@ -33,8 +33,8 @@ contains
     !% Initializes the ``Gao2008'' halo concentration module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                           ),          intent(in   ) :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_Gao2008), pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
+    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod         
+    procedure(Dark_Matter_Profile_Concentration_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get 
     
     if (darkMatterConcentrationMethod == 'Gao2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
     return
@@ -49,11 +49,12 @@ contains
     use Galacticus_Nodes
     use Cosmology_Functions
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    double precision         , parameter              :: littleHubbleConstantGao2008=0.73d0
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: logarithmHaloMass,logarithmExpansionFactor,parameterA,parameterB
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                                 
+    double precision                    , parameter              :: littleHubbleConstantGao2008=0.73d0                       
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                       
+    double precision                                             :: logarithmExpansionFactor          , logarithmHaloMass, & 
+         &                                                          parameterA                        , parameterB           
+    
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.

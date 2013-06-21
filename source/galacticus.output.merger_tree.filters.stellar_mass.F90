@@ -24,12 +24,12 @@ module Galacticus_Merger_Tree_Output_Filter_Stellar_Masses
   public :: Galacticus_Merger_Tree_Output_Filter_Stellar_Mass,Galacticus_Merger_Tree_Output_Filter_Stellar_Mass_Initialize
 
   ! Flags indicating if the module has been initialized and if this filter is active.
-  logical                                      :: stellarMassFilterInitialized=.false.
-  logical                                      :: stellarMassFilterActive
-
-  ! The threshold for output.
-  double precision                             :: stellarMassFilterThreshold
-
+  logical          :: stellarMassFilterInitialized=.false.  
+  logical          :: stellarMassFilterActive               
+  
+  ! The threshold for output.                                                       
+  double precision :: stellarMassFilterThreshold            
+                                                         
 contains
 
   !# <mergerTreeOutputFilterInitialize>
@@ -40,9 +40,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string), intent(in), dimension(:) :: filterNames
-
-    ! Initialize the filter if necessary.
+    type(varying_string), dimension(:), intent(in   ) :: filterNames  
+    
+    ! Initialize the filter if necessary.                                                               
     if (.not.stellarMassFilterInitialized) then
        ! Determine if this filter has been selected.
        stellarMassFilterActive=any(filterNames == "stellarMass")
@@ -76,11 +76,11 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type(treeNode)  , intent(inout), pointer :: thisNode
-    logical         , intent(inout)          :: doOutput
-    double precision                         :: stellarMass
-
-    ! Return immediately if this filter is not active.
+    type            (treeNode), intent(inout), pointer :: thisNode     
+    logical                   , intent(inout)          :: doOutput     
+    double precision                                   :: stellarMass  
+    
+    ! Return immediately if this filter is not active.                                                                
     if (.not.stellarMassFilterActive) return
 
     ! Get the total stellar mass of the galaxy.

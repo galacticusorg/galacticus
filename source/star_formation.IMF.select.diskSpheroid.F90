@@ -24,8 +24,8 @@ module Star_Formation_IMF_Select_Disk_Spheroid
   public :: IMF_Select_Disk_Spheroid_Initialize
 
   ! Store the indices of the selected IMFs.
-  integer :: imfSelectedDiskIndex,imfSelectedSpheroidIndex
-
+  integer :: imfSelectedDiskIndex, imfSelectedSpheroidIndex  
+                                                          
 contains
 
   !# <imfSelectionMethod>
@@ -37,10 +37,10 @@ contains
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type(varying_string),          intent(in)    :: imfSelectionMethod,imfNames(:)
-    procedure(integer),   pointer, intent(inout) :: IMF_Select_Do
-    type(varying_string)                         :: imfSelectionDisk,imfSelectionSpheroid
-    
+    type     (varying_string), intent(in   )          :: imfNames        (:), imfSelectionMethod    
+    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do                              
+    type     (varying_string)                         :: imfSelectionDisk   , imfSelectionSpheroid  
+                                                                                                 
     if (imfSelectionMethod == 'diskSpheroid') then
        IMF_Select_Do => IMF_Select_Disk_Spheroid
        ! Get IMF choices.
@@ -80,11 +80,11 @@ contains
     use Galacticus_Error
     use Galactic_Structure_Options
     implicit none
-    double precision,          intent(in) :: starFormationRate
-    type(abundances), intent(in) :: fuelAbundances
-    integer,                   intent(in) :: component
-
-    ! Select between disk and spheroid IMFs.
+    double precision            , intent(in   ) :: starFormationRate  
+    type            (abundances), intent(in   ) :: fuelAbundances     
+    integer                     , intent(in   ) :: component          
+    
+    ! Select between disk and spheroid IMFs.                                                               
     select case (component)
     case (componentTypeDisk)
        IMF_Select_Disk_Spheroid=imfSelectedDiskIndex

@@ -24,14 +24,14 @@ module Galacticus_Output_Trees_Virial
   public :: Galacticus_Output_Tree_Virial, Galacticus_Output_Tree_Virial_Property_Count, Galacticus_Output_Tree_Virial_Names
 
   ! Number of virial properties.
-  integer, parameter :: virialPropertyCount=2
-
+  integer, parameter :: virialPropertyCount        =2       
+  
   ! Flag indicating whether or not virial information is to be output.
-  logical            :: outputVirialData
-
+  logical            :: outputVirialData                    
+  
   ! Flag indicating whether or not this module has been initialized.
-  logical            :: outputVirialDataInitialized=.false.
-
+  logical            :: outputVirialDataInitialized=.false. 
+  
 contains
 
   subroutine Galacticus_Output_Tree_Virial_Initialize
@@ -74,13 +74,13 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type(treeNode),   intent(inout), pointer      :: thisNode
-    double precision, intent(in   )               :: time
-    integer,          intent(inout)               :: integerProperty,doubleProperty
-    character(len=*), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision, intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize
 
@@ -122,9 +122,9 @@ contains
     !% Account for the number of virial properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision          , intent(in   )          :: time                                      
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize
@@ -145,11 +145,12 @@ contains
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
     implicit none
-    double precision,        intent(in)             :: time
-    type(treeNode),          intent(inout), pointer :: thisNode
-    integer,                 intent(inout)          :: integerProperty,integerBufferCount,doubleProperty,doubleBufferCount
-    integer(kind=kind_int8), intent(inout)          :: integerBuffer(:,:)
-    double precision,        intent(inout)          :: doubleBuffer(:,:)
+    double precision                , intent(in   )          :: time                                                          
+    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
+         &                                                      integerProperty                                               
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Virial_Initialize

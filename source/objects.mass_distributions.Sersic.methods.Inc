@@ -22,12 +22,12 @@ subroutine Mass_Distribution_Sersic_Initialize(self,index,halfMassRadius,density
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class           (massDistributionSersic), intent(  out)           :: self
-  double precision                        , intent(in   )           :: index
-  double precision                        , intent(in   ), optional :: halfMassRadius,densityNormalization,mass
-  logical                                 , intent(in   ), optional :: isDimensionless
-
-  ! Determine if profile is dimensionless.
+  class           (massDistributionSersic), intent(  out)           :: self                                        
+  double precision                        , intent(in   )           :: index                                       
+  double precision                        , intent(in   ), optional :: densityNormalization, halfMassRadius, mass  
+  logical                                 , intent(in   ), optional :: isDimensionless                             
+  
+  ! Determine if profile is dimensionless.                                                                                                              
   if      (present(isDimensionless     )) then
      self%dimensionless=isDimensionless
   else
@@ -76,12 +76,12 @@ double precision function Mass_Distribution_Sersic_Density(self,coordinates)
   use Coordinates
   use Numerical_Interpolation
   implicit none
-  class           (massDistributionSersic), intent(in   ) :: self
-  class           (coordinate            ), intent(in   ) :: coordinates
-  type            (coordinateSpherical   )                :: position
-  double precision                                        :: r
-
-   ! Get position in spherical coordinate system.
+  class           (massDistributionSersic), intent(in   ) :: self         
+  class           (coordinate            ), intent(in   ) :: coordinates  
+  type            (coordinateSpherical   )                :: position     
+  double precision                                        :: r            
+  
+   ! Get position in spherical coordinate system.                                                                     
    position=coordinates
    ! Compute the density at this position.
    r=position%r()/self%radiusHalfMass
@@ -100,12 +100,12 @@ double precision function Mass_Distribution_Sersic_Density_Radial_Moment(self,mo
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class(massDistributionSersic), intent(in   )           :: self
-  double precision             , intent(in   )           :: moment
-  logical                      , intent(  out), optional :: isInfinite
-  integer                                                :: iRadius
-  double precision                                       :: integrand,previousIntegrand,deltaRadius
-
+  class           (massDistributionSersic), intent(in   )           :: self                                       
+  double precision                        , intent(in   )           :: moment                                     
+  logical                                 , intent(  out), optional :: isInfinite                                 
+  integer                                                           :: iRadius                                    
+  double precision                                                  :: deltaRadius, integrand, previousIntegrand  
+                                                                                                               
   isInfinite=.false.
   Mass_Distribution_Sersic_Density_Radial_Moment=0.0d0
   !$omp critical (Sersic_Profile_Tabulation)
@@ -132,10 +132,10 @@ double precision function Mass_Distribution_Sersic_Mass_Enc_By_Sphere(self,radiu
   use Numerical_Constants_Math
   use Numerical_Interpolation
   implicit none
-  class(massDistributionSersic), intent(in   ), target :: self
-  double precision             , intent(in   )         :: radius
-  double precision                                     :: fractionalRadius
-
+  class           (massDistributionSersic), intent(in   ), target :: self              
+  double precision                        , intent(in   )         :: radius            
+  double precision                                                :: fractionalRadius  
+                                                                                    
   fractionalRadius=radius/self%radiusHalfMass
   call Sersic_Profile_Tabulate(fractionalRadius)
   if (fractionalRadius < sersicTableRadius(sersicTableCount)) then
@@ -156,12 +156,12 @@ double precision function Mass_Distribution_Sersic_Potential(self,coordinates)
   use Coordinates
   use Numerical_Interpolation
   implicit none
-  class           (massDistributionSersic), intent(in   ) :: self
-  class           (coordinate            ), intent(in   ) :: coordinates
-  type            (coordinateSpherical   )                :: position
-  double precision                                        :: r
-
-  ! Get position in spherical coordinate system.
+  class           (massDistributionSersic), intent(in   ) :: self         
+  class           (coordinate            ), intent(in   ) :: coordinates  
+  type            (coordinateSpherical   )                :: position     
+  double precision                                        :: r            
+  
+  ! Get position in spherical coordinate system.                                                                     
   position=coordinates
   ! Compute the potential at this position.
   r=position%r()/self%radiusHalfMass
@@ -183,9 +183,9 @@ end function Mass_Distribution_Sersic_Potential
 double precision function Mass_Distribution_Sersic_Half_Mass_Radius(self)
   !% Return the half-mass radius of a Sersic mass distribution.
   implicit none
-  class(massDistributionSersic), intent(in   ) :: self
-
-  !$omp critical (Sersic_Profile_Tabulation)
+  class(massDistributionSersic), intent(in   ) :: self  
+  
+  !$omp critical (Sersic_Profile_Tabulation)                                                   
   Mass_Distribution_Sersic_Half_Mass_Radius=self%radiusHalfMass
   !$omp end critical (Sersic_Profile_Tabulation)
   return
@@ -194,9 +194,9 @@ end function Mass_Distribution_Sersic_Half_Mass_Radius
 double precision function Mass_Distribution_Sersic_Half_Mass_Radius_Projected(self)
   !% Return the half-mass radius in projection of a Sersic mass distribution.
   implicit none
-  class(massDistributionSersic), intent(in   ) :: self
-
-  !$omp critical (Sersic_Profile_Tabulation)
+  class(massDistributionSersic), intent(in   ) :: self  
+  
+  !$omp critical (Sersic_Profile_Tabulation)                                                   
   Mass_Distribution_Sersic_Half_Mass_Radius_Projected=self%radiusHalfMass*sersicTable2dHalfMassRadius
   !$omp end critical (Sersic_Profile_Tabulation)
   return
@@ -213,21 +213,23 @@ subroutine Sersic_Profile_Tabulate(radius)
   use FGSL
   use Root_Finder
   implicit none
-  double precision                            , intent(in), optional :: radius
-  double precision                            , parameter            :: radiusMaximumToTabulate   =1000.0d0
-  double precision                            , parameter            :: sersicCoefficientTolerance=1.0d-6
-  double precision                            , parameter            :: sersicCoefficientGuess    =7.67d0
-  type            (rootFinder                ), save                 :: finder
-  !$omp threadprivate(finder)
-  logical                                                            :: rebuildTable,tableHasSufficientExtent
-  integer                                                            :: iRadius
-  double precision                                                   :: deltaRadius,massPrevious,radiusInfinity,integrand&
-       &,previousIntegrand,radiusActual,sersicCoefficientMinimum,sersicCoefficientMaximum
-  type            (c_ptr                     )                       :: parameterPointer
-  type            (fgsl_function             )                       :: integrandFunction
-  type            (fgsl_integration_workspace)                       :: integrationWorkspace
+  double precision                            , intent(in   ), optional :: radius                                                            
+  double precision                            , parameter               :: radiusMaximumToTabulate   =1000.0d0                               
+  double precision                            , parameter               :: sersicCoefficientTolerance=1.0d-6                                 
+  double precision                            , parameter               :: sersicCoefficientGuess    =7.67d0                                 
+  type            (rootFinder                ), save                    :: finder                                                            
+  !$omp threadprivate(finder)                                                                                                                                        
+  logical                                                               :: rebuildTable                       , tableHasSufficientExtent     
+  integer                                                               :: iRadius                                                           
+  double precision                                                      :: deltaRadius                        , integrand                , & 
+       &                                                                   massPrevious                       , previousIntegrand        , & 
+       &                                                                   radiusActual                       , radiusInfinity           , & 
+       &                                                                   sersicCoefficientMaximum           , sersicCoefficientMinimum     
+  type            (c_ptr                     )                          :: parameterPointer                                                  
+  type            (fgsl_function             )                          :: integrandFunction                                                 
+  type            (fgsl_integration_workspace)                          :: integrationWorkspace                                              
   
-  ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.
+  ! Check if a radius was specified. Use it if so, otherwise use a midpoint radius.                                                                                                                                        
   if (present(radius)) then
      radiusActual=min(radius,radiusMaximumToTabulate)
   else
@@ -355,8 +357,8 @@ end subroutine Sersic_Profile_Tabulate
 double precision function Sersic_Coefficient_Root(coefficient)
   use Gamma_Functions
   implicit none
-  double precision, intent(in   ) :: coefficient
-  
+  double precision, intent(in   ) :: coefficient  
+                                               
   Sersic_Coefficient_Root=Gamma_Function_Incomplete(2.0d0*sersicProfileIndex,coefficient)-0.5d0
 end function Sersic_Coefficient_Root
 
@@ -365,10 +367,10 @@ function Sersic_Abel_Integrand(radius,parameterPointer) bind(c)
   use, intrinsic :: ISO_C_Binding
   use Numerical_Constants_Math
   implicit none
-  real(c_double)        :: Sersic_Abel_Integrand
-  real(c_double), value :: radius
-  type(c_ptr   ), value :: parameterPointer
-
+  real(kind=c_double)        :: Sersic_Abel_Integrand  
+  real(kind=c_double), value :: radius                 
+  type(c_ptr        ), value :: parameterPointer       
+                                                    
   if (radius > sersicRadiusStart) then
      Sersic_Abel_Integrand= (1.0d0/Pi)                                                                &
           &                *      sersicCoefficient*(radius**(1.0d0/dble(sersicProfileIndex) -1.0d0)) &
@@ -388,9 +390,9 @@ subroutine Sersic_Profile_Tabulate_State_Store(stateFile,fgslStateFile)
   !% Write the history state to file.
   use FGSL
   implicit none
-  integer           , intent(in   ) :: stateFile
-  type   (fgsl_file), intent(in   ) :: fgslStateFile
-  
+  integer           , intent(in   ) :: stateFile      
+  type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                   
   write (stateFile) sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTable3dHalfMassRadius
   return
 end subroutine Sersic_Profile_Tabulate_State_Store
@@ -402,9 +404,9 @@ subroutine Sersic_Profile_Tabulate_State_Retrieve(stateFile,fgslStateFile)
   !% Retrieve the history state from the file.
   use FGSL
   implicit none
-  integer           , intent(in   ) :: stateFile
-  type   (fgsl_file), intent(in   ) :: fgslStateFile
-  
+  integer           , intent(in   ) :: stateFile      
+  type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                   
   read (stateFile) sersicTableRadiusMinimum,sersicTableRadiusMaximum,sersicTable3dHalfMassRadius
   sersicTableInitialized=.false.
   return

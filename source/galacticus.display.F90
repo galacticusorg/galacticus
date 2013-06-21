@@ -26,22 +26,20 @@ module Galacticus_Display
   public :: Galacticus_Display_Message,Galacticus_Display_Indent,Galacticus_Display_Unindent,Galacticus_Verbosity_Level&
        &,Galacticus_Verbosity_Level_Set, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
 
-  integer                                      :: maxThreads
-  integer,           allocatable, dimension(:) :: indentationLevel
-  character(len=10), allocatable, dimension(:) :: indentationFormat
-  character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine
-
-  logical                                      :: displayInitialized=.false.
-  integer                                      :: verbosityLevel  =1
-  integer,           parameter, public         :: verbosityWorking=2, &
-       &                                          verbosityWarn   =3, &
-       &                                          verbosityInfo   =4, &
-       &                                          verbosityDebug  =5
-
+  integer                                      :: maxThreads                                                
+  integer          , allocatable, dimension(:) :: indentationLevel                                          
+  character(len=10), allocatable, dimension(:) :: indentationFormat                                         
+  character(len=10), allocatable, dimension(:) :: indentationFormatNoNewLine                                
+  
+  logical                                      :: displayInitialized        =.false.                        
+  integer                                      :: verbosityLevel            =1                              
+  integer          , parameter  , public       :: verbosityDebug            =5      , verbosityInfo   =4, & 
+       &                                          verbosityWarn             =3      , verbosityWorking=2    
+  
   ! Progress bar state.
-  logical                                      :: barVisible=.false.
-  integer                                      :: barPercentage
-
+  logical                                      :: barVisible                =.false.                        
+  integer                                      :: barPercentage                                             
+  
   interface Galacticus_Display_Message
      module procedure Galacticus_Display_Message_Char
      module procedure Galacticus_Display_Message_VarStr
@@ -65,8 +63,8 @@ contains
   subroutine Galacticus_Verbosity_Level_Set(verbosityLevelNew)
     !% Set the verbosity level.
     implicit none
-    integer, intent(in) :: verbosityLevelNew
-
+    integer, intent(in   ) :: verbosityLevelNew 
+    
     verbosityLevel=verbosityLevelNew
     return
   end subroutine Galacticus_Verbosity_Level_Set
@@ -100,9 +98,9 @@ contains
   subroutine Galacticus_Display_Indent_VarStr(message,verbosity)
     !% Increase the indentation level and display a message.
     implicit none
-    type(varying_string), intent(in)           :: message
-    integer,              intent(in), optional :: verbosity
-
+    type   (varying_string), intent(in   )           :: message   
+    integer                , intent(in   ), optional :: verbosity 
+    
     if (present(verbosity)) then
        call Galacticus_Display_Indent_Char(char(message),verbosity)
     else
@@ -114,11 +112,11 @@ contains
   subroutine Galacticus_Display_Indent_Char(message,verbosity)
     !% Increase the indentation level and display a message.
     implicit none
-    character(len=*), intent(in)           :: message
-    integer,          intent(in), optional :: verbosity
-    logical                                :: showMessage
-    integer                                :: threadNumber
-
+    character(len=*), intent(in   )           :: message      
+    integer         , intent(in   ), optional :: verbosity    
+    logical                                   :: showMessage  
+    integer                                   :: threadNumber 
+    
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
@@ -150,11 +148,11 @@ contains
   subroutine Galacticus_Display_Unindent(message,verbosity)
     !% Decrease the indentation level and display a message.
     implicit none
-    character(len=*), intent(in)           :: message
-    integer,          intent(in), optional :: verbosity
-    integer                                :: threadNumber
-    logical                                :: showMessage
-
+    character(len=*), intent(in   )           :: message      
+    integer         , intent(in   ), optional :: verbosity    
+    integer                                   :: threadNumber 
+    logical                                   :: showMessage  
+    
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
@@ -186,11 +184,11 @@ contains
   subroutine Galacticus_Display_Message_Char(message,verbosity)
     !% Display a message (input as a {\tt character} variable).
     implicit none
-    character(len=*), intent(in)           :: message
-    integer,          intent(in), optional :: verbosity
-    integer                                :: threadNumber
-    logical                                :: showMessage
-
+    character(len=*), intent(in   )           :: message      
+    integer         , intent(in   ), optional :: verbosity    
+    integer                                   :: threadNumber 
+    logical                                   :: showMessage  
+    
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
@@ -217,11 +215,11 @@ contains
   subroutine Galacticus_Display_Message_VarStr(message,verbosity)
     !% Display a message (input as a {\tt varying\_string} variable).
     implicit none
-    type(varying_string), intent(in)           :: message
-    integer,              intent(in), optional :: verbosity
-    integer                                    :: threadNumber
-    logical                                    :: showMessage
-
+    type   (varying_string), intent(in   )           :: message      
+    integer                , intent(in   ), optional :: verbosity    
+    integer                                          :: threadNumber 
+    logical                                          :: showMessage  
+    
     !$omp critical(Galacticus_Message_Lock)
     call Initialize_Display
     if (present(verbosity)) then
@@ -248,9 +246,9 @@ contains
   subroutine Create_Indentation_Format
     !% Create a format for indentation.
     implicit none
-    integer,    parameter :: indentSpaces=4
-    integer               :: threadNumber
-
+    integer, parameter :: indentSpaces=4 
+    integer            :: threadNumber   
+    
     threadNumber=1
     !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
     select case (indentationLevel(threadNumber)*indentSpaces)
@@ -275,10 +273,10 @@ contains
   subroutine Galacticus_Display_Counter(percentageComplete,isNew,verbosity)
     !% Displays a percentage counter and bar to show progress.
     implicit none
-    integer,          intent(in)           :: percentageComplete
-    logical,          intent(in)           :: isNew
-    integer,          intent(in), optional :: verbosity
-
+    integer, intent(in   )           :: percentageComplete 
+    logical, intent(in   )           :: isNew              
+    integer, intent(in   ), optional :: verbosity          
+    
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
     !$omp end critical(Galacticus_Message_Lock)
@@ -288,12 +286,12 @@ contains
   subroutine Galacticus_Display_Counter_Lockless(percentageComplete,isNew,verbosity)
     !% Displays a percentage counter and bar to show progress.
     implicit none
-    integer,          intent(in)           :: percentageComplete
-    logical,          intent(in)           :: isNew
-    integer,          intent(in), optional :: verbosity
-    character(len=50)                      :: bar
-    integer                                :: percentage,minorCount,majorCount
-    logical                                :: showMessage
+    integer          , intent(in   )           :: percentageComplete                         
+    logical          , intent(in   )           :: isNew                                      
+    integer          , intent(in   ), optional :: verbosity                                  
+    character(len=50)                          :: bar                                        
+    integer                                    :: majorCount        , minorCount, percentage 
+    logical                                    :: showMessage                                
     
     call Initialize_Display
     if (present(verbosity)) then
@@ -318,7 +316,7 @@ contains
   subroutine Galacticus_Display_Counter_Clear(verbosity)
     !% Clears a percentage counter.
     implicit none
-    integer, intent(in), optional :: verbosity
+    integer, intent(in   ), optional :: verbosity 
     
     !$omp critical(Galacticus_Message_Lock)
     call Galacticus_Display_Counter_Clear_Lockless(verbosity)
@@ -330,8 +328,8 @@ contains
   subroutine Galacticus_Display_Counter_Clear_Lockless(verbosity)
     !% Clears a percentage counter.
     implicit none
-    integer, intent(in), optional :: verbosity
-    logical                       :: showMessage
+    integer, intent(in   ), optional :: verbosity   
+    logical                          :: showMessage 
     
     call Initialize_Display
     if (present(verbosity)) then

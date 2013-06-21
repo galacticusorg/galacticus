@@ -29,8 +29,8 @@ contains
   double precision function Sine_Integral(x)
     !% Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
     implicit none
-    double precision, intent(in) :: x
-
+    double precision, intent(in   ) :: x  
+                                       
     Sine_Integral=FGSL_SF_Si(x)
     return
   end function Sine_Integral
@@ -38,8 +38,8 @@ contains
   double precision function Cosine_Integral(x)
     !% Evaluate the $\hbox{Ci}(x)\equiv\int_0^x \d t \cos(t)/t$ cosine integral.
     implicit none
-    double precision, intent(in) :: x
-
+    double precision, intent(in   ) :: x  
+                                       
     Cosine_Integral=FGSL_SF_Ci(x)
     return
   end function Cosine_Integral

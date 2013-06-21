@@ -20,10 +20,10 @@
 double precision function FormationTimeCole2000FormationTime(self)
   !% Return the {\tt formationTime} property of the {\tt formationTime} component class.
   implicit none
-  class(nodeComponentFormationTimeCole2000), intent(inout) :: self
-  type (treeNode                          ), pointer       :: selfNode,formationNode
-  class(nodeComponentFormationTime        ), pointer       :: formationTimeComponent
-
+  class(nodeComponentFormationTimeCole2000), intent(inout) :: self                              
+  type (treeNode                          ), pointer       :: formationNode         , selfNode  
+  class(nodeComponentFormationTime        ), pointer       :: formationTimeComponent            
+                                                                                             
   selfNode                          => self                  %host         ()
   formationNode                     => selfNode              %formationNode
   formationTimeComponent            => formationNode         %formationTime()

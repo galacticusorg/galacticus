@@ -28,11 +28,11 @@ program Galacticus
   use Memory_Management
   use Input_Parameters
   implicit none
-  integer,                             parameter :: fileNameLengthMaximum=1024
-  character(len=fileNameLengthMaximum)           :: parameterFileCharacter
-  type(varying_string)                           :: parameterFile
-
-  ! Show the Galacticus banner.
+  integer                             , parameter :: fileNameLengthMaximum =1024  
+  character(len=fileNameLengthMaximum)            :: parameterFileCharacter       
+  type     (varying_string           )            :: parameterFile                
+  
+  ! Show the Galacticus banner.                                                                             
   call Galacticus_Banner_Show
 
   ! Register error handlers.

@@ -25,19 +25,19 @@ module Test_Integration_Functions
   private
   public :: Integrand1, Integrand2, Integrand3, Integrand4
 
-  type(fgsl_function),              save :: integrandFunction
-  type(fgsl_integration_workspace), save :: integrationWorkspace
-  logical,                          save :: integrationReset=.true.
-  
+  type   (fgsl_function             ), save :: integrandFunction            
+  type   (fgsl_integration_workspace), save :: integrationWorkspace         
+  logical                            , save :: integrationReset    =.true.  
+                                                                         
 contains
   
   function Integrand1(x,parameterPointer) bind(c)
     !% Integral for unit testing.
     implicit none
-    real(c_double)        :: Integrand1
-    real(c_double), value :: x
-    type(c_ptr),    value :: parameterPointer
-    
+    real(kind=c_double)        :: Integrand1        
+    real(kind=c_double), value :: x                 
+    type(c_ptr        ), value :: parameterPointer  
+                                                 
     Integrand1=x
     return
   end function Integrand1
@@ -45,10 +45,10 @@ contains
   function Integrand2(x,parameterPointer) bind(c)
     !% Integral for unit testing.
     implicit none
-    real(c_double)        :: Integrand2
-    real(c_double), value :: x
-    type(c_ptr),    value :: parameterPointer
-    
+    real(kind=c_double)        :: Integrand2        
+    real(kind=c_double), value :: x                 
+    type(c_ptr        ), value :: parameterPointer  
+                                                 
     Integrand2=sin(x)
     return
   end function Integrand2
@@ -56,10 +56,10 @@ contains
   function Integrand3(x,parameterPointer) bind(c)
     !% Integral for unit testing.
     implicit none
-    real(c_double)        :: Integrand3
-    real(c_double), value :: x
-    type(c_ptr),    value :: parameterPointer
-    
+    real(kind=c_double)        :: Integrand3        
+    real(kind=c_double), value :: x                 
+    type(c_ptr        ), value :: parameterPointer  
+                                                 
     Integrand3=1.0d0/sqrt(x)
     return
   end function Integrand3
@@ -68,10 +68,10 @@ contains
     !% Integral for unit testing.
     use Numerical_Integration
     implicit none
-    real(c_double)        :: Integrand4
-    real(c_double), value :: x
-    type(c_ptr),    value :: parameterPointer
-    
+    real(kind=c_double)        :: Integrand4        
+    real(kind=c_double), value :: x                 
+    type(c_ptr        ), value :: parameterPointer  
+                                                 
     Integrand4=cos(x)*Integrate(0.0d0,x,Integrand1,parameterPointer,integrandFunction&
        &,integrationWorkspace,toleranceRelative=1.0d-6,reset=integrationReset)
     return

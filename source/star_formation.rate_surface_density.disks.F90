@@ -26,14 +26,14 @@ module Star_Formation_Rate_Surface_Density_Disks
   public :: Star_Formation_Rate_Surface_Density_Disk
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: moduleInitialized=.false.
-
-  ! Name of method to use.
-  type(varying_string) :: starFormationRateSurfaceDensityDisksMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Star_Formation_Rate_Surface_Density_Disk), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get => null()
-
+  logical                                                      :: moduleInitialized                           =.false.  
+  
+  ! Name of method to use.                                                                                                                   
+  type     (varying_string                          )          :: starFormationRateSurfaceDensityDisksMethod            
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                   
+  procedure(Star_Formation_Rate_Surface_Density_Disk), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get=>null()  
+                                                                                                                     
 contains
 
   subroutine Star_Formation_Rate_Surface_Density_Disks_Initialize
@@ -81,10 +81,10 @@ contains
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) in the disk component of
     !% {\tt thisNode} at the given {\tt radius}.
     implicit none
-    type            (treeNode), pointer, intent(inout) :: thisNode
-    double precision          ,          intent(in   ) :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Star_Formation_Rate_Surface_Density_Disks_Initialize()
     ! Get the star formation rate surface density.
     Star_Formation_Rate_Surface_Density_Disk=Star_Formation_Rate_Surface_Density_Disk_Get(thisNode,radius)

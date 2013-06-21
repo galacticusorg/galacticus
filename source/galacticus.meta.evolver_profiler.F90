@@ -25,15 +25,15 @@ module Galacticus_Meta_Evolver_Profiler
   public :: Galacticus_Meta_Evolver_Profile, Galacticus_Meta_Evolver_Profiler_Output
 
   ! Arrays used to store profiling data.  
-  logical                                     :: metaProfileInitialized=.false.
-  double precision                            :: metaProfileTimeStepMinimum,metaProfileTimeStepMaximum
-  integer                                     :: metaProfileTimeStepPointsPerDecade,metaProfileTimeStepPoints
-  double precision, dimension(:), allocatable :: metaProfileTimeStep
-  integer,          dimension(:), allocatable :: metaProfileTimeStepCount
-
+  logical                                                        :: metaProfileInitialized    =.false.                                     
+  double precision                                               :: metaProfileTimeStepMaximum        , metaProfileTimeStepMinimum         
+  integer                                                        :: metaProfileTimeStepPoints         , metaProfileTimeStepPointsPerDecade 
+  double precision                   , allocatable, dimension(:) :: metaProfileTimeStep                                                    
+  integer                            , allocatable, dimension(:) :: metaProfileTimeStepCount                                               
+  
   ! Hash for storing property hits.
-  type(integerScalarHash)                     :: propertyHits
-
+  type            (integerScalarHash)                            :: propertyHits                                                           
+  
 contains
   
   subroutine Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
@@ -44,10 +44,10 @@ contains
     use ISO_Varying_String
     use Arrays_Search
     implicit none
-    double precision,     intent(in) :: timeStep
-    type(varying_string), intent(in) :: propertyName
-    integer                          :: iStep,hitCount
-
+    double precision                , intent(in   ) :: timeStep            
+    type            (varying_string), intent(in   ) :: propertyName        
+    integer                                         :: hitCount    , iStep 
+    
     !$omp critical (Meta_Profile_Record)
     if (.not.metaProfileInitialized) then
        ! Get parameters controlling profiling.
@@ -122,10 +122,11 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    type(varying_string), allocatable, dimension(:) :: metaProfilePropertyNames
-    integer,              allocatable, dimension(:) :: metaProfilePropertyHitCount
-    type(hdf5Object)                                :: metaDataGroup,profilerDataGroup,metaDataDataset
-
+    type   (varying_string), allocatable, dimension(:) :: metaProfilePropertyNames                      
+    integer                , allocatable, dimension(:) :: metaProfilePropertyHitCount                   
+    type   (hdf5Object    )                            :: metaDataDataset            , metaDataGroup, & 
+         &                                                profilerDataGroup                             
+    
     ! Output tree evolution meta-data if any was collected.
     if (metaProfileInitialized) then
        

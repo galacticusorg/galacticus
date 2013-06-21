@@ -27,23 +27,20 @@ module Cooling_Specific_Angular_Momenta_Constant_Rotation
   public :: Cooling_Specific_AM_Constant_Rotation_Initialize, Cooling_Specific_AM_Constant_Rotation_Reset
 
   ! Record of unique ID of node which we last computed results for.
-  integer(kind=kind_int8)    :: lastUniqueID=-1
+  integer         (kind=kind_int8)            :: lastUniqueID                          =-1                                 
   !$omp threadprivate(lastUniqueID)
-
   ! Record of whether or not specific angular momentum of cooling has has already been computed for this node.
-  logical                    :: coolingSpecificAngularMomentumComputed=.false.
+  logical                                     :: coolingSpecificAngularMomentumComputed=.false.                            
   !$omp threadprivate(coolingSpecificAngularMomentumComputed)
-
   ! Stored values of specific angular momentum of cooling gas.
-  double precision           :: coolingSpecificAngularMomentumStored
+  double precision                            :: coolingSpecificAngularMomentumStored                                      
   !$omp threadprivate(coolingSpecificAngularMomentumStored)
-
   ! Parameters controlling the calculation.
-  integer,         parameter :: profileDarkMatter=0
-  integer,         parameter :: profileHotGas    =1
-  integer                    :: meanSpecificAngularMomentumFrom,rotationNormalizationFrom
-  logical                    :: coolingAngularMomentumUseInteriorMean
-
+  integer                         , parameter :: profileDarkMatter                     =0                                  
+  integer                         , parameter :: profileHotGas                         =1                                  
+  integer                                     :: meanSpecificAngularMomentumFrom               , rotationNormalizationFrom 
+  logical                                     :: coolingAngularMomentumUseInteriorMean                                     
+  
 contains
 
   !# <coolingSpecificAngularMomentumMethod>
@@ -54,10 +51,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: coolingSpecificAngularMomentumMethod
-    procedure(Cooling_Specific_Angular_Momentum_Constant_Rotation), pointer, intent(inout) :: Cooling_Specific_Angular_Momentum_Get
-    type(varying_string)                                :: inputOption    
-
+    type     (varying_string                                     ), intent(in   )          :: coolingSpecificAngularMomentumMethod  
+    procedure(Cooling_Specific_Angular_Momentum_Constant_Rotation), intent(inout), pointer :: Cooling_Specific_Angular_Momentum_Get 
+    type     (varying_string                                     )                         :: inputOption                           
+    
     if (coolingSpecificAngularMomentumMethod == 'constantRotation') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Constant_Rotation
 
@@ -122,8 +119,8 @@ contains
     !% Reset the specific angular momentum of cooling gas calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     coolingSpecificAngularMomentumComputed=.false.
     lastUniqueID                          =thisNode%uniqueID()
     return
@@ -137,13 +134,13 @@ contains
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    double precision           , intent(in   )          :: radius
-    class(nodeComponentBasic  ),                pointer :: thisBasicComponent
-    class(nodeComponentSpin   ),                pointer :: thisSpinComponent
-    class(nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-    double precision                                    :: meanSpecificAngularMomentum,rotationNormalization
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                           
+    double precision                      , intent(in   )          :: radius                                             
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                                 
+    class           (nodeComponentSpin   )               , pointer :: thisSpinComponent                                  
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                               
+    double precision                                               :: meanSpecificAngularMomentum, rotationNormalization 
+    
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Cooling_Specific_AM_Constant_Rotation_Reset(thisNode)
 

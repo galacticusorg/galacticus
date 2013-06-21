@@ -35,13 +35,13 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    class  (nodeEvent     ),          intent(in   ) :: thisEvent
-    type   (treeNode      ), pointer, intent(inout) :: thisNode
-    integer                ,          intent(inout) :: deadlockStatus
-    type   (treeNode      ), pointer                :: newHost,lastSatellite
-    type   (varying_string)                         :: message
-
-    ! If the node is not yet a satellite, wait until it is before peforming this task.
+    class  (nodeEvent     ), intent(in   )          :: thisEvent                
+    type   (treeNode      ), intent(inout), pointer :: thisNode                 
+    integer                , intent(inout)          :: deadlockStatus           
+    type   (treeNode      )               , pointer :: lastSatellite , newHost  
+    type   (varying_string)                         :: message                  
+    
+    ! If the node is not yet a satellite, wait until it is before peforming this task.                                                                         
     if (.not.thisNode%isSatellite()) then
        Node_Branch_Jump=.false.
        return

@@ -25,11 +25,11 @@ program Test_Abundances
   use Input_Parameters
   use Abundances_Structure
   implicit none
-  type(varying_string)               :: parameterFile
-  type(abundances    )               :: abundances1,abundances2,abundances3
-  double precision    , dimension(5) :: abundancesArray
-
-  ! Read in basic code memory usage.
+  type            (varying_string)               :: parameterFile                              
+  type            (abundances    )               :: abundances1    , abundances2, abundances3  
+  double precision                , dimension(5) :: abundancesArray                            
+  
+  ! Read in basic code memory usage.                                                                                          
   call Code_Memory_Usage('tests.abundances.size')
 
   ! Begin unit tests.

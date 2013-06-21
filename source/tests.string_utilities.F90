@@ -24,11 +24,11 @@ program Test_String_Utilities
   use String_Handling
   use Kind_Numbers
   implicit none
-  character(len=20),    dimension(3) :: words
-  type(varying_string), dimension(3) :: myStrings
-  type(varying_string)               :: myString1,myString2
-
-  ! Begin unit tests.
+  character(len=20        ), dimension(3) :: words                 
+  type     (varying_string), dimension(3) :: myStrings             
+  type     (varying_string)               :: myString1, myString2  
+  
+  ! Begin unit tests.                                                              
   call Unit_Tests_Begin_Group("String handling utilities")
   
   ! Test word counting.

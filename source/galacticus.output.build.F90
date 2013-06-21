@@ -31,7 +31,7 @@ module Galacticus_Build
      function GSL_Get_Version() bind(c,name='GSL_Get_Version')
        !% Template for a C function that returns the GSL version string.
        import
-       type(c_ptr) :: GSL_Get_Version
+       type(c_ptr) :: GSL_Get_Version 
      end function GSL_Get_Version
   end interface
 
@@ -53,15 +53,22 @@ contains
     use FGSL
     use File_Utilities
     implicit none
-    character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
-    type(varying_string),         dimension(1)          :: changeSet
-    integer,                      parameter             :: versionStringlengthMaximum=10
-    type(hdf5Object)                                    :: buildGroup
-    integer                                             :: hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError,iChr
-    type(c_ptr)                                         :: charVersionPointer
-    type(varying_string)                                :: versionString,PREPROCESSOR,FCCOMPILER,CCOMPILER,CPPCOMPILER,MODULETYPE,FCFLAGS &
-      &  ,FCFLAGS_NOOPT,CFLAGS,CPPFLAGS,LIBS,FCCOMPILER_VERSION,CCOMPILER_VERSION,CPPCOMPILER_VERSION
-
+    character(kind=c_char,len=1), dimension(:), pointer :: charVersionString                                    
+    type     (varying_string   ), dimension(1)          :: changeSet                                            
+    integer                     , parameter             :: versionStringlengthMaximum=10                        
+    type     (hdf5Object       )                        :: buildGroup                                           
+    integer                                             :: hdfError                     , hdfVersionMajor   , & 
+         &                                                 hdfVersionMinor              , hdfVersionRelease , & 
+         &                                                 iChr                                                 
+    type     (c_ptr            )                        :: charVersionPointer                                   
+    type     (varying_string   )                        :: CCOMPILER                    , CCOMPILER_VERSION , & 
+         &                                                 CFLAGS                       , CPPCOMPILER       , & 
+         &                                                 CPPCOMPILER_VERSION          , CPPFLAGS          , & 
+         &                                                 FCCOMPILER                   , FCCOMPILER_VERSION, & 
+         &                                                 FCFLAGS                      , FCFLAGS_NOOPT     , & 
+         &                                                 LIBS                         , MODULETYPE        , & 
+         &                                                 PREPROCESSOR                 , versionString         
+    
     ! Include build environment definitions.
     include 'galacticus.output.build.environment.inc' ! NO_USES
 

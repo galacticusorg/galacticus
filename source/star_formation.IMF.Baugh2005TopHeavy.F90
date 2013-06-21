@@ -27,18 +27,19 @@ module Star_Formation_IMF_Baugh2005TopHeavy
        & Star_Formation_IMF_Maximum_Mass_Baugh2005TopHeavy , Star_Formation_IMF_Phi_Baugh2005TopHeavy
 
   ! Index assigned to this IMF.
-  integer :: imfIndex=-1
-
-  ! Flag indicating if the module has been initialized.
-  logical :: imfBaugh2005TopHeavyInitialized=.false.
-
-  ! Parameters of the IMF.
-  double precision :: imfBaugh2005TopHeavyRecycledInstantaneous, imfBaugh2005TopHeavyYieldInstantaneous
-
-  ! Fixed parameters of the IMF.
-  integer,          parameter                :: imfPieceCount=1
-  double precision, dimension(imfPieceCount) :: massLower=[0.15d0],massUpper=[125.0d0],massExponent=[-1.0d0],imfNormalization
-
+  integer                                    :: imfIndex                                 =-1                                                             
+  
+  ! Flag indicating if the module has been initialized.                                                                                                                                                    
+  logical                                    :: imfBaugh2005TopHeavyInitialized          =.false.                                                        
+  
+  ! Parameters of the IMF.                                                                                                                                                    
+  double precision                           :: imfBaugh2005TopHeavyRecycledInstantaneous         , imfBaugh2005TopHeavyYieldInstantaneous               
+  
+  ! Fixed parameters of the IMF.                                                                                                                                                    
+  integer         , parameter                :: imfPieceCount                            =1                                                              
+  double precision, dimension(imfPieceCount) :: imfNormalization                                  , massExponent                          =[-1.0d0]  , & 
+       &                                        massLower                                =[0.15d0], massUpper                             =[125.0d0]     
+                                                                                                                                                      
 contains
 
   !# <imfRegister>
@@ -47,8 +48,8 @@ contains
   subroutine Star_Formation_IMF_Register_Baugh2005TopHeavy(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount
-
+    integer, intent(inout) :: imfAvailableCount  
+                                              
     imfAvailableCount=imfAvailableCount+1
     imfIndex         =imfAvailableCount
     return
@@ -61,8 +62,8 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfNames(:),imfDescriptors(:)
-
+    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)  
+                                                                        
     imfNames      (imfIndex)="Baugh2005TopHeavy"
     imfDescriptors(imfIndex)="Baugh2005TopHeavy"
     return
@@ -118,10 +119,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_Baugh2005TopHeavy(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: minimumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: minimumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        minimumMass=massLower(1)
@@ -136,10 +137,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_Baugh2005TopHeavy(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: maximumMass
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: maximumMass  
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        maximumMass=massUpper(imfPieceCount)
@@ -155,11 +156,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(in)    :: initialMass
-    double precision, intent(out)   :: imfPhi
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(in   ) :: initialMass  
+    double precision, intent(  out) :: imfPhi       
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
@@ -174,10 +175,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_Baugh2005TopHeavy(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: recycledFraction
-
+    integer         , intent(in   ) :: imfSelected       
+    logical         , intent(inout) :: imfMatched        
+    double precision, intent(  out) :: recycledFraction  
+                                                      
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        recycledFraction=imfBaugh2005TopHeavyRecycledInstantaneous
@@ -192,10 +193,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_Baugh2005TopHeavy(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer,          intent(in)    :: imfSelected
-    logical,          intent(inout) :: imfMatched
-    double precision, intent(out)   :: yield
-
+    integer         , intent(in   ) :: imfSelected  
+    logical         , intent(inout) :: imfMatched   
+    double precision, intent(  out) :: yield        
+                                                 
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        yield=imfBaugh2005TopHeavyYieldInstantaneous
@@ -213,11 +214,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer,          intent(in)                               :: imfSelected
-    logical,          intent(inout)                            :: imfMatched
-    double precision, intent(inout), allocatable, dimension(:) :: imfMass,imfPhi
-    integer,          parameter                                :: nPoints=100
-
+    integer                                    , intent(in   ) :: imfSelected              
+    logical                                    , intent(inout) :: imfMatched               
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi  
+    integer         , parameter                                :: nPoints    =100          
+                                                                                        
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Baugh2005TopHeavy
        call Alloc_Array(imfMass,[nPoints])

@@ -27,14 +27,14 @@ module Black_Hole_Binary_Recoil_Velocities
   public :: Black_Hole_Binary_Recoil_Velocity
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                               :: blackHoleBinaryRecoilVelocityInitialized=.false.
-
-  ! Name of mass movement method used.
-  type(varying_string)                                  :: blackHoleBinaryRecoilVelocityMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Black_Hole_Binary_Recoil_Velocity), pointer :: Black_Hole_Binary_Recoil_Velocity_Get => null()
+  logical                                               :: blackHoleBinaryRecoilVelocityInitialized=.false.  
   
+  ! Name of mass movement method used.                                                                                                        
+  type     (varying_string                   )          :: blackHoleBinaryRecoilVelocityMethod               
+  
+  ! Pointer to the subroutine that returns descriptors for mass movement.                                                                                                        
+  procedure(Black_Hole_Binary_Recoil_Velocity), pointer :: Black_Hole_Binary_Recoil_Velocity_Get   =>null()  
+                                                                                                          
 contains
 
   double precision function Black_Hole_Binary_Recoil_Velocity(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
@@ -46,8 +46,8 @@ contains
     include 'black_holes.binary.recoil_velocity.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
-
+    double precision, intent(in   ) :: massBlackHole1, massBlackHole2, spinBlackHole1, spinBlackHole2  
+                                                                                                    
     if (.not.blackHoleBinaryRecoilVelocityInitialized) then
        !$omp critical(blackHoleBinaryRecoilVelocityInitialize)
        if (.not.blackHoleBinaryRecoilVelocityInitialized) then

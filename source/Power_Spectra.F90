@@ -25,11 +25,11 @@ program Power_Spectra
   use Memory_Management
   use Power_Spectrum_Tasks
   implicit none
-  integer,                             parameter :: fileNameLengthMaximum=1024
-  character(len=fileNameLengthMaximum)           :: fileCharacter
-  type(varying_string)                           :: parameterFile,powerSpectrumOutputFileName
-
-  ! Read in basic code memory usage.
+  integer                             , parameter :: fileNameLengthMaximum=1024                               
+  character(len=fileNameLengthMaximum)            :: fileCharacter                                            
+  type     (varying_string           )            :: parameterFile             , powerSpectrumOutputFileName  
+  
+  ! Read in basic code memory usage.                                                                                                         
   call Code_Memory_Usage('Power_Spectra.size')
 
   ! Get the name of the parameter file from the first command line argument.

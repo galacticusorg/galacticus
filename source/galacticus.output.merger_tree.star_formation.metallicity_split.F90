@@ -24,22 +24,23 @@ module Star_Formation_Histories_Metallicity_Split
   public :: Star_Formation_Histories_Metallicity_Split_Initialize
 
   ! Parameters controlling the tabulation of star formation rate history.
-  integer                                     :: starFormationHistoryMetallicityCount
-  double precision                            :: starFormationHistoryTimeStep,starFormationHistoryFineTimeStep&
-       &,starFormationHistoryFineTime,starFormationHistoryMetallicityMinimum,starFormationHistoryMetallicityMaximum
-
+  integer                                     :: starFormationHistoryMetallicityCount                                                                                          
+  double precision                            :: starFormationHistoryFineTime                  , starFormationHistoryFineTimeStep                                          , & 
+       &                                         starFormationHistoryMetallicityMaximum        , starFormationHistoryMetallicityMinimum                                    , & 
+       &                                         starFormationHistoryTimeStep                                                                                                  
+  
   ! Array of metallicities at which to tabulate.
-  double precision, allocatable, dimension(:) :: metallicityTable
-  double precision, parameter                 :: metallicityInfinite=1.0d30 ! Effective infinite metallicity.
-
+  double precision, allocatable, dimension(:) :: metallicityTable                                                                                                              
+  double precision, parameter                 :: metallicityInfinite                   =1.0d30                                          !   Effective infinite metallicity.    
+  
   ! Flag indicating if metallicity data has been written.
-  logical                                     :: metallicityTableWritten=.false.
-
+  logical                                     :: metallicityTableWritten               =.false.                                                                                
+  
   ! Type used to store timestep range information.
   type timeStepRange
-     integer                      :: count
-     double precision             :: timeBegin,timeEnd
-     type(timeStepRange), pointer :: next
+     integer                                  :: count              
+     double precision                         :: timeBegin, timeEnd 
+     type            (timeStepRange), pointer :: next               
   end type timeStepRange
 
 contains
@@ -56,11 +57,11 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: starFormationHistoriesMethod
-    procedure(Star_Formation_History_Create_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Create_Do
-    procedure(Star_Formation_History_Scales_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Scales_Do
-    procedure(Star_Formation_History_Record_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Record_Do 
-    procedure(Star_Formation_History_Output_Metallicity_Split),          pointer, intent(inout) :: Star_Formation_History_Output_Do
+    type     (varying_string                                 ), intent(in   )          :: starFormationHistoriesMethod     
+    procedure(Star_Formation_History_Create_Metallicity_Split), intent(inout), pointer :: Star_Formation_History_Create_Do 
+    procedure(Star_Formation_History_Scales_Metallicity_Split), intent(inout), pointer :: Star_Formation_History_Scales_Do 
+    procedure(Star_Formation_History_Record_Metallicity_Split), intent(inout), pointer :: Star_Formation_History_Record_Do 
+    procedure(Star_Formation_History_Output_Metallicity_Split), intent(inout), pointer :: Star_Formation_History_Output_Do 
     
     if (starFormationHistoriesMethod == 'metallicitySplit') then
        ! Associate procedure pointers.
@@ -167,11 +168,11 @@ contains
     use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (history           ), intent(inout)          :: thisHistory
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    double precision                                  :: timeBegin,timeEnd
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                    
+    type            (history           ), intent(inout)          :: thisHistory                 
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent          
+    double precision                                             :: timeBegin         , timeEnd 
+    
     ! Find the start and end times for this history.
     thisBasicComponent => thisNode%basic()
     timeBegin=thisBasicComponent%time()
@@ -188,14 +189,15 @@ contains
     use Galacticus_Output_Times
     use Galacticus_Error
     implicit none
-    type(history),       intent(inout)                       :: thisHistory
-    double precision,    intent(in)                          :: timeBegin,timeEnd
-    double precision,    intent(in),  dimension(:), optional :: currentTimes
-    type(timeStepRange), pointer                             :: firstTimeStep,thisTimeStep,nextTimeStep
-    integer                                                  :: timeCount,coarseTimeCount,fineTimeCount
-    logical                                                  :: gotFirstTimeStep
-    double precision                                         :: timeFineBegin,timeCoarseBegin,timeCoarseEnd,timeNow,timeNext
-
+    type            (history      )              , intent(inout)           :: thisHistory                                                 
+    double precision                             , intent(in   )           :: timeBegin       , timeEnd                                   
+    double precision               , dimension(:), intent(in   ), optional :: currentTimes                                                
+    type            (timeStepRange), pointer                               :: firstTimeStep   , nextTimeStep , thisTimeStep               
+    integer                                                                :: coarseTimeCount , fineTimeCount, timeCount                  
+    logical                                                                :: gotFirstTimeStep                                            
+    double precision                                                       :: timeCoarseBegin , timeCoarseEnd, timeFineBegin, timeNext, & 
+         &                                                                    timeNow                                                     
+    
     ! Exit with a null history if it would contain no time.
     if (timeEnd <= timeBegin) then
        call thisHistory%destroy()
@@ -331,14 +333,14 @@ contains
     use Arrays_Search
     use Galacticus_Output_Times
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    type (history           ), intent(inout)          :: thisHistory
-    type (abundances        ), intent(in   )          :: fuelAbundances
-    double precision         , intent(in   )          :: starFormationRate
-    class(nodeComponentBasic),                pointer :: thisBasicComponent
-    integer                                           :: iHistory,iMetallicity,historyCount
-    double precision                                  :: timeNode,fuelMetallicity
-
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                   
+    type            (history           ), intent(inout)          :: thisHistory                                
+    type            (abundances        ), intent(in   )          :: fuelAbundances                             
+    double precision                    , intent(in   )          :: starFormationRate                          
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                         
+    integer                                                      :: historyCount      , iHistory, iMetallicity 
+    double precision                                             :: fuelMetallicity   , timeNode               
+    
     ! Get the current time for this node.
     thisBasicComponent => thisNode%basic()
     timeNode=thisBasicComponent%time()
@@ -374,19 +376,19 @@ contains
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    type     (treeNode          ), intent(inout), pointer :: thisNode
-    logical                      , intent(in   )          :: nodePassesFilter
-    type     (history           ), intent(inout)          :: thisHistory
-    integer                      , intent(in   )          :: iOutput
-    integer  (kind=kind_int8    ), intent(in   )          :: treeIndex
-    character(len=*             ), intent(in   )          :: componentLabel
-    class    (nodeComponentBasic),                pointer :: parentBasicComponent
-    type     (treeNode          ),                pointer :: parentNode
-    double precision                                      :: timeBegin,timeEnd
-    type     (varying_string    )                         :: groupName
-    type     (hdf5Object        )                         :: historyGroup,treeGroup,outputGroup
-    type     (history           )                         :: newHistory
- 
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                     
+    logical                             , intent(in   )          :: nodePassesFilter                             
+    type            (history           ), intent(inout)          :: thisHistory                                  
+    integer                             , intent(in   )          :: iOutput                                      
+    integer         (kind=kind_int8    ), intent(in   )          :: treeIndex                                    
+    character       (len=*             ), intent(in   )          :: componentLabel                               
+    class           (nodeComponentBasic)               , pointer :: parentBasicComponent                         
+    type            (treeNode          )               , pointer :: parentNode                                   
+    double precision                                             :: timeBegin           , timeEnd                
+    type            (varying_string    )                         :: groupName                                    
+    type            (hdf5Object        )                         :: historyGroup        , outputGroup, treeGroup 
+    type            (history           )                         :: newHistory                                   
+    
     ! Return if the history does not exist.
     if (.not.thisHistory%exists()) return
 
@@ -457,13 +459,13 @@ contains
     use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision            , intent(in   )             :: stellarMass
-    type            (abundances), intent(in   )             :: stellarAbundances
-    type            (history   ), intent(inout)             :: thisHistory
-    double precision            , parameter                 :: stellarMassMinimum=1.0d0
-    double precision            , dimension(:), allocatable :: timeSteps
-    integer                                                 :: iMetallicity
-
+    double precision            , intent(in   )               :: stellarMass              
+    type            (abundances), intent(in   )               :: stellarAbundances        
+    type            (history   ), intent(inout)               :: thisHistory              
+    double precision            , parameter                   :: stellarMassMinimum=1.0d0 
+    double precision            , allocatable  , dimension(:) :: timeSteps                
+    integer                                                   :: iMetallicity             
+    
     ! Return immediately if the history does not exist.
     if (.not.thisHistory%exists()) return
 

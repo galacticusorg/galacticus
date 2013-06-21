@@ -25,18 +25,19 @@ module Stellar_Astrophysics_Tracks_File
   public :: Stellar_Tracks_Initialize_File
 
   ! Variables to hold stellar track data.
-  double precision, allocatable :: stellarTrackLogMetallicities(:),stellarTrackInitialMasses(:,:),stellarTrackLuminosities(:,:,:)&
-       &,stellarTrackTemperatures(:,:,:),stellarTrackAges(:,:,:)
-  integer,          allocatable :: stellarTrackInitialMassCount(:),stellarTrackAgesCount(:,:)
-  integer                       :: stellarTrackMetallicityCount
-
+  double precision                   , allocatable :: stellarTrackAges                   (:,:,:)       , stellarTrackInitialMasses   (:,:  ), & 
+       &                                              stellarTrackLogMetallicities       (:    )       , stellarTrackLuminosities    (:,:,:), & 
+       &                                              stellarTrackTemperatures           (:,:,:)                                                
+  integer                            , allocatable :: stellarTrackAgesCount              (:,:  )       , stellarTrackInitialMassCount(:    )    
+  integer                                          :: stellarTrackMetallicityCount                                                              
+  
   ! Interpolation objects.
-  type(fgsl_interp_accel)       :: interpolationAcceleratorMetallicity
-  logical                       :: interpolationResetMetallicity=.true.
-
+  type            (fgsl_interp_accel)              :: interpolationAcceleratorMetallicity                                                       
+  logical                                          :: interpolationResetMetallicity             =.true.                                         
+  
   ! The current file format version.
-  integer,          parameter   :: fileFormatVersionCurrent=1
-
+  integer                            , parameter   :: fileFormatVersionCurrent                  =1                                              
+  
 contains
 
   !# <stellarTracksMethod>
@@ -52,14 +53,16 @@ contains
     use Input_Parameters
     use String_Handling
     implicit none
-    type     (varying_string  ),          intent(in   ) :: stellarTracksMethod
-    procedure(double precision), pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
-    type     (varying_string  )                         :: stellarTracksFile,groupName
-    integer                                             :: initialMassCount,initialMassCountMaximum ,ageCountMaximum&
-         &,metallicityCountMaximum,fileFormatVersion
-    type     (hdf5Object      )                         :: stellarTracks,metallicityGroup,massGroup,ageDataset
-    logical                                             :: foundMetallicityGroup,foundMassGroup
-
+    type     (varying_string  ), intent(in   )          :: stellarTracksMethod                                           
+    procedure(double precision), intent(inout), pointer :: Stellar_Effective_Temperature_Get, Stellar_Luminosity_Get     
+    type     (varying_string  )                         :: groupName                        , stellarTracksFile          
+    integer                                             :: ageCountMaximum                  , fileFormatVersion      , & 
+         &                                                 initialMassCount                 , initialMassCountMaximum, & 
+         &                                                 metallicityCountMaximum                                       
+    type     (hdf5Object      )                         :: ageDataset                       , massGroup              , & 
+         &                                                 metallicityGroup                 , stellarTracks              
+    logical                                             :: foundMassGroup                   , foundMetallicityGroup      
+    
     ! Check if our method is selected.
     if (stellarTracksMethod == 'file') then
        ! Set up procedure pointers.
@@ -180,11 +183,15 @@ contains
   double precision function Stellar_Luminosity_File(initialMass,metallicity,age)
     !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity,age
-    integer                      :: interpolationIndicesMetallicity(2),interpolationIndicesMass(2,2),interpolationIndicesAge(2,2,2)
-    double precision             :: interpolationFactorsMetallicity(2),interpolationFactorsMass(2,2),interpolationFactorsAge(2,2,2)
-    logical                      :: metallicityOutOfRange,massOutOfRange,ageOutOfRange
-
+    double precision, intent(in   ) :: age                                   , initialMass                  , & 
+         &                             metallicity                                                              
+    integer                         :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), & 
+         &                             interpolationIndicesMetallicity(2    )                                   
+    double precision                :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), & 
+         &                             interpolationFactorsMetallicity(2    )                                   
+    logical                         :: ageOutOfRange                         , massOutOfRange               , & 
+         &                             metallicityOutOfRange                                                    
+    
     ! Get the interpolating factors.
     call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
          &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
@@ -205,11 +212,15 @@ contains
   double precision function Stellar_Effective_Temperature_File(initialMass,metallicity,age)
     !% Return the effective temperature (in Kelvin) for a star of given {\tt initialMass}, {\tt metallicity} and {\tt age}.
     implicit none
-    double precision, intent(in) :: initialMass,metallicity,age
-    integer                      :: interpolationIndicesMetallicity(2),interpolationIndicesMass(2,2),interpolationIndicesAge(2,2,2)
-    double precision             :: interpolationFactorsMetallicity(2),interpolationFactorsMass(2,2),interpolationFactorsAge(2,2,2)
-    logical                      :: metallicityOutOfRange,massOutOfRange,ageOutOfRange
-
+    double precision, intent(in   ) :: age                                   , initialMass                  , & 
+         &                             metallicity                                                              
+    integer                         :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), & 
+         &                             interpolationIndicesMetallicity(2    )                                   
+    double precision                :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), & 
+         &                             interpolationFactorsMetallicity(2    )                                   
+    logical                         :: ageOutOfRange                         , massOutOfRange               , & 
+         &                             metallicityOutOfRange                                                    
+    
     ! Get the interpolating factors.
     call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
          &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
@@ -232,11 +243,15 @@ contains
        &,stellarTracks)
     !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\tt stellarTracks}.
     implicit none
-    integer,          intent(in) :: interpolationIndicesMetallicity(2),interpolationIndicesMass(2,2),interpolationIndicesAge(2,2,2)
-    double precision, intent(in) :: interpolationFactorsMetallicity(2),interpolationFactorsMass(2,2),interpolationFactorsAge(2,2,2)
-    double precision, intent(in) :: stellarTracks(:,:,:)
-    integer                      :: iMetallicity,iMass,iAge,jMetallicity,jMass,jAge
-
+    integer         , intent(in   ) :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), & 
+         &                             interpolationIndicesMetallicity(2    )                                   
+    double precision, intent(in   ) :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), & 
+         &                             interpolationFactorsMetallicity(2    )                                   
+    double precision, intent(in   ) :: stellarTracks                  (:,:,:)                                   
+    integer                         :: iAge                                  , iMass                        , & 
+         &                             iMetallicity                          , jAge                         , & 
+         &                             jMass                                 , jMetallicity                     
+    
     Stellar_Tracks_Interpolation_Do=0.0d0
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
@@ -259,18 +274,21 @@ contains
     !% Get interpolating factors for stellar tracks.
     use Numerical_Interpolation
     implicit none
-    double precision,        intent(in)  :: initialMass,metallicity,age
-    integer,                 intent(out) :: interpolationIndicesMetallicity(2),interpolationIndicesMass(2,2),interpolationIndicesAge(2,2,2)
-    double precision,        intent(out) :: interpolationFactorsMetallicity(2),interpolationFactorsMass(2,2),interpolationFactorsAge(2,2,2)
-    logical,                 intent(out) :: metallicityOutOfRange,massOutOfRange,ageOutOfRange
-    integer                              :: iMetallicity,jMetallicity,iMass,jMass
-    double precision                     :: logMetallicity
-    type(fgsl_interp_accel), save        :: interpolationAcceleratorMass,interpolationAcceleratorAge
-    logical,                 save        :: interpolationResetMass=.true.,interpolationResetAge=.true.
+    double precision                         , intent(in   ) :: age                                          , initialMass                             , & 
+         &                                                      metallicity                                                                                
+    integer                                  , intent(  out) :: interpolationIndicesAge        (2,2,2)       , interpolationIndicesMass    (2,2)       , & 
+         &                                                      interpolationIndicesMetallicity(2    )                                                     
+    double precision                         , intent(  out) :: interpolationFactorsAge        (2,2,2)       , interpolationFactorsMass    (2,2)       , & 
+         &                                                      interpolationFactorsMetallicity(2    )                                                     
+    logical                                  , intent(  out) :: ageOutOfRange                                , massOutOfRange                          , & 
+         &                                                      metallicityOutOfRange                                                                      
+    integer                                                  :: iMass                                        , iMetallicity                            , & 
+         &                                                      jMass                                        , jMetallicity                                
+    double precision                                         :: logMetallicity                                                                             
+    type            (fgsl_interp_accel), save                :: interpolationAcceleratorAge                  , interpolationAcceleratorMass                
+    logical                            , save                :: interpolationResetAge                 =.true., interpolationResetMass           =.true.    
     !$omp threadprivate(interpolationAcceleratorMass,interpolationAcceleratorAge,interpolationResetMass,interpolationResetAge)
-
     !$omp critical (Stellar_Tracks_Interpolate)
-
     ! Assume everything is in range initially.
     metallicityOutOfRange=.false.
     massOutOfRange       =.false.

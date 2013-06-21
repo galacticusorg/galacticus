@@ -26,17 +26,17 @@ module Dark_Matter_Halos_Mass_Loss_Rates
   public :: Dark_Matter_Halos_Mass_Loss_Rate
   
   ! Flag to indicate if this module has been initialized.  
-  logical              :: darkMatterHaloMassLossRateInitialized=.false.
-
-  ! Name of mass loss rate method used.
-  type(varying_string) :: darkMatterHaloMassLossRateMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Halo_Mass_Loss_Rate_Template), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get => null()
+  logical                                                      :: darkMatterHaloMassLossRateInitialized=.false.  
+  
+  ! Name of mass loss rate method used.                                                                                                            
+  type     (varying_string                          )          :: darkMatterHaloMassLossRateMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                            
+  procedure(Dark_Matter_Halo_Mass_Loss_Rate_Template), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get =>null()  
   abstract interface
      double precision function Dark_Matter_Halo_Mass_Loss_Rate_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Dark_Matter_Halo_Mass_Loss_Rate_Template
   end interface
 
@@ -84,9 +84,9 @@ contains
   double precision function Dark_Matter_Halos_Mass_Loss_Rate(thisNode)
     !% Returns the rate of mass loss (in $M_\odot$/Gyr) from {\tt thisNode}.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Dark_Matter_Halo_Mass_Loss_Rates_Initialize
 
     ! Get the energy using the selected method.

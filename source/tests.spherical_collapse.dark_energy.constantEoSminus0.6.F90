@@ -29,13 +29,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   use Cosmology_Functions
   use Virial_Density_Contrast
   implicit none
-  double precision         , dimension(3) :: redshift                     =[  0.00d0,  1.00d0,  2.00d0]
-  double precision         , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
-  type     (varying_string)               :: parameterFile
-  character(len=1024      )               :: message
-  integer                                 :: iExpansion
-  double precision                        :: age,expansionFactor,virialDensityContrast
-
+  double precision                , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]                           
+  double precision                , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]                     
+  type            (varying_string)               :: parameterFile                                                                  
+  character       (len=1024      )               :: message                                                                        
+  integer                                        :: iExpansion                                                                     
+  double precision                               :: age                                                       , expansionFactor, & 
+       &                                            virialDensityContrast                                                          
+  
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminus0.6.size')
 

@@ -29,27 +29,27 @@ module Stellar_Population_Spectra
   public :: Stellar_Population_Spectrum, Stellar_Population_Spectrum_Tabulation
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: stellarPopulationSpectraInitialized=.false.
-
-  ! Name of cooling time available method used.
-  type(varying_string) :: stellarPopulationSpectraMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get => null()
+  logical                                                      :: stellarPopulationSpectraInitialized=.false.  
+  
+  ! Name of cooling time available method used.                                                                                                          
+  type     (varying_string                          )          :: stellarPopulationSpectraMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                          
+  procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get    =>null()  
   abstract interface
      double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex)
        import abundances
-       type(abundances), intent(in) :: abundancesStellar
-       double precision, intent(in) :: age,wavelength
-       integer,          intent(in) :: imfIndex
+       type            (abundances), intent(in   ) :: abundancesStellar              
+       double precision            , intent(in   ) :: age              , wavelength  
+       integer                     , intent(in   ) :: imfIndex                       
      end function Stellar_Population_Spectrum_Get_Template
   end interface
-  procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get => null()
+  procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get=>null()  
   abstract interface
      subroutine Stellar_Population_Tabulation_Get_Template(imfIndex,agesCount,metallicitiesCount,ages,metallicity)
-       integer,          intent(in)                             :: imfIndex
-       integer,          intent(out)                            :: agesCount,metallicitiesCount
-       double precision, intent(out), allocatable, dimension(:) :: ages,metallicity
+       integer                                    , intent(in   ) :: imfIndex                       
+       integer                                    , intent(  out) :: agesCount, metallicitiesCount  
+       double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity         
      end subroutine Stellar_Population_Tabulation_Get_Template
   end interface
  
@@ -96,11 +96,11 @@ contains
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms).
     implicit none
-    type(abundances), intent(in) :: abundancesStellar
-    double precision, intent(in) :: age,wavelength
-    integer,          intent(in) :: imfIndex
+    type            (abundances), intent(in   ) :: abundancesStellar              
+    double precision            , intent(in   ) :: age              , wavelength  
+    integer                     , intent(in   ) :: imfIndex                       
     
-    ! Initialize the module.
+    ! Initialize the module.                                                                           
     call Stellar_Population_Spectrum_Initialize
     
     ! Get the spectrum using the selected method.
@@ -112,11 +112,11 @@ contains
   subroutine Stellar_Population_Spectrum_Tabulation(imfIndex,agesCount,metallicitiesCount,age,metallicity)
     !% Return a tabulation of ages and metallicities at which stellar spectra for the specified IMF should be tabulated.
     implicit none
-    integer,          intent(in)                             :: imfIndex
-    integer,          intent(out)                            :: agesCount,metallicitiesCount
-    double precision, intent(out), allocatable, dimension(:) :: age,metallicity
+    integer                                    , intent(in   ) :: imfIndex                       
+    integer                                    , intent(  out) :: agesCount, metallicitiesCount  
+    double precision, allocatable, dimension(:), intent(  out) :: age      , metallicity         
     
-    ! Initialize the module.
+    ! Initialize the module.                                                                                          
     call Stellar_Population_Spectrum_Initialize
     
     ! Get the tabulation using the selected method.

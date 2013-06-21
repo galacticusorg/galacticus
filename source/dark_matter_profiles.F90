@@ -29,35 +29,34 @@ module Dark_Matter_Profiles
        & Dark_Matter_Profile_Freefall_Radius,Dark_Matter_Profile_Freefall_Radius_Increase_Rate, Dark_Matter_Profile_Density
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: darkMatterProfileInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: darkMatterProfileMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get => null()
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Get                 => null()
-  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get     => null()
+  logical                                          :: darkMatterProfileInitialized                  =.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                         
+  type     (varying_string              )          :: darkMatterProfileMethod                                 
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                         
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Rotation_Normalization_Get=>null()  
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Get                =>null()  
+  procedure(Dark_Matter_Profile_Template), pointer :: Dark_Matter_Profile_Energy_Growth_Rate_Get    =>null()  
   abstract interface
      double precision function Dark_Matter_Profile_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end function Dark_Matter_Profile_Template
   end interface
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get =>&
-       & null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get             => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get                     => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get                 => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get                        => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get                       => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Get               => null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get => null()
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get=>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get                    =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get                            =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get                        =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get                               =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get                              =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Get                      =>null()  
+  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get        =>null()  
   abstract interface
      double precision function Dark_Matter_Profile_Parameter_Template(thisNode,inputParameter)
        import treeNode
-       type(treeNode),   intent(inout), pointer :: thisNode
-       double precision, intent(in)             :: inputParameter
+       type            (treeNode), intent(inout), pointer :: thisNode        
+       double precision          , intent(in   )          :: inputParameter  
      end function Dark_Matter_Profile_Parameter_Template
   end interface
 
@@ -116,10 +115,10 @@ contains
     !% Returns the radius (in Mpc) in the dark matter profile of {\tt thisNode} at which the specific angular momentum of a
     !% circular orbit equals {\tt specificAngularMomentum} (specified in units of km s$^{-1}$ Mpc.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: specificAngularMomentum
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode                 
+    double precision          , intent(in   )          :: specificAngularMomentum  
+    
+    ! Initialize the module.                                                                            
     call Dark_Matter_Profile_Initialize
 
     ! Get the energy using the selected method.
@@ -133,10 +132,10 @@ contains
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
     !% in units of Mpc).
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the enclosed mass using the selected method.
@@ -149,10 +148,10 @@ contains
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the enclosed mass using the selected method.
@@ -165,10 +164,10 @@ contains
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the circular velocity using the selected method.
@@ -181,10 +180,10 @@ contains
     !% Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius}
     !% (given in units of Mpc).
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: radius
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: radius    
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the circular velocity using the selected method.
@@ -197,9 +196,9 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in
     !% radius) for {\tt thisNode}. Specifically, the normalization, $A$, returned is such that $V_{\rm rot} = A J/M$.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Dark_Matter_Profile_Initialize
 
     ! Get the energy using the selected method.
@@ -211,9 +210,9 @@ contains
   double precision function Dark_Matter_Profile_Energy(thisNode)
     !% Returns the total energy of {\tt thisNode} in units of $M_\odot$ km$^2$ s$^{-1}$.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Dark_Matter_Profile_Initialize
 
     ! Get the energy using the selected method.
@@ -225,9 +224,9 @@ contains
   double precision function Dark_Matter_Profile_Energy_Growth_Rate(thisNode)
     !% Returns the rate of chance of the total energy of {\tt thisNode} in units of $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
-    ! Initialize the module.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize the module.                                                 
     call Dark_Matter_Profile_Initialize
 
     ! Get the energy using the selected method.
@@ -240,10 +239,10 @@ contains
     !% Returns the normalized Fourier space density profile of the dark matter profile of {\tt thisNode} at the given {\tt waveNumber}
     !% (given in units of Mpc$^{-1}$).
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: waveNumber
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode    
+    double precision          , intent(in   )          :: waveNumber  
+    
+    ! Initialize the module.                                                               
     call Dark_Matter_Profile_Initialize
 
     ! Get the circular velocity using the selected method.
@@ -255,10 +254,10 @@ contains
   double precision function Dark_Matter_Profile_Freefall_Radius(thisNode,time)
     !% Returns the freefall radius (in Mpc) corresponding to the given {\tt time} (in Gyr) in {\tt thisNode}.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: time
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: time      
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the freefall radius using the selected method.
@@ -271,10 +270,10 @@ contains
     !% Returns the rate of increase of the freefall radius (in Mpc/Gyr) corresponding to the given {\tt time} (in Gyr) in {\tt
     !% thisNode}.
     implicit none
-    type(treeNode),   pointer, intent(inout) :: thisNode
-    double precision,          intent(in)    :: time
-
-    ! Initialize the module.
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(in   )          :: time      
+    
+    ! Initialize the module.                                                             
     call Dark_Matter_Profile_Initialize
 
     ! Get the increase rate using the selected method.

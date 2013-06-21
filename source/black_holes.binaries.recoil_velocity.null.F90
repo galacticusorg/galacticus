@@ -36,9 +36,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: blackHoleBinaryRecoilVelocityMethod
-    procedure(double precision), pointer, intent(inout) :: Black_Hole_Binary_Recoil_Velocity_Get
-    
+    type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod    
+    procedure(double precision), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get  
+                                                                                               
     if (blackHoleBinaryRecoilVelocityMethod == 'null') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Null
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Null_Initialize
@@ -46,8 +46,8 @@ contains
   double precision function Black_Hole_Binary_Recoil_Velocity_Null(massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2)
     !% Returns a zero recoil velocity for black hole binary mergers.
     implicit none
-    double precision, intent(in) :: massBlackHole1,massBlackHole2,spinBlackHole1,spinBlackHole2
-    
+    double precision, intent(in   ) :: massBlackHole1, massBlackHole2, spinBlackHole1, spinBlackHole2  
+                                                                                                    
     Black_Hole_Binary_Recoil_Velocity_Null=0.0d0
     return
   end function Black_Hole_Binary_Recoil_Velocity_Null

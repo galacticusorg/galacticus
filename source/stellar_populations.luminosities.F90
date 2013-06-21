@@ -28,30 +28,29 @@ module Stellar_Population_Luminosities
 
   type luminosityTable
      !% Structure for holding tables of simple stellar population luminosities.
-     integer                                         :: agesCount,metallicitiesCount
-     logical,          allocatable, dimension(:)     :: isTabulated
-     double precision, allocatable, dimension(:)     :: age,metallicity
-     double precision, allocatable, dimension(:,:,:) :: luminosity
+     integer                                                            :: agesCount                         , metallicitiesCount                         
+     logical                            , allocatable, dimension(:)     :: isTabulated                                                                    
+     double precision                   , allocatable, dimension(:)     :: age                               , metallicity                                
+     double precision                   , allocatable, dimension(:,:,:) :: luminosity                                                                     
      ! Interpolation structures.
-     logical                                         :: resetAge=.true., resetMetallicity=.true.
-     type(fgsl_interp_accel)                         :: interpolationAcceleratorAge,interpolationAcceleratorMetallicity
+     logical                                                            :: resetAge                   =.true., resetMetallicity                   =.true. 
+     type            (fgsl_interp_accel)                                :: interpolationAcceleratorAge       , interpolationAcceleratorMetallicity        
     end type luminosityTable
   
   ! Array of simple stellar population luminosity tables.
-  type(luminosityTable), allocatable, dimension(:) :: luminosityTables
-
+  type            (luminosityTable), allocatable, dimension(:) :: luminosityTables                                                                  
+  
   ! Module global variables used in integrations.
-  double precision          :: ageTabulate,redshiftTabulate
-  integer                   :: filterIndexTabulate,imfIndexTabulate
-  type(abundances)          :: abundancesTabulate
+  double precision                                             :: ageTabulate                                                    , redshiftTabulate 
+  integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate 
+  type            (abundances     )                            :: abundancesTabulate                                                                
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
-
   ! Flag indicating if this module has been initialized yet.
-  logical                   :: moduleInitialized=.false.
+  logical                                                      :: moduleInitialized                                      =.false.                   
   
   ! Tolerance used in integrations.
-  double precision          :: stellarPopulationLuminosityIntegrationToleranceRelative
-
+  double precision                                             :: stellarPopulationLuminosityIntegrationToleranceRelative                           
+  
 contains
   
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundancesStellar,age,redshift)
@@ -70,25 +69,28 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    integer,                   intent(in)                                    :: luminosityIndex(:),filterIndex(:),imfIndex
-    double precision,          intent(in)                                    :: age(:),redshift(:)
-    type(abundances),          intent(in)                                    :: abundancesStellar
-    double precision,                       dimension(size(luminosityIndex)) :: Stellar_Population_Luminosity
-    type(luminosityTable),     allocatable, dimension(:)                     :: luminosityTablesTemporary
-    double precision,          allocatable, dimension(:,:,:)                 :: luminosityTemporary
-    logical,                   allocatable, dimension(:)                     :: isTabulatedTemporary
-    double precision,                       dimension(2)                     :: wavelengthRange
-    double precision,                       dimension(0:1)                   :: hAge,hMetallicity
-    integer                                                                  :: iLuminosity,iAge,iMetallicity,jAge,jMetallicity
-    logical                                                                  :: computeTable
-    double precision                                                         :: normalization,metallicity,ageLast
-    type(c_ptr)                                                              :: parameterPointer                         
-    type(fgsl_function)                                                      :: integrandFunction
-    type(fgsl_integration_workspace)                                         :: integrationWorkspace
-    type(varying_string)                                                     :: message
-
-    ! Determine if we have created space for this IMF yet.
-    !$omp critical (Luminosity_Tables_Initialize)
+    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex       , & 
+         &                                                                                                        luminosityIndex              (:)                     
+    double precision                                                                           , intent(in   ) :: age                          (:), redshift    (:)    
+    type            (abundances                )                                               , intent(in   ) :: abundancesStellar                                    
+    double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity                        
+    type            (luminosityTable           ), allocatable, dimension(:)                                    :: luminosityTablesTemporary                            
+    double precision                            , allocatable, dimension(:,:,:)                                :: luminosityTemporary                                  
+    logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary                                 
+    double precision                                         , dimension(2)                                    :: wavelengthRange                                      
+    double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity       
+    integer                                                                                                    :: iAge                            , iLuminosity    , & 
+         &                                                                                                        iMetallicity                    , jAge           , & 
+         &                                                                                                        jMetallicity                                         
+    logical                                                                                                    :: computeTable                                         
+    double precision                                                                                           :: ageLast                         , metallicity    , & 
+         &                                                                                                        normalization                                        
+    type            (c_ptr                     )                                                               :: parameterPointer                                     
+    type            (fgsl_function             )                                                               :: integrandFunction                                    
+    type            (fgsl_integration_workspace)                                                               :: integrationWorkspace                                 
+    type            (varying_string            )                                                               :: message                                              
+    
+    ! Determine if we have created space for this IMF yet.    !$omp critical (Luminosity_Tables_Initialize)
     if (.not.moduleInitialized) then
        ! Read the parameter controlling integration tolerance.
        !@ <inputParameter>
@@ -279,18 +281,12 @@ contains
     use Stellar_Population_Spectra_Postprocess
     use Instruments_Filters
     implicit none
-    real(c_double)         :: Filter_Luminosity_Integrand
-    real(c_double),  value :: wavelength
-    type(c_ptr),     value :: parameterPointer
-    double precision       :: wavelengthRedshifted
-
-    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum
-    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be
-    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =
-    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the
-    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response
-    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a
-    ! bolometer/calorimeter type detector).
+    real            (kind=c_double)        :: Filter_Luminosity_Integrand 
+    real            (kind=c_double), value :: wavelength                  
+    type            (c_ptr        ), value :: parameterPointer            
+    double precision                       :: wavelengthRedshifted        
+    
+    ! If this luminosity is for a redshifted spectrum, then we shift wavelength at which we sample the stellar population spectrum    ! to be a factor of (1+z) smaller. We therefore integrate over the stellar SED at shorter wavelengths, since these will be    ! shifted into the filter by z=0. Factor of 1/wavelength appears since we want to integrate F_nu (dnu / nu) and dnu =    ! -c/lambda^2 dlambda. Note that we follow the convention of Hogg et al. (2002) and assume that the filter response gives the    ! fraction of incident photons received by the detector at a given wavelength, multiplied by the relative photon response    ! (which will be 1 for a photon-counting detector such as a CCD, or proportional to the photon energy for a    ! bolometer/calorimeter type detector).
     wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
     Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
          &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(wavelengthRedshifted,redshiftTabulate)/wavelength
@@ -302,12 +298,12 @@ contains
     use Instruments_Filters
     use Numerical_Constants_Astronomical
     implicit none
-    real(c_double)              :: Filter_Luminosity_Integrand_AB
-    real(c_double),   value     :: wavelength
-    type(c_ptr),      value     :: parameterPointer
+    real            (kind=c_double)            :: Filter_Luminosity_Integrand_AB                                       
+    real            (kind=c_double), value     :: wavelength                                                           
+    type            (c_ptr        ), value     :: parameterPointer                                                     
     ! Luminosity of a zeroth magintude (AB) source in Solar luminosities per Hz.
-    double precision, parameter :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
-
+    double precision               , parameter :: luminosityZeroPointABSolar    =luminosityZeroPointAB/luminositySolar 
+    
     Filter_Luminosity_Integrand_AB=Filter_Response(filterIndexTabulate,wavelength)*luminosityZeroPointABSolar/wavelength
     return
   end function Filter_Luminosity_Integrand_AB

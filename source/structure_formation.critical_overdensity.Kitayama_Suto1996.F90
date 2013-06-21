@@ -24,9 +24,9 @@ module Critical_Overdensities_Kitayama_Suto1996
   public :: Critical_Overdensity_Kitayama_Suto1996_Initialize
 
   ! Variables to hold the tabulated critical overdensity data.
-  double precision            :: deltaTableTimeMinimum=1.0d0, deltaTableTimeMaximum=20.0d0
-  integer,          parameter :: deltaTableNPointsPerDecade=100
-
+  double precision            :: deltaTableTimeMaximum     =20.0d0, deltaTableTimeMinimum=1.0d0  
+  integer         , parameter :: deltaTableNPointsPerDecade=100                                  
+                                                                                              
 contains
 
   !# <criticalOverdensityMethod>
@@ -40,9 +40,9 @@ contains
     use Galacticus_Error
     use Cosmological_Parameters
    implicit none
-    type     (varying_string                        ),          intent(in   ) :: criticalOverdensityMethod
-    procedure(Critical_Overdensity_Kitayama_Suto1996), pointer, intent(inout) :: Critical_Overdensity_Contrast_Tabulate
-    
+    type     (varying_string                        ), intent(in   )          :: criticalOverdensityMethod               
+    procedure(Critical_Overdensity_Kitayama_Suto1996), intent(inout), pointer :: Critical_Overdensity_Contrast_Tabulate  
+                                                                                                                      
     if (criticalOverdensityMethod == 'Kitayama-Suto1996') then
        Critical_Overdensity_Contrast_Tabulate => Critical_Overdensity_Kitayama_Suto1996
        ! Check that fitting formula is applicable to this cosmology.
@@ -58,11 +58,11 @@ contains
     use Linear_Growth
     use Tables
     implicit none
-    double precision         , intent(in   )              :: time
-    class           (table1D), intent(inout), allocatable :: deltaTable
-    integer                                               :: iTime,deltaTableNumberPoints
-
-    ! Find minimum and maximum times to tabulate.
+    double precision                      , intent(in   ) :: time                           
+    class           (table1D), allocatable, intent(inout) :: deltaTable                     
+    integer                                               :: deltaTableNumberPoints, iTime  
+    
+    ! Find minimum and maximum times to tabulate.                                                                                     
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
     

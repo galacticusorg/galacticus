@@ -24,10 +24,10 @@ module Transfer_Function_Null
   public :: Transfer_Function_Null_Initialize
 
   ! Wavenumber range and fineness of gridding.
-  double precision            :: logWavenumberMaximum=log(10.0d0)
-  double precision            :: logWavenumberMinimum=log(1.0d-5)
-  integer         , parameter :: numberPointsPerDecade=1000
-
+  double precision            :: logWavenumberMaximum =log(10.0d0)  
+  double precision            :: logWavenumberMinimum =log(1.0d-5)  
+  integer         , parameter :: numberPointsPerDecade=1000         
+                                                                 
 contains
   
   !# <transferFunctionMethod>
@@ -37,9 +37,9 @@ contains
     !% Initializes the ``null transfer function'' module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string             ),          intent(in   ) :: transferFunctionMethod
-    procedure(Transfer_Function_Null_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
-    
+    type     (varying_string             ), intent(in   )          :: transferFunctionMethod      
+    procedure(Transfer_Function_Null_Make), intent(inout), pointer :: Transfer_Function_Tabulate  
+                                                                                               
     if (transferFunctionMethod == 'null') Transfer_Function_Tabulate => Transfer_Function_Null_Make
     return
   end subroutine Transfer_Function_Null_Initialize
@@ -51,11 +51,11 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision,                            intent(in   ) :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
-    integer,                                     intent(  out) :: transferFunctionNumberPoints
- 
-    ! Set wavenumber range and number of points in table.
+    double precision                           , intent(in   ) :: logWavenumber                                                
+    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber  
+    integer                                    , intent(  out) :: transferFunctionNumberPoints                                 
+    
+    ! Set wavenumber range and number of points in table.                                                                                                                        
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
     logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
     transferFunctionNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(numberPointsPerDecade)/ln10)

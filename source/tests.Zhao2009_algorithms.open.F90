@@ -36,18 +36,22 @@ program Test_Zhao2009_Open
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type (mergerTree        ), pointer                 :: thisTree
-  type (treeNode          ), pointer                 :: thisNode
-  class(nodeComponentBasic), pointer                 :: thisBasicComponent
-  integer                  , parameter, dimension(1) :: logarithmicHaloMasses           =[12    ]
-  double precision         , parameter, dimension(1) :: timeDifferenceTolerance         =[2.3d-2],&
-       & concentrationDifferenceTolerance=[3.6d-2]
-  type (varying_string    )                          :: parameterFile,fileName,message
-  integer                                            :: fUnit,totalLinesInFile,dataLinesInFile,iLine,iMass
-  double precision                                   :: redshift,haloMass,theirConcentration,theirTime,ourConcentration,ourTime &
-       &,timeDifferenceMaximum,concentrationDifferenceMaximum
-
-  ! Read in basic code memory usage.
+  type            (mergerTree        )                         , pointer :: thisTree                                                                        
+  type            (treeNode          )                         , pointer :: thisNode                                                                        
+  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent                                                              
+  integer                             , dimension(1), parameter          :: logarithmicHaloMasses           =[12]                                           
+  double precision                    , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.6d-2], timeDifferenceTolerance=[2.3d-2]     
+  type            (varying_string    )                                   :: fileName                                 , message                          , & 
+       &                                                                    parameterFile                                                                   
+  integer                                                                :: dataLinesInFile                          , fUnit                            , & 
+       &                                                                    iLine                                    , iMass                            , & 
+       &                                                                    totalLinesInFile                                                                
+  double precision                                                       :: concentrationDifferenceMaximum           , haloMass                         , & 
+       &                                                                    ourConcentration                         , ourTime                          , & 
+       &                                                                    redshift                                 , theirConcentration               , & 
+       &                                                                    theirTime                                , timeDifferenceMaximum                
+  
+  ! Read in basic code memory usage.                                                                                                                                                       
   call Code_Memory_Usage('tests.Zhao2009_algorithms.open.size')
 
   ! Begin unit tests.

@@ -24,15 +24,14 @@ program Tests_Cosmic_Age_EdS
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift=[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  double precision, parameter, dimension(8) :: ageEdS  =[0.6518682071d0,0.2304700578d0,0.0814833670d0,0.0206137656d0&
-       &,0.0037766710d0,0.0006421713d0,0.0001248044d0,0.0000205705d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: age,expansionFactor
-
-  ! Read in basic code memory usage.
+  double precision                , dimension(8), parameter :: redshift     =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                                                                                   
+  double precision                , dimension(8), parameter :: ageEdS       =[0.6518682071d0,0.2304700578d0,0.0814833670d0,0.0206137656d0,0.0037766710d0,0.0006421713d0,0.0001248044d0,0.0000205705d0]                   
+  type            (varying_string)                          :: parameterFile                                                                                                                                             
+  character       (len=1024      )                          :: message                                                                                                                                                   
+  integer                                                   :: iExpansion                                                                                                                                                
+  double precision                                          :: age                                                                                                                                    , expansionFactor  
+  
+  ! Read in basic code memory usage.                                                                                                                                                                                                                    
   call Code_Memory_Usage('tests.cosmic_age.EdS.size')
 
   ! Begin unit tests.

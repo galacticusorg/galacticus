@@ -34,10 +34,10 @@ contains
     !% Initialize the critical overdensity excursion set barrier module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: excursionSetBarrierMethod
-    procedure(double precision), pointer, intent(inout) :: Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get
-    type(varying_string),                 intent(inout) :: barrierName
-
+    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod                                        
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get  
+    type     (varying_string  ), intent(inout)          :: barrierName                                                      
+                                                                                                                         
     if (excursionSetBarrierMethod == 'criticalOverdensity') then
        Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Critical_Overdensity
        Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Critical_Overdensity
@@ -52,9 +52,9 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    double precision, intent(in) :: variance,time
-    double precision             :: mass
-
+    double precision, intent(in   ) :: time, variance  
+    double precision                :: mass            
+                                                    
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
        Excursion_Sets_Barrier_Critical_Overdensity=Critical_Overdensity_for_Collapse(time=time          )
@@ -72,9 +72,9 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    double precision, intent(in) :: variance,time
-    double precision             :: mass,alpha
-
+    double precision, intent(in   ) :: time , variance  
+    double precision                :: alpha, mass      
+                                                     
     if (variance <= 0.0d0) then
        ! Return zero critical overdensity gradient at this time for infinite mass.
        Excursion_Sets_Barrier_Gradient_Critical_Overdensity=0.0d0

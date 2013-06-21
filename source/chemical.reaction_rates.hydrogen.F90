@@ -28,21 +28,21 @@ module Chemical_Hydrogen_Rates
   public :: Chemical_Hydrogen_Rates_Initialize, Chemical_Hydrogen_Rates_Compute
 
   ! Flag indicating if these rates have been selected.
-  logical          :: ratesSelected=.false.
-
+  logical          :: ratesSelected             =.false.                               
+  
   ! Flag indicating whether fast rate calculations should be used.
-  logical          :: hydrogenNetworkFast
-
+  logical          :: hydrogenNetworkFast                                              
+  
   ! Flag indicating whether to use CMB only when computing rates for some radiative processes.
-  logical          :: hydrogenNetworkCMBOnly
-
+  logical          :: hydrogenNetworkCMBOnly                                           
+  
   ! Indices of chemicals.
-  integer          :: atomicHydrogenIndex,atomicHydrogenCationIndex,electronIndex,atomicHydrogenAnionIndex
-
+  integer          :: atomicHydrogenAnionIndex          , atomicHydrogenCationIndex, & 
+       &              atomicHydrogenIndex               , electronIndex                
+  
   ! Density of atomic hydrogen anion to use in all rate calculations.
-  double precision :: densityAtomicHydrogenAnion
+  double precision :: densityAtomicHydrogenAnion                                       
   !$omp threadprivate(densityAtomicHydrogenAnion)
-
 contains
 
   !# <chemicalReactionRates>
@@ -54,8 +54,8 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string), intent(in) :: chemicalReactionRatesMethods(:)
- 
+    type(varying_string), intent(in   ) :: chemicalReactionRatesMethods(:) 
+    
     ! Check if this cooling function has been selected.
     if (any(chemicalReactionRatesMethods == 'hydrogenNetwork')) then
        ! Flag that these rates have been selected.
@@ -118,12 +118,12 @@ contains
     use Radiation_Structure
     use Galacticus_Error
     implicit none
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    double precision                                 :: creationTerm,destructionTerm
-
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensity                  
+    double precision                    , intent(in   ) :: temperature                      
+    type            (radiationStructure), intent(in   ) :: radiation                        
+    type            (chemicalAbundances), intent(inout) :: chemicalRates                    
+    double precision                                    :: creationTerm   , destructionTerm 
+    
     ! Return if not selected.
     if (.not.ratesSelected) return
 
@@ -181,14 +181,15 @@ contains
     use Radiation_Structure
     use Atomic_Rates_Ionization_Collisional
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                       
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                         
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                   
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                     
+    logical                             , save                :: reactionActive                   =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                             
+    double precision                                          :: rate                                     , rateCoefficient                        
+    
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
        !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
@@ -232,16 +233,16 @@ contains
     use Radiation_Structure
     use Atomic_Rates_Recombination_Radiative
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
+    double precision                          , intent(in   ) :: temperature                                                                       
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                         
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                   
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                     
+    logical                             , save                :: reactionActive                   =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                             
+    double precision                                          :: rate                                     , rateCoefficient                        
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -280,14 +281,15 @@ contains
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                      
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                        
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                  
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                    
+    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                            
+    double precision                                          :: rate                                    , rateCoefficient                        
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -331,11 +333,11 @@ contains
   double precision function H_Electron_to_Hminus_Photon_Rate_Coefficient(temperature)
     !% Computes the rate coefficient (in units of cm$^3$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
     implicit none
-    double precision, intent(in) :: temperature
-    double precision, save       :: temperaturePrevious,rateCoefficientStored
+    double precision, intent(in   ) :: temperature                                
+    double precision, save          :: rateCoefficientStored, temperaturePrevious 
     !$omp threadprivate(temperaturePrevious,rateCoefficientStored)
-    double precision             :: log10Temperature
-
+    double precision                :: log10Temperature                           
+    
     ! Determine if we need to recompute the rate coefficient.
     if (temperature /= temperaturePrevious) then
        ! Store the new temperature.
@@ -364,17 +366,16 @@ contains
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex&
-         &,electronChemicalIndex,atomicHydrogenAnionChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
+    double precision                          , intent(in   ) :: temperature                                                                      
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                        
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                  
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                    
+    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , & 
+         &                                                       chemicalHydrogenChemicalIndex           , electronChemicalIndex                  
+    double precision                                          :: rate                                    , rateCoefficient                        
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -423,8 +424,8 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision, intent(in) :: temperature
-    double precision             :: temperatureElectronVolts,logNaturalTemperatureElectronVolts
+    double precision, intent(in   ) :: temperature                                                  
+    double precision                :: logNaturalTemperatureElectronVolts, temperatureElectronVolts 
     
     ! Compute the temperature in electron volts.
     temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
@@ -457,15 +458,16 @@ contains
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
-         &,chemicalHydrogenCationChemicalIndex
-    double precision                                 :: temperatureElectronVolts,rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                         
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                           
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                     
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                       
+    logical                             , save                :: reactionActive                     =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex        , & 
+         &                                                       chemicalHydrogenCationChemicalIndex                                                 
+    double precision                                          :: rate                                       , rateCoefficient                    , & 
+         &                                                       temperatureElectronVolts                                                            
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -517,16 +519,16 @@ contains
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
-         &,chemicalHydrogenChemicalIndex,chemicalHydrogenCationChemicalIndex
-    double precision,                  parameter     :: rateCoefficient=6.4d-10
-    double precision                                 :: rate
-
+    double precision                               , intent(in   ) :: temperature                                                                           
+    type            (radiationStructure)           , intent(in   ) :: radiation                                                                             
+    type            (chemicalAbundances)           , intent(in   ) :: chemicalDensity                                                                       
+    type            (chemicalAbundances)           , intent(inout) :: chemicalRates                                                                         
+    logical                             , save                     :: reactionActive                     =.false., reactionInitialized          =.false.    
+    integer                             , save                     :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , & 
+         &                                                            chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex            
+    double precision                    , parameter                :: rateCoefficient                    =6.4d-10                                           
+    double precision                                               :: rate                                                                                  
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -575,18 +577,17 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: chemicalHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
-         &,chemicalHydrogenCationChemicalIndex,atomicHydrogenChemicalIndex
-    double precision                                 :: temperatureElectronVolts,logNaturalTemperatureElectronVolts &
-         &,rateCoefficient,rate
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+    double precision                          , intent(in   ) :: temperature                                                                           
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                             
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                       
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                         
+    logical                             , save                :: reactionActive                     =.false., reactionInitialized          =.false.    
+    integer                             , save                :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , & 
+         &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex            
+    double precision                                          :: logNaturalTemperatureElectronVolts         , rate                                 , & 
+         &                                                       rateCoefficient                            , temperatureElectronVolts                 
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
@@ -649,16 +650,16 @@ contains
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+    double precision                          , intent(in   ) :: temperature                                                                   
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                     
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                               
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                 
+    logical                             , save                :: reactionActive             =.false., reactionInitialized          =.false.    
+    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                         
+    double precision                                          :: rate                               , rateCoefficient                          
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
@@ -701,14 +702,15 @@ contains
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex
-    double precision                                 :: temperatureElectronVolts,log10Temperature,rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                   
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                     
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                               
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                 
+    logical                             , save                :: reactionActive             =.false., reactionInitialized          =.false.    
+    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex            
+    double precision                                          :: log10Temperature                   , rate                                 , & 
+         &                                                       rateCoefficient                    , temperatureElectronVolts                 
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -760,14 +762,15 @@ contains
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                      
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                        
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                  
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                    
+    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                            
+    double precision                                          :: rate                                    , rateCoefficient                        
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -813,9 +816,9 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision, intent(in) :: temperature
-    double precision             :: temperatureElectronVolts,logNaturalTemperatureElectronVolts
-
+    double precision, intent(in   ) :: temperature                                                  
+    double precision                :: logNaturalTemperatureElectronVolts, temperatureElectronVolts 
+    
     ! Compute the temperature in electron volts.
     temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
     logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
@@ -842,15 +845,16 @@ contains
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex,electronChemicalIndex
-    double precision                                 :: temperatureElectronVolts,logNaturalTemperatureElectronVolts&
-         &,rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                        
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                          
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                    
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                      
+    logical                             , save                :: reactionActive                    =.false., reactionInitialized        =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex          , atomicHydrogenChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                              
+    double precision                                          :: logNaturalTemperatureElectronVolts        , rate                               , & 
+         &                                                       rateCoefficient                           , temperatureElectronVolts               
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -914,15 +918,15 @@ contains
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenAnionChemicalIndex&
-         &,atomicHydrogenCationChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                            
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                              
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                        
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                          
+    logical                             , save                :: reactionActive                  =.false., reactionInitialized              =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , & 
+         &                                                       atomicHydrogenChemicalIndex                                                            
+    double precision                                          :: rate                                    , rateCoefficient                              
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -966,7 +970,7 @@ contains
   double precision function Hminus_Hplus_to_2H_Rate_Coefficient(temperature)
     !% Compute the rate coefficient (in units of c$^3$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     implicit none
-    double precision, intent(in) :: temperature
+    double precision, intent(in   ) :: temperature 
     
     Hminus_Hplus_to_2H_Rate_Coefficient=7.0d-8/sqrt(temperature/100.0d0)
     return
@@ -978,15 +982,16 @@ contains
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenCationChemicalIndex,atomicHydrogenAnionChemicalIndex&
-         &,chemicalHydrogenCationChemicalIndex,electronChemicalIndex
-    double precision                                 :: temperatureElectronVolts,rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                               
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                                 
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                           
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                             
+    logical                             , save                :: reactionActive                     =.false., reactionInitialized              =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenCationChemicalIndex        , & 
+         &                                                       chemicalHydrogenCationChemicalIndex        , electronChemicalIndex                        
+    double precision                                          :: rate                                       , rateCoefficient                          , & 
+         &                                                       temperatureElectronVolts                                                                  
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -1044,14 +1049,15 @@ contains
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenCationChemicalIndex,electronChemicalIndex
-    double precision                                 :: rateCoefficient,rate
-
+    double precision                          , intent(in   ) :: temperature                                                                         
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                           
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                     
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                       
+    logical                             , save                :: reactionActive             =.false., reactionInitialized                =.false.    
+    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , & 
+         &                                                       electronChemicalIndex                                                               
+    double precision                                          :: rate                               , rateCoefficient                                
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -1099,15 +1105,15 @@ contains
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$.
     use Radiation_Structure
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: chemicalHydrogenCationChemicalIndex,atomicHydrogenAnionChemicalIndex&
-         &,chemicalHydrogenChemicalIndex,atomicHydrogenChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
+    double precision                          , intent(in   ) :: temperature                                                                           
+    type            (radiationStructure)      , intent(in   ) :: radiation                                                                             
+    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity                                                                       
+    type            (chemicalAbundances)      , intent(inout) :: chemicalRates                                                                         
+    logical                             , save                :: reactionActive                     =.false., reactionInitialized          =.false.    
+    integer                             , save                :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , & 
+         &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex            
+    double precision                                          :: rate                                       , rateCoefficient                          
+    
     ! If using the fast network, this reaction is ignored so simply return in such cases.
     if (hydrogenNetworkFast) return
 
@@ -1160,22 +1166,20 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                              
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                                
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                          
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                            
     ! Energy range for the cross-section.
-    double precision,                  parameter     :: crossSectionEnergyLow     =0.755d0
+    double precision                          , parameter                :: crossSectionEnergyLow           =0.755d0                                                                                                                 
     ! Wavelength range for the cross-section.
-    double precision,                  parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyLow
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: atomicHydrogenAnionChemicalIndex,electronChemicalIndex&
-         &,atomicHydrogenChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
+    double precision                          , parameter                :: crossSectionWavelengthHigh      =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow                                         
+    logical                             , save                           :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.    
+    integer                             , save                           :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , & 
+         &                                                                  electronChemicalIndex                                                                                                                                    
+    double precision                                                     :: rate                                                                                                            , rateCoefficient                        
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
@@ -1225,10 +1229,10 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: wavelength
-    double precision, parameter  :: energyThreshold=0.755d0
-    double precision             :: energy
-
+    double precision, intent(in   ) :: wavelength              
+    double precision, parameter     :: energyThreshold=0.755d0 
+    double precision                :: energy                  
+    
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
 
@@ -1247,25 +1251,22 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                                  
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                                    
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                              
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                                
     ! Energy range for the cross-section.
-    double precision,                  parameter     :: crossSectionEnergyLow     = 2.65d0
-    double precision,                  parameter     :: crossSectionEnergyHigh    =21.00d0
+    double precision                          , parameter                :: crossSectionEnergyLow              =2.65d0                                                                                                                   
+    double precision                          , parameter                :: crossSectionEnergyHigh             =21.00d0                                                                                                                  
     ! Wavelength range for the cross-section.
-    double precision,                  parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyHigh
-    double precision,                  parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyLow
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: chemicalHydrogenCationChemicalIndex,atomicHydrogenCationChemicalIndex&
-         &,atomicHydrogenChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
+    double precision                          , parameter                :: crossSectionWavelengthLow          =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh                                         
+    double precision                          , parameter                :: crossSectionWavelengthHigh         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow                                          
+    logical                             , save                           :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.    
+    integer                             , save                           :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , & 
+         &                                                                  chemicalHydrogenCationChemicalIndex                                                                                                                          
+    double precision                                                     :: rate                                                                                                                , rateCoefficient                        
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
@@ -1313,9 +1314,9 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: wavelength
-    double precision             :: energy
-
+    double precision, intent(in   ) :: wavelength 
+    double precision                :: energy     
+    
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
 
@@ -1346,21 +1347,19 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
-    integer,                           save          :: chemicalHydrogenChemicalIndex,atomicHydrogenChemicalIndex
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                    
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                      
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                  
+    logical                                        , save                :: reactionActive             =.false.                                                                    , reactionInitialized          =.false. 
+    integer                                        , save                :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex         
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
-    double precision,                  parameter     :: energyLymanBand=12.87d0
+    double precision                    , parameter                      :: energyLymanBand            =12.87d0                                                                                                            
     ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Angstroms).
-    double precision,                  parameter     :: wavelengthLymanBand=angstromsPerMeter*plancksConstant*speedLight&
-         &/(energyLymanBand*electronVolt)
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+    double precision                    , parameter                      :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)                                        
+    double precision                                                     :: rate                                                                                                   , rateCoefficient                       
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
@@ -1399,22 +1398,20 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                                    
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                                      
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                                
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                                  
+    logical                                        , save                :: reactionActive                     =.false.                                                                         , reactionInitialized          =.false.    
     ! Energy of the edge in the cross-section.
-    double precision,                  parameter     :: crossSectionEdgeEnergy    =15.42d0
+    double precision                    , parameter                      :: crossSectionEdgeEnergy             =15.42d0                                                                                                                    
     ! Wavelength of the edge in the cross-section.
-    double precision,                  parameter     :: crossSectionEdgeWavelength=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEdgeEnergy
-    integer,                           save          :: chemicalHydrogenChemicalIndex,chemicalHydrogenCationChemicalIndex &
-         &,electronChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+    double precision                    , parameter                      :: crossSectionEdgeWavelength         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEdgeEnergy                                           
+    integer                                        , save                :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , & 
+         &                                                                  electronChemicalIndex                                                                                                                                          
+    double precision                                                     :: rate                                                                                                                , rateCoefficient                          
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
@@ -1462,9 +1459,9 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: wavelength
-    double precision             :: energy
-
+    double precision, intent(in   ) :: wavelength 
+    double precision                :: energy     
+    
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
 
@@ -1489,25 +1486,22 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                                        
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                                          
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                                    
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                                      
+    logical                                        , save                :: reactionActive                   =.false.                                                                         , reactionInitialized                =.false.    
     ! Energy range for the cross-section.
-    double precision,                  parameter     :: crossSectionEnergyLow     =30.0d0
-    double precision,                  parameter     :: crossSectionEnergyHigh    =90.0d0
+    double precision                    , parameter                      :: crossSectionEnergyLow            =30.0d0                                                                                                                           
+    double precision                    , parameter                      :: crossSectionEnergyHigh           =90.0d0                                                                                                                           
     ! Wavelength range for the cross-section.
-    double precision,                  parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyHigh
-    double precision,                  parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyLow
-    integer,                           save          :: atomicHydrogenCationChemicalIndex,chemicalHydrogenCationChemicalIndex &
-         &,electronChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+    double precision                    , parameter                      :: crossSectionWavelengthLow        =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh                                                 
+    double precision                    , parameter                      :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow                                                  
+    integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , & 
+         &                                                                  electronChemicalIndex                                                                                                                                              
+    double precision                                                     :: rate                                                                                                              , rateCoefficient                                
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
@@ -1552,9 +1546,9 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: wavelength
-    double precision             :: energy
-
+    double precision, intent(in   ) :: wavelength 
+    double precision                :: energy     
+    
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
 
@@ -1580,24 +1574,21 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                         
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                           
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                     
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                       
+    logical                                        , save                :: reactionActive             =.false.                                                                         , reactionInitialized          =.false. 
     ! Energy range for the cross-section.
-    double precision,                  parameter     :: crossSectionEnergyLow     =14.159d0
-    double precision,                  parameter     :: crossSectionEnergyHigh    =17.700d0
+    double precision                    , parameter                      :: crossSectionEnergyLow      =14.159d0                                                                                                                
+    double precision                    , parameter                      :: crossSectionEnergyHigh     =17.700d0                                                                                                                
     ! Wavelength range for the cross-section.
-    double precision,                  parameter     :: crossSectionWavelengthLow =plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyHigh
-    double precision,                  parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyLow
-    integer,                           save          :: atomicHydrogenChemicalIndex,chemicalHydrogenChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
+    double precision                    , parameter                      :: crossSectionWavelengthLow  =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh                                        
+    double precision                    , parameter                      :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow                                         
+    integer                                        , save                :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex         
+    double precision                                                     :: rate                                                                                                        , rateCoefficient                       
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
@@ -1638,11 +1629,12 @@ contains
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in) :: wavelength
-    double precision, parameter  :: ratioOrthoToPara=0.0d0 ! Assume all H_2 is in the para- configuration.
-    double precision             :: energy,crossSectionLymanPara,crossSectionWernerPara,crossSectionLymanOrtho&
-         &,crossSectionWernerOrtho
-
+    double precision, intent(in   ) :: wavelength                                                                                                 
+    double precision, parameter     :: ratioOrthoToPara       =0.0d0                         !   Assume all H_2 is in the para- configuration.    
+    double precision                :: crossSectionLymanOrtho       , crossSectionLymanPara                                                   , & 
+         &                             crossSectionWernerOrtho      , crossSectionWernerPara                                                  , & 
+         &                             energy                                                                                                     
+    
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
     
@@ -1687,22 +1679,20 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    logical,                           save          :: reactionInitialized=.false.,reactionActive=.false.
+    double precision                                     , intent(in   ) :: temperature                                                                                                                                               
+    type            (radiationStructure)                 , intent(in   ) :: radiation                                                                                                                                                 
+    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity                                                                                                                                           
+    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates                                                                                                                                             
+    logical                                        , save                :: reactionActive                   =.false.                                                                        , reactionInitialized        =.false.    
     ! Energy range for the cross-section (in eV).
-    double precision,                  parameter     :: crossSectionEnergyLow     =13.60d0
+    double precision                    , parameter                      :: crossSectionEnergyLow            =13.60d0                                                                                                                 
     ! Wavelength range for the cross-section (in Angstroms).
-    double precision,                  parameter     :: crossSectionWavelengthHigh=plancksConstant*speedLight*angstromsPerMeter&
-         &/electronVolt/crossSectionEnergyLow
-    integer,                           save          :: atomicHydrogenChemicalIndex,atomicHydrogenCationChemicalIndex&
-         &,electronChemicalIndex
-    double precision                                 :: rate,rateCoefficient
-
-    ! Check if this reaction needs initializing.
-    !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
+    double precision                    , parameter                      :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow                                         
+    integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , & 
+         &                                                                  electronChemicalIndex                                                                                                                                     
+    double precision                                                     :: rate                                                                                                             , rateCoefficient                        
+    
+    ! Check if this reaction needs initializing.    !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
     if (.not.reactionInitialized) then
        ! Find the chemicals in this reaction.
        atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -1747,8 +1737,8 @@ contains
     !% \cite{abel_modeling_1997}.
     use Atomic_Cross_Sections_Ionization_Photo
     implicit none
-    double precision, intent(in) :: wavelength
-
+    double precision, intent(in   ) :: wavelength 
+    
     ! Use the hydrogen photoionization cross section method.
     Cross_Section_H_Gamma_to_Hplus_Electron=Atomic_Cross_Section_Ionization_Photo(1,1,1,wavelength)
 

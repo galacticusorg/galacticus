@@ -35,8 +35,8 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    type(varying_string),          intent(in   ) :: satelliteMergingRemnantProgenitorPropertiesMethod
-    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Standard),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
+    type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod   
+    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Standard), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get 
     
     if (satelliteMergingRemnantProgenitorPropertiesMethod == 'standard') then
        Satellite_Merging_Remnant_Progenitor_Properties_Get => Satellite_Merging_Remnant_Progenitor_Properties_Standard
@@ -70,15 +70,20 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     implicit none
-    type (treeNode             ), intent(inout), pointer :: satelliteNode,hostNode
-    double precision            , intent(  out)          :: satelliteMass,hostMass,satelliteSpheroidMass,hostSpheroidMass,hostSpheroidMassPreMerger&
-         &,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
-    class(nodeComponentDisk    ),                pointer :: hostDiskComponent    ,satelliteDiskComponent
-    class(nodeComponentSpheroid),                pointer :: hostSpheroidComponent,satelliteSpheroidComponent
-    double precision                                     :: componentMass,hostSpheroidDarkMatterFactor,hostDiskDarkMatterFactor &
-         &,satelliteSpheroidDarkMatterFactor,satelliteDiskDarkMatterFactor,hostSpheroidHalfMassRadius,hostDiskHalfMassRadius &
-         &,satelliteSpheroidHalfMassRadius,satelliteDiskHalfMassRadius
-
+    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode                        
+    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , & 
+         &                                                             hostRadius                     , hostSpheroidMass                 , & 
+         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , & 
+         &                                                             remnantSpheroidMass            , satelliteMass                    , & 
+         &                                                             satelliteRadius                , satelliteSpheroidMass                
+    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent               
+    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent           
+    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , & 
+         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , & 
+         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , & 
+         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, & 
+         &                                                             satelliteSpheroidHalfMassRadius                                       
+    
     ! Get the disk and spheroid components of host and satellite.
     hostDiskComponent          =>      hostNode%disk    ()
     hostSpheroidComponent      =>      hostNode%spheroid()

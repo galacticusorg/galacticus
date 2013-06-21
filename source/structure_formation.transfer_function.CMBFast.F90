@@ -25,14 +25,14 @@ module Transfer_Function_CMBFast
   public :: Transfer_Function_CMBFast_Initialize
   
   ! Flag to indicate if this module has been initialized.
-  logical              :: transferFunctionInitialized=.false.
-
+  logical                                     :: transferFunctionInitialized=.false.     
+  
   ! File name for the transfer function data.
-  type(varying_string) :: transferFunctionFile
-
+  type            (varying_string)            :: transferFunctionFile                    
+  
   ! Smallest maximum wavenumber to tabulate.
-  double precision, parameter :: logWavenumberMaximumDefault=log(10.0d0)
-
+  double precision                , parameter :: logWavenumberMaximumDefault=log(10.0d0) 
+  
 contains
   
   !# <transferFunctionMethod>
@@ -41,8 +41,8 @@ contains
   subroutine Transfer_Function_CMBFast_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
     !% Initializes the ``transfer function from CMBFast'' module.
     implicit none
-    type     (varying_string                ),          intent(in   ) :: transferFunctionMethod
-    procedure(Transfer_Function_CMBFast_Make), pointer, intent(inout) :: Transfer_Function_Tabulate
+    type     (varying_string                ), intent(in   )          :: transferFunctionMethod     
+    procedure(Transfer_Function_CMBFast_Make), intent(inout), pointer :: Transfer_Function_Tabulate 
     
     if (transferFunctionMethod == 'CMBFast') Transfer_Function_Tabulate => Transfer_Function_CMBFast_Make
     return
@@ -60,19 +60,15 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    double precision,                            intent(in)    :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogWavenumber,transferFunctionLogT
-    integer,                                     intent(out)   :: transferFunctionNumberPoints
-    logical                                                    :: makeFile
-    character(len=32)                                          :: parameterLabel,wavenumberLabel
-    type(varying_string)                                       :: parameterFile,command
-    type(xmlf_t)                                               :: parameterDoc
-
-    ! Generate the name of the data file and an XML input parameter file.
-    !# <uniqueLabel>
-    !#  <function>Transfer_Function_CMBFast_Label</function>
-    !#  <ignore>transferFunctionFile</ignore>
-    !# </uniqueLabel>
+    double precision                                           , intent(in   ) :: logWavenumber                                               
+    double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber 
+    integer                                                    , intent(  out) :: transferFunctionNumberPoints                                
+    logical                                                                    :: makeFile                                                    
+    character       (len=32        )                                           :: parameterLabel              , wavenumberLabel               
+    type            (varying_string)                                           :: command                     , parameterFile                 
+    type            (xmlf_t        )                                           :: parameterDoc                                                
+    
+    ! Generate the name of the data file and an XML input parameter file.    !# <uniqueLabel>    !#  <function>Transfer_Function_CMBFast_Label</function>    !#  <ignore>transferFunctionFile</ignore>    !# </uniqueLabel>
     transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeVersion=.true.,asHash=.true.)//".xml"
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)

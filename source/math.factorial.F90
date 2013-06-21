@@ -29,8 +29,8 @@ contains
     !% Computes the factorial of {\tt argument}.
     use FGSL
     implicit none
-    integer, intent(in) :: argument
-
+    integer, intent(in   ) :: argument  
+                                     
     Factorial=FGSL_SF_Fact(argument)
     return
   end function Factorial
@@ -38,9 +38,9 @@ contains
   double precision function Logarithmic_Double_Factorial(argument)
     !% Computes the natural logarithm of the double factorial, $k!!$.
     implicit none
-    integer, intent(in) :: argument
-    integer             :: i
-
+    integer, intent(in   ) :: argument  
+    integer                :: i         
+                                     
     Logarithmic_Double_Factorial=0.0d0
     i=argument
     do while (i >= 2)

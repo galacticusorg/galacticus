@@ -25,14 +25,14 @@ module Galacticus_Output_Trees_Satellite_Pericenter
        & Galacticus_Output_Tree_Satellite_Pericenter_Names
 
   ! Number of orbital properties.
-  integer, parameter :: satellitePericenterPropertyCount=2
-
+  integer, parameter :: satellitePericenterPropertyCount        =2       
+  
   ! Flag indicating whether or not satellite orbital pericenter information is to be output.
-  logical            :: outputSatellitePericenterData
-
+  logical            :: outputSatellitePericenterData                    
+  
   ! Flag indicating whether or not this module has been initialized.
-  logical            :: outputSatellitePericenterDataInitialized=.false.
-
+  logical            :: outputSatellitePericenterDataInitialized=.false. 
+  
 contains
 
   subroutine Galacticus_Output_Tree_Satellite_Pericenter_Initialize
@@ -75,13 +75,13 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode), intent(inout), pointer      :: thisNode
-    double precision          , intent(in   )               :: time
-    integer                   , intent(inout)               :: integerProperty,doubleProperty
-    character       (len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision          , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
-
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
+    
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Pericenter_Initialize
 
@@ -123,9 +123,9 @@ contains
     !% Account for the number of satellite orbital pericenter properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in   )          :: time
-    integer,          intent(inout)          :: integerPropertyCount,doublePropertyCount
+    type            (treeNode), intent(inout), pointer :: thisNode                                  
+    double precision          , intent(in   )          :: time                                      
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Pericenter_Initialize
@@ -148,16 +148,16 @@ contains
     use Kepler_Orbits
     use Satellite_Orbits
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    integer                                 , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty&
-         &,doubleBufferCount
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer(:,:)
-    double precision                        , intent(inout)          :: doubleBuffer (:,:)
-    type            (treeNode              ),                pointer :: hostNode
-    class           (nodeComponentSatellite),                pointer :: thisSatelliteComponent
-    type            (keplerOrbit           )                         :: thisOrbit
-    double precision                                                 :: orbitalRadius,orbitalVelocity
+    double precision                        , intent(in   )          :: time                                                                
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                                            
+    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty , integerBufferCount, & 
+         &                                                              integerProperty                                                     
+    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)                                         
+    double precision                        , intent(inout)          :: doubleBuffer          (:,:)                                         
+    type            (treeNode              )               , pointer :: hostNode                                                            
+    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent                                              
+    type            (keplerOrbit           )                         :: thisOrbit                                                           
+    double precision                                                 :: orbitalRadius              , orbitalVelocity                        
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Satellite_Pericenter_Initialize

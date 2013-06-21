@@ -29,8 +29,8 @@ module Numerical_Interpolation_2D_Irregular
 
   ! A derived type used for storing workspace for the interpolation.
   type interp2dIrregularObject
-     integer,          allocatable, dimension(:), private :: integerWork
-     double precision, allocatable, dimension(:), private :: realWork
+     integer         , allocatable, dimension(:), private :: integerWork 
+     double precision, allocatable, dimension(:), private :: realWork    
   end type interp2dIrregularObject
 
   interface Interpolate_2D_Irregular
@@ -44,15 +44,18 @@ contains
     !% Perform interpolation on a set of points irregularly spaced on a 2D surface.
     use Memory_Management
     implicit none
-    type(interp2dIrregularObject), intent(inout)                                :: workspace
-    double precision,              intent(in),    dimension(:)                  :: dataX,dataY,dataZ,interpolateX,interpolateY
-    integer,                       intent(in),    optional                      :: numberComputePoints
-    logical,                       intent(inout), optional                      :: reset
-    double precision,                             dimension(size(interpolateX)) :: Interpolate_2D_Irregular_Array
-    integer                                                                     :: dataPointCount,interpolatedPointCount&
-         &,integerWorkspaceSize,realWorkspaceSize,resetFlag,numberComputePointsActual
-    logical                                                                     :: resetActual
-
+    type            (interp2dIrregularObject)                               , intent(inout)           :: workspace                                                    
+    double precision                         , dimension(:)                 , intent(in   )           :: dataX                         , dataY                    , & 
+         &                                                                                               dataZ                         , interpolateX             , & 
+         &                                                                                               interpolateY                                                 
+    integer                                                                 , intent(in   ), optional :: numberComputePoints                                          
+    logical                                                                 , intent(inout), optional :: reset                                                        
+    double precision                         , dimension(size(interpolateX))                          :: Interpolate_2D_Irregular_Array                               
+    integer                                                                                           :: dataPointCount                , integerWorkspaceSize     , & 
+         &                                                                                               interpolatedPointCount        , numberComputePointsActual, & 
+         &                                                                                               realWorkspaceSize             , resetFlag                    
+    logical                                                                                           :: resetActual                                                  
+    
     ! Determine reset status.
     if (present(reset)) then
        resetActual=reset
@@ -115,13 +118,13 @@ contains
     !% Perform interpolation on a set of points irregularly spaced on a 2D surface. This version is simply a wrapper that does
     !% look up for a scalar point by calling the array-based version.
     implicit none
-    type            (interp2dIrregularObject), intent(inout)               :: workspace
-    double precision                         , intent(in   ), dimension(:) :: dataX,dataY,dataZ
-    double precision                         , intent(in   )               :: interpolateX,interpolateY
-    integer                                  , intent(in   ), optional     :: numberComputePoints
-    logical                                  , intent(inout), optional     :: reset
-    double precision                         ,                dimension(1) :: interpolateXArray,interpolateYArray,interpolateZArray
-
+    type            (interp2dIrregularObject)              , intent(inout)           :: workspace                                                 
+    double precision                         , dimension(:), intent(in   )           :: dataX              , dataY            , dataZ             
+    double precision                                       , intent(in   )           :: interpolateX       , interpolateY                         
+    integer                                                , intent(in   ), optional :: numberComputePoints                                       
+    logical                                                , intent(inout), optional :: reset                                                     
+    double precision                         , dimension(1)                          :: interpolateXArray  , interpolateYArray, interpolateZArray 
+    
     interpolateXArray(1)=interpolateX
     interpolateYArray(1)=interpolateY
     interpolateZArray=Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateXArray,interpolateYArray,workspace,numberComputePoints,reset)

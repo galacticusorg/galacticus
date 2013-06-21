@@ -32,10 +32,10 @@ contains
     !% Initializes the ``topHat'' power spectrum variance window function module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
-    procedure(Power_Spectrum_Window_Function_Top_Hat), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
-    procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat), pointer, intent(inout) :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
-    
+    type     (varying_string                                           ), intent(in   )          :: powerSpectrumWindowFunctionMethod                      
+    procedure(Power_Spectrum_Window_Function_Top_Hat                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get                     
+    procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get  
+                                                                                                                                                        
     if (powerSpectrumWindowFunctionMethod == 'topHat') then
        Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_Top_Hat
        Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat
@@ -49,10 +49,10 @@ contains
     use Numerical_Constants_Math
     use Cosmological_Parameters
     implicit none
-    double precision, intent(in) :: wavenumber,smoothingMass
-    double precision, parameter  :: xSeriesMaximum=1.0d-3
-    double precision             :: topHatRadius,x,xSquared
-
+    double precision, intent(in   ) :: smoothingMass        , wavenumber            
+    double precision, parameter     :: xSeriesMaximum=1.0d-3                        
+    double precision                :: topHatRadius         , x         , xSquared  
+                                                                                 
     topHatRadius=((3.0d0/4.0d0/Pi)*smoothingMass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
     x=wavenumber*topHatRadius
     if      (x <= 0.0d0) then
@@ -76,9 +76,9 @@ contains
     !% Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
     !% variance of the power spectrum.
     implicit none
-    double precision, intent(in) :: smoothingMass
-    double precision, parameter  :: wavenumberLarge=1.0d30 ! Effective infinity.
-
+    double precision, intent(in   ) :: smoothingMass                                  
+    double precision, parameter     :: wavenumberLarge=1.0d30 !  Effective infinity.  
+                                                                                   
     Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat=wavenumberLarge
     return
   end function Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat

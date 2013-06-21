@@ -26,11 +26,12 @@ program Millennium_Merger_Tree_File_Maker
   use Command_Arguments
   use Memory_Management
   implicit none
-  integer              :: hdfChunkSize=1024, hdfCompressionLevel=9, generation
-  character(len=1024)  :: nodesFile,particlesFile,outputFile,outputFormat
-  type(mergerTreeData) :: mergerTrees
-
-  ! Read in basic code memory usage.
+  integer                   :: generation   , hdfChunkSize=1024, hdfCompressionLevel=9     
+  character(len=1024      ) :: nodesFile    , outputFile       , outputFormat          , & 
+       &                       particlesFile                                               
+  type     (mergerTreeData) :: mergerTrees                                                 
+  
+  ! Read in basic code memory usage.                                                                                      
   call Code_Memory_Usage('Millennium_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.

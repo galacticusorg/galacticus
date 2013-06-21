@@ -24,7 +24,8 @@ module Star_Formation_Timescale_Disks_Dynamical_Time
   public :: Star_Formation_Timescale_Disks_Dynamical_Time_Initialize
 
   ! Parameters of the timescale model.
-  double precision :: starFormationDiskEfficiency,starFormationDiskVelocityExponent,starFormationDiskMinimumTimescale
+  double precision :: starFormationDiskEfficiency      , starFormationDiskMinimumTimescale, & 
+       &              starFormationDiskVelocityExponent                                       
   
 contains
 
@@ -38,9 +39,9 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes
     implicit none
-    type     (varying_string   ),          intent(in   ) :: starFormationTimescaleDisksMethod
-    procedure(Star_Formation_Timescale_Disk_Dynamical_Time ), pointer, intent(inout) :: Star_Formation_Timescale_Disk_Get
-
+    type     (varying_string                               ), intent(in   )          :: starFormationTimescaleDisksMethod 
+    procedure(Star_Formation_Timescale_Disk_Dynamical_Time ), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
+    
     if (starFormationTimescaleDisksMethod == 'dynamicalTime') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Dynamical_Time
        ! Get parameters of for the timescale calculation.
@@ -101,11 +102,11 @@ contains
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     implicit none
-    type (treeNode         ), intent(inout), pointer :: thisNode
-    class(nodeComponentDisk),                pointer :: thisDiskComponent
-    double precision        , parameter              :: velocityZeroPoint=200.0d0 ! (km/s)
-    double precision                                 :: diskVelocity,dynamicalTime
-
+    type            (treeNode         ), intent(inout), pointer :: thisNode                                            
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                   
+    double precision                   , parameter              :: velocityZeroPoint=200.0d0                !   (km/s) 
+    double precision                                            :: diskVelocity             , dynamicalTime            
+    
     ! Get the disk.
     thisDiskComponent => thisNode%disk()
 

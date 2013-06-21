@@ -27,16 +27,17 @@ module Excursion_Sets_First_Crossing_Zhang_Hui_High
   private
   public :: Excursion_Sets_First_Crossing_Zhang_Hui_High_Initialize
 
-  double precision                                     :: varianceMaximum=0.0d0,timeMinimum=0.0d0,timeMaximum=0.0d0
-  integer                                              :: varianceTableCount,timeTableCount
-  integer,                 parameter                   :: varianceTableNumberPerUnit=400,timeTableNumberPerDecade=40
-  double precision,        allocatable, dimension(:,:) :: firstCrossingProbabilityTable
-  double precision,        allocatable, dimension(:  ) :: varianceTable,timeTable
-  double precision                                     :: varianceTableStep
-  logical                                              :: tableInitialized=.false.
-  type(fgsl_interp_accel)                              :: interpolationAcceleratorVariance,interpolationAcceleratorTime
-  logical                                              :: interpolationResetVariance=.true.,interpolationResetTime=.true.
-
+  double precision                                                 :: timeMaximum                  =0.0d0  , timeMinimum                     =0.0d0 , & 
+       &                                                              varianceMaximum              =0.0d0                                               
+  integer                                                          :: timeTableCount                       , varianceTableCount                         
+  integer                            , parameter                   :: timeTableNumberPerDecade     =40     , varianceTableNumberPerUnit      =400       
+  double precision                   , allocatable, dimension(:,:) :: firstCrossingProbabilityTable                                                     
+  double precision                   , allocatable, dimension(:  ) :: timeTable                            , varianceTable                              
+  double precision                                                 :: varianceTableStep                                                                 
+  logical                                                          :: tableInitialized             =.false.                                             
+  type            (fgsl_interp_accel)                              :: interpolationAcceleratorTime         , interpolationAcceleratorVariance           
+  logical                                                          :: interpolationResetTime       =.true. , interpolationResetVariance      =.true.    
+  
 contains
 
   !# <excursionSetFirstCrossingMethod>
@@ -48,10 +49,10 @@ contains
     !% Initialize the ``ZhangHui2006 high order'' first crossing distribution for excursion sets module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: excursionSetFirstCrossingMethod
-    procedure(double precision), pointer, intent(inout) :: Excursion_Sets_First_Crossing_Probability_Get&
-         &,Excursion_Sets_First_Crossing_Rate_Get,Excursion_Sets_Non_Crossing_Rate_Get
-
+    type     (varying_string  ), intent(in   )          :: excursionSetFirstCrossingMethod                                                          
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get, Excursion_Sets_First_Crossing_Rate_Get, & 
+         &                                                 Excursion_Sets_Non_Crossing_Rate_Get                                                     
+    
     if (excursionSetFirstCrossingMethod == 'ZhangHui2006HighOrder') then
        Excursion_Sets_First_Crossing_Probability_Get => Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High 
        Excursion_Sets_First_Crossing_Rate_Get        => Excursion_Sets_First_Crossing_Rate_Zhang_Hui_High 
@@ -70,16 +71,19 @@ contains
     use Galacticus_Display
     use Excursion_Sets_First_Crossing_Zhang_Hui_Utilities
     implicit none
-    double precision,                             intent(in)     :: variance,time
-    double precision,                             dimension(0:1) :: hTime,hVariance
-    double precision,                allocatable, dimension(:,:) :: firstCrossingProbabilityTablePrevious
-    logical                                                      :: makeTable,tableIsExtendable
-    integer                                                      :: i,j,k,iTime,iVariance,jTime,jVariance,varianceTableCountPrevious
-    double precision                                             :: g2Average,summation0,summation1,summation2,timeMinimumPrevious,timeMaximumPrevious
-
-    ! Determine if we need to make the table. Only recompute if the variance is sufficiently larger than that tabulated that we
-    ! will add at least one new point to the tabulation.
-    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High_Init)
+    double precision, intent(in   )                 :: time                                 , variance                      
+    double precision               , dimension(0:1) :: hTime                                , hVariance                     
+    double precision, allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious                                
+    logical                                         :: makeTable                            , tableIsExtendable             
+    integer                                         :: i                                    , iTime                     , & 
+         &                                             iVariance                            , j                         , & 
+         &                                             jTime                                , jVariance                 , & 
+         &                                             k                                    , varianceTableCountPrevious    
+    double precision                                :: g2Average                            , summation0                , & 
+         &                                             summation1                           , summation2                , & 
+         &                                             timeMaximumPrevious                  , timeMinimumPrevious           
+    
+    ! Determine if we need to make the table. Only recompute if the variance is sufficiently larger than that tabulated that we    ! will add at least one new point to the tabulation.    !$omp critical (Excursion_Sets_First_Crossing_Probability_Zhang_Hui_High_Init)
     makeTable=.not.tableInitialized.or.(variance > varianceMaximum+1.0d0/dble(varianceTableNumberPerUnit)).or.(time < timeMinimum).or.(time > timeMaximum)
     if (makeTable) then
        ! Compute the range of times to tabulate.
@@ -236,8 +240,8 @@ contains
     !% Return the rate for excursion set first crossing assuming a linear barrier.
     use Galacticus_Error
     implicit none
-    double precision, intent(in) :: variance,varianceProgenitor,time
-
+    double precision, intent(in   ) :: time, variance, varianceProgenitor 
+    
     call Galacticus_Error_Report('Excursion_Sets_First_Crossing_Rate_Zhang_Hui_High','barrier crossing rates are not implemented for this method [too slow]')
     return
   end function Excursion_Sets_First_Crossing_Rate_Zhang_Hui_High
@@ -246,8 +250,8 @@ contains
     !% Return the rate for excursion set non-crossing.
     use Galacticus_Error
     implicit none
-    double precision, intent(in) :: variance,time
-
+    double precision, intent(in   ) :: time, variance 
+    
     call Galacticus_Error_Report('Excursion_Sets_Non_Crossing_Rate_Zhang_Hui_High','barrier non-crossing rates are not implemented for this method [too slow]')
     return
   end function Excursion_Sets_Non_Crossing_Rate_Zhang_Hui_High

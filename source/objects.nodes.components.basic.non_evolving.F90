@@ -63,12 +63,12 @@ contains
   subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    logical,                            intent(inout) :: interrupt
-    procedure(),               pointer, intent(inout) :: interruptProcedure
-    class(nodeComponentBasic), pointer                :: basicComponent
-
-    ! Get the basic component.
+    type     (treeNode          ), intent(inout), pointer :: thisNode            
+    logical                      , intent(inout)          :: interrupt           
+    procedure(                  ), intent(inout), pointer :: interruptProcedure  
+    class    (nodeComponentBasic)               , pointer :: basicComponent      
+    
+    ! Get the basic component.                                                                          
     basicComponent => thisNode%basic()
     ! Ensure that it is of the non-evolving class.
     select type (basicComponent)
@@ -85,11 +85,11 @@ contains
   subroutine Node_Component_Basic_Non_Evolving_Scale_Set(thisNode)
     !% Set scales for properties in the standard implementation of the basic component.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    double precision,          parameter              :: timeScale=1.0d-3
-    class(nodeComponentBasic), pointer                :: basicComponent
+    type            (treeNode          ), intent(inout), pointer :: thisNode               
+    double precision                    , parameter              :: timeScale     =1.0d-3  
+    class           (nodeComponentBasic)               , pointer :: basicComponent         
     
-    ! Get the basic component.
+    ! Get the basic component.                                                                                    
     basicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
@@ -108,11 +108,11 @@ contains
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    type(treeNode),            pointer                :: parentNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,parentBasicComponent
+    type (treeNode          ), intent(inout), pointer :: thisNode                                  
+    type (treeNode          )               , pointer :: parentNode                                
+    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent  
     
-    ! Get the basic component.
+    ! Get the basic component.                                                                                            
     thisBasicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (thisBasicComponent)

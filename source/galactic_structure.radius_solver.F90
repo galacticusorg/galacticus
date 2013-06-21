@@ -26,17 +26,17 @@ module Galactic_Structure_Radii
   public :: Galactic_Structure_Radii_Solve
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: galacticStructureRadiusSolverInitialized=.false.
-
-  ! Name of cooling rate available method used.
-  type(varying_string) :: galacticStructureRadiusSolverMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Galactic_Structure_Radii_Solve_Template), pointer :: Galactic_Structure_Radii_Solve_Do => null()
+  logical                                                     :: galacticStructureRadiusSolverInitialized=.false.  
+  
+  ! Name of cooling rate available method used.                                                                                                              
+  type     (varying_string                         )          :: galacticStructureRadiusSolverMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                              
+  procedure(Galactic_Structure_Radii_Solve_Template), pointer :: Galactic_Structure_Radii_Solve_Do       =>null()  
   abstract interface
      subroutine Galactic_Structure_Radii_Solve_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode  
      end subroutine Galactic_Structure_Radii_Solve_Template
   end interface
   
@@ -53,9 +53,9 @@ contains
     include 'galactic_structure.radius_solver.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize if necessary.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize if necessary.                                                 
     if (.not.galacticStructureRadiusSolverInitialized) then
        !$omp critical(Galactic_Structure_Radii_Initialization) 
        if (.not.galacticStructureRadiusSolverInitialized) then

@@ -24,12 +24,12 @@ module Galacticus_Output_Times
   public :: Galacticus_Output_Time_Count, Galacticus_Output_Time, Galacticus_Next_Output_Time
 
   ! Flag to indicate if output times have been initialized.
-  logical                                     :: outputsInitialized=.false.
-
-  ! Array of output times.
-  integer                                     :: outputCount
-  double precision, allocatable, dimension(:) :: outputTimes
-
+  logical                                     :: outputsInitialized=.false.  
+  
+  ! Array of output times.                                                                        
+  integer                                     :: outputCount                 
+  double precision, allocatable, dimension(:) :: outputTimes                 
+                                                                          
 contains
   
   subroutine Output_Times_Initialize()
@@ -40,9 +40,9 @@ contains
     use Histories
     use Cosmology_Functions
     implicit none
-    integer          :: iOutput
-    double precision :: aExpansion
-    
+    integer          :: iOutput     
+    double precision :: aExpansion  
+                                 
     if (.not.outputsInitialized) then
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.outputsInitialized) then
@@ -102,9 +102,9 @@ contains
   double precision function Galacticus_Output_Time(iOutput)
     !% Returns the time of the output indexed by {\tt iOutput}.
     implicit none
-    integer, intent(in) :: iOutput
-
-    ! Ensure the module is initialized.
+    integer, intent(in   ) :: iOutput  
+    
+    ! Ensure the module is initialized.                                
     call Output_Times_Initialize()
     
     ! Return the requested output time.
@@ -120,9 +120,9 @@ contains
     !% Returns the time of the next output after {\tt currentTime}.
     use Arrays_Search
     implicit none
-    double precision, intent(in) :: currentTime
-
-    ! Ensure the module is initialized.
+    double precision, intent(in   ) :: currentTime  
+    
+    ! Ensure the module is initialized.                                             
     call Output_Times_Initialize()
   
     ! If the current time exceeds the last output, return an unphysical value.

@@ -25,11 +25,10 @@ module Gaussian_Random
   private
   public :: Gaussian_Random_Get, Gaussian_Random_Free
   
-  logical            :: Seed_Is_Set=.false.
-  integer            :: gaussianRandomSeed
-  integer(fgsl_long) :: gaussianRandomSeedC=-1
+  logical                 :: Seed_Is_Set        =.false. 
+  integer                 :: gaussianRandomSeed          
+  integer(kind=fgsl_long) :: gaussianRandomSeedC=-1      
   !$omp threadprivate(gaussianRandomSeedC)
-
 contains
 
   double precision function Gaussian_Random_Get(pseudoSequenceObject,width,reset)
@@ -37,11 +36,11 @@ contains
     use Input_Parameters
     !$ use OMP_Lib
     implicit none
-    type(fgsl_rng),   intent(inout)           :: pseudoSequenceObject
-    double precision, intent(in)              :: width
-    logical,          intent(inout), optional :: reset
-    logical                                   :: resetActual
-
+    type            (fgsl_rng), intent(inout)           :: pseudoSequenceObject 
+    double precision          , intent(in   )           :: width                
+    logical                   , intent(inout), optional :: reset                
+    logical                                             :: resetActual          
+    
     ! Determine if we need to reset.
     if (present(reset)) then
        resetActual=reset
@@ -84,7 +83,7 @@ contains
   subroutine Gaussian_Random_Free(pseudoSequenceObject)
     !% Frees a pseudo-random sequence object.
     implicit none
-    type(fgsl_rng), intent(inout) :: pseudoSequenceObject
+    type(fgsl_rng), intent(inout) :: pseudoSequenceObject 
     
     call FGSL_RNG_Free(pseudoSequenceObject)
     return

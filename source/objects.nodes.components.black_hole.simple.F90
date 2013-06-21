@@ -56,18 +56,19 @@ module Node_Component_Black_Hole_Simple
   !# </component>
   
   ! Seed mass for black holes.
-  double precision :: blackHoleSeedMass
-
+  double precision :: blackHoleSeedMass                                                         
+  
   ! Feedback parameters.
-  double precision :: blackHoleToSpheroidStellarGrowthRatio,blackHoleWindEfficiency,blackHoleHeatingEfficiency,blackHoleJetEfficiency
-  logical          :: blackHoleHeatsHotHalo,blackHoleAccretesFromHotHalo
-
+  double precision :: blackHoleHeatingEfficiency                   , blackHoleJetEfficiency , & 
+       &              blackHoleToSpheroidStellarGrowthRatio        , blackHoleWindEfficiency    
+  logical          :: blackHoleAccretesFromHotHalo                 , blackHoleHeatsHotHalo      
+  
   ! Output options.
-  logical          :: blackHoleOutputAccretion
-
+  logical          :: blackHoleOutputAccretion                                                  
+  
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized=.false.
-
+  logical          :: moduleInitialized                    =.false.                             
+  
 contains
 
   subroutine Node_Component_Black_Hole_Simple_Initialize()
@@ -77,10 +78,9 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    type(nodeComponentBlackHoleSimple) :: blackHoleSimple
-
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Black_Hole_Simple_Initialize)
+    type(nodeComponentBlackHoleSimple) :: blackHoleSimple 
+    
+    ! Initialize the module if necessary.    !$omp critical (Node_Component_Black_Hole_Simple_Initialize)
     if (.not.moduleInitialized) then
        ! Get the black hole seed mass.
        blackHoleSeedMass=blackHoleSimple%massSeed()
@@ -191,10 +191,10 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    class(nodeComponentBlackHole), pointer                :: thisBlackHoleComponent
-    class(nodeComponentSpheroid ), pointer                :: thisSpheroidComponent
-
+    type (treeNode              ), intent(inout), pointer :: thisNode               
+    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent 
+    class(nodeComponentSpheroid )               , pointer :: thisSpheroidComponent  
+    
     ! Get the black hole component.
     thisBlackHoleComponent => thisNode%blackHole()
     ! Ensure that it is of the standard class.
@@ -228,17 +228,19 @@ contains
     use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     implicit none
-    type     (treeNode              ), pointer, intent(inout) :: thisNode
-    logical                          ,          intent(inout) :: interrupt
-    procedure(Interrupt_Procedure_Template                      ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentBlackHole), pointer                :: thisBlackHoleComponent
-    class    (nodeComponentSpheroid ), pointer                :: thisSpheroidComponent
-    class    (nodeComponentHotHalo  ), pointer                :: thisHotHaloComponent
-    double precision                 , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
-    double precision                 , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
-    double precision                                          :: restMassAccretionRate,massAccretionRate,energyInputRate&
-         &,heatingRate ,couplingEfficiency,coolingRadiusFractional,x
-
+    type            (treeNode                                          )           , intent(inout), pointer :: thisNode                                                                 
+    logical                                                                        , intent(inout)          :: interrupt                                                                
+    procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure                                                       
+    class           (nodeComponentBlackHole                            )                          , pointer :: thisBlackHoleComponent                                                   
+    class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent                                                    
+    class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent                                                     
+    double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMinimum=0.9d0                           
+    double precision                                                    , parameter                         :: coolingRadiusFractionalTransitionMaximum=1.0d0                           
+    double precision                                                                                        :: coolingRadiusFractional                       , couplingEfficiency   , & 
+         &                                                                                                     energyInputRate                               , heatingRate          , & 
+         &                                                                                                     massAccretionRate                             , restMassAccretionRate, & 
+         &                                                                                                     x                                                                        
+    
     if (defaultBlackHoleComponent%simpleIsActive()) then
 
        ! Get the spheroid component.
@@ -307,11 +309,11 @@ contains
     !% Merge (instantaneously) any simple black hole associated with {\tt thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    type (treeNode              ), pointer                :: hostNode
-    class(nodeComponentBlackHole), pointer                :: thisBlackHoleComponent,hostBlackHoleComponent
-    double precision                                      :: blackHoleMassNew,blackHoleSpinNew
-
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                       
+    type            (treeNode              )               , pointer :: hostNode                                       
+    class           (nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent 
+    double precision                                                 :: blackHoleMassNew      , blackHoleSpinNew       
+    
     ! Check that the simple black hole is active.
     if (defaultBlackHoleComponent%simpleIsActive()) then
        ! Find the node to merge with.
@@ -337,9 +339,9 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Create(thisNode)
     !% Creates a simple black hole component for {\tt thisNode}.
     implicit none
-    type (treeNode              ), pointer, intent(inout) :: thisNode
-    class(nodeComponentBlackHole), pointer                :: thisBlackHoleComponent
-
+    type (treeNode              ), intent(inout), pointer :: thisNode               
+    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent 
+    
     ! Create the component.
     thisBlackHoleComponent => thisNode%blackHole(autoCreate=.true.)
     ! Set the seed mass.
@@ -357,12 +359,12 @@ contains
     use Numerical_Constants_Astronomical
     use ISO_Varying_String
     implicit none
-    type            (treeNode), intent(inout), pointer      :: thisNode
-    double precision          , intent(in   )               :: time
-    integer                   , intent(inout)               :: integerProperty,doubleProperty
-    character       (len=*   ), intent(inout), dimension(:) :: integerPropertyNames,integerPropertyComments,doublePropertyNames &
-         &,doublePropertyComments
-    double precision          , intent(inout), dimension(:) :: integerPropertyUnitsSI,doublePropertyUnitsSI
+    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
+    double precision                        , intent(in   )          :: time                                               
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
+         &                                                              integerPropertyComments, integerPropertyNames      
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
     
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
@@ -396,11 +398,11 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: integerPropertyCount,doublePropertyCount
-    integer                   , parameter              :: extraPropertyCount=1
-
+    type            (treeNode), intent(inout), pointer :: thisNode                                    
+    double precision          , intent(in   )          :: time                                        
+    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount 
+    integer                   , parameter              :: extraPropertyCount =1                       
+    
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
        if (blackHoleOutputAccretion) doublePropertyCount=doublePropertyCount+extraPropertyCount
@@ -419,16 +421,16 @@ contains
     use Kind_Numbers
     use Accretion_Disks
     implicit none
-    double precision                        , intent(in   )          :: time
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    integer                                 , intent(inout)          :: integerProperty,integerBufferCount,doubleProperty&
-         &,doubleBufferCount
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer(:,:)
-    double precision                        , intent(inout)          :: doubleBuffer (:,:)
-    class           (nodeComponentBlackHole),                pointer :: thisBlackHoleComponent
-    class           (nodeComponentSpheroid ),                pointer :: thisSpheroidComponent
-    double precision                                                 :: restMassAccretionRate
-
+    double precision                        , intent(in   )          :: time                                                               
+    type            (treeNode              ), intent(inout), pointer :: thisNode                                                           
+    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, & 
+         &                                                              integerProperty                                                    
+    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)                                        
+    double precision                        , intent(inout)          :: doubleBuffer          (:,:)                                        
+    class           (nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent                                             
+    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent                                              
+    double precision                                                 :: restMassAccretionRate                                              
+    
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
        ! Get the black hole component.
@@ -448,9 +450,9 @@ contains
   logical function Node_Component_Black_Hole_Simple_Matches(thisNode)
     !% Return true if the black hole component of {\tt thisNode} is a match to the simple implementation.
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    class(nodeComponentBlackHole),                pointer :: thisBlackHoleComponent
-
+    type (treeNode              ), intent(inout), pointer :: thisNode               
+    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent 
+    
     ! Get the black hole component.
     thisBlackHoleComponent => thisNode%blackHole()
     ! Ensure that it is of the simple class.

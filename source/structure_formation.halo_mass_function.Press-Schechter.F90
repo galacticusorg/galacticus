@@ -24,9 +24,9 @@ module Halo_Mass_Function_Press_Schechter
   public :: Halo_Mass_Function_Press_Schechter_Initialize
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer,          parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMinimum=log(1.0d9), logMassMaximum=log(1.0d15)
-
+  integer         , parameter :: nPointsPerDecade=1000                                    
+  double precision            :: logMassMaximum  =log(1.0d15), logMassMinimum=log(1.0d9)  
+                                                                                       
 contains
   
   !# <haloMassFunctionMethod>
@@ -36,9 +36,9 @@ contains
     !% Initializes the ``Press-Schechter mass functon'' module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in   ) :: haloMassFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Halo_Mass_Function_Differential_Get
-    
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod               
+    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get  
+                                                                                             
     if (haloMassFunctionMethod == 'Press-Schechter') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Press_Schechter
     return
   end subroutine Halo_Mass_Function_Press_Schechter_Initialize
@@ -51,9 +51,9 @@ contains
     use Cosmological_Parameters
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision, intent(in) :: time,mass
-    double precision             :: variance,alpha
-
+    double precision, intent(in   ) :: mass , time      
+    double precision                :: alpha, variance  
+                                                     
     alpha   =abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
     variance=Cosmological_Mass_Root_Variance(mass)**2
     Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&

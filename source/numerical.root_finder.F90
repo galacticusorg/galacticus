@@ -33,42 +33,35 @@ module Root_Finder
   !@  <entry label="rangeExpandAdditive"       />
   !@  <entry label="rangeExpandMultiplicative" />
   !@ </enumeration>
-  integer, parameter, public :: rangeExpandNull              =0
-  integer, parameter, public :: rangeExpandAdditive          =1
-  integer, parameter, public :: rangeExpandMultiplicative    =2
-
-  ! Enumeration of sign expectations.
-  !@ <enumeration>
-  !@  <name>rangeExpandSignExpect</name>
-  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>
-  !@  <entry label="rangeExpandSignExpectNegative" />
-  !@  <entry label="rangeExpandSignExpectNone"     />
-  !@  <entry label="rangeExpandSignExpectPositive" />
-  !@ </enumeration>
-  integer, parameter, public :: rangeExpandSignExpectNegative=-1
-  integer, parameter, public :: rangeExpandSignExpectNone    = 0
-  integer, parameter, public :: rangeExpandSignExpectPositive=+1
-
+  integer, parameter, public :: rangeExpandNull              =0  
+  integer, parameter, public :: rangeExpandAdditive          =1  
+  integer, parameter, public :: rangeExpandMultiplicative    =2  
+  
+  ! Enumeration of sign expectations.  !@ <enumeration>  !@  <name>rangeExpandSignExpect</name>  !@  <description>Used to specify the expected sign of the root function when searching for roots using a {\tt rootFinder} object.</description>  !@  <entry label="rangeExpandSignExpectNegative" />  !@  <entry label="rangeExpandSignExpectNone"     />  !@  <entry label="rangeExpandSignExpectPositive" />  !@ </enumeration>
+  integer, parameter, public :: rangeExpandSignExpectNegative=-1 
+  integer, parameter, public :: rangeExpandSignExpectNone    =0  
+  integer, parameter, public :: rangeExpandSignExpectPositive=+1 
+  
   type :: rootFinder
      !% Type containing all objects required when calling the FGSL root solver function.
      private
-     type            (fgsl_function         )                  :: fgslFunction
-     type            (fgsl_root_fsolver     )                  :: solver
-     type            (fgsl_root_fsolver_type)                  :: solverType                   =FGSL_Root_fSolver_Brent
-     double precision                                          :: toleranceAbsolute            =1.0d-10
-     double precision                                          :: toleranceRelative            =1.0d-10
-     logical                                                   :: initialized                  =.false.
-     logical                                                   :: resetRequired                =.false.
-     integer                                                   :: rangeExpandType              =rangeExpandNull
-     double precision                                          :: rangeExpandUpward            =1.0d0
-     double precision                                          :: rangeExpandDownward          =1.0d0
-     double precision                                          :: rangeUpwardLimit
-     double precision                                          :: rangeDownwardLimit
-     logical                                                   :: rangeUpwardLimitSet          =.false.
-     logical                                                   :: rangeDownwardLimitSet        =.false.
-     integer                                                   :: rangeExpandDownwardSignExpect=rangeExpandSignExpectNone
-     integer                                                   :: rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone
-     procedure       (rootFunctionTemplate  ), pointer, nopass :: finderFunction
+     type            (fgsl_function         )                  :: fgslFunction                                            
+     type            (fgsl_root_fsolver     )                  :: solver                                                  
+     type            (fgsl_root_fsolver_type)                  :: solverType                   =FGSL_Root_fSolver_Brent   
+     double precision                                          :: toleranceAbsolute            =1.0d-10                   
+     double precision                                          :: toleranceRelative            =1.0d-10                   
+     logical                                                   :: initialized                  =.false.                   
+     logical                                                   :: resetRequired                =.false.                   
+     integer                                                   :: rangeExpandType              =rangeExpandNull           
+     double precision                                          :: rangeExpandUpward            =1.0d0                     
+     double precision                                          :: rangeExpandDownward          =1.0d0                     
+     double precision                                          :: rangeUpwardLimit                                        
+     double precision                                          :: rangeDownwardLimit                                      
+     logical                                                   :: rangeUpwardLimitSet          =.false.                   
+     logical                                                   :: rangeDownwardLimitSet        =.false.                   
+     integer                                                   :: rangeExpandDownwardSignExpect=rangeExpandSignExpectNone 
+     integer                                                   :: rangeExpandUpwardSignExpect  =rangeExpandSignExpectNone 
+     procedure       (rootFunctionTemplate  ), nopass, pointer :: finderFunction                                          
    contains
      !@ <objectMethods>
      !@   <object>rootFinder</object>
@@ -109,30 +102,29 @@ module Root_Finder
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                                :: rootFunction    => Root_Finder_Root_Function
-     procedure                                :: type            => Root_Finder_Type
-     procedure                                :: tolerance       => Root_Finder_Tolerance
-     procedure                                :: rangeExpand     => Root_Finder_Range_Expand
-     procedure                                :: find            => Root_Finder_Find
-     procedure                                :: isInitialized   => Root_Finder_Is_Initialized
+     procedure :: rootFunction =>Root_Finder_Root_Function  
+     procedure :: type         =>Root_Finder_Type           
+     procedure :: tolerance    =>Root_Finder_Tolerance      
+     procedure :: rangeExpand  =>Root_Finder_Range_Expand   
+     procedure :: find         =>Root_Finder_Find           
+     procedure :: isInitialized=>Root_Finder_Is_Initialized 
   end type rootFinder
   
   abstract interface
      double precision function rootFunctionTemplate(x)
-       double precision, intent(in   ) :: x
+       double precision, intent(in   ) :: x 
      end function rootFunctionTemplate
   end interface
 
-  class(rootFinder), pointer :: currentFinder
+  class(rootFinder), pointer :: currentFinder 
   !$omp threadprivate(currentFinder)
-  
 contains
 
   logical function Root_Finder_Is_Initialized(self)
     !% Return whether a {\tt rootFinder} object is initalized.
     implicit none
-    class(rootFinder), intent(in   ) :: self
-
+    class(rootFinder), intent(in   ) :: self 
+    
     Root_Finder_Is_Initialized=self%initialized
     return
   end function Root_Finder_Is_Initialized
@@ -142,21 +134,19 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
-    class           (rootFinder    ), intent(inout), target                 :: self
-    real            (c_double      ), intent(in   ), optional               :: rootGuess
-    real            (c_double      ), intent(in   ), optional, dimension(2) :: rootRange
-    class           (rootFinder    ),                pointer                :: previousFinder
-    integer                         , parameter                             :: iterationMaximum=1000
-    logical                                                                 :: rangeChanged,rangeLowerAsExpected&
-         &,rangeUpperAsExpected
-    integer                                                                 :: status,iteration
-    double precision                                                        :: xRoot,xLow,xHigh
-    type            (c_ptr         )                                        :: parameterPointer
-    type            (varying_string)                                        :: message
-    character       (len= 30       )                                        :: label
-
-    ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must
-    ! be able to return state to its original form before exiting the function.
+    class           (rootFinder    )              , intent(inout), target   :: self                                                              
+    real            (kind=c_double )              , intent(in   ), optional :: rootGuess                                                         
+    real            (kind=c_double ), dimension(2), intent(in   ), optional :: rootRange                                                         
+    class           (rootFinder    ), pointer                               :: previousFinder                                                    
+    integer                         , parameter                             :: iterationMaximum=1000                                             
+    logical                                                                 :: rangeChanged         , rangeLowerAsExpected, rangeUpperAsExpected 
+    integer                                                                 :: iteration            , status                                     
+    double precision                                                        :: xHigh                , xLow                , xRoot                
+    type            (c_ptr         )                                        :: parameterPointer                                                  
+    type            (varying_string)                                        :: message                                                           
+    character       (len= 30       )                                        :: label                                                             
+    
+    ! Store a pointer to the previous rootFinder object. This is necessary as this function can be called recursively, so we must    ! be able to return state to its original form before exiting the function.
     previousFinder => currentFinder
     ! Initialize the root finder variables if necessary.
     if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
@@ -313,9 +303,9 @@ contains
   subroutine Root_Finder_Root_Function(self,rootFunction)
     !% Sets the function to use in a {\tt rootFinder} object.
     implicit none
-    class    (rootFinder          ), intent(inout) :: self
-    procedure(rootFunctionTemplate)                :: rootFunction
-
+    class    (rootFinder          ), intent(inout) :: self         
+    procedure(rootFunctionTemplate)                :: rootFunction 
+    
     self%finderFunction => rootFunction
     self%initialized    =  .true.
     return
@@ -324,9 +314,9 @@ contains
   subroutine Root_Finder_Type(self,solverType)
     !% Sets the type to use in a {\tt rootFinder} object.
     implicit none
-    class(rootFinder            ), intent(inout) :: self
-    type (fgsl_root_fsolver_type), intent(in   ) :: solverType
-
+    class(rootFinder            ), intent(inout) :: self       
+    type (fgsl_root_fsolver_type), intent(in   ) :: solverType 
+    
     ! Set the solver type and indicate that a reset will be required to update the internal FGSL objects.
     self%solverType   =solverType
     self%resetRequired=.true.
@@ -336,9 +326,9 @@ contains
   subroutine Root_Finder_Tolerance(self,toleranceAbsolute,toleranceRelative)
     !% Sets the tolerances to use in a {\tt rootFinder} object.
     implicit none
-    class           (rootFinder), intent(inout)           :: self
-    double precision            , intent(in   ), optional :: toleranceAbsolute,toleranceRelative
-
+    class           (rootFinder), intent(inout)           :: self                                 
+    double precision            , intent(in   ), optional :: toleranceAbsolute, toleranceRelative 
+    
     if (present(toleranceAbsolute)) self%toleranceAbsolute=toleranceAbsolute
     if (present(toleranceRelative)) self%toleranceRelative=toleranceRelative
     return
@@ -347,12 +337,12 @@ contains
   subroutine Root_Finder_Range_Expand(self,rangeExpandUpward,rangeExpandDownward,rangeExpandType,rangeUpwardLimit,rangeDownwardLimit,rangeExpandDownwardSignExpect,rangeExpandUpwardSignExpect)
     !% Sets the rules for range expansion to use in a {\tt rootFinder} object.
     implicit none
-    class           (rootFinder), intent(inout)           :: self
-    integer                     , intent(in   ), optional :: rangeExpandType,rangeExpandDownwardSignExpect&
-         &,rangeExpandUpwardSignExpect
-    double precision            , intent(in   ), optional :: rangeExpandUpward,rangeExpandDownward,rangeUpwardLimit &
-         &,rangeDownwardLimit
-
+    class           (rootFinder), intent(inout)           :: self                                                  
+    integer                     , intent(in   ), optional :: rangeExpandDownwardSignExpect, rangeExpandType    , & 
+         &                                                   rangeExpandUpwardSignExpect                           
+    double precision            , intent(in   ), optional :: rangeDownwardLimit           , rangeExpandDownward, & 
+         &                                                   rangeExpandUpward            , rangeUpwardLimit       
+    
     if (present(rangeExpandUpward            )) self%rangeExpandUpward  =rangeExpandUpward
     if (present(rangeExpandDownward          )) self%rangeExpandDownward=rangeExpandDownward
     if (present(rangeExpandType              )) self%rangeExpandType    =rangeExpandType
@@ -385,10 +375,10 @@ contains
     !% Wrapper function callable by {\tt FGSL} used in root finding.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real(c_double), value :: x
-    type(c_ptr   ), value :: parameterPointer
-    real(c_double)        :: Root_Finder_Wrapper_Function
-
+    real(kind=c_double), value :: x                            
+    type(c_ptr        ), value :: parameterPointer             
+    real(kind=c_double)        :: Root_Finder_Wrapper_Function 
+    
     Root_Finder_Wrapper_Function=currentFinder%finderFunction(x)
     return
   end function Root_Finder_Wrapper_Function

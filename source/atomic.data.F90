@@ -25,45 +25,45 @@ module Atomic_Data
 
   type atomicData
      !% Data type for storing atomic data.
-     integer                                     :: atomicNumber
-     double precision                            :: atomicMass
-     double precision, allocatable, dimension(:) :: abundanceByMass
-     character(len=3)                            :: shortLabel
-     character(len=20)                           :: name
+     integer                                             :: atomicNumber    
+     double precision                                    :: atomicMass      
+     double precision        , allocatable, dimension(:) :: abundanceByMass 
+     character       (len=3 )                            :: shortLabel      
+     character       (len=20)                            :: name            
   end type atomicData
 
   ! Flag indicating if module has been initialized.
-  logical                                                       :: atomicDataInitialized=.false.
-
+  logical                                                 :: atomicDataInitialized =.false. 
+  
   ! Array used to store atomic data.
-  type(atomicData), allocatable, dimension(:)                   :: atoms
-
+  type            (atomicData), allocatable, dimension(:) :: atoms                          
+  
   ! Metal mass normalizations.
-  double precision, allocatable, dimension(:)                   :: metalMassNormalization
-
+  double precision            , allocatable, dimension(:) :: metalMassNormalization         
+  
   ! Array used to index atomic data by atomic number.
-  integer,          allocatable, dimension(:)                   :: atomicNumberIndex
-  integer                                                       :: atomicNumberMaximum
-
+  integer                     , allocatable, dimension(:) :: atomicNumberIndex              
+  integer                                                 :: atomicNumberMaximum            
+  
   ! Abundance pattern information.
-  integer,          parameter                                   :: abundancePatternCount=1
+  integer                     , parameter                 :: abundancePatternCount =1       
   character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                                   &
        &                                                            ["data/abundances/Solar_Composition_Cloudy_08.00.xml"], & 
        &                                                           abundancePatternNames=                                   &
        &                                                            ["solar"]
 
   ! Mass normalization options.
-  integer,          parameter, public                           :: normalizationTotal =0
-  integer,          parameter, public                           :: normalizationMetals=1
-
+  integer, parameter, public :: normalizationTotal =0 
+  integer, parameter, public :: normalizationMetals=1 
+  
 contains
 
   character(len=3) function Atomic_Short_Label(atomIndex,atomicNumber,name)
     !% Return the short label for an atom.
     implicit none
-    integer,          intent(in), optional :: atomIndex,atomicNumber
-    character(len=*), intent(in), optional :: name
-    integer                                :: iAtom
+    integer         , intent(in   ), optional :: atomIndex, atomicNumber 
+    character(len=*), intent(in   ), optional :: name                    
+    integer                                   :: iAtom                   
     
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
@@ -82,10 +82,10 @@ contains
   double precision function Atomic_Mass(atomIndex,atomicNumber,shortLabel,name)
     !% Returns the atomic mass of an element specified by atomic number, name or short label.
     implicit none
-    integer,          intent(in), optional :: atomIndex,atomicNumber
-    character(len=*), intent(in), optional :: shortLabel,name
-    integer                                :: iAtom
-
+    integer         , intent(in   ), optional :: atomIndex, atomicNumber 
+    character(len=*), intent(in   ), optional :: name     , shortLabel   
+    integer                                   :: iAtom                   
+    
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
     
@@ -105,10 +105,11 @@ contains
   double precision function Atomic_Abundance(abundanceIndex,abundanceName,atomIndex,atomicNumber,shortLabel,name,normalization)
     !% Returns the abundance by mass of a given atom in a given abundance pattern.
     implicit none
-    integer,          intent(in), optional :: abundanceIndex,atomIndex,atomicNumber,normalization
-    character(len=*), intent(in), optional :: abundanceName,shortLabel,name
-    integer                                :: iAbundancePattern,iAtom
-
+    integer         , intent(in   ), optional :: abundanceIndex   , atomIndex, atomicNumber, & 
+         &                                       normalization                                 
+    character(len=*), intent(in   ), optional :: abundanceName    , name     , shortLabel      
+    integer                                   :: iAbundancePattern, iAtom                      
+    
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
     
@@ -157,14 +158,16 @@ contains
     use Galacticus_Input_Paths
     use ISO_Varying_String
     implicit none
-    type(Node),       pointer      :: doc,thisElement,abundanceTypeElement,thisAtom
-    type(NodeList),   pointer      :: elementList
-    integer,          dimension(1) :: elementValueInteger
-    double precision, dimension(1) :: elementValueDouble
-    integer                        :: ioErr,iAtom,iAbundancePattern,atomicNumber
-    double precision               :: totalMass,abundance
-    character(len=100)             :: abundanceType
-  
+    type            (Node    )              , pointer :: abundanceTypeElement, doc              , thisAtom, & 
+         &                                               thisElement                                          
+    type            (NodeList)              , pointer :: elementList                                          
+    integer                   , dimension(1)          :: elementValueInteger                                  
+    double precision          , dimension(1)          :: elementValueDouble                                   
+    integer                                           :: atomicNumber        , iAbundancePattern, iAtom   , & 
+         &                                               ioErr                                                
+    double precision                                  :: abundance           , totalMass                      
+    character       (len=100 )                        :: abundanceType                                        
+    
     ! Check if module is initialized.
     if (.not.atomicDataInitialized) then
 
@@ -290,11 +293,11 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    integer,          intent(in), optional :: atomicNumber
-    character(len=*), intent(in), optional :: shortLabel,name
-    integer                                :: iAtom
-    character(len=20)                      :: nameLowerCase
-
+    integer          , intent(in   ), optional :: atomicNumber              
+    character(len=* ), intent(in   ), optional :: name         , shortLabel 
+    integer                                    :: iAtom                     
+    character(len=20)                          :: nameLowerCase             
+    
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
  
@@ -335,11 +338,11 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    integer,          intent(in), optional :: abundanceIndex
-    character(len=*), intent(in), optional :: abundanceName
-    integer                                :: iAbundancePattern
-    character(len=100)                     :: nameLowerCase
-
+    integer           , intent(in   ), optional :: abundanceIndex    
+    character(len=*  ), intent(in   ), optional :: abundanceName     
+    integer                                     :: iAbundancePattern 
+    character(len=100)                          :: nameLowerCase     
+    
     ! Ensure the module is initialized.
     call Atomic_Data_Initialize
  

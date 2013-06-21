@@ -25,14 +25,14 @@ module Hot_Halo_Ram_Pressure_Forces
   public :: Hot_Halo_Ram_Pressure_Force
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: hotHaloRamPressureForceInitialized=.false.
-
-  ! Name of ram pressure force method used.
-  type(varying_string) :: hotHaloRamPressureForceMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Hot_Halo_Ram_Pressure_Force), pointer :: Hot_Halo_Ram_Pressure_Force_Get => null()
-
+  logical                                         :: hotHaloRamPressureForceInitialized=.false.  
+  
+  ! Name of ram pressure force method used.                                                                                            
+  type     (varying_string             )          :: hotHaloRamPressureForceMethod               
+  
+  ! Pointer to the function that actually does the calculation.                                                                                            
+  procedure(Hot_Halo_Ram_Pressure_Force), pointer :: Hot_Halo_Ram_Pressure_Force_Get   =>null()  
+                                                                                              
 contains
 
   double precision function Hot_Halo_Ram_Pressure_Force(thisNode)
@@ -44,9 +44,9 @@ contains
     include 'hot_halo.ram_pressure_force.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Initialize if necessary.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Initialize if necessary.                                                 
     if (.not.hotHaloRamPressureForceInitialized) then
        !$omp critical(Hot_Halo_Ram_Pressure_Force_Initialization) 
        if (.not.hotHaloRamPressureForceInitialized) then

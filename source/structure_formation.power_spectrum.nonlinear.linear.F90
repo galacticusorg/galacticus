@@ -33,9 +33,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: powerSpectrumNonlinearMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Nonlinear_Get
-    
+    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod  
+    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get  
+                                                                                      
     if (powerSpectrumNonlinearMethod == 'linear') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_Linear
     return
   end subroutine Power_Spectrum_Nonlinear_Linear_Initialize
@@ -45,8 +45,8 @@ contains
     use Power_Spectra
     use Linear_Growth
     implicit none
-    double precision, intent(in) :: waveNumber,time
-
+    double precision, intent(in   ) :: time, waveNumber  
+                                                      
     Power_Spectrum_Nonlinear_Linear=Power_Spectrum(wavenumber)*Linear_Growth_Factor(time)**2
     return
   end function Power_Spectrum_Nonlinear_Linear

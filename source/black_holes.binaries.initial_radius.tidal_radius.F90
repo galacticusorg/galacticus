@@ -27,10 +27,9 @@ module Black_Hole_Binary_Initial_Radii_Tidal_Radius
   public :: Black_Hole_Binary_Initial_Radii_Tidal_Radius_Initialize
 
   ! Variables used in root finding.
-  double precision         :: radiusHalfMass,massHalf
-  type(treeNode),  pointer :: activeNode
+  double precision                    :: massHalf  , radiusHalfMass 
+  type            (treeNode), pointer :: activeNode                 
   !$omp threadprivate(radiusHalfMass,massHalf,activeNode)
-
 contains
 
   !# <blackHoleBinaryInitialRadiiMethod>
@@ -41,8 +40,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: blackHoleBinaryInitialRadiiMethod
-    procedure(Black_Hole_Binary_Initial_Radius_Tidal_Radius), pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
+    type     (varying_string                               ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod    
+    procedure(Black_Hole_Binary_Initial_Radius_Tidal_Radius), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get 
     
     if (blackHoleBinaryInitialRadiiMethod == 'tidalRadius') Black_Hole_Binary_Initial_Radius_Get => Black_Hole_Binary_Initial_Radius_Tidal_Radius
     return
@@ -60,11 +59,10 @@ contains
     use Galacticus_Display
     use String_Handling
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode, hostNode
-    class           (nodeComponentBlackHole),                pointer :: thisBlackHoleComponent
-    type            (rootFinder            ), save                   :: finder
+    type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode 
+    class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent           
+    type (rootFinder            ), save                   :: finder                           
     !$omp threadprivate(finder)
-
     ! Assume zero separation by default.
     Black_Hole_Binary_Initial_Radius_Tidal_Radius=0.0d0
     ! Get the black hole component.
@@ -107,8 +105,8 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    double precision, intent(in   ) :: radius
-
+    double precision, intent(in   ) :: radius 
+    
     ! Evaluate the root function.
     Tidal_Radius_Root= Galactic_Structure_Enclosed_Mass(activeNode,radius,massType=massTypeGalactic)/massHalf &
        &              -(radius/radiusHalfMass)**3

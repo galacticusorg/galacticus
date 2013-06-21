@@ -28,12 +28,12 @@ contains
   subroutine System_Load_Get(loadAverage,activeTasks,totalTasks)
     !% Reports on system load via {\tt /proc/loadavg}.
     implicit none
-    double precision  , intent(out) :: loadAverage(3)
-    integer           , intent(out) :: activeTasks,totalTasks
-    integer                         :: lUnit,slashPosition
-    character(len=256)              :: loadAverageEncoded
-
-    !$omp critical (System_Load_Read)
+    double precision         , intent(  out) :: loadAverage       (3)                 
+    integer                  , intent(  out) :: activeTasks          , totalTasks     
+    integer                                  :: lUnit                , slashPosition  
+    character       (len=256)                :: loadAverageEncoded                    
+    
+    !$omp critical (System_Load_Read)                                                                               
     open(newUnit=lUnit,file="/proc/loadavg",status='old',form='formatted')
     read (lUnit,'(a)') loadAverageEncoded
     close(lUnit)
@@ -47,10 +47,10 @@ contains
   integer function System_Processor_Count()
     !% Return a count of the number of available processors.
     implicit none
-    integer           :: lUnit,ioError
-    character(len=32) :: infoLine
-
-    !$omp critical (System_CPU_Read)
+    integer           :: ioError , lUnit  
+    character(len=32) :: infoLine         
+    
+    !$omp critical (System_CPU_Read)                                   
     System_Processor_Count=0
     open(newUnit=lUnit,file="/proc/cpuinfo",status='old',form='formatted',iostat=ioError)
     if (ioError == 0) then

@@ -22,8 +22,8 @@ module Merger_Tree_Read_State
   public :: Merger_Tree_Read_State_Store, Merger_Tree_Read_State_Retrieve
 
   ! Current position in the merger tree queue.
-  integer, public :: mergerTreeQueuePosition=0
-
+  integer, public :: mergerTreeQueuePosition=0  
+                                             
 contains
   
   !# <galacticusStateStoreTask>
@@ -33,9 +33,9 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     write (stateFile) mergerTreeQueuePosition
     return
   end subroutine Merger_Tree_Read_State_Store
@@ -47,9 +47,9 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use FGSL
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile      
+    type   (fgsl_file), intent(in   ) :: fgslStateFile  
+                                                     
     read (stateFile) mergerTreeQueuePosition
     return
   end subroutine Merger_Tree_Read_State_Retrieve

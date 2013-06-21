@@ -25,17 +25,17 @@ module Atomic_Cross_Sections_Ionization_Photo
   public :: Atomic_Cross_Section_Ionization_Photo
 
   ! Flag to indicate if this module has been initialized.  
-  logical              :: ionizationCrossSectionInitialized=.false.
-
-  ! Name of ionization state method used.
-  type(varying_string) :: atomicPhotoIonizationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Cross_Section_Ionization_Photo_Template), pointer :: Atomic_Cross_Section_Ionization_Photo_Get => null()
+  logical                                                            :: ionizationCrossSectionInitialized        =.false.  
+  
+  ! Name of ionization state method used.                                                                                                                      
+  type     (varying_string                                )          :: atomicPhotoIonizationMethod                        
+  
+  ! Pointer to the function that actually does the calculation.                                                                                                                      
+  procedure(Atomic_Cross_Section_Ionization_Photo_Template), pointer :: Atomic_Cross_Section_Ionization_Photo_Get=>null()  
   abstract interface
      double precision function Atomic_Cross_Section_Ionization_Photo_Template(atomicNumber,ionizationState,shellNumber,wavelength)
-       integer,          intent(in) :: atomicNumber,ionizationState,shellNumber
-       double precision, intent(in) :: wavelength
+       integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber  
+       double precision, intent(in   ) :: wavelength                                  
      end function Atomic_Cross_Section_Ionization_Photo_Template
   end interface
   
@@ -85,10 +85,10 @@ contains
     !% Return the cross-section (in units of cm$^2$) for a given atom in a given ionization state at the specified {\tt
     !% wavelength} (given in units of \AA).
     implicit none
-    integer,          intent(in) :: atomicNumber,ionizationState,shellNumber
-    double precision, intent(in) :: wavelength
-
-    ! Initialize the module.
+    integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber  
+    double precision, intent(in   ) :: wavelength                                  
+    
+    ! Initialize the module.                                                                            
     call Atomic_Cross_Section_Ionization_Photo_Initialize
 
     ! Call the routine to do the calculation.

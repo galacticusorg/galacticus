@@ -33,8 +33,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: powerSpectrumNonlinearMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Nonlinear_Get
+    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod 
+    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get 
     
     if (powerSpectrumNonlinearMethod == 'Peacock-Dodds1996') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_PeacockDodds1996
     return
@@ -48,14 +48,19 @@ contains
     use Galacticus_Error
     use Linear_Growth
     implicit none
-    double precision, intent(in) :: waveNumber,time
-    integer         , parameter  :: iterationCountMaximum=1000
-    double precision, parameter  :: tolerance            =1.0d-3
-    double precision, parameter  :: updateFraction       =0.1d0
-    logical                      :: converged
-    integer                      :: iterationCount
-    double precision             :: fNL,fNLPrevious,waveNumberLinear,x,n,A,B,alpha,beta,V,g
-
+    double precision, intent(in   ) :: time                        , waveNumber          
+    integer         , parameter     :: iterationCountMaximum=1000                        
+    double precision, parameter     :: tolerance            =1.0d-3                      
+    double precision, parameter     :: updateFraction       =0.1d0                       
+    logical                         :: converged                                         
+    integer                         :: iterationCount                                    
+    double precision                :: A                           , B               , & 
+         &                             V                           , alpha           , & 
+         &                             beta                        , fNL             , & 
+         &                             fNLPrevious                 , g               , & 
+         &                             n                           , waveNumberLinear, & 
+         &                             x                                                 
+    
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
     fNL        =Power_Spectrum_Dimensionless(waveNumber)
     fNLPrevious=fNL

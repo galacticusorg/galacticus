@@ -29,8 +29,8 @@ contains
   double precision function Hypergeometric_1F1(a,b,x)
     !% Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
     implicit none
-    double precision, intent(in) :: a(1),b(1),x
-
+    double precision, intent(in   ) :: a(1), b(1), x  
+                                                   
     Hypergeometric_1F1=FGSL_SF_Hyperg_1F1(a(1),b(1),x)
     return
   end function Hypergeometric_1F1
@@ -39,9 +39,9 @@ contains
     !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
     use Galacticus_Error
     implicit none
-    double precision, intent(in) :: a(2),b(1),x
-
-    ! GSL only evaluates this function for |x|<1.
+    double precision, intent(in   ) :: a(2), b(1), x  
+    
+    ! GSL only evaluates this function for |x|<1.                                               
     if (abs(x) <= 1.0d0) then
        ! |x|<1 so simply call the GSL function to compute the function.
        Hypergeometric_2F1=FGSL_SF_Hyperg_2F1(a(1),a(2),b(1),x)

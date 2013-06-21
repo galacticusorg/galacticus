@@ -30,11 +30,10 @@ module Galactic_Structure_Potentials
   public :: Galactic_Structure_Potential
 
   ! Module scope variables used in mapping over components.
-  integer          :: componentTypeShared,massTypeShared
-  logical          :: haloLoadedShared
-  double precision :: radiusShared
+  integer          :: componentTypeShared, massTypeShared 
+  logical          :: haloLoadedShared                    
+  double precision :: radiusShared                        
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
-
 contains
 
   double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded)
@@ -48,13 +47,13 @@ contains
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode           ), intent(inout), pointer  :: thisNode
-    integer                              , intent(in),    optional :: componentType,massType
-    logical                              , intent(in),    optional :: haloLoaded
-    double precision                     , intent(in)              :: radius
-    procedure       (Component_Potential),                pointer  :: componentPotentialFunction
-    double precision                                               :: componentPotential
-
+    type            (treeNode           ), intent(inout)          , pointer :: thisNode                             
+    integer                              , intent(in   ), optional          :: componentType             , massType 
+    logical                              , intent(in   ), optional          :: haloLoaded                           
+    double precision                     , intent(in   )                    :: radius                               
+    procedure       (Component_Potential)                         , pointer :: componentPotentialFunction           
+    double precision                                                        :: componentPotential                   
+    
     ! Determine which component type to use.
     if (present(componentType)) then
        componentTypeShared=componentType
@@ -92,7 +91,7 @@ contains
     !% Unary function returning the potential in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component
+    class(nodeComponent), intent(inout) :: component 
     
     Component_Potential=component%potential(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared)
     return

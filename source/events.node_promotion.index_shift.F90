@@ -26,11 +26,11 @@ module Node_Promotion_Index_Shifts
   public :: Node_Promotion_Index_Shift
   
   ! Flag indicating if this module has been initialized.
-  logical :: indexShiftInitialized=.false.
+  logical :: indexShiftInitialized  =.false.  
   
-  ! Flag indicating whether or not to shift indices.
-  logical :: nodePromotionIndexShift
-
+  ! Flag indicating whether or not to shift indices.                                         
+  logical :: nodePromotionIndexShift          
+                                           
 contains
   
   !# <nodePromotionTask>
@@ -42,10 +42,10 @@ contains
     use Input_Parameters
     use Galacticus_Nodes
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    type(treeNode), pointer                :: parentNode
-
-    ! Ensure that the module is initialized.
+    type(treeNode), intent(inout), pointer :: thisNode    
+    type(treeNode)               , pointer :: parentNode  
+    
+    ! Ensure that the module is initialized.                                                   
     if (.not.indexShiftInitialized) then
        !$omp critical (Node_Promotion_Index_Shift_Initialize)
        if (.not.indexShiftInitialized) then

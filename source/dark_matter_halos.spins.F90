@@ -24,8 +24,8 @@ module Dark_Matter_Halo_Spins
   public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
   ! Record of whether the module has been initialized.
-  logical :: moduleInitialized=.false.
-
+  logical :: moduleInitialized=.false.  
+                                     
 contains
 
   subroutine Dark_Matter_Halo_Spins_Initialize()
@@ -54,11 +54,11 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent
-    class(nodeComponentSpin ), pointer                :: thisSpinComponent
-
-    ! Ensure that the module is initialized.
+    type (treeNode          ), intent(inout), pointer :: thisNode            
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
+    class(nodeComponentSpin )               , pointer :: thisSpinComponent   
+    
+    ! Ensure that the module is initialized.                                                                      
     call Dark_Matter_Halo_Spins_Initialize
 
     thisBasicComponent => thisNode%basic(                 )
@@ -73,11 +73,11 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Profiles
     implicit none
-    type (treeNode          ), pointer, intent(inout) :: thisNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent
-    class(nodeComponentSpin ), pointer                :: thisSpinComponent
-
-    ! Ensure that the module is initialized.
+    type (treeNode          ), intent(inout), pointer :: thisNode            
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
+    class(nodeComponentSpin )               , pointer :: thisSpinComponent   
+    
+    ! Ensure that the module is initialized.                                                                      
     call Dark_Matter_Halo_Spins_Initialize
 
     thisBasicComponent => thisNode%basic(                 )

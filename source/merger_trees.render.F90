@@ -24,9 +24,9 @@ module Merger_Trees_Render
   public :: Merger_Trees_Render_Dump
 
   ! Counters for output file names.
-  integer(kind=kind_int8) :: treeIndexPrevious=-1
-  integer                 :: outputCounter
-
+  integer(kind=kind_int8) :: treeIndexPrevious=-1  
+  integer                 :: outputCounter         
+                                                
 contains
 
   subroutine Merger_Trees_Render_Dump(thisTree)
@@ -40,16 +40,16 @@ contains
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type(mergerTree), intent(inout)               :: thisTree
-    type(treeNode),   pointer                     :: thisNode
-    integer,          dimension(:  ), allocatable :: nodeIndex,parentIndex,childIndex
-    double precision, dimension(:  ), allocatable :: time,expansionFactor,radiusVirial
-    double precision, dimension(:,:), allocatable :: position
-    integer                                       :: nodesInTree,iNode
-    character(len=39)                             :: fileName
-    type(hdf5Object)                              :: fileObject,treeDataset
-
-    ! Reset output incremental counter if this tree is not the same as the previous one.
+    type            (mergerTree), intent(inout)                 :: thisTree                                    
+    type            (treeNode  ), pointer                       :: thisNode                                    
+    integer                     , allocatable  , dimension(:  ) :: childIndex     , nodeIndex   , parentIndex  
+    double precision            , allocatable  , dimension(:  ) :: expansionFactor, radiusVirial, time         
+    double precision            , allocatable  , dimension(:,:) :: position                                    
+    integer                                                     :: iNode          , nodesInTree                
+    character       (len=39    )                                :: fileName                                    
+    type            (hdf5Object)                                :: fileObject     , treeDataset                
+    
+    ! Reset output incremental counter if this tree is not the same as the previous one.                                                                                                        
     if (thisTree%index /= treeIndexPrevious) then
        treeIndexPrevious=thisTree%index
        outputCounter    =-1

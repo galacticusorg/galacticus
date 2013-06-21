@@ -70,12 +70,12 @@ contains
   subroutine Node_Component_Basic_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the standard implementation of the basic component.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    logical,                            intent(inout) :: interrupt
-    procedure(),               pointer, intent(inout) :: interruptProcedure
-    class(nodeComponentBasic), pointer                :: basicComponent
-
-    ! Get the basic component.
+    type     (treeNode          ), intent(inout), pointer :: thisNode            
+    logical                      , intent(inout)          :: interrupt           
+    procedure(                  ), intent(inout), pointer :: interruptProcedure  
+    class    (nodeComponentBasic)               , pointer :: basicComponent      
+    
+    ! Get the basic component.                                                                          
     basicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
@@ -94,12 +94,12 @@ contains
   subroutine Node_Component_Basic_Standard_Scale_Set(thisNode)
     !% Set scales for properties in the standard implementation of the basic component.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    double precision,          parameter              :: timeScale        =1.0d-3
-    double precision,          parameter              :: scaleMassRelative=1.0d-6
-    class(nodeComponentBasic), pointer                :: basicComponent
+    type            (treeNode          ), intent(inout), pointer :: thisNode                  
+    double precision                    , parameter              :: timeScale        =1.0d-3  
+    double precision                    , parameter              :: scaleMassRelative=1.0d-6  
+    class           (nodeComponentBasic)               , pointer :: basicComponent            
     
-    ! Get the basic component.
+    ! Get the basic component.                                                                                       
     basicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (basicComponent)
@@ -118,12 +118,12 @@ contains
   subroutine Node_Component_Basic_Standard_Tree_Initialize(thisNode)
     !% Set the mass accretion rate for {\tt thisNode}.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    type(treeNode),            pointer                :: childNode,parentNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,childBasicComponent,parentBasicComponent
-    double precision                                  :: deltaTime,massUnresolved,progenitorMassTotal
-
-    ! Get the basic component.
+    type            (treeNode          ), intent(inout), pointer :: thisNode                                                        
+    type            (treeNode          )               , pointer :: childNode          , parentNode                                 
+    class           (nodeComponentBasic)               , pointer :: childBasicComponent, parentBasicComponent, thisBasicComponent   
+    double precision                                             :: deltaTime          , massUnresolved      , progenitorMassTotal  
+    
+    ! Get the basic component.                                                                                                                             
     thisBasicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (thisBasicComponent)
@@ -189,10 +189,10 @@ contains
   subroutine Node_Component_Basic_Standard_Stop_Accretion(thisNode)
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent
-
-    ! Get the basic component.
+    type (treeNode          ), intent(inout), pointer :: thisNode            
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
+    
+    ! Get the basic component.                                                                      
     thisBasicComponent => thisNode%basic()
     ! Ensure that it is of the standard class.
     select type (thisBasicComponent)
@@ -213,11 +213,11 @@ contains
      !% to be that of its parent.
      use Galacticus_Error
      implicit none
-     type(treeNode),            pointer, intent(inout) :: thisNode
-     type(treeNode),            pointer                :: parentNode
-     class(nodeComponentBasic), pointer                :: thisBasicComponent,parentBasicComponent
-    
-     ! Get the basic component.
+     type (treeNode          ), intent(inout), pointer :: thisNode                                  
+     type (treeNode          )               , pointer :: parentNode                                
+     class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent  
+     
+     ! Get the basic component.                                                                                            
      thisBasicComponent => thisNode%basic()
      ! Ensure that it is of the standard class.
      select type (thisBasicComponent)
@@ -239,11 +239,11 @@ contains
   double precision function Node_Component_Basic_Standard_Unresolved_Mass(thisNode)
     !% Return the unresolved mass for {\tt thisNode}.
     implicit none
-    type(treeNode),            pointer, intent(inout) :: thisNode
-    type(treeNode),            pointer                :: childNode
-    class(nodeComponentBasic), pointer                :: thisBasicComponent,childBasicComponent
-
-    ! Get the basic component.
+    type (treeNode          ), intent(inout), pointer :: thisNode                                 
+    type (treeNode          )               , pointer :: childNode                                
+    class(nodeComponentBasic)               , pointer :: childBasicComponent, thisBasicComponent  
+    
+    ! Get the basic component.                                                                                           
     thisBasicComponent => thisNode%basic()
     ! Initialize the unresolved mass to the mass of the current node's basic component.
     Node_Component_Basic_Standard_Unresolved_Mass=thisBasicComponent%mass()

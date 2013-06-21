@@ -38,10 +38,10 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),                 intent(in)    :: freefallTimeAvailableMethod
-    procedure(Freefall_Time_Available_Halo_Formation), pointer, intent(inout) :: Freefall_Time_Available_Get
-    procedure(Freefall_Time_Available_Increase_Rate_Halo_Formation), pointer, intent(inout) :: Freefall_Time_Available_Increase_Rate_Get
-
+    type     (varying_string                                      ), intent(in   )          :: freefallTimeAvailableMethod                
+    procedure(Freefall_Time_Available_Halo_Formation              ), intent(inout), pointer :: Freefall_Time_Available_Get                
+    procedure(Freefall_Time_Available_Increase_Rate_Halo_Formation), intent(inout), pointer :: Freefall_Time_Available_Increase_Rate_Get  
+                                                                                                                                       
     if (freefallTimeAvailableMethod == 'haloFormation') then
        ! Set pointers to our implementation.
        Freefall_Time_Available_Get               => Freefall_Time_Available_Halo_Formation
@@ -56,10 +56,10 @@ contains
     !% Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     !% assumed to be the time since the halo formation event.
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic        ),                pointer :: thisBasicComponent
-    class(nodeComponentFormationTime),                pointer :: thisFormationTimeComponent
-
+    type (treeNode                  ), intent(inout), pointer :: thisNode                    
+    class(nodeComponentBasic        )               , pointer :: thisBasicComponent          
+    class(nodeComponentFormationTime)               , pointer :: thisFormationTimeComponent  
+                                                                                          
     thisBasicComponent         => thisNode%basic        ()
     thisFormationTimeComponent => thisNode%formationTime()
     Freefall_Time_Available_Halo_Formation=thisBasicComponent%time()-thisFormationTimeComponent%formationTime()
@@ -70,9 +70,9 @@ contains
     !% Compute the rate of increase of the time available for freefall using the \cite{cole_hierarchical_2000} method. We return a rate
     !% of 1.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-
-    ! Simply return unit rate.
+    type(treeNode), intent(inout), pointer :: thisNode  
+    
+    ! Simply return unit rate.                                                 
     Freefall_Time_Available_Increase_Rate_Halo_Formation=1.0d0
     return
   end function Freefall_Time_Available_Increase_Rate_Halo_Formation

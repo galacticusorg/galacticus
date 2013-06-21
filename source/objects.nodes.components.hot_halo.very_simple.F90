@@ -57,22 +57,20 @@ module Node_Component_Hot_Halo_Very_Simple
   !# </component>
 
   ! Quantities stored to avoid repeated computation.
-  logical          :: gotCoolingRate=.false.
-  double precision :: coolingRate
+  logical          :: gotCoolingRate   =.false. 
+  double precision :: coolingRate               
   !$omp threadprivate(gotCoolingRate,coolingRate)
-
   ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized=.false.
-
+  logical          :: moduleInitialized=.false. 
+  
 contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize()
     !% Initializes the very simple hot halo component module.
     implicit none
-    type(nodeComponentHotHaloVerySimple) :: hotHaloComponent
-
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
+    type(nodeComponentHotHaloVerySimple) :: hotHaloComponent 
+    
+    ! Initialize the module if necessary.    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
     if (.not.moduleInitialized) then
        
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
@@ -92,8 +90,8 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Reset(thisNode)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-
+    type(treeNode), intent(inout), pointer :: thisNode 
+    
     gotCoolingRate=.false.
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Reset
@@ -101,12 +99,12 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(thisNode,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes at the given rate.
     implicit none
-    type     (treeNode            ), pointer, intent(inout) :: thisNode
-    double precision               ,          intent(in   ) :: massRate
-    logical                        ,          intent(inout) :: interrupt
-    procedure(                    ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode             
+    double precision                      , intent(in   )          :: massRate             
+    logical                               , intent(inout)          :: interrupt            
+    procedure       (                    ), intent(inout), pointer :: interruptProcedure   
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -128,10 +126,10 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
     implicit none
-    class    (nodeComponentHotHalo), intent(inout)                    :: self
-    double precision                         , intent(in  )                     :: rate
-    logical                                  , intent(inout), optional          :: interrupt
-    procedure(                              ), intent(inout), optional, pointer :: interruptProcedure
+    class           (nodeComponentHotHalo          ), intent(inout)                    :: self               
+    double precision                                , intent(in   )                    :: rate               
+    logical                                         , intent(inout), optional          :: interrupt          
+    procedure       (                              ), intent(inout), optional, pointer :: interruptProcedure 
     
     ! Funnel the outflow gas into the hot halo.
     call self%massRate(rate)
@@ -144,11 +142,11 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the very simple hot halo component mass rate of change.
     implicit none
-    type     (treeNode            ), pointer, intent(inout) :: thisNode
-    logical                        ,          intent(inout) :: interrupt
-    procedure(                    ), pointer, intent(inout) :: interruptProcedure
-    class    (nodeComponentHotHalo),                pointer :: thisHotHaloComponent
-
+    type     (treeNode            ), intent(inout), pointer :: thisNode             
+    logical                        , intent(inout)          :: interrupt            
+    procedure(                    ), intent(inout), pointer :: interruptProcedure   
+    class    (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -168,12 +166,12 @@ contains
     !% Set scales for properties of {\tt thisNode}.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    double precision           , parameter              :: scaleMassRelative=1.0d-2
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    class(nodeComponentBasic  ), pointer                :: thisBasicComponent
-    double precision                                    :: massVirial
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                    
+    double precision                      , parameter              :: scaleMassRelative   =1.0d-2 
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent        
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent          
+    double precision                                               :: massVirial                  
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of the very simple class.
@@ -196,12 +194,13 @@ contains
     !% Initialize the contents of the very simple hot halo component.
     use Cosmological_Parameters
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: childNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,currentHotHaloComponent
-    class(nodeComponentBasic  ), pointer                :: thisBasicComponent  ,currentBasicComponent  ,childBasicComponent
-    double precision                                    :: hotHaloMass
-
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                          
+    type            (treeNode            )               , pointer :: childNode                                         
+    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent     
+    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent, & 
+         &                                                            thisBasicComponent                                
+    double precision                                               :: hotHaloMass                                       
+    
     ! If the very simple hot halo is not active, then return immediately.
     if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
 
@@ -241,10 +240,10 @@ contains
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: hostNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,hostHotHaloComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode                                   
+    type (treeNode            )               , pointer :: hostNode                                   
+    class(nodeComponentHotHalo)               , pointer :: hostHotHaloComponent, thisHotHaloComponent 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
@@ -276,11 +275,11 @@ contains
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: parentNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
-    double precision                                    :: hotHaloMass
-   
+    type            (treeNode            ), intent(inout), pointer :: thisNode                                     
+    type            (treeNode            )               , pointer :: parentNode                                   
+    class           (nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent 
+    double precision                                               :: hotHaloMass                                  
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of specified class.
@@ -309,10 +308,10 @@ contains
     !% Do processing of the node required after evolution.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: parentNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode                                     
+    type (treeNode            )               , pointer :: parentNode                                   
+    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent 
+    
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
     select type (thisHotHaloComponent)
@@ -339,9 +338,9 @@ contains
     !% Starve {\tt thisNode} by transferring its hot halo to its parent.
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    type (treeNode            ), pointer                :: parentNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent,parentHotHaloComponent
+    type (treeNode            ), intent(inout), pointer :: thisNode                                     
+    type (treeNode            )               , pointer :: parentNode                                   
+    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent 
     
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -362,9 +361,9 @@ contains
     !% Get and store the cooling rate for {\tt thisNode}.
     use Cooling_Rates
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-
+    type (treeNode            ), intent(inout), pointer :: thisNode             
+    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
        thisHotHaloComponent => thisNode%hotHalo()
@@ -387,10 +386,10 @@ contains
     use String_Handling
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode            ), pointer, intent(inout) :: thisNode
-    class(nodeComponentHotHalo), pointer                :: thisHotHaloComponent
-    type (varying_string      )                         :: message
-
+    type (treeNode            ), intent(inout), pointer :: thisNode             
+    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent 
+    type (varying_string      )                         :: message              
+    
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()
 

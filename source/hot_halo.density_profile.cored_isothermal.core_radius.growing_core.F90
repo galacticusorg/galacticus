@@ -32,22 +32,22 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
        & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
 
   ! Parameters of the model.
-  double precision                            :: isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusMaximum
+  double precision                                               :: isothermalCoreRadiusOverScaleRadius        , isothermalCoreRadiusOverVirialRadiusMaximum 
   
   ! Minimum and maximum radii (in units of the virial radius) allowed for cores.
-  double precision                            :: coreRadiusMinimum,coreRadiusMaximum
+  double precision                                               :: coreRadiusMaximum                          , coreRadiusMinimum                           
   
   ! Tabulation of core radius vs. virial density relation.
-  integer,          parameter                 :: coreRadiusTablePointsPerDecade=100
-  integer                                     :: coreRadiusTableCount
-  double precision, allocatable, dimension(:) :: coreRadiusTableCoreRadius,coreRadiusTableDensityFactor
-  logical                                     :: coreRadiusTableInitialized=.false.
-
+  integer                            , parameter                 :: coreRadiusTablePointsPerDecade     =100                                                  
+  integer                                                        :: coreRadiusTableCount                                                                     
+  double precision                   , allocatable, dimension(:) :: coreRadiusTableCoreRadius                  , coreRadiusTableDensityFactor                
+  logical                                                        :: coreRadiusTableInitialized         =.false.                                              
+  
   ! Interpolator variables.
-  type(fgsl_interp)                           :: interpolationObject
-  type(fgsl_interp_accel)                     :: interpolationAccelerator
-  logical                                     :: interpolationReset=.true.
-
+  type            (fgsl_interp      )                            :: interpolationObject                                                                      
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                                                 
+  logical                                                        :: interpolationReset                 =.true.                                               
+  
 contains
 
   !# <hotHaloCoredIsothermalCoreRadiiMethod>
@@ -60,9 +60,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string  ),          intent(in   ) :: hotHaloCoredIsothermalCoreRadiiMethod
-    procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core), pointer, intent(inout) :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get
-
+    type     (varying_string                                            ), intent(in   )          :: hotHaloCoredIsothermalCoreRadiiMethod             
+    procedure(Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core), intent(inout), pointer :: Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get 
+    
     if (hotHaloCoredIsothermalCoreRadiiMethod == 'growingCore') then
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Growing_Core
        !@ <inputParameter>
@@ -107,17 +107,17 @@ contains
     use Memory_Management
     use Numerical_Ranges
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic            ),                pointer :: thisBasicComponent
-    class(nodeComponentHotHalo          ),                pointer :: thisHotHaloComponent
-    class(nodeComponentDarkMatterProfile),                pointer :: thisDarkMatterProfileComponent
-    double precision                     , save                   :: isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved&
-         &,isothermalCoreRadiusOverVirialRadiusSaved
+    type            (treeNode                      ), intent(inout), pointer :: thisNode                                                                                         
+    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent                                                                               
+    class           (nodeComponentHotHalo          )               , pointer :: thisHotHaloComponent                                                                             
+    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent                                                                   
+    double precision                                , save                   :: hotGasFractionSaved                        , isothermalCoreRadiusOverVirialRadiusInitialSaved, & 
+         &                                                                      isothermalCoreRadiusOverVirialRadiusSaved                                                        
     !$omp threadprivate(isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved,isothermalCoreRadiusOverVirialRadiusSaved)
-    double precision                                              :: isothermalCoreRadiusOverVirialRadius,isothermalCoreRadiusOverVirialRadiusInitial&
-         &,hotGasFraction,targetValue
-    logical                                                       :: makeTable
-
+    double precision                                                         :: hotGasFraction                             , isothermalCoreRadiusOverVirialRadius            , & 
+         &                                                                      isothermalCoreRadiusOverVirialRadiusInitial, targetValue                                         
+    logical                                                                  :: makeTable                                                                                        
+    
     ! Get components.
     thisBasicComponent             => thisNode%basic            ()
     thisHotHaloComponent           => thisNode%hotHalo          ()
@@ -187,7 +187,7 @@ contains
     !% Returns the function $(1+r_{\rm c}^2)[1-r_{\rm c} \tan^{-1}(1/r_{\rm c}]$ which is proportional to the density at the
     !% virial radius of a cored isothermal profile with core radius $r_{\rm c}$ (in units of the virial radius) per unit mass.
     implicit none
-    double precision, intent(in) :: radiusOverVirialRadius
+    double precision, intent(in   ) :: radiusOverVirialRadius 
     
     Growing_Core_Virial_Density_Function=(1.0d0+radiusOverVirialRadius**2)*(1.0d0-radiusOverVirialRadius*atan(1.0d0/radiusOverVirialRadius))
     return
@@ -199,9 +199,9 @@ contains
   subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     write (stateFile) coreRadiusMinimum,coreRadiusMaximum
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store
@@ -212,9 +212,9 @@ contains
   subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
+    integer           , intent(in   ) :: stateFile     
+    type   (fgsl_file), intent(in   ) :: fgslStateFile 
+    
     ! Read the minimum and maximum tabulated times.
     read (stateFile) coreRadiusMinimum,coreRadiusMaximum
     ! Force retabulation on next evaluation.

@@ -35,11 +35,11 @@ contains
     !% Computes normalizations for the pieces of a piecewise power-law IMF such that the IMF is continuous and normalized to unit
     !% stellar mass.
     implicit none
-    double precision, intent(in)  :: massLower(:),massUpper(:),massExponent(:)
-    double precision, intent(out) :: imfNormalization(:)
-    integer                       :: iPiece
-    double precision              :: totalMass
-
+    double precision, intent(in   ) :: massExponent    (:), massLower(:), massUpper(:) 
+    double precision, intent(  out) :: imfNormalization(:)                             
+    integer                         :: iPiece                                          
+    double precision                :: totalMass                                       
+    
     ! Loop over each piece of the IMF.
     totalMass=0.0d0
     do iPiece=1,size(massLower)
@@ -70,9 +70,10 @@ contains
   pure double precision function Piecewise_Power_Law_IMF_Phi_Scalar(massLower,massUpper,massExponent,imfNormalization,mass)
     !% Returns the IMF at given {\tt mass}.
     implicit none
-    double precision, intent(in) :: massLower(:),massUpper(:),massExponent(:),imfNormalization(:),mass
-    integer                      :: iPiece
-
+    double precision, intent(in   ) :: imfNormalization(:), mass        , massExponent(:), & 
+         &                             massLower       (:), massUpper(:)                     
+    integer                         :: iPiece                                                
+    
     ! Assume zero value by default.
     Piecewise_Power_Law_IMF_Phi_Scalar=0.0d0
     ! Loop over all pieces of the IMF.
@@ -90,10 +91,12 @@ contains
   function Piecewise_Power_Law_IMF_Phi_Array(massLower,massUpper,massExponent,imfNormalization,mass)
     !% Returns the IMF at given {\tt mass()}.
     implicit none
-    double precision, intent(in) :: massLower(:),massUpper(:),massExponent(:),imfNormalization(:),mass(:)
-    double precision             :: Piecewise_Power_Law_IMF_Phi_Array(size(mass))
-    integer                      :: iMass
-
+    double precision, intent(in   ) :: imfNormalization                 (:         ), mass     (:), & 
+         &                             massExponent                     (:         ), massLower(:), & 
+         &                             massUpper                        (:         )                  
+    double precision                :: Piecewise_Power_Law_IMF_Phi_Array(size(mass))                  
+    integer                         :: iMass                                                          
+    
     ! Compute IMF for all elements of array by calling the scalar version of this routine.
     forall(iMass=1:size(mass))
        Piecewise_Power_Law_IMF_Phi_Array(iMass)=Piecewise_Power_Law_IMF_Phi_Scalar(massLower,massUpper,massExponent&

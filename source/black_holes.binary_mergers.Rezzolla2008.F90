@@ -35,8 +35,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: blackHoleBinaryMergersMethod
-    procedure(),          pointer, intent(inout) :: Black_Hole_Binary_Merger_Do
+    type     (varying_string), intent(in   )          :: blackHoleBinaryMergersMethod 
+    procedure(              ), intent(inout), pointer :: Black_Hole_Binary_Merger_Do  
     
     if (blackHoleBinaryMergersMethod == 'Rezzolla2008') Black_Hole_Binary_Merger_Do => Black_Hole_Binary_Merger_Rezzolla
     return
@@ -47,15 +47,18 @@ contains
     !% Computes the mass and spin of a black hole resulting from a binary merger utilizing the approximations of
     !% \cite{rezzolla_final_2008}.
     implicit none
-    double precision, intent(in)  :: blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB
-    double precision, intent(out) :: blackHoleMassFinal,blackHoleSpinFinal
+    double precision           , intent(in   ) :: blackHoleMassA             , blackHoleMassB             , blackHoleSpinA                 , & 
+         &                                        blackHoleSpinB                                                                               
+    double precision           , intent(  out) :: blackHoleMassFinal         , blackHoleSpinFinal                                              
     ! Parameters of the fitting functions used by Rezzolla et al.
-    double precision, parameter   :: s4=-0.129d0, s5=-0.384d0, t0=-2.686d0, t2=-3.454d0, t3=2.353d0
+    double precision, parameter                :: s4                =-0.129d0, s5                =-0.384d0, t0                    =-2.686d0, & 
+         &                                        t2                =-3.454d0, t3                =2.353d0                                      
     ! Assumed fixed values for the various alignment angles.
-    double precision, parameter   :: cosinePhi=1.0d0, cosineTheta=1.0d0, cosineXi=1.0d0
-    double precision              :: blackHoleMass1,blackHoleMass2,blackHoleSpin1,blackHoleSpin2,massRatio,symmetricMassRatio&
-         &,orbitalAngularMomentum
-
+    double precision, parameter                :: cosinePhi         =1.0d0   , cosineTheta       =1.0d0   , cosineXi              =1.0d0       
+    double precision                           :: blackHoleMass1             , blackHoleMass2             , blackHoleSpin1                 , & 
+         &                                        blackHoleSpin2             , massRatio                  , orbitalAngularMomentum         , & 
+         &                                        symmetricMassRatio                                                                           
+    
     ! Check for case of two zero-mass black holes.
     if (blackHoleMassA <= 0.0d0 .and. blackHoleMassB <= 0.0d0) then
        blackHoleMassFinal=0.0d0

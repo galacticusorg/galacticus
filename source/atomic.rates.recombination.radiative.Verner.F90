@@ -26,9 +26,10 @@ module Atomic_Rates_Recombination_Radiative_Verner
   public :: Atomic_Rate_Recombination_Radiative_Verner_Initialize
 
   ! Arrays to hold coefficients of fitting functions.
-  double precision :: recombinationFitCoefficients(2,30,30),recombinationFitCoefficientsNew(4,30,30),recombinationCoefficientsIron(3,10)
-  integer          :: i
-
+  double precision :: recombinationCoefficientsIron  (3,10   ), recombinationFitCoefficients(2,30,30), & 
+       &              recombinationFitCoefficientsNew(4,30,30)                                           
+  integer          :: i                                                                                  
+  
   ! Set the fitting coefficients.
   data(recombinationFitCoefficients   (i, 4, 4),i=1, 2) /4.500d-13,0.6480d0/
   data(recombinationFitCoefficients   (i, 5, 4),i=1, 2) /2.680d-12,0.7250d0/
@@ -533,9 +534,9 @@ contains
     !% Initializes the ``Verner'' atomic collisional ionization rate module.
     use ISO_Varying_String
     implicit none
-    type(varying_string),                 intent(in)    :: atomicRadiativeRecombinationMethod
-    procedure(double precision), pointer, intent(inout) :: Atomic_Rate_Recombination_Radiative_Get
- 
+    type     (varying_string  ), intent(in   )          :: atomicRadiativeRecombinationMethod      
+    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Recombination_Radiative_Get 
+    
     ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicRadiativeRecombinationMethod == 'Verner') Atomic_Rate_Recombination_Radiative_Get => Atomic_Rate_Recombination_Radiative_Verner
 
@@ -559,11 +560,11 @@ contains
     !% Based on the \href{ftp://gradj.pa.uky.edu//dima//rec//rrfit.f}{code} originally written by Dima Verner.
     use Galacticus_Error
     implicit none
-    integer,          intent(in) :: atomicNumber,ionizationState
-    double precision, intent(in) :: temperature
-    integer                      :: electronNumber
-    double precision             :: temperatureScaled
-
+    integer         , intent(in   ) :: atomicNumber     , ionizationState 
+    double precision, intent(in   ) :: temperature                        
+    integer                         :: electronNumber                     
+    double precision                :: temperatureScaled                  
+    
     ! Set zero rate by default.
     Atomic_Rate_Recombination_Radiative_Verner=0.0d0
 

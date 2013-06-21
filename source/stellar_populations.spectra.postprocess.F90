@@ -26,14 +26,14 @@ module Stellar_Population_Spectra_Postprocess
   public :: Stellar_Population_Spectrum_Postprocess
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                         :: stellarPopulationSpectraPostprocessInitialized=.false.
-
-  ! Count of the number of methods being applied.
-  integer                                         :: methodCount=0
-
-  ! Name of stellar population postprocessing methods to apply.
-  type(varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessMethods
-
+  logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.  
+  
+  ! Count of the number of methods being applied.                                                                                                           
+  integer                                            :: methodCount                                   =0        
+  
+  ! Name of stellar population postprocessing methods to apply.                                                                                                           
+  type   (varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessMethods              
+                                                                                                             
 contains
 
   subroutine Stellar_Population_Spectrum_Postprocess_Initialize
@@ -92,9 +92,9 @@ contains
     include 'stellar_populations.spectra.postprocess.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in) :: wavelength,redshift
+    double precision, intent(in   ) :: redshift, wavelength  
     
-    ! Initialize the module.
+    ! Initialize the module.                                                      
     call Stellar_Population_Spectrum_Postprocess_Initialize()
 
     ! Return immediately if no methods were defined.

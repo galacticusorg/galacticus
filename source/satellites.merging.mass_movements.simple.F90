@@ -25,11 +25,11 @@ module Satellite_Merging_Mass_Movements_Simple
   public :: Satellite_Merging_Mass_Movements_Simple_Initialize
 
   ! Mass ratio above which a merger is considered to be "major".
-  double precision :: majorMergerMassRatio
-
-  ! Location to which gas from satellite galaxy in minor merger is moved.
-  integer          :: minorMergerGasMovesToValue
-
+  double precision :: majorMergerMassRatio        
+  
+  ! Location to which gas from satellite galaxy in minor merger is moved.                                             
+  integer          :: minorMergerGasMovesToValue  
+                                               
 contains
 
   !# <satelliteMergingMassMovementsMethod>
@@ -41,10 +41,10 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingMassMovementsMethod
-    procedure(Satellite_Merging_Mass_Movement_Simple),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
-    character(len=10)                            :: minorMergerGasMovesTo
-
+    type     (varying_string                        ), intent(in   )          :: satelliteMergingMassMovementsMethod  
+    procedure(Satellite_Merging_Mass_Movement_Simple), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get  
+    character(len=10                                )                         :: minorMergerGasMovesTo                
+                                                                                                                   
     if (satelliteMergingMassMovementsMethod == 'simple') then
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Simple
        !@ <inputParameter>
@@ -87,13 +87,13 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type(treeNode), intent(inout), pointer  :: thisNode
-    integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
-    logical,        intent(out)             :: mergerIsMajor
-    type(treeNode),                pointer  :: hostNode
-    double precision                        :: satelliteMass,hostMass
-
-    ! Find the node to merge with.
+    type            (treeNode), intent(inout), pointer :: thisNode                                                     
+    integer                   , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo  
+    logical                   , intent(  out)          :: mergerIsMajor                                                
+    type            (treeNode)               , pointer :: hostNode                                                     
+    double precision                                   :: hostMass     , satelliteMass                                 
+    
+    ! Find the node to merge with.                                                                                                                
     hostNode => thisNode%mergesWith()
 
     ! Find the baryonic masses of the two galaxies.

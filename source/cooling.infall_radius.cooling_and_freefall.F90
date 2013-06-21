@@ -35,10 +35,10 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type(varying_string),                 intent(in)    :: infallRadiusMethod
-    procedure(Infall_Radius_Cooling_Freefall), pointer, intent(inout) :: Infall_Radius_Get
-    procedure(Infall_Radius_Growth_Rate_Cooling_Freefall), pointer, intent(inout) :: Infall_Radius_Growth_Rate_Get
-
+    type     (varying_string                            ), intent(in   )          :: infallRadiusMethod             
+    procedure(Infall_Radius_Cooling_Freefall            ), intent(inout), pointer :: Infall_Radius_Get              
+    procedure(Infall_Radius_Growth_Rate_Cooling_Freefall), intent(inout), pointer :: Infall_Radius_Growth_Rate_Get  
+                                                                                                                 
     if (infallRadiusMethod == 'coolingAndFreefall') then
        Infall_Radius_Get             => Infall_Radius_Cooling_Freefall
        Infall_Radius_Growth_Rate_Get => Infall_Radius_Growth_Rate_Cooling_Freefall
@@ -53,11 +53,11 @@ contains
     use Freefall_Radii
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: virialRadius,coolingRadius,freefallRadius
-    logical                                  :: infallIsCoolingLimited    
-
-    ! Get the virial radius.
+    type            (treeNode), intent(inout), pointer :: thisNode                                              
+    double precision                                   :: coolingRadius         , freefallRadius, virialRadius  
+    logical                                            :: infallIsCoolingLimited                                
+    
+    ! Get the virial radius.                                                                                                         
     virialRadius  =Dark_Matter_Halo_Virial_Radius(thisNode)
 
     ! Get the cooling radius.
@@ -83,11 +83,11 @@ contains
     use Freefall_Radii
     use Dark_Matter_Halo_Scales
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision                         :: virialRadius,coolingRadius,freefallRadius
-    logical                                  :: infallIsCoolingLimited    
-
-    ! Get the virial radius.
+    type            (treeNode), intent(inout), pointer :: thisNode                                              
+    double precision                                   :: coolingRadius         , freefallRadius, virialRadius  
+    logical                                            :: infallIsCoolingLimited                                
+    
+    ! Get the virial radius.                                                                                                         
     virialRadius  =Dark_Matter_Halo_Virial_Radius(thisNode)
 
     ! Get the cooling radius.

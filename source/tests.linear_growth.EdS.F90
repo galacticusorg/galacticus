@@ -24,13 +24,13 @@ program Tests_Linear_Growth_EdS
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision, parameter, dimension(8) :: redshift=[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  type(varying_string)                      :: parameterFile
-  character(len=1024)                       :: message
-  integer                                   :: iExpansion
-  double precision                          :: linearGrowth,expansionFactor
-
-  ! Read in basic code memory usage.
+  double precision                , dimension(8), parameter :: redshift       =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                
+  type            (varying_string)                          :: parameterFile                                                                            
+  character       (len=1024      )                          :: message                                                                                  
+  integer                                                   :: iExpansion                                                                               
+  double precision                                          :: expansionFactor                                                          , linearGrowth  
+  
+  ! Read in basic code memory usage.                                                                                                                                                   
   call Code_Memory_Usage('tests.linear_growth.EdS.size')
 
   ! Begin unit tests.

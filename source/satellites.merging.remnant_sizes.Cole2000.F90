@@ -24,8 +24,8 @@ module Satellite_Merging_Remnant_Sizes_Cole2000
   public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
 
   ! Parameter controlling the orbital energy used in the calculation.
-  double precision :: mergerRemnantSizeOrbitalEnergy
-
+  double precision :: mergerRemnantSizeOrbitalEnergy 
+  
 contains
 
   !# <satelliteMergingRemnantSizeMethod>
@@ -36,8 +36,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
-    procedure(Satellite_Merging_Remnant_Size_Cole2000),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
+    type     (varying_string                         ), intent(in   )          :: satelliteMergingRemnantSizeMethod 
+    procedure(Satellite_Merging_Remnant_Size_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do 
     
     if (satelliteMergingRemnantSizeMethod == 'Cole2000') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Cole2000
@@ -70,19 +70,24 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type(treeNode),          intent(inout), pointer  :: thisNode
-    type(treeNode),                         pointer  :: hostNode
-    double precision,        parameter               :: bindingEnergyFormFactor=0.5d+0
-    double precision,        parameter               :: absoluteMassTolerance  =1.0d-6
-    double precision,        parameter               :: relativeMassTolerance  =1.0d-9
-    double precision                                 :: satelliteMass,hostMass,satelliteRadius,hostRadius,satelliteSpheroidMass &
-         &,hostSpheroidMass,progenitorsEnergy,hostSpheroidMassPreMerger,angularMomentumFactor,remnantSpheroidGasMass &
-         &,remnantSpheroidMass,hostDarkMatterBoost,satelliteDarkMatterBoost,hostSpheroidMassTotal,satelliteSpheroidMassTotal
-    character(len= 2)                                :: joinString
-    character(len=40)                                :: dataString
-    type(varying_string)                             :: message
-    logical                                          :: errorCondition
-
+    type            (treeNode      ), intent(inout), pointer :: thisNode                                                        
+    type            (treeNode      )               , pointer :: hostNode                                                        
+    double precision                , parameter              :: bindingEnergyFormFactor   =0.5d+0                               
+    double precision                , parameter              :: absoluteMassTolerance     =1.0d-6                               
+    double precision                , parameter              :: relativeMassTolerance     =1.0d-9                               
+    double precision                                         :: angularMomentumFactor            , hostDarkMatterBoost      , & 
+         &                                                      hostMass                         , hostRadius               , & 
+         &                                                      hostSpheroidMass                 , hostSpheroidMassPreMerger, & 
+         &                                                      hostSpheroidMassTotal            , progenitorsEnergy        , & 
+         &                                                      remnantSpheroidGasMass           , remnantSpheroidMass      , & 
+         &                                                      satelliteDarkMatterBoost         , satelliteMass            , & 
+         &                                                      satelliteRadius                  , satelliteSpheroidMass    , & 
+         &                                                      satelliteSpheroidMassTotal                                      
+    character       (len= 2        )                         :: joinString                                                      
+    character       (len=40        )                         :: dataString                                                      
+    type            (varying_string)                         :: message                                                         
+    logical                                                  :: errorCondition                                                  
+    
     ! Find the node to merge with.
     hostNode => thisNode%mergesWith()
 

@@ -22,11 +22,11 @@ program Tests_Tree_Branch_Destroy
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
-  type(mergerTree),       pointer :: thisTree
-  type(treeNodeList)              :: nodes(5)
-  integer(kind=kind_int8)         :: iNode
-
-  ! Read in basic code memory usage.
+  type   (mergerTree    ), pointer :: thisTree     
+  type   (treeNodeList  )          :: nodes   (5)  
+  integer(kind=kind_int8)          :: iNode        
+  
+  ! Read in basic code memory usage.                                              
   call Code_Memory_Usage('tests.tree_branch_destroy.size')
 
   ! Begin unit tests.

@@ -25,9 +25,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
   public :: Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
 
   ! Parameters controlling the calculation of formation histories.
-  logical          :: accretionHistoryWechslerFormationRedshiftCompute
-  double precision :: accretionHistoryWechslerFormationRedshift
-
+  logical          :: accretionHistoryWechslerFormationRedshiftCompute 
+  double precision :: accretionHistoryWechslerFormationRedshift        
+  
 contains
 
   !# <darkMatterAccretionHistoryMethod>
@@ -38,8 +38,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: darkMatterAccretionHistoryMethod
-    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), pointer, intent(inout) :: Dark_Matter_Halo_Mass_Accretion_Time_Get
+    type     (varying_string                                   ), intent(in   )          :: darkMatterAccretionHistoryMethod         
+    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get 
     
     if (darkMatterAccretionHistoryMethod == 'Wechsler2002') then
        ! Set procedure pointers.
@@ -81,11 +81,12 @@ contains
     !% \cite{wechsler_concentrations_2002}.
     use Cosmology_Functions
     implicit none
-    type (treeNode          ), intent(inout), pointer :: baseNode
-    double precision,          intent(in   )          :: nodeMass
-    class(nodeComponentBasic),                pointer :: baseBasicComponent
-    double precision                                  :: expansionFactorBase,expansionFactor,mergerTreeFormationExpansionFactor
-
+    type            (treeNode          ), intent(inout), pointer :: baseNode                                                   
+    double precision                    , intent(in   )          :: nodeMass                                                   
+    class           (nodeComponentBasic)               , pointer :: baseBasicComponent                                         
+    double precision                                             :: expansionFactor                   , expansionFactorBase, & 
+         &                                                          mergerTreeFormationExpansionFactor                         
+    
     baseBasicComponent => baseNode%basic()
     select case (accretionHistoryWechslerFormationRedshiftCompute)
     case (.true.)
@@ -115,11 +116,12 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    double precision, intent(in) :: haloMass
-    double precision, parameter  :: haloMassFraction=0.015d0 ! Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-    double precision             :: haloMassCharacteristic,sigmaCharacteristic,formationTime
-
-    ! Compute the characteristic mass at formation time.    
+    double precision, intent(in   ) :: haloMass                                                                                                              
+    double precision, parameter     :: haloMassFraction   =0.015d0                         !   Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).    
+    double precision                :: formationTime              , haloMassCharacteristic                                                               , & 
+         &                             sigmaCharacteristic                                                                                                   
+    
+    ! Compute the characteristic mass at formation time.
     haloMassCharacteristic=haloMassFraction*haloMass
 
     ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).

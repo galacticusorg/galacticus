@@ -30,8 +30,8 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string), intent(in) :: imfSelection,imfNames(:)
-    
+    type(varying_string), intent(in   ) :: imfNames(:), imfSelection  
+                                                                   
     IMF_Index_Lookup=1
     do while (IMF_Index_Lookup < size(imfNames))
        if (imfSelection == imfNames(IMF_Index_Lookup)) exit

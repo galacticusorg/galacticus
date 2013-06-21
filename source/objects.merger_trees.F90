@@ -31,12 +31,12 @@ module Merger_Trees
 
   type mergerTree
      !% The merger tree object type.
-     integer(kind=kind_int8)   :: index
-     type(hdf5Object)          :: hdf5Group
-     double precision          :: volumeWeight
-     logical                   :: initialized
-     type(treeNode),   pointer :: baseNode => null()
-     type(mergerTree), pointer :: nextTree => null()
+     integer         (kind=kind_int8)          :: index                
+     type            (hdf5Object    )          :: hdf5Group            
+     double precision                          :: volumeWeight         
+     logical                                   :: initialized          
+     type            (treeNode      ), pointer :: baseNode    =>null() 
+     type            (mergerTree    ), pointer :: nextTree    =>null() 
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>
@@ -86,74 +86,72 @@ module Merger_Trees
      !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout, \doublezero endTime\argin, \logicalzero\ interrupted\argout, \textcolor{red}{\textless *function(*type(treeNode)} thisNode\arginout\textcolor{red}{)\textgreater} interruptProcedure\argout</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                 :: destroy       => Merger_Tree_Destroy
-     procedure                 :: destroyBranch => Merger_Tree_Destroy_Branch
-     procedure                 :: createNode    => Tree_Node_Create
-     procedure                 :: promoteNode   => Tree_Node_Promote
-     procedure                 :: evolveNode    => Tree_Node_Evolve
-     procedure                 :: mergeNode     => Events_Node_Merger
-     procedure                 :: getNode       => Tree_Node_Get
+     procedure :: destroy      =>Merger_Tree_Destroy        
+     procedure :: destroyBranch=>Merger_Tree_Destroy_Branch 
+     procedure :: createNode   =>Tree_Node_Create           
+     procedure :: promoteNode  =>Tree_Node_Promote          
+     procedure :: evolveNode   =>Tree_Node_Evolve           
+     procedure :: mergeNode    =>Events_Node_Merger         
+     procedure :: getNode      =>Tree_Node_Get              
   end type mergerTree
   
   ! Flag to indicate if the tree node create routines have been initialized.
-  logical                                     :: treeNodeCreateInitialized=.false.
-
+  logical                                     :: treeNodeCreateInitialized=.false.                         
+  
   ! Count of number of different possible component types.
-  integer                                     :: componentTypesCount=0
+  integer                                     :: componentTypesCount      =0                               
   
   ! Flag to indicate if the node evolver method has been initialized.
-  logical                                     :: evolverInitialized=.false.
-
+  logical                                     :: evolverInitialized       =.false.                         
+  
   ! Parameters controlling the accuracy of ODE solving.
-  double precision                            :: odeToleranceAbsolute, odeToleranceRelative
-
+  double precision                            :: odeToleranceAbsolute             , odeToleranceRelative   
+  
   ! Arrays that point to node properties and their derivatives.
-  integer                                     :: nPropertiesMax=0, nProperties
-  double precision, allocatable, dimension(:) :: propertyValues,propertyScales
+  integer                                     :: nProperties                      , nPropertiesMax      =0 
+  double precision, allocatable, dimension(:) :: propertyScales                   , propertyValues         
   !$omp threadprivate(nPropertiesMax,nProperties,propertyValues,propertyScales)
 #ifdef PROFILE
-  logical                                     :: profileOdeEvolver
+  logical :: profileOdeEvolver 
 #endif
 
   ! Module global pointer to the node being processed.
-  integer(kind=kind_int8)                     :: activeTreeIndex
-  type(treeNode),   pointer                   :: activeNode
+  integer         (kind=kind_int8              )          :: activeTreeIndex                  
+  type            (treeNode                    ), pointer :: activeNode                       
   !$omp threadprivate(activeNode,activeTreeIndex)
-
   ! Variables to track interrupt events.
-  logical                                          :: firstInterruptFound
-  double precision                                 :: firstInterruptTime
-  procedure(Interrupt_Procedure_Template), pointer :: firstInterruptProcedure
+  logical                                                 :: firstInterruptFound              
+  double precision                                        :: firstInterruptTime               
+  procedure       (Interrupt_Procedure_Template), pointer :: firstInterruptProcedure          
   !$omp threadprivate(firstInterruptFound,firstInterruptTime,firstInterruptProcedure)
-
-  ! Flag to indicate if node merging event method has been initialized.  
-  logical              :: nodeMergersInitialized=.false.
-
+  ! Flag to indicate if node merging event method has been initialized.
+  logical                                                 :: nodeMergersInitialized  =.false. 
+  
   ! Name of node mergers method used.
-  type(varying_string) :: nodeMergersMethod
-
+  type            (varying_string              )          :: nodeMergersMethod                
+  
   ! The algorithm to use for ODE solving.
-  type(fodeiv2_step_type) :: Galacticus_ODE_Algorithm
-
+  type            (fodeiv2_step_type           )          :: Galacticus_ODE_Algorithm         
+  
   ! Pointer to the subroutine that tabulates the transfer function and template interface for that subroutine.
-  procedure(Node_Mergers_Template), pointer :: Events_Node_Merger_Do => null()
+  procedure       (Node_Mergers_Template       ), pointer :: Events_Node_Merger_Do   =>null() 
   abstract interface
      subroutine Node_Mergers_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
+       type(treeNode), intent(inout), pointer :: thisNode 
      end subroutine Node_Mergers_Template
   end interface
 
   ! Pointer to an error handler for failures in the ODE solver.
-  procedure(), pointer :: Galacticus_ODE_Error_Handler => Tree_Node_ODEs_Error_Handler
-
+  procedure(), pointer :: Galacticus_ODE_Error_Handler=>Tree_Node_ODEs_Error_Handler 
+  
 contains
 
   subroutine Merger_Tree_Destroy(thisTree)
     !% Destroys the entire merger tree.
     implicit none
-    class(mergerTree), intent(inout) :: thisTree
-
+    class(mergerTree), intent(inout) :: thisTree 
+    
     select type (thisTree)
     type is (mergerTree)
        ! Destroy all nodes.
@@ -167,10 +165,10 @@ contains
   subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
     !% Destroy a branch of a tree which begins at {\tt thisNode}.
     implicit none
-    class(mergerTree),          intent(inout) :: thisTree
-    type(treeNode),    pointer, intent(inout) :: thisNode
-    type(treeNode),    pointer                :: destroyNode,nextNode
-
+    class(mergerTree), intent(inout)          :: thisTree              
+    type (treeNode  ), intent(inout), pointer :: thisNode              
+    type (treeNode  )               , pointer :: destroyNode, nextNode 
+    
     ! Descend to the tip of the branch.
     call thisNode%walkBranchWithSatellites(thisNode,nextNode)
     ! Loop over all tree nodes.
@@ -206,11 +204,11 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class(mergerTree),                intent(inout)        :: thisTree
-    type(treeNode),          pointer, intent(inout)        :: thisNode
-    integer(kind=kind_int8),          intent(in), optional :: index
-    integer                                                :: allocErr
-
+    class  (mergerTree    ), intent(inout)           :: thisTree 
+    type   (treeNode      ), intent(inout), pointer  :: thisNode 
+    integer(kind=kind_int8), intent(in   ), optional :: index    
+    integer                                          :: allocErr 
+    
     ! Initialize tree node methods if necessary.
     call Tree_Node_Create_Initialize
 
@@ -250,11 +248,11 @@ contains
     include 'objects.tree_node.promote.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree),            intent(inout) :: thisTree
-    type(treeNode),      pointer, intent(inout) :: thisNode
-    type(treeNode),      pointer                :: parentNode,satelliteNode
-    type(varying_string)                        :: message
-
+    class(mergerTree    ), intent(inout)          :: thisTree                  
+    type (treeNode      ), intent(inout), pointer :: thisNode                  
+    type (treeNode      )               , pointer :: parentNode, satelliteNode 
+    type (varying_string)                         :: message                   
+    
     ! Get pointer to parent node.
     parentNode => thisNode%parent
 
@@ -318,10 +316,9 @@ contains
     !% Initializes the tree evolving routines by reading in parameters
     use Input_Parameters
     use Galacticus_Error
-    type(varying_string) :: odeAlgorithm
-
-    ! Initialize if necessary.
-    !$omp critical (Tree_Node_Evolve_Initialize)
+    type(varying_string) :: odeAlgorithm 
+    
+    ! Initialize if necessary.    !$omp critical (Tree_Node_Evolve_Initialize)
     if (.not.evolverInitialized) then
        ! Get tolerance values for the ODE solver.
        !@ <inputParameter>
@@ -405,23 +402,23 @@ contains
     include 'objects.tree_node.set_scale.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree),                       intent(inout)          :: thisTree
-    type(treeNode),                          intent(inout), pointer :: thisNode
-    double precision,                        intent(in)             :: endTime
-    logical,                                 intent(out)            :: interrupted
-    procedure(Interrupt_Procedure_Template), intent(out),   pointer :: interruptProcedure
-    class(nodeComponentBasic),               pointer                :: basicComponent
-    integer,                                 save                   :: nPropertiesPrevious=-1
+    class           (mergerTree                  )      , intent(inout)          :: thisTree               
+    type            (treeNode                    )      , intent(inout), pointer :: thisNode               
+    double precision                                    , intent(in   )          :: endTime                
+    logical                                             , intent(  out)          :: interrupted            
+    procedure       (Interrupt_Procedure_Template)      , intent(  out), pointer :: interruptProcedure     
+    class           (nodeComponentBasic          )                     , pointer :: basicComponent         
+    integer                                       , save                         :: nPropertiesPrevious=-1 
     !$omp threadprivate(nPropertiesPrevious)
-    double precision                                                :: startTimeThisNode
+    double precision                                                             :: startTimeThisNode      
     ! Variables used in the ODE solver.
-    type(fodeiv2_system    ), save                                  :: ode2System
-    type(fodeiv2_driver    ), save                                  :: ode2Driver
-    logical                 , save                                  :: odeReset
+    type            (fodeiv2_system              ), save                         :: ode2System             
+    type            (fodeiv2_driver              ), save                         :: ode2Driver             
+    logical                                       , save                         :: odeReset               
     !$omp threadprivate(ode2System,ode2Driver,odeReset)
-    type(c_ptr)                                                     :: parameterPointer
+    type            (c_ptr                       )                               :: parameterPointer       
 #ifdef PROFILE
-    type(c_funptr)                                                  :: Error_Analyzer
+    type(c_funptr) :: Error_Analyzer 
 #endif
 
     ! Initialize.
@@ -534,8 +531,8 @@ contains
     !% Return true if a tree node property is within expected accuracy of a given value.
     use Numerical_Comparison
     implicit none
-    double precision, intent(in) :: valueNode,valueExpected
-
+    double precision, intent(in   ) :: valueExpected, valueNode 
+    
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -549,14 +546,14 @@ contains
     use ODE_Solver_Error_Codes
     use FGSL
     implicit none
-    integer(c_int)                                       :: Tree_Node_ODEs
-    real(c_double),                          value       :: time
-    real(c_double),                          intent(in)  :: y(nProperties)
-    real(c_double),                          intent(out) :: dydt(nProperties)
-    type(c_ptr),                             value       :: parameterPointer
-    logical                                              :: interrupt
-    procedure(Interrupt_Procedure_Template), pointer     :: interruptProcedure
-
+    integer  (kind=c_int                  )                       :: Tree_Node_ODEs                  
+    real     (kind=c_double               )               , value :: time                            
+    real     (kind=c_double               ), intent(in   )        :: y                 (nProperties) 
+    real     (kind=c_double               ), intent(  out)        :: dydt              (nProperties) 
+    type     (c_ptr                       )               , value :: parameterPointer                
+    logical                                                       :: interrupt                       
+    procedure(Interrupt_Procedure_Template), pointer              :: interruptProcedure              
+    
     ! Extract values.
     call activeNode%deserializeValues(y)
 
@@ -605,11 +602,11 @@ contains
     include 'objects.node.component.derivatives.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
-    logical,                 intent(out)   :: interrupt
-    procedure(),    pointer, intent(out)   :: interruptProcedureReturn
-    procedure(),    pointer                :: interruptProcedure
-
+    type     (treeNode), intent(inout), pointer :: thisNode                 
+    logical            , intent(  out)          :: interrupt                
+    procedure(        ), intent(  out), pointer :: interruptProcedureReturn 
+    procedure(        )               , pointer :: interruptProcedure       
+    
     ! Initialize interrupt status.
     interrupt=.false.
     interruptProcedure => null()
@@ -640,7 +637,7 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    type(varying_string) :: message
+    type(varying_string) :: message 
     
     message="ODE solver failed in tree #"
     message=message//activeTreeIndex
@@ -658,14 +655,14 @@ contains
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>
     implicit none
-    real(c_double),   intent(in), dimension(nProperties) :: currentPropertyValue
-    real(c_double),   intent(in), dimension(nProperties) :: currentPropertyError
-    real(c_double),   intent(in), value                  :: timeStep
-    integer(c_int),   intent(in), value                  :: stepStatus
-    double precision                                     :: scaledErrorMaximum,scaledError,scale
-    integer                                              :: iProperty,limitingProperty
-    type(varying_string)                                 :: propertyName
-
+    real            (kind=c_double ), dimension(nProperties), intent(in   )        :: currentPropertyValue                                       
+    real            (kind=c_double ), dimension(nProperties), intent(in   )        :: currentPropertyError                                       
+    real            (kind=c_double )                        , intent(in   ), value :: timeStep                                                   
+    integer         (kind=c_int    )                        , intent(in   ), value :: stepStatus                                                 
+    double precision                                                               :: scale               , scaledError     , scaledErrorMaximum 
+    integer                                                                        :: iProperty           , limitingProperty                     
+    type            (varying_string)                                               :: propertyName                                               
+    
     ! If the step was not good, return immediately.
     if (stepStatus /= FGSL_Success) return
 
@@ -700,9 +697,9 @@ contains
     include 'events.node_mergers.process.modules.inc'
     !# </include>
     implicit none
-    class(mergerTree),   intent(in   )          :: thisTree
-    type(treeNode),      intent(inout), pointer :: thisNode
-    type(varying_string)                        :: message
+    class(mergerTree    ), intent(in   )          :: thisTree 
+    type (treeNode      ), intent(inout), pointer :: thisNode 
+    type (varying_string)                         :: message  
     
     ! Display a message.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -751,10 +748,10 @@ contains
   function Tree_Node_Get(thisTree,nodeIndex)
     !% Return a pointer to a node in {\tt thisTree} given the index of the node.
     implicit none
-    class(mergerTree),       intent(in) :: thisTree
-    integer(kind=kind_int8), intent(in) :: nodeIndex
-    type(treeNode),          pointer    :: Tree_Node_Get,thisNode
-
+    class  (mergerTree    ), intent(in   ) :: thisTree                
+    integer(kind=kind_int8), intent(in   ) :: nodeIndex               
+    type   (treeNode      ), pointer       :: Tree_Node_Get, thisNode 
+    
     Tree_Node_Get => null()
     thisNode => thisTree%baseNode
     do while (associated(thisNode))

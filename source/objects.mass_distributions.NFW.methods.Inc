@@ -21,12 +21,12 @@ subroutine Mass_Distribution_NFW_Initialize(self,scaleLength,concentration,densi
   use Numerical_Constants_Math
   use Galacticus_Error
   implicit none
-  class           (massDistributionNFW), intent(  out)           :: self
-  double precision                     , intent(in   ), optional :: scaleLength,concentration,densityNormalization,mass &
-       &,virialRadius
-  logical                              , intent(in   ), optional :: isDimensionless
-  double precision                                               :: r
-
+  class           (massDistributionNFW), intent(  out)           :: self                                           
+  double precision                     , intent(in   ), optional :: concentration  , densityNormalization, mass, & 
+       &                                                            scaleLength    , virialRadius                  
+  logical                              , intent(in   ), optional :: isDimensionless                                
+  double precision                                               :: r                                              
+  
   ! Determine scale length
   if      (                            &
        &   present(scaleLength  )      &
@@ -67,11 +67,11 @@ double precision function Mass_Distribution_NFW_Density(self,coordinates)
   !% Return the density at the specified {\tt coordinates} in an NFW mass distribution.
   use Coordinates
   implicit none
-  class           (massDistributionNFW), intent(in   ) :: self
-  class           (coordinate         ), intent(in   ) :: coordinates
-  type            (coordinateSpherical)                :: position
-  double precision                                     :: r
-
+  class           (massDistributionNFW), intent(in   ) :: self        
+  class           (coordinate         ), intent(in   ) :: coordinates 
+  type            (coordinateSpherical)                :: position    
+  double precision                                     :: r           
+  
   ! Get position in spherical coordinate system.
   position=coordinates
   ! Compute the density at this position.

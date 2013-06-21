@@ -25,16 +25,16 @@ module Merger_Tree_Branching_Modifiers
   public :: Merger_Tree_Branching_Modifier
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                        :: treeBranchingModifierInitialized=.false.
-
-  ! Name of branching method used.
-  type(varying_string)                           :: treeBranchingModifierMethod
-
-  ! Pointer to the functions that return branching probability modifiers.
-  procedure(Merger_Tree_Branching_Modifier_Template), pointer :: Merger_Tree_Branching_Modifier_Get => null()
+  logical                                                     :: treeBranchingModifierInitialized  =.false.  
+  
+  ! Name of branching method used.                                                                                                        
+  type     (varying_string                         )          :: treeBranchingModifierMethod                 
+  
+  ! Pointer to the functions that return branching probability modifiers.                                                                                                        
+  procedure(Merger_Tree_Branching_Modifier_Template), pointer :: Merger_Tree_Branching_Modifier_Get=>null()  
   abstract interface
      double precision function Merger_Tree_Branching_Modifier_Template(parentDelta,childSigma,parentSigma)
-       double precision, intent(in) :: parentDelta,childSigma,parentSigma
+       double precision, intent(in   ) :: childSigma, parentDelta, parentSigma  
      end function Merger_Tree_Branching_Modifier_Template
   end interface
  
@@ -43,9 +43,9 @@ contains
   double precision function Merger_Tree_Branching_Modifier(parentDelta,childSigma,parentSigma)
     !% Return a modifier for merger tree branching probabilities.
     implicit none
-    double precision, intent(in) :: parentDelta,childSigma,parentSigma
-
-    ! Initialize if necessary.
+    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma  
+    
+    ! Initialize if necessary.                                                                      
     call Tree_Branching_Modifiers_Initialize
 
     ! Call the function to complete the calculation.

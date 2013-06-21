@@ -23,10 +23,10 @@ module Meshes
   public :: Meshes_Apply_Point
 
   ! Cloud types.
-  integer, public, parameter :: cloudTypePoint     =0
-  integer, public, parameter :: cloudTypeCubic     =1
-  integer, public, parameter :: cloudTypeTriangular=2
-
+  integer, parameter, public :: cloudTypePoint     =0  
+  integer, parameter, public :: cloudTypeCubic     =1  
+  integer, parameter, public :: cloudTypeTriangular=2  
+                                                    
 contains
 
   subroutine Meshes_Apply_Point(mesh,boxLength,pointPosition,pointWeight,cloudType)
@@ -35,13 +35,13 @@ contains
     use Galacticus_Error
     implicit none
     complex(c_double_complex), intent(inout), dimension(:,:,:) :: mesh
-    double precision         , intent(in   )                   :: boxLength
-    double precision         , intent(in   ), dimension(3    ) :: pointPosition
+    double precision                  , intent(in   ) :: boxLength      
+    double precision, dimension(3    ), intent(in   ) :: pointPosition  
     complex(c_double_complex), intent(in   ), optional         :: pointWeight
-    integer                  , intent(in   ), optional         :: cloudType
-    integer                  ,                dimension(3    ) :: gridIndices
-    double precision         ,                dimension(3    ) :: gridPosition
-    integer                                                    :: cloudTypeActual,i,j,k
+    integer         , intent(in   )   , optional :: cloudType                 
+    integer         , dimension(3    )           :: gridIndices               
+    double precision, dimension(3    )           :: gridPosition              
+    integer                                      :: cloudTypeActual, i, j, k  
     complex(c_double_complex)                                  :: pointWeightActual,meshFraction
 
     ! Find the particle weight.
@@ -111,8 +111,8 @@ contains
   elemental double precision function Triangular_Shaped_Cloud_Integral(cellFraction)
     !% Return the integral over a triangular shaped cloud given the fraction of the cloud length in a cell.
     implicit none
-    double precision, intent(in) :: cellFraction
-
+    double precision, intent(in   ) :: cellFraction  
+                                                  
     if (cellFraction < 0.5d0) then
        Triangular_Shaped_Cloud_Integral=2.0d0*              cellFraction **2
     else

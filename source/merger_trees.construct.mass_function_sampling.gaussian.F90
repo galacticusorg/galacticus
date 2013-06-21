@@ -23,8 +23,8 @@ module Merger_Trees_Mass_Function_Sampling_Gaussian
   public :: Merger_Trees_Mass_Function_Sampling_Gaussian_Initialize
 
   ! The mass of the halo to simulate.
-  double precision :: mergerTreeBuildTreesHaloMassGaussianMean,mergerTreeBuildTreesHaloMassGaussianSigma
-
+  double precision :: mergerTreeBuildTreesHaloMassGaussianMean, mergerTreeBuildTreesHaloMassGaussianSigma  
+                                                                                                        
 contains
 
   !# <haloMassFunctionSamplingMethod>
@@ -35,9 +35,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in)    :: haloMassFunctionSamplingMethod
-    procedure(double precision), pointer, intent(inout) :: Merger_Tree_Construct_Mass_Function_Sampling_Get
-    
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod                    
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get  
+                                                                                                          
     if (haloMassFunctionSamplingMethod == 'gaussian') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Gaussian
 
@@ -70,8 +70,8 @@ contains
   double precision function Merger_Tree_Construct_Mass_Function_Sampling_Gaussian(mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a Gaussian distribution.
     implicit none
-    double precision, intent(in) :: mass,time,massMinimum,massMaximum
-    
+    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
+                                                                          
      if (mass <= massMinimum .or. mass > massMaximum) then
        Merger_Tree_Construct_Mass_Function_Sampling_Gaussian=0.0d0
     else

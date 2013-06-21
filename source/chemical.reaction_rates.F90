@@ -26,11 +26,11 @@ module Chemical_Reaction_Rates
   public :: Chemical_Reaction_Rate
 
   ! Flag to indicate if this module has been initialized.  
-  logical                                         :: chemicalReactionRateInitialized=.false.
-
-  ! Name of chemical reaction rates methods used.
-  type(varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods
-
+  logical                                            :: chemicalReactionRateInitialized=.false.  
+  
+  ! Name of chemical reaction rates methods used.                                                                                            
+  type   (varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods              
+                                                                                              
 contains
 
   subroutine Chemical_Reaction_Rates_Initialize
@@ -42,9 +42,9 @@ contains
     include 'chemical.reaction_rates.modules.inc'
     !# </include>
     implicit none
-    integer :: chemicalReactionRatesCount
+    integer :: chemicalReactionRatesCount  
     
-    ! Initialize if necessary.
+    ! Initialize if necessary.                                    
     if (.not.chemicalReactionRateInitialized) then
        !$omp critical(Chemical_Reaction_Rates_Initialization) 
        if (.not.chemicalReactionRateInitialized) then
@@ -85,12 +85,12 @@ contains
     include 'chemical.reaction_rates.compute.modules.inc'
     !# </include>
     implicit none
-    type(chemicalAbundances), intent(inout) :: chemicalRates
-    double precision,                  intent(in)    :: temperature
-    type(chemicalAbundances), intent(in)    :: chemicalDensity
-    type(radiationStructure),          intent(in)    :: radiation
-
-    ! Initialize the module.
+    type            (chemicalAbundances), intent(inout) :: chemicalRates    
+    double precision                    , intent(in   ) :: temperature      
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensity  
+    type            (radiationStructure), intent(in   ) :: radiation        
+    
+    ! Initialize the module.                                                                     
     call Chemical_Reaction_Rates_Initialize
   
     call chemicalRates%reset()

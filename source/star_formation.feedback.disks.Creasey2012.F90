@@ -25,13 +25,12 @@ module Star_Formation_Feedback_Disks_Creasey2012
   public :: Star_Formation_Feedback_Disks_Creasey2012_Initialize
 
   ! Parameters of the feedback model.
-  double precision                    :: starFormationFeedbackDisksCreasy2012Beta0,starFormationFeedbackDisksCreasy2012Mu&
-       &,starFormationFeedbackDisksCreasy2012Nu
+  double precision                    :: starFormationFeedbackDisksCreasy2012Beta0, starFormationFeedbackDisksCreasy2012Mu, & 
+       &                                 starFormationFeedbackDisksCreasy2012Nu                                               
   
   ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  type            (treeNode), pointer :: activeNode
+  type            (treeNode), pointer :: activeNode                                                                           
   !$omp threadprivate(activeNode)
-
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -42,8 +41,8 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012), pointer, intent(inout) :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    type     (varying_string                                       ), intent(in   )          :: starFormationFeedbackDisksMethod              
+    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get 
     
     if (starFormationFeedbackDisksMethod == 'Creasey2012') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012
@@ -105,15 +104,17 @@ contains
     use               Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk         ),                pointer :: thisDiskComponent
-    double precision                            , intent(in   )          :: starFormationRate,energyInputRate
-    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0,radiusOuterDimensionless=10.0d0
-    double precision                                                     :: radiusInner,radiusOuter,diskScaleRadius,gasMass,stellarMass
-    type            (c_ptr                     )                         :: parameterPointer
-    type            (fgsl_function             )                         :: integrandFunction
-    type            (fgsl_integration_workspace)                         :: integrationWorkspace
-
+    type            (treeNode                  ), intent(inout), pointer :: thisNode                                                           
+    class           (nodeComponentDisk         )               , pointer :: thisDiskComponent                                                  
+    double precision                            , intent(in   )          :: energyInputRate               , starFormationRate                  
+    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0    
+    double precision                                                     :: diskScaleRadius               , gasMass                        , & 
+         &                                                                  radiusInner                   , radiusOuter                    , & 
+         &                                                                  stellarMass                                                        
+    type            (c_ptr                     )                         :: parameterPointer                                                   
+    type            (fgsl_function             )                         :: integrandFunction                                                  
+    type            (fgsl_integration_workspace)                         :: integrationWorkspace                                               
+    
     ! Get the disk properties.
     thisDiskComponent => thisNode         %disk       ()
     gasMass           =  thisDiskComponent%massGas    ()
@@ -158,11 +159,12 @@ contains
     use               Numerical_Constants_Prefixes
     use, intrinsic :: ISO_C_Binding
     implicit none
-    real            (c_double)        :: Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand
-    real            (c_double), value :: radius
-    type            (c_ptr   ), value :: parameterPointer
-    double precision                  :: surfaceDensityGas,surfaceDensityStar,gasFraction,starFormationRateSurfaceDensity
-
+    real            (kind=c_double)        :: Star_Formation_Feedback_Disk_Outflow_Rate_Creasey2012_Integrand                                     
+    real            (kind=c_double), value :: radius                                                                                              
+    type            (c_ptr        ), value :: parameterPointer                                                                                    
+    double precision                       :: gasFraction                                                    , starFormationRateSurfaceDensity, & 
+         &                                    surfaceDensityGas                                              , surfaceDensityStar                 
+    
     ! Get gas surface density.
     surfaceDensityGas=Galactic_Structure_Surface_Density(activeNode,[radius,0.0d0,0.0d0],coordinateSystem&
          &=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)

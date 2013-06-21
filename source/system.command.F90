@@ -30,10 +30,10 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type(varying_string), intent(in)            :: command
-    integer,              intent(out), optional :: iStatus
-    integer                                     :: iStatusActual
-
+    type   (varying_string), intent(in   )           :: command        
+    integer                , intent(  out), optional :: iStatus        
+    integer                                          :: iStatusActual  
+                                                                    
     call System(char(command),iStatusActual)
     if (present(iStatus)) then
        iStatus=iStatusActual
