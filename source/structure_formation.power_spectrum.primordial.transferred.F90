@@ -22,7 +22,7 @@ module Primordial_Power_Spectra_Transferred
   implicit none
   private
   public :: Primordial_Power_Spectrum_Transferred
-  
+
 contains
 
   double precision function Primordial_Power_Spectrum_Transferred(wavenumber)
@@ -35,5 +35,5 @@ contains
     Primordial_Power_Spectrum_Transferred=(Transfer_Function(wavenumber)**2)*Primordial_Power_Spectrum(wavenumber)
     return
   end function Primordial_Power_Spectrum_Transferred
-  
+
 end module Primordial_Power_Spectra_Transferred

@@ -36,10 +36,10 @@ module Input_Parameters
   include 'utility.input_parameters.unique_labels.visibilities.inc'
 
   ! Node to hold the parameter document.
-  type   (Node    ), pointer :: parameterDoc  =>null() 
-  type   (NodeList), pointer :: parameterList          
-  integer                    :: parameterCount         
-  
+  type   (Node    ), pointer :: parameterDoc  =>null()
+  type   (NodeList), pointer :: parameterList
+  integer                    :: parameterCount
+
   ! Generic interface to parameter value functions.
   interface Get_Input_Parameter
      module procedure Get_Input_Parameter_Char
@@ -57,16 +57,16 @@ module Input_Parameters
   end interface
 
   ! Maximum length for parameters that must be extracted as text.
-  integer            , parameter :: parameterLengthMaximum=1024    
-  
+  integer            , parameter :: parameterLengthMaximum=1024
+
   ! Parameters group identifier in the output file.
-  logical                        :: parametersGroupCreated=.false. 
-  type   (hdf5Object)            :: parametersGroup                
-  
+  logical                        :: parametersGroupCreated=.false.
+  type   (hdf5Object)            :: parametersGroup
+
   ! Local pointer to the main output file object.
-  logical                        :: haveOutputFile                 
-  type   (hdf5Object), pointer   :: outputFileObject               
-  
+  logical                        :: haveOutputFile
+  type   (hdf5Object), pointer   :: outputFileObject
+
 contains
 
   subroutine Input_Parameters_File_Open(parameterFile,outputFileObjectTarget,allowedParametersFile)
@@ -90,18 +90,18 @@ contains
     use String_Handling
     !$ use OMP_Lib
     implicit none
-    type     (varying_string)         , intent(in   )                   :: parameterFile                                       
-    type     (hdf5Object    )         , intent(in   ), optional, target :: outputFileObjectTarget                              
-    character(len=*         )         , intent(in   ), optional         :: allowedParametersFile                               
-    type     (Node          ), pointer                                  :: allowedParameterDoc   , nameElement             , & 
-         &                                                                 thisParameter                                       
-    type     (NodeList      ), pointer                                  :: allowedParameterList                                
-    logical                                                             :: parameterMatched      , unknownParametersPresent    
-    integer                                                             :: allowedParameterCount , distance                , & 
-         &                                                                 iParameter            , ioErr                   , & 
-         &                                                                 jParameter            , minimumDistance             
-    type     (varying_string)                                           :: possibleMatch         , unknownParameter            
-    
+    type     (varying_string)         , intent(in   )                   :: parameterFile
+    type     (hdf5Object    )         , intent(in   ), optional, target :: outputFileObjectTarget
+    character(len=*         )         , intent(in   ), optional         :: allowedParametersFile
+    type     (Node          ), pointer                                  :: allowedParameterDoc   , nameElement             , &
+         &                                                                 thisParameter
+    type     (NodeList      ), pointer                                  :: allowedParameterList
+    logical                                                             :: parameterMatched      , unknownParametersPresent
+    integer                                                             :: allowedParameterCount , distance                , &
+         &                                                                 iParameter            , ioErr                   , &
+         &                                                                 jParameter            , minimumDistance
+    type     (varying_string)                                           :: possibleMatch         , unknownParameter
+
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterDoc => parseFile(char(parameterFile),iostat=ioErr)
@@ -195,10 +195,10 @@ contains
   logical function Input_Parameter_Is_Present(parameterName)
     !% Return true if {\tt parameterName} is present in the input file.
     implicit none
-    character(len=*), intent(in   ) :: parameterName                
-    type     (Node ), pointer       :: nameElement  , thisParameter 
-    integer                         :: iParameter                   
-    
+    character(len=*), intent(in   ) :: parameterName
+    type     (Node ), pointer       :: nameElement  , thisParameter
+    integer                         :: iParameter
+
     ! If no parameter file has been read, stop with an error message.
     if (.not.associated(parameterDoc)) call Galacticus_Error_Report('Input_Parameter_Is_Present','parameter file has not been parsed.')
 
@@ -219,12 +219,12 @@ contains
     !% Get the number of elements in the parameter specified by parameter name is specified by {\tt parameterName}.
     use String_Handling
     implicit none
-    character(len=*         ), intent(in   ) :: parameterName                              
-    type     (Node          ), pointer       :: nameElement  , thisParameter, valueElement 
-    integer                                  :: iParameter                                 
-    logical                                  :: foundMatch                                 
-    type     (varying_string)                :: parameterText                              
-    
+    character(len=*         ), intent(in   ) :: parameterName
+    type     (Node          ), pointer       :: nameElement  , thisParameter, valueElement
+    integer                                  :: iParameter
+    logical                                  :: foundMatch
+    type     (varying_string)                :: parameterText
+
     ! If no parameter file has been read return zero.
     if (.not.associated(parameterDoc)) then
       Get_Input_Parameter_Array_Size=0
@@ -259,14 +259,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(  out)           :: parameterValue                                  
-    character(len=*), intent(in   )           :: parameterName                                   
-    character(len=*), intent(in   ), optional :: defaultValue                                    
-    logical         , intent(in   ), optional :: writeOutput                                     
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                   :: iParameter                                      
-    logical                                   :: foundMatch    , writeOutputActual               
-    
+    character(len=*), intent(  out)           :: parameterValue
+    character(len=*), intent(in   )           :: parameterName
+    character(len=*), intent(in   ), optional :: defaultValue
+    logical         , intent(in   ), optional :: writeOutput
+    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                   :: iParameter
+    logical                                   :: foundMatch    , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -320,15 +320,15 @@ contains
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     use String_Handling
     implicit none
-    character(len=*         ), intent(  out)           :: parameterValue(:)                                  
-    character(len=*         ), intent(in   )           :: parameterName                                      
-    character(len=*         ), intent(in   ), optional :: defaultValue  (:)                                  
-    logical                  , intent(in   ), optional :: writeOutput                                        
-    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement 
-    integer                                            :: iParameter       , nEntries                        
-    logical                                            :: foundMatch       , writeOutputActual               
-    type     (varying_string)                          :: parameterText                                      
-    
+    character(len=*         ), intent(  out)           :: parameterValue(:)
+    character(len=*         ), intent(in   )           :: parameterName
+    character(len=*         ), intent(in   ), optional :: defaultValue  (:)
+    logical                  , intent(in   ), optional :: writeOutput
+    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
+    integer                                            :: iParameter       , nEntries
+    logical                                            :: foundMatch       , writeOutputActual
+    type     (varying_string)                          :: parameterText
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -387,14 +387,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    type     (varying_string), intent(  out)           :: parameterValue                                  
-    character(len=*         ), intent(in   )           :: parameterName                                   
-    character(len=*         ), intent(in   ), optional :: defaultValue                                    
-    logical                  , intent(in   ), optional :: writeOutput                                     
-    type     (Node          ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                            :: iParameter                                      
-    logical                                            :: foundMatch    , writeOutputActual               
-    
+    type     (varying_string), intent(  out)           :: parameterValue
+    character(len=*         ), intent(in   )           :: parameterName
+    character(len=*         ), intent(in   ), optional :: defaultValue
+    logical                  , intent(in   ), optional :: writeOutput
+    type     (Node          ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                            :: iParameter
+    logical                                            :: foundMatch    , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -435,7 +435,7 @@ contains
     if (writeOutputActual) then
        !$omp critical(HDF5_Access)
        call Make_Parameters_Group
-       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))    
+       call parametersGroup%writeAttribute(parameterValue,trim(parameterName))
        !$omp end critical(HDF5_Access)
     end if
     return
@@ -448,15 +448,15 @@ contains
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     use String_Handling
     implicit none
-    type     (varying_string), intent(  out)           :: parameterValue(:)                                  
-    character(len=*         ), intent(in   )           :: parameterName                                      
-    character(len=*         ), intent(in   ), optional :: defaultValue  (:)                                  
-    logical                  , intent(in   ), optional :: writeOutput                                        
-    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement 
-    integer                                            :: iParameter       , nEntries                        
-    logical                                            :: foundMatch       , writeOutputActual               
-    type     (varying_string)                          :: parameterText                                      
-    
+    type     (varying_string), intent(  out)           :: parameterValue(:)
+    character(len=*         ), intent(in   )           :: parameterName
+    character(len=*         ), intent(in   ), optional :: defaultValue  (:)
+    logical                  , intent(in   ), optional :: writeOutput
+    type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
+    integer                                            :: iParameter       , nEntries
+    logical                                            :: foundMatch       , writeOutputActual
+    type     (varying_string)                          :: parameterText
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -515,14 +515,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character       (len=*), intent(in   )           :: parameterName                                   
-    double precision       , intent(  out)           :: parameterValue                                  
-    double precision       , intent(in   ), optional :: defaultValue                                    
-    logical                , intent(in   ), optional :: writeOutput                                     
-    type            (Node ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                          :: iParameter                                      
-    logical                                          :: foundMatch    , writeOutputActual               
-    
+    character       (len=*), intent(in   )           :: parameterName
+    double precision       , intent(  out)           :: parameterValue
+    double precision       , intent(in   ), optional :: defaultValue
+    logical                , intent(in   ), optional :: writeOutput
+    type            (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                          :: iParameter
+    logical                                          :: foundMatch    , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -575,14 +575,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character       (len=*), intent(in   )           :: parameterName                                      
-    double precision       , intent(  out)           :: parameterValue(:)                                  
-    double precision       , intent(in   ), optional :: defaultValue  (:)                                  
-    logical                , intent(in   ), optional :: writeOutput                                        
-    type            (Node ), pointer                 :: nameElement      , thisParameter    , valueElement 
-    integer                                          :: iParameter                                         
-    logical                                          :: foundMatch       , writeOutputActual               
-    
+    character       (len=*), intent(in   )           :: parameterName
+    double precision       , intent(  out)           :: parameterValue(:)
+    double precision       , intent(in   ), optional :: defaultValue  (:)
+    logical                , intent(in   ), optional :: writeOutput
+    type            (Node ), pointer                 :: nameElement      , thisParameter    , valueElement
+    integer                                          :: iParameter
+    logical                                          :: foundMatch       , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -635,14 +635,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName                                   
-    integer         , intent(  out)           :: parameterValue                                  
-    integer         , intent(in   ), optional :: defaultValue                                    
-    logical         , intent(in   ), optional :: writeOutput                                     
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                   :: iParameter                                      
-    logical                                   :: foundMatch    , writeOutputActual               
-    
+    character(len=*), intent(in   )           :: parameterName
+    integer         , intent(  out)           :: parameterValue
+    integer         , intent(in   ), optional :: defaultValue
+    logical         , intent(in   ), optional :: writeOutput
+    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                   :: iParameter
+    logical                                   :: foundMatch    , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -695,14 +695,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName                                      
-    integer         , intent(  out)           :: parameterValue(:)                                  
-    integer         , intent(in   ), optional :: defaultValue  (:)                                  
-    logical         , intent(in   ), optional :: writeOutput                                        
-    type     (Node ), pointer                 :: nameElement      , thisParameter    , valueElement 
-    integer                                   :: iParameter                                         
-    logical                                   :: foundMatch       , writeOutputActual               
-    
+    character(len=*), intent(in   )           :: parameterName
+    integer         , intent(  out)           :: parameterValue(:)
+    integer         , intent(in   ), optional :: defaultValue  (:)
+    logical         , intent(in   ), optional :: writeOutput
+    type     (Node ), pointer                 :: nameElement      , thisParameter    , valueElement
+    integer                                   :: iParameter
+    logical                                   :: foundMatch       , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -755,15 +755,15 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName                                   
-    logical         , intent(  out)           :: parameterValue                                  
-    logical         , intent(in   ), optional :: defaultValue                                    
-    logical         , intent(in   ), optional :: writeOutput                                     
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                   :: iParameter                                      
-    logical                                   :: foundMatch    , writeOutputActual               
-    character(len=5)                          :: datasetValue                                    
-    
+    character(len=*), intent(in   )           :: parameterName
+    logical         , intent(  out)           :: parameterValue
+    logical         , intent(in   ), optional :: defaultValue
+    logical         , intent(in   ), optional :: writeOutput
+    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                   :: iParameter
+    logical                                   :: foundMatch    , writeOutputActual
+    character(len=5)                          :: datasetValue
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -822,16 +822,16 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName                                              
-    logical         , intent(  out)           :: parameterValue(:                   )                       
-    logical         , intent(in   ), optional :: defaultValue  (:                   )                       
-    logical         , intent(in   ), optional :: writeOutput                                                
-    type     (Node ), pointer                 :: nameElement                         , thisParameter    , & 
-         &                                       valueElement                                               
-    character(len=5)                          :: datasetValue  (size(parameterValue))                       
-    integer                                   :: iParameter                                                 
-    logical                                   :: foundMatch                          , writeOutputActual    
-    
+    character(len=*), intent(in   )           :: parameterName
+    logical         , intent(  out)           :: parameterValue(:                   )
+    logical         , intent(in   ), optional :: defaultValue  (:                   )
+    logical         , intent(in   ), optional :: writeOutput
+    type     (Node ), pointer                 :: nameElement                         , thisParameter    , &
+         &                                       valueElement
+    character(len=5)                          :: datasetValue  (size(parameterValue))
+    integer                                   :: iParameter
+    logical                                   :: foundMatch                          , writeOutputActual
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -890,15 +890,15 @@ contains
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     use Kind_Numbers
     implicit none
-    character(len=*                     ), intent(in   )           :: parameterName                                   
-    integer  (kind=kind_int8            ), intent(  out)           :: parameterValue                                  
-    integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue                                    
-    logical                              , intent(in   ), optional :: writeOutput                                     
-    type     (Node                      ), pointer                 :: nameElement   , thisParameter    , valueElement 
-    integer                                                        :: iParameter                                      
-    logical                                                        :: foundMatch    , writeOutputActual               
-    character(len=parameterLengthMaximum)                          :: parameterText                                   
-    
+    character(len=*                     ), intent(in   )           :: parameterName
+    integer  (kind=kind_int8            ), intent(  out)           :: parameterValue
+    integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue
+    logical                              , intent(in   ), optional :: writeOutput
+    type     (Node                      ), pointer                 :: nameElement   , thisParameter    , valueElement
+    integer                                                        :: iParameter
+    logical                                                        :: foundMatch    , writeOutputActual
+    character(len=parameterLengthMaximum)                          :: parameterText
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -951,15 +951,15 @@ contains
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     use Kind_Numbers
     implicit none
-    character(len=*                     ), intent(in   )           :: parameterName                                      
-    integer  (kind=kind_int8            ), intent(  out)           :: parameterValue(:)                                  
-    integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue  (:)                                  
-    logical                              , intent(in   ), optional :: writeOutput                                        
-    type     (Node                      ), pointer                 :: nameElement      , thisParameter    , valueElement 
-    integer                                                        :: iParameter                                         
-    logical                                                        :: foundMatch       , writeOutputActual               
-    character(len=parameterLengthMaximum)                          :: parameterText                                      
-    
+    character(len=*                     ), intent(in   )           :: parameterName
+    integer  (kind=kind_int8            ), intent(  out)           :: parameterValue(:)
+    integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue  (:)
+    logical                              , intent(in   ), optional :: writeOutput
+    type     (Node                      ), pointer                 :: nameElement      , thisParameter    , valueElement
+    integer                                                        :: iParameter
+    logical                                                        :: foundMatch       , writeOutputActual
+    character(len=parameterLengthMaximum)                          :: parameterText
+
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
        if (present(defaultValue)) then
@@ -1009,9 +1009,9 @@ contains
     !% Add a parameter to the specified XML file.
     use FoX_wxml
     implicit none
-    type     (xmlf_t), intent(inout) :: parameterDoc                  
-    character(len=* ), intent(in   ) :: parameterName, parameterValue 
-    
+    type     (xmlf_t), intent(inout) :: parameterDoc
+    character(len=* ), intent(in   ) :: parameterName, parameterValue
+
     call xml_NewElement(parameterDoc,"parameter")
     call xml_NewElement(parameterDoc,"name")
     call xml_AddCharacters(parameterDoc,trim(parameterName))
@@ -1037,26 +1037,26 @@ contains
   !# <hdfPreCloseTask>
   !# <unitName>Close_Parameters_Group</unitName>
   !# </hdfPreCloseTask>
-  subroutine Close_Parameters_Group() 
+  subroutine Close_Parameters_Group()
     implicit none
-    
+
     !$omp critical (HDF5_Access)
     if (parametersGroup%isOpen()) call parametersGroup%close()
     !$omp end critical (HDF5_Access)
     return
   end subroutine Close_Parameters_Group
-  
+
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
     !% C-bound wrapper function for getting {\tt double precision} parameter values.
     use ISO_Varying_String
     use String_Handling
     implicit none
-    integer  (kind=c_int    ), value :: parameterNameLength                      
-    character(kind=c_char   )        :: parameterName      (parameterNameLength) 
-    real     (kind=c_double )        :: parameterValue                           
-    real     (kind=c_double )        :: defaultValue                             
-    type     (varying_string)        :: parameterNameF                           
-    
+    integer  (kind=c_int    ), value :: parameterNameLength
+    character(kind=c_char   )        :: parameterName      (parameterNameLength)
+    real     (kind=c_double )        :: parameterValue
+    real     (kind=c_double )        :: defaultValue
+    type     (varying_string)        :: parameterNameF
+
     parameterNameF=String_C_to_Fortran(parameterName)
     call Get_Input_Parameter_Double(char(parameterNameF),parameterValue,defaultValue)
     return
@@ -1067,12 +1067,12 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    integer  (kind=c_int    ), value :: parameterNameLength                      
-    character(kind=c_char   )        :: parameterName      (parameterNameLength) 
-    integer  (kind=c_int    )        :: parameterValue                           
-    integer  (kind=c_int    )        :: defaultValue                             
-    type     (varying_string)        :: parameterNameF                           
-    
+    integer  (kind=c_int    ), value :: parameterNameLength
+    character(kind=c_char   )        :: parameterName      (parameterNameLength)
+    integer  (kind=c_int    )        :: parameterValue
+    integer  (kind=c_int    )        :: defaultValue
+    type     (varying_string)        :: parameterNameF
+
     parameterNameF=String_C_to_Fortran(parameterName)
     call Get_Input_Parameter_Integer(char(parameterNameF),parameterValue,defaultValue)
     return

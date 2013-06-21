@@ -34,9 +34,9 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                               ), intent(in   )          :: blackHoleBinarySeparationGrowthRateMethod     
-    procedure(Black_Hole_Binary_Separation_Growth_Rate_Null), intent(inout), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get  
-                                                                                                                                   
+    type     (varying_string                               ), intent(in   )          :: blackHoleBinarySeparationGrowthRateMethod
+    procedure(Black_Hole_Binary_Separation_Growth_Rate_Null), intent(inout), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get
+
     if (blackHoleBinarySeparationGrowthRateMethod == 'null') Black_Hole_Binary_Separation_Growth_Rate_Get => Black_Hole_Binary_Separation_Growth_Rate_Null
     return
   end subroutine Black_Hole_Binary_Separation_Growth_Rate_Null_Initialize
@@ -45,9 +45,9 @@ contains
     !% Returns a separation growth rate for a binary black hole that is always zero.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent  
-                                                                                  
-    Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0 
+    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+
+    Black_Hole_Binary_Separation_Growth_Rate_Null=0.0d0
     return
   end function Black_Hole_Binary_Separation_Growth_Rate_Null
 

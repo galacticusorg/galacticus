@@ -27,8 +27,8 @@ module Cooling_Rates_Simple
   public :: Cooling_Rate_Simple_Initialize
 
   ! The fixed timescale for cooling.
-  double precision :: coolingRateSimpleTimescale  
-                                               
+  double precision :: coolingRateSimpleTimescale
+
 contains
 
   !# <coolingRateMethod>
@@ -40,9 +40,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string     ), intent(in   )          :: coolingRateMethod  
-    procedure(Cooling_Rate_Simple), intent(inout), pointer :: Cooling_Rate_Get   
-                                                                              
+    type     (varying_string     ), intent(in   )          :: coolingRateMethod
+    procedure(Cooling_Rate_Simple), intent(inout), pointer :: Cooling_Rate_Get
+
     if (coolingRateMethod == 'simple') then
        Cooling_Rate_Get => Cooling_Rate_Simple
 
@@ -72,9 +72,9 @@ contains
   double precision function Cooling_Rate_Simple(thisNode)
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode              
-    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent  
-                                                                              
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+
     thisHotHaloComponent => thisNode%hotHalo()
     Cooling_Rate_Simple=thisHotHaloComponent%mass()/coolingRateSimpleTimescale
     return

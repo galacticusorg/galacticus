@@ -25,20 +25,20 @@ module Merger_Trees_Write
   public :: Merger_Tree_Write
 
   ! Flag indicating if module is initialized.
-  logical                 :: moduleInitialized       =.false.                                
-  
-  ! Flag indicating if first tree has been written.                                                                                        
-  logical                 :: firstTreeWritten        =.false.                                
-  
-  ! Flag indicating if output is required.                                                                                        
-  logical                 :: mergerTreesWrite                                                
-  
-  ! Options controlling output.                                                                                        
-  type   (varying_string) :: mergerTreeExportFileName        , mergerTreeExportOutputFormat  
-  
-  ! Record of whether snapshots are required.                                                                                          
-  logical                 :: needsSnapshots                                                  
-                                                                                          
+  logical                 :: moduleInitialized       =.false.
+
+  ! Flag indicating if first tree has been written.
+  logical                 :: firstTreeWritten        =.false.
+
+  ! Flag indicating if output is required.
+  logical                 :: mergerTreesWrite
+
+  ! Options controlling output.
+  type   (varying_string) :: mergerTreeExportFileName        , mergerTreeExportOutputFormat
+
+  ! Record of whether snapshots are required.
+  logical                 :: needsSnapshots
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -62,24 +62,24 @@ contains
     use Sort
     use FGSL
     implicit none
-    type            (mergerTree           ), intent(in   ), target                                 :: thisTree                                                        
-    integer                                                                            , parameter :: hdfChunkSize                   =1024, hdfCompressionLevel=9     
-    double precision                                      , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift          , & 
-         &                                                                                            snapshotTime                        , snapshotTimeTemp          
-    double precision                                      , allocatable, dimension(:,:)            :: nodePosition                        , nodeVelocity              
-    integer         (kind=kind_int8       )               , allocatable, dimension(:  )            :: descendentIndex                     , nodeIndex             , & 
-         &                                                                                            nodeSnapshot                        , treeIndex                 
-    type            (treeNode             ), pointer                                               :: thisNode                                                        
-    class           (nodeComponentBasic   ), pointer                                               :: thisBasicComponent                                              
-    class           (nodeComponentPosition), pointer                                               :: thisPositionComponent                                           
-    type            (mergerTree           ), pointer                                               :: currentTree                                                     
-    integer                                                                            , parameter :: snapshotCountIncrement         =100                             
-    integer                                                                                        :: nodeCount                           , snapshotCount             
-    type            (mergerTreeData       )                                                        :: mergerTrees                                                     
-    logical                                                                                        :: snapshotInterpolatorReset                                       
-    type            (fgsl_interp_accel    )                                                        :: snapshotInterpolatorAccelerator                                 
-    
-    ! Check if module is initialized.                                                                                                                                                               
+    type            (mergerTree           ), intent(in   ), target                                 :: thisTree
+    integer                                                                            , parameter :: hdfChunkSize                   =1024, hdfCompressionLevel=9
+    double precision                                      , allocatable, dimension(:  )            :: nodeMass                            , nodeRedshift          , &
+         &                                                                                            snapshotTime                        , snapshotTimeTemp
+    double precision                                      , allocatable, dimension(:,:)            :: nodePosition                        , nodeVelocity
+    integer         (kind=kind_int8       )               , allocatable, dimension(:  )            :: descendentIndex                     , nodeIndex             , &
+         &                                                                                            nodeSnapshot                        , treeIndex
+    type            (treeNode             ), pointer                                               :: thisNode
+    class           (nodeComponentBasic   ), pointer                                               :: thisBasicComponent
+    class           (nodeComponentPosition), pointer                                               :: thisPositionComponent
+    type            (mergerTree           ), pointer                                               :: currentTree
+    integer                                                                            , parameter :: snapshotCountIncrement         =100
+    integer                                                                                        :: nodeCount                           , snapshotCount
+    type            (mergerTreeData       )                                                        :: mergerTrees
+    logical                                                                                        :: snapshotInterpolatorReset
+    type            (fgsl_interp_accel    )                                                        :: snapshotInterpolatorAccelerator
+
+    ! Check if module is initialized.
     if (.not.moduleInitialized) then
        !$omp critical(Merger_Tree_Write_Initialize)
        if (.not.moduleInitialized) then

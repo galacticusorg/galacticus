@@ -28,9 +28,9 @@ module Satellite_Merging_Remnant_Progenitors_Properties_Cole2000
   public :: Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init
 
   ! Module global variables used in root finding.
-  type            (treeNode  ), pointer :: activeNode                          
-  integer                               :: activeGasMovesTo, activeStarsMoveTo 
-  double precision                      :: activeHalfMass                      
+  type            (treeNode  ), pointer :: activeNode
+  integer                               :: activeGasMovesTo, activeStarsMoveTo
+  double precision                      :: activeHalfMass
   !$omp threadprivate(activeNode,activeGasMovesTo,activeStarsMoveTo,activeHalfMass)
 contains
 
@@ -43,9 +43,9 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod   
-    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get 
-    
+    type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod
+    procedure(Satellite_Merging_Remnant_Progenitor_Properties_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get
+
     if (satelliteMergingRemnantProgenitorPropertiesMethod == 'Cole2000') then
        Satellite_Merging_Remnant_Progenitor_Properties_Get =>&
          & Satellite_Merging_Remnant_Progenitor_Properties_Cole2000
@@ -78,22 +78,22 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Error
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode                        
-    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , & 
-         &                                                             hostRadius                     , hostSpheroidMass                 , & 
-         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , & 
-         &                                                             remnantSpheroidMass            , satelliteMass                    , & 
-         &                                                             satelliteRadius                , satelliteSpheroidMass                
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent               
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent           
-    type            (rootFinder           ), save                   :: finder                                                                
+    type            (treeNode             ), intent(inout), pointer :: hostNode                       , satelliteNode
+    double precision                       , intent(  out)          :: angularMomentumFactor          , hostMass                         , &
+         &                                                             hostRadius                     , hostSpheroidMass                 , &
+         &                                                             hostSpheroidMassPreMerger      , remnantSpheroidGasMass           , &
+         &                                                             remnantSpheroidMass            , satelliteMass                    , &
+         &                                                             satelliteRadius                , satelliteSpheroidMass
+    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent              , satelliteDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent          , satelliteSpheroidComponent
+    type            (rootFinder           ), save                   :: finder
     !$omp threadprivate(finder)
-    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , & 
-         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , & 
-         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , & 
-         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, & 
-         &                                                             satelliteSpheroidHalfMassRadius                                       
-    
+    double precision                                                :: componentMass                  , hostDiskDarkMatterFactor         , &
+         &                                                             hostDiskHalfMassRadius         , hostSpheroidDarkMatterFactor     , &
+         &                                                             hostSpheroidHalfMassRadius     , satelliteDiskDarkMatterFactor    , &
+         &                                                             satelliteDiskHalfMassRadius    , satelliteSpheroidDarkMatterFactor, &
+         &                                                             satelliteSpheroidHalfMassRadius
+
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Half_Mass_Radius_Root_Cole2000                  )
@@ -112,7 +112,7 @@ contains
     hostSpheroidComponent      =>      hostNode%spheroid()
     satelliteDiskComponent     => satelliteNode%disk    ()
     satelliteSpheroidComponent => satelliteNode%spheroid()
-    
+
     ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
     call Galactic_Structure_Radii_Solve(hostNode     )
     call Galactic_Structure_Radii_Solve(satelliteNode)
@@ -232,7 +232,7 @@ contains
     case default
        call Galacticus_Error_Report('Satellite_Merging_Remnant_Sizes_Utilities','unrecognized moveTo descriptor')
     end select
-    
+
     ! Compute the half-mass radii of the material that will end up in the remnant spheroid.
     ! Host node.
     if (hostSpheroidMass > 0.0d0) then
@@ -246,7 +246,7 @@ contains
             &                                                                    fractionalMass=0.50d0          , &
             &                                                                    massType      =massTypeGalactic  &
             &                                                                   )                                 &
-            &                )       
+            &                )
     else
        hostRadius=0.0d0
     end if
@@ -288,8 +288,8 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    double precision, intent(in   ) :: radius 
-    
+    double precision, intent(in   ) :: radius
+
     ! Initialize enclosed mass to negative of the half mass.
     Half_Mass_Radius_Root_Cole2000=-activeHalfMass
 
@@ -303,7 +303,7 @@ contains
        Half_Mass_Radius_Root_Cole2000= Half_Mass_Radius_Root_Cole2000                                                                          &
             &                +Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType=componentTypeSpheroid,massType=massTypeGaseous)
     end select
-  
+
     ! Account for gas mass.
     select case (activeStarsMoveTo)
     case (movesToSpheroid)

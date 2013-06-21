@@ -25,8 +25,8 @@ module Star_Formation_Feedback_Disks_Fixed
   public :: Star_Formation_Feedback_Disks_Fixed_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: diskOutflowFraction  
-                                        
+  double precision :: diskOutflowFraction
+
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                 ), intent(in   )          :: starFormationFeedbackDisksMethod               
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Fixed), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get  
-                                                                                                                                      
+    type     (varying_string                                 ), intent(in   )          :: starFormationFeedbackDisksMethod
+    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Fixed), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+
     if (starFormationFeedbackDisksMethod == 'fixed') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
        ! Get parameters of for the feedback calculation.
@@ -64,11 +64,11 @@ contains
     !% fixed ratio of outflow rate to star formation rate.
     use Stellar_Feedback
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                            
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
-                                                                                           
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+
     Star_Formation_Feedback_Disk_Outflow_Rate_Fixed=diskOutflowFraction*energyInputRate/feedbackEnergyInputAtInfinityCanonical
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Fixed
-  
+
 end module Star_Formation_Feedback_Disks_Fixed

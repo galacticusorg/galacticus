@@ -23,26 +23,26 @@ module Chemical_States_Atomic_CIE_Cloudy
   implicit none
   private
   public :: Chemical_State_Atomic_CIE_Cloudy_Initialize
-  
+
   ! Flag to indicate if this module has been initialized.
-  logical :: chemicalStateInitialized=.false. 
-  
+  logical :: chemicalStateInitialized=.false.
+
   ! File names for the cooling function and chemical state data.
   character(len=55)           :: coolingFunctionFile='data/cooling/cooling_function_Atomic_CIE_Cloudy.xml'
   character(len=55)           :: chemicalStateFile='data/chemicalState/chemical_state_Atomic_CIE_Cloudy.xml'
 
   ! Maximum tabulated metallicity.
-  double precision, parameter :: metallicityMaximumDefault=30.0d0 !   Thirty times Solar. 
-  double precision            :: metallicityMaximum                                       
-  
+  double precision, parameter :: metallicityMaximumDefault=30.0d0 !   Thirty times Solar.
+  double precision            :: metallicityMaximum
+
   ! Maximum metallicity that we will ever tabulate. More than this should be physically implausible.
-  double precision, parameter :: metallicityMaximumLimit  =30.0d0 !   Thirty times Solar. 
-  
+  double precision, parameter :: metallicityMaximumLimit  =30.0d0 !   Thirty times Solar.
+
   ! Factor by which metallicity must exceed currently tabulated maximum before we retabulate.
-  double precision, parameter :: metallicityTolerance     =0.1d0                          
-  
+  double precision, parameter :: metallicityTolerance     =0.1d0
+
 contains
-  
+
   !# <chemicalStateMethod>
   !#  <unitName>Chemical_State_Atomic_CIE_Cloudy_Initialize</unitName>
   !# </chemicalStateMethod>
@@ -50,11 +50,11 @@ contains
        &,Electron_Density_Temperature_Log_Slope_Get,Electron_Density_Density_Log_Slope_Get,Chemical_Densities_Get)
     !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
     implicit none
-    type     (varying_string  ), intent(in   )          :: chemicalStateMethod                                                 
-    procedure(double precision), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get    , Electron_Density_Get, & 
-         &                                                 Electron_Density_Temperature_Log_Slope_Get                          
-    procedure(                ), intent(inout), pointer :: Chemical_Densities_Get                                              
-    
+    type     (varying_string  ), intent(in   )          :: chemicalStateMethod
+    procedure(double precision), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get    , Electron_Density_Get, &
+         &                                                 Electron_Density_Temperature_Log_Slope_Get
+    procedure(                ), intent(inout), pointer :: Chemical_Densities_Get
+
     ! Check if this chemical state has been selected.
     if (chemicalStateMethod == 'atomicCIECloudy') then
        Electron_Density_Get                       => Electron_Density_Atomic_CIE_Cloudy
@@ -74,11 +74,11 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    type     (abundances    ), intent(in   ) :: gasAbundances                       
-    logical                                  :: makeFile                            
-    character(len=32        )                :: metallicityLabel                    
-    type     (varying_string)                :: chemicalStateFileVarString, command 
-    
+    type     (abundances    ), intent(in   ) :: gasAbundances
+    logical                                  :: makeFile
+    character(len=32        )                :: metallicityLabel
+    type     (varying_string)                :: chemicalStateFileVarString, command
+
     ! Generate the name of the data file and an XML input parameter file.
     !$omp critical (Chemical_State_Atomic_CIE_Cloudy_Initialize)
     ! Determine if we need to reinitialize this module.
@@ -131,16 +131,16 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Create the chemical state.
     call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
-    
+
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Atomic_CIE_Cloudy=Electron_Density_CIE_File_Interpolate(temperature,numberDensityHydrogen,gasAbundances,radiation)
-    
+
     return
   end function Electron_Density_Atomic_CIE_Cloudy
 
@@ -151,33 +151,33 @@ contains
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Create the chemical state.
     call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
-    
+
     ! Call routine to interpolate in the tabulated function.
     Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy=Electron_Density_CIE_File_logTemperature_Interpolate(temperature&
          &,numberDensityHydrogen ,gasAbundances,radiation)
- 
+
     return
   end function Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy
-      
+
   double precision function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy(temperature,numberDensityHydrogen,gasAbundances&
        &,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE as computed by {\sc Cloudy}.
     use Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Electron density always scales as total density under CIE conditions.
     Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy=1.0d0
- 
+
     return
   end function Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy
 
@@ -189,18 +189,18 @@ contains
     use Radiation_Structure
     use Chemical_Abundances_Structure
     implicit none
-    type            (chemicalAbundances), intent(inout) :: theseAbundances                    
-    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature 
-    type            (abundances        ), intent(in   ) :: gasAbundances                      
-    type            (radiationStructure), intent(in   ) :: radiation                          
-    
+    type            (chemicalAbundances), intent(inout) :: theseAbundances
+    double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (radiationStructure), intent(in   ) :: radiation
+
     ! Create the chemical state.
     call Chemical_State_Atomic_CIE_Cloudy_Create(gasAbundances)
-    
+
     ! Call routine to interpolate in the tabulated function.
     call Chemical_Densities_CIE_File_Interpolate(theseAbundances,temperature,numberDensityHydrogen,gasAbundances,radiation)
- 
+
     return
   end subroutine Chemical_Densities_Atomic_CIE_Cloudy
-      
+
 end module Chemical_States_Atomic_CIE_Cloudy

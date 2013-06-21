@@ -28,17 +28,17 @@ module Star_Formation_Timescale_Disks_Halo_Scaling
   public :: Star_Formation_Timescale_Disks_Halo_Scaling_Initialize, Star_Formation_Timescale_Disks_Halo_Scaling_Reset
 
   ! Parameters of the timescale model.
-  double precision                 :: starFormationTimescaleDisksHaloScalingRedshiftExponent              , starFormationTimescaleDisksHaloScalingTimescale, & 
-       &                              starFormationTimescaleDisksHaloScalingVirialVelocityExponent                                                             
-  
+  double precision                 :: starFormationTimescaleDisksHaloScalingRedshiftExponent              , starFormationTimescaleDisksHaloScalingTimescale, &
+       &                              starFormationTimescaleDisksHaloScalingVirialVelocityExponent
+
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8) :: lastUniqueID                                                =-1                                                          
+  integer         (kind=kind_int8) :: lastUniqueID                                                =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not timescale has already been computed for this node.
-  logical                          :: timescaleComputed                                           =.false.                                                     
+  logical                          :: timescaleComputed                                           =.false.
   !$omp threadprivate(timescaleComputed)
   ! Stored values of the timescale.
-  double precision                 :: timeScaleStored                                                                                                          
+  double precision                 :: timeScaleStored
   !$omp threadprivate(timescaleStored)
 contains
 
@@ -50,10 +50,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    implicit none    
-    type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod 
-    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
-    
+    implicit none
+    type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod
+    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
+
     if (starFormationTimescaleDisksMethod == 'haloScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling
        ! Get parameters of for the timescale calculation.
@@ -102,11 +102,11 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                            
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                  
-    double precision                    , parameter              :: virialVelocityNormalization=200.0d0                 
-    double precision                                             :: expansionFactor                    , virialVelocity 
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    double precision                    , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                                             :: expansionFactor                    , virialVelocity
+
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
 
@@ -115,21 +115,21 @@ contains
 
     ! Compute the timescale if necessary.
     if (.not.timescaleComputed) then
-       
+
        ! Get virial velocity and expansion factor.
        virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
        expansionFactor=Expansion_Factor                (thisBasicComponent%time())
-       
+
        ! Return the timescale.
        timescaleStored=                                                                                                   &
             &  starFormationTimescaleDisksHaloScalingTimescale                                                            &
             & *(virialVelocity/virialVelocityNormalization)**starFormationTimescaleDisksHaloScalingVirialVelocityExponent &
             & /expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
-       
+
        ! Record that the timescale is now computed.
        timescaleComputed=.true.
     end if
-    
+
     ! Return the stored timescale.
     Star_Formation_Timescale_Disk_Halo_Scaling=timescaleStored
     return
@@ -142,11 +142,11 @@ contains
     !% Reset the halo scaling disk star formation timescale calculation.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     timescaleComputed=.false.
     lastUniqueID     =thisNode%uniqueID()
     return
   end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset
-  
+
 end module Star_Formation_Timescale_Disks_Halo_Scaling

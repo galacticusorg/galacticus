@@ -25,12 +25,12 @@ module Stellar_Feedback_Standard
   public :: Stellar_Feedback_Standard_Initialize
 
   ! Parameters controlling the module.
-  double precision            :: initialMassForSupernovaeTypeII                                             
-  double precision            :: supernovaEnergy                                                            
-  double precision, parameter :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar                    
-  
+  double precision            :: initialMassForSupernovaeTypeII
+  double precision            :: supernovaEnergy
+  double precision, parameter :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
+
   ! Global variables used in integrands.
-  double precision            :: initialMassGlobal                                      , metallicityGlobal 
+  double precision            :: initialMassGlobal                                      , metallicityGlobal
   !$omp threadprivate(initialMassGlobal,metallicityGlobal)
 contains
 
@@ -42,9 +42,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: stellarFeedbackMethod                        
-    procedure(double precision), intent(inout), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get 
-    
+    type     (varying_string  ), intent(in   )          :: stellarFeedbackMethod
+    procedure(double precision), intent(inout), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get
+
     if (stellarFeedbackMethod == 'standard') then
        ! Set procedure pointers.
        Stellar_Feedback_Cumulative_Energy_Input_Get => Stellar_Feedback_Cumulative_Energy_Input_Standard
@@ -86,12 +86,12 @@ contains
     use Supernovae_Population_III
     use Numerical_Integration
     implicit none
-    double precision                            , intent(in   ) :: age                 , initialMass, metallicity 
-    double precision                                            :: energySNe           , energyWinds, lifetime    
-    type            (c_ptr                     )                :: parameterPointer                               
-    type            (fgsl_function             )                :: integrandFunction                              
-    type            (fgsl_integration_workspace)                :: integrationWorkspace                           
-    
+    double precision                            , intent(in   ) :: age                 , initialMass, metallicity
+    double precision                                            :: energySNe           , energyWinds, lifetime
+    type            (c_ptr                     )                :: parameterPointer
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+
     ! Begin with zero energy input.
     Stellar_Feedback_Cumulative_Energy_Input_Standard=0.0d0
 
@@ -132,13 +132,13 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Stellar_Astrophysics_Winds
     implicit none
-    real(kind=c_double)        :: Wind_Energy_Integrand 
-    real(kind=c_double), value :: age                   
-    type(c_ptr        ), value :: parameterPointer      
-    
+    real(kind=c_double)        :: Wind_Energy_Integrand
+    real(kind=c_double), value :: age
+    type(c_ptr        ), value :: parameterPointer
+
     Wind_Energy_Integrand=0.5d0*Stellar_Winds_Mass_Loss_Rate(initialMassGlobal,age,metallicityGlobal)&
          &*Stellar_Winds_Terminal_Velocity(initialMassGlobal,age,metallicityGlobal)**2
     return
   end function Wind_Energy_Integrand
-  
+
 end module Stellar_Feedback_Standard

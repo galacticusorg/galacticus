@@ -25,8 +25,8 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple
   public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init
 
   ! Parameter controlling the maximum mass loss fraction per dynamical time.
-  double precision :: ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum 
-  
+  double precision :: ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum
+
 contains
 
   !# <ramPressureStrippingMassLossRateDisksMethod>
@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: ramPressureStrippingMassLossRateDisksMethod    
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get 
-    
+    type     (varying_string                                   ), intent(in   )          :: ramPressureStrippingMassLossRateDisksMethod
+    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
+
     if (ramPressureStrippingMassLossRateDisksMethod == 'simple') then
        Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple
        !@ <inputParameter>
@@ -80,12 +80,12 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                                                         
-    class           (nodeComponentDisk)               , pointer :: thisDisk                                                         
-    double precision                                            :: forceGravitational, forceRamPressure , massLossRateFractional, & 
-         &                                                         radiusHalfMass    , surfaceDensityGas, surfaceDensityTotal   , & 
-         &                                                         timeDynamical                                                    
-    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDisk
+    double precision                                            :: forceGravitational, forceRamPressure , massLossRateFractional, &
+         &                                                         radiusHalfMass    , surfaceDensityGas, surfaceDensityTotal   , &
+         &                                                         timeDynamical
+
     ! Assume no mass loss rate due to ram pressure by default.
     Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0
     ! Return immediately if this is not a satellite.
@@ -123,5 +123,5 @@ contains
     Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple=massLossRateFractional*thisDisk%massGas()/timeDynamical
     return
   end function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Simple
-  
+
 end module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple

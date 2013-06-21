@@ -30,28 +30,28 @@ module Memory_Management
 #endif
 
   ! Count of number of successive decreases in memory usage.
-  integer                 :: successiveDecreaseCount=0  
-  
-  ! Record of memory usage at the last time it was reported.                                                   
-  integer(kind=kind_int8) :: usageAtPreviousReport  =0  
-                                                     
+  integer                 :: successiveDecreaseCount=0
+
+  ! Record of memory usage at the last time it was reported.
+  integer(kind=kind_int8) :: usageAtPreviousReport  =0
+
   type memoryUsage
      !% Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
      !% and suffix for outputting)
-     integer  (kind=kind_int8) :: divisor, usage  
-     character(len=20        ) :: name            
-     character(len=3         ) :: suffix          
+     integer  (kind=kind_int8) :: divisor, usage
+     character(len=20        ) :: name
+     character(len=3         ) :: suffix
   end type memoryUsage
 
   ! Identifiers for the various memory types used.
-  integer, parameter, public :: memoryTypeCode =1  
-  integer, parameter, public :: memoryTypeNodes=2  
-  integer, parameter, public :: memoryTypeMisc =3  
-  integer, parameter, public :: memoryTypeTotal=4  
-                                                
+  integer, parameter, public :: memoryTypeCode =1
+  integer, parameter, public :: memoryTypeNodes=2
+  integer, parameter, public :: memoryTypeMisc =3
+  integer, parameter, public :: memoryTypeTotal=4
+
   type memoryUsageList
      !% Dervied type variable for storing all memory usage in the code.
-     type(memoryUsage) :: memoryType(4)  
+     type(memoryUsage) :: memoryType(4)
   end type memoryUsageList
 
   ! List of all types of memory usage.
@@ -63,15 +63,15 @@ module Memory_Management
        &                                              )
 
   ! Overhead memory (in bytes) per allocation.
-  integer(kind=kind_int8) :: allocationOverhead=8  
-                                                
+  integer(kind=kind_int8) :: allocationOverhead=8
+
 #ifdef PROCPS
   interface
      !: ./work/build/utility.memory_usage.o
      function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
        !% Template for a C function that returns the current memory usage.
        import
-       integer(kind=c_long) :: Memory_Usage_Get_C  
+       integer(kind=c_long) :: Memory_Usage_Get_C
      end function Memory_Usage_Get_C
   end interface
 #endif
@@ -87,12 +87,12 @@ contains
     use ISO_Varying_String
     use Galacticus_Display
     implicit none
-    double precision                , parameter :: newReportChangeFactor=1.2d0             
-    logical                                     :: issueNewReport                          
-    type            (varying_string)            :: headerText                 , usageText  
-    character       (len=1         )            :: join                                    
-    
-    !$omp critical (MemAdd)                                                                                    
+    double precision                , parameter :: newReportChangeFactor=1.2d0
+    logical                                     :: issueNewReport
+    type            (varying_string)            :: headerText                 , usageText
+    character       (len=1         )            :: join
+
+    !$omp critical (MemAdd)
     issueNewReport=.false.
     usedMemory%memoryType(memoryTypeTotal)%usage=0
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
@@ -141,14 +141,14 @@ contains
     !% Add a memory type to the memory reporting strings.
     use ISO_Varying_String
     implicit none
-    type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage             
-    type     (varying_string        ), intent(inout) :: headerText     , usageText  
-    character(len=1                 ), intent(inout) :: join                        
-    integer                                          :: spaceCount                  
-    character(len=20                )                :: formatString                
-    character(len=len(headerText)+40)                :: temporaryString             
-    character(len=13                )                :: usageString                 
-                                                                                 
+    type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage
+    type     (varying_string        ), intent(inout) :: headerText     , usageText
+    character(len=1                 ), intent(inout) :: join
+    integer                                          :: spaceCount
+    character(len=20                )                :: formatString
+    character(len=len(headerText)+40)                :: temporaryString
+    character(len=13                )                :: usageString
+
     if (thisMemoryUsage%usage > 0) then
        spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
@@ -165,11 +165,11 @@ contains
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
     use ISO_Varying_String
     implicit none
-    type            (memoryUsage   ), intent(inout) :: thisMemoryUsage                    
-    integer         (kind=kind_int8), parameter     :: kilo           =1024               
-    double precision                , parameter     :: log10kilo      =log10(dble(kilo))  
-    integer                                         :: usageDecade                        
-                                                                                       
+    type            (memoryUsage   ), intent(inout) :: thisMemoryUsage
+    integer         (kind=kind_int8), parameter     :: kilo           =1024
+    double precision                , parameter     :: log10kilo      =log10(dble(kilo))
+    integer                                         :: usageDecade
+
     if (thisMemoryUsage%usage > 0) then
        usageDecade=int(log10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
        select case (usageDecade)
@@ -205,12 +205,12 @@ contains
     use Galacticus_Display
     use Galacticus_Input_Paths
     implicit none
-    character       (len=*         ), intent(in   ) :: codeSizeFile                       
-    integer                                         :: ioError              , unitNumber  
-    double precision                                :: dummy                              
-    character       (len=80        )                :: line                               
-    type            (varying_string)                :: codeSizeFileExtension              
-                                                                                       
+    character       (len=*         ), intent(in   ) :: codeSizeFile
+    integer                                         :: ioError              , unitNumber
+    double precision                                :: dummy
+    character       (len=80        )                :: line
+    type            (varying_string)                :: codeSizeFileExtension
+
     usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
     codeSizeFileExtension=char(Galacticus_Input_Path())//'work/build/'//trim(codeSizeFile)
     open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
@@ -236,10 +236,10 @@ contains
     !% Record a change in memory usage.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    integer(kind=C_SIZE_T), intent(in   )           :: elementsUsed                                         
-    integer               , intent(in   ), optional :: addRemove      , blockCount      , memoryType        
-    integer                                         :: addRemoveActual, blockCountActual, memoryTypeActual  
-                                                                                                         
+    integer(kind=C_SIZE_T), intent(in   )           :: elementsUsed
+    integer               , intent(in   ), optional :: addRemove      , blockCount      , memoryType
+    integer                                         :: addRemoveActual, blockCountActual, memoryTypeActual
+
     if (present(memoryType)) then
        memoryTypeActual=memoryType
     else
@@ -267,8 +267,8 @@ contains
 #ifdef PROCPS
   function Memory_Usage_Get()
     implicit none
-    integer(kind=kind_int8) :: Memory_Usage_Get(2)  
-                                                 
+    integer(kind=kind_int8) :: Memory_Usage_Get(2)
+
     usedMemory%memoryType(memoryTypeTotal)%usage=0
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(:)%usage)
     Memory_Usage_Get(1)=Memory_Usage_Get_C()*4096_kind_int8

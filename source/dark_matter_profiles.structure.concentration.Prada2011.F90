@@ -24,13 +24,13 @@ module Dark_Matter_Profiles_Concentrations_Prada2011
   public :: Dark_Matter_Concentrations_Prada2011_Initialize
 
   ! Parameters of the model.
-  double precision :: prada2011ConcentrationA            , prada2011ConcentrationAlpha        , & 
-       &              prada2011ConcentrationB            , prada2011ConcentrationBeta         , & 
-       &              prada2011ConcentrationC            , prada2011ConcentrationC0           , & 
-       &              prada2011ConcentrationC1           , prada2011ConcentrationD            , & 
-       &              prada2011ConcentrationInverseSigma0, prada2011ConcentrationInverseSigma1, & 
-       &              prada2011ConcentrationX0           , prada2011ConcentrationX1               
-  
+  double precision :: prada2011ConcentrationA            , prada2011ConcentrationAlpha        , &
+       &              prada2011ConcentrationB            , prada2011ConcentrationBeta         , &
+       &              prada2011ConcentrationC            , prada2011ConcentrationC0           , &
+       &              prada2011ConcentrationC1           , prada2011ConcentrationD            , &
+       &              prada2011ConcentrationInverseSigma0, prada2011ConcentrationInverseSigma1, &
+       &              prada2011ConcentrationX0           , prada2011ConcentrationX1
+
 contains
 
   !# <darkMatterConcentrationMethod>
@@ -41,9 +41,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                             ), intent(in   )          :: darkMatterConcentrationMethod         
-    procedure(Dark_Matter_Profile_Concentration_Prada2011), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get 
-    
+    type     (varying_string                             ), intent(in   )          :: darkMatterConcentrationMethod
+    procedure(Dark_Matter_Profile_Concentration_Prada2011), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
+
     if (darkMatterConcentrationMethod == 'Prada2011') then
        ! Return a pointer to our implementation.
        Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Prada2011
@@ -192,11 +192,11 @@ contains
     use Cosmological_Parameters
     use Linear_Growth
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                    
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                          
-    double precision                                             :: massNode          , sigmaPrime, timeNode, & 
-         &                                                          x                                           
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    double precision                                             :: massNode          , sigmaPrime, timeNode, &
+         &                                                          x
+
     thisBasicComponent => thisNode%basic()
     massNode  =thisBasicComponent%mass()
     timeNode  =thisBasicComponent%time()
@@ -205,41 +205,41 @@ contains
     Dark_Matter_Profile_Concentration_Prada2011=B0(x)*C(sigmaPrime)
     return
   end function Dark_Matter_Profile_Concentration_Prada2011
-  
+
   double precision function B0(x)
     !% The function $B_0(x)$ as defined in eqn.~(18) of \cite{prada_halo_2011}.
     implicit none
-    double precision, intent(in   ) :: x 
+    double precision, intent(in   ) :: x
     B0=           cMin(x)/           cMin(1.393d0)
   end function B0
-  
+
   double precision function B1(x)
     !% The function $B_1(x)$ as defined in eqn.~(18) of \cite{prada_halo_2011}.
     implicit none
-    double precision, intent(in   ) :: x 
+    double precision, intent(in   ) :: x
     B1=inverseSigmaMin(x)/inverseSigmaMin(1.393d0)
   end function B1
-  
+
   double precision function cMin           (x)
     !% The function $c_{\rm min}(x)$ as defined in eqn.~(19) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: x 
+    double precision, intent(in   ) :: x
     cMin           =           prada2011ConcentrationC0+(           prada2011ConcentrationC1-           prada2011ConcentrationC0)*(atan(prada2011ConcentrationAlpha*(x-prada2011ConcentrationX0))/Pi+0.5d0)
   end function cMin
-  
+
   double precision function inverseSigmaMin(x)
     !% The function $\sigma^{-1}_{\rm min}(x)$ as defined in eqn.~(20) of \cite{prada_halo_2011}.
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: x 
+    double precision, intent(in   ) :: x
     inverseSigmaMin=prada2011ConcentrationInverseSigma0+(prada2011ConcentrationInverseSigma1-prada2011ConcentrationInverseSigma0)*(atan(prada2011ConcentrationBeta *(x-prada2011ConcentrationX1))/Pi+0.5d0)
   end function inverseSigmaMin
 
   double precision function C(sigmaPrime)
     !% The function $\mathcal{C}(\sigma^\prime)$ as defined in eqn.~(17) of \cite{prada_halo_2011}.
     implicit none
-    double precision, intent(in   ) :: sigmaPrime 
+    double precision, intent(in   ) :: sigmaPrime
     C=prada2011ConcentrationA*((sigmaPrime/prada2011ConcentrationB)**prada2011ConcentrationC+1.0d0)*exp(prada2011ConcentrationD/sigmaPrime**2)
   end function C
 

@@ -22,7 +22,7 @@ module Events_Node_Mergers_SLH
   implicit none
   private
   public :: Events_Node_Merger_Initialize_SLH
-  
+
 contains
 
   !# <nodeMergersMethod>
@@ -32,14 +32,14 @@ contains
     !% Determine if use of this method is requested and set procedure pointer appropriately if it is.
     use ISO_Varying_String
     implicit none
-    type     (varying_string           ), intent(in   )          :: nodeMergersMethod      
-    procedure(Events_Node_Merger_Do_SLH), intent(inout), pointer :: Events_Node_Merger_Do  
-                                                                                        
+    type     (varying_string           ), intent(in   )          :: nodeMergersMethod
+    procedure(Events_Node_Merger_Do_SLH), intent(inout), pointer :: Events_Node_Merger_Do
+
     if (nodeMergersMethod == 'singleLevelHierarchy') Events_Node_Merger_Do => Events_Node_Merger_Do_SLH
 
     return
   end subroutine Events_Node_Merger_Initialize_SLH
-  
+
   subroutine Events_Node_Merger_Do_SLH(thisNode)
     !% Processes a node merging event, utilizing a single level substructure hierarchy.
     use Galacticus_Error
@@ -48,11 +48,11 @@ contains
     use Galacticus_Nodes
     use Satellite_Promotion
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode                                             
-    type(treeNode      )               , pointer :: childNode, nextSatellite, parentNode, thisSatellite  
-    type(varying_string)                         :: message                                              
-    
-    ! Get the parent node.                                                                                                  
+    type(treeNode      ), intent(inout), pointer :: thisNode
+    type(treeNode      )               , pointer :: childNode, nextSatellite, parentNode, thisSatellite
+    type(varying_string)                         :: message
+
+    ! Get the parent node.
     parentNode => thisNode%parent
     ! Uncouple thisNode from the children of its parent.
     childNode  => parentNode%firstChild

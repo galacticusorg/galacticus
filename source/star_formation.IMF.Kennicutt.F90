@@ -27,19 +27,19 @@ module Star_Formation_IMF_Kennicutt
        &, Star_Formation_IMF_Phi_Kennicutt
 
   ! Index assigned to this IMF.
-  integer                                    :: imfIndex                         =-1                                                                               
-  
+  integer                                    :: imfIndex                         =-1
+
   ! Flag indicating if the module has been initialized.
-  logical                                    :: imfKennicuttInitialized          =.false.                                                                          
-  
+  logical                                    :: imfKennicuttInitialized          =.false.
+
   ! Parameters of the IMF.
-  double precision                           :: imfKennicuttRecycledInstantaneous                    , imfKennicuttYieldInstantaneous                              
-  
+  double precision                           :: imfKennicuttRecycledInstantaneous                    , imfKennicuttYieldInstantaneous
+
   ! Fixed parameters of the IMF.
-  integer         , parameter                :: imfPieceCount                    =3                                                                                
-  double precision, dimension(imfPieceCount) :: imfNormalization                                     , massExponent                  =[-1.25d0,-2.00d0,-2.30d0], & 
-       &                                        massLower                        =[0.1d0,1.0d0,2.0d0], massUpper                     =[1.0d0,2.0d0,125.0d0]        
-  
+  integer         , parameter                :: imfPieceCount                    =3
+  double precision, dimension(imfPieceCount) :: imfNormalization                                     , massExponent                  =[-1.25d0,-2.00d0,-2.30d0], &
+       &                                        massLower                        =[0.1d0,1.0d0,2.0d0], massUpper                     =[1.0d0,2.0d0,125.0d0]
+
 contains
 
   !# <imfRegister>
@@ -48,8 +48,8 @@ contains
   subroutine Star_Formation_IMF_Register_Kennicutt(imfAvailableCount)
     !% Register this IMF by incrementing the count and keeping a record of the assigned index.
     implicit none
-    integer, intent(inout) :: imfAvailableCount 
-    
+    integer, intent(inout) :: imfAvailableCount
+
     imfAvailableCount=imfAvailableCount+1
     imfIndex=imfAvailableCount
     return
@@ -62,8 +62,8 @@ contains
     !% Register the name of this IMF.
     use ISO_Varying_String
     implicit none
-    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:) 
-    
+    type(varying_string), intent(inout) :: imfDescriptors(:), imfNames(:)
+
     imfNames      (imfIndex)="Kennicutt"
     imfDescriptors(imfIndex)="Kennicutt"
     return
@@ -102,10 +102,10 @@ contains
           !@   <group>initialMassFunction</group>
           !@ </inputParameter>
           call Get_Input_Parameter('imfKennicuttYieldInstantaneous'   ,imfKennicuttYieldInstantaneous   ,defaultValue=0.044d0)
-          
+
           ! Get the normalization for this IMF.
           call Piecewise_Power_Law_IMF_Normalize(massLower,massUpper,massExponent,imfNormalization)
-          
+
           imfKennicuttInitialized=.true.
        end if
        !$omp end critical (IMF_Kennicutt_Initialize)
@@ -119,10 +119,10 @@ contains
   subroutine Star_Formation_IMF_Minimum_Mass_Kennicutt(imfSelected,imfMatched,minimumMass)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: minimumMass 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: minimumMass
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        minimumMass=massLower(1)
@@ -137,10 +137,10 @@ contains
   subroutine Star_Formation_IMF_Maximum_Mass_Kennicutt(imfSelected,imfMatched,maximumMass)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: maximumMass 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: maximumMass
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        maximumMass=massUpper(imfPieceCount)
@@ -156,11 +156,11 @@ contains
     !% Register the name of this IMF.
     use Star_Formation_IMF_PPL
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(in   ) :: initialMass 
-    double precision, intent(  out) :: imfPhi      
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(in   ) :: initialMass
+    double precision, intent(  out) :: imfPhi
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        imfPhi=Piecewise_Power_Law_IMF_Phi(massLower,massUpper,massExponent,imfNormalization,initialMass)
@@ -175,10 +175,10 @@ contains
   subroutine Star_Formation_IMF_Recycled_Instantaneous_Kennicutt(imfSelected,imfMatched,recycledFraction)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected      
-    logical         , intent(inout) :: imfMatched       
-    double precision, intent(  out) :: recycledFraction 
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: recycledFraction
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        recycledFraction=imfKennicuttRecycledInstantaneous
@@ -193,10 +193,10 @@ contains
   subroutine Star_Formation_IMF_Yield_Instantaneous_Kennicutt(imfSelected,imfMatched,yield)
     !% Register the name of this IMF.
     implicit none
-    integer         , intent(in   ) :: imfSelected 
-    logical         , intent(inout) :: imfMatched  
-    double precision, intent(  out) :: yield       
-    
+    integer         , intent(in   ) :: imfSelected
+    logical         , intent(inout) :: imfMatched
+    double precision, intent(  out) :: yield
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        yield=imfKennicuttYieldInstantaneous
@@ -214,11 +214,11 @@ contains
     use Numerical_Ranges
     use Star_Formation_IMF_PPL
     implicit none
-    integer                                    , intent(in   ) :: imfSelected             
-    logical                                    , intent(inout) :: imfMatched              
-    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi 
-    integer         , parameter                                :: nPoints    =100         
-    
+    integer                                    , intent(in   ) :: imfSelected
+    logical                                    , intent(inout) :: imfMatched
+    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi
+    integer         , parameter                                :: nPoints    =100
+
     if (imfSelected == imfIndex) then
        call Star_Formation_IMF_Initialize_Kennicutt
        call Alloc_Array(imfMass,[nPoints])

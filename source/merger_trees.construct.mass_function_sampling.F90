@@ -23,18 +23,18 @@ module Merger_Trees_Mass_Function_Sampling
   implicit none
   private
   public :: Merger_Tree_Construct_Mass_Function_Sampling
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                                   :: haloMassFunctionSamplingInitialized             =.false.  
-  
-  ! Name of conditional stellar mass function method used.                                                                                                                                    
-  type     (varying_string                                       )          :: haloMassFunctionSamplingMethod                            
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                    
-  procedure(Merger_Tree_Construct_Mass_Function_Sampling_Template), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get=>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                                   :: haloMassFunctionSamplingInitialized             =.false.
+
+  ! Name of conditional stellar mass function method used.
+  type     (varying_string                                       )          :: haloMassFunctionSamplingMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Merger_Tree_Construct_Mass_Function_Sampling_Template), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get=>null()
   abstract interface
      double precision function Merger_Tree_Construct_Mass_Function_Sampling_Template(mass,time,massMinimum,massMaximum)
-       double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
+       double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
      end function Merger_Tree_Construct_Mass_Function_Sampling_Template
   end interface
 
@@ -49,7 +49,7 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Merger_Trees_Mass_Function_Sampling_Initialization) 
+    !$omp critical(Merger_Trees_Mass_Function_Sampling_Initialization)
     ! Initialize if necessary.
     if (.not.haloMassFunctionSamplingInitialized) then
        ! Get the conditional stellar mass function method parameter.
@@ -76,7 +76,7 @@ contains
             & ) call Galacticus_Error_Report('Merger_Trees_Mass_Function_Sampling','method '//char(haloMassFunctionSamplingMethod)//' is unrecognized')
        haloMassFunctionSamplingInitialized=.true.
     end if
-    !$omp end critical(Merger_Trees_Mass_Function_Sampling_Initialization) 
+    !$omp end critical(Merger_Trees_Mass_Function_Sampling_Initialization)
 
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Initialize
@@ -84,9 +84,9 @@ contains
   double precision function Merger_Tree_Construct_Mass_Function_Sampling(mass,time,massMinimum,massMaximum)
     !% Returns the sampling rate for merger trees of the given {\tt mass}, per decade of halo mass.
     implicit none
-    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time  
-    
-    ! Initialize the module.                                                                      
+    double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
+
+    ! Initialize the module.
     call Merger_Trees_Mass_Function_Sampling_Initialize
 
     ! Get the sampling rate using the selected method.

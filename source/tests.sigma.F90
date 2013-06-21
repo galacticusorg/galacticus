@@ -26,14 +26,14 @@ program Tests_Sigma
   use Cosmological_Parameters
   use Numerical_Constants_Math
   implicit none
-  type            (varying_string)                       :: parameterFile                                      
-  integer                         , parameter            :: massCount    =10                                   
-  double precision                , parameter            :: massMaximum  =1.0d15, massMinimum  =1.0d6          
-  double precision                , dimension(massCount) :: mass                , massFromSigma      , sigma   
-  integer                                                :: iMass                                              
-  double precision                                       :: mass8               , radius8            , sigma8  
-  
-  ! Read in basic code memory usage.                                                                                                          
+  type            (varying_string)                       :: parameterFile
+  integer                         , parameter            :: massCount    =10
+  double precision                , parameter            :: massMaximum  =1.0d15, massMinimum  =1.0d6
+  double precision                , dimension(massCount) :: mass                , massFromSigma      , sigma
+  integer                                                :: iMass
+  double precision                                       :: mass8               , radius8            , sigma8
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.sigma.size')
 
   ! Begin unit tests.
@@ -51,13 +51,13 @@ program Tests_Sigma
      sigma        (iMass)=Cosmological_Mass_Root_Variance    (mass (iMass))
      massFromSigma(iMass)=Mass_from_Cosmolgical_Root_Variance(sigma(iMass))
   end do
-  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3) 
+  call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3)
 
   ! Compute the mass corresponding to 8Mpc/h.
   radius8=8.0d0/Little_H_0()
   mass8=4.0d0*Pi*Critical_Density()*Omega_Matter()*radius8**3/3.0d0
   sigma8=Cosmological_Mass_Root_Variance(mass8)
-  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6) 
+  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6)
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close

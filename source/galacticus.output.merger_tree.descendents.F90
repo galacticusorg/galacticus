@@ -25,14 +25,14 @@ module Galacticus_Output_Trees_Descendents
   public :: Galacticus_Output_Tree_Descendents, Galacticus_Output_Tree_Descendents_Property_Count, Galacticus_Output_Tree_Descendents_Names
 
   ! Number of descendent properties.
-  integer, parameter :: descendentPropertyCount     =1       
-  
+  integer, parameter :: descendentPropertyCount     =1
+
   ! Flag indicating whether or not descendent index information is to be output.
-  logical            :: outputDescendentIndices              
-  
+  logical            :: outputDescendentIndices
+
   ! Flag indicating whether or not this module has been initialized.
-  logical            :: outputDescendentsInitialized=.false. 
-  
+  logical            :: outputDescendentsInitialized=.false.
+
 contains
 
   subroutine Galacticus_Output_Tree_Descendents_Initialize
@@ -56,11 +56,11 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputDescendentIndices',outputDescendentIndices,defaultValue=.false.)
-          
+
           ! Ensure that the Satellite_Time_Of_Merging property is gettable.
           if (outputDescendentIndices.and..not.defaultSatelliteComponent%timeOfMergingIsGettable()) &
                & call Galacticus_Error_Report('Galacticus_Output_Tree_Descendents_Initialize','the satellite timeOfMerging property must be gettable to output descendent indices')
-          
+
           ! Flag that module is now initialized.
           outputDescendentsInitialized=.true.
        end if
@@ -77,13 +77,13 @@ contains
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of descendent properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()
 
@@ -113,10 +113,10 @@ contains
     !% Account for the number of descendent properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                                  
-    double precision                        , intent(in   )          :: time                                      
-    integer                                 , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()
 
@@ -136,18 +136,18 @@ contains
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    double precision                        , intent(in   )          :: time                                                               
-    type            (treeNode              ), intent(inout), pointer :: thisNode                                                           
-    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, & 
-         &                                                              integerProperty                                                    
-    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)                                        
-    double precision                        , intent(inout)          :: doubleBuffer          (:,:)                                        
-    type            (treeNode              )               , pointer :: descendentNode                                                     
-    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent                                                 
-    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent                                             
-    double precision                                                 :: outputTimeNext                                                     
-    logical                                                          :: foundDescendent                                                    
-    
+    double precision                        , intent(in   )          :: time
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    integer                                 , intent(inout)          :: doubleBufferCount          , doubleProperty, integerBufferCount, &
+         &                                                              integerProperty
+    integer         (kind=kind_int8        ), intent(inout)          :: integerBuffer         (:,:)
+    double precision                        , intent(inout)          :: doubleBuffer          (:,:)
+    type            (treeNode              )               , pointer :: descendentNode
+    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
+    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent
+    double precision                                                 :: outputTimeNext
+    logical                                                          :: foundDescendent
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Descendents_Initialize()
 
@@ -159,7 +159,7 @@ contains
 
        ! Get the time of the next output.
        outputTimeNext=Galacticus_Next_Output_Time(time)
-       
+
        foundDescendent=.false.
        integerProperty=integerProperty+1
        if (outputTimeNext < 0.0d0) then

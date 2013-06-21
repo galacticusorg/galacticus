@@ -25,30 +25,30 @@ module Numerical_Constants_Physical
   public
 
   ! Speed of light (m/s).
-  double precision, parameter :: speedLight                     =FGSL_CONST_MKSA_SPEED_OF_LIGHT                                                                           
-  
-  ! Newton's gravitational constant (in Galacticus' M_Solar, Mpc, km/s unit system).                                                                                                                                                                     
-  double precision, parameter :: gravitationalConstantGalacticus=FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT*FGSL_CONST_MKSA_SOLAR_MASS/(kilo**2)/FGSL_CONST_MKSA_PARSEC/mega  
-  
-  ! Newton's gravitational constant (in SI units).                                                                                                                                                                     
-  double precision, parameter :: gravitationalConstant          =FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT                                                                   
-  
-  ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).                                                                                                                                                                     
-  double precision, parameter :: stefanBoltzmannConstant        =FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT                                                                
-  
-  ! Radiation constant (in units of J/m^3/K^4).                                                                                                                                                                     
-  double precision, parameter :: radiationConstant              =4.0d0*FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT/FGSL_CONST_MKSA_SPEED_OF_LIGHT                           
-  
-  ! Boltzmann's constant (in units of J/K).                                                                                                                                                                     
-  double precision, parameter :: boltzmannsConstant             =FGSL_CONST_MKSA_BOLTZMANN                                                                                
-  
-  ! Thomson cross section (in units of m^2).                                                                                                                                                                     
-  double precision, parameter :: thomsonCrossSection            =FGSL_CONST_MKSA_THOMSON_CROSS_SECTION                                                                    
-  
-  ! Electron mass (in units of kg).                                                                                                                                                                     
-  double precision, parameter :: electronMass                   =FGSL_CONST_MKSA_MASS_ELECTRON                                                                            
-  
-  ! Planck's constant (in units of J s).                                                                                                                                                                     
-  double precision, parameter :: plancksConstant                =FGSL_CONST_MKSA_PLANCKS_CONSTANT_H                                                                       
-                                                                                                                                                                       
+  double precision, parameter :: speedLight                     =FGSL_CONST_MKSA_SPEED_OF_LIGHT
+
+  ! Newton's gravitational constant (in Galacticus' M_Solar, Mpc, km/s unit system).
+  double precision, parameter :: gravitationalConstantGalacticus=FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT*FGSL_CONST_MKSA_SOLAR_MASS/(kilo**2)/FGSL_CONST_MKSA_PARSEC/mega
+
+  ! Newton's gravitational constant (in SI units).
+  double precision, parameter :: gravitationalConstant          =FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT
+
+  ! Stefan-Boltzmann constant (in units of J/s/M^2/K^4).
+  double precision, parameter :: stefanBoltzmannConstant        =FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT
+
+  ! Radiation constant (in units of J/m^3/K^4).
+  double precision, parameter :: radiationConstant              =4.0d0*FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT/FGSL_CONST_MKSA_SPEED_OF_LIGHT
+
+  ! Boltzmann's constant (in units of J/K).
+  double precision, parameter :: boltzmannsConstant             =FGSL_CONST_MKSA_BOLTZMANN
+
+  ! Thomson cross section (in units of m^2).
+  double precision, parameter :: thomsonCrossSection            =FGSL_CONST_MKSA_THOMSON_CROSS_SECTION
+
+  ! Electron mass (in units of kg).
+  double precision, parameter :: electronMass                   =FGSL_CONST_MKSA_MASS_ELECTRON
+
+  ! Planck's constant (in units of J s).
+  double precision, parameter :: plancksConstant                =FGSL_CONST_MKSA_PLANCKS_CONSTANT_H
+
 end module Numerical_Constants_Physical

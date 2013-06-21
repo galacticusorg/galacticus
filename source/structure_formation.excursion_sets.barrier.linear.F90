@@ -23,8 +23,8 @@ module Excursion_Sets_Barriers_Linear
   public :: Excursion_Sets_Barriers_Linear_Initialize
 
   ! Parameters controlling the barrier.
-  double precision :: excursionSetBarrierConstantCoefficient, excursionSetBarrierLinearCoefficient  
-                                                                                                 
+  double precision :: excursionSetBarrierConstantCoefficient, excursionSetBarrierLinearCoefficient
+
 contains
 
   !# <excursionSetBarrierMethod>
@@ -35,11 +35,11 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod                                        
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get  
-    type     (varying_string  ), intent(inout)          :: barrierName                                                      
-    character(len=10          )                         :: label                                                            
-                                                                                                                         
+    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get
+    type     (varying_string  ), intent(inout)          :: barrierName
+    character(len=10          )                         :: label
+
     if (excursionSetBarrierMethod == 'linear') then
        Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Linear
        Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Linear
@@ -77,8 +77,8 @@ contains
   double precision function Excursion_Sets_Barrier_Linear(variance,time)
     !% Return a linear barrier for excursion set calculations at the given {\tt variance}.
     implicit none
-    double precision, intent(in   ) :: time, variance  
-                                                    
+    double precision, intent(in   ) :: time, variance
+
     Excursion_Sets_Barrier_Linear=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance
     return
   end function Excursion_Sets_Barrier_Linear
@@ -86,10 +86,10 @@ contains
   double precision function Excursion_Sets_Barrier_Gradient_Linear(variance,time)
     !% Return the gradient of a linear barrier for excursion set calculations at the given {\tt variance}.
     implicit none
-    double precision, intent(in   ) :: time, variance  
-                                                    
+    double precision, intent(in   ) :: time, variance
+
     Excursion_Sets_Barrier_Gradient_Linear=excursionSetBarrierLinearCoefficient
     return
   end function Excursion_Sets_Barrier_Gradient_Linear
-  
+
 end module Excursion_Sets_Barriers_Linear

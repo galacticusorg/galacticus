@@ -55,12 +55,12 @@ contains
   subroutine Node_Component_Spin_Preset_Initialize(thisNode)
     !% Initialize the spin of {\tt thisNode}.
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                  
-    class           (nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent   
-    class           (nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent  
-    double precision                                             :: deltaTime                                 
-    
-    ! Ensure that the spin component is of the preset class.                                                                                                       
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
+    class           (nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+    double precision                                             :: deltaTime
+
+    ! Ensure that the spin component is of the preset class.
     thisSpinComponent => thisNode%spin()
     select type (thisSpinComponent)
     class is (nodeComponentSpinPreset)
@@ -90,12 +90,12 @@ contains
   subroutine Node_Component_Spin_Preset_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute rates of change of properties in the preset implementation of the spin component.
     implicit none
-    type     (treeNode         ), intent(inout), pointer :: thisNode            
-    logical                     , intent(inout)          :: interrupt           
-    procedure(                 ), intent(inout), pointer :: interruptProcedure  
-    class    (nodeComponentSpin)               , pointer :: thisSpinComponent   
-    
-    ! Get the spin component.                                                                         
+    type     (treeNode         ), intent(inout), pointer :: thisNode
+    logical                     , intent(inout)          :: interrupt
+    procedure(                 ), intent(inout), pointer :: interruptProcedure
+    class    (nodeComponentSpin)               , pointer :: thisSpinComponent
+
+    ! Get the spin component.
     thisSpinComponent => thisNode%spin()
     ! Ensure that it is of the preset class.
     select type (thisSpinComponent)
@@ -112,12 +112,12 @@ contains
   subroutine Node_Component_Spin_Preset_Scale_Set(thisNode)
     !% Set scales for properties in the preset implementation of the spin component.
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                  
-    double precision                   , parameter              :: timeScale        =1.0d-3  
-    double precision                   , parameter              :: scaleMassRelative=1.0d-6  
-    class           (nodeComponentSpin)               , pointer :: thisSpinComponent         
-    
-    ! Get the spin component.                                                                                      
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , parameter              :: timeScale        =1.0d-3
+    double precision                   , parameter              :: scaleMassRelative=1.0d-6
+    class           (nodeComponentSpin)               , pointer :: thisSpinComponent
+
+    ! Get the spin component.
     thisSpinComponent => thisNode%spin()
     ! Ensure that it is of the preset class.
     select type (thisSpinComponent)
@@ -136,12 +136,12 @@ contains
     !% to be that of its parent.
     use Galacticus_Error
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode                                  
-    type (treeNode          )               , pointer :: parentNode                                
-    class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent   
-    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent  
-    
-    ! Ensure that the spin component is of the random class.                                                                                            
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    type (treeNode          )               , pointer :: parentNode
+    class(nodeComponentSpin )               , pointer :: parentSpinComponent , thisSpinComponent
+    class(nodeComponentBasic)               , pointer :: parentBasicComponent, thisBasicComponent
+
+    ! Ensure that the spin component is of the random class.
     thisSpinComponent => thisNode%spin()
     select type (thisSpinComponent)
     class is (nodeComponentSpinPreset)

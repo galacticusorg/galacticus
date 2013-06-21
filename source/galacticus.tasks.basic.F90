@@ -20,7 +20,7 @@ module Galacticus_Tasks_Basic
   implicit none
   private
   public :: Galacticus_Task_Start, Galacticus_Task_End
-  
+
 contains
 
   !# <galacticusTask>
@@ -30,9 +30,9 @@ contains
     use Input_Parameters
     use Galacticus_Output_Open
     implicit none
-    logical, save :: doneStart     =.false.  
-    integer       :: verbosityLevel          
-                                          
+    logical, save :: doneStart     =.false.
+    integer       :: verbosityLevel
+
     if (.not.doneStart) then
        ! Get the verbosity level parameter.
        !@ <inputParameter>
@@ -47,7 +47,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
        call Galacticus_Verbosity_Level_Set(verbosityLevel)
-       
+
        ! Open the Galacticus output file.
        call Galacticus_Output_Open_File
 
@@ -66,8 +66,8 @@ contains
     use Galacticus_Output_Open
     use Galacticus_Output_Merger_Tree
     implicit none
-    logical, save :: doneEnd=.false.  
-                                   
+    logical, save :: doneEnd=.false.
+
     if (.not.doneEnd) then
 
        ! Finalize outputs.

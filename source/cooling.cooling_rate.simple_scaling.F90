@@ -27,9 +27,9 @@ module Cooling_Rates_Simple_Scaling
   public :: Cooling_Rate_Simple_Scaling_Initialize
 
   ! The fixed timescale for cooling.
-  double precision :: coolingRateSimpleScalingTimescale     , coolingRateSimpleScalingTimescaleExponent, & 
-       &              coolingRateSimpleScalingTransitionMass                                               
-  
+  double precision :: coolingRateSimpleScalingTimescale     , coolingRateSimpleScalingTimescaleExponent, &
+       &              coolingRateSimpleScalingTransitionMass
+
 contains
 
   !# <coolingRateMethod>
@@ -41,9 +41,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string             ), intent(in   )          :: coolingRateMethod 
-    procedure(Cooling_Rate_Simple_Scaling), intent(inout), pointer :: Cooling_Rate_Get  
-    
+    type     (varying_string             ), intent(in   )          :: coolingRateMethod
+    procedure(Cooling_Rate_Simple_Scaling), intent(inout), pointer :: Cooling_Rate_Get
+
     if (coolingRateMethod == 'simpleScaling') then
        Cooling_Rate_Get => Cooling_Rate_Simple_Scaling
 
@@ -106,12 +106,12 @@ contains
     !% Computes the mass cooling rate in a hot gas halo assuming a fixed timescale for cooling.
     use Cosmology_Functions
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                                      
-    double precision                      , parameter              :: massRatioMaximum    =100.0d0                  
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                            
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                          
-    double precision                                               :: coolingRate                 , expansionFactor 
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    double precision                      , parameter              :: massRatioMaximum    =100.0d0
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    double precision                                               :: coolingRate                 , expansionFactor
+
     thisBasicComponent   => thisNode%basic  ()
     thisHotHaloComponent => thisNode%hotHalo()
     expansionFactor=Expansion_Factor(thisBasicComponent%time())

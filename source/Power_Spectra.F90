@@ -25,11 +25,11 @@ program Power_Spectra
   use Memory_Management
   use Power_Spectrum_Tasks
   implicit none
-  integer                             , parameter :: fileNameLengthMaximum=1024                               
-  character(len=fileNameLengthMaximum)            :: fileCharacter                                            
-  type     (varying_string           )            :: parameterFile             , powerSpectrumOutputFileName  
-  
-  ! Read in basic code memory usage.                                                                                                         
+  integer                             , parameter :: fileNameLengthMaximum=1024
+  character(len=fileNameLengthMaximum)            :: fileCharacter
+  type     (varying_string           )            :: parameterFile             , powerSpectrumOutputFileName
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('Power_Spectra.size')
 
   ! Get the name of the parameter file from the first command line argument.
@@ -42,7 +42,7 @@ program Power_Spectra
 
   ! Open the output file.
   call Power_Spectrum_Open_File(powerSpectrumOutputFileName)
-  
+
   ! Open the parameter file.
   call Input_Parameters_File_Open(parameterFile,powerSpectrumOutputFile)
 
@@ -54,7 +54,7 @@ program Power_Spectra
 
   ! Close the parameter file.
   call Input_Parameters_File_Close
-  
+
   ! Close the output file.
   call Power_Spectrum_Close_File
 

@@ -41,7 +41,7 @@ contains
     !# </include>
     implicit none
     integer :: chunkSize
-    
+
     if (.not.galacticusOutputFileIsOpen) then
        ! Get file name parameter.
        !@ <inputParameter>

@@ -29,18 +29,18 @@ module Star_Formation_Rate_Surface_Density_Disks_ExSchmidt
        & Star_Formation_Rate_Surface_Density_Disks_ExSchmidt_Initialize
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8) :: lastUniqueID                            =-1                                                    
+  integer         (kind=kind_int8) :: lastUniqueID                            =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not factors have been precomputed.
-  logical                          :: factorsComputed                         =.false.                                               
+  logical                          :: factorsComputed                         =.false.
   !$omp threadprivate(factorsComputed)
   ! Precomputed factors.
-  double precision                 :: hydrogenMassFraction                                                                           
+  double precision                 :: hydrogenMassFraction
   !$omp threadprivate(hydrogenMassFraction)
   ! Parameters of the model.
-  double precision                 :: starFormationExtendedSchmidtGasExponent         , starFormationExtendedSchmidtNormalization, & 
-       &                              starFormationExtendedSchmidtStarExponent                                                       
-  
+  double precision                 :: starFormationExtendedSchmidtGasExponent         , starFormationExtendedSchmidtNormalization, &
+       &                              starFormationExtendedSchmidtStarExponent
+
 contains
 
   !# <calculationResetTask>
@@ -49,8 +49,8 @@ contains
   subroutine Star_Formation_Rate_Surface_Density_Disks_ExSchmidt_Reset(thisNode)
     !% Reset the extended Schmidt relation calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     factorsComputed=.false.
     lastUniqueID   =thisNode%uniqueID()
     return
@@ -67,9 +67,9 @@ contains
     use Abundances_Structure
     use Numerical_Constants_Prefixes
     implicit none
-    type     (varying_string                                    ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod   
-    procedure(Star_Formation_Rate_Surface_Density_Disk_ExSchmidt), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get 
-    
+    type     (varying_string                                    ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
+    procedure(Star_Formation_Rate_Surface_Density_Disk_ExSchmidt), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
+
     if (starFormationRateSurfaceDensityDisksMethod == 'extendedSchmidt') then
        Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_ExSchmidt
     ! Get parameters of for the timescale calculation.
@@ -136,14 +136,14 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Prefixes
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                                          
-    double precision                   , intent(in   )          :: radius                                            
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                 
-    type            (abundances       ), save                   :: fuelAbundances                                    
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: radius
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                                            :: diskScaleRadius   , gasMass, surfaceDensityGas, & 
-         &                                                         surfaceDensityStar                                
-    
+    double precision                                            :: diskScaleRadius   , gasMass, surfaceDensityGas, &
+         &                                                         surfaceDensityStar
+
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_ExSchmidt_Reset(thisNode)
     ! Check if factors have been precomputed.

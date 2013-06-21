@@ -25,26 +25,26 @@ module Unit_Tests
   public :: Assert, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
 
   ! Types of comparison.
-  integer, parameter, public :: compareEquals            =0 
-  integer, parameter, public :: compareNotEqual          =1 
-  integer, parameter, public :: compareLessThan          =2 
-  integer, parameter, public :: compareGreaterThan       =3 
-  integer, parameter, public :: compareLessThanOrEqual   =4 
-  integer, parameter, public :: compareGreaterThanOrEqual=5 
-  
+  integer, parameter, public :: compareEquals            =0
+  integer, parameter, public :: compareNotEqual          =1
+  integer, parameter, public :: compareLessThan          =2
+  integer, parameter, public :: compareGreaterThan       =3
+  integer, parameter, public :: compareLessThanOrEqual   =4
+  integer, parameter, public :: compareGreaterThanOrEqual=5
+
   ! Type for assert results.
   type assertResult
      !% A derived type for storing results of asserts.
-     logical                          :: beginGroup, endGroup, result 
-     type   (varying_string)          :: label                        
-     type   (assertResult  ), pointer :: nextResult                   
+     logical                          :: beginGroup, endGroup, result
+     type   (varying_string)          :: label
+     type   (assertResult  ), pointer :: nextResult
   end type assertResult
 
   ! Results list.
-  type   (assertResult), target  :: firstResult          
-  type   (assertResult), pointer :: currentResult        
-  logical                        :: firstAssert  =.true. 
-  
+  type   (assertResult), target  :: firstResult
+  type   (assertResult), pointer :: currentResult
+  logical                        :: firstAssert  =.true.
+
   ! Interface for assert routines.
   interface Assert
      !% Generic interface for assert routines.
@@ -74,21 +74,21 @@ contains
     !% Assess and record an assertion about real arguments.
     use Numerical_Comparison
     implicit none
-    character(len=*       ), intent(in   )           :: testName              
-    real                   , intent(in   )           :: value1       , value2 
-    integer                , intent(in   ), optional :: compare               
-    real                   , intent(in   ), optional :: absTol       , relTol 
-    type     (assertResult), pointer                 :: thisResult            
-    integer                                          :: compareActual         
-    logical                                          :: passed                
-    
+    character(len=*       ), intent(in   )           :: testName
+    real                   , intent(in   )           :: value1       , value2
+    integer                , intent(in   ), optional :: compare
+    real                   , intent(in   ), optional :: absTol       , relTol
+    type     (assertResult), pointer                 :: thisResult
+    integer                                          :: compareActual
+    logical                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -119,21 +119,21 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       ), intent(in   )           :: testName              
-    double precision              , intent(in   )           :: value1       , value2 
-    integer                       , intent(in   ), optional :: compare               
-    double precision              , intent(in   ), optional :: absTol       , relTol 
-    type            (assertResult), pointer                 :: thisResult            
-    integer                                                 :: compareActual         
-    logical                                                 :: passed                
-    
+    character       (len=*       ), intent(in   )           :: testName
+    double precision              , intent(in   )           :: value1       , value2
+    integer                       , intent(in   ), optional :: compare
+    double precision              , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                 :: thisResult
+    integer                                                 :: compareActual
+    logical                                                 :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -163,20 +163,20 @@ contains
   subroutine Assert_Integer_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     implicit none
-    character(len=*       ), intent(in   )           :: testName              
-    integer                , intent(in   )           :: value1       , value2 
-    integer                , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                 :: thisResult            
-    integer                                          :: compareActual         
-    logical                                          :: passed                
-    
+    character(len=*       ), intent(in   )           :: testName
+    integer                , intent(in   )           :: value1       , value2
+    integer                , intent(in   ), optional :: compare
+    type     (assertResult), pointer                 :: thisResult
+    integer                                          :: compareActual
+    logical                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -207,20 +207,20 @@ contains
     !% Assess and record an assertion about integer arguments.
     use Kind_Numbers
     implicit none
-    character(len=*         ), intent(in   )           :: testName              
-    integer  (kind=kind_int8), intent(in   )           :: value1       , value2 
-    integer                  , intent(in   ), optional :: compare               
-    type     (assertResult  ), pointer                 :: thisResult            
-    integer                                            :: compareActual         
-    logical                                            :: passed                
-    
+    character(len=*         ), intent(in   )           :: testName
+    integer  (kind=kind_int8), intent(in   )           :: value1       , value2
+    integer                  , intent(in   ), optional :: compare
+    type     (assertResult  ), pointer                 :: thisResult
+    integer                                            :: compareActual
+    logical                                            :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -250,20 +250,20 @@ contains
   subroutine Assert_Character_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
     implicit none
-    character(len=*       ), intent(in   )           :: testName              
-    character(len=*       ), intent(in   )           :: value1       , value2 
-    integer                , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                 :: thisResult            
-    integer                                          :: compareActual         
-    logical                                          :: passed                
-    
+    character(len=*       ), intent(in   )           :: testName
+    character(len=*       ), intent(in   )           :: value1       , value2
+    integer                , intent(in   ), optional :: compare
+    type     (assertResult), pointer                 :: thisResult
+    integer                                          :: compareActual
+    logical                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -293,20 +293,20 @@ contains
   subroutine Assert_VarString_Scalar(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
     implicit none
-    character(len=*         ), intent(in   )           :: testName              
-    type     (varying_string), intent(in   )           :: value1       , value2 
-    integer                  , intent(in   ), optional :: compare               
-    type     (assertResult  ), pointer                 :: thisResult            
-    integer                                            :: compareActual         
-    logical                                            :: passed                
-    
+    character(len=*         ), intent(in   )           :: testName
+    type     (varying_string), intent(in   )           :: value1       , value2
+    integer                  , intent(in   ), optional :: compare
+    type     (assertResult  ), pointer                 :: thisResult
+    integer                                            :: compareActual
+    logical                                            :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -337,21 +337,21 @@ contains
     !% Assess and record an assertion about real arguments.
     use Numerical_Comparison
     implicit none
-    character(len=*       )              , intent(in   )           :: testName              
-    real                   , dimension(:), intent(in   )           :: value1       , value2 
-    integer                              , intent(in   ), optional :: compare               
-    real                                 , intent(in   ), optional :: absTol       , relTol 
-    type     (assertResult), pointer                               :: thisResult            
-    integer                                                        :: compareActual, iTest  
-    logical                                                        :: passed                
-    
+    character(len=*       )              , intent(in   )           :: testName
+    real                   , dimension(:), intent(in   )           :: value1       , value2
+    integer                              , intent(in   ), optional :: compare
+    real                                 , intent(in   ), optional :: absTol       , relTol
+    type     (assertResult), pointer                               :: thisResult
+    integer                                                        :: compareActual, iTest
+    logical                                                        :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -388,21 +388,21 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       )              , intent(in   )           :: testName              
-    double precision              , dimension(:), intent(in   )           :: value1       , value2 
-    integer                                     , intent(in   ), optional :: compare               
-    double precision                            , intent(in   ), optional :: absTol       , relTol 
-    type            (assertResult), pointer                               :: thisResult            
-    integer                                                               :: compareActual, iTest  
-    logical                                                               :: passed                
-    
+    character       (len=*       )              , intent(in   )           :: testName
+    double precision              , dimension(:), intent(in   )           :: value1       , value2
+    integer                                     , intent(in   ), optional :: compare
+    double precision                            , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                               :: thisResult
+    integer                                                               :: compareActual, iTest
+    logical                                                               :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -439,21 +439,21 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       )                , intent(in   )           :: testName                     
-    double precision              , dimension(:,:), intent(in   )           :: value1       , value2        
-    integer                                       , intent(in   ), optional :: compare                      
-    double precision                              , intent(in   ), optional :: absTol       , relTol        
-    type            (assertResult), pointer                                 :: thisResult                   
-    integer                                                                 :: compareActual, iTest , jTest 
-    logical                                                                 :: passed                       
-    
+    character       (len=*       )                , intent(in   )           :: testName
+    double precision              , dimension(:,:), intent(in   )           :: value1       , value2
+    integer                                       , intent(in   ), optional :: compare
+    double precision                              , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                                 :: thisResult
+    integer                                                                 :: compareActual, iTest , jTest
+    logical                                                                 :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -492,21 +492,21 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       )                  , intent(in   )           :: testName                            
-    double precision              , dimension(:,:,:), intent(in   )           :: value1       , value2               
-    integer                                         , intent(in   ), optional :: compare                             
-    double precision                                , intent(in   ), optional :: absTol       , relTol               
-    type            (assertResult), pointer                                   :: thisResult                          
-    integer                                                                   :: compareActual, iTest , jTest, kTest 
-    logical                                                                   :: passed                              
-    
+    character       (len=*       )                  , intent(in   )           :: testName
+    double precision              , dimension(:,:,:), intent(in   )           :: value1       , value2
+    integer                                         , intent(in   ), optional :: compare
+    double precision                                , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                                   :: thisResult
+    integer                                                                   :: compareActual, iTest , jTest, kTest
+    logical                                                                   :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -547,22 +547,22 @@ contains
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       )                    , intent(in   )           :: testName                               
-    double precision              , dimension(:,:,:,:), intent(in   )           :: value1       , value2                  
-    integer                                           , intent(in   ), optional :: compare                                
-    double precision                                  , intent(in   ), optional :: absTol       , relTol                  
-    type            (assertResult), pointer                                     :: thisResult                             
-    integer                                                                     :: compareActual, iTest , jTest, kTest, & 
-         &                                                                         lTest                                  
-    logical                                                                     :: passed                                 
-    
+    character       (len=*       )                    , intent(in   )           :: testName
+    double precision              , dimension(:,:,:,:), intent(in   )           :: value1       , value2
+    integer                                           , intent(in   ), optional :: compare
+    double precision                                  , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                                     :: thisResult
+    integer                                                                     :: compareActual, iTest , jTest, kTest, &
+         &                                                                         lTest
+    logical                                                                     :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -600,27 +600,27 @@ contains
 
     return
   end subroutine Assert_Double_4D_Array
-  
+
   subroutine Assert_Double_5D_Array(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about double precision arguments.
     use Numerical_Comparison
     implicit none
-    character       (len=*       )                      , intent(in   )           :: testName                               
-    double precision              , dimension(:,:,:,:,:), intent(in   )           :: value1       , value2                  
-    integer                                             , intent(in   ), optional :: compare                                
-    double precision                                    , intent(in   ), optional :: absTol       , relTol                  
-    type            (assertResult), pointer                                       :: thisResult                             
-    integer                                                                       :: compareActual, iTest , jTest, kTest, & 
-         &                                                                           lTest        , mTest                   
-    logical                                                                       :: passed                                 
-    
+    character       (len=*       )                      , intent(in   )           :: testName
+    double precision              , dimension(:,:,:,:,:), intent(in   )           :: value1       , value2
+    integer                                             , intent(in   ), optional :: compare
+    double precision                                    , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                                       :: thisResult
+    integer                                                                       :: compareActual, iTest , jTest, kTest, &
+         &                                                                           lTest        , mTest
+    logical                                                                       :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals)
@@ -660,24 +660,24 @@ contains
 
     return
   end subroutine Assert_Double_5D_Array
-  
+
   subroutine Assert_Integer_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     implicit none
-    character(len=*       )              , intent(in   )           :: testName              
-    integer                , dimension(:), intent(in   )           :: value1       , value2 
-    integer                              , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                               :: thisResult            
-    integer                                                        :: compareActual         
-    logical                                                        :: passed                
-    
+    character(len=*       )              , intent(in   )           :: testName
+    integer                , dimension(:), intent(in   )           :: value1       , value2
+    integer                              , intent(in   ), optional :: compare
+    type     (assertResult), pointer                               :: thisResult
+    integer                                                        :: compareActual
+    logical                                                        :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -707,20 +707,20 @@ contains
   subroutine Assert_Logical_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about integer arguments.
     implicit none
-    character(len=*       )              , intent(in   )           :: testName              
-    logical                , dimension(:), intent(in   )           :: value1       , value2 
-    integer                              , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                               :: thisResult            
-    integer                                                        :: compareActual         
-    logical                                                        :: passed                
-    
+    character(len=*       )              , intent(in   )           :: testName
+    logical                , dimension(:), intent(in   )           :: value1       , value2
+    integer                              , intent(in   ), optional :: compare
+    type     (assertResult), pointer                               :: thisResult
+    integer                                                        :: compareActual
+    logical                                                        :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals  )
@@ -744,20 +744,20 @@ contains
     !% Assess and record an assertion about integer arguments.
     use Kind_Numbers
     implicit none
-    character(len=*         )              , intent(in   )           :: testName              
-    integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2 
-    integer                                , intent(in   ), optional :: compare               
-    type     (assertResult  ), pointer                               :: thisResult            
-    integer                                                          :: compareActual         
-    logical                                                          :: passed                
-    
+    character(len=*         )              , intent(in   )           :: testName
+    integer  (kind=kind_int8), dimension(:), intent(in   )           :: value1       , value2
+    integer                                , intent(in   ), optional :: compare
+    type     (assertResult  ), pointer                               :: thisResult
+    integer                                                          :: compareActual
+    logical                                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -788,20 +788,20 @@ contains
     !% Assess and record an assertion about logical arguments.
     use Galacticus_Error
     implicit none
-    character(len=*       ), intent(in   )           :: testName              
-    logical                , intent(in   )           :: value1       , value2 
-    integer                , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                 :: thisResult            
-    integer                                          :: compareActual         
-    logical                                          :: passed                
-    
+    character(len=*       ), intent(in   )           :: testName
+    logical                , intent(in   )           :: value1       , value2
+    integer                , intent(in   ), optional :: compare
+    type     (assertResult), pointer                 :: thisResult
+    integer                                          :: compareActual
+    logical                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -825,20 +825,20 @@ contains
   subroutine Assert_Character_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
     implicit none
-    character(len=*       )              , intent(in   )           :: testName              
-    character(len=*       ), dimension(:), intent(in   )           :: value1       , value2 
-    integer                              , intent(in   ), optional :: compare               
-    type     (assertResult), pointer                               :: thisResult            
-    integer                                                        :: compareActual         
-    logical                                                        :: passed                
-    
+    character(len=*       )              , intent(in   )           :: testName
+    character(len=*       ), dimension(:), intent(in   )           :: value1       , value2
+    integer                              , intent(in   ), optional :: compare
+    type     (assertResult), pointer                               :: thisResult
+    integer                                                        :: compareActual
+    logical                                                        :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -868,20 +868,20 @@ contains
   subroutine Assert_VarString_1D_Array(testName,value1,value2,compare)
     !% Assess and record an assertion about character arguments.
     implicit none
-    character(len=*         )              , intent(in   )           :: testName              
-    type     (varying_string), dimension(:), intent(in   )           :: value1       , value2 
-    integer                                , intent(in   ), optional :: compare               
-    type     (assertResult  ), pointer                               :: thisResult            
-    integer                                                          :: compareActual         
-    logical                                                          :: passed                
-    
+    character(len=*         )              , intent(in   )           :: testName
+    type     (varying_string), dimension(:), intent(in   )           :: value1       , value2
+    integer                                , intent(in   ), optional :: compare
+    type     (assertResult  ), pointer                               :: thisResult
+    integer                                                          :: compareActual
+    logical                                                          :: passed
+
     ! Determine what type of comparison to perform.
     if (present(compare)) then
        compareActual=compare
     else
        compareActual=compareEquals
     end if
-    
+
     ! Perform the comparison.
     select case (compareActual)
     case (compareEquals            )
@@ -911,9 +911,9 @@ contains
   subroutine Unit_Tests_Begin_Group(groupName)
     !% Marks that a unit test group has begun.
     implicit none
-    character(len=*       ), intent(in   ) :: groupName  
-    type     (assertResult), pointer       :: thisResult 
-    
+    character(len=*       ), intent(in   ) :: groupName
+    type     (assertResult), pointer       :: thisResult
+
     thisResult => Get_New_Assert_Result()
     thisResult%beginGroup=.true.
     thisResult%label     =trim(groupName)
@@ -923,8 +923,8 @@ contains
   subroutine Unit_Tests_End_Group
     !% Marks that a unit test group has ended.
     implicit none
-    type(assertResult), pointer :: thisResult 
-    
+    type(assertResult), pointer :: thisResult
+
     thisResult => Get_New_Assert_Result()
     thisResult%endGroup=.true.
     return
@@ -936,10 +936,10 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    type   (assertResult  ), pointer :: nextResult, thisResult             
-    integer                          :: failCount , passCount , percentage 
-    type   (varying_string)          :: message                            
-    
+    type   (assertResult  ), pointer :: nextResult, thisResult
+    integer                          :: failCount , passCount , percentage
+    type   (varying_string)          :: message
+
     passCount=0
     failCount=0
     thisResult => firstResult
@@ -948,10 +948,10 @@ contains
           select case (thisResult%result)
           case (.false.)
              failCount=failCount+1
-             message="FAILED: "//thisResult%label  
+             message="FAILED: "//thisResult%label
           case (.true. )
-             passCount=passCount+1             
-             message="passed: "//thisResult%label  
+             passCount=passCount+1
+             message="passed: "//thisResult%label
           end select
           call Galacticus_Display_Message(message)
        else
@@ -993,8 +993,8 @@ contains
     !% Get a new assert result object.
     use Memory_Management
     implicit none
-    type(assertResult), pointer :: newResult 
-    
+    type(assertResult), pointer :: newResult
+
     ! Return the first result if this is the first assert, otherwise, allocate a new one.
     select case (firstAssert)
     case (.false.)

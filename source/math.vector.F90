@@ -24,26 +24,26 @@ module Vectors
   public :: Vector_Magnitude, Vector_Product
 
 contains
-  
+
   pure double precision function Vector_Magnitude(vector1)
     !% Computes the magnitude of {\tt vector1}.
     implicit none
-    double precision, dimension(3), intent(in   ) :: vector1  
-                                                           
+    double precision, dimension(3), intent(in   ) :: vector1
+
     Vector_Magnitude=sqrt(sum(vector1**2))
     return
   end function Vector_Magnitude
-  
+
   pure function Vector_Product(vector1,vector2) result(vector3)
     !% Computes the vector product of {\tt vector1} and {\tt vector2}.
     implicit none
-    double precision, dimension(3)                :: vector3           
-    double precision, dimension(3), intent(in   ) :: vector1, vector2  
-                                                                    
+    double precision, dimension(3)                :: vector3
+    double precision, dimension(3), intent(in   ) :: vector1, vector2
+
     vector3(1)=vector1(2)*vector2(3)-vector1(3)*vector2(2)
     vector3(2)=vector1(3)*vector2(1)-vector1(1)*vector2(3)
     vector3(3)=vector1(1)*vector2(2)-vector1(2)*vector2(1)
     return
   end function Vector_Product
-  
+
 end module Vectors

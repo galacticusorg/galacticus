@@ -25,14 +25,14 @@ module Galacticus_Output_Trees_Main_Branch
        & Galacticus_Output_Tree_Main_Branch_Names
 
   ! Number of main branch properties.
-  integer, parameter :: mainBranchPropertyCount      =1       
-  
+  integer, parameter :: mainBranchPropertyCount      =1
+
   ! Flag indicating whether main branch output is required.
-  logical            :: outputMainBranchStatus                
-  
+  logical            :: outputMainBranchStatus
+
   ! Flag indicating if module is initialized.
-  logical            :: mainBranchOutputIsInitialized=.false. 
-  
+  logical            :: mainBranchOutputIsInitialized=.false.
+
 contains
 
   subroutine Galacticus_Output_Tree_Main_Branch_Initalize
@@ -44,7 +44,7 @@ contains
     if (.not.mainBranchOutputIsInitialized) then
        !$omp critical(Galacticus_Output_Tree_Main_Branch_Initalization)
        if (.not.mainBranchOutputIsInitialized) then
-          ! Read parameter controlling whether or not this module should output.       
+          ! Read parameter controlling whether or not this module should output.
           !@ <inputParameter>
           !@   <name>outputMainBranchStatus</name>
           !@   <defaultValue>false</defaultValue>
@@ -65,7 +65,7 @@ contains
 
     return
   end subroutine Galacticus_Output_Tree_Main_Branch_Initalize
-    
+
   !# <mergerTreeOutputNames>
   !#  <unitName>Galacticus_Output_Tree_Main_Branch_Names</unitName>
   !#  <sortName>Galacticus_Output_Tree_Main_Branch</sortName>
@@ -75,13 +75,13 @@ contains
     !% Set the names of main branch properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 
@@ -110,10 +110,10 @@ contains
     !% Account for the number of main branch properties to be written to the \glc\ output file.
     use Galacticus_Nodes
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                  
-    double precision          , intent(in   )          :: time                                      
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: time
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 
@@ -131,13 +131,13 @@ contains
     use Galacticus_Nodes
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )          :: time                                                          
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
-         &                                                      integerProperty                                               
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
-    
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                      integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+
     ! Ensure the module is initialized.
     call Galacticus_Output_Tree_Main_Branch_Initalize
 

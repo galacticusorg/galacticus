@@ -39,11 +39,11 @@ contains
     !% Reads a varying string command line argument.
     use ISO_Varying_String
     implicit none
-    integer                  , intent(in   ) :: argumentNumber  
-    type     (varying_string), intent(  out) :: varStrArgument  
-    integer                                  :: argumentLength  
-    character(len=10        )                :: shortCharacter  
-                                                             
+    integer                  , intent(in   ) :: argumentNumber
+    type     (varying_string), intent(  out) :: varStrArgument
+    integer                                  :: argumentLength
+    character(len=10        )                :: shortCharacter
+
     call Get_Command_Argument(argumentNumber,shortCharacter,length=argumentLength)
     call Get_Temporary_String(argumentNumber,varStrArgument,argumentLength)
     return
@@ -53,10 +53,10 @@ contains
     !% Reads a command line argument into a temporary string of the correct length, and returns it as a varying string.
     use ISO_Varying_String
     implicit none
-    integer                      , intent(in   ) :: argumentLength    , argumentNumber  
-    type     (varying_string    ), intent(  out) :: varStrArgument                      
-    character(len=argumentLength)                :: characterTemporary                  
-                                                                                     
+    integer                      , intent(in   ) :: argumentLength    , argumentNumber
+    type     (varying_string    ), intent(  out) :: varStrArgument
+    character(len=argumentLength)                :: characterTemporary
+
     call Get_Command_Argument(argumentNumber,characterTemporary)
     varStrArgument=trim(characterTemporary)
     return
@@ -65,9 +65,9 @@ contains
   subroutine Get_Argument_Character(argumentNumber,characterArgument)
     !% Reads a character command line argument.
     implicit none
-    integer         , intent(in   ) :: argumentNumber     
-    character(len=*), intent(  out) :: characterArgument  
-                                                       
+    integer         , intent(in   ) :: argumentNumber
+    character(len=*), intent(  out) :: characterArgument
+
     call Get_Command_Argument(argumentNumber,characterArgument)
     return
   end subroutine Get_Argument_Character
@@ -75,10 +75,10 @@ contains
   subroutine Get_Argument_Integer(argumentNumber,integerArgument)
     !% Reads a integer command line argument.
     implicit none
-    integer          , intent(in   ) :: argumentNumber     
-    integer          , intent(  out) :: integerArgument    
-    character(len=10)                :: characterArgument  
-                                                        
+    integer          , intent(in   ) :: argumentNumber
+    integer          , intent(  out) :: integerArgument
+    character(len=10)                :: characterArgument
+
     call Get_Command_Argument(argumentNumber,characterArgument)
     read (characterArgument,*) integerArgument
     return
@@ -87,10 +87,10 @@ contains
   subroutine Get_Argument_Real(argumentNumber,realArgument)
     !% Reads a real command line argument.
     implicit none
-    integer          , intent(in   ) :: argumentNumber     
-    real             , intent(  out) :: realArgument       
-    character(len=20)                :: characterArgument  
-                                                        
+    integer          , intent(in   ) :: argumentNumber
+    real             , intent(  out) :: realArgument
+    character(len=20)                :: characterArgument
+
     call Get_Command_Argument(argumentNumber,characterArgument)
     read (characterArgument,*) realArgument
     return
@@ -99,10 +99,10 @@ contains
   subroutine Get_Argument_Double(argumentNumber,doubleArgument)
     !% Reads a double command line argument.
     implicit none
-    integer                 , intent(in   ) :: argumentNumber     
-    double precision        , intent(  out) :: doubleArgument     
-    character       (len=20)                :: characterArgument  
-                                                               
+    integer                 , intent(in   ) :: argumentNumber
+    double precision        , intent(  out) :: doubleArgument
+    character       (len=20)                :: characterArgument
+
     call Get_Command_Argument(argumentNumber,characterArgument)
     read (characterArgument,*) doubleArgument
     return
@@ -111,10 +111,10 @@ contains
   subroutine Get_Argument_Logical(argumentNumber,logicalArgument)
     !% Reads a logical command line argument.
     implicit none
-    integer          , intent(in   ) :: argumentNumber     
-    logical          , intent(  out) :: logicalArgument    
-    character(len=10)                :: characterArgument  
-                                                        
+    integer          , intent(in   ) :: argumentNumber
+    logical          , intent(  out) :: logicalArgument
+    character(len=10)                :: characterArgument
+
     call Get_Command_Argument(argumentNumber,characterArgument)
     read (characterArgument,*) logicalArgument
     return

@@ -22,7 +22,7 @@ module Dark_Matter_Halos_Mass_Loss_Rates_Null
   implicit none
   private
   public :: Dark_Matter_Halos_Mass_Loss_Rate_Null_Initialize
-  
+
 contains
 
   !# <darkMatterHaloMassLossRateMethod>
@@ -32,9 +32,9 @@ contains
     !% Initializes the ``null'' dark matter halo mass loss rate method.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                       ), intent(in   )          :: darkMatterHaloMassLossRateMethod      
-    procedure(Dark_Matter_Halos_Mass_Loss_Rate_Null), intent(inout), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get  
-                                                                                                                   
+    type     (varying_string                       ), intent(in   )          :: darkMatterHaloMassLossRateMethod
+    procedure(Dark_Matter_Halos_Mass_Loss_Rate_Null), intent(inout), pointer :: Dark_Matter_Halos_Mass_Loss_Rate_Get
+
     if (darkMatterHaloMassLossRateMethod == 'null') Dark_Matter_Halos_Mass_Loss_Rate_Get => Dark_Matter_Halos_Mass_Loss_Rate_Null
     return
   end subroutine Dark_Matter_Halos_Mass_Loss_Rate_Null_Initialize
@@ -43,10 +43,10 @@ contains
     !% Returns the a zero rate of mass loss from dark matter halos.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Dark_Matter_Halos_Mass_Loss_Rate_Null=0.0d0
     return
   end function Dark_Matter_Halos_Mass_Loss_Rate_Null
-  
+
 end module Dark_Matter_Halos_Mass_Loss_Rates_Null

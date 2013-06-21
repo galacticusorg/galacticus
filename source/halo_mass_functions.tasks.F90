@@ -23,39 +23,39 @@ module Halo_Mass_Function_Tasks
   implicit none
   private
   public :: Halo_Mass_Function_Compute, Halo_Mass_Function_Open_File, Halo_Mass_Function_Close_File, Halo_Mass_Function_Output
-  
+
   ! HDF5 object for the output file.
-  type            (hdf5Object), public                      :: haloMassFunctionOutputFile                                                    
-  
+  type            (hdf5Object), public                      :: haloMassFunctionOutputFile
+
   ! Arrays of halo mass function data.
-  double precision            , allocatable, dimension(:,:) :: haloMassFunction_Mass                 , haloMassFunction_bias             , & 
-       &                                                       haloMassFunction_cumulative           , haloMassFunction_dndM             , & 
-       &                                                       haloMassFunction_dndlnM               , haloMassFunction_massFraction     , & 
-       &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , & 
-       &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, & 
-       &                                                       haloMassFunction_virialVelocity                                               
-  
+  double precision            , allocatable, dimension(:,:) :: haloMassFunction_Mass                 , haloMassFunction_bias             , &
+       &                                                       haloMassFunction_cumulative           , haloMassFunction_dndM             , &
+       &                                                       haloMassFunction_dndlnM               , haloMassFunction_massFraction     , &
+       &                                                       haloMassFunction_nu                   , haloMassFunction_sigma            , &
+       &                                                       haloMassFunction_virialRadius         , haloMassFunction_virialTemperature, &
+       &                                                       haloMassFunction_virialVelocity
+
   ! Arrays of output time data.
-  double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , & 
-       &                                                       outputExpansionFactors                , outputGrowthFactors               , & 
-       &                                                       outputRedshifts                       , outputTimes                       , & 
-       &                                                       outputVirialDensityContrast                                                   
-  
+  double precision            , allocatable, dimension(:  ) :: outputCharacteristicMass              , outputCriticalOverdensities       , &
+       &                                                       outputExpansionFactors                , outputGrowthFactors               , &
+       &                                                       outputRedshifts                       , outputTimes                       , &
+       &                                                       outputVirialDensityContrast
+
   ! The upper limit to halo mass used when computing cumulative mass functions.
-  double precision            , parameter                   :: haloMassEffectiveInfinity      =1.0d16                                        
-  
+  double precision            , parameter                   :: haloMassEffectiveInfinity      =1.0d16
+
 contains
-  
+
   subroutine Halo_Mass_Function_Open_File(outputFileName)
     !% Open the output file for halo mass function data.
     use ISO_Varying_String
     use HDF5
     implicit none
-    type(varying_string), intent(in   ) :: outputFileName 
-    
+    type(varying_string), intent(in   ) :: outputFileName
+
     ! Open the output file.
     call haloMassFunctionOutputFile%openFile(char(outputFileName),overWrite=.true.,objectsOverwritable=.false.)
-    
+
     ! Set default chunking and compression levels.
     call IO_HDF5_Set_Defaults(chunkSize=int(128,kind=hsize_t),compressionLevel=9)
 
@@ -65,7 +65,7 @@ contains
   subroutine Halo_Mass_Function_Close_File
     !% Close the output file for halo mass function data.
     implicit none
-    
+
     call haloMassFunctionOutputFile%close()
     return
   end subroutine Halo_Mass_Function_Close_File
@@ -88,13 +88,13 @@ contains
     use Galacticus_Display
     use Galacticus_Calculations_Resets
     implicit none
-    class           (nodeComponentBasic), pointer :: thisBasicComponent                                                
-    integer                                       :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, & 
-         &                                           iMass                       , iOutput                         , & 
-         &                                           outputCount                 , verbosityLevel                      
-    double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum        
-    type            (mergerTree        )          :: thisTree                                                          
-    
+    class           (nodeComponentBasic), pointer :: thisBasicComponent
+    integer                                       :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
+         &                                           iMass                       , iOutput                         , &
+         &                                           outputCount                 , verbosityLevel
+    double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
+    type            (mergerTree        )          :: thisTree
+
     ! Get the verbosity level parameter.
     !@ <inputParameter>
     !@   <name>verbosityLevel</name>
@@ -108,7 +108,7 @@ contains
     !@ </inputParameter>
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
-    
+
     ! Get the verbosity level parameter.
     !@ <inputParameter>
     !@   <name>verbosityLevel</name>
@@ -119,7 +119,7 @@ contains
     !@   </description>
     !@   <type>integer</type>
     !@   <cardinality>1</cardinality>
-    !@ </inputParameter>                                                                                                                 
+    !@ </inputParameter>
     call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
     call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
@@ -148,7 +148,7 @@ contains
     else
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
-    
+
     ! Compute output time properties.
     do iOutput=1,outputCount
        outputExpansionFactors     (iOutput)=Expansion_Factor_from_Redshift      (outputRedshifts       (iOutput))
@@ -220,10 +220,10 @@ contains
     do iOutput=1,outputCount
        ! Set the time in the node.
        call thisBasicComponent%timeSet(outputTimes(iOutput))
-       
+
        ! Build a range of halo masses.
        haloMassFunction_Mass(:,iOutput)=Make_Range(haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum,haloMassFunctionsCount,rangeTypeLogarithmic)
-       
+
        ! Loop over all halo masses.
        do iMass=1,haloMassFunctionsCount
           ! Reset calculations.
@@ -244,7 +244,7 @@ contains
           haloMassFunction_virialTemperature(iMass,iOutput)=Dark_Matter_Halo_Virial_Temperature(thisTree%baseNode)
           haloMassFunction_virialRadius     (iMass,iOutput)=Dark_Matter_Halo_Virial_Radius     (thisTree%baseNode)
        end do
-       
+
     end do
 
     return
@@ -255,11 +255,11 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none
-    type(hdf5Object) :: massFunctionGroup, outputsGroup, thisDataset 
-    
+    type(hdf5Object) :: massFunctionGroup, outputsGroup, thisDataset
+
     ! Open the group for output time information.
     outputsGroup=haloMassFunctionOutputFile%openGroup('Outputs','Group containing datasets relating to output times.')
-    
+
     ! Write output time data.
     call outputsGroup%writeDataset(outputTimes            ,'outputTime'              ,'The time corresponding to each output.'                 &
          & ,datasetReturned=thisDataset)
@@ -314,7 +314,7 @@ contains
     call massFunctionGroup%writeDataset(haloMassFunction_sigma,'haloSigma','The mass fluctuation on the scale of the halo.')
     call massFunctionGroup%writeDataset(haloMassFunction_nu,'haloNu','The peak height of the halo.')
     call massFunctionGroup%writeDataset(haloMassFunction_massFraction,'haloMassFractionCumulative','The halo cumulative mass fraction.')
- 
+
     ! Close the datasets group.
     call massFunctionGroup%close()
 

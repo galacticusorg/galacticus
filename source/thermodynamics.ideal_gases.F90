@@ -29,8 +29,8 @@ contains
     !% Return the Jeans length (in Mpc) for gas of given temperature and density).
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in   ) :: density, temperature  
-                                                          
+    double precision, intent(in   ) :: density, temperature
+
     Ideal_gas_Jeans_Length=Ideal_Gas_Sound_Speed(temperature)/sqrt(gravitationalConstantGalacticus)/sqrt(density)
     return
   end function Ideal_Gas_Jeans_Length
@@ -40,20 +40,20 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    double precision, intent(in   )           :: temperature           
-    double precision, intent(in   ), optional :: meanAtomicMass        
-    double precision                          :: meanAtomicMassActual  
-    
-    ! Determine what mean atomic mass to use.                                                                
+    double precision, intent(in   )           :: temperature
+    double precision, intent(in   ), optional :: meanAtomicMass
+    double precision                          :: meanAtomicMassActual
+
+    ! Determine what mean atomic mass to use.
     if (present(meanAtomicMass)) then
        meanAtomicMassActual=meanAtomicMass
     else
        meanAtomicMassActual=meanAtomicMassPrimordial
     end if
-    
+
     ! Compute the sound speed.
     Ideal_Gas_Sound_Speed=sqrt(5.0d0*boltzmannsConstant*temperature/3.0d0/meanAtomicMassActual/atomicMassUnit)/kilo
     return
   end function Ideal_Gas_Sound_Speed
-  
+
 end module Ideal_Gases_Thermodynamics

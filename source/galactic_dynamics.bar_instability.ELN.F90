@@ -25,8 +25,8 @@ module Galactic_Dynamics_Bar_Instabilities_ELN
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
 
   ! Stability parameters for stellar and gaseous disks.
-  double precision :: stabilityThresholdGaseous, stabilityThresholdStellar 
-  
+  double precision :: stabilityThresholdGaseous, stabilityThresholdStellar
+
 contains
 
   !# <barInstabilityMethod>
@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string               ), intent(in   )          :: barInstabilityMethod          
-    procedure(Bar_Instability_Timescale_ELN), intent(inout), pointer :: Bar_Instability_Timescale_Get 
-    
+    type     (varying_string               ), intent(in   )          :: barInstabilityMethod
+    procedure(Bar_Instability_Timescale_ELN), intent(inout), pointer :: Bar_Instability_Timescale_Get
+
     if (barInstabilityMethod == 'ELN') then
        Bar_Instability_Timescale_Get => Bar_Instability_Timescale_ELN
        ! Read in stability threshold parameters.
@@ -66,7 +66,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('stabilityThresholdGaseous',stabilityThresholdGaseous,defaultValue=0.7d0)
     end if
-  
+
     return
   end subroutine Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
 
@@ -77,19 +77,19 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                                                                   
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                                          
-    double precision                   , parameter              :: stabilityIsolatedDisk        =0.6221297315d0                               
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    double precision                   , parameter              :: stabilityIsolatedDisk        =0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                   , parameter              :: velocityBoostFactor          =1.180023758d0                                
+    double precision                   , parameter              :: velocityBoostFactor          =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                   , parameter              :: timescaleDimensionlessMaximum=1.0d10                                       
-    double precision                                            :: diskMass                                    , dynamicalTime            , & 
-         &                                                         gasFraction                                 , stabilityEstimator       , & 
-         &                                                         stabilityEstimatorRelative                  , stabilityIsolatedRelative, & 
-         &                                                         stabilityThreshold                          , timescaleDimensionless       
-    
+    double precision                   , parameter              :: timescaleDimensionlessMaximum=1.0d10
+    double precision                                            :: diskMass                                    , dynamicalTime            , &
+         &                                                         gasFraction                                 , stabilityEstimator       , &
+         &                                                         stabilityEstimatorRelative                  , stabilityIsolatedRelative, &
+         &                                                         stabilityThreshold                          , timescaleDimensionless
+
     ! Assume infinite timescale (i.e. no instability) initially.
     Bar_Instability_Timescale_ELN=-1.0d0
 
@@ -124,11 +124,11 @@ contains
          &                       /thisDiskComponent%radius  ()    &
          &                      )                                 &
          &                )
-    
+
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.
-       
+
        ! Begin by finding the disk dynamical time.
        dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/thisDiskComponent%velocity()
 
@@ -147,5 +147,5 @@ contains
 
     return
   end function Bar_Instability_Timescale_ELN
-  
+
 end module Galactic_Dynamics_Bar_Instabilities_ELN

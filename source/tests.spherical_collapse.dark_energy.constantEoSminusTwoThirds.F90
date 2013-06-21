@@ -32,14 +32,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   use Critical_Overdensity
   use Linear_Growth
   implicit none
-  double precision                , dimension(7) :: redshift           =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]                                 
-  type            (varying_string)               :: parameterFile                                                                                      
-  character       (len=1024      )               :: message                                                                                            
-  integer                                        :: iExpansion                                                                                         
-  double precision                               :: age                                                               , alpha                      , & 
-       &                                            criticalOverdensity                                               , criticalOverdensityExpected, & 
-       &                                            expansionFactor                                                   , omega                          
-  
+  double precision                , dimension(7) :: redshift           =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  type            (varying_string)               :: parameterFile
+  character       (len=1024      )               :: message
+  integer                                        :: iExpansion
+  double precision                               :: age                                                               , alpha                      , &
+       &                                            criticalOverdensity                                               , criticalOverdensityExpected, &
+       &                                            expansionFactor                                                   , omega
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.size')
 

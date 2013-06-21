@@ -23,9 +23,9 @@ module Excursion_Sets_Barriers_Quadratic
   public :: Excursion_Sets_Barriers_Quadratic_Initialize
 
   ! Parameters controlling the barrier.
-  double precision :: excursionSetBarrierConstantCoefficient , excursionSetBarrierLinearCoefficient, & 
-       &              excursionSetBarrierQuadraticCoefficient                                          
-  
+  double precision :: excursionSetBarrierConstantCoefficient , excursionSetBarrierLinearCoefficient, &
+       &              excursionSetBarrierQuadraticCoefficient
+
 contains
 
   !# <excursionSetBarrierMethod>
@@ -36,11 +36,11 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod                                       
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get 
-    type     (varying_string  ), intent(inout)          :: barrierName                                                     
-    character(len=10          )                         :: label                                                           
-    
+    type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get
+    type     (varying_string  ), intent(inout)          :: barrierName
+    character(len=10          )                         :: label
+
     if (excursionSetBarrierMethod == 'quadratic') then
        Excursion_Sets_Barrier_Get          => Excursion_Sets_Barrier_Quadratic
        Excursion_Sets_Barrier_Gradient_Get => Excursion_Sets_Barrier_Gradient_Quadratic
@@ -91,8 +91,8 @@ contains
   double precision function Excursion_Sets_Barrier_Quadratic(variance,time)
     !% Return a quadratic barrier for excursion set calculations at the given {\tt variance}.
     implicit none
-    double precision, intent(in   ) :: time, variance 
-    
+    double precision, intent(in   ) :: time, variance
+
     Excursion_Sets_Barrier_Quadratic=excursionSetBarrierConstantCoefficient+excursionSetBarrierLinearCoefficient*variance&
          &+excursionSetBarrierQuadraticCoefficient*variance**2
     return
@@ -101,11 +101,11 @@ contains
   double precision function Excursion_Sets_Barrier_Gradient_Quadratic(variance,time)
     !% Return the gradient of a quadratic barrier for excursion set calculations at the given {\tt variance}.
     implicit none
-    double precision, intent(in   ) :: time, variance 
-    
+    double precision, intent(in   ) :: time, variance
+
     Excursion_Sets_Barrier_Gradient_Quadratic=excursionSetBarrierLinearCoefficient+2.0d0*excursionSetBarrierQuadraticCoefficient&
          &*variance
     return
   end function Excursion_Sets_Barrier_Gradient_Quadratic
-  
+
 end module Excursion_Sets_Barriers_Quadratic

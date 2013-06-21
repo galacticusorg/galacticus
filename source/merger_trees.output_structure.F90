@@ -24,17 +24,17 @@ module Merger_Tree_Output_Structure
   public :: Merger_Tree_Structure_Output
 
   ! Flag indicating if module is initialized.
-  logical :: structureOutputModuleInitialized         =.false.  
-  
-  ! Flag indicating if output is required.                                                           
-  logical :: mergerTreeStructureOutput                          
-  
-  ! Flag indicating if virial quantities should be included in output.                                                           
-  logical :: mergerTreeStructureOutputVirialQuantities          
-  
-  ! HDF5 group index.                                                           
-  integer :: structureGroupID                                   
-                                                             
+  logical :: structureOutputModuleInitialized         =.false.
+
+  ! Flag indicating if output is required.
+  logical :: mergerTreeStructureOutput
+
+  ! Flag indicating if virial quantities should be included in output.
+  logical :: mergerTreeStructureOutputVirialQuantities
+
+  ! HDF5 group index.
+  integer :: structureGroupID
+
 contains
 
   !# <mergerTreePreEvolveTask>
@@ -55,18 +55,18 @@ contains
     include 'merger_trees.output_structure.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (mergerTree        ), intent(in   ), target                :: thisTree                       
-    type            (treeNode          )                             , pointer :: thisNode                       
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: nodeIndex                      
-    double precision                    , allocatable  , dimension(:)          :: nodeProperty                   
-    type            (hdf5Object        ), save                                 :: structureGroup                 
-    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent             
-    type            (mergerTree        )                             , pointer :: currentTree                    
-    integer                                                                    :: nodeCount                      
-    type            (varying_string    )                                       :: groupComment      , groupName  
-    type            (hdf5Object        )                                       :: nodeDataset       , treeGroup  
-    
-    ! Check if module is initialized.                                                                                                          
+    type            (mergerTree        ), intent(in   ), target                :: thisTree
+    type            (treeNode          )                             , pointer :: thisNode
+    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: nodeIndex
+    double precision                    , allocatable  , dimension(:)          :: nodeProperty
+    type            (hdf5Object        ), save                                 :: structureGroup
+    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
+    type            (mergerTree        )                             , pointer :: currentTree
+    integer                                                                    :: nodeCount
+    type            (varying_string    )                                       :: groupComment      , groupName
+    type            (hdf5Object        )                                       :: nodeDataset       , treeGroup
+
+    ! Check if module is initialized.
     if (.not.structureOutputModuleInitialized) then
        !$omp critical(structureOutputModuleInitialize)
        if (.not.structureOutputModuleInitialized) then
@@ -133,7 +133,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%index()        
+             nodeIndex(nodeCount)=thisNode%index()
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
@@ -145,7 +145,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%firstChild%index()        
+             nodeIndex(nodeCount)=thisNode%firstChild%index()
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
@@ -157,7 +157,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%parent%index()        
+             nodeIndex(nodeCount)=thisNode%parent%index()
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
@@ -169,7 +169,7 @@ contains
           thisNode => currentTree%baseNode
           do while (associated(thisNode))
              nodeCount=nodeCount+1
-             nodeIndex(nodeCount)=thisNode%sibling%index()        
+             nodeIndex(nodeCount)=thisNode%sibling%index()
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)

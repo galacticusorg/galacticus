@@ -26,11 +26,11 @@ program Test_Root_Finding
   use Test_Root_Finding_Functions
   use, intrinsic :: ISO_C_Binding
   implicit none
-  type            (rootFinder)               :: finder         
-  double precision                           :: xGuess, xRoot  
-  double precision            , dimension(2) :: xRange         
-  
-  ! Begin unit tests.                                                          
+  type            (rootFinder)               :: finder
+  double precision                           :: xGuess, xRoot
+  double precision            , dimension(2) :: xRange
+
+  ! Begin unit tests.
   call Unit_Tests_Begin_Group("Root finding")
 
   ! Test root finding.
@@ -51,7 +51,7 @@ program Test_Root_Finding
   call finder%rootFunction(Root_Function_2)
   xRoot=finder%find(rootRange=xRange)
   call Assert('root of f(x)=x² - 5x + 1 in range  2 < x < 10',xRoot,0.5d0*(5.0d0+sqrt(21.0d0)),absTol=1.0d-6,relTol=1.0d-6)
-  
+
   xRange=[-1.0d0,+1.0d0]
   call finder%tolerance(1.0d-6,1.0d-6)
   call finder%rootFunction(Root_Function_3)
@@ -73,7 +73,7 @@ program Test_Root_Finding
   call finder%rootFunction(Root_Function_3)
   xRoot=finder%find(rootGuess=xGuess)
   call Assert('root of f(x)=x × exp(-x) + 1; with bracketing + limit',xRoot,-0.567143d0,absTol=1.0d-6,relTol=1.0d-6)
-  
+
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

@@ -28,7 +28,7 @@ module Star_Formation_Timescale_Disks_Integrated_SD
   public :: Star_Formation_Timescale_Disks_Integrated_SD_Initialize
 
   ! Pointer to active node used in integral functions, plus variables needed by integral function.
-  type(treeNode), pointer :: activeNode 
+  type(treeNode), pointer :: activeNode
   !$omp threadprivate(activeNode)
 contains
 
@@ -41,9 +41,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                             ), intent(in   )          :: starFormationTimescaleDisksMethod 
-    procedure(Star_Formation_Timescale_Disk_Integrated_SD), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
-    
+    type     (varying_string                             ), intent(in   )          :: starFormationTimescaleDisksMethod
+    procedure(Star_Formation_Timescale_Disk_Integrated_SD), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
+
     if (starFormationTimescaleDisksMethod == 'integratedSurfaceDensity') Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Integrated_SD
     return
   end subroutine Star_Formation_Timescale_Disks_Integrated_SD_Initialize
@@ -58,16 +58,16 @@ contains
     use Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: thisNode                                                           
-    class           (nodeComponentDisk         )               , pointer :: thisDiskComponent                                                  
-    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0    
-    double precision                                                     :: diskScaleRadius               , gasMass                        , & 
-         &                                                                  radiusInner                   , radiusOuter                    , & 
-         &                                                                  starFormationRate                                                  
-    type            (c_ptr                     )                         :: parameterPointer                                                   
-    type            (fgsl_function             )                         :: integrandFunction                                                  
-    type            (fgsl_integration_workspace)                         :: integrationWorkspace                                               
-    
+    type            (treeNode                  ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk         )               , pointer :: thisDiskComponent
+    double precision                            , parameter              :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                                     :: diskScaleRadius               , gasMass                        , &
+         &                                                                  radiusInner                   , radiusOuter                    , &
+         &                                                                  starFormationRate
+    type            (c_ptr                     )                         :: parameterPointer
+    type            (fgsl_function             )                         :: integrandFunction
+    type            (fgsl_integration_workspace)                         :: integrationWorkspace
+
     ! Get the disk properties.
     thisDiskComponent => thisNode%disk()
     gasMass             =thisDiskComponent%massGas()
@@ -96,16 +96,16 @@ contains
     end if
     return
   end function Star_Formation_Timescale_Disk_Integrated_SD
-  
+
   function Star_Formation_Rate_Integrand_Surface_Density(radius,parameterPointer) bind(c)
     !% Integrand function for the ``integrated surface density'' star formation rate calculation.
     use, intrinsic :: ISO_C_Binding
     use Star_Formation_Rate_Surface_Density_Disks
     implicit none
-    real(kind=c_double)        :: Star_Formation_Rate_Integrand_Surface_Density 
-    real(kind=c_double), value :: radius                                        
-    type(c_ptr        ), value :: parameterPointer                              
-    
+    real(kind=c_double)        :: Star_Formation_Rate_Integrand_Surface_Density
+    real(kind=c_double), value :: radius
+    type(c_ptr        ), value :: parameterPointer
+
     ! Compute the star formation rate integrand.
     Star_Formation_Rate_Integrand_Surface_Density=radius*Star_Formation_Rate_Surface_Density_Disk(activeNode,radius)
     return

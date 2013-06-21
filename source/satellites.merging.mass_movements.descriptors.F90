@@ -22,14 +22,14 @@ module Satellite_Merging_Mass_Movements_Descriptors
   implicit none
   public
 
-  integer, parameter :: doesNotMove          =0                                               
-  integer, parameter :: movesToDisk          =1                                               
-  integer, parameter :: movesToSpheroid      =2                                               
-  
+  integer, parameter :: doesNotMove          =0
+  integer, parameter :: movesToDisk          =1
+  integer, parameter :: movesToSpheroid      =2
+
   ! Stored mass movement descriptors for the current merging event.
-  integer            :: thisHostGasMovesTo     , thisHostStarsMoveTo, thisMergerGasMovesTo, & 
-       &                thisMergerStarsMoveTo                                                 
+  integer            :: thisHostGasMovesTo     , thisHostStarsMoveTo, thisMergerGasMovesTo, &
+       &                thisMergerStarsMoveTo
   !$omp threadprivate(thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo)
-  logical            :: thisMergerIsMajor                                                     
+  logical            :: thisMergerIsMajor
   !$omp threadprivate(thisMergerIsMajor)
 end module Satellite_Merging_Mass_Movements_Descriptors

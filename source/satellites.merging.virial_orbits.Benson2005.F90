@@ -25,8 +25,8 @@ module Virial_Orbits_Benson2005
   public :: Virial_Orbital_Parameters_Benson2005_Initialize, Virial_Orbital_Parameters_Benson2005_Snapshot,&
        & Virial_Orbital_Parameters_Benson2005_State_Store, Virial_Orbital_Parameters_Benson2005_State_Retrieve
 
-  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject  
-  logical           :: resetSequence             =.true., resetSequenceSnapshot 
+  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject
+  logical           :: resetSequence             =.true., resetSequenceSnapshot
   !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
 contains
 
@@ -38,9 +38,9 @@ contains
     use ISO_Varying_String
     use Kepler_Orbits
     implicit none
-    type     (varying_string                      ), intent(in   )          :: virialOrbitsMethod            
-    procedure(Virial_Orbital_Parameters_Benson2005), intent(inout), pointer :: Virial_Orbital_Parameters_Get 
-    
+    type     (varying_string                      ), intent(in   )          :: virialOrbitsMethod
+    procedure(Virial_Orbital_Parameters_Benson2005), intent(inout), pointer :: Virial_Orbital_Parameters_Get
+
     if (virialOrbitsMethod == 'Benson2005') Virial_Orbital_Parameters_Get => Virial_Orbital_Parameters_Benson2005
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Initialize
@@ -53,19 +53,19 @@ contains
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none
-    type            (keplerOrbit       )                                    :: thisOrbit                                                                                                                                                                                                                                         
-    type            (treeNode          )           , intent(inout), pointer :: hostNode                                                                                                                                        , thisNode                                                                                        
-    logical                                        , intent(in   )          :: acceptUnboundOrbits                                                                                                                                                                                                                               
-    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                                                                                                              , thisBasicComponent                                                                              
-    double precision                    , parameter                         :: pMax                   =1.96797d0                                                                                                               , velocityMax                                                                           =3.0d0    
-    double precision                    , parameter                         :: a                   (9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00,0.107716d+01,0.509837d+00,0.206204d+00,0.314641d+00/)                                                                                                  
-    double precision                    , parameter                         :: EPS_BOUND              =1.0d-4                                                                                                                                               !   Tolerence to ensure that orbits are sufficiently bound.          
-    double precision                                                        :: b1                                                                                                                                              , b2                                                                                          , & 
-         &                                                                     distributionFunction                                                                                                                            , energyInternal                                                                              , & 
-         &                                                                     uniformRandom                                                                                                                                   , velocityRadialInternal                                                                      , & 
-         &                                                                     velocityScale                                                                                                                                   , velocityTangentialInternal                                                                      
-    logical                                                                 :: foundOrbit                                                                                                                                                                                                                                        
-    
+    type            (keplerOrbit       )                                    :: thisOrbit
+    type            (treeNode          )           , intent(inout), pointer :: hostNode                                                                                                                                        , thisNode
+    logical                                        , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                                                                                                              , thisBasicComponent
+    double precision                    , parameter                         :: pMax                   =1.96797d0                                                                                                               , velocityMax                                                                           =3.0d0
+    double precision                    , parameter                         :: a                   (9)=(/0.390052d+01,0.247973d+01,0.102373d+02,0.683922d+00,0.353953d+00,0.107716d+01,0.509837d+00,0.206204d+00,0.314641d+00/)
+    double precision                    , parameter                         :: EPS_BOUND              =1.0d-4                                                                                                                                               !   Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                                        :: b1                                                                                                                                              , b2                                                                                          , &
+         &                                                                     distributionFunction                                                                                                                            , energyInternal                                                                              , &
+         &                                                                     uniformRandom                                                                                                                                   , velocityRadialInternal                                                                      , &
+         &                                                                     velocityScale                                                                                                                                   , velocityTangentialInternal
+    logical                                                                 :: foundOrbit
+
     ! Reset the orbit.
     call thisOrbit%reset()
     ! Set masses and radius of the orbit.
@@ -115,7 +115,7 @@ contains
     resetSequenceSnapshot=resetSequence
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Virial_Orbital_Parameters_Benson2005_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -124,14 +124,14 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) resetSequenceSnapshot
     if (.not.resetSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Virial_Orbital_Parameters_Benson2005_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -140,12 +140,12 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) resetSequence
     if (.not.resetSequence) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return
   end subroutine Virial_Orbital_Parameters_Benson2005_State_Retrieve
-  
+
 end module Virial_Orbits_Benson2005

@@ -27,18 +27,18 @@ module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009
   public :: Dark_Matter_Mass_Accretion_Zhao2009_Initialize
 
   ! Module global variables used in ODE solving.
-  double precision                     :: baseMass                             , baseTime                                                                   , & 
-       &                                  dSigmadMassLogarithmicObserved       , deltaCriticalObserved                                                      , & 
-       &                                  pObserved                            , sObserved                                                                  , & 
-       &                                  sigmaObserved                        , wObserved                                                                      
+  double precision                     :: baseMass                             , baseTime                                                                   , &
+       &                                  dSigmadMassLogarithmicObserved       , deltaCriticalObserved                                                      , &
+       &                                  pObserved                            , sObserved                                                                  , &
+       &                                  sigmaObserved                        , wObserved
   !$omp threadprivate (baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved,sObserved,wObserved,pObserved)
   !$omp threadprivate (deltaCriticalObserved)
   ! Variables used in the ODE solver.
-  type            (fgsl_odeiv_step   ) :: odeStepper                                                                                                            
-  type            (fgsl_odeiv_control) :: odeController                                                                                                         
-  type            (fgsl_odeiv_evolve ) :: odeEvolver                                                                                                            
-  type            (fgsl_odeiv_system ) :: odeSystem                                                                                                             
-  logical                              :: odeReset                      =.true.                        !   Ensure ODE variables will be reset on first call.    
+  type            (fgsl_odeiv_step   ) :: odeStepper
+  type            (fgsl_odeiv_control) :: odeController
+  type            (fgsl_odeiv_evolve ) :: odeEvolver
+  type            (fgsl_odeiv_system ) :: odeSystem
+  logical                              :: odeReset                      =.true.                        !   Ensure ODE variables will be reset on first call.
   !$omp threadprivate(odeStepper,odeController,odeEvolver,odeSystem,odeReset)
 contains
 
@@ -50,12 +50,12 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                               ), intent(in   )          :: darkMatterAccretionHistoryMethod         
-    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get 
-    
+    type     (varying_string                               ), intent(in   )          :: darkMatterAccretionHistoryMethod
+    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get
+
     if (darkMatterAccretionHistoryMethod == 'Zhao2009') then
        ! Set procedure pointers.
-       Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009       
+       Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009
     end if
 
     return
@@ -69,14 +69,14 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: baseNode                                                   
-    double precision                    , intent(in   )          :: nodeMass                                                   
-    class           (nodeComponentBasic)               , pointer :: baseBasicComponent                                         
-    double precision                    , parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10 
-    double precision                    , dimension(1)           :: nowTime                                                    
-    double precision                                             :: currentMass                                                
-    type            (c_ptr             )                         :: parameterPointer                                           
-    
+    type            (treeNode          ), intent(inout), pointer :: baseNode
+    double precision                    , intent(in   )          :: nodeMass
+    class           (nodeComponentBasic)               , pointer :: baseBasicComponent
+    double precision                    , parameter              :: odeToleranceAbsolute=1.0d-10, odeToleranceRelative=1.0d-10
+    double precision                    , dimension(1)           :: nowTime
+    double precision                                             :: currentMass
+    type            (c_ptr             )                         :: parameterPointer
+
     ! Get properties of the base node.
     baseBasicComponent => baseNode%basic()
     baseMass=baseBasicComponent%mass()
@@ -109,7 +109,7 @@ contains
          &,growthRateODEs,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
     odeReset=.true.
 
-    ! Extract the time corresponding to the specified mass.    
+    ! Extract the time corresponding to the specified mass.
     Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009=nowTime(1)
 
     return
@@ -120,16 +120,16 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    integer(kind=c_int   )                              :: growthRateODEs                                                
-    real   (kind=c_double)              , value         :: mass                                                          
-    real   (kind=c_double), dimension(1), intent(in   ) :: nowTime                                                       
-    real   (kind=c_double), dimension(1)                :: dNowTimedMass                                                 
-    type   (c_ptr        )              , value         :: parameterPointer                                              
-    real   (kind=c_double)                              :: dDeltaCriticaldtNow      , dSigmadDeltaCriticalLogarithmic, & 
-         &                                                 dSigmadMassLogarithmicNow, deltaCriticalNow               , & 
-         &                                                 pNow                     , sNow                           , & 
-         &                                                 sigmaNow                 , wNow                               
-    
+    integer(kind=c_int   )                              :: growthRateODEs
+    real   (kind=c_double)              , value         :: mass
+    real   (kind=c_double), dimension(1), intent(in   ) :: nowTime
+    real   (kind=c_double), dimension(1)                :: dNowTimedMass
+    type   (c_ptr        )              , value         :: parameterPointer
+    real   (kind=c_double)                              :: dDeltaCriticaldtNow      , dSigmadDeltaCriticalLogarithmic, &
+         &                                                 dSigmadMassLogarithmicNow, deltaCriticalNow               , &
+         &                                                 pNow                     , sNow                           , &
+         &                                                 sigmaNow                 , wNow
+
     ! Trap unphysical cases.
     if (nowTime(1) <= 0.0d0 .or. nowTime(1) > baseTime .or. mass <= 0.0d0) then
        dNowTimedMass(1)=0.0d0
@@ -162,5 +162,5 @@ contains
     ! Report success.
     growthRateODEs=FGSL_Success
   end function growthRateODEs
-  
+
 end module Dark_Matter_Halo_Mass_Accretion_Histories_Zhao2009

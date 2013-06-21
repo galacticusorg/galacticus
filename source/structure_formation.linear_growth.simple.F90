@@ -29,19 +29,19 @@ module Linear_Growth_Simple
   private
   public :: Growth_Factor_Simple_Initialize, Linear_Growth_Simple_State_Store,&
        & Linear_Growth_Simple_State_Retrieve
-  
+
   ! Variables to hold table of growth factor vs. cosmic time.
-  double precision                                :: growthTableTimeMaximum           =20.0d0, growthTableTimeMinimum                                                     =1.0d0  
-  double precision                                :: growthTableExpansionFactorMinimum                                                                                            
-  integer                             , parameter :: growthTableNPointsPerDecade      =1000                                                                                       
-  
-  ! Variables used in the ODE solver.                                                                                                                                                                             
-  type            (fgsl_odeiv_step   )            :: odeStepper                                                                                                                   
-  type            (fgsl_odeiv_control)            :: odeController                                                                                                                
-  type            (fgsl_odeiv_evolve )            :: odeEvolver                                                                                                                   
-  type            (fgsl_odeiv_system )            :: odeSystem                                                                                                                    
-  logical                                         :: odeReset                         =.true.                         !  Ensure ODE variables will be reset on first call.        
-                                                                                                                                                                               
+  double precision                                :: growthTableTimeMaximum           =20.0d0, growthTableTimeMinimum                                                     =1.0d0
+  double precision                                :: growthTableExpansionFactorMinimum
+  integer                             , parameter :: growthTableNPointsPerDecade      =1000
+
+  ! Variables used in the ODE solver.
+  type            (fgsl_odeiv_step   )            :: odeStepper
+  type            (fgsl_odeiv_control)            :: odeController
+  type            (fgsl_odeiv_evolve )            :: odeEvolver
+  type            (fgsl_odeiv_system )            :: odeSystem
+  logical                                         :: odeReset                         =.true.                         !  Ensure ODE variables will be reset on first call.
+
 contains
 
   !# <linearGrowthMethod>
@@ -52,9 +52,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                      ), intent(in   )          :: linearGrowthMethod      
-    procedure(Linear_Growth_Factor_Simple_Tabulate), intent(inout), pointer :: Linear_Growth_Tabulate  
-                                                                                                    
+    type     (varying_string                      ), intent(in   )          :: linearGrowthMethod
+    procedure(Linear_Growth_Factor_Simple_Tabulate), intent(inout), pointer :: Linear_Growth_Tabulate
+
     if (linearGrowthMethod == 'simple') Linear_Growth_Tabulate => Linear_Growth_Factor_Simple_Tabulate
     return
   end subroutine Growth_Factor_Simple_Initialize
@@ -70,31 +70,31 @@ contains
     use ODE_Solver
     use Cosmology_Functions_Parameters
     implicit none
-    double precision                                                             , intent(in   ) :: time                                                                           
-    integer                                                                      , intent(  out) :: growthTableNumberPoints                                                        
-    double precision                              , allocatable, dimension(:)    , intent(inout) :: growthTableTime                        , growthTableWavenumber                 
-    double precision                              , allocatable, dimension(:,:,:), intent(inout) :: growthTableGrowthFactor                                                        
-    double precision                                           , dimension(3)    , intent(  out) :: normalizationMatterDominated                                                   
-    double precision                   , parameter                                               :: dominateFactor                 =1.0d4                                          
-    double precision                   , parameter                                               :: odeToleranceAbsolute           =1.0d-10, odeToleranceRelative     =1.0d-10     
-    integer                                                                                      :: iComponent                             , iTime                                 
-    double precision                                                                             :: aMatterDominant                        , growthFactorDerivative            , & 
-         &                                                                                          growthFactorODEVariables    (2)        , linearGrowthFactorPresent         , & 
-         &                                                                                          tMatterDominant                        , tPresent                          , & 
-         &                                                                                          timeNow                                                                        
-    type            (c_ptr            )                                                          :: parameterPointer                                                               
-    type            (fgsl_interp      )                                                          :: interpolationObject                                                            
-    type            (fgsl_interp_accel)                                                          :: interpolationAccelerator                                                       
-    logical                                                                                      :: resetInterpolation             =.true.                                         
-    
-    ! Find epoch of matter-dark energy equality.                                                                                                                                                                            
+    double precision                                                             , intent(in   ) :: time
+    integer                                                                      , intent(  out) :: growthTableNumberPoints
+    double precision                              , allocatable, dimension(:)    , intent(inout) :: growthTableTime                        , growthTableWavenumber
+    double precision                              , allocatable, dimension(:,:,:), intent(inout) :: growthTableGrowthFactor
+    double precision                                           , dimension(3)    , intent(  out) :: normalizationMatterDominated
+    double precision                   , parameter                                               :: dominateFactor                 =1.0d4
+    double precision                   , parameter                                               :: odeToleranceAbsolute           =1.0d-10, odeToleranceRelative     =1.0d-10
+    integer                                                                                      :: iComponent                             , iTime
+    double precision                                                                             :: aMatterDominant                        , growthFactorDerivative            , &
+         &                                                                                          growthFactorODEVariables    (2)        , linearGrowthFactorPresent         , &
+         &                                                                                          tMatterDominant                        , tPresent                          , &
+         &                                                                                          timeNow
+    type            (c_ptr            )                                                          :: parameterPointer
+    type            (fgsl_interp      )                                                          :: interpolationObject
+    type            (fgsl_interp_accel)                                                          :: interpolationAccelerator
+    logical                                                                                      :: resetInterpolation             =.true.
+
+    ! Find epoch of matter-dark energy equality.
     aMatterDominant=min(Expansion_Factor(growthTableTimeMinimum),Epoch_of_Matter_Domination(dominateFactor))
     tMatterDominant=Cosmology_Age(aMatterDominant)
 
     ! Find minimum and maximum times to tabulate.
     growthTableTimeMinimum=min(growthTableTimeMinimum,min(time/2.0,tMatterDominant))
     growthTableTimeMaximum=max(growthTableTimeMaximum,max(time,tMatterDominant)*2.0d0)
-    
+
     ! Determine number of points to tabulate.
     growthTableNumberPoints=int(log10(growthTableTimeMaximum/growthTableTimeMinimum)*dble(growthTableNPointsPerDecade))
 
@@ -106,13 +106,13 @@ contains
     call Alloc_Array(growthTableTime        ,[    growthTableNumberPoints])
     call Alloc_Array(growthTableWavenumber  ,[  1                        ])
     call Alloc_Array(growthTableGrowthFactor,[growthTableNumberPoints,1,3])
-    
+
     ! Set an arbitrary wavenumber (we do not tabulate as a function of wavenumber so the value does not matter).
     growthTableWavenumber=1.0d0
 
     ! Create set of grid points in time variable.
     growthTableTime=Make_Range(growthTableTimeMinimum,growthTableTimeMaximum,growthTableNumberPoints,rangeTypeLogarithmic)
-    
+
     ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
     growthTableGrowthFactor(1,:,:)=1.0d0
     growthFactorDerivative=Expansion_Rate(Expansion_Factor(growthTableTime(1)))
@@ -126,11 +126,11 @@ contains
        growthFactorDerivative              =growthFactorODEVariables(2)
     end do
     growthTableGrowthFactor(:,1,3)=1.0d0 ! Assume no growth in radiation.
-    
+
     ! Flag that interpolation must be reset.
     call Interpolate_Done(interpolationObject,interpolationAccelerator,resetInterpolation)
     resetInterpolation=.true.
-    
+
     ! Normalize to growth factor of unity at present day.
     tPresent=Cosmology_Age(1.0d0)
     do iComponent=1,3
@@ -146,47 +146,47 @@ contains
          &/growthTableGrowthFactor(1,1,:)
     return
   end subroutine Linear_Growth_Factor_Simple_Tabulate
-  
+
   function growthTableODEs(t,D,dDdt,parameterPointer) bind(c)
     !% System of differential equations to solve for the growth factor.
-    integer(kind=c_int   )                              :: growthTableODEs   
-    real   (kind=c_double)              , value         :: t                 
-    real   (kind=c_double), dimension(2), intent(in   ) :: D                 
-    real   (kind=c_double), dimension(2)                :: dDdt              
-    type   (c_ptr        )              , value         :: parameterPointer  
-    real   (kind=c_double)                              :: aExpansion        
-                                                                          
+    integer(kind=c_int   )                              :: growthTableODEs
+    real   (kind=c_double)              , value         :: t
+    real   (kind=c_double), dimension(2), intent(in   ) :: D
+    real   (kind=c_double), dimension(2)                :: dDdt
+    type   (c_ptr        )              , value         :: parameterPointer
+    real   (kind=c_double)                              :: aExpansion
+
     aExpansion=Expansion_Factor(t)
     dDdt(1)=D(2)
     dDdt(2)=1.5d0*(Expansion_Rate(aExpansion)**2)*Omega_Matter_Total(aExpansion=aExpansion)*D(1)-2.0d0*Expansion_Rate(aExpansion)*D(2)
     growthTableODEs=FGSL_Success
   end function growthTableODEs
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Linear_Growth_Simple_State_Store</unitName>
   !# </galacticusStateStoreTask>
   subroutine Linear_Growth_Simple_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-                                                     
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) growthTableTimeMinimum,growthTableTimeMaximum
     return
   end subroutine Linear_Growth_Simple_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Linear_Growth_Simple_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
   subroutine Linear_Growth_Simple_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-    
-    ! Read the minimum and maximum tabulated times.                                                 
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
     read (stateFile) growthTableTimeMinimum,growthTableTimeMaximum
     return
   end subroutine Linear_Growth_Simple_State_Retrieve
-  
+
 end module Linear_Growth_Simple

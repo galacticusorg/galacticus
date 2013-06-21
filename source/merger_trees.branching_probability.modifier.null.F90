@@ -24,7 +24,7 @@ module Merger_Tree_Branching_Modifiers_Null
   public :: Merger_Tree_Branching_Modifiers_Null_Initialize
 
 contains
-  
+
   !# <treeBranchingModifierMethod>
   !#  <unitName>Merger_Tree_Branching_Modifiers_Null_Initialize</unitName>
   !# </treeBranchingModifierMethod>
@@ -33,9 +33,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod         
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get  
-                                                                                            
+    type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get
+
     if (treeBranchingModifierMethod == 'null') Merger_Tree_Branching_Modifier_Get => Merger_Tree_Branching_Modifier_Null
     return
   end subroutine Merger_Tree_Branching_Modifiers_Null_Initialize
@@ -43,8 +43,8 @@ contains
   double precision function Merger_Tree_Branching_Modifier_Null(parentDelta,childSigma,parentSigma)
     !% Returns a null (multiplicative) modifier for merger tree branching rates.
     implicit none
-    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma  
-                                                                          
+    double precision, intent(in   ) :: childSigma, parentDelta, parentSigma
+
     Merger_Tree_Branching_Modifier_Null=1.0d0
     return
   end function Merger_Tree_Branching_Modifier_Null

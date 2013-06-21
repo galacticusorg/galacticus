@@ -24,11 +24,11 @@ module Merger_Tree_Branching_Modifiers_Parkinson
   public :: Merger_Tree_Branching_Modifiers_Parkinson_Initialize
 
   ! Parameters of the algorithm.
-  double precision :: modifiedPressSchechterG0    , modifiedPressSchechterGamma1, & 
-       &              modifiedPressSchechterGamma2                                  
-  
+  double precision :: modifiedPressSchechterG0    , modifiedPressSchechterGamma1, &
+       &              modifiedPressSchechterGamma2
+
 contains
-  
+
   !# <treeBranchingModifierMethod>
   !#  <unitName>Merger_Tree_Branching_Modifiers_Parkinson_Initialize</unitName>
   !# </treeBranchingModifierMethod>
@@ -37,9 +37,9 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod        
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get 
-    
+    type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod
+    procedure(double precision), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get
+
     if (treeBranchingModifierMethod == 'Parkinson-Cole-Helly2008') then
        Merger_Tree_Branching_Modifier_Get => Merger_Tree_Branching_Modifier_Parkinson
        !@ <inputParameter>
@@ -85,10 +85,10 @@ contains
   double precision function Merger_Tree_Branching_Modifier_Parkinson(parentDelta,childSigma,parentSigma)
     !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
     implicit none
-    double precision, intent(in   ) :: childSigma                , parentDelta               , & 
-         &                             parentSigma                                               
-    double precision, save          :: parentDeltaPrevious=-1.0d0, parentSigmaPrevious=-1.0d0, & 
-         &                             parentTerm                                                
+    double precision, intent(in   ) :: childSigma                , parentDelta               , &
+         &                             parentSigma
+    double precision, save          :: parentDeltaPrevious=-1.0d0, parentSigmaPrevious=-1.0d0, &
+         &                             parentTerm
     !$omp threadprivate(parentDeltaPrevious,parentSigmaPrevious,parentTerm)
     ! Check if we need to update the "parent" term.
     if (parentDelta /= parentDeltaPrevious .or. parentSigma /= parentSigmaPrevious) then

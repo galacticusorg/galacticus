@@ -25,23 +25,23 @@ module Galacticus_Meta_Tree_Timing
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
 
   ! Flag indicating if the module is initialized.
-  logical                                                     :: metaTimingDataInitialized=.false.                         
-  
+  logical                                                     :: metaTimingDataInitialized=.false.
+
   ! Flag indicating if timing data is to be collected.
-  logical                                                     :: metaCollectTimingData                                     
-  
+  logical                                                     :: metaCollectTimingData
+
   ! Record of processing times.
-  integer         (kind=kind_int8)                            :: treeIndex                                                 
-  real                                                        :: timePostEvolution                , timePreConstruction, & 
-       &                                                         timePreEvolution                                          
-  double precision                                            :: treeMass                                                  
+  integer         (kind=kind_int8)                            :: treeIndex
+  real                                                        :: timePostEvolution                , timePreConstruction, &
+       &                                                         timePreEvolution
+  double precision                                            :: treeMass
   !$omp threadprivate(treeIndex,timePreConstruction,timePreEvolution,timePostEvolution,treeMass)
   ! Arrays for storing timing.
-  integer                         , parameter                 :: treeArrayIncreaseSize    =100                             
-  integer                                                     :: treesRecordedCount       =0                               
-  double precision                , allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , & 
-       &                                                         treeMasses                                                
-  
+  integer                         , parameter                 :: treeArrayIncreaseSize    =100
+  integer                                                     :: treesRecordedCount       =0
+  double precision                , allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , &
+       &                                                         treeMasses
+
 contains
 
   subroutine Meta_Tree_Timing_Initialize()
@@ -92,7 +92,7 @@ contains
 
     return
   end subroutine Meta_Tree_Timing_Pre_Construction
-  
+
   !# <mergerTreePreEvolveTask>
   !#   <unitName>Meta_Tree_Timing_Pre_Evolve</unitName>
   !# </mergerTreePreEvolveTask>
@@ -101,10 +101,10 @@ contains
     use Merger_Trees
     use Galacticus_Nodes
     implicit none
-    type (mergerTree        ), intent(in   ) :: thisTree           
-    type (treeNode          ), pointer       :: thisNode           
-    class(nodeComponentBasic), pointer       :: thisBasicComponent 
-    
+    type (mergerTree        ), intent(in   ) :: thisTree
+    type (treeNode          ), pointer       :: thisNode
+    class(nodeComponentBasic), pointer       :: thisBasicComponent
+
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
 
@@ -119,7 +119,7 @@ contains
 
     return
   end subroutine Meta_Tree_Timing_Pre_Evolve
-  
+
   !# <mergerTreePostEvolveTask>
   !#   <unitName>Meta_Tree_Timing_Post_Evolve</unitName>
   !# </mergerTreePostEvolveTask>
@@ -127,9 +127,9 @@ contains
     !% Record the CPU time after evolving a tree.
     use Memory_Management
     implicit none
-    double precision, allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, & 
-         &                                         treeMassesTemporary                                      
-    
+    double precision, allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
+         &                                         treeMassesTemporary
+
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
 
@@ -175,18 +175,18 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup 
-    
+    type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup
+
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
 
     ! Output tree evolution meta-data if any was collected.
     if (metaCollectTimingData) then
-       
+
        ! Open output groups.
        metaDataGroup  =galacticusOutputFile%openGroup('metaData'  ,'Galacticus meta data.'    )
        timingDataGroup=metaDataGroup       %openGroup('treeTiming','Meta-data on tree timing.')
-       
+
        ! Write timing data.
        call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"       ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(massSolar,"unitsInSI")

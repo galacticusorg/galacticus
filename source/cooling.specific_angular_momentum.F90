@@ -28,15 +28,15 @@ module Cooling_Specific_Angular_Momenta
   private
   public :: Cooling_Specific_Angular_Momentum
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                               :: coolingAngularMomentumInitialized    =.false.  
-  
-  ! Name of cooling radius available method used.                                                                                                     
-  type     (varying_string                   )          :: coolingSpecificAngularMomentumMethod           
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                     
-  procedure(Cooling_Specific_Angular_Momentum), pointer :: Cooling_Specific_Angular_Momentum_Get=>null()  
-                                                                                                       
+  ! Flag to indicate if this module has been initialized.
+  logical                                               :: coolingAngularMomentumInitialized    =.false.
+
+  ! Name of cooling radius available method used.
+  type     (varying_string                   )          :: coolingSpecificAngularMomentumMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Cooling_Specific_Angular_Momentum), pointer :: Cooling_Specific_Angular_Momentum_Get=>null()
+
 contains
 
   subroutine Cooling_Specific_Angular_Momentum_Initialize
@@ -47,7 +47,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.coolingAngularMomentumInitialized) then
-       !$omp critical(Cooling_Specific_Angular_Momentum_Initialization) 
+       !$omp critical(Cooling_Specific_Angular_Momentum_Initialization)
        if (.not.coolingAngularMomentumInitialized) then
           ! Get the cooling radius method parameter.
           !@ <inputParameter>
@@ -70,7 +70,7 @@ contains
                & Galacticus_Error_Report('Cooling_Specific_Angular_Momentum','method ' //char(coolingSpecificAngularMomentumMethod)//' is unrecognized')
           coolingAngularMomentumInitialized=.true.
        end if
-       !$omp end critical(Cooling_Specific_Angular_Momentum_Initialization) 
+       !$omp end critical(Cooling_Specific_Angular_Momentum_Initialization)
     end if
     return
   end subroutine Cooling_Specific_Angular_Momentum_Initialize
@@ -78,10 +78,10 @@ contains
   double precision function Cooling_Specific_Angular_Momentum(thisNode,radius)
     !% Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\tt thisNode}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-    
-    ! Initialize the module.                                                             
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
+    ! Initialize the module.
     call Cooling_Specific_Angular_Momentum_Initialize
 
     ! Get the cooling radius using the selected method.

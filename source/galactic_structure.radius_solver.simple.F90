@@ -25,11 +25,11 @@ module Galactic_Structure_Radii_Simple
   public :: Galactic_Structure_Radii_Simple_Initialize
 
   ! Module variables used to communicate current state of radius solver.
-  type   (treeNode), pointer :: haloNode                           
+  type   (treeNode), pointer :: haloNode
   !$omp threadprivate(haloNode)
   ! Options controlling the solver.
-  logical                    :: simpleRadiusSolverUseFormationHalo 
-  
+  logical                    :: simpleRadiusSolverUseFormationHalo
+
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -40,9 +40,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod 
-    procedure(Galactic_Structure_Radii_Solve_Simple), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do   
-    
+    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Simple), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+
     if (galacticStructureRadiusSolverMethod == 'simple') then
        Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Simple
        !@ <inputParameter>
@@ -71,13 +71,13 @@ contains
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode              ), intent(inout), pointer       :: thisNode                                              
-    procedure       (Structure_Get_Template)               , pointer, save :: Radius_Get             =>null(), Velocity_Get=>null() 
-    procedure       (Structure_Set_Template)               , pointer, save :: Radius_Set             =>null(), Velocity_Set=>null() 
+    type            (treeNode              ), intent(inout), pointer       :: thisNode
+    procedure       (Structure_Get_Template)               , pointer, save :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Structure_Set_Template)               , pointer, save :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                                                :: componentActive                                       
-    double precision                                                       :: specificAngularMomentum                               
-    
+    logical                                                                :: componentActive
+    double precision                                                       :: specificAngularMomentum
+
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     thisNode%isPhysicallyPlausible=.true.
     !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
@@ -101,20 +101,20 @@ contains
 
     return
   end subroutine Galactic_Structure_Radii_Solve_Simple
-  
+
   subroutine Solve_For_Radius(thisNode,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Profiles
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                              
-    double precision                        , intent(in   )          :: specificAngularMomentum               
-    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get 
-    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set 
-    double precision                                                 :: radius                 , velocity     
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: specificAngularMomentum
+    procedure       (Structure_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
+    procedure       (Structure_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
+    double precision                                                 :: radius                 , velocity
+
     ! Return immediately if the specific angular momentum is zero.
     if (specificAngularMomentum <= 0.0d0) return
-    
+
     ! Find the radius in the dark matter profile with the required specific angular momentum
     radius=Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum(haloNode,specificAngularMomentum)
 

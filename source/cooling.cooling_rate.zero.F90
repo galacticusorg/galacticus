@@ -32,9 +32,9 @@ contains
     !% Initializes the ``zero'' cooling rate module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string   ), intent(in   )          :: coolingRateMethod  
-    procedure(Cooling_Rate_Zero), intent(inout), pointer :: Cooling_Rate_Get   
-                                                                            
+    type     (varying_string   ), intent(in   )          :: coolingRateMethod
+    procedure(Cooling_Rate_Zero), intent(inout), pointer :: Cooling_Rate_Get
+
     if (coolingRateMethod == 'zero') Cooling_Rate_Get => Cooling_Rate_Zero
     return
   end subroutine Cooling_Rate_Zero_Initialize
@@ -43,8 +43,8 @@ contains
     !% Returns a zero mass cooling rate in a hot gas halos.
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     Cooling_Rate_Zero=0.0d0
     return
   end function Cooling_Rate_Zero

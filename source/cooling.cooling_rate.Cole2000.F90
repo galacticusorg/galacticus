@@ -34,9 +34,9 @@ contains
     !% Initializes the ``Cole et al. (2000)'' cooling rate module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string       ), intent(in   )          :: coolingRateMethod 
-    procedure(Cooling_Rate_Cole2000), intent(inout), pointer :: Cooling_Rate_Get  
-    
+    type     (varying_string       ), intent(in   )          :: coolingRateMethod
+    procedure(Cooling_Rate_Cole2000), intent(inout), pointer :: Cooling_Rate_Get
+
     ! Return a pointer to our implementation.
     if (coolingRateMethod == 'Cole2000') Cooling_Rate_Get => Cooling_Rate_Cole2000
     return
@@ -50,12 +50,12 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                                   
-    class           (nodeComponentBasic  )               , pointer :: formationBasicComponent                    
-    class           (nodeComponentHotHalo)               , pointer :: formationHotHaloComponent                  
-    double precision                                               :: infallDensity            , infallRadius, & 
-         &                                                            infallRadiusGrowthRate   , outerRadius     
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic  )               , pointer :: formationBasicComponent
+    class           (nodeComponentHotHalo)               , pointer :: formationHotHaloComponent
+    double precision                                               :: infallDensity            , infallRadius, &
+         &                                                            infallRadiusGrowthRate   , outerRadius
+
     ! Get node components.
     formationBasicComponent   => thisNode%formationNode%basic  ()
     formationHotHaloComponent => thisNode%formationNode%hotHalo()

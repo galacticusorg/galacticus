@@ -26,8 +26,8 @@ module Cooling_Rates_White_Frenk
   public :: Cooling_Rate_White_Frenk_Initialize
 
   ! Velocity (in km/s) above which cooling rates in gas are forced to zero.
-  double precision :: zeroCoolingRateAboveVelocity 
-  
+  double precision :: zeroCoolingRateAboveVelocity
+
 contains
 
   !# <coolingRateMethod>
@@ -39,9 +39,9 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string              ), intent(in   )          :: coolingRateMethod 
-    procedure(Cooling_Rate_White_Frenk    ), intent(inout), pointer :: Cooling_Rate_Get  
-    
+    type     (varying_string              ), intent(in   )          :: coolingRateMethod
+    procedure(Cooling_Rate_White_Frenk    ), intent(inout), pointer :: Cooling_Rate_Get
+
     if (coolingRateMethod == 'White-Frenk1991') then
        Cooling_Rate_Get => Cooling_Rate_White_Frenk
 
@@ -82,20 +82,20 @@ contains
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                                                        
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                                            
-    double precision                                               :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, & 
-         &                                                            outerRadius         , virialVelocity                            
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    double precision                                               :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
+         &                                                            outerRadius         , virialVelocity
+
     ! Get the virial velocity.
     virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
-    
+
     ! Return zero cooling rate if virial velocity exceeds critical value.
     if (virialVelocity > zeroCoolingRateAboveVelocity) then
        Cooling_Rate_White_Frenk=0.0d0
        return
     end if
-    
+
     ! Get the outer radius of the hot halo.
     thisHotHaloComponent => thisNode            %hotHalo    ()
     outerRadius          =  thisHotHaloComponent%outerRadius()

@@ -38,30 +38,30 @@ program XRay_Absorption_ISM_Wilms2000
   use IO_HDF5
   use Atomic_Cross_Sections_Compton
   implicit none
-  integer                                                                , parameter :: energyCount       =1000                                                
-  integer                                                                , parameter :: metallicityCount  =100                                                 
+  integer                                                                , parameter :: energyCount       =1000
+  integer                                                                , parameter :: metallicityCount  =100
   double precision                                                       , parameter :: energyMaximum     =20.0d0       , energyMinimum     =0.01d0      !  keV
-  double precision                                                       , parameter :: metallicityMaximum=0.1d0        , metallicityMinimum=1.0d-4            
-  ! The metallicity of the ISM computed consistently from Wilms et al. abundances and element weights.                                                                                                                                                          
-  double precision                                                       , parameter :: metallicityIsm    =0.012000314d0                                       
-  ! Electrons per hydrogen atom contributed by helium and metals for ISM metallicity.                                                                                                                                                          
-  double precision                                                       , parameter :: electronsHelium   =0.195447444d0                                       
-  double precision                                                       , parameter :: electronsMetals   =0.008383587d0                                       
-  double precision            , dimension(0:energyCount                 )            :: energy                                                                 
-  double precision            , dimension(              metallicityCount)            :: metallicity                                                            
-  real                        , dimension(  energyCount                 )            :: photar                          , photer                    , &        
-       &                                                                                sigavg                          , siggas                    , &        
-       &                                                                                siggrains                       , sigmol                               
-  double precision            , dimension(  energyCount,metallicityCount)            :: crossSection                                                           
-  double precision            , dimension(                            42)            :: parameters                                                             
-  type            (hdf5Object)                                                       :: myDataset                       , outputFile                           
-  integer                                                                            :: iMetallicity                                                           
-  double precision                                                                   :: electronNumber                                                         
-  
-  ! Create array of energies.                                                                                                                                                          
+  double precision                                                       , parameter :: metallicityMaximum=0.1d0        , metallicityMinimum=1.0d-4
+  ! The metallicity of the ISM computed consistently from Wilms et al. abundances and element weights.
+  double precision                                                       , parameter :: metallicityIsm    =0.012000314d0
+  ! Electrons per hydrogen atom contributed by helium and metals for ISM metallicity.
+  double precision                                                       , parameter :: electronsHelium   =0.195447444d0
+  double precision                                                       , parameter :: electronsMetals   =0.008383587d0
+  double precision            , dimension(0:energyCount                 )            :: energy
+  double precision            , dimension(              metallicityCount)            :: metallicity
+  real                        , dimension(  energyCount                 )            :: photar                          , photer                    , &
+       &                                                                                sigavg                          , siggas                    , &
+       &                                                                                siggrains                       , sigmol
+  double precision            , dimension(  energyCount,metallicityCount)            :: crossSection
+  double precision            , dimension(                            42)            :: parameters
+  type            (hdf5Object)                                                       :: myDataset                       , outputFile
+  integer                                                                            :: iMetallicity
+  double precision                                                                   :: electronNumber
+
+  ! Create array of energies.
   energy(0            )=energyMinimum
   energy(1:energyCount)=Make_Range(energyMinimum     ,energyMaximum     ,energyCount     ,rangeType=rangeTypeLogarithmic)
-  
+
   ! Create array of metallicities.
   metallicity          =Make_Range(metallicityMinimum,metallicityMaximum,metallicityCount,rangeType=rangeTypeLogarithmic)
 
@@ -76,8 +76,8 @@ program XRay_Absorption_ISM_Wilms2000
   parameters(42   )=0.000d0 ! Redshift.
   ! Element depletion factors.
   parameters(24:41)=[1.0d0,1.0d0,0.5d0,1.0d0,0.6d0,1.0d0,0.25d0,0.2d0,0.02d0,0.1d0,0.6d0,0.5d0,1.0d0,0.003d0,0.03d0,0.3d0,0.05d0&
-       &,0.04d0] 
-  
+       &,0.04d0]
+
   ! Loop over metallicities.
   do iMetallicity=1,metallicityCount
      ! Set the abundance scaling factors such that metal abundance is scaled by metallicity.
@@ -114,9 +114,9 @@ end program XRay_Absorption_ISM_Wilms2000
 subroutine xwrite(msg,i)
   !% Message display function required by {\tt dotbvabs}.
   implicit none
-  character(len=*), intent(in   ) :: msg  
-  integer         , intent(in   ) :: i    
-                                       
+  character(len=*), intent(in   ) :: msg
+  integer         , intent(in   ) :: i
+
   write (0,*) msg
   return
 end subroutine xwrite
@@ -125,9 +125,9 @@ subroutine xermsg(a,b,c,i,j)
   !% Error message function required by {\tt dotbvabs}.
   use Galacticus_Error
   implicit none
-  character(len=*), intent(in   ) :: a, b, c  
-  integer         , intent(in   ) :: i, j     
-                                           
+  character(len=*), intent(in   ) :: a, b, c
+  integer         , intent(in   ) :: i, j
+
   write (0,*) a
   write (0,*) b
   write (0,*) c
@@ -139,8 +139,8 @@ real function fgabnd(c)
   !% Function to return the abundance (relative to hydrogen) of elements. Required by {\tt dotbvabs}.
   use Galacticus_Error
   implicit none
-  character(len=2), intent(in   ) :: c  
-                                     
+  character(len=2), intent(in   ) :: c
+
   fgabnd=0.0
   if (c == 'H ') fgabnd=12.00 ! H
   if (c == 'He') fgabnd=10.99 ! He

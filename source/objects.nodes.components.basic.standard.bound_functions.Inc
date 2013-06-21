@@ -21,8 +21,8 @@ double precision function BasicStandardTimeLastIsolated(self)
   !% Return the {\tt timeLastIsolated} property of the {\tt Basic} component class.
   implicit none
   class(nodeComponentBasicStandard), intent(inout) :: self
-  type (treeNode                  ), pointer       :: selfNode  
-  
+  type (treeNode                  ), pointer       :: selfNode
+
   selfNode => self%host()
   if (selfNode%isSatellite()) then
      BasicStandardTimeLastIsolated=self%timeLastIsolatedData%value

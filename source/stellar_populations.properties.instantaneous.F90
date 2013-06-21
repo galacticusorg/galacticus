@@ -24,8 +24,8 @@ module Stellar_Population_Properties_Instantaneous
   public :: Stellar_Population_Properties_Instantaneous_Initialize
 
   ! Index of abundance pattern to use for elemental abundances.
-  integer :: abundanceIndex 
-  
+  integer :: abundanceIndex
+
 contains
 
   !# <stellarPopulationPropertiesMethod>
@@ -38,16 +38,16 @@ contains
     use ISO_Varying_String
     use Atomic_Data
     implicit none
-    type     (varying_string                                            ), intent(in   )          :: stellarPopulationPropertiesMethod               
-    procedure(Stellar_Population_Properties_History_Count_Instantaneous ), intent(inout), pointer :: Stellar_Population_Properties_History_Count_Get 
-    procedure(Stellar_Population_Properties_History_Create_Instantaneous), intent(inout), pointer :: Stellar_Population_Properties_History_Create_Do 
-    procedure(Stellar_Population_Properties_Rates_Instantaneous         ), intent(inout), pointer :: Stellar_Population_Properties_Rates_Get         
-    procedure(Stellar_Population_Properties_Scales_Instantaneous        ), intent(inout), pointer :: Stellar_Population_Properties_Scales_Get        
-    
+    type     (varying_string                                            ), intent(in   )          :: stellarPopulationPropertiesMethod
+    procedure(Stellar_Population_Properties_History_Count_Instantaneous ), intent(inout), pointer :: Stellar_Population_Properties_History_Count_Get
+    procedure(Stellar_Population_Properties_History_Create_Instantaneous), intent(inout), pointer :: Stellar_Population_Properties_History_Create_Do
+    procedure(Stellar_Population_Properties_Rates_Instantaneous         ), intent(inout), pointer :: Stellar_Population_Properties_Rates_Get
+    procedure(Stellar_Population_Properties_Scales_Instantaneous        ), intent(inout), pointer :: Stellar_Population_Properties_Scales_Get
+
     if (stellarPopulationPropertiesMethod == 'instantaneous') then
-       Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Instantaneous    
-       Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Instantaneous    
-       Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Instantaneous    
+       Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Instantaneous
+       Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Instantaneous
+       Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Instantaneous
        Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Instantaneous
 
        ! Get index of abundance pattern to use.
@@ -59,12 +59,12 @@ contains
   integer function Stellar_Population_Properties_History_Count_Instantaneous()
     !% Returns the number of histories required by the instantaneous stellar populations properties module.
     implicit none
-  
-    ! We require no histories.  
+
+    ! We require no histories.
     Stellar_Population_Properties_History_Count_Instantaneous=0
     return
   end function Stellar_Population_Properties_History_Count_Instantaneous
-  
+
   subroutine Stellar_Population_Properties_Rates_Instantaneous(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
        &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
@@ -75,21 +75,21 @@ contains
     use Stellar_Population_Properties_Luminosities
     use Stellar_Feedback
     implicit none
-    double precision                                  , intent(  out)          :: energyInputRate              , fuelMassRate             , & 
-         &                                                                        stellarMassRate                                             
-    type            (abundances        )              , intent(inout)          :: fuelAbundancesRates          , stellarAbundancesRates       
-    double precision                    , dimension(:), intent(  out)          :: stellarLuminositiesRates                                    
-    double precision                                  , intent(in   )          :: starFormationRate                                           
-    type            (abundances        )              , intent(in   )          :: fuelAbundances                                              
-    integer                                           , intent(in   )          :: component                                                   
-    type            (treeNode          )              , intent(inout), pointer :: thisNode                                                    
-    type            (history           )              , intent(inout)          :: thisHistory                                                 
-    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent                                          
-    integer                                                                    :: imfSelected                                                 
-    double precision                                                           :: fuelMetallicity              , fuelMetalsRateOfChange   , & 
-         &                                                                        recycledFractionInstantaneous, stellarMetalsRateOfChange, & 
-         &                                                                        time                         , yieldInstantaneous           
-    
+    double precision                                  , intent(  out)          :: energyInputRate              , fuelMassRate             , &
+         &                                                                        stellarMassRate
+    type            (abundances        )              , intent(inout)          :: fuelAbundancesRates          , stellarAbundancesRates
+    double precision                    , dimension(:), intent(  out)          :: stellarLuminositiesRates
+    double precision                                  , intent(in   )          :: starFormationRate
+    type            (abundances        )              , intent(in   )          :: fuelAbundances
+    integer                                           , intent(in   )          :: component
+    type            (treeNode          )              , intent(inout), pointer :: thisNode
+    type            (history           )              , intent(inout)          :: thisHistory
+    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
+    integer                                                                    :: imfSelected
+    double precision                                                           :: fuelMetallicity              , fuelMetalsRateOfChange   , &
+         &                                                                        recycledFractionInstantaneous, stellarMetalsRateOfChange, &
+         &                                                                        time                         , yieldInstantaneous
+
     ! Get the instantaneous recycling rate for the IMF.
     recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
 
@@ -132,10 +132,10 @@ contains
     use Histories
     use Abundances_Structure
     implicit none
-    double precision            , intent(in   ) :: stellarMass       
-    type            (abundances), intent(in   ) :: stellarAbundances 
-    type            (history   ), intent(inout) :: thisHistory       
-    
+    double precision            , intent(in   ) :: stellarMass
+    type            (abundances), intent(in   ) :: stellarAbundances
+    type            (history   ), intent(inout) :: thisHistory
+
     ! No history is used in this case, so simply return.
     return
   end subroutine Stellar_Population_Properties_Scales_Instantaneous
@@ -146,9 +146,9 @@ contains
     use Galacticus_Nodes
     use Histories
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode    
-    type(history ), intent(inout)          :: thisHistory 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(history ), intent(inout)          :: thisHistory
+
     return
   end subroutine Stellar_Population_Properties_History_Create_Instantaneous
 

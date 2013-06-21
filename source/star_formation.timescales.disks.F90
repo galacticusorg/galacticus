@@ -25,30 +25,30 @@ module Star_Formation_Timescales_Disks
   implicit none
   private
   public :: Star_Formation_Timescale_Disk
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                     :: starFormationTimescaleDisksInitialized=.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                            
-  type     (varying_string                         )          :: starFormationTimescaleDisksMethod               
-  
-  ! Flag indicating if the work procedure is Fortran.                                                                                                            
-  logical                                                     :: functionIsFortran                               
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                            
-  procedure(Star_Formation_Timescale_Disk_FTemplate), pointer :: Star_Formation_Timescale_Disk_FGet    =>null()  
-  procedure(Star_Formation_Timescale_Disk_CTemplate), pointer :: Star_Formation_Timescale_Disk_CGet    =>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                     :: starFormationTimescaleDisksInitialized=.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                         )          :: starFormationTimescaleDisksMethod
+
+  ! Flag indicating if the work procedure is Fortran.
+  logical                                                     :: functionIsFortran
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Star_Formation_Timescale_Disk_FTemplate), pointer :: Star_Formation_Timescale_Disk_FGet    =>null()
+  procedure(Star_Formation_Timescale_Disk_CTemplate), pointer :: Star_Formation_Timescale_Disk_CGet    =>null()
   abstract interface
      double precision function Star_Formation_Timescale_Disk_FTemplate(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode  
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Star_Formation_Timescale_Disk_FTemplate
   end interface
   abstract interface
      function Star_Formation_Timescale_Disk_CTemplate(cNode   )
        import
-       real(kind=c_double)        :: Star_Formation_Timescale_Disk_CTemplate  
-       type(c_ptr        ), value :: cNode                                    
+       real(kind=c_double)        :: Star_Formation_Timescale_Disk_CTemplate
+       type(c_ptr        ), value :: cNode
      end function Star_Formation_Timescale_Disk_CTemplate
   end interface
 
@@ -62,14 +62,14 @@ contains
     include 'star_formation.timescales.disks.modules.inc'
     !# </include>
     implicit none
-    type(c_funptr) :: cFunctionPointer=c_null_funptr  
-    !# <include directive="starFormationTimescaleDisksMethod" type="cBinding" pointerCount="1" >                                               
+    type(c_funptr) :: cFunctionPointer=c_null_funptr
+    !# <include directive="starFormationTimescaleDisksMethod" type="cBinding" pointerCount="1" >
     include 'star_formation.timescales.disks.cBinding.inc'
     !# </include>
 
     ! Initialize if necessary.
     if (.not.starFormationTimescaleDisksInitialized) then
-       !$omp critical(Star_Formation_Timescale_Disks_Initialization) 
+       !$omp critical(Star_Formation_Timescale_Disks_Initialization)
        if (.not.starFormationTimescaleDisksInitialized) then
           ! Get the disk star formation timescale method parameter.
           !@ <inputParameter>
@@ -105,7 +105,7 @@ contains
           end if
           starFormationTimescaleDisksInitialized=.true.
        end if
-       !$omp end critical(Star_Formation_Timescale_Disks_Initialization) 
+       !$omp end critical(Star_Formation_Timescale_Disks_Initialization)
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_Initialize
@@ -113,10 +113,10 @@ contains
   double precision function Star_Formation_Timescale_Disk(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the disk component of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    type(c_ptr   )                         :: cNode     
-    
-    ! Initialize the module.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(c_ptr   )                         :: cNode
+
+    ! Initialize the module.
     call Star_Formation_Timescale_Disks_Initialize
 
     ! Get the energy using the selected method.
@@ -128,5 +128,5 @@ contains
     end if
     return
   end function Star_Formation_Timescale_Disk
-  
+
 end module Star_Formation_Timescales_Disks

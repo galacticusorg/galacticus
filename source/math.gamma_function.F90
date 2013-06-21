@@ -30,38 +30,38 @@ contains
     !% Computes the incomplete gamma function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument, exponent  
-                                                        
+    double precision, intent(in   ) :: argument, exponent
+
     Gamma_Function_Incomplete=FGSL_SF_Gamma_Inc_Q(exponent,argument)
     return
   end function Gamma_Function_Incomplete
-  
+
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
     !% Computes the complementary incomplete gamma function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument, exponent  
-                                                        
+    double precision, intent(in   ) :: argument, exponent
+
     Gamma_Function_Incomplete_Complementary=FGSL_SF_Gamma_Inc_P(exponent,argument)
     return
   end function Gamma_Function_Incomplete_Complementary
-  
+
   double precision function Gamma_Function(argument)
     !% Computes the gamma function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument  
-                                              
+    double precision, intent(in   ) :: argument
+
     Gamma_Function=exp(Gamma_Function_Logarithmic(argument))
     return
   end function Gamma_Function
-  
+
   double precision function Gamma_Function_Logarithmic(argument)
     !% Computes the logarithm of the gamma function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument  
-                                              
+    double precision, intent(in   ) :: argument
+
     Gamma_Function_Logarithmic=FGSL_SF_lnGamma(argument)
     return
   end function Gamma_Function_Logarithmic
@@ -72,11 +72,11 @@ contains
     use Incomplete_Gamma
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ) :: P         , a  
-    integer                                         :: errorState     
-    double precision                                :: Q              
-    type            (varying_string)                :: message        
-                                                                   
+    double precision                , intent(in   ) :: P         , a
+    integer                                         :: errorState
+    double precision                                :: Q
+    type            (varying_string)                :: message
+
     Q=1.0d0-P
     call GamInv(a,Inverse_Gamma_Function_Incomplete_Complementary,-1.0d0,P,Q,errorState)
     if (errorState < 0) then
@@ -98,16 +98,16 @@ contains
     end if
     return
   end function Inverse_Gamma_Function_Incomplete_Complementary
-  
+
   double precision function Inverse_Gamma_Function_Incomplete(a,Q)
     !% Returns the inverse of the incomplete function. That is, it returns $x$ given $Q(a,x)$.
     implicit none
-    double precision, intent(in   ) :: Q, a  
-    double precision                :: P     
-                                          
+    double precision, intent(in   ) :: Q, a
+    double precision                :: P
+
     P=1.0d0-Q
     Inverse_Gamma_Function_Incomplete=Inverse_Gamma_Function_Incomplete_Complementary(a,P)
     return
   end function Inverse_Gamma_Function_Incomplete
-  
+
 end module Gamma_Functions

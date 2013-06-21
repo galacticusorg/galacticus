@@ -24,18 +24,18 @@ module Galacticus_Meta_Evolver_Profiler
   private
   public :: Galacticus_Meta_Evolver_Profile, Galacticus_Meta_Evolver_Profiler_Output
 
-  ! Arrays used to store profiling data.  
-  logical                                                        :: metaProfileInitialized    =.false.                                     
-  double precision                                               :: metaProfileTimeStepMaximum        , metaProfileTimeStepMinimum         
-  integer                                                        :: metaProfileTimeStepPoints         , metaProfileTimeStepPointsPerDecade 
-  double precision                   , allocatable, dimension(:) :: metaProfileTimeStep                                                    
-  integer                            , allocatable, dimension(:) :: metaProfileTimeStepCount                                               
-  
+  ! Arrays used to store profiling data.
+  logical                                                        :: metaProfileInitialized    =.false.
+  double precision                                               :: metaProfileTimeStepMaximum        , metaProfileTimeStepMinimum
+  integer                                                        :: metaProfileTimeStepPoints         , metaProfileTimeStepPointsPerDecade
+  double precision                   , allocatable, dimension(:) :: metaProfileTimeStep
+  integer                            , allocatable, dimension(:) :: metaProfileTimeStepCount
+
   ! Hash for storing property hits.
-  type            (integerScalarHash)                            :: propertyHits                                                           
-  
+  type            (integerScalarHash)                            :: propertyHits
+
 contains
-  
+
   subroutine Galacticus_Meta_Evolver_Profile(timeStep,propertyName)
     !% Record profiling information on the ODE evolver.
     use Input_Parameters
@@ -44,10 +44,10 @@ contains
     use ISO_Varying_String
     use Arrays_Search
     implicit none
-    double precision                , intent(in   ) :: timeStep            
-    type            (varying_string), intent(in   ) :: propertyName        
-    integer                                         :: hitCount    , iStep 
-    
+    double precision                , intent(in   ) :: timeStep
+    type            (varying_string), intent(in   ) :: propertyName
+    integer                                         :: hitCount    , iStep
+
     !$omp critical (Meta_Profile_Record)
     if (.not.metaProfileInitialized) then
        ! Get parameters controlling profiling.
@@ -96,7 +96,7 @@ contains
        ! Flag that profiling is now initialized.
        metaProfileInitialized=.true.
     end if
-    
+
     ! Accumulate the count of step sizes.
     iStep=Search_Array(metaProfileTimeStep,timeStep)
     metaProfileTimeStepCount(iStep)=metaProfileTimeStepCount(iStep)+1
@@ -122,24 +122,24 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    type   (varying_string), allocatable, dimension(:) :: metaProfilePropertyNames                      
-    integer                , allocatable, dimension(:) :: metaProfilePropertyHitCount                   
-    type   (hdf5Object    )                            :: metaDataDataset            , metaDataGroup, & 
-         &                                                profilerDataGroup                             
-    
+    type   (varying_string), allocatable, dimension(:) :: metaProfilePropertyNames
+    integer                , allocatable, dimension(:) :: metaProfilePropertyHitCount
+    type   (hdf5Object    )                            :: metaDataDataset            , metaDataGroup, &
+         &                                                profilerDataGroup
+
     ! Output tree evolution meta-data if any was collected.
     if (metaProfileInitialized) then
-       
+
        ! Open output groups.
        metaDataGroup    =galacticusOutputFile%openGroup('metaData'       ,'Galacticus meta data.'     )
        profilerDataGroup=metaDataGroup       %openGroup('evolverProfiler','Meta-data on tree evolver.')
-       
+
        ! Write timestep histogram.
        call profilerDataGroup%writeDataset(metaProfileTimeStep     ,"metaProfileTimeStep"     ,"Timestep [Gyr]"        ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(gigaYear,"unitsInSI")
        call metaDataDataset%close()
        call profilerDataGroup%writeDataset(metaProfileTimeStepCount,"metaProfileTimeStepCount","Timestep historgram []"                                )
-              
+
        ! Write property histogram.
        call propertyHits%keys  (metaProfilePropertyNames   )
        call propertyHits%values(metaProfilePropertyHitCount)

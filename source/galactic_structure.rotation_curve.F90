@@ -26,9 +26,9 @@ module Galactic_Structure_Rotation_Curves
   public :: Galactic_Structure_Rotation_Curve
 
   ! Module scope variables used in mapping over components.
-  integer          :: componentTypeShared, massTypeShared 
-  logical          :: haloLoadedShared                    
-  double precision :: radiusShared                        
+  integer          :: componentTypeShared, massTypeShared
+  logical          :: haloLoadedShared
+  double precision :: radiusShared
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
 contains
 
@@ -38,13 +38,13 @@ contains
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                ), intent(inout)          , pointer :: thisNode                                             
-    integer                                   , intent(in   ), optional          :: componentType                 , massType             
-    logical                                   , intent(in   ), optional          :: haloLoaded                                           
-    double precision                          , intent(in   )                    :: radius                                               
-    procedure       (Component_Rotation_Curve)                         , pointer :: componentRotationCurveFunction                       
-    double precision                                                             :: componentVelocity             , rotationCurveSquared 
-    
+    type            (treeNode                ), intent(inout)          , pointer :: thisNode
+    integer                                   , intent(in   ), optional          :: componentType                 , massType
+    logical                                   , intent(in   ), optional          :: haloLoaded
+    double precision                          , intent(in   )                    :: radius
+    procedure       (Component_Rotation_Curve)                         , pointer :: componentRotationCurveFunction
+    double precision                                                             :: componentVelocity             , rotationCurveSquared
+
     ! Determine which mass type to use.
     if (present(massType)) then
        massTypeShared=massType
@@ -77,13 +77,13 @@ contains
     Galactic_Structure_Rotation_Curve=sqrt(rotationCurveSquared)
     return
   end function Galactic_Structure_Rotation_Curve
-    
+
   double precision function Component_Rotation_Curve(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     Component_Rotation_Curve=component%rotationCurve(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared)**2
     return
   end function Component_Rotation_Curve

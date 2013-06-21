@@ -153,23 +153,23 @@ module Node_Component_Spheroid_Standard
   !# </component>
 
   ! Internal count of abundances.
-  integer                                     :: abundancesCount                                                                  
-  
+  integer                                     :: abundancesCount
+
   ! Internal count of luminosities and work arrays.
-  integer                                     :: luminositiesCount                                                                
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                         , luminositiesStellarRates       , & 
-       &                                         zeroLuminosities                                                                 
+  integer                                     :: luminositiesCount
+  double precision, allocatable, dimension(:) :: luminositiesMinimum                         , luminositiesStellarRates       , &
+       &                                         zeroLuminosities
   !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates)
   ! Storage for the star formation history time range, used whene extending this range.
-  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate                                                     
+  double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate)
   ! Parameters controlling the physical implementation.
-  double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum    
-  double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidMassToleranceAbsolute      
-  
+  double precision                            :: spheroidEnergeticOutflowMassRate            , spheroidOutflowTimescaleMinimum
+  double precision                            :: spheroidAngularMomentumAtScaleRadius        , spheroidMassToleranceAbsolute
+
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                   =.false.                                     
-  logical                                     :: threadAllocationDone                =.false.                                     
+  logical                                     :: moduleInitialized                   =.false.
+  logical                                     :: threadAllocationDone                =.false.
   !$omp threadprivate(threadAllocationDone)
 contains
 
@@ -185,12 +185,12 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    type            (nodeComponentSpheroidStandard) :: spheroidStandardComponent                                                                
-    double precision                                :: spheroidAngularMomentumAtScaleRadiusDefault, spheroidMassDistributionDensityMomentum2, & 
-         &                                             spheroidMassDistributionDensityMomentum3   , spheroidSersicIndex                         
-    logical                                         :: densityMoment2IsInfinite                   , densityMoment3IsInfinite                    
-    type            (varying_string               ) :: spheroidMassDistributionName                                                             
-    
+    type            (nodeComponentSpheroidStandard) :: spheroidStandardComponent
+    double precision                                :: spheroidAngularMomentumAtScaleRadiusDefault, spheroidMassDistributionDensityMomentum2, &
+         &                                             spheroidMassDistributionDensityMomentum3   , spheroidSersicIndex
+    logical                                         :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
+    type            (varying_string               ) :: spheroidMassDistributionName
+
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Standard_Initialize)
     if (defaultSpheroidComponent%standardIsActive().and..not.moduleInitialized) then
@@ -325,9 +325,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(thisNode)
     !% Ensure the spheroid has been initialized.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode              
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
     ! Check if a standard spheroid component exists.
@@ -350,16 +350,16 @@ contains
     use Abundances_Structure
     use Histories
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode                                                   
-    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent                                      
-    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent                                         
-    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0                             
-    double precision                                                 :: fractionalError               , specificAngularMomentum, & 
-         &                                                              spheroidMass                                               
-    character       (len=20                )                         :: valueString                                                
-    type            (varying_string        )                         :: message                                                    
-    type            (history               )                         :: stellarPropertiesHistory                                   
-    
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
+    class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
+    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
+    double precision                                                 :: fractionalError               , specificAngularMomentum, &
+         &                                                              spheroidMass
+    character       (len=20                )                         :: valueString
+    type            (varying_string        )                         :: message
+    type            (history               )                         :: stellarPropertiesHistory
+
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
     ! Check if an exponential spheroid component exists.
@@ -383,7 +383,7 @@ contains
                &           )
           !$omp critical (Standard_Spheroid_Post_Evolve_Check)
           if (fractionalError > fractionalErrorMaximum) then
-             ! Report a warning.          
+             ! Report a warning.
              message='Warning: spheroid has negative gas mass (fractional error exceeds any previously reported):'//char(10)
              message=message//'  Node index            = '//thisNode%index() //char(10)
              write (valueString,'(e12.6)') thisSpheroidComponent%massGas    ()
@@ -432,12 +432,12 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     implicit none
-    class           (nodeComponentSpheroid       ), intent(inout)                    :: self                            
-    logical                                       , intent(inout), optional          :: interrupt                       
-    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure              
-    double precision                              , intent(in   )                    :: rate                            
-    double precision                                                                 :: gasMass           , stellarMass 
-    
+    class           (nodeComponentSpheroid       ), intent(inout)                    :: self
+    logical                                       , intent(inout), optional          :: interrupt
+    procedure       (Interrupt_Procedure_Template), intent(inout), optional, pointer :: interruptProcedure
+    double precision                              , intent(in   )                    :: rate
+    double precision                                                                 :: gasMass           , stellarMass
+
     ! Trap cases where an attempt is made to add gas via this sink function.
     if (rate > 0.0d0) call Galacticus_Error_Report(                                                        &
          &                                         'Node_Component_Spheroid_Standard_Mass_Gas_Sink_Rate', &
@@ -464,17 +464,17 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     implicit none
-    class           (nodeComponentSpheroid        ), intent(inout)                    :: self                                            
-    logical                                        , intent(inout), optional          :: interrupt                                       
-    procedure       (Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure                              
-    double precision                               , intent(in   )                    :: rate                                            
-    class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent                            
-    type            (treeNode                     )                         , pointer :: selfNode                                        
-    type            (abundances                   )                                   :: abundancesOutflowRate                           
-    double precision                                                                  :: angularMomentumOutflowRate, gasMass         , & 
-         &                                                                               massOutflowRate           , spheroidVelocity, & 
-         &                                                                               stellarMass                                     
-    
+    class           (nodeComponentSpheroid        ), intent(inout)                    :: self
+    logical                                        , intent(inout), optional          :: interrupt
+    procedure       (Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    double precision                               , intent(in   )                    :: rate
+    class           (nodeComponentHotHalo         )                         , pointer :: selfHotHaloComponent
+    type            (treeNode                     )                         , pointer :: selfNode
+    type            (abundances                   )                                   :: abundancesOutflowRate
+    double precision                                                                  :: angularMomentumOutflowRate, gasMass         , &
+         &                                                                               massOutflowRate           , spheroidVelocity, &
+         &                                                                               stellarMass
+
     ! Trap cases where an attempt is made to remove energy via this input function.
     if (rate < 0.0d0) call Galacticus_Error_Report(                                                                &
          &                                         'Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate'      , &
@@ -523,28 +523,28 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                                
-    logical                                , intent(inout)          :: interrupt                                               
-    procedure       (                     ), intent(inout), pointer :: interruptProcedure                                      
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                                   
-    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent                                    
-    type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , & 
-         &                                                             stellarAbundancesRates                                  
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    logical                                , intent(inout)          :: interrupt
+    procedure       (                     ), intent(inout), pointer :: interruptProcedure
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent
+    type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
+         &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: angularMomentumOutflowRate, energyInputRate         , & 
-         &                                                             fuelMass                  , fuelMassRate            , & 
-         &                                                             gasMass                   , massOutflowRate         , & 
-         &                                                             massOutflowRateFromHalo   , massOutflowRateToHotHalo, & 
-         &                                                             outflowToHotHaloFraction  , spheroidDynamicalTime   , & 
-         &                                                             spheroidMass              , starFormationRate       , & 
-         &                                                             stellarMassRate                                         
-    type            (history              )                         :: historyTransferRate       , stellarHistoryRate          
-    
+    double precision                                                :: angularMomentumOutflowRate, energyInputRate         , &
+         &                                                             fuelMass                  , fuelMassRate            , &
+         &                                                             gasMass                   , massOutflowRate         , &
+         &                                                             massOutflowRateFromHalo   , massOutflowRateToHotHalo, &
+         &                                                             outflowToHotHaloFraction  , spheroidDynamicalTime   , &
+         &                                                             spheroidMass              , starFormationRate       , &
+         &                                                             stellarMassRate
+    type            (history              )                         :: historyTransferRate       , stellarHistoryRate
+
     ! Get the disk and check that it is of our class.
     thisSpheroidComponent => thisNode%spheroid()
     select type (thisSpheroidComponent)
     class is (nodeComponentSpheroidStandard)
-       
+
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
        if     (    thisSpheroidComponent%angularMomentum() <  0.0d0 &
             & .or. thisSpheroidComponent%radius         () <= 0.0d0 &
@@ -626,12 +626,12 @@ contains
     use Galacticus_Error
     use Memory_Management
     implicit none
-    class    (nodeComponentSpheroidStandard), intent(inout)                    :: self                 
-    type     (history                      ), intent(in   )                    :: rate                 
-    logical                                 , intent(inout), optional          :: interrupt            
-    procedure(Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure   
-    type     (history                      )                                   :: starFormationHistory 
-    
+    class    (nodeComponentSpheroidStandard), intent(inout)                    :: self
+    type     (history                      ), intent(in   )                    :: rate
+    logical                                 , intent(inout), optional          :: interrupt
+    procedure(Interrupt_Procedure_Template ), intent(inout), optional, pointer :: interruptProcedure
+    type     (history                      )                                   :: starFormationHistory
+
     ! Get the star formation history in the spheroid.
     starFormationHistory=self%starFormationHistory()
     ! Ensure that the history already exists.
@@ -670,15 +670,15 @@ contains
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                   
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent                      
-    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent                          
-    double precision                       , parameter              :: massMinimum                   =1.0d0       
-    double precision                       , parameter              :: angularMomentumMinimum        =0.1d0       
-    double precision                       , parameter              :: gasMassScaling                =0.1d0       
-    double precision                                                :: angularMomentum                     , mass 
-    type            (history              )                         :: stellarPopulationHistoryScales             
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
+    double precision                       , parameter              :: massMinimum                   =1.0d0
+    double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
+    double precision                       , parameter              :: gasMassScaling                =0.1d0
+    double precision                                                :: angularMomentum                     , mass
+    type            (history              )                         :: stellarPopulationHistoryScales
+
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
     ! Check if a standard spheroid component exists.
@@ -758,15 +758,15 @@ contains
     use Histories
 use kind_numbers
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode                                                  
-    type            (treeNode             )               , pointer :: hostNode                                                  
-    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent    , thisDiskComponent                  
-    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent              
-    type            (history              )                         :: historyDisk          , historySpheroid                , & 
-         &                                                             thisHistory                                               
-    double precision                                                :: angularMomentum      , diskSpecificAngularMomentum    , & 
-         &                                                             spheroidMass         , spheroidSpecificAngularMomentum    
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    type            (treeNode             )               , pointer :: hostNode
+    class           (nodeComponentDisk    )               , pointer :: hostDiskComponent    , thisDiskComponent
+    class           (nodeComponentSpheroid)               , pointer :: hostSpheroidComponent, thisSpheroidComponent
+    type            (history              )                         :: historyDisk          , historySpheroid                , &
+         &                                                             thisHistory
+    double precision                                                :: angularMomentum      , diskSpecificAngularMomentum    , &
+         &                                                             spheroidMass         , spheroidSpecificAngularMomentum
+
     ! Check that the standard spheroid is active.
     if (defaultSpheroidComponent%standardIsActive()) then
 
@@ -775,12 +775,12 @@ use kind_numbers
        select type (thisSpheroidComponent)
        class is (nodeComponentSpheroidStandard)
           thisDiskComponent => thisNode%disk()
-          
+
           ! Find the node to merge with.
           hostNode              => thisNode%mergesWith(                 )
-          hostDiskComponent     => hostNode%disk      (autoCreate=.true.)      
-          hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)      
-          
+          hostDiskComponent     => hostNode%disk      (autoCreate=.true.)
+          hostSpheroidComponent => hostNode%spheroid  (autoCreate=.true.)
+
           ! Get specific angular momentum of the host spheroid and disk material.
           if (hostSpheroidComponent%massGas()+hostSpheroidComponent%massStellar() > 0.0d0) then
              spheroidSpecificAngularMomentum=   hostSpheroidComponent%angularMomentum() &
@@ -800,7 +800,7 @@ use kind_numbers
           else
              diskSpecificAngularMomentum=0.0d0
           end if
-          
+
           ! Move gas material within the host if necessary.
           select case (thisHostGasMovesTo)
           case (movesToDisk)
@@ -853,7 +853,7 @@ use kind_numbers
           case default
              call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Satellite_Merging','unrecognized movesTo descriptor')
           end select
-          
+
           ! Move stellar material within the host if necessary.
           select case (thisHostStarsMoveTo)
           case (movesToDisk)
@@ -873,7 +873,7 @@ use kind_numbers
                   &                                                  hostDiskComponent    %    angularMomentum() &
                   &                                                 +hostSpheroidComponent%        massStellar() &
                   &                                                 *spheroidSpecificAngularMomentum             &
-                  &                                                ) 
+                  &                                                )
              call hostSpheroidComponent%    angularMomentumSet     (                                             &
                   &                                                  hostSpheroidComponent%    angularMomentum() &
                   &                                                 -hostSpheroidComponent%        massStellar() &
@@ -924,7 +924,7 @@ use kind_numbers
                   &                                                  0.0d0                                       &
                   &                                                )
              call hostDiskComponent    %       abundancesStellarSet(                                             &
-                  &                                                  zeroAbundances                              & 
+                  &                                                  zeroAbundances                              &
                   &                                                )
              call hostDiskComponent    %     luminositiesStellarSet(                                             &
                   &                                                  zeroLuminosities                            &
@@ -994,7 +994,7 @@ use kind_numbers
              end select
              call thisSpheroidComponent%      massGasSet(0.0d0         )
              call thisSpheroidComponent%abundancesGasSet(zeroAbundances)
-             
+
              ! Move the stellar component of the standard spheroid to the host.
              select case (thisMergerStarsMoveTo)
              case (movesToDisk)
@@ -1062,7 +1062,7 @@ use kind_numbers
              call thisSpheroidComponent%luminositiesStellarSet(zeroLuminosities)
              call thisSpheroidComponent%    angularMomentumSet(0.0d0           )
           end if
-          
+
           ! Set the angular momentum of the spheroid.
           if (remnantSpecificAngularMomentum /= remnantNoChangeValue) then
              ! Note that the remnant specific angular momentum computed by the merger remnant modules automatically gives the mean
@@ -1072,7 +1072,7 @@ use kind_numbers
              call hostSpheroidComponent%angularMomentumSet(angularMomentum)
           end if
 
-       end select       
+       end select
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Satellite_Merging
@@ -1085,13 +1085,13 @@ use kind_numbers
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode                
-    integer                                , intent(in   )           :: componentType, massType 
-    double precision                       , intent(in   )           :: radius                  
-    logical                                , intent(in   ), optional :: haloLoaded              
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid            
-    double precision                                                 :: componentMass           
-    
+    type            (treeNode             ), intent(inout), pointer  :: thisNode
+    integer                                , intent(in   )           :: componentType, massType
+    double precision                       , intent(in   )           :: radius
+    logical                                , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid
+    double precision                                                 :: componentMass
+
     ! Set to zero by default.
     Node_Component_Spheroid_Standard_Rotation_Curve=0.0d0
 
@@ -1118,13 +1118,13 @@ use kind_numbers
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode                                              
-    integer                                , intent(in   )           :: componentType   , massType                            
-    double precision                       , intent(in   )           :: radius                                                
-    logical                                , intent(in   ), optional :: haloLoaded                                            
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid                                          
-    double precision                                                 :: componentDensity, componentMass, positionSpherical(3) 
-    
+    type            (treeNode             ), intent(inout), pointer  :: thisNode
+    integer                                , intent(in   )           :: componentType   , massType
+    double precision                       , intent(in   )           :: radius
+    logical                                , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid
+    double precision                                                 :: componentDensity, componentMass, positionSpherical(3)
+
     ! Set to zero by default.
     Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=0.0d0
 
@@ -1144,7 +1144,7 @@ use kind_numbers
          &                 *(                                  &
          &                   -componentMass/radius**2          &
          &                   +4.0d0*Pi*radius*componentDensity &
-         &                  ) 
+         &                  )
     return
   end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
@@ -1156,14 +1156,14 @@ use kind_numbers
     use Numerical_Constants_Physical
     use Coordinates
     !% Return the potential due to the standard spheroid.
-    type            (treeNode             ), intent(inout), pointer  :: thisNode                        
-    integer                                , intent(in   )           :: componentType        , massType 
-    double precision                       , intent(in   )           :: radius                          
-    logical                                , intent(in   ), optional :: haloLoaded                      
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent           
-    double precision                                                 :: componentMass                   
-    type            (coordinateSpherical  )                          :: position                        
-    
+    type            (treeNode             ), intent(inout), pointer  :: thisNode
+    integer                                , intent(in   )           :: componentType        , massType
+    double precision                       , intent(in   )           :: radius
+    logical                                , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent
+    double precision                                                 :: componentMass
+    type            (coordinateSpherical  )                          :: position
+
     ! Set to zero by default.
     Node_Component_Spheroid_Standard_Potential=0.0d0
 
@@ -1195,14 +1195,14 @@ use kind_numbers
     use Numerical_Constants_Math
     use Coordinates
     implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode                                        
-    integer                                , intent(in   )           :: componentType           , massType, weightBy, & 
-         &                                                              weightIndex                                     
-    double precision                       , intent(in   )           :: positionSpherical    (3)                        
-    logical                                , intent(in   ), optional :: haloLoaded                                      
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent                           
-    type            (coordinateSpherical  )                          :: position                                        
-    
+    type            (treeNode             ), intent(inout), pointer  :: thisNode
+    integer                                , intent(in   )           :: componentType           , massType, weightBy, &
+         &                                                              weightIndex
+    double precision                       , intent(in   )           :: positionSpherical    (3)
+    logical                                , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent
+    type            (coordinateSpherical  )                          :: position
+
     Node_Component_Spheroid_Standard_Density=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
 
@@ -1248,10 +1248,10 @@ use kind_numbers
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode                    
-    logical                       , intent(inout)          :: galaxyIsPhysicallyPlausible 
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent       
-    
+    type   (treeNode             ), intent(inout), pointer :: thisNode
+    logical                       , intent(inout)          :: galaxyIsPhysicallyPlausible
+    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     ! Return immediately if our method is not selected.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
 
@@ -1274,9 +1274,9 @@ use kind_numbers
   double precision function Node_Component_Spheroid_Standard_Radius_Solve(thisNode)
     !% Return the circular radius of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode              
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     thisSpheroidComponent => thisNode%spheroid()
     Node_Component_Spheroid_Standard_Radius_Solve=thisSpheroidComponent%radius()
     return
@@ -1285,9 +1285,9 @@ use kind_numbers
   double precision function Node_Component_Spheroid_Standard_Velocity_Solve(thisNode)
     !% Return the circular velocity of the standard spheroid.
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode              
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     thisSpheroidComponent => thisNode%spheroid()
     Node_Component_Spheroid_Standard_Velocity_Solve=thisSpheroidComponent%velocity()
     return
@@ -1296,10 +1296,10 @@ use kind_numbers
   subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(thisNode,radius)
     !% Set the scale radius of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode              
-    double precision                       , intent(in   )          :: radius                
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    double precision                       , intent(in   )          :: radius
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     thisSpheroidComponent => thisNode%spheroid()
     call thisSpheroidComponent%radiusSet(max(radius,0.0d0))
     return
@@ -1308,10 +1308,10 @@ use kind_numbers
   subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(thisNode,velocity)
     !% Set the scale velocity of the standard spheroid.
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode              
-    double precision                       , intent(in   )          :: velocity              
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    double precision                       , intent(in   )          :: velocity
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+
     thisSpheroidComponent => thisNode%spheroid()
     call thisSpheroidComponent%velocitySet(max(velocity,0.0d0))
     return
@@ -1324,15 +1324,15 @@ use kind_numbers
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
     implicit none
-    type            (treeNode                                                              ), intent(inout), pointer :: thisNode                                                
-    logical                                                                                 , intent(  out)          :: componentActive                                         
-    double precision                                                                        , intent(  out)          :: specificAngularMomentum                                 
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set                     ), intent(  out), pointer :: Radius_Set             , Velocity_Set                   
-    procedure       (Node_Component_Spheroid_Standard_Radius_Solve                         ), intent(  out), pointer :: Radius_Get             , Velocity_Get                   
-    class           (nodeComponentSpheroid                                                 )               , pointer :: thisSpheroidComponent                                   
-    double precision                                                                                                 :: angularMomentum        , specificAngularMomentumMean, & 
-         &                                                                                                              spheroidMass                                            
-    
+    type            (treeNode                                                              ), intent(inout), pointer :: thisNode
+    logical                                                                                 , intent(  out)          :: componentActive
+    double precision                                                                        , intent(  out)          :: specificAngularMomentum
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve_Set                     ), intent(  out), pointer :: Radius_Set             , Velocity_Set
+    procedure       (Node_Component_Spheroid_Standard_Radius_Solve                         ), intent(  out), pointer :: Radius_Get             , Velocity_Get
+    class           (nodeComponentSpheroid                                                 )               , pointer :: thisSpheroidComponent
+    double precision                                                                                                 :: angularMomentum        , specificAngularMomentumMean, &
+         &                                                                                                              spheroidMass
+
     ! Determine if thisNode has an active disk component supported by this module.
     componentActive=.false.
     thisSpheroidComponent => thisNode%spheroid()
@@ -1371,11 +1371,11 @@ use kind_numbers
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (nodeComponentSpheroidStandard )          :: self                                                       
-    type   (treeNode                      ), pointer :: selfNode                                                   
-    type   (history                       )          :: starFormationHistory      , stellarPropertiesHistory       
-    logical                                          :: createStarFormationHistory, createStellarPropertiesHistory 
-    
+    type   (nodeComponentSpheroidStandard )          :: self
+    type   (treeNode                      ), pointer :: selfNode
+    type   (history                       )          :: starFormationHistory      , stellarPropertiesHistory
+    logical                                          :: createStarFormationHistory, createStellarPropertiesHistory
+
     ! Return if already initialized.
     if (self%isInitialized()) return
     ! Get the associated node.
@@ -1406,10 +1406,10 @@ use kind_numbers
     !% Return the star formation rate of the standard spheroid.
     use Star_Formation_Timescales_Spheroids
     implicit none
-    class           (nodeComponentSpheroidStandard ), intent(inout) :: self                             
-    type            (treeNode                      ), pointer       :: thisNode                         
-    double precision                                                :: gasMass , starFormationTimescale 
-    
+    class           (nodeComponentSpheroidStandard ), intent(inout) :: self
+    type            (treeNode                      ), pointer       :: thisNode
+    double precision                                                :: gasMass , starFormationTimescale
+
     ! Get the associated node.
     thisNode => self%host()
 
@@ -1432,10 +1432,10 @@ use kind_numbers
     !% Extend the range of a star formation history in a standard spheroid component for {\tt thisNode}.
     use Histories
     implicit none
-    type (treeNode             ), intent(inout), pointer :: thisNode              
-    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    type (history              )                         :: starFormationHistory  
-    
+    type (treeNode             ), intent(inout), pointer :: thisNode
+    class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type (history              )                         :: starFormationHistory
+
     ! Get the spheroid component.
     thisSpheroidComponent => thisNode%spheroid()
 
@@ -1455,13 +1455,13 @@ use kind_numbers
     use Galacticus_Nodes
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: thisNode              
-    integer                       , intent(in   )          :: iOutput               
-    integer(kind=kind_int8       ), intent(in   )          :: treeIndex             
-    logical                       , intent(in   )          :: nodePassesFilter      
-    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent 
-    type   (history              )                         :: starFormationHistory  
-    
+    type   (treeNode             ), intent(inout), pointer :: thisNode
+    integer                       , intent(in   )          :: iOutput
+    integer(kind=kind_int8       ), intent(in   )          :: treeIndex
+    logical                       , intent(in   )          :: nodePassesFilter
+    class  (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
+    type   (history              )                         :: starFormationHistory
+
     ! Output the star formation history if a spheroid exists for this component.
     thisSpheroidComponent => thisNode%spheroid()
     select type (thisSpheroidComponent)

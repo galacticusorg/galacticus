@@ -25,24 +25,24 @@ module Stellar_Astrophysics_File
   public :: Stellar_Astrophysics_File_Initialize, Stellar_Astrophysics_File_Format_Version
 
   ! Arrays to store stellar properties.
-  double precision, allocatable, dimension(:  ) :: stellarLifetime             , stellarLifetimeMass, & 
-       &                                           stellarLifetimeMetallicity                           
-  double precision, allocatable, dimension(:  ) :: ejectedMass                 , ejectedMassMass    , & 
-       &                                           ejectedMassMetallicity                               
-  double precision, allocatable, dimension(:  ) :: metalYield                  , metalYieldMass     , & 
-       &                                           metalYieldMetallicity                                
-  double precision, allocatable, dimension(:,:) :: elementYield                , elementYieldMass   , & 
-       &                                           elementYieldMetallicity                              
-  
+  double precision, allocatable, dimension(:  ) :: stellarLifetime             , stellarLifetimeMass, &
+       &                                           stellarLifetimeMetallicity
+  double precision, allocatable, dimension(:  ) :: ejectedMass                 , ejectedMassMass    , &
+       &                                           ejectedMassMetallicity
+  double precision, allocatable, dimension(:  ) :: metalYield                  , metalYieldMass     , &
+       &                                           metalYieldMetallicity
+  double precision, allocatable, dimension(:,:) :: elementYield                , elementYieldMass   , &
+       &                                           elementYieldMetallicity
+
   ! Variables that store information about number of elements and number of yields for each element.
-  integer         , allocatable, dimension(:)   :: atomIndexMap                , elementYieldCount      
-  
+  integer         , allocatable, dimension(:)   :: atomIndexMap                , elementYieldCount
+
   ! Number of elements being tracked.
-  integer                                       :: elementCount                                         
-  
+  integer                                       :: elementCount
+
   ! Current file format version for intergalactic background radiation files.
-  integer         , parameter                   :: fileFormatVersionCurrent  =1                         
-  
+  integer         , parameter                   :: fileFormatVersionCurrent  =1
+
 contains
 
   integer function Stellar_Astrophysics_File_Format_Version()
@@ -67,23 +67,23 @@ contains
     use Atomic_Data
     use Galacticus_Input_Paths
     implicit none
-    type            (varying_string            ), intent(in   )          :: stellarAstrophysicsMethod                              
-    procedure       (Star_Ejected_Mass_File    ), intent(inout), pointer :: Star_Ejected_Mass_Get                                  
-    procedure       (Star_Initial_Mass_File    ), intent(inout), pointer :: Star_Initial_Mass_Get                                  
-    procedure       (Star_Metal_Yield_Mass_File), intent(inout), pointer :: Star_Metal_Yield_Mass_Get                              
-    procedure       (Star_Lifetime_File        ), intent(inout), pointer :: Star_Lifetime_Get                                      
-    type            (Node                      )               , pointer :: doc                      , thisDatum               , & 
-         &                                                                  thisStar                                               
-    type            (NodeList                  )               , pointer :: propertyList             , starList                    
-    type            (varying_string            )                         :: stellarPropertiesFile                                  
-    integer                                                              :: ejectedMassCount         , elementYieldCountMaximum, & 
-         &                                                                  fileFormatVersion        , iElement                , & 
-         &                                                                  iStar                    , ioErr                   , & 
-         &                                                                  lifetimeCount            , mapToIndex              , & 
-         &                                                                  metalYieldCount                                        
-    double precision                                                     :: initialMass              , metallicity                 
-    logical                                                              :: starHasElements                                        
-    
+    type            (varying_string            ), intent(in   )          :: stellarAstrophysicsMethod
+    procedure       (Star_Ejected_Mass_File    ), intent(inout), pointer :: Star_Ejected_Mass_Get
+    procedure       (Star_Initial_Mass_File    ), intent(inout), pointer :: Star_Initial_Mass_Get
+    procedure       (Star_Metal_Yield_Mass_File), intent(inout), pointer :: Star_Metal_Yield_Mass_Get
+    procedure       (Star_Lifetime_File        ), intent(inout), pointer :: Star_Lifetime_Get
+    type            (Node                      )               , pointer :: doc                      , thisDatum               , &
+         &                                                                  thisStar
+    type            (NodeList                  )               , pointer :: propertyList             , starList
+    type            (varying_string            )                         :: stellarPropertiesFile
+    integer                                                              :: ejectedMassCount         , elementYieldCountMaximum, &
+         &                                                                  fileFormatVersion        , iElement                , &
+         &                                                                  iStar                    , ioErr                   , &
+         &                                                                  lifetimeCount            , mapToIndex              , &
+         &                                                                  metalYieldCount
+    double precision                                                     :: initialMass              , metallicity
+    logical                                                              :: starHasElements
+
     ! Check if our method is selected.
     if (stellarAstrophysicsMethod == 'file') then
        ! Set up procedure pointers.
@@ -91,7 +91,7 @@ contains
        Star_Initial_Mass_Get     => Star_Initial_Mass_File
        Star_Metal_Yield_Mass_Get => Star_Metal_Yield_Mass_File
        Star_Lifetime_Get         => Star_Lifetime_File
-       
+
        ! Get the name of the file containing stellar data.
        !@ <inputParameter>
        !@   <name>stellarPropertiesFile</name>
@@ -114,7 +114,7 @@ contains
        ! Open the XML file containing stellar properties.
        doc => parseFile(char(stellarPropertiesFile),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize','Unable to parse stellar properties file')
-  
+
        ! Check the file format version of the file.
        propertyList => getElementsByTagname(doc,"fileFormat")
        thisDatum => item(propertyList,0)
@@ -229,7 +229,7 @@ contains
              metalYieldMass       (metalYieldCount)=initialMass
              metalYieldMetallicity(metalYieldCount)=metallicity
           end if
-          
+
           ! Process element yields.
           starHasElements=.false.
           do iElement=1,size(elementYieldCount)
@@ -240,7 +240,7 @@ contains
                 elementYieldCount(iElement)=elementYieldCount(iElement)+1
                 call extractDataContent(thisDatum,elementYield(elementYieldCount(iElement),atomIndexMap(iElement)))
                 elementYieldMass       (elementYieldCount(iElement),atomIndexMap(iElement))=initialMass
-                elementYieldMetallicity(elementYieldCount(iElement),atomIndexMap(iElement))=metallicity                
+                elementYieldMetallicity(elementYieldCount(iElement),atomIndexMap(iElement))=metallicity
              end if
           end do
 
@@ -270,10 +270,10 @@ contains
   double precision function Star_Initial_Mass_File(lifetime,metallicity)
     !% Return the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: lifetime              , metallicity 
-    type            (interp2dIrregularObject)                :: interpolationWorkspace              
-    logical                                                  :: resetInterpolation                  
-    
+    double precision                         , intent(in   ) :: lifetime              , metallicity
+    type            (interp2dIrregularObject)                :: interpolationWorkspace
+    logical                                                  :: resetInterpolation
+
     resetInterpolation=.true.
     Star_Initial_Mass_File=Interpolate_2D_Irregular(stellarLifetime,stellarLifetimeMetallicity,stellarLifetimeMass,lifetime&
          &,metallicity,interpolationWorkspace,reset=resetInterpolation,numberComputePoints=3)
@@ -283,10 +283,10 @@ contains
   double precision function Star_Lifetime_File(initialMass,metallicity)
     !% Return the lifetime of a star (in Gyr) given an {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: initialMass           , metallicity 
-    type            (interp2dIrregularObject)                :: interpolationWorkspace              
-    logical                                                  :: resetInterpolation                  
-    
+    double precision                         , intent(in   ) :: initialMass           , metallicity
+    type            (interp2dIrregularObject)                :: interpolationWorkspace
+    logical                                                  :: resetInterpolation
+
     resetInterpolation=.true.
     Star_Lifetime_File=Interpolate_2D_Irregular(stellarLifetimeMass,stellarLifetimeMetallicity,stellarLifetime,initialMass&
          &,metallicity ,interpolationWorkspace,reset=resetInterpolation)
@@ -297,10 +297,10 @@ contains
   double precision function Star_Ejected_Mass_File(initialMass,metallicity)
     !% Return the mass ejected during the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: initialMass           , metallicity 
-    type            (interp2dIrregularObject)                :: interpolationWorkspace              
-    logical                                                  :: resetInterpolation                  
-    
+    double precision                         , intent(in   ) :: initialMass           , metallicity
+    type            (interp2dIrregularObject)                :: interpolationWorkspace
+    logical                                                  :: resetInterpolation
+
     ! Compute the ejected mass.
     resetInterpolation=.true.
     Star_Ejected_Mass_File=max(Interpolate_2D_Irregular(ejectedMassMass,ejectedMassMetallicity,ejectedMass,initialMass,metallicity&
@@ -313,12 +313,12 @@ contains
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     use Memory_Management
     implicit none
-    double precision                         , intent(in   )           :: initialMass           , metallicity 
-    integer                                  , intent(in   ), optional :: atomIndex                           
-    type            (interp2dIrregularObject)                          :: interpolationWorkspace              
-    logical                                                            :: resetInterpolation                  
-    integer                                                            :: elementIndex                        
-    
+    double precision                         , intent(in   )           :: initialMass           , metallicity
+    integer                                  , intent(in   ), optional :: atomIndex
+    type            (interp2dIrregularObject)                          :: interpolationWorkspace
+    logical                                                            :: resetInterpolation
+    integer                                                            :: elementIndex
+
     if (present(atomIndex)) then
        ! Compute the element mass yield.
        elementIndex=atomIndexMap(atomIndex)

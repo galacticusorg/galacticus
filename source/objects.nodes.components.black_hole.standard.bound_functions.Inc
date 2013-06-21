@@ -21,10 +21,10 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Mass(self)
   !% Return the seed mass for standard black holes.
   use Input_Parameters
   implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout) :: self                         
-  logical                                         , save          :: functionInitialized=.false.  
-  double precision                                , save          :: blackHoleSeedMass            
-                                                                                               
+  class           (nodeComponentBlackHoleStandard), intent(inout) :: self
+  logical                                         , save          :: functionInitialized=.false.
+  double precision                                , save          :: blackHoleSeedMass
+
   if (.not.functionInitialized) then
      !$omp critical (Node_Component_Black_Hole_Standard_Seed_Mass)
      if (.not.functionInitialized) then
@@ -55,8 +55,8 @@ double precision function Node_Component_Black_Hole_Standard_Seed_Spin(self)
   !% Return the seed spin for standard black holes.
   use Input_Parameters
   implicit none
-  class(nodeComponentBlackHoleStandard), intent(inout) :: self  
-                                                             
+  class(nodeComponentBlackHoleStandard), intent(inout) :: self
+
   Node_Component_Black_Hole_Standard_Seed_Spin=1.0d-3
   return
 end function Node_Component_Black_Hole_Standard_Seed_Spin
@@ -64,9 +64,9 @@ end function Node_Component_Black_Hole_Standard_Seed_Spin
 double precision function Node_Component_Black_Hole_Standard_Spin(self)
   !% Return the spin of a standard black hole.
   implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout) :: self                                                                                 
-  double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).  
-                                                                                                                                                       
+  class           (nodeComponentBlackHoleStandard), intent(inout) :: self
+  double precision                                , parameter     :: blackHoleSpinMaximum=0.9999d0 !  Maximum allowed spin (useful to avoid infinities).
+
   Node_Component_Black_Hole_Standard_Spin=self%spinData%value
   ! Ensure that the spin is within range.
   if (Node_Component_Black_Hole_Standard_Spin < 0.0d0) then
@@ -85,12 +85,12 @@ double precision function Node_Component_Black_Hole_Standard_Enclosed_Mass(self,
   !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
   use Galactic_Structure_Options
   implicit none
-  class           (nodeComponentBlackHoleStandard), intent(inout)           :: self                                            
-  integer                                         , intent(in   )           :: componentType, massType, weightBy, weightIndex  
-  double precision                                , intent(in   )           :: radius                                          
-  logical                                         , intent(in   ), optional :: haloLoaded                                      
-  
-  ! Set zero enclosed mass by default.                                                                                                                          
+  class           (nodeComponentBlackHoleStandard), intent(inout)           :: self
+  integer                                         , intent(in   )           :: componentType, massType, weightBy, weightIndex
+  double precision                                , intent(in   )           :: radius
+  logical                                         , intent(in   ), optional :: haloLoaded
+
+  ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Standard_Enclosed_Mass=0.0d0
   ! Return if mass is not to be counted, or if radius is negative.
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return

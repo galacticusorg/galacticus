@@ -27,27 +27,27 @@ module Star_Formation_Rate_Surface_Density_Disks_KMT09
        & Star_Formation_Rate_Surface_Density_Disks_KMT09_Initialize
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8  )            :: lastUniqueID                       =-1                                      
+  integer         (kind=kind_int8  )            :: lastUniqueID                       =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not factors have been precomputed.
-  logical                                       :: factorsComputed                    =.false.                                 
+  logical                                       :: factorsComputed                    =.false.
   !$omp threadprivate(factorsComputed)
   ! Precomputed factors.
-  double precision                              :: chi                                        , diskScaleRadius            , & 
-       &                                           gasMass                                    , hydrogenMassFraction       , & 
-       &                                           metallicityRelativeToSolar                 , sNormalization             , & 
-       &                                           sigmaMolecularComplexNormalization                                          
+  double precision                              :: chi                                        , diskScaleRadius            , &
+       &                                           gasMass                                    , hydrogenMassFraction       , &
+       &                                           metallicityRelativeToSolar                 , sNormalization             , &
+       &                                           sigmaMolecularComplexNormalization
   !$omp threadprivate(hydrogenMassFraction,gasMass,diskScaleRadius,metallicityRelativeToSolar)
   !$omp threadprivate(chi,sigmaMolecularComplexNormalization,sNormalization)
   ! Parameters of the model.
-  double precision                              :: molecularComplexClumpingFactorKMT09        , starFormationFrequencyKMT09    
-  
+  double precision                              :: molecularComplexClumpingFactorKMT09        , starFormationFrequencyKMT09
+
   ! Pointer the the molecular fraction function that is to be used.
-  procedure       (double precision), pointer   :: KMT09_Molecular_Fraction           =>null()                                 
-  
+  procedure       (double precision), pointer   :: KMT09_Molecular_Fraction           =>null()
+
   ! Minimum fraction of molecular hydrogen allowed.
-  double precision                  , parameter :: molecularFractionMinimum           =1.0d-4                                  
-  
+  double precision                  , parameter :: molecularFractionMinimum           =1.0d-4
+
 contains
 
   !# <calculationResetTask>
@@ -56,8 +56,8 @@ contains
   subroutine Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset(thisNode)
     !% Reset the extended Schmidt relation calculation.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode 
-    
+    type(treeNode), intent(inout), pointer :: thisNode
+
     factorsComputed=.false.
     lastUniqueID   =thisNode%uniqueID()
     return
@@ -74,10 +74,10 @@ contains
     use Abundances_Structure
     use Numerical_Constants_Prefixes
     implicit none
-    type     (varying_string                                ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod   
-    procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get 
-    logical                                                                           :: molecularFractionFastKMT09                   
-    
+    type     (varying_string                                ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
+    procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
+    logical                                                                           :: molecularFractionFastKMT09
+
     if (starFormationRateSurfaceDensityDisksMethod == 'KMT09') then
        Star_Formation_Rate_Surface_Density_Disk_Get => Star_Formation_Rate_Surface_Density_Disk_KMT09
        ! Get parameters of our model.
@@ -140,16 +140,16 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Prefixes
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                                                                              
-    double precision                   , intent(in   )          :: radius                                                                                
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent                                                                     
-    type            (abundances       ), save                   :: fuelAbundances                                                                        
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    double precision                   , intent(in   )          :: radius
+    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
+    type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                   , parameter              :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2    
-    double precision                                            :: cloudFactor                     , molecularFraction                               , & 
-         &                                                         s                               , sigmaMolecularComplex                           , & 
-         &                                                         surfaceDensityGas               , surfaceDensityGasDimensionless                      
-    
+    double precision                   , parameter              :: surfaceDensityTransition=85.0d12                                 !   M_Solar/Mpc^2
+    double precision                                            :: cloudFactor                     , molecularFraction                               , &
+         &                                                         s                               , sigmaMolecularComplex                           , &
+         &                                                         surfaceDensityGas               , surfaceDensityGasDimensionless
+
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_KMT09_Reset(thisNode)
     ! Check if factors have been precomputed.
@@ -209,11 +209,11 @@ contains
     !% Slow (but more accurate at low molecular fraction) fitting function from \cite{krumholz_star_2009} for the molecular
     !% hydrogen fraction.
     implicit none
-    double precision, intent(in   ) :: s               
-    double precision, parameter     :: sMinimum=1.0d-6 
-    double precision, parameter     :: sMaximum=8.0d0  
-    double precision                :: delta           
-    
+    double precision, intent(in   ) :: s
+    double precision, parameter     :: sMinimum=1.0d-6
+    double precision, parameter     :: sMaximum=8.0d0
+    double precision                :: delta
+
     ! Check if s is below maximum. If not, simply truncate to the minimum fraction that we allow. Also use a simple series
     ! expansion for cases of very small s.
     if      (s <  sMinimum) then
@@ -231,8 +231,8 @@ contains
     !% Fast (but less accurate at low molecular fraction) fitting function from \cite{mckee_atomic--molecular_2010} for the
     !% molecular hydrogen fraction.
     implicit none
-    double precision, intent(in   ) :: s 
-    
+    double precision, intent(in   ) :: s
+
     ! Check that s is below 2 - if it is, compute the molecular fraction, otherwise truncate to the minimum.
     if (s < 2.0d0) then
        KMT09_Molecular_Fraction_Fast=max(1.0d0-0.75d0*s/(1.0d0+0.25d0*s),molecularFractionMinimum)

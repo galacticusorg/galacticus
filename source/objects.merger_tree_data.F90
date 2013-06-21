@@ -55,33 +55,33 @@ module Merger_Tree_Data_Structure
   !@  <entry label="propertyTypeMostBoundParticleIndex" />
   !@  <entry label="propertyTypeSnapshot"               />
   !@ </enumeration>
-  integer, parameter         :: propertyTypeNull                  =1  
-  integer, parameter, public :: propertyTypeTreeIndex             =2  
-  integer, parameter, public :: propertyTypeNodeIndex             =3  
-  integer, parameter, public :: propertyTypeDescendentIndex       =4  
-  integer, parameter, public :: propertyTypeHostIndex             =5  
-  integer, parameter, public :: propertyTypeRedshift              =6  
-  integer, parameter, public :: propertyTypeNodeMass              =7  
-  integer, parameter, public :: propertyTypeParticleCount         =8  
-  integer, parameter, public :: propertyTypePositionX             =9  
-  integer, parameter, public :: propertyTypePositionY             =10 
-  integer, parameter, public :: propertyTypePositionZ             =11 
-  integer, parameter, public :: propertyTypeVelocityX             =12 
-  integer, parameter, public :: propertyTypeVelocityY             =13 
-  integer, parameter, public :: propertyTypeVelocityZ             =14 
-  integer, parameter, public :: propertyTypeSpinX                 =15 
-  integer, parameter, public :: propertyTypeSpinY                 =16 
-  integer, parameter, public :: propertyTypeSpinZ                 =17 
-  integer, parameter, public :: propertyTypeSpin                  =18 
-  integer, parameter, public :: propertyTypeAngularMomentumX      =19 
-  integer, parameter, public :: propertyTypeAngularMomentumY      =20 
-  integer, parameter, public :: propertyTypeAngularMomentumZ      =21 
-  integer, parameter, public :: propertyTypeAngularMomentum       =22 
-  integer, parameter, public :: propertyTypeHalfMassRadius        =23 
-  integer, parameter, public :: propertyTypeParticleIndex         =24 
-  integer, parameter, public :: propertyTypeMostBoundParticleIndex=25 
-  integer, parameter, public :: propertyTypeSnapshot              =26 
-  
+  integer, parameter         :: propertyTypeNull                  =1
+  integer, parameter, public :: propertyTypeTreeIndex             =2
+  integer, parameter, public :: propertyTypeNodeIndex             =3
+  integer, parameter, public :: propertyTypeDescendentIndex       =4
+  integer, parameter, public :: propertyTypeHostIndex             =5
+  integer, parameter, public :: propertyTypeRedshift              =6
+  integer, parameter, public :: propertyTypeNodeMass              =7
+  integer, parameter, public :: propertyTypeParticleCount         =8
+  integer, parameter, public :: propertyTypePositionX             =9
+  integer, parameter, public :: propertyTypePositionY             =10
+  integer, parameter, public :: propertyTypePositionZ             =11
+  integer, parameter, public :: propertyTypeVelocityX             =12
+  integer, parameter, public :: propertyTypeVelocityY             =13
+  integer, parameter, public :: propertyTypeVelocityZ             =14
+  integer, parameter, public :: propertyTypeSpinX                 =15
+  integer, parameter, public :: propertyTypeSpinY                 =16
+  integer, parameter, public :: propertyTypeSpinZ                 =17
+  integer, parameter, public :: propertyTypeSpin                  =18
+  integer, parameter, public :: propertyTypeAngularMomentumX      =19
+  integer, parameter, public :: propertyTypeAngularMomentumY      =20
+  integer, parameter, public :: propertyTypeAngularMomentumZ      =21
+  integer, parameter, public :: propertyTypeAngularMomentum       =22
+  integer, parameter, public :: propertyTypeHalfMassRadius        =23
+  integer, parameter, public :: propertyTypeParticleIndex         =24
+  integer, parameter, public :: propertyTypeMostBoundParticleIndex=25
+  integer, parameter, public :: propertyTypeSnapshot              =26
+
   ! Property names.
   character(len=*), parameter :: propertyNames(26)=[ &
        & 'null                  ',                   &
@@ -129,17 +129,17 @@ module Merger_Tree_Data_Structure
   !@  <entry label="unitsTime"     />
   !@  <entry label="unitsVelocity" />
   !@ </enumeration>
-  integer, parameter         :: unitTypeCount=4 
-  integer, parameter, public :: unitsMass    =1 
-  integer, parameter, public :: unitsLength  =2 
-  integer, parameter, public :: unitsTime    =3 
-  integer, parameter, public :: unitsVelocity=4 
-  
+  integer, parameter         :: unitTypeCount=4
+  integer, parameter, public :: unitsMass    =1
+  integer, parameter, public :: unitsLength  =2
+  integer, parameter, public :: unitsTime    =3
+  integer, parameter, public :: unitsVelocity=4
+
   type unitsMetaData
      !% A structure that holds metadata on units used.
-     double precision                 :: unitsInSI                           
-     integer                          :: hubbleExponent, scaleFactorExponent 
-     type            (varying_string) :: name                                
+     double precision                 :: unitsInSI
+     integer                          :: hubbleExponent, scaleFactorExponent
+     type            (varying_string) :: name
   end type unitsMetaData
 
   ! Metadata labels.
@@ -153,14 +153,14 @@ module Merger_Tree_Data_Structure
   !@  <entry label="metaDataTreeBuilder" />
   !@  <entry label="metaDataProvenance"  />
   !@ </enumeration>
-  integer, parameter         :: metaDataTypeCount  =6 
-  integer, parameter, public :: metaDataGeneric    =1 
-  integer, parameter, public :: metaDataCosmology  =2 
-  integer, parameter, public :: metaDataSimulation =3 
-  integer, parameter, public :: metaDataGroupFinder=4 
-  integer, parameter, public :: metaDataTreeBuilder=5 
-  integer, parameter, public :: metaDataProvenance =6 
-  
+  integer, parameter         :: metaDataTypeCount  =6
+  integer, parameter, public :: metaDataGeneric    =1
+  integer, parameter, public :: metaDataCosmology  =2
+  integer, parameter, public :: metaDataSimulation =3
+  integer, parameter, public :: metaDataGroupFinder=4
+  integer, parameter, public :: metaDataTreeBuilder=5
+  integer, parameter, public :: metaDataProvenance =6
+
   ! Data types for metadata.
   !@ <enumeration>
   !@  <name>dataType</name>
@@ -169,65 +169,65 @@ module Merger_Tree_Data_Structure
   !@  <entry label="dataTypeDouble"  />
   !@  <entry label="dataTypeText"    />
   !@ </enumeration>
-  integer, parameter         :: dataTypeNull       =0 
-  integer, parameter         :: dataTypeInteger    =1 
-  integer, parameter         :: dataTypeDouble     =2 
-  integer, parameter         :: dataTypeText       =3 
-  
+  integer, parameter         :: dataTypeNull       =0
+  integer, parameter         :: dataTypeInteger    =1
+  integer, parameter         :: dataTypeDouble     =2
+  integer, parameter         :: dataTypeText       =3
+
   type treeMetaData
      !% Structure that holds metadata for the trees.
-     integer                          :: metadataType     
-     type            (varying_string) :: label            
-     integer                          :: dataType         
-     integer                          :: integerAttribute 
-     double precision                 :: doubleAttribute  
-     type            (varying_string) :: textAttribute    
+     integer                          :: metadataType
+     type            (varying_string) :: label
+     integer                          :: dataType
+     integer                          :: integerAttribute
+     double precision                 :: doubleAttribute
+     type            (varying_string) :: textAttribute
   end type treeMetaData
 
   type mergerTreeData
      !% A structure that holds raw merger tree data.
      private
-     integer                                                                 :: nodeCount                          , particlesCount                   , & 
-          &                                                                     treeCount                                                                 
-     double precision                                                        :: particleMass               =0.0d0                                         
-     integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , & 
-          &                                                                     treeBeginsAt                       , treeNodeCount                        
-     integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , & 
-          &                                                                     mostBoundParticleIndex             , nodeIndex                        , & 
-          &                                                                     particleCount                      , particleIndex                    , & 
-          &                                                                     particleReferenceCount             , particleReferenceStart           , & 
-          &                                                                     particleSnapshot                   , snapshot                         , & 
-          &                                                                     treeID                             , treeIndex                            
-     double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , & 
-          &                                                                     nodeMass                           , particleRedshift                 , & 
-          &                                                                     redshift                           , spinMagnitude                        
-     double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , & 
-          &                                                                     particleVelocity                   , position                         , & 
-          &                                                                     spin                               , velocity                             
-     logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , & 
-          &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , & 
-          &                                                                     hasDescendentIndex                 , hasHalfMassRadius                , & 
-          &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , & 
-          &                                                                     hasNodeIndex                       , hasNodeMass                      , & 
-          &                                                                     hasParticleCount                   , hasParticleIndex                 , & 
-          &                                                                     hasParticlePositionX               , hasParticlePositionY             , & 
-          &                                                                     hasParticlePositionZ               , hasParticleRedshift              , & 
-          &                                                                     hasParticleSnapshot                , hasParticleVelocityX             , & 
-          &                                                                     hasParticleVelocityY               , hasParticleVelocityZ             , & 
-          &                                                                     hasParticles               =.false., hasPositionX                     , & 
-          &                                                                     hasPositionY                       , hasPositionZ                     , & 
-          &                                                                     hasRedshift                        , hasSnapshot                      , & 
-          &                                                                     hasSpinMagnitude                   , hasSpinX                         , & 
-          &                                                                     hasSpinY                           , hasSpinZ                         , & 
-          &                                                                     hasTreeIndex                       , hasVelocityX                     , & 
-          &                                                                     hasVelocityY                       , hasVelocityZ                         
-     logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , & 
-          &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., & 
-          &                                                                     isPeriodic                 =.false.                                       
-     type            (unitsMetaData )             , dimension(unitTypeCount) :: units                                                                     
-     logical                                      , dimension(unitTypeCount) :: unitsSet                   =.false.                                       
-     integer                                                                 :: metaDataCount              =0                                             
-     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData                                                                  
+     integer                                                                 :: nodeCount                          , particlesCount                   , &
+          &                                                                     treeCount
+     double precision                                                        :: particleMass               =0.0d0
+     integer                         , allocatable, dimension(:)             :: columnProperties                   , particleColumnProperties         , &
+          &                                                                     treeBeginsAt                       , treeNodeCount
+     integer         (kind=kind_int8), allocatable, dimension(:)             :: descendentIndex                    , hostIndex                        , &
+          &                                                                     mostBoundParticleIndex             , nodeIndex                        , &
+          &                                                                     particleCount                      , particleIndex                    , &
+          &                                                                     particleReferenceCount             , particleReferenceStart           , &
+          &                                                                     particleSnapshot                   , snapshot                         , &
+          &                                                                     treeID                             , treeIndex
+     double precision                , allocatable, dimension(:)             :: angularMomentumMagnitude           , halfMassRadius                   , &
+          &                                                                     nodeMass                           , particleRedshift                 , &
+          &                                                                     redshift                           , spinMagnitude
+     double precision                , allocatable, dimension(:,:)           :: angularMomentum                    , particlePosition                 , &
+          &                                                                     particleVelocity                   , position                         , &
+          &                                                                     spin                               , velocity
+     logical                                                                 :: hasAngularMomentumMagnitude        , hasAngularMomentumX              , &
+          &                                                                     hasAngularMomentumY                , hasAngularMomentumZ              , &
+          &                                                                     hasDescendentIndex                 , hasHalfMassRadius                , &
+          &                                                                     hasHostIndex                       , hasMostBoundParticleIndex        , &
+          &                                                                     hasNodeIndex                       , hasNodeMass                      , &
+          &                                                                     hasParticleCount                   , hasParticleIndex                 , &
+          &                                                                     hasParticlePositionX               , hasParticlePositionY             , &
+          &                                                                     hasParticlePositionZ               , hasParticleRedshift              , &
+          &                                                                     hasParticleSnapshot                , hasParticleVelocityX             , &
+          &                                                                     hasParticleVelocityY               , hasParticleVelocityZ             , &
+          &                                                                     hasParticles               =.false., hasPositionX                     , &
+          &                                                                     hasPositionY                       , hasPositionZ                     , &
+          &                                                                     hasRedshift                        , hasSnapshot                      , &
+          &                                                                     hasSpinMagnitude                   , hasSpinX                         , &
+          &                                                                     hasSpinY                           , hasSpinZ                         , &
+          &                                                                     hasTreeIndex                       , hasVelocityX                     , &
+          &                                                                     hasVelocityY                       , hasVelocityZ
+     logical                                                                 :: areSelfContained           =.true. , doMakeReferences         =.true. , &
+          &                                                                     includesHubbleFlow         =.false., includesSubhaloMasses    =.false., &
+          &                                                                     isPeriodic                 =.false.
+     type            (unitsMetaData )             , dimension(unitTypeCount) :: units
+     logical                                      , dimension(unitTypeCount) :: unitsSet                   =.false.
+     integer                                                                 :: metaDataCount              =0
+     type            (treeMetaData  ), allocatable, dimension(:)             :: metaData
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeData</object>
@@ -340,32 +340,32 @@ module Merger_Tree_Data_Structure
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} outputFileName\argin, \textcolor{red}{\textless character(len=*)\textgreater} outputFormat\argin, \intzero\ hdfChunkSize\argin, \intzero\ hdfCompressionLevel\argin, \logicalzero\ [append]\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset                
-     procedure :: treeCountSet                                    =>Merger_Tree_Data_Structure_Set_Tree_Count       
-     procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count       
-     procedure :: particleCountSet                                =>Merger_Tree_Data_Structure_Set_Particle_Count   
-     procedure :: readASCII                                       =>Merger_Tree_Data_Structure_Read_ASCII           
-     procedure :: readParticlesASCII                              =>Merger_Tree_Data_Structure_Read_Particles_ASCII 
-     procedure :: Merger_Tree_Data_Structure_Set_Property_Integer8                                                  
-     procedure :: Merger_Tree_Data_Structure_Set_Property_Double                                                    
+     procedure :: reset                                           =>Merger_Tree_Data_Structure_Reset
+     procedure :: treeCountSet                                    =>Merger_Tree_Data_Structure_Set_Tree_Count
+     procedure :: nodeCountSet                                    =>Merger_Tree_Data_Structure_Set_Node_Count
+     procedure :: particleCountSet                                =>Merger_Tree_Data_Structure_Set_Particle_Count
+     procedure :: readASCII                                       =>Merger_Tree_Data_Structure_Read_ASCII
+     procedure :: readParticlesASCII                              =>Merger_Tree_Data_Structure_Read_Particles_ASCII
+     procedure :: Merger_Tree_Data_Structure_Set_Property_Integer8
+     procedure :: Merger_Tree_Data_Structure_Set_Property_Double
      generic                                              :: setProperty               => Merger_Tree_Data_Structure_Set_Property_Integer8, &
           &                                                                               Merger_Tree_Data_Structure_Set_Property_Double
-     procedure :: setPropertyColumn                              =>Merger_Tree_Data_Structure_Set_Property_Column          
-     procedure :: setParticlePropertyColumn                      =>Merger_Tree_Data_Structure_Set_Particle_Property_Column 
-     procedure :: setParticleMass                                =>Merger_Tree_Data_Structure_Set_Particle_Mass            
-     procedure :: setSelfContained                               =>Merger_Tree_Data_Structure_Set_Self_Contained           
-     procedure :: setIncludesHubbleFlow                          =>Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow     
-     procedure :: setPositionsArePeriodic                        =>Merger_Tree_Data_Structure_Set_Is_Periodic              
-     procedure :: setIncludesSubhaloMasses                       =>Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses  
-     procedure :: setUnits                                       =>Merger_Tree_Data_Structure_Set_Units                    
-     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Double                                                           
-     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Integer                                                          
-     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Text                                                             
+     procedure :: setPropertyColumn                              =>Merger_Tree_Data_Structure_Set_Property_Column
+     procedure :: setParticlePropertyColumn                      =>Merger_Tree_Data_Structure_Set_Particle_Property_Column
+     procedure :: setParticleMass                                =>Merger_Tree_Data_Structure_Set_Particle_Mass
+     procedure :: setSelfContained                               =>Merger_Tree_Data_Structure_Set_Self_Contained
+     procedure :: setIncludesHubbleFlow                          =>Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow
+     procedure :: setPositionsArePeriodic                        =>Merger_Tree_Data_Structure_Set_Is_Periodic
+     procedure :: setIncludesSubhaloMasses                       =>Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses
+     procedure :: setUnits                                       =>Merger_Tree_Data_Structure_Set_Units
+     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Double
+     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Integer
+     procedure :: Merger_Tree_Data_Structure_Add_Metadata_Text
      generic                                              :: addMetadata               => Merger_Tree_Data_Structure_Add_Metadata_Double , &
           &                                                                               Merger_Tree_Data_Structure_Add_Metadata_Integer, &
           &                                                                               Merger_Tree_Data_Structure_Add_Metadata_Text
-     procedure :: makeReferences=>Merger_Tree_Data_Structure_Make_References 
-     procedure :: export        =>Merger_Tree_Data_Structure_Export          
+     procedure :: makeReferences=>Merger_Tree_Data_Structure_Make_References
+     procedure :: export        =>Merger_Tree_Data_Structure_Export
   end type mergerTreeData
 
 contains
@@ -374,8 +374,8 @@ contains
     !% Reset a merger tree data object.
     use Memory_Management
     implicit none
-    class(mergerTreeData), intent(inout) :: mergerTrees 
-    
+    class(mergerTreeData), intent(inout) :: mergerTrees
+
     ! No properties.
     mergerTrees%hasTreeIndex               =.false.
     mergerTrees%hasNodeIndex               =.false.
@@ -423,9 +423,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Make_References(mergerTrees,makeReferences)
     !% Specify whether or not to make merger tree dataset references.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees    
-    logical                , intent(in   ) :: makeReferences 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                , intent(in   ) :: makeReferences
+
     mergerTrees%doMakeReferences=makeReferences
     return
   end subroutine Merger_Tree_Data_Structure_Make_References
@@ -435,11 +435,11 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class           (mergerTreeData), intent(inout) :: mergerTrees  
-    integer                         , intent(in   ) :: metadataType 
-    character       (len=*         ), intent(in   ) :: label        
-    double precision                , intent(in   ) :: doubleValue  
-    
+    class           (mergerTreeData), intent(inout) :: mergerTrees
+    integer                         , intent(in   ) :: metadataType
+    character       (len=*         ), intent(in   ) :: label
+    double precision                , intent(in   ) :: doubleValue
+
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,doubleValue=doubleValue)
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Double
@@ -449,11 +449,11 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class    (mergerTreeData), intent(inout) :: mergerTrees  
-    integer                  , intent(in   ) :: metadataType 
-    character(len=*         ), intent(in   ) :: label        
-    integer                  , intent(in   ) :: integerValue 
-    
+    class    (mergerTreeData), intent(inout) :: mergerTrees
+    integer                  , intent(in   ) :: metadataType
+    character(len=*         ), intent(in   ) :: label
+    integer                  , intent(in   ) :: integerValue
+
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,integerValue=integerValue)
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer
@@ -463,11 +463,11 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class    (mergerTreeData), intent(inout) :: mergerTrees  
-    integer                  , intent(in   ) :: metadataType 
-    character(len=*         ), intent(in   ) :: label        
-    character(len=*         ), intent(in   ) :: textValue    
-    
+    class    (mergerTreeData), intent(inout) :: mergerTrees
+    integer                  , intent(in   ) :: metadataType
+    character(len=*         ), intent(in   ) :: label
+    character(len=*         ), intent(in   ) :: textValue
+
     call Merger_Tree_Data_Structure_Add_Metadata(mergerTrees,metadataType,label,textValue=textValue)
     return
   end subroutine Merger_Tree_Data_Structure_Add_Metadata_Text
@@ -477,15 +477,15 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class           (mergerTreeData), intent(inout)               :: mergerTrees           
-    integer                         , intent(in   )               :: metadataType          
-    character       (len=*         ), intent(in   )               :: label                 
-    integer                         , intent(in   ), optional     :: integerValue          
-    double precision                , intent(in   ), optional     :: doubleValue           
-    character       (len=*         ), intent(in   ), optional     :: textValue             
-    integer                         , parameter                   :: metadataBlockSize=100 
-    type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary     
-    
+    class           (mergerTreeData), intent(inout)               :: mergerTrees
+    integer                         , intent(in   )               :: metadataType
+    character       (len=*         ), intent(in   )               :: label
+    integer                         , intent(in   ), optional     :: integerValue
+    double precision                , intent(in   ), optional     :: doubleValue
+    character       (len=*         ), intent(in   ), optional     :: textValue
+    integer                         , parameter                   :: metadataBlockSize=100
+    type            (treeMetaData  ), allocatable  , dimension(:) :: metaDataTemporary
+
     ! Validate the metadata type.
     if (metadataType < 1 .or. metadataType > metaDataTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Add_Metadata','invalid metadata type')
 
@@ -534,9 +534,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Tree_Count(mergerTrees,treeCount)
     !% Set the total number of trees in merger trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees 
-    integer                , intent(in   ) :: treeCount   
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                , intent(in   ) :: treeCount
+
     ! Set the number of trees.
     mergerTrees%treeCount=treeCount
 
@@ -546,9 +546,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Node_Count(mergerTrees,nodeCount)
     !% Set the total number of nodes in merger trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees 
-    integer                , intent(in   ) :: nodeCount   
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                , intent(in   ) :: nodeCount
+
     ! Set the number of nodes.
     mergerTrees%nodeCount=nodeCount
 
@@ -558,9 +558,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Particle_Count(mergerTrees,particleCount)
     !% Set the total number of particles in merger trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees   
-    integer                , intent(in   ) :: particleCount 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                , intent(in   ) :: particleCount
+
     ! Set the number of nodes.
     mergerTrees%particlesCount=particleCount
 
@@ -570,9 +570,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Particle_Mass(mergerTrees,particleMass)
     !% Set the particle mass used in the trees.
     implicit none
-    class           (mergerTreeData), intent(inout) :: mergerTrees  
-    double precision                , intent(in   ) :: particleMass 
-    
+    class           (mergerTreeData), intent(inout) :: mergerTrees
+    double precision                , intent(in   ) :: particleMass
+
     ! Set the particle mass.
     mergerTrees%particleMass=particleMass
 
@@ -582,9 +582,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Self_Contained(mergerTrees,areSelfContained)
     !% Set the particle mass used in the trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees      
-    logical                , intent(in   ) :: areSelfContained 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                , intent(in   ) :: areSelfContained
+
     ! Set whether trees are self-contained.
     mergerTrees%areSelfContained=areSelfContained
 
@@ -594,9 +594,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Includes_Hubble_Flow(mergerTrees,includesHubbleFlow)
     !% Set the particle mass used in the trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees        
-    logical                , intent(in   ) :: includesHubbleFlow 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                , intent(in   ) :: includesHubbleFlow
+
     ! Set whether velocities include the Hubble flow.
     mergerTrees%includesHubbleFlow=includesHubbleFlow
 
@@ -606,9 +606,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Is_Periodic(mergerTrees,isPeriodic)
     !% Set whether or not positions are periodic.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees 
-    logical                , intent(in   ) :: isPeriodic  
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                , intent(in   ) :: isPeriodic
+
     ! Set whether positions are periodic.
     mergerTrees%isPeriodic=isPeriodic
 
@@ -618,9 +618,9 @@ contains
   subroutine Merger_Tree_Data_Structure_Set_Includes_Subhalo_Masses(mergerTrees,includesSubhaloMasses)
     !% Set the particle mass used in the trees.
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees           
-    logical                , intent(in   ) :: includesSubhaloMasses 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                , intent(in   ) :: includesSubhaloMasses
+
     ! Set whether halo masses include subhalo contributions.
     mergerTrees%includesSubhaloMasses=includesSubhaloMasses
 
@@ -631,12 +631,12 @@ contains
     !% Set the units system.
     use Galacticus_Error
     implicit none
-    class           (mergerTreeData), intent(inout)           :: mergerTrees                         
-    integer                         , intent(in   )           :: unitType                            
-    double precision                , intent(in   )           :: unitsInSI                           
-    integer                         , intent(in   ), optional :: hubbleExponent, scaleFactorExponent 
-    character       (len=*         ), intent(in   ), optional :: name                                
-    
+    class           (mergerTreeData), intent(inout)           :: mergerTrees
+    integer                         , intent(in   )           :: unitType
+    double precision                , intent(in   )           :: unitsInSI
+    integer                         , intent(in   ), optional :: hubbleExponent, scaleFactorExponent
+    character       (len=*         ), intent(in   ), optional :: name
+
     ! Ensure the unit type is valid.
     if (unitType < 1 .or. unitType > unitTypeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Units','invalid unit type')
 
@@ -645,7 +645,7 @@ contains
 
     ! Store the units in the SI system.
     mergerTrees%units(unitType)%unitsInSI=unitsInSI
-    
+
     ! Store Hubble parameter exponent if given.
     if (present(hubbleExponent)) then
        mergerTrees%units(unitType)%hubbleExponent=hubbleExponent
@@ -676,10 +676,10 @@ contains
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
-    class  (mergerTreeData), intent(inout)               :: mergerTrees                        
-    integer                , intent(in   )               :: columnNumber        , propertyType 
-    integer                , allocatable  , dimension(:) :: columnPropertiesTemp               
-    
+    class  (mergerTreeData), intent(inout)               :: mergerTrees
+    integer                , intent(in   )               :: columnNumber        , propertyType
+    integer                , allocatable  , dimension(:) :: columnPropertiesTemp
+
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%particleColumnProperties)) then
        if (columnNumber > size(mergerTrees%particleColumnProperties)) then
@@ -702,10 +702,10 @@ contains
     !% Set column mapping from the input file.
     use Memory_Management
     implicit none
-    class  (mergerTreeData), intent(inout)               :: mergerTrees                        
-    integer                , intent(in   )               :: columnNumber        , propertyType 
-    integer                , allocatable  , dimension(:) :: columnPropertiesTemp               
-    
+    class  (mergerTreeData), intent(inout)               :: mergerTrees
+    integer                , intent(in   )               :: columnNumber        , propertyType
+    integer                , allocatable  , dimension(:) :: columnPropertiesTemp
+
     ! Ensure the storage array is large enough.
     if (allocated(mergerTrees%columnProperties)) then
        if (columnNumber > size(mergerTrees%columnProperties)) then
@@ -729,10 +729,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class  (mergerTreeData)              , intent(inout) :: mergerTrees  
-    integer                              , intent(in   ) :: propertyType 
-    integer(kind=kind_int8), dimension(:), intent(in   ) :: property     
-    
+    class  (mergerTreeData)              , intent(inout) :: mergerTrees
+    integer                              , intent(in   ) :: propertyType
+    integer(kind=kind_int8), dimension(:), intent(in   ) :: property
+
     ! Check the supplied arrays is of the correct size.
     if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','property array size is incorrect')
 
@@ -765,7 +765,7 @@ contains
        call Alloc_Array(mergerTrees%snapshot       ,[size(property)])
        mergerTrees%snapshot=property
     case default
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','unrecognized integer property')  
+       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Integer8','unrecognized integer property')
     end select
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Integer8
@@ -775,10 +775,10 @@ contains
     use Memory_Management
     use Galacticus_Error
     implicit none
-    class           (mergerTreeData)              , intent(inout) :: mergerTrees  
-    integer                                       , intent(in   ) :: propertyType 
-    double precision                , dimension(:), intent(in   ) :: property     
-    
+    class           (mergerTreeData)              , intent(inout) :: mergerTrees
+    integer                                       , intent(in   ) :: propertyType
+    double precision                , dimension(:), intent(in   ) :: property
+
     ! Check the supplied arrays is of the correct size.
     if (size(property) /= mergerTrees%nodeCount) call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','property array size is incorrect')
 
@@ -855,11 +855,11 @@ contains
        if (.not.allocated(mergerTrees%velocity)) call Alloc_Array(mergerTrees%velocity,[3,size(property)])
        mergerTrees%velocity(3,:)=property
     case default
-       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized double property')  
+       call Galacticus_Error_Report('Merger_Tree_Data_Structure_Set_Property_Double','unrecognized double property')
     end select
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
-  
+
   subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in merger tree data from an ASCII file.
     use String_Handling
@@ -868,18 +868,18 @@ contains
     use Galacticus_Display
     use File_Utilities
     implicit none
-    class    (mergerTreeData), intent(inout)               :: mergerTrees                                                    
-    character(len=*         ), intent(in   )               :: inputFile                                                      
-    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop                           
-    character(len=*         ), intent(in   ), optional     :: separator                                                      
-    character(len=32        ), allocatable  , dimension(:) :: inputColumns                                                   
-    integer                                                :: columnsCount        , fileUnit      , iColumn              , & 
-         &                                                    iNode               , lineNumber    , lineNumberStartActual, & 
-         &                                                    lineNumberStopActual                                           
-    logical                                                :: gotFirstDataLine                                               
-    character(len=1024      )                              :: inputLine                                                      
-    type     (varying_string)                              :: message                                                        
-    
+    class    (mergerTreeData), intent(inout)               :: mergerTrees
+    character(len=*         ), intent(in   )               :: inputFile
+    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop
+    character(len=*         ), intent(in   ), optional     :: separator
+    character(len=32        ), allocatable  , dimension(:) :: inputColumns
+    integer                                                :: columnsCount        , fileUnit      , iColumn              , &
+         &                                                    iNode               , lineNumber    , lineNumberStartActual, &
+         &                                                    lineNumberStopActual
+    logical                                                :: gotFirstDataLine
+    character(len=1024      )                              :: inputLine
+    type     (varying_string)                              :: message
+
     ! Get start and stop line numbers.
     if (present(lineNumberStart)) then
        lineNumberStartActual=lineNumberStart
@@ -943,9 +943,9 @@ contains
          &        )                                                                                                   &
          & ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","all three axes or none must be supplied for angular momentum")
     if (mergerTrees%hasSpinX           .and.mergerTrees%hasSpinMagnitude           ) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar angular momentum") 
+         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar angular momentum")
     if (mergerTrees%hasAngularMomentumX.and.mergerTrees%hasAngularMomentumMagnitude) call &
-         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar angular momentum") 
+         & Galacticus_Error_Report("Merger_Tree_Data_Structure_Read_ASCII","can not specify both 3-D and scalar angular momentum")
 
     ! Deallocate internal arrays.
     if (allocated(mergerTrees%treeIndex             )) call Dealloc_Array(mergerTrees%treeIndex             )
@@ -1013,7 +1013,7 @@ contains
                         & Galacticus_Error_Report('Merger_Tree_Data_Structure_Read_ASCII','tree indices must be in ascending &
                         & order')
                    if (mergerTrees%treeIndex(iNode) /= mergerTrees%treeIndex(iNode-1)) mergerTrees%treeCount&
-                        &=mergerTrees%treeCount+1                      
+                        &=mergerTrees%treeCount+1
                 else
                    mergerTrees%treeCount=1
                 end if
@@ -1111,9 +1111,9 @@ contains
     !% Set the merger tree index arrays.
     use Memory_Management
     implicit none
-    class  (mergerTreeData), intent(inout) :: mergerTrees        
-    integer                                :: iNode      , iTree 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    integer                                :: iNode      , iTree
+
     ! Allocate arrays for tree start and stop indices and reference ID.
     if (allocated(mergerTrees%treeBeginsAt )) call Dealloc_Array(mergerTrees%treeBeginsAt )
     if (allocated(mergerTrees%treeNodeCount)) call Dealloc_Array(mergerTrees%treeNodeCount)
@@ -1137,7 +1137,7 @@ contains
     mergerTrees%treeNodeCount(mergerTrees%treeCount)=mergerTrees%nodeCount-mergerTrees%treeBeginsAt(mergerTrees%treeCount)
     return
   end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
-  
+
   subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
     !% Read in particle data from an ASCII file.
     use String_Handling
@@ -1146,17 +1146,17 @@ contains
     use Galacticus_Display
     use File_Utilities
     implicit none
-    class    (mergerTreeData), intent(inout)               :: mergerTrees                                                    
-    character(len=*         ), intent(in   )               :: inputFile                                                      
-    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop                           
-    character(len=*         ), intent(in   ), optional     :: separator                                                      
-    character(len=32        ), allocatable  , dimension(:) :: inputColumns                                                   
-    integer                                                :: columnsCount        , fileUnit      , iColumn              , & 
-         &                                                    iNode               , lineNumber    , lineNumberStartActual, & 
-         &                                                    lineNumberStopActual                                           
-    logical                                                :: gotFirstDataLine                                               
-    character(len=1024      )                              :: inputLine                                                      
-    
+    class    (mergerTreeData), intent(inout)               :: mergerTrees
+    character(len=*         ), intent(in   )               :: inputFile
+    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop
+    character(len=*         ), intent(in   ), optional     :: separator
+    character(len=32        ), allocatable  , dimension(:) :: inputColumns
+    integer                                                :: columnsCount        , fileUnit      , iColumn              , &
+         &                                                    iNode               , lineNumber    , lineNumberStartActual, &
+         &                                                    lineNumberStopActual
+    logical                                                :: gotFirstDataLine
+    character(len=1024      )                              :: inputLine
+
     ! Flag that these trees have particles.
     mergerTrees%hasParticles=.true.
 
@@ -1207,7 +1207,7 @@ contains
     if (allocated(mergerTrees%particlePosition)) call Dealloc_Array(mergerTrees%particlePosition)
     if (allocated(mergerTrees%particleVelocity)) call Dealloc_Array(mergerTrees%particleVelocity)
     if (allocated(mergerTrees%particleSnapshot)) call Dealloc_Array(mergerTrees%particleSnapshot)
- 
+
     ! Allocate internal arrays to correct size as needed.
     if (mergerTrees%hasParticleIndex    ) call Alloc_Array(mergerTrees%particleIndex   ,[  mergerTrees%particlesCount])
     if (mergerTrees%hasParticleRedshift ) call Alloc_Array(mergerTrees%particleRedshift,[  mergerTrees%particlesCount])
@@ -1286,11 +1286,11 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    integer                  , intent(in   )           :: hdfChunkSize  , hdfCompressionLevel 
-    class    (mergerTreeData), intent(inout)           :: mergerTrees                         
-    character(len=*         ), intent(in   )           :: outputFileName, outputFormat        
-    logical                  , intent(in   ), optional :: append                              
-    
+    integer                  , intent(in   )           :: hdfChunkSize  , hdfCompressionLevel
+    class    (mergerTreeData), intent(inout)           :: mergerTrees
+    character(len=*         ), intent(in   )           :: outputFileName, outputFormat
+    logical                  , intent(in   ), optional :: append
+
     select case (String_Lower_Case(trim(outputFormat)))
     case ("galacticus")
        call Merger_Tree_Data_Structure_Export_Galacticus(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
@@ -1310,23 +1310,23 @@ contains
     use String_Handling
     use Memory_Management
     implicit none
-    integer                                             , intent(in   ) ::        hdfChunkSize          , hdfCompressionLevel                      
-    class    (mergerTreeData)                           , intent(inout) ::        mergerTrees                                                      
-    character(len=*         )                           , intent(in   ) ::        outputFileName                                                   
-    logical                                             , intent(in   ) , optional::              append                                           
-    integer  (kind=HSIZE_T  )             , dimension(2)                ::        hyperslabCount        , hyperslabStart                           
-    type     (hdf5Object    ), pointer                                  ::        attributeGroup                                                   
-    type     (hdf5Object    ), target                                   ::        cosmologyGroup        , genericGroup       , groupFinderGroup, & 
-         &                                                                        haloTrees             , outputFile         , particlesGroup  , & 
-         &                                                                        provenanceGroup       , simulationGroup    , treeBuilderGroup, & 
-         &                                                                        treeDataset           , treeGroup          , treeIndexGroup  , & 
-         &                                                                        treesGroup            , unitsGroup                               
-    integer                  , allocatable, dimension(:)                ::        firstNode             , numberOfNodes                            
-    integer                                                             ::        iAttribute            , iProperty          , iTree           , & 
-         &                                                                        integerAttribute                                                 
-    type     (varying_string)                                           ::        groupName                                                        
-    logical                                                             ::        appendActual                                                     
-    
+    integer                                             , intent(in   ) ::        hdfChunkSize          , hdfCompressionLevel
+    class    (mergerTreeData)                           , intent(inout) ::        mergerTrees
+    character(len=*         )                           , intent(in   ) ::        outputFileName
+    logical                                             , intent(in   ) , optional::              append
+    integer  (kind=HSIZE_T  )             , dimension(2)                ::        hyperslabCount        , hyperslabStart
+    type     (hdf5Object    ), pointer                                  ::        attributeGroup
+    type     (hdf5Object    ), target                                   ::        cosmologyGroup        , genericGroup       , groupFinderGroup, &
+         &                                                                        haloTrees             , outputFile         , particlesGroup  , &
+         &                                                                        provenanceGroup       , simulationGroup    , treeBuilderGroup, &
+         &                                                                        treeDataset           , treeGroup          , treeIndexGroup  , &
+         &                                                                        treesGroup            , unitsGroup
+    integer                  , allocatable, dimension(:)                ::        firstNode             , numberOfNodes
+    integer                                                             ::        iAttribute            , iProperty          , iTree           , &
+         &                                                                        integerAttribute
+    type     (varying_string)                                           ::        groupName
+    logical                                                             ::        appendActual
+
     ! Determine if we are to append to an existing file.
     appendActual=.false.
     if (present(append)) appendActual=append
@@ -1367,16 +1367,16 @@ contains
 
     ! Begin creating individual merger tree datasets if requested.
     if (mergerTrees%doMakeReferences) then
-       
+
        ! Create a containing group for individual trees.
        treesGroup=outputFile%openGroup("mergerTrees","Data for individual merger trees.")
-       
+
        ! Create groups for trees and dataset references.
        do iTree=1,mergerTrees%treeCount
           groupName="mergerTree"
           groupName=groupName//iTree
           treeGroup=treesGroup%openGroup(char(groupName),"Data for a merger tree.")
-          
+
           ! Standard datasets.
           hyperslabStart(1)=mergerTrees%treeBeginsAt (iTree)
           hyperslabCount(1)=mergerTrees%treeNodeCount(iTree)
@@ -1390,7 +1390,7 @@ contains
                 call treeDataset%close()
              end if
           end do
-          
+
           ! Datasets for properties defined in 3-D spaces.
           hyperslabStart(2)=hyperslabStart(1)
           hyperslabCount(2)=hyperslabCount(1)
@@ -1403,13 +1403,13 @@ contains
                 call treeDataset%close()
              end if
           end do
-          
+
           call treeGroup%close()
        end do
-    
+
        ! Close the merger trees group.
        call treesGroup%close()
-       
+
        ! Finished making individual merger tree datasets
     end if
 
@@ -1441,10 +1441,10 @@ contains
     call treeIndexGroup%writeDataset(mergerTrees%treeNodeCount,"numberOfNodes","Number of nodes in each tree."                                   ,appendTo=.true.)
     call treeIndexGroup%writeDataset(mergerTrees%treeID       ,"treeIndex"    ,"Unique index of tree."                                           ,appendTo=.true.)
     call treeIndexGroup%close()
-       
+
     ! Only write remaining data if we are not appending to an existing file.
     if (.not.appendActual) then
-       
+
        ! Set tree metadata.
        ! Determine if trees have subhalos.
        if (mergerTrees%hasHostIndex) then
@@ -1485,7 +1485,7 @@ contains
           integerAttribute=0
        end if
        call haloTrees%writeAttribute(integerAttribute,"haloMassesIncludeSubhalos")
-       
+
        ! Store units.
        unitsGroup=outputFile%openGroup("units","The units system used.")
        if (mergerTrees%unitsSet(unitsMass    )) call Store_Unit_Attributes_Galacticus(unitsMass    ,"mass"    ,mergerTrees,unitsGroup)
@@ -1493,7 +1493,7 @@ contains
        if (mergerTrees%unitsSet(unitsTime    )) call Store_Unit_Attributes_Galacticus(unitsTime    ,"time"    ,mergerTrees,unitsGroup)
        if (mergerTrees%unitsSet(unitsVelocity)) call Store_Unit_Attributes_Galacticus(unitsVelocity,"velocity",mergerTrees,unitsGroup)
        call unitsGroup%close()
- 
+
        ! Create groups for attributes.
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) genericGroup    =outputFile%openGroup("metaData"   ,"Generic metadata."                  )
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) cosmologyGroup  =outputFile%openGroup("cosmology"  ,"Cosmological parameters."           )
@@ -1501,10 +1501,10 @@ contains
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGroupFinder)) groupFinderGroup=outputFile%openGroup("groupFinder","Group finder parameters."           )
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataTreeBuilder)) treeBuilderGroup=outputFile%openGroup("treeBuilder","Tree building algorithm parameters.")
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataProvenance )) provenanceGroup =outputFile%openGroup("provenance" ,"Data provenance."                   )
-       
+
        ! Write attributes.
        do iAttribute=1,mergerTrees%metaDataCount
-          
+
           ! Determine which group to write to.
           select case (mergerTrees%metaData(iAttribute)%metadataType)
           case (metaDataGeneric    )
@@ -1520,7 +1520,7 @@ contains
           case (metaDataProvenance )
              attributeGroup => provenanceGroup
           end select
-          
+
           ! Determine what data type to write.
           select case (mergerTrees%metaData(iAttribute)%dataType)
           case (dataTypeInteger)
@@ -1530,9 +1530,9 @@ contains
           case (dataTypeText   )
              call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
           end select
-          
+
        end do
-       
+
        ! Close attribute groups.
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataGeneric    )) call genericGroup    %close()
        if (any(mergerTrees%metaData(1:mergerTrees%metaDataCount)%metadataType == metaDataCosmology  )) call cosmologyGroup  %close()
@@ -1562,27 +1562,27 @@ contains
     use Memory_Management
     use Array_Utilities
     implicit none
-    integer                                                    , intent(in   ) ::        hdfChunkSize                  , hdfCompressionLevel     
-    class           (mergerTreeData)                           , intent(inout) ::        mergerTrees                                             
-    character       (len=*         )                           , intent(in   ) ::        outputFileName                                          
-    logical                                                    , intent(in   ) , optional::                      append                          
-    type            (hdf5Object    ), pointer                                  ::        attributeGroup                                          
-    type            (hdf5Object    ), target                                   ::        cosmologyGroup                , darkParticlesGroup  , & 
-         &                                                                               haloTrees                     , mergerTreesGroup    , & 
-         &                                                                               outputFile                    , particlesGroup      , & 
-         &                                                                               simulationGroup               , snapshotGroup       , & 
-         &                                                                               thisDataset                                             
-    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , thisSnapshotIndices     
-    integer         (kind=kind_int8), allocatable, dimension(:)                ::        descendentSnapshot                                      
-    double precision                , allocatable, dimension(:)                ::        particleMass                                            
-    integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, & 
-         &                                                                               particlesOnSnapshotCount                                
-    integer         (kind=kind_int8)                                           ::        iDescendent                   , iNode               , & 
-         &                                                                               iSnapshot                     , snapshotMaximum     , & 
-         &                                                                               snapshotMinimum                                         
-    character       (len=14        )                                           ::        snapshotGroupName                                       
-    logical                                                                    ::        appendActual                                            
-    
+    integer                                                    , intent(in   ) ::        hdfChunkSize                  , hdfCompressionLevel
+    class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
+    character       (len=*         )                           , intent(in   ) ::        outputFileName
+    logical                                                    , intent(in   ) , optional::                      append
+    type            (hdf5Object    ), pointer                                  ::        attributeGroup
+    type            (hdf5Object    ), target                                   ::        cosmologyGroup                , darkParticlesGroup  , &
+         &                                                                               haloTrees                     , mergerTreesGroup    , &
+         &                                                                               outputFile                    , particlesGroup      , &
+         &                                                                               simulationGroup               , snapshotGroup       , &
+         &                                                                               thisDataset
+    integer                         , allocatable, dimension(:)                ::        nodeSnapshotIndices           , thisSnapshotIndices
+    integer         (kind=kind_int8), allocatable, dimension(:)                ::        descendentSnapshot
+    double precision                , allocatable, dimension(:)                ::        particleMass
+    integer                                                                    ::        iAttribute                    , nodesOnSnapshotCount, &
+         &                                                                               particlesOnSnapshotCount
+    integer         (kind=kind_int8)                                           ::        iDescendent                   , iNode               , &
+         &                                                                               iSnapshot                     , snapshotMaximum     , &
+         &                                                                               snapshotMinimum
+    character       (len=14        )                                           ::        snapshotGroupName
+    logical                                                                    ::        appendActual
+
     ! Determine if we are to append to an existing file.
     appendActual=.false.
     if (present(append)) appendActual=append
@@ -1615,11 +1615,11 @@ contains
 
     ! Loop over snapshots to output.
     do iSnapshot=snapshotMinimum,snapshotMaximum
-       
+
        ! Create a snapshot group.
        write (snapshotGroupName,'("Snapshot",i5.5)') iSnapshot
        snapshotGroup=outputFile%openGroup(trim(snapshotGroupName),"Stores all data for a snapshot.")
-       
+
        ! Create a group for halo catalogs.
        haloTrees=snapshotGroup%openGroup("HaloCatalog","Stores all data for halo catalogs.")
 
@@ -1671,16 +1671,16 @@ contains
           if (.not.appendActual) call Store_Unit_Attributes_IRATE([unitsMass                          ],mergerTrees,thisDataset)
           call thisDataset%close()
        end if
-       
+
        ! Destroy snapshot indices.
        call Dealloc_Array(thisSnapshotIndices)
-       
+
        ! Close the group for halo catalogs
        call haloTrees%close()
-       
+
        ! Close the snapshot group.
        call snapshotGroup%close()
-       
+
     end do
 
     ! Create a group for merger trees.
@@ -1688,7 +1688,7 @@ contains
 
     ! Specify the name of the halo catalog group.
     if (.not.appendActual) call mergerTreesGroup%writeAttribute("HaloCatalog","HaloCatalogName")
-    
+
     ! Build snapshot numbers for descendents.
     call Alloc_Array(descendentSnapshot,shape(mergerTrees%nodeIndex))
     descendentSnapshot=-1
@@ -1727,12 +1727,12 @@ contains
           particlesOnSnapshotCount=count(mergerTrees%particleSnapshot == iSnapshot)
           call Alloc_Array(thisSnapshotIndices,[particlesOnSnapshotCount])
           call Array_Which(mergerTrees%particleSnapshot == iSnapshot,thisSnapshotIndices)
-          
+
           ! Find those nodes which exist at this snapshot.
           nodesOnSnapshotCount=count(mergerTrees%snapshot == iSnapshot)
           call Alloc_Array(nodeSnapshotIndices,[nodesOnSnapshotCount])
           call Array_Which(mergerTrees%snapshot == iSnapshot,nodeSnapshotIndices)
-          
+
           ! Create a snapshot group.
           write (snapshotGroupName,'("Snapshot",i5.5)') iSnapshot
           snapshotGroup=outputFile%openGroup(trim(snapshotGroupName),"Stores all data for a snapshot.")
@@ -1790,10 +1790,10 @@ contains
     if (.not.appendActual) then
        cosmologyGroup  =outputFile%openGroup("Cosmology"            ,"Cosmological parameters."           )
        simulationGroup =outputFile%openGroup("SimulationProperties" ,"Simulation parameters."             )
-       
+
        ! Write attributes.
        do iAttribute=1,mergerTrees%metaDataCount
-          
+
           ! Determine which group to write to.
           attributeGroup => null()
           select case (mergerTrees%metaData(iAttribute)%metadataType)
@@ -1802,10 +1802,10 @@ contains
           case (metaDataSimulation )
              attributeGroup => simulationGroup
           end select
-          
+
           ! Check if the group was recognized.
           if (associated(attributeGroup)) then
-             
+
              ! Perform dictionary mapping from our internal names (which follow Galacticus format) to IRATE names.
              select case (mergerTrees%metaData(iAttribute)%metadataType)
              case (metaDataCosmology  )
@@ -1814,7 +1814,7 @@ contains
                    mergerTrees%metaData(iAttribute)%label="PowerSpectrumIndex"
                 end select
              end select
-             
+
              ! Determine what data type to write.
              select case (mergerTrees%metaData(iAttribute)%dataType)
              case (dataTypeInteger)
@@ -1824,11 +1824,11 @@ contains
              case (dataTypeText   )
                 call attributeGroup%writeAttribute(mergerTrees%metaData(iAttribute)%textAttribute   ,char(mergerTrees%metaData(iAttribute)%label))
              end select
-             
+
           end if
-          
+
        end do
-       
+
        ! Close attribute groups.
        call cosmologyGroup  %close()
        call simulationGroup %close()
@@ -1845,11 +1845,11 @@ contains
     !% Store attributes describing the unit system.
     use IO_HDF5
     implicit none
-    integer                  , intent(in   ) :: unitType    
-    character(len=*         ), intent(in   ) :: unitLabel   
-    class    (mergerTreeData), intent(in   ) :: mergerTrees 
-    type     (hdf5Object    ), intent(inout) :: unitsGroup  
-    
+    integer                  , intent(in   ) :: unitType
+    character(len=*         ), intent(in   ) :: unitLabel
+    class    (mergerTreeData), intent(in   ) :: mergerTrees
+    type     (hdf5Object    ), intent(inout) :: unitsGroup
+
     call unitsGroup%writeAttribute(mergerTrees%units(unitType)%unitsInSI          ,unitLabel//"UnitsInSI"          )
     call unitsGroup%writeAttribute(mergerTrees%units(unitType)%hubbleExponent     ,unitLabel//"HubbleExponent"     )
     call unitsGroup%writeAttribute(mergerTrees%units(unitType)%scaleFactorExponent,unitLabel//"ScaleFactorExponent")
@@ -1861,13 +1861,13 @@ contains
     use IO_HDF5
     use Numerical_Constants_Prefixes
     implicit none
-    integer                         , dimension(:), intent(in   ) :: unitType                                         
-    class           (mergerTreeData)              , intent(in   ) :: mergerTrees                                      
-    type            (hdf5Object    )              , intent(inout) :: thisDataset                                      
-    integer                                                       :: iUnit                                            
-    double precision                                              :: cgsUnits   , hubbleExponent, scaleFactorExponent 
-    type            (varying_string)                              :: unitName                                         
-    
+    integer                         , dimension(:), intent(in   ) :: unitType
+    class           (mergerTreeData)              , intent(in   ) :: mergerTrees
+    type            (hdf5Object    )              , intent(inout) :: thisDataset
+    integer                                                       :: iUnit
+    double precision                                              :: cgsUnits   , hubbleExponent, scaleFactorExponent
+    type            (varying_string)                              :: unitName
+
     ! Get conversion factor to cgs units.
     cgsUnits           =1.0d0
     hubbleExponent     =0.0d0
@@ -1877,7 +1877,7 @@ contains
        cgsUnits=cgsUnits*mergerTrees%units(unitType(iUnit))%unitsInSI
        select case (unitType(iUnit))
        case (unitsMass    )
-          cgsUnits=cgsUnits*kilo 
+          cgsUnits=cgsUnits*kilo
        case (unitsLength  )
           cgsUnits=cgsUnits*hecto
        case (unitsTime    )
@@ -1890,7 +1890,7 @@ contains
        if (iUnit > 1) unitName=unitName//" * "
        unitName=unitName//mergerTrees%units(unitType(iUnit))%name
     end do
-    
+
     ! Write the attributes.
     call thisDataset%writeAttribute(                      &
          &                          [                     &
@@ -1899,19 +1899,19 @@ contains
          &                           scaleFactorExponent  &
          &                          ],                    &
          &                          "unitscgs"            &
-         &                         ) 
+         &                         )
     call thisDataset%writeAttribute(                      &
          &                           unitName,            &
          &                          "unitname"            &
          &                         )
     return
   end subroutine Store_Unit_Attributes_IRATE
-  
+
   subroutine Merger_Tree_Data_Validate_Trees(mergerTrees)
     !% Validate the merger trees.
     use Galacticus_Error
-    class(mergerTreeData), intent(in   ) :: mergerTrees 
-    
+    class(mergerTreeData), intent(in   ) :: mergerTrees
+
     if (.not.mergerTrees%hasTreeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'treeIndex'"      )
     if (.not.mergerTrees%hasNodeIndex      ) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'nodeIndex'"      )
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","merger trees do not have required property 'descendentIndex'")
@@ -1922,8 +1922,8 @@ contains
 
   subroutine Merger_Tree_Data_Set_Subhalo_Masses(mergerTrees)
     !% Set the masses of any subhalos (which have zero mass by default) based on particle count.
-    class(mergerTreeData), intent(inout) :: mergerTrees 
-    
+    class(mergerTreeData), intent(inout) :: mergerTrees
+
     if (mergerTrees%hasParticleCount) then
        where (mergerTrees%nodeMass <= 0.0d0)
           mergerTrees%nodeMass = dble(mergerTrees%particleCount)*mergerTrees%particleMass
@@ -1936,10 +1936,10 @@ contains
     !% If we have most-bound particle indices and particle data has been read, construct arrays giving position of particle data for each node.
     use Galacticus_Error
     use Memory_Management
-    class  (mergerTreeData), intent(inout) :: mergerTrees                  
-    logical                                :: foundParticleData            
-    integer                                :: iNode            , iParticle 
-    
+    class  (mergerTreeData), intent(inout) :: mergerTrees
+    logical                                :: foundParticleData
+    integer                                :: iNode            , iParticle
+
     if (mergerTrees%hasMostBoundParticleIndex) then
        ! Insist on having particle data.
        if (.not.mergerTrees%hasParticles) call Galacticus_Error_Report("Merger_Tree_Data_Structure_Export","most bound particle IDs provided, but no particle data was read")
@@ -1976,5 +1976,5 @@ contains
     end if
     return
   end subroutine Merger_Tree_Data_Construct_Particle_Indices
- 
+
 end module Merger_Tree_Data_Structure

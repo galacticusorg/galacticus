@@ -26,13 +26,13 @@ program Test_Integration
   use Test_Integration_Functions
   use Numerical_Constants_Math
   implicit none
-  double precision                             :: integral              
-  type            (fgsl_function             ) :: integrandFunction     
-  type            (fgsl_integration_workspace) :: integrationWorkspace  
-  type            (c_ptr                     ) :: parameterPointer      
-  logical                                      :: integrationReset      
-  
-  ! Begin unit tests.                                                                   
+  double precision                             :: integral
+  type            (fgsl_function             ) :: integrandFunction
+  type            (fgsl_integration_workspace) :: integrationWorkspace
+  type            (c_ptr                     ) :: parameterPointer
+  logical                                      :: integrationReset
+
+  ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical integration")
 
   ! Test simple integrations.

@@ -28,16 +28,16 @@ program Test_Nodes
   use Array_Utilities
   use Test_Nodes_Tasks
   implicit none
-  type            (treeNode                     )                                     :: thisNode                       
-  type            (treeNode                     )                           , pointer :: hostNode                       
-  class           (nodeComponent                )                           , pointer :: thisComponent                  
-  double precision                               , parameter                          :: propertyValueSet=1.23456789d0  
-  double precision                                            , dimension(2)          :: serializedArray                
-  double precision                               , allocatable, dimension(:)          :: propertyArray                  
-  double precision                                                                    :: propertyValueGet               
-  type            (varying_string               )                                     :: parameterFile                  
-  
-  ! Read in basic code memory usage.                                                                                                                   
+  type            (treeNode                     )                                     :: thisNode
+  type            (treeNode                     )                           , pointer :: hostNode
+  class           (nodeComponent                )                           , pointer :: thisComponent
+  double precision                               , parameter                          :: propertyValueSet=1.23456789d0
+  double precision                                            , dimension(2)          :: serializedArray
+  double precision                               , allocatable, dimension(:)          :: propertyArray
+  double precision                                                                    :: propertyValueGet
+  type            (varying_string               )                                     :: parameterFile
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.nodes.size')
 
   ! Open the parameter file.
@@ -101,7 +101,7 @@ program Test_Nodes
      class default
      call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
   end select
-  
+
   ! Get the basic component from the spheroid component - assert that it has the expected type.
   hostNode      => thisComponent%host ()
   thisComponent => hostNode     %basic()
@@ -139,7 +139,7 @@ program Test_Nodes
   class default
      call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
   end select
-  
+
   ! Check that we can create and retrieve instances of a component.
   thisComponent => thisNode%basic(instance=2)
 

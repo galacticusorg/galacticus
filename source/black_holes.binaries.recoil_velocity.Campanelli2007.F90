@@ -30,8 +30,8 @@ module Black_Hole_Binary_Recoil_Velocities_Standard
        & Black_Hole_Binary_Recoil_Velocity_Standard_State_Store, Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
 
   ! Random sequence objects.
-  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject        
-  logical           :: pseudoSequenceReset       =.true., pseudoSequenceResetSnapshot 
+  type   (fgsl_rng) :: clonedPseudoSequenceObject       , pseudoSequenceObject
+  logical           :: pseudoSequenceReset       =.true., pseudoSequenceResetSnapshot
   !$omp threadprivate(pseudoSequenceReset,pseudoSequenceObject,pseudoSequenceResetSnapshot,clonedPseudoSequenceObject)
 contains
 
@@ -42,9 +42,9 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod   
-    procedure(double precision), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get 
-    
+    type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod
+    procedure(double precision), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get
+
     if (blackHoleBinaryRecoilVelocityMethod == 'Campanelli2007') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Standard
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Initialize
@@ -57,16 +57,16 @@ contains
     use Pseudo_Random
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: massBlackHole1        , massBlackHole2      , spinBlackHole1          , & 
-         &                             spinBlackHole2                                                            
-    double precision, parameter     :: A               =1.2d4, B             =-0.93, H                 =7.3d3, & 
-         &                             K               =6.0d4                                                    
-    double precision                :: q                     , velocityMass        , velocityOrthogonal      , & 
-         &                             velocityParallel                                                          
-    double precision                :: alpha1Orthogonal      , alpha1Parallel      , alpha2Orthogonal        , & 
-         &                             alpha2Parallel                                                            
-    double precision                :: phi                   , theta                                             
-    
+    double precision, intent(in   ) :: massBlackHole1        , massBlackHole2      , spinBlackHole1          , &
+         &                             spinBlackHole2
+    double precision, parameter     :: A               =1.2d4, B             =-0.93, H                 =7.3d3, &
+         &                             K               =6.0d4
+    double precision                :: q                     , velocityMass        , velocityOrthogonal      , &
+         &                             velocityParallel
+    double precision                :: alpha1Orthogonal      , alpha1Parallel      , alpha2Orthogonal        , &
+         &                             alpha2Parallel
+    double precision                :: phi                   , theta
+
     ! If either black hole has non-positive mass, recoil velocity must be zero.
     if (massBlackHole1 <= 0.0d0 .or. massBlackHole2 <= 0.0d0) then
        Black_Hole_Binary_Recoil_Velocity_Standard=0.0d0
@@ -93,7 +93,7 @@ contains
     velocityMass      =A*(q**2*(1-q)/(1.0d0+q)**5)*(1.0d0+B*(q/(1.0d0+q)**2))
 
     ! Compute the net recoil velocity.
-    Black_Hole_Binary_Recoil_Velocity_Standard=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)     
+    Black_Hole_Binary_Recoil_Velocity_Standard=sqrt(velocityParallel**2+velocityMass**2+velocityOrthogonal**2)
     return
   end function Black_Hole_Binary_Recoil_Velocity_Standard
 
@@ -108,7 +108,7 @@ contains
     pseudoSequenceResetSnapshot=pseudoSequenceReset
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -116,14 +116,14 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) pseudoSequenceResetSnapshot
     if (.not.pseudoSequenceResetSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -131,12 +131,12 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) pseudoSequenceReset
     if (.not.pseudoSequenceReset) call Pseudo_Random_Retrieve(pseudoSequenceObject,fgslStateFile)
     return
   end subroutine Black_Hole_Binary_Recoil_Velocity_Standard_State_Retrieve
-    
+
 end module Black_Hole_Binary_Recoil_Velocities_Standard

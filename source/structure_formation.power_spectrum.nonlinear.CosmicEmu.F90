@@ -25,14 +25,14 @@ module Power_Spectra_Nonlinear_CosmicEmu
   public :: Power_Spectrum_Nonlinear_CosmicEmu_Initialize
 
   ! Arrays to hold the power spectrum.
-  integer                                                        :: wavenumberCount                                   
-  double precision                   , allocatable, dimension(:) :: powerSpectrumTable             , wavenumberTable  
-  
-  ! Interpolators.                                                                                                                 
-  type            (fgsl_interp      )                            :: interpolationObject                               
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator                          
-  logical                                                        :: resetInterpolation      =.true.                   
-                                                                                                                   
+  integer                                                        :: wavenumberCount
+  double precision                   , allocatable, dimension(:) :: powerSpectrumTable             , wavenumberTable
+
+  ! Interpolators.
+  type            (fgsl_interp      )                            :: interpolationObject
+  type            (fgsl_interp_accel)                            :: interpolationAccelerator
+  logical                                                        :: resetInterpolation      =.true.
+
 contains
 
   !# <powerSpectrumNonlinearMethod>
@@ -43,9 +43,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod  
-    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get  
-                                                                                      
+    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
+    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+
     if (powerSpectrumNonlinearMethod == 'CosmicEmu') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_CosmicEmu
     return
   end subroutine Power_Spectrum_Nonlinear_CosmicEmu_Initialize
@@ -67,30 +67,30 @@ contains
     use File_Utilities
     use Memory_Management
     implicit none
-    double precision                , intent(in   ) :: time                    , waveNumber               
-    double precision                , save          :: timePrevious     =-1.0d0                           
-    double precision                , parameter     :: wavenumberLong   =0.01d0, wavenumberShort  =1.0d0  
-    double precision                                :: littleHubbleCMB         , redshift                 
-    type            (varying_string)                :: parameterFile           , powerSpectrumFile        
-    type            (xmlf_t        )                :: parameterDoc                                       
-    character       (len=32        )                :: parameterLabel                                     
-    character       (len=128       )                :: powerSpectrumLine                                  
-    integer                                         :: iWavenumber             , powerSpectrumUnit        
-    
-    ! If the time has changed, recompute the power spectrum.                                                                                                   
+    double precision                , intent(in   ) :: time                    , waveNumber
+    double precision                , save          :: timePrevious     =-1.0d0
+    double precision                , parameter     :: wavenumberLong   =0.01d0, wavenumberShort  =1.0d0
+    double precision                                :: littleHubbleCMB         , redshift
+    type            (varying_string)                :: parameterFile           , powerSpectrumFile
+    type            (xmlf_t        )                :: parameterDoc
+    character       (len=32        )                :: parameterLabel
+    character       (len=128       )                :: powerSpectrumLine
+    integer                                         :: iWavenumber             , powerSpectrumUnit
+
+    ! If the time has changed, recompute the power spectrum.
     if (time /= timePrevious) then
-       
+
        ! Store the new time and find the corresponding redshift.
        timePrevious=time
        redshift=Redshift_from_Expansion_Factor(Expansion_Factor(time))
-       
+
        ! Check that this is a flat cosmology.
        if (Values_Differ(Omega_Matter()+Omega_DE(),1.0d0,absTol=1.0d-3))                                       &
             & call Galacticus_Error_Report(                                                                    &
             &                              'Power_Spectrum_Nonlinear_CosmicEmu'                              , &
             &                              'this method is applicable only to flat matter+dark energy models'  &
             &                             )
-       
+
        ! Check that the primordial power spectrum has no running of the spectral index.
        if     (                                                                                                              &
             &  Values_Differ(                                                                                                &
@@ -103,7 +103,7 @@ contains
             &                              'Power_Spectrum_Nonlinear_CosmicEmu'                                            , &
             &                              'this method is applicable only to models with no running of the spectral index'  &
             &                             )
-       
+
        ! Generate a parameter file.
        powerSpectrumFile="powerSpectrum.txt"
        parameterFile    ="powerSpectrumParameters.xml"
@@ -166,12 +166,12 @@ contains
        call System_Command_Do("rm -f "//parameterFile//" "//powerSpectrumFile)
 
     end if
-    
+
     ! Interpolate in the tabulated data to get the power spectrum.
     Power_Spectrum_Nonlinear_CosmicEmu=exp(Interpolate(wavenumberCount,wavenumberTable,powerSpectrumTable ,interpolationObject&
          &,interpolationAccelerator,log(wavenumber),reset=resetInterpolation,extrapolationType=extrapolationTypeLinear))
 
     return
   end function Power_Spectrum_Nonlinear_CosmicEmu
-  
+
 end module Power_Spectra_Nonlinear_CosmicEmu

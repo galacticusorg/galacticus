@@ -24,11 +24,11 @@ program Tests_Kepler_Orbits
   use Kepler_Orbits
   use Numerical_Constants_Physical
   implicit none
-  type            (varying_string) :: parameterFile                                
-  type            (keplerOrbit   ) :: thisOrbit                                    
-  double precision                 :: valueActual  , valueExpected, velocityScale  
-  
-  ! Read in basic code memory usage.                                                                              
+  type            (varying_string) :: parameterFile
+  type            (keplerOrbit   ) :: thisOrbit
+  double precision                 :: valueActual  , valueExpected, velocityScale
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.kepler_orbits.size')
 
   ! Begin unit tests.
@@ -47,7 +47,7 @@ program Tests_Kepler_Orbits
   call thisOrbit%velocityTangentialSet(1.0d0*velocityScale)
   call thisOrbit%radiusSet            (1.0d0              )
   call thisOrbit%massesSet            (0.0d0,1.0d0        )
-  
+
   ! Check values are computed correctly.
   valueActual  =thisOrbit%energy         ()
   valueExpected=-0.50d0*velocityScale**2 ! Energy of a circular orbit at the virial radius.
@@ -61,7 +61,7 @@ program Tests_Kepler_Orbits
   valueActual  =thisOrbit%semiMajorAxis  ()
   valueExpected=1.0d0
   call Assert('Semi-major axis of circular orbit' ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
-  
+
   ! Create an elliptical orbit.
   call thisOrbit%reset()
   call thisOrbit%velocityRadialSet    (0.5d0*velocityScale)
@@ -82,14 +82,14 @@ program Tests_Kepler_Orbits
   valueActual  =thisOrbit%semiMajorAxis  ()
   valueExpected=(2.0d0/3.0d0)
   call Assert('Semi-major axis of elliptical orbit' ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
-  
+
   ! Create a circular orbit with equal mass satellite and host.
   call thisOrbit%reset()
   call thisOrbit%velocityRadialSet    (0.0d0*velocityScale)
   call thisOrbit%velocityTangentialSet(1.0d0*velocityScale)
   call thisOrbit%radiusSet            (1.0d0              )
   call thisOrbit%massesSet            (1.0d0,1.0d0        )
-  
+
   ! Check values are computed correctly.
   valueActual  =thisOrbit%energy         ()
   valueExpected=-0.75d0*velocityScale**2 ! Energy of a circular orbit at the virial radius.
@@ -110,7 +110,7 @@ program Tests_Kepler_Orbits
   call thisOrbit%radiusPericenterSet(1.0d0      )
   call thisOrbit%radiusSet          (1.0d0      )
   call thisOrbit%massesSet          (0.0d0,1.0d0)
-  
+
   ! Check values are computed correctly.
   valueActual  =thisOrbit%energy            ()
   valueExpected=-0.50d0*velocityScale**2 ! Energy of a circular orbit at the virial radius.
@@ -127,9 +127,9 @@ program Tests_Kepler_Orbits
   valueActual  =thisOrbit%semiMajorAxis     ()
   valueExpected=1.0d0
   call Assert('Semi-major axis of circular orbit'    ,valueActual,valueExpected,compare=compareEquals,relTol=1.0d-6)
-  
+
   ! Close the parameter file.
-  call Input_Parameters_File_Close  
+  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -23,29 +23,29 @@ module Stellar_Astrophysics
   implicit none
   private
   public :: Star_Ejected_Mass, Star_Initial_Mass, Star_Metal_Yield_Mass, Star_Lifetime
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                 :: stellarAstrophysicsInitialized=.false.  
-  
-  ! Name of cosmology functions method used.                                                                                                
-  type     (varying_string                     )          :: stellarAstrophysicsMethod               
-  
-  ! Pointer to the functions that actually do the calculations.                                                                                                
-  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Ejected_Mass_Get         =>null()  
-  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Initial_Mass_Get         =>null()  
-  procedure(Stellar_Astrophysics_Yield_Template), pointer :: Star_Metal_Yield_Mass_Get     =>null()  
-  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Lifetime_Get             =>null()  
-                                                                                                  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                 :: stellarAstrophysicsInitialized=.false.
+
+  ! Name of cosmology functions method used.
+  type     (varying_string                     )          :: stellarAstrophysicsMethod
+
+  ! Pointer to the functions that actually do the calculations.
+  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Ejected_Mass_Get         =>null()
+  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Initial_Mass_Get         =>null()
+  procedure(Stellar_Astrophysics_Yield_Template), pointer :: Star_Metal_Yield_Mass_Get     =>null()
+  procedure(Stellar_Astrophysics_Template      ), pointer :: Star_Lifetime_Get             =>null()
+
   abstract interface
      double precision function Stellar_Astrophysics_Template(inputParameter1,inputParameter2)
-       double precision, intent(in   ) :: inputParameter1, inputParameter2  
+       double precision, intent(in   ) :: inputParameter1, inputParameter2
      end function Stellar_Astrophysics_Template
   end interface
 
   abstract interface
      double precision function Stellar_Astrophysics_Yield_Template(inputParameter1,inputParameter2,atomIndex)
-       double precision, intent(in   )           :: inputParameter1, inputParameter2  
-       integer         , intent(in   ), optional :: atomIndex                         
+       double precision, intent(in   )           :: inputParameter1, inputParameter2
+       integer         , intent(in   ), optional :: atomIndex
      end function Stellar_Astrophysics_Yield_Template
   end interface
 
@@ -62,12 +62,12 @@ contains
 
     ! Initialize if necessary.
     if (.not.stellarAstrophysicsInitialized) then
-       !$omp critical(Stellar_Astrophysics_Initialization) 
+       !$omp critical(Stellar_Astrophysics_Initialization)
        if (.not.stellarAstrophysicsInitialized) then
           ! Get the stellar tracks method parameter.
           !@ <inputParameter>
           !@   <name>stellarAstrophysicsMethod</name>
-          !@   <defaultValue>file</defaultValue>       
+          !@   <defaultValue>file</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The name of the method to be used for stellar astrophysics calculations.
@@ -85,7 +85,7 @@ contains
                & call Galacticus_Error_Report('Stellar_Astrophysics','method '//char(stellarAstrophysicsMethod)//' is unrecognized')
           stellarAstrophysicsInitialized=.true.
        end if
-       !$omp end critical(Stellar_Astrophysics_Initialization) 
+       !$omp end critical(Stellar_Astrophysics_Initialization)
     end if
     return
   end subroutine Stellar_Astrophysics_Initialize
@@ -93,58 +93,58 @@ contains
   double precision function Star_Initial_Mass(lifetime,metallicity)
     !% Returns the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   ) :: lifetime, metallicity  
-    
-    ! Initialize the module.                                                       
+    double precision, intent(in   ) :: lifetime, metallicity
+
+    ! Initialize the module.
     call Stellar_Astrophysics_Initialize
-    
+
     ! Get the answer using the selected method.
     Star_Initial_Mass=Star_Initial_Mass_Get(lifetime,metallicity)
-    
+
     return
   end function Star_Initial_Mass
-  
+
   double precision function Star_Ejected_Mass(initialMass,metallicity)
     !% Returns the mass ejected by a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   ) :: initialMass, metallicity  
-    
-    ! Initialize the module.                                                          
+    double precision, intent(in   ) :: initialMass, metallicity
+
+    ! Initialize the module.
     call Stellar_Astrophysics_Initialize
-    
+
     ! Get the answer using the selected method.
     Star_Ejected_Mass=Star_Ejected_Mass_Get(initialMass,metallicity)
-    
+
     return
   end function Star_Ejected_Mass
-  
+
   double precision function Star_Metal_Yield_Mass(initialMass,metallicity,atomIndex)
     !% Returns the metal mass yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   )           :: initialMass, metallicity  
-    integer         , intent(in   ), optional :: atomIndex                 
-    
-    ! Initialize the module.                                                                    
+    double precision, intent(in   )           :: initialMass, metallicity
+    integer         , intent(in   ), optional :: atomIndex
+
+    ! Initialize the module.
     call Stellar_Astrophysics_Initialize
-    
+
     ! Get the answer using the selected method.
     Star_Metal_Yield_Mass=Star_Metal_Yield_Mass_Get(initialMass,metallicity,atomIndex)
-    
+
     return
   end function Star_Metal_Yield_Mass
-  
+
   double precision function Star_Lifetime(initialMass,metallicity)
     !% Returns the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision, intent(in   ) :: initialMass, metallicity  
-    
-    ! Initialize the module.                                                          
+    double precision, intent(in   ) :: initialMass, metallicity
+
+    ! Initialize the module.
     call Stellar_Astrophysics_Initialize
-    
+
     ! Get the answer using the selected method.
     Star_Lifetime=Star_Lifetime_Get(initialMass,metallicity)
-    
+
     return
   end function Star_Lifetime
-  
+
 end module Stellar_Astrophysics

@@ -24,15 +24,15 @@ module Galacticus_Merger_Tree_Output_Filter_Luminosities
   public :: Galacticus_Merger_Tree_Output_Filter_Luminosity,Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize
 
   ! Flags indicating if the module has been initialized and if this filter is active.
-  logical                                     :: luminosityFilterInitialized                =.false.  
-  logical                                     :: luminosityFilterActive                               
-  
-  ! Internal record of the number of luminosities in use.                                                                                                 
-  integer                                     :: luminosityCount                                      
-  
-  ! The absolute magnitude thresholds for this filter.                                                                                                 
-  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds          
-                                                                                                   
+  logical                                     :: luminosityFilterInitialized                =.false.
+  logical                                     :: luminosityFilterActive
+
+  ! Internal record of the number of luminosities in use.
+  integer                                     :: luminosityCount
+
+  ! The absolute magnitude thresholds for this filter.
+  double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds
+
 contains
 
   !# <mergerTreeOutputFilterInitialize>
@@ -46,9 +46,9 @@ contains
     use Memory_Management
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type(varying_string), dimension(:), intent(in   ) :: filterNames  
-    
-    ! Initialize the filter if necessary.                                                               
+    type(varying_string), dimension(:), intent(in   ) :: filterNames
+
+    ! Initialize the filter if necessary.
     if (.not.luminosityFilterInitialized) then
        ! Determine if this filter has been selected.
        luminosityFilterActive=any(filterNames == "luminosity")
@@ -64,7 +64,7 @@ contains
                &                               'luminosityFilterAbsoluteMagnitudeThresholds input arrays must have same dimension as other luminosity arrays'  &
                &                              )
           call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholds,[luminosityCount])
-          
+
           ! Get the minimum stellar mass for output
           !@ <inputParameter>
           !@   <name>luminosityFilterAbsoluteMagnitudeThresholds</name>
@@ -83,7 +83,7 @@ contains
     end if
     return
   end subroutine Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize
-  
+
   !# <mergerTreeOutputFilter>
   !#   <unitName>Galacticus_Merger_Tree_Output_Filter_Luminosity</unitName>
   !# </mergerTreeOutputFilter>
@@ -94,18 +94,18 @@ contains
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                              
-    logical                             , intent(inout)          :: doOutput                              
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                    
-    integer                                                      :: iLuminosity                           
-    double precision                                             :: abMagnitude       , luminosity, time  
-    
-    ! Return immediately if this filter is not active.                                                                                                   
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    logical                             , intent(inout)          :: doOutput
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    integer                                                      :: iLuminosity
+    double precision                                             :: abMagnitude       , luminosity, time
+
+    ! Return immediately if this filter is not active.
     if (.not.luminosityFilterActive) return
-    
+
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
-    
+
     ! Get the time for this node.
     time=thisBasicComponent%time()
 
@@ -114,16 +114,16 @@ contains
 
        ! Only check those luminosities which are being output at this output time.
        if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
-          
+
           ! Get the total stellar luminosity of the galaxy.
           luminosity=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)
-          
+
           ! Test only if the luminosity is greater than zero.
           if (luminosity > 0.0d0) then
 
              ! Convert to absolute magnitude.
              abMagnitude=-2.5d0*log10(luminosity)
-             
+
              ! Filter out the galaxy if it is below the stellar mass threshold.
              if (abMagnitude > luminosityFilterAbsoluteMagnitudeThresholds(iLuminosity)) then
                 doOutput=.false.

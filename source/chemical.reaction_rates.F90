@@ -20,17 +20,17 @@
 module Chemical_Reaction_Rates
   !% Implements calculations of chemical reaction rates.
   use Chemical_Abundances_Structure
-  use ISO_Varying_String 
+  use ISO_Varying_String
   implicit none
   private
   public :: Chemical_Reaction_Rate
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                            :: chemicalReactionRateInitialized=.false.  
-  
-  ! Name of chemical reaction rates methods used.                                                                                            
-  type   (varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods              
-                                                                                              
+  ! Flag to indicate if this module has been initialized.
+  logical                                            :: chemicalReactionRateInitialized=.false.
+
+  ! Name of chemical reaction rates methods used.
+  type   (varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods
+
 contains
 
   subroutine Chemical_Reaction_Rates_Initialize
@@ -42,11 +42,11 @@ contains
     include 'chemical.reaction_rates.modules.inc'
     !# </include>
     implicit none
-    integer :: chemicalReactionRatesCount  
-    
-    ! Initialize if necessary.                                    
+    integer :: chemicalReactionRatesCount
+
+    ! Initialize if necessary.
     if (.not.chemicalReactionRateInitialized) then
-       !$omp critical(Chemical_Reaction_Rates_Initialization) 
+       !$omp critical(Chemical_Reaction_Rates_Initialization)
        if (.not.chemicalReactionRateInitialized) then
           ! Get the chemical reaction rates method parameter.
           !@ <inputParameter>
@@ -63,7 +63,7 @@ contains
           allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
           call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
           call Get_Input_Parameter('chemicalReactionRateMethods',chemicalReactionRateMethods,defaultValue=['null'])
-          
+
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="chemicalReactionRates" type="functionCall" functionType="void">
           !#  <functionArgs>chemicalReactionRateMethods</functionArgs>
@@ -71,7 +71,7 @@ contains
           !# </include>
           chemicalReactionRateInitialized=.true.
        end if
-       !$omp end critical(Chemical_Reaction_Rates_Initialization) 
+       !$omp end critical(Chemical_Reaction_Rates_Initialization)
     end if
     return
   end subroutine Chemical_Reaction_Rates_Initialize
@@ -85,14 +85,14 @@ contains
     include 'chemical.reaction_rates.compute.modules.inc'
     !# </include>
     implicit none
-    type            (chemicalAbundances), intent(inout) :: chemicalRates    
-    double precision                    , intent(in   ) :: temperature      
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensity  
-    type            (radiationStructure), intent(in   ) :: radiation        
-    
-    ! Initialize the module.                                                                     
+    type            (chemicalAbundances), intent(inout) :: chemicalRates
+    double precision                    , intent(in   ) :: temperature
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensity
+    type            (radiationStructure), intent(in   ) :: radiation
+
+    ! Initialize the module.
     call Chemical_Reaction_Rates_Initialize
-  
+
     call chemicalRates%reset()
     !# <include directive="chemicalRatesCompute" type="functionCall" functionType="void">
     !#  <functionArgs>temperature,chemicalDensity,radiation,chemicalRates</functionArgs>
@@ -101,5 +101,5 @@ contains
 
     return
   end subroutine Chemical_Reaction_Rate
-  
+
 end module Chemical_Reaction_Rates

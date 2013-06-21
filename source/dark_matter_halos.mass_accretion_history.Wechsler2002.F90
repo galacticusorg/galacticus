@@ -25,9 +25,9 @@ module Dark_Matter_Halo_Mass_Accretion_Histories_Wechsler2002
   public :: Dark_Matter_Mass_Accretion_Wechsler2002_Initialize
 
   ! Parameters controlling the calculation of formation histories.
-  logical          :: accretionHistoryWechslerFormationRedshiftCompute 
-  double precision :: accretionHistoryWechslerFormationRedshift        
-  
+  logical          :: accretionHistoryWechslerFormationRedshiftCompute
+  double precision :: accretionHistoryWechslerFormationRedshift
+
 contains
 
   !# <darkMatterAccretionHistoryMethod>
@@ -38,16 +38,16 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                   ), intent(in   )          :: darkMatterAccretionHistoryMethod         
-    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get 
-    
+    type     (varying_string                                   ), intent(in   )          :: darkMatterAccretionHistoryMethod
+    procedure(Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get
+
     if (darkMatterAccretionHistoryMethod == 'Wechsler2002') then
        ! Set procedure pointers.
        Dark_Matter_Halo_Mass_Accretion_Time_Get => Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
 
        !@ <inputParameter>
        !@   <name>accretionHistoryWechslerFormationRedshiftCompute</name>
-       !@   <defaultValue>true</defaultValue>       
+       !@   <defaultValue>true</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories?
@@ -60,7 +60,7 @@ contains
           ! In this case, read the formation redshift.
           !@ <inputParameter>
           !@   <name>accretionHistoryWechslerFormationRedshift</name>
-          !@   <defaultValue>0.4</defaultValue>       
+          !@   <defaultValue>0.4</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.
@@ -70,7 +70,7 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('accretionHistoryWechslerFormationRedshift',accretionHistoryWechslerFormationRedshift,defaultValue=0.4d0)
         end if
-       
+
     end if
 
     return
@@ -81,12 +81,12 @@ contains
     !% \cite{wechsler_concentrations_2002}.
     use Cosmology_Functions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: baseNode                                                   
-    double precision                    , intent(in   )          :: nodeMass                                                   
-    class           (nodeComponentBasic)               , pointer :: baseBasicComponent                                         
-    double precision                                             :: expansionFactor                   , expansionFactorBase, & 
-         &                                                          mergerTreeFormationExpansionFactor                         
-    
+    type            (treeNode          ), intent(inout), pointer :: baseNode
+    double precision                    , intent(in   )          :: nodeMass
+    class           (nodeComponentBasic)               , pointer :: baseBasicComponent
+    double precision                                             :: expansionFactor                   , expansionFactorBase, &
+         &                                                          mergerTreeFormationExpansionFactor
+
     baseBasicComponent => baseNode%basic()
     select case (accretionHistoryWechslerFormationRedshiftCompute)
     case (.true.)
@@ -96,7 +96,7 @@ contains
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=Expansion_Factor_from_Redshift(accretionHistoryWechslerFormationRedshift)
     end select
-    
+
     ! Get the expansion factor at the tree base.
     expansionFactorBase=Expansion_Factor(baseBasicComponent%time())
 
@@ -109,18 +109,18 @@ contains
 
    return
   end function Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
-  
+
   double precision function Expansion_Factor_At_Formation(haloMass)
     !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
     use Cosmology_Functions
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    double precision, intent(in   ) :: haloMass                                                                                                              
-    double precision, parameter     :: haloMassFraction   =0.015d0                         !   Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).    
-    double precision                :: formationTime              , haloMassCharacteristic                                                               , & 
-         &                             sigmaCharacteristic                                                                                                   
-    
+    double precision, intent(in   ) :: haloMass
+    double precision, parameter     :: haloMassFraction   =0.015d0                         !   Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
+    double precision                :: formationTime              , haloMassCharacteristic                                                               , &
+         &                             sigmaCharacteristic
+
     ! Compute the characteristic mass at formation time.
     haloMassCharacteristic=haloMassFraction*haloMass
 
@@ -129,10 +129,10 @@ contains
 
     ! Get the time at which this equals the critical overdensity for collapse.
     formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
-    
+
     ! Get the corresponding expansion factor.
     Expansion_Factor_At_Formation=Expansion_Factor(formationTime)
-    
+
     return
   end function Expansion_Factor_At_Formation
 

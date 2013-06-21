@@ -33,9 +33,9 @@ contains
     !% Initializes the ``Gao2008'' halo concentration module.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod         
-    procedure(Dark_Matter_Profile_Concentration_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get 
-    
+    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod
+    procedure(Dark_Matter_Profile_Concentration_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
+
     if (darkMatterConcentrationMethod == 'Gao2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
     return
   end subroutine Dark_Matter_Concentrations_Gao2008_Initialize
@@ -49,12 +49,12 @@ contains
     use Galacticus_Nodes
     use Cosmology_Functions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                                 
-    double precision                    , parameter              :: littleHubbleConstantGao2008=0.73d0                       
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                       
-    double precision                                             :: logarithmExpansionFactor          , logarithmHaloMass, & 
-         &                                                          parameterA                        , parameterB           
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , parameter              :: littleHubbleConstantGao2008=0.73d0
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    double precision                                             :: logarithmExpansionFactor          , logarithmHaloMass, &
+         &                                                          parameterA                        , parameterB
+
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.
@@ -65,5 +65,5 @@ contains
     Dark_Matter_Profile_Concentration_Gao2008=10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
   end function Dark_Matter_Profile_Concentration_Gao2008
-  
+
 end module Dark_Matter_Profiles_Concentrations_Gao2008

@@ -34,9 +34,9 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                           ), intent(in   )          :: satelliteMergingMethod        
-    procedure(Satellite_Time_Until_Merging_Wetzel_White), intent(inout), pointer :: Satellite_Time_Until_Merging  
-                                                                                                               
+    type     (varying_string                           ), intent(in   )          :: satelliteMergingMethod
+    procedure(Satellite_Time_Until_Merging_Wetzel_White), intent(inout), pointer :: Satellite_Time_Until_Merging
+
     if (satelliteMergingMethod == 'Wetzel-White2010') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Wetzel_White
     return
   end subroutine Satellite_Time_Until_Merging_Wetzel_White_Initialize
@@ -48,14 +48,14 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                                                               
-    type            (keplerOrbit       ), intent(inout)          :: thisOrbit                                                                              
-    type            (treeNode          )               , pointer :: hostNode                                                                               
-    class           (nodeComponentBasic)               , pointer :: hostBasicComponent          , thisBasicComponent                                       
-    double precision                    , parameter              :: timeScaleNormalization=0.2d0                     !  C_dyn from Wetzel & White (2010).  
-    double precision                                             :: massRatio                                                                              
-    
-    ! Find the host node.                                                                                                                                                    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (keplerOrbit       ), intent(inout)          :: thisOrbit
+    type            (treeNode          )               , pointer :: hostNode
+    class           (nodeComponentBasic)               , pointer :: hostBasicComponent          , thisBasicComponent
+    double precision                    , parameter              :: timeScaleNormalization=0.2d0                     !  C_dyn from Wetzel & White (2010).
+    double precision                                             :: massRatio
+
+    ! Find the host node.
     hostNode => thisNode%parent
     ! Compute mass ratio.
     thisBasicComponent => thisNode%basic()

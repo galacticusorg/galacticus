@@ -23,18 +23,18 @@ module Numerical_Constants_Math
   use Kind_Numbers
   implicit none
   public
-  
+
   ! Pi.
-  double precision                , parameter :: Pi             =m_pi                                                 
-  real            (kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad  
-  
-  ! Natural logarithm of 10.                                                                                                                 
-  double precision                , parameter :: ln10           =m_ln10                                               
-  
-  ! Natural logarithm of 2.                                                                                                                 
-  double precision                , parameter :: ln2            =m_ln2                                                
-  
-  ! Euler's constant.                                                                                                                 
-  double precision                , parameter :: eulersConstant =m_euler                                              
-                                                                                                                   
+  double precision                , parameter :: Pi             =m_pi
+  real            (kind=kind_quad), parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
+
+  ! Natural logarithm of 10.
+  double precision                , parameter :: ln10           =m_ln10
+
+  ! Natural logarithm of 2.
+  double precision                , parameter :: ln2            =m_ln2
+
+  ! Euler's constant.
+  double precision                , parameter :: eulersConstant =m_euler
+
 end module Numerical_Constants_Math

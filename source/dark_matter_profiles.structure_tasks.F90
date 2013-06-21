@@ -25,9 +25,9 @@ module Dark_Matter_Profile_Structure_Tasks
   public :: Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Density_Task, Dark_Matter_Profile_Density&
        &,Dark_Matter_Profile_Rotation_Curve_Task ,Dark_Matter_Profile_Potential_Task&
        &,Dark_Matter_Profile_Rotation_Curve_Gradient_Task
-  
+
 contains
-  
+
   !# <enclosedMassTask>
   !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
   !# </enclosedMassTask>
@@ -38,15 +38,15 @@ contains
     use Cosmological_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
-    type            (treeNode          ), intent(inout), pointer  :: thisNode                                       
-    integer                             , intent(in   )           :: componentType     , massType     , weightBy, & 
-         &                                                           weightIndex                                    
-    double precision                    , intent(in   )           :: radius                                         
-    logical                             , intent(in   ), optional :: haloLoaded                                     
-    class           (nodeComponentBasic)               , pointer  :: thisBasicComponent                             
-    double precision                                              :: darkMatterFraction, radiusInitial              
-    logical                                                       :: haloLoadedActual                               
-    
+    type            (treeNode          ), intent(inout), pointer  :: thisNode
+    integer                             , intent(in   )           :: componentType     , massType     , weightBy, &
+         &                                                           weightIndex
+    double precision                    , intent(in   )           :: radius
+    logical                             , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBasic)               , pointer  :: thisBasicComponent
+    double precision                                              :: darkMatterFraction, radiusInitial
+    logical                                                       :: haloLoadedActual
+
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
@@ -89,12 +89,12 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                
-    integer                   , intent(in   )           :: componentType, massType 
-    double precision          , intent(in   )           :: radius                  
-    logical                   , intent(in   ), optional :: haloLoaded              
-    double precision                                    :: componentMass           
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType, massType
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+    double precision                                    :: componentMass
+
     ! Set to zero by default.
     Dark_Matter_Profile_Rotation_Curve_Task=0.0d0
 
@@ -119,14 +119,14 @@ contains
     use Galactic_Structure_Initial_Radii
     use Cosmological_Parameters
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                                                
-    integer                   , intent(in   )           :: componentType        , massType     , weightBy      , & 
-         &                                                 weightIndex                                             
-    double precision          , intent(in   )           :: positionSpherical (3)                                   
-    logical                   , intent(in   ), optional :: haloLoaded                                              
-    logical                                             :: haloLoadedActual                                        
-    double precision                                    :: darkMatterFraction   , radiusInitial, radiusJacobian    
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType        , massType     , weightBy      , &
+         &                                                 weightIndex
+    double precision          , intent(in   )           :: positionSpherical (3)
+    logical                   , intent(in   ), optional :: haloLoaded
+    logical                                             :: haloLoadedActual
+    double precision                                    :: darkMatterFraction   , radiusInitial, radiusJacobian
+
     ! Return zero if the component and mass type is not matched.
     Dark_Matter_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -155,7 +155,7 @@ contains
     Dark_Matter_Profile_Density_Task=Dark_Matter_Profile_Density_Task*darkMatterFraction
     return
   end function Dark_Matter_Profile_Density_Task
-  
+
   !# <rotationCurveGradientTask>
   !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
   !# </rotationCurveGradientTask>
@@ -168,12 +168,12 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Error
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                                              
-    integer                   , intent(in   )           :: componentType   , massType                            
-    double precision          , intent(in   )           :: radius                                                
-    logical                   , intent(in   ), optional :: haloLoaded                                            
-    double precision                                    :: componentDensity, componentMass, positionSpherical(3) 
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType   , massType
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+    double precision                                    :: componentDensity, componentMass, positionSpherical(3)
+
     ! Set to zero by default.
     Dark_Matter_Profile_Rotation_Curve_Gradient_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
@@ -188,7 +188,7 @@ contains
          &                   gravitationalConstantGalacticus    &
          &                  *(-componentMass/radius**2          &
          &                    +4.0d0*Pi*radius*componentDensity &
-         &                   )  
+         &                   )
     return
   end function Dark_Matter_Profile_Rotation_Curve_Gradient_Task
 
@@ -200,11 +200,11 @@ contains
     use Galactic_Structure_Options
     use Galacticus_Error
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode                
-    integer                   , intent(in   )           :: componentType, massType 
-    double precision          , intent(in   )           :: radius                  
-    logical                   , intent(in   ), optional :: haloLoaded              
-    
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    integer                   , intent(in   )           :: componentType, massType
+    double precision          , intent(in   )           :: radius
+    logical                   , intent(in   ), optional :: haloLoaded
+
     Dark_Matter_Profile_Potential_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return

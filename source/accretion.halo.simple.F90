@@ -27,20 +27,20 @@ module Accretion_Halos_Simple
   public :: Accretion_Halos_Simple_Initialize
 
   ! Parameters controlling when accretion is suppressed.
-  double precision                     :: reionizationSuppressionRedshift             , reionizationSuppressionTime, & 
-       &                                  reionizationSuppressionVelocity                                              
-  
+  double precision                     :: reionizationSuppressionRedshift             , reionizationSuppressionTime, &
+       &                                  reionizationSuppressionVelocity
+
   ! Options controlling accretion.
-  logical                              :: accretionHalosSimpleNegativeAccretionAllowed                                 
-  
+  logical                              :: accretionHalosSimpleNegativeAccretionAllowed
+
   ! Index of Solar abundance pattern.
-  integer                              :: abundanceIndexSolar                                                          
-  
+  integer                              :: abundanceIndexSolar
+
   ! Internal record of the number of chemicals being tracked.
-  integer                              :: chemicalsCount                                                               
-  
+  integer                              :: chemicalsCount
+
   ! Radiation structure.
-  type            (radiationStructure) :: radiation                                                                    
+  type            (radiationStructure) :: radiation
   !$omp threadprivate(radiation)
 contains
 
@@ -60,17 +60,17 @@ contains
     use Chemical_Abundances_Structure
     use Intergalactic_Medium_State
     implicit none
-    type            (varying_string                                    ), intent(in   )          :: accretionHalosMethod                        
-    procedure       (Halo_Baryonic_Accretion_Rate_Simple_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get            
-    procedure       (Halo_Baryonic_Accreted_Mass_Simple_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get             
-    procedure       (Halo_Baryonic_Failed_Accretion_Rate_Simple_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get     
-    procedure       (Halo_Baryonic_Failed_Accreted_Mass_Simple_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get      
-    procedure       (Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get 
-    procedure       (Halo_Baryonic_Accreted_Abundances_Simple_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get       
-    procedure       (Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get  
-    procedure       (Halo_Baryonic_Accreted_Chemicals_Simple_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get        
-    double precision                                                                             :: reionizationSuppressionOpticalDepth         
-    
+    type            (varying_string                                    ), intent(in   )          :: accretionHalosMethod
+    procedure       (Halo_Baryonic_Accretion_Rate_Simple_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get
+    procedure       (Halo_Baryonic_Accreted_Mass_Simple_Get            ), intent(inout), pointer :: Halo_Baryonic_Accreted_Mass_Get
+    procedure       (Halo_Baryonic_Failed_Accretion_Rate_Simple_Get    ), intent(inout), pointer :: Halo_Baryonic_Failed_Accretion_Rate_Get
+    procedure       (Halo_Baryonic_Failed_Accreted_Mass_Simple_Get     ), intent(inout), pointer :: Halo_Baryonic_Failed_Accreted_Mass_Get
+    procedure       (Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Abundances_Get
+    procedure       (Halo_Baryonic_Accreted_Abundances_Simple_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get
+    procedure       (Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
+    procedure       (Halo_Baryonic_Accreted_Chemicals_Simple_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
+    double precision                                                                             :: reionizationSuppressionOpticalDepth
+
     if (accretionHalosMethod == 'simple') then
        ! Set pointers to our implementations of accretion functions.
        Halo_Baryonic_Accretion_Rate_Get            => Halo_Baryonic_Accretion_Rate_Simple_Get
@@ -148,11 +148,11 @@ contains
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                             
-    double precision                                               :: growthRate          , unaccretedMass 
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                   
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                 
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    double precision                                               :: growthRate          , unaccretedMass
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
     else
@@ -184,9 +184,9 @@ contains
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode           
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
-    
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
     else
@@ -200,18 +200,18 @@ contains
     end if
     return
   end function Halo_Baryonic_Accreted_Mass_Simple_Get
-  
+
   double precision function Halo_Baryonic_Failed_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode                             
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent                   
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent                 
-    double precision                                               :: growthRate          , unaccretedMass 
-    
+    type            (treeNode            ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
+    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    double precision                                               :: growthRate          , unaccretedMass
+
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
     else
@@ -240,9 +240,9 @@ contains
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode           
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent 
-    
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
     else
@@ -261,26 +261,26 @@ contains
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type(treeNode  ), intent(inout), pointer :: thisNode                
-    type(abundances), intent(inout)          :: accretionRateAbundances 
-    
+    type(treeNode  ), intent(inout), pointer :: thisNode
+    type(abundances), intent(inout)          :: accretionRateAbundances
+
     ! Assume zero metallicity.
     accretionRateAbundances=zeroAbundances
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Abundances_Simple_Get
-  
+
   subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get(thisNode,accretedAbundances)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     implicit none
-    type(treeNode  ), intent(inout), pointer :: thisNode           
-    type(abundances), intent(inout)          :: accretedAbundances 
-    
+    type(treeNode  ), intent(inout), pointer :: thisNode
+    type(abundances), intent(inout)          :: accretedAbundances
+
     ! Assume zero metallicity.
     accretedAbundances=zeroAbundances
     return
   end subroutine Halo_Baryonic_Accreted_Abundances_Simple_Get
-  
+
   subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get(thisNode,accretionRateChemicals)
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\tt thisNode} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
@@ -288,10 +288,10 @@ contains
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode               
-    type            (chemicalAbundances), intent(inout)          :: accretionRateChemicals 
-    double precision                                             :: massAccretionRate      
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (chemicalAbundances), intent(inout)          :: accretionRateChemicals
+    double precision                                             :: massAccretionRate
+
     ! Return immediately if no chemicals are being tracked.
     if (chemicalsCount == 0) return
 
@@ -300,22 +300,22 @@ contains
 
     ! Get the total mass accretion rate onto the halo.
     massAccretionRate=Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
-    
+
     ! Get the mass accretion rates.
     call Get_Chemical_Masses(thisNode,massAccretionRate,accretionRateChemicals)
 
     return
   end subroutine Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get
-  
+
   subroutine Halo_Baryonic_Accreted_Chemicals_Simple_Get(thisNode,accretedChemicals)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode          
-    type            (chemicalAbundances), intent(inout)          :: accretedChemicals 
-    double precision                                             :: massAccreted      
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    type            (chemicalAbundances), intent(inout)          :: accretedChemicals
+    double precision                                             :: massAccreted
+
     ! Return immediately if no chemicals are being tracked.
     if (chemicalsCount == 0) return
 
@@ -330,7 +330,7 @@ contains
 
     return
   end subroutine Halo_Baryonic_Accreted_Chemicals_Simple_Get
-  
+
   subroutine Get_Chemical_Masses(thisNode,massAccreted,chemicalMasses)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
@@ -345,15 +345,15 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                          
-    double precision                    , intent(in   )          :: massAccreted                                      
-    type            (chemicalAbundances), intent(  out)          :: chemicalMasses                                    
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                
-    type            (chemicalAbundances), save                   :: chemicalDensities                                 
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , intent(in   )          :: massAccreted
+    type            (chemicalAbundances), intent(  out)          :: chemicalMasses
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    type            (chemicalAbundances), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                             :: massToDensityConversion, numberDensityHydrogen, & 
-         &                                                          temperature                                       
-    
+    double precision                                             :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                          temperature
+
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
 
@@ -362,7 +362,7 @@ contains
     temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
     thisBasicComponent   => thisNode%basic()
     numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_Matter())*thisBasicComponent%mass()*massToDensityConversion/atomicMassHydrogen
-    
+
     ! Set the radiation field.
     call radiation%set(thisNode)
 

@@ -35,15 +35,15 @@ contains
     use File_Utilities
     use Galacticus_Error
     implicit none
-    character       (len=*         ), intent(in   ) :: nodesFile     , particlesFile                                     
-    type            (mergerTreeData), intent(inout) :: mergerTrees                                                       
-    integer                         , intent(in   ) :: generation                                                        
-    integer                                         :: fileUnit      , lineCountData, lineCountTotal, lineNumberStart, & 
-         &                                             lineNumberStop                                                    
-    character       (len=1024      )                :: sqlQuery                                                          
-    logical                                         :: traceParticles                                                    
-    double precision                                :: particleMass                                                      
-    
+    character       (len=*         ), intent(in   ) :: nodesFile     , particlesFile
+    type            (mergerTreeData), intent(inout) :: mergerTrees
+    integer                         , intent(in   ) :: generation
+    integer                                         :: fileUnit      , lineCountData, lineCountTotal, lineNumberStart, &
+         &                                             lineNumberStop
+    character       (len=1024      )                :: sqlQuery
+    logical                                         :: traceParticles
+    double precision                                :: particleMass
+
     ! Process the nodes file.
     ! Determine if particles are being traced.
     traceParticles=(trim(particlesFile) /= "none")
@@ -85,19 +85,19 @@ contains
 
     ! Read in the data.
     call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
-    
-    
+
+
     ! Process the particles file if one is specified.
     if (traceParticles) then
-       
+
        ! Find number of lines in file, with and without comments.
        lineCountTotal=Count_Lines_in_File(particlesFile    )
        lineCountData =Count_Lines_in_File(particlesFile,"#")-1
-       
+
        ! Find lines number ranges with data.
        lineNumberStart=lineCountTotal-lineCountData+1
        lineNumberStop =lineCountTotal
-       
+
        ! Set columns to read.
        call mergerTrees%setParticlePropertyColumn(propertyTypeParticleIndex,1)
        call mergerTrees%setParticlePropertyColumn(propertyTypeRedshift     ,2)
@@ -108,12 +108,12 @@ contains
        call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityX    ,7)
        call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityY    ,8)
        call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityZ    ,9)
-       
+
        ! Read in the data.
        call mergerTrees%readParticlesASCII(particlesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
-       
+
     end if
-    
+
     ! Specify that we do not want to create individual merger tree reference datasets.
     call mergerTrees%makeReferences          (.false.)
 
@@ -178,5 +178,5 @@ contains
 
     return
   end subroutine Merger_Trees_Millennium_Process
-  
+
 end module Merger_Trees_Millennium

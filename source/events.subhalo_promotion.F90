@@ -22,7 +22,7 @@ module Node_Subhalo_Promotions
   implicit none
   private
   public :: Node_Subhalo_Promotion
-  
+
 contains
 
   logical function Node_Subhalo_Promotion(thisEvent,thisNode,deadlockStatus)
@@ -36,14 +36,14 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    class  (nodeEvent     ), intent(in   )          :: thisEvent       
-    type   (treeNode      ), intent(inout), pointer :: thisNode        
-    integer                , intent(inout)          :: deadlockStatus  
-    type   (treeNode      )               , pointer :: promotionNode   
-    type   (mergerTree    )                         :: thisTree        
-    type   (varying_string)                         :: message         
-    
-    ! Find the node to promote to.                                                                    
+    class  (nodeEvent     ), intent(in   )          :: thisEvent
+    type   (treeNode      ), intent(inout), pointer :: thisNode
+    integer                , intent(inout)          :: deadlockStatus
+    type   (treeNode      )               , pointer :: promotionNode
+    type   (mergerTree    )                         :: thisTree
+    type   (varying_string)                         :: message
+
+    ! Find the node to promote to.
     promotionNode => thisEvent%node
     ! If the target node has a child, we must wait for that child to be processed before promoting. Note that this should only
     ! happen in cases where the target node was cloned to be its own primary progenitor.
@@ -69,5 +69,5 @@ contains
     Node_Subhalo_Promotion=.true.
     return
   end function Node_Subhalo_Promotion
-  
+
 end module Node_Subhalo_Promotions

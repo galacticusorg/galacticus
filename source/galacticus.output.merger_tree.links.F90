@@ -25,8 +25,8 @@ module Galacticus_Output_Trees_Links
   public :: Galacticus_Output_Tree_Links, Galacticus_Output_Tree_Links_Property_Count, Galacticus_Output_Tree_Links_Names
 
   ! Number of link properties.
-  integer, parameter :: linkPropertyCount=6 
-  
+  integer, parameter :: linkPropertyCount=6
+
 contains
 
   !# <mergerTreeOutputNames>
@@ -37,13 +37,13 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode)              , intent(inout), pointer :: thisNode                                           
-    double precision                        , intent(in   )          :: time                                               
-    integer                                 , intent(inout)          :: doubleProperty         , integerProperty           
-    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , & 
-         &                                                              integerPropertyComments, integerPropertyNames      
-    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI    
-    
+    type            (treeNode)              , intent(inout), pointer :: thisNode
+    double precision                        , intent(in   )          :: time
+    integer                                 , intent(inout)          :: doubleProperty         , integerProperty
+    character       (len=*   ), dimension(:), intent(inout)          :: doublePropertyComments , doublePropertyNames   , &
+         &                                                              integerPropertyComments, integerPropertyNames
+    double precision          , dimension(:), intent(inout)          :: doublePropertyUnitsSI  , integerPropertyUnitsSI
+
     integerProperty=integerProperty+1
     !@ <outputProperty>
     !@   <name>nodeIndex</name>
@@ -126,10 +126,10 @@ contains
   subroutine Galacticus_Output_Tree_Links_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                                  
-    double precision          , intent(in   )          :: time                                      
-    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount 
-    
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: time
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
+
     integerPropertyCount=integerPropertyCount+linkPropertyCount
     return
   end subroutine Galacticus_Output_Tree_Links_Property_Count
@@ -143,13 +143,13 @@ contains
     !% Store link properties in the \glc\ output file buffers.
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )          :: time                                                          
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                      
-    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, & 
-         &                                                      integerProperty                                               
-    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)                                        
-    double precision                , intent(inout)          :: doubleBuffer     (:,:)                                        
-    
+    double precision                , intent(in   )          :: time
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    integer                         , intent(inout)          :: doubleBufferCount     , doubleProperty, integerBufferCount, &
+         &                                                      integerProperty
+    integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
+    double precision                , intent(inout)          :: doubleBuffer     (:,:)
+
     integerProperty=integerProperty+1
     integerBuffer(integerBufferCount,integerProperty)=thisNode               %index()
     integerProperty=integerProperty+1

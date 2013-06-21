@@ -24,12 +24,12 @@ module Excursion_Sets_Barriers_Remap_Scale
        & Excursion_Sets_Barrier_Gradient_Remap_Scale
 
   ! Record of the position of this remapping in the list of those to be applied.
-  integer          :: methodPosition                       =-1     , methodRatesPosition=-1  
-  
-  ! Factor by which the barrier should be scaled.                                                                                        
-  double precision :: excursionSetBarrierRemapScalingFactor                                  
-  logical          :: parametersInitialized                =.false.                          
-                                                                                          
+  integer          :: methodPosition                       =-1     , methodRatesPosition=-1
+
+  ! Factor by which the barrier should be scaled.
+  double precision :: excursionSetBarrierRemapScalingFactor
+  logical          :: parametersInitialized                =.false.
+
 contains
 
   !# <excursionSetBarrierRemapInitialize>
@@ -40,12 +40,12 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods            
-    type   (varying_string)              , intent(inout) :: barrierName                                
-    logical                              , intent(in   ) :: ratesCalculation                           
-    integer                              , intent(inout) :: matchedCount                               
-    integer                                              :: i                              , position  
-                                                                                                    
+    type   (varying_string), dimension(:), intent(in   ) :: excursionSetBarrierRemapMethods
+    type   (varying_string)              , intent(inout) :: barrierName
+    logical                              , intent(in   ) :: ratesCalculation
+    integer                              , intent(inout) :: matchedCount
+    integer                                              :: i                              , position
+
     if (any(excursionSetBarrierRemapMethods == 'scale')) then
        ! Locate the position of the scale method in the list.
        position=-1
@@ -90,11 +90,11 @@ contains
   subroutine Excursion_Sets_Barrier_Remap_Scale(barrier,variance,time,ratesCalculation,iRemap)
     !% Return the barrier for excursion set calculations unmodified.
     implicit none
-    double precision, intent(inout) :: barrier                     
-    double precision, intent(in   ) :: time            , variance  
-    logical         , intent(in   ) :: ratesCalculation            
-    integer         , intent(in   ) :: iRemap                      
-                                                                
+    double precision, intent(inout) :: barrier
+    double precision, intent(in   ) :: time            , variance
+    logical         , intent(in   ) :: ratesCalculation
+    integer         , intent(in   ) :: iRemap
+
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrier=barrier*excursionSetBarrierRemapScalingFactor
     return
   end subroutine Excursion_Sets_Barrier_Remap_Scale
@@ -105,13 +105,13 @@ contains
   subroutine Excursion_Sets_Barrier_Gradient_Remap_Scale(barrier,barrierGradient,variance,time,ratesCalculation,iRemap)
     !% Return the gradient of the barrier for excursion set calculations unmodified.
     implicit none
-    double precision, intent(inout) :: barrierGradient                   
-    double precision, intent(in   ) :: barrier         , time, variance  
-    logical         , intent(in   ) :: ratesCalculation                  
-    integer         , intent(in   ) :: iRemap                            
-                                                                      
+    double precision, intent(inout) :: barrierGradient
+    double precision, intent(in   ) :: barrier         , time, variance
+    logical         , intent(in   ) :: ratesCalculation
+    integer         , intent(in   ) :: iRemap
+
     if ((ratesCalculation.and.iRemap == methodRatesPosition).or.(.not.ratesCalculation.and.iRemap == methodPosition)) barrierGradient=barrierGradient*excursionSetBarrierRemapScalingFactor
     return
   end subroutine Excursion_Sets_Barrier_Gradient_Remap_Scale
-  
+
 end module Excursion_Sets_Barriers_Remap_Scale

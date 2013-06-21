@@ -25,8 +25,8 @@ module Stellar_Astrophysics_Winds_Leitherer1992
   public :: Stellar_Winds_Leitherer1992_Initialize
 
   ! Minimum metallicity to which we trust Leitherer et al.'s metallicity scaling.
-  double precision, parameter :: metallicityMinimum=1.0d-4*metallicitySolar  
-                                                                          
+  double precision, parameter :: metallicityMinimum=1.0d-4*metallicitySolar
+
 contains
 
   !# <stellarWindsMethod>
@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: stellarWindsMethod                                                     
-    procedure(double precision), intent(inout), pointer :: Stellar_Winds_Mass_Loss_Rate_Get, Stellar_Winds_Terminal_Velocity_Get  
-                                                                                                                               
+    type     (varying_string  ), intent(in   )          :: stellarWindsMethod
+    procedure(double precision), intent(inout), pointer :: Stellar_Winds_Mass_Loss_Rate_Get, Stellar_Winds_Terminal_Velocity_Get
+
     if (stellarWindsMethod == 'Leitherer1992') then
        ! Set procedure pointers.
        Stellar_Winds_Mass_Loss_Rate_Get    => Stellar_Winds_Mass_Loss_Rate_Leitherer1992
@@ -53,11 +53,11 @@ contains
     !% the fitting formula of \cite{leitherer_deposition_1992}.
     use Stellar_Astrophysics_Tracks
     implicit none
-    double precision, intent(in   ) :: age                        , initialMass       , & 
-         &                             metallicity                                        
-    double precision                :: stellarEffectiveTemperature, stellarLuminosity     
-    
-    ! Get luminosity and effective temperature of the star.                                                                                   
+    double precision, intent(in   ) :: age                        , initialMass       , &
+         &                             metallicity
+    double precision                :: stellarEffectiveTemperature, stellarLuminosity
+
+    ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =Stellar_Luminosity           (initialMass,metallicity,age)
     stellarEffectiveTemperature=Stellar_Effective_Temperature(initialMass,metallicity,age)
 
@@ -77,11 +77,11 @@ contains
     !% the fitting formula of \cite{leitherer_deposition_1992}.
     use Stellar_Astrophysics_Tracks
     implicit none
-    double precision, intent(in   ) :: age                        , initialMass       , & 
-         &                             metallicity                                        
-    double precision                :: stellarEffectiveTemperature, stellarLuminosity     
-    
-    ! Get luminosity and effective temperature of the star.                                                                                   
+    double precision, intent(in   ) :: age                        , initialMass       , &
+         &                             metallicity
+    double precision                :: stellarEffectiveTemperature, stellarLuminosity
+
+    ! Get luminosity and effective temperature of the star.
     stellarLuminosity          =Stellar_Luminosity           (initialMass,metallicity,age)
     stellarEffectiveTemperature=Stellar_Effective_Temperature(initialMass,metallicity,age)
 

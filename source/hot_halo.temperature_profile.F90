@@ -27,23 +27,23 @@ module Hot_Halo_Temperature_Profile
   private
   public :: Hot_Halo_Temperature, Hot_Halo_Temperature_Logarithmic_Slope
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                               :: hotHaloTemperatureInitialized             =.false.  
-  
-  ! Name of cooling time available method used.                                                                                                          
-  type     (varying_string                   )          :: hotHaloTemperatureMethod                            
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                          
-  procedure(Hot_Halo_Temperature_Get_Template), pointer :: Hot_Halo_Temperature_Get                  =>null()  
-  procedure(Hot_Halo_Temperature_Get_Template), pointer :: Hot_Halo_Temperature_Logarithmic_Slope_Get=>null()  
+  ! Flag to indicate if this module has been initialized.
+  logical                                               :: hotHaloTemperatureInitialized             =.false.
+
+  ! Name of cooling time available method used.
+  type     (varying_string                   )          :: hotHaloTemperatureMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Hot_Halo_Temperature_Get_Template), pointer :: Hot_Halo_Temperature_Get                  =>null()
+  procedure(Hot_Halo_Temperature_Get_Template), pointer :: Hot_Halo_Temperature_Logarithmic_Slope_Get=>null()
   interface Hot_Halo_Temperature_Get_Template
      double precision function Hot_Halo_Temperature_Get_Template(thisNode,radius)
        import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode  
-       double precision          , intent(in   )          :: radius    
+       type            (treeNode), intent(inout), pointer :: thisNode
+       double precision          , intent(in   )          :: radius
      end function Hot_Halo_Temperature_Get_Template
   end interface
-  
+
 contains
 
   subroutine Hot_Halo_Temperature_Initialize
@@ -54,7 +54,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.hotHaloTemperatureInitialized) then
-       !$omp critical(Hot_Halo_Temperature_Initialization) 
+       !$omp critical(Hot_Halo_Temperature_Initialization)
        if (.not.hotHaloTemperatureInitialized) then
           ! Get the cooling time available method parameter.
           !@ <inputParameter>
@@ -77,7 +77,7 @@ contains
                &//char(hotHaloTemperatureMethod)//' is unrecognized')
           hotHaloTemperatureInitialized=.true.
        end if
-       !$omp end critical(Hot_Halo_Temperature_Initialization) 
+       !$omp end critical(Hot_Halo_Temperature_Initialization)
     end if
     return
   end subroutine Hot_Halo_Temperature_Initialize
@@ -85,10 +85,10 @@ contains
   double precision function Hot_Halo_Temperature(thisNode,radius)
     !% Return the temperature of the hot halo in {\tt thisNode} at radius {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-    
-    ! Initialize the module.                                                             
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
+    ! Initialize the module.
     call Hot_Halo_Temperature_Initialize
 
     ! Get the cooling time using the selected method.
@@ -100,10 +100,10 @@ contains
   double precision function Hot_Halo_Temperature_Logarithmic_Slope(thisNode,radius)
     !% Return the temperature of the hot halo in {\tt thisNode} at radius {\tt radius}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(in   )          :: radius    
-    
-    ! Initialize the module.                                                             
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: radius
+
+    ! Initialize the module.
     call Hot_Halo_Temperature_Initialize
 
     ! Get the cooling time using the selected method.

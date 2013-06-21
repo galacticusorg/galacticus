@@ -16,7 +16,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements calculations of satellite merging times using the \cite{lacey_merger_1993} method with a
-!% parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by 
+!% parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by
 !% \cite{cole_hierarchical_2000}.
 
 module Dynamical_Friction_Lacey_Cole_Tormen
@@ -30,8 +30,8 @@ module Dynamical_Friction_Lacey_Cole_Tormen
        & Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Store, Satellite_Time_Until_Merging_Lacey_Cole_Tormen_Snapshot
 
   ! Random number objects
-  type   (fgsl_rng) :: clonedPseudoSequenceObject       , randomSequenceObject        
-  logical           :: resetRandomSequence       =.true., resetRandomSequenceSnapshot 
+  type   (fgsl_rng) :: clonedPseudoSequenceObject       , randomSequenceObject
+  logical           :: resetRandomSequence       =.true., resetRandomSequenceSnapshot
   !$omp threadprivate(resetRandomSequence,randomSequenceObject,clonedPseudoSequenceObject,resetRandomSequenceSnapshot)
 contains
 
@@ -42,9 +42,9 @@ contains
     !% Determine if this method is to be used and set pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                ), intent(in   )          :: satelliteMergingMethod       
-    procedure(Satellite_Time_Until_Merging_Lacey_Cole_Tormen), intent(inout), pointer :: Satellite_Time_Until_Merging 
-    
+    type     (varying_string                                ), intent(in   )          :: satelliteMergingMethod
+    procedure(Satellite_Time_Until_Merging_Lacey_Cole_Tormen), intent(inout), pointer :: Satellite_Time_Until_Merging
+
     if (satelliteMergingMethod == 'Lacey-Cole+Tormen') Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Lacey_Cole_Tormen
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_Initialize
@@ -57,16 +57,16 @@ contains
     use Kepler_Orbits
     use Gaussian_Random
     implicit none
-    type            (treeNode          )           , intent(inout), pointer :: thisNode                                                                                    
-    type            (keplerOrbit       )           , intent(inout)          :: thisOrbit                                                                                   
-    type            (treeNode          )                          , pointer :: hostNode                                                                                    
-    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                          , thisBasicComponent                            
-    double precision                    , parameter                         :: inverseTwoB1                  =1.169335453d0                     !   1/2/B(1).              
-    double precision                    , parameter                         :: orbitalFactorDistributionSigma=0.26d0                            !   Cole et al. (2000).    
-    double precision                    , parameter                         :: orbitalFactorDistributionMean =-0.14d0                           !   Cole et al. (2000).    
-    double precision                                                        :: log10OrbitalFactor                          , massRatio                                 , & 
-         &                                                                     orbitalFactor                               , randomDeviate                                 
-    
+    type            (treeNode          )           , intent(inout), pointer :: thisNode
+    type            (keplerOrbit       )           , intent(inout)          :: thisOrbit
+    type            (treeNode          )                          , pointer :: hostNode
+    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                          , thisBasicComponent
+    double precision                    , parameter                         :: inverseTwoB1                  =1.169335453d0                     !   1/2/B(1).
+    double precision                    , parameter                         :: orbitalFactorDistributionSigma=0.26d0                            !   Cole et al. (2000).
+    double precision                    , parameter                         :: orbitalFactorDistributionMean =-0.14d0                           !   Cole et al. (2000).
+    double precision                                                        :: log10OrbitalFactor                          , massRatio                                 , &
+         &                                                                     orbitalFactor                               , randomDeviate
+
     ! Find the host node.
     hostNode => thisNode%parent
     ! Compute the orbital factor - selected at random from a lognormal distribution.
@@ -100,7 +100,7 @@ contains
     resetRandomSequenceSnapshot=resetRandomSequence
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -108,14 +108,14 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) resetRandomSequenceSnapshot
     if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -123,12 +123,12 @@ contains
     !% Write the stored snapshot of the random number state to file.
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) resetRandomSequence
     if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
     return
   end subroutine Satellite_Time_Until_Merging_Lacey_Cole_Tormen_State_Retrieve
-    
+
 end module Dynamical_Friction_Lacey_Cole_Tormen

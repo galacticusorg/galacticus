@@ -28,19 +28,19 @@ module Galactic_Structure_Initial_Radii_Adiabatic
   public :: Galactic_Structure_Initial_Radii_Adiabatic_Initialize
 
   ! Parameters of the adiabatic contraction algorithm.
-  double precision                      :: adiabaticContractionGnedinA                     , adiabaticContractionGnedinOmega                     
-  
+  double precision                      :: adiabaticContractionGnedinA                     , adiabaticContractionGnedinOmega
+
   ! Module scope quantities used in solving the initial radius root function.
-  integer                   , parameter :: componentType                  =componentTypeAll, massType                       =massTypeBaryonic, & 
-       &                                   weightBy                       =weightByMass    , weightIndex                    =weightIndexNull     
-  logical                   , parameter :: haloLoaded                     =.false.                                                               
-  double precision                      :: baryonicFinalTerm                               , baryonicFinalTermDerivative                     , & 
-       &                                   darkMatterFraction                              , initialMassFraction                             , & 
-       &                                   radiusFinal                                     , radiusFinalMean                                 , & 
-       &                                   radiusFinalMeanSelfDerivative                   , radiusInitial                                   , & 
-       &                                   radiusInitialMeanSelfDerivative                 , radiusShared                                    , & 
-       &                                   virialRadius                                                                                          
-  type            (treeNode), pointer   :: activeNode                                                                                            
+  integer                   , parameter :: componentType                  =componentTypeAll, massType                       =massTypeBaryonic, &
+       &                                   weightBy                       =weightByMass    , weightIndex                    =weightIndexNull
+  logical                   , parameter :: haloLoaded                     =.false.
+  double precision                      :: baryonicFinalTerm                               , baryonicFinalTermDerivative                     , &
+       &                                   darkMatterFraction                              , initialMassFraction                             , &
+       &                                   radiusFinal                                     , radiusFinalMean                                 , &
+       &                                   radiusFinalMeanSelfDerivative                   , radiusInitial                                   , &
+       &                                   radiusInitialMeanSelfDerivative                 , radiusShared                                    , &
+       &                                   virialRadius
+  type            (treeNode), pointer   :: activeNode
   !$omp threadprivate(radiusShared,baryonicFinalTerm,baryonicFinalTermDerivative,darkMatterFraction,initialMassFraction,radiusFinal,radiusFinalMean,virialRadius,radiusFinalMeanSelfDerivative,radiusInitialMeanSelfDerivative,radiusInitial,activeNode)
 contains
 
@@ -52,10 +52,10 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                                        ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod 
-    procedure(Galactic_Structure_Radius_Initial_Adiabatic           ), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Get            
-    procedure(Galactic_Structure_Radius_Initial_Derivative_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get 
-    
+    type     (varying_string                                        ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod
+    procedure(Galactic_Structure_Radius_Initial_Adiabatic           ), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Get
+    procedure(Galactic_Structure_Radius_Initial_Derivative_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get
+
     if (galacticStructureRadiusSolverInitialRadiusMethod == 'adiabatic') then
        Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Adiabatic
        Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Adiabatic
@@ -107,20 +107,20 @@ contains
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.enclosed_mass.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode                         ), intent(inout), pointer :: thisNode                                                               
-    double precision                                   , intent(in   )          :: radius                                                                 
-    logical                                            , intent(in   )          :: computeGradientFactors                                                 
-    type            (treeNode                         )               , pointer :: currentNode                                                            
-    class           (nodeComponentBasic               )               , pointer :: thisBasic                                                              
-    double precision                                   , parameter              :: toleranceAbsolute               =0.0d0, toleranceRelative   =1.0d-3    
-    procedure       (Component_Enclosed_Mass          )               , pointer :: componentEnclosedMass                                                  
-    procedure       (Component_Rotation_Curve         )               , pointer :: componentRotationCurve                                                 
-    procedure       (Component_Rotation_Curve_Gradient)               , pointer :: componentRotationCurveGradient                                         
-    double precision                                                            :: baryonicMassSelfTotal                 , baryonicMassTotal          , & 
-         &                                                                         componentMass                         , componentVelocity          , & 
-         &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , & 
-         &                                                                         rotationCurveSquaredGradient                                           
-    
+    type            (treeNode                         ), intent(inout), pointer :: thisNode
+    double precision                                   , intent(in   )          :: radius
+    logical                                            , intent(in   )          :: computeGradientFactors
+    type            (treeNode                         )               , pointer :: currentNode
+    class           (nodeComponentBasic               )               , pointer :: thisBasic
+    double precision                                   , parameter              :: toleranceAbsolute               =0.0d0, toleranceRelative   =1.0d-3
+    procedure       (Component_Enclosed_Mass          )               , pointer :: componentEnclosedMass
+    procedure       (Component_Rotation_Curve         )               , pointer :: componentRotationCurve
+    procedure       (Component_Rotation_Curve_Gradient)               , pointer :: componentRotationCurveGradient
+    double precision                                                            :: baryonicMassSelfTotal                 , baryonicMassTotal          , &
+         &                                                                         componentMass                         , componentVelocity          , &
+         &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , &
+         &                                                                         rotationCurveSquaredGradient
+
     ! Get the virial radius of the node.
     virialRadius=Dark_Matter_Halo_Virial_Radius(thisNode)
     ! Store the final radius and its orbit-averaged mean.
@@ -201,10 +201,10 @@ contains
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode                                          
-    double precision            , intent(in   )          :: radius                                            
-    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3 
-    type            (rootFinder), save                   :: finder                                            
+    type            (treeNode  ), intent(inout), pointer :: thisNode
+    double precision            , intent(in   )          :: radius
+    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder), save                   :: finder
     !$omp threadprivate(finder)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -241,10 +241,10 @@ contains
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    type            (treeNode  ), intent(inout), pointer :: thisNode                                          
-    double precision            , intent(in   )          :: radius                                            
-    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3 
-    type            (rootFinder), save                   :: finder                                            
+    type            (treeNode  ), intent(inout), pointer :: thisNode
+    double precision            , intent(in   )          :: radius
+    double precision            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    type            (rootFinder), save                   :: finder
     !$omp threadprivate(finder)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -280,9 +280,9 @@ contains
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radiusInitial                            
-    double precision                :: darkMatterMassInitial, radiusInitialMean 
-    
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: darkMatterMassInitial, radiusInitialMean
+
     ! Find the initial mean orbital radius.
     radiusInitialMean    =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
@@ -304,10 +304,10 @@ contains
     use Dark_Matter_Profiles
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: radiusInitialDerivative                            
-    double precision                :: darkMatterDensityInitial, darkMatterMassInitial, & 
-         &                             radiusInitialMean                                  
-    
+    double precision, intent(in   ) :: radiusInitialDerivative
+    double precision                :: darkMatterDensityInitial, darkMatterMassInitial, &
+         &                             radiusInitialMean
+
     ! Find the initial mean orbital radius.
     radiusInitialMean       =Adiabatic_Solver_Mean_Orbital_Radius(           radiusInitial    )
     ! Get the mass of dark matter inside the initial radius.
@@ -344,8 +344,8 @@ contains
     !% Returns the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
     !% \cite{gnedin_response_2004}.
     implicit none
-    double precision, intent(in   ) :: radius 
-    
+    double precision, intent(in   ) :: radius
+
     Adiabatic_Solver_Mean_Orbital_Radius=                                                        &
          &                                adiabaticContractionGnedinA                            &
          &                               *virialRadius                                           &
@@ -357,8 +357,8 @@ contains
     !% Returns the derivative of the orbit averaged radius for dark matter corresponding the given {\tt radius} using the model of
     !% \cite{gnedin_response_2004}.
     implicit none
-    double precision, intent(in   ) :: radius 
-    
+    double precision, intent(in   ) :: radius
+
     Adiabatic_Solver_Mean_Orbital_Radius_Derivative=                                             &
          &                        adiabaticContractionGnedinA                                    &
          &                       *(radius/virialRadius)**(adiabaticContractionGnedinOmega-1.0d0)
@@ -369,8 +369,8 @@ contains
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
     !% profile.
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     select type (component)
     class is (nodeComponentDarkMatterProfile)
        Component_Enclosed_Mass=0.0d0
@@ -379,13 +379,13 @@ contains
     end select
     return
   end function Component_Enclosed_Mass
-    
+
   double precision function Component_Rotation_Curve(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     select type (component)
     class is (nodeComponentDarkMatterProfile)
        Component_Rotation_Curve=0.0d0
@@ -394,13 +394,13 @@ contains
     end select
     return
   end function Component_Rotation_Curve
-    
+
   double precision function Component_Rotation_Curve_Gradient(component)
     !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     select type (component)
     class is (nodeComponentDarkMatterProfile)
        Component_Rotation_Curve_Gradient=0.0d0

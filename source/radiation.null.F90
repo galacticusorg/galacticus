@@ -15,7 +15,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module Radiation_Null 
+module Radiation_Null
   implicit none
   private
   public :: Radiation_Set_Null, Radiation_Temperature_Null, Radiation_Flux_Null
@@ -34,10 +34,10 @@ contains
     !% Property setting routine for null radiation component.
     use Galacticus_Nodes
     implicit none
-    logical                                              , intent(in   )          :: componentMatched     
-    type            (treeNode)                           , intent(inout), pointer :: thisNode             
-    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties  
-                                                                                                       
+    logical                                              , intent(in   )          :: componentMatched
+    type            (treeNode)                           , intent(inout), pointer :: thisNode
+    double precision          , allocatable, dimension(:), intent(inout)          :: radiationProperties
+
     return
   end subroutine Radiation_Set_Null
 
@@ -48,11 +48,11 @@ contains
   subroutine Radiation_Temperature_Null(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
     !% Temperature method for the null radiation component.
     implicit none
-    integer                                    , intent(in   )           :: ourType             , requestedType  
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                  
-    double precision                           , intent(inout)           :: radiationTemperature                 
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                        
-                                                                                                              
+    integer                                    , intent(in   )           :: ourType             , requestedType
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationTemperature
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
     return
   end subroutine Radiation_Temperature_Null
 
@@ -63,12 +63,12 @@ contains
   subroutine Radiation_Flux_Null(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
     !% Flux method for the null radiation component.
     implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType  
-    double precision                           , intent(in   )           :: wavelength                          
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties                 
-    double precision                           , intent(inout)           :: radiationFlux                       
-    integer                      , dimension(:), intent(in   ), optional :: radiationType                       
-                                                                                                             
+    integer                                    , intent(in   )           :: ourType            , requestedType
+    double precision                           , intent(in   )           :: wavelength
+    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
+    double precision                           , intent(inout)           :: radiationFlux
+    integer                      , dimension(:), intent(in   ), optional :: radiationType
+
     return
   end subroutine Radiation_Flux_Null
 

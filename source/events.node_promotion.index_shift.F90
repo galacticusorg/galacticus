@@ -24,15 +24,15 @@ module Node_Promotion_Index_Shifts
   implicit none
   private
   public :: Node_Promotion_Index_Shift
-  
+
   ! Flag indicating if this module has been initialized.
-  logical :: indexShiftInitialized  =.false.  
-  
-  ! Flag indicating whether or not to shift indices.                                         
-  logical :: nodePromotionIndexShift          
-                                           
+  logical :: indexShiftInitialized  =.false.
+
+  ! Flag indicating whether or not to shift indices.
+  logical :: nodePromotionIndexShift
+
 contains
-  
+
   !# <nodePromotionTask>
   !#  <unitName>Node_Promotion_Index_Shift</unitName>
   !# </nodePromotionTask>
@@ -42,10 +42,10 @@ contains
     use Input_Parameters
     use Galacticus_Nodes
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode    
-    type(treeNode)               , pointer :: parentNode  
-    
-    ! Ensure that the module is initialized.                                                   
+    type(treeNode), intent(inout), pointer :: thisNode
+    type(treeNode)               , pointer :: parentNode
+
+    ! Ensure that the module is initialized.
     if (.not.indexShiftInitialized) then
        !$omp critical (Node_Promotion_Index_Shift_Initialize)
        if (.not.indexShiftInitialized) then
@@ -76,5 +76,5 @@ contains
 
     return
   end subroutine Node_Promotion_Index_Shift
-  
+
 end module Node_Promotion_Index_Shifts

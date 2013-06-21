@@ -24,16 +24,16 @@ module Stellar_Population_Spectra_Postprocess_Null
   public :: Stellar_Population_Spectra_Postprocess_Null_Initialize
 
 contains
-  
+
   !# <stellarPopulationSpectraPostprocessMethod>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Null_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessMethod>
   subroutine Stellar_Population_Spectra_Postprocess_Null_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
     !% Initializes the ``Null'' stellar spectrum postprocessing module.
     implicit none
-    type     (varying_string  ), intent(in   )          :: stellarPopulationSpectraPostprocessMethod   
-    procedure(double precision), intent(inout), pointer :: Stellar_Population_Spectra_Postprocess_Get  
-                                                                                                    
+    type     (varying_string  ), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(double precision), intent(inout), pointer :: Stellar_Population_Spectra_Postprocess_Get
+
     if (stellarPopulationSpectraPostprocessMethod == 'null') Stellar_Population_Spectra_Postprocess_Get =>&
          & Stellar_Population_Spectra_Postprocess_Null_Get
     return
@@ -45,8 +45,8 @@ contains
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision, intent(in   ) :: redshift, wavelength  
-                                                          
+    double precision, intent(in   ) :: redshift, wavelength
+
     Stellar_Population_Spectra_Postprocess_Null_Get=1.0d0
     return
   end function Stellar_Population_Spectra_Postprocess_Null_Get

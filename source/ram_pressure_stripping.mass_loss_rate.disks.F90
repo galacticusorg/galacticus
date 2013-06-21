@@ -24,12 +24,12 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
   private
   public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                        :: moduleInitialized                             =.false.  
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                       
-  procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get=>null()  
-                                                                                                                         
+  ! Flag to indicate if this module has been initialized.
+  logical                                                        :: moduleInitialized                             =.false.
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get=>null()
+
 contains
 
   double precision function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(thisNode)
@@ -42,12 +42,12 @@ contains
     include 'ram_pressure_stripping.mass_loss_rate.disks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode      ), intent(inout), pointer :: thisNode                                     
-    type(varying_string)                         :: ramPressureStrippingMassLossRateDisksMethod  
-    
-    ! Initialize if necessary.                                                                                          
+    type(treeNode      ), intent(inout), pointer :: thisNode
+    type(varying_string)                         :: ramPressureStrippingMassLossRateDisksMethod
+
+    ! Initialize if necessary.
     if (.not.moduleInitialized) then
-       !$omp critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Init) 
+       !$omp critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Init)
        if (.not.moduleInitialized) then
           ! Get the ram pressure stripping mass loss rate method parameter.
           !@ <inputParameter>
@@ -70,7 +70,7 @@ contains
                &//char(ramPressureStrippingMassLossRateDisksMethod)//' is unrecognized')
           moduleInitialized=.true.
        end if
-       !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Init) 
+       !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Init)
     end if
 
     ! Get the mass loss rate using the selected method.

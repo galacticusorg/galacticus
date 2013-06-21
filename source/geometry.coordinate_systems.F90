@@ -29,10 +29,10 @@ contains
     !% Convert $(x,y,z)$ in Cartesian coordinates into $(r,\theta,\phi)$ in spherical coordinates, with $\theta=0$ corresponding
     !% to the $z$-axis and $\phi=0$ corresponding to the $x$-axis.
     implicit none
-    double precision, dimension(3)                :: Coordinates_Cartesian_To_Spherical  
-    double precision, dimension(3), intent(in   ) :: cartesianPosition                   
-    
-    ! Spherical radius.                                                                                  
+    double precision, dimension(3)                :: Coordinates_Cartesian_To_Spherical
+    double precision, dimension(3), intent(in   ) :: cartesianPosition
+
+    ! Spherical radius.
     Coordinates_Cartesian_To_Spherical(1)=sqrt(cartesianPosition(1)**2+cartesianPosition(2)**2+cartesianPosition(3)**2)
     ! Check for zero radius.
     if (Coordinates_Cartesian_To_Spherical(1) == 0.0d0) then
@@ -50,10 +50,10 @@ contains
   function Coordinates_Cartesian_To_Cylindrical(cartesianPosition)
     !% Convert $(x,y,z)$ in Cartesian coordinates into $(r,\phi,z)$ in cylindrical coordinates, with $\phi=0$ corresponding to the $x$-axis.
     implicit none
-    double precision, dimension(3)                :: Coordinates_Cartesian_To_Cylindrical  
-    double precision, dimension(3), intent(in   ) :: cartesianPosition                     
-    
-    ! Cylindrical radius.                                                                                    
+    double precision, dimension(3)                :: Coordinates_Cartesian_To_Cylindrical
+    double precision, dimension(3), intent(in   ) :: cartesianPosition
+
+    ! Cylindrical radius.
     Coordinates_Cartesian_To_Cylindrical(1)=sqrt(cartesianPosition(1)**2+cartesianPosition(2)**2)
     ! Spherical phi.
     Coordinates_Cartesian_To_Cylindrical(2)=atan2(cartesianPosition(2),cartesianPosition(1))
@@ -66,10 +66,10 @@ contains
     !% Convert $(R,\phi,z)$ in cylindrical coordinates into $(r,\theta,\phi)$ in spherical coordinates, with $\phi=0$
     !% corresponding to the $x$-axis.
     implicit none
-    double precision, dimension(3)                :: Coordinates_Cylindrical_To_Spherical  
-    double precision, dimension(3), intent(in   ) :: cylindricalPosition                   
-    
-    ! Spherical radius.                                                                                    
+    double precision, dimension(3)                :: Coordinates_Cylindrical_To_Spherical
+    double precision, dimension(3), intent(in   ) :: cylindricalPosition
+
+    ! Spherical radius.
     Coordinates_Cylindrical_To_Spherical(1)=sqrt(cylindricalPosition(1)**2+cylindricalPosition(3)**2)
     ! Check for zero radius.
     if (Coordinates_Cylindrical_To_Spherical(1) == 0.0d0) then
@@ -88,10 +88,10 @@ contains
     !% Convert $(r,\theta,\phi)$ in spherical coordinates into $(R,\phi,z)$ in cylindrical coordinates, with $\phi=0$
     !% corresponding to the $x$-axis.
     implicit none
-    double precision, dimension(3)                :: Coordinates_Spherical_To_Cylindrical  
-    double precision, dimension(3), intent(in   ) :: sphericalPosition                     
-    
-    ! Cylindrical radius.                                                                                    
+    double precision, dimension(3)                :: Coordinates_Spherical_To_Cylindrical
+    double precision, dimension(3), intent(in   ) :: sphericalPosition
+
+    ! Cylindrical radius.
     Coordinates_Spherical_To_Cylindrical(1)=sphericalPosition(1)*sin(sphericalPosition(2))
     ! Cylinderical phi.
     Coordinates_Spherical_To_Cylindrical(2)=sphericalPosition(3)

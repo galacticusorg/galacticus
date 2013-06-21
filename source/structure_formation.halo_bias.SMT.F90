@@ -32,10 +32,10 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     implicit none
-    type     (varying_string                ), intent(in   )          :: darkMatterHaloBiasMethod        
-    procedure(Dark_Matter_Halo_Bias_SMT     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get       
-    procedure(Dark_Matter_Halo_Bias_Node_SMT), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get  
-                                                                                                      
+    type     (varying_string                ), intent(in   )          :: darkMatterHaloBiasMethod
+    procedure(Dark_Matter_Halo_Bias_SMT     ), intent(inout), pointer :: Dark_Matter_Halo_Bias_Get
+    procedure(Dark_Matter_Halo_Bias_Node_SMT), intent(inout), pointer :: Dark_Matter_Halo_Bias_Node_Get
+
     if (darkMatterHaloBiasMethod == 'SMT') then
        Dark_Matter_Halo_Bias_Node_Get => Dark_Matter_Halo_Bias_Node_SMT
        Dark_Matter_Halo_Bias_Get      => Dark_Matter_Halo_Bias_SMT
@@ -47,10 +47,10 @@ contains
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
     use Galacticus_Nodes
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode            
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent  
-    
-    ! Compute halo bias.                                                                      
+    type (treeNode          ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+
+    ! Compute halo bias.
     thisBasicComponent => thisNode%basic()
     Dark_Matter_Halo_Bias_Node_SMT=Dark_Matter_Halo_Bias_SMT(thisBasicComponent%mass(),thisBasicComponent%time())
     return
@@ -61,15 +61,15 @@ contains
     use Critical_Overdensity
     use Power_Spectra
     implicit none
-    double precision, intent(in   ) :: mass                 , time                     
-    double precision, parameter     :: a            =0.707d0, b   =0.5d0, c    =0.6d0  
-    double precision                :: deltaCritical        , nu        , sigma        
-    
-    ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.                                                                                
+    double precision, intent(in   ) :: mass                 , time
+    double precision, parameter     :: a            =0.707d0, b   =0.5d0, c    =0.6d0
+    double precision                :: deltaCritical        , nu        , sigma
+
+    ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=Critical_Overdensity_for_Collapse(time=time,mass=mass)
     sigma        =Cosmological_Mass_Root_Variance(mass)
     nu           =deltaCritical/sigma
-    
+
     ! Compute halo bias.
     Dark_Matter_Halo_Bias_SMT=1.0d0+(sqrt(a)*(a*nu**2)+sqrt(a)*b*(a*nu**2)**(1.0d0-c)-(a*nu**2)**c/((a*nu**2)**c+b*(1.0d0-c)&
          &*(1.0d0-c/2.0d0)))/sqrt(a)/deltaCritical

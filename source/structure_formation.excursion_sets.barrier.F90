@@ -23,20 +23,20 @@ module Excursion_Sets_Barriers
   private
   public :: Excursion_Sets_Barrier, Excursion_Sets_Barrier_Gradient, Excursion_Sets_Barrier_Name
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                               :: barrierModuleInitalized             =.false.                                   
-  
-  ! Name of method to use for barrier function.                                                                                                                                                     
-  type     (varying_string                 )                            :: excursionSetBarrierMethod                                                      
-  type     (varying_string                 ), allocatable, dimension(:) :: excursionSetBarrierRatesRemapMethods        , excursionSetBarrierRemapMethods  
-  
-  ! Fully qualified name describing this barrier.                                                                                                                                                     
-  type     (varying_string                 )                            :: barrierName                                 , barrierRatesName                 
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                                     
-  procedure(Excursion_Sets_Barrier         ), pointer                   :: Excursion_Sets_Barrier_Get          =>null()                                   
-  procedure(Excursion_Sets_Barrier_Gradient), pointer                   :: Excursion_Sets_Barrier_Gradient_Get =>null()                                   
-                                                                                                                                                       
+  ! Flag to indicate if this module has been initialized.
+  logical                                                               :: barrierModuleInitalized             =.false.
+
+  ! Name of method to use for barrier function.
+  type     (varying_string                 )                            :: excursionSetBarrierMethod
+  type     (varying_string                 ), allocatable, dimension(:) :: excursionSetBarrierRatesRemapMethods        , excursionSetBarrierRemapMethods
+
+  ! Fully qualified name describing this barrier.
+  type     (varying_string                 )                            :: barrierName                                 , barrierRatesName
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Excursion_Sets_Barrier         ), pointer                   :: Excursion_Sets_Barrier_Get          =>null()
+  procedure(Excursion_Sets_Barrier_Gradient), pointer                   :: Excursion_Sets_Barrier_Gradient_Get =>null()
+
 contains
 
   subroutine Excursion_Sets_Barrier_Initialize
@@ -52,14 +52,14 @@ contains
     include 'structure_formation.excursion_sets.barrier.remap.moduleUse.inc'
     !# </include>
     implicit none
-    integer                                            :: matchedCount   , remapCount  
-    logical                                            :: rateCalculation              
-    type   (varying_string)                            :: name                         
-    type   (varying_string), allocatable, dimension(:) :: methods                      
-    
-    ! Initialize if necessary.                                                                                
+    integer                                            :: matchedCount   , remapCount
+    logical                                            :: rateCalculation
+    type   (varying_string)                            :: name
+    type   (varying_string), allocatable, dimension(:) :: methods
+
+    ! Initialize if necessary.
     if (.not.barrierModuleInitalized) then
-       !$omp critical(Excursion_Sets_Barrier_Initialization) 
+       !$omp critical(Excursion_Sets_Barrier_Initialization)
        if (.not.barrierModuleInitalized) then
           ! Get the barrier and remap method parameters.
           !@ <inputParameter>
@@ -78,7 +78,7 @@ contains
           !# <include directive="excursionSetBarrierMethod" type="functionCall" functionType="void">
           !#  <functionArgs>excursionSetBarrierMethod,Excursion_Sets_Barrier_Get,Excursion_Sets_Barrier_Gradient_Get,name</functionArgs>
           include 'structure_formation.excursion_sets.barrier.inc'
-          !# </include>          
+          !# </include>
           if     (.not.(                                                              &
                &        associated(Excursion_Sets_Barrier_Get         ).and.          &
                &        associated(Excursion_Sets_Barrier_Gradient_Get)               &
@@ -173,7 +173,7 @@ contains
           ! Mark that the module is initalized.
           barrierModuleInitalized=.true.
        end if
-       !$omp end critical(Excursion_Sets_Barrier_Initialization) 
+       !$omp end critical(Excursion_Sets_Barrier_Initialization)
     end if
     return
   end subroutine Excursion_Sets_Barrier_Initialize
@@ -182,12 +182,12 @@ contains
     !% Return the barrier for excursion sets at the given {\tt variance} and {\tt time}.
     include 'structure_formation.excursion_sets.barrier.remap.moduleUse.inc'
     implicit none
-    double precision, intent(in   )           :: time                  , variance    
-    logical         , intent(in   ), optional :: ratesCalculation                    
-    logical                                   :: ratesCalculationActual              
-    integer                                   :: iRemap                , remapCount  
-    
-    ! Initialize the module if necessary.                                                                              
+    double precision, intent(in   )           :: time                  , variance
+    logical         , intent(in   ), optional :: ratesCalculation
+    logical                                   :: ratesCalculationActual
+    integer                                   :: iRemap                , remapCount
+
+    ! Initialize the module if necessary.
     call Excursion_Sets_Barrier_Initialize
 
     ! Compute the original barrier.
@@ -214,13 +214,13 @@ contains
     !% Return the gradient (with respect to mass) of the barrier for excursion sets at the given {\tt variance} and {\tt time}.
     include 'structure_formation.excursion_sets.barrier.remap.moduleUse.inc'
     implicit none
-    double precision, intent(in   )           :: time                  , variance    
-    logical         , intent(in   ), optional :: ratesCalculation                    
-    double precision                          :: barrier                             
-    logical                                   :: ratesCalculationActual              
-    integer                                   :: iRemap                , remapCount  
-    
-    ! Initialize the module if necessary.                                                                              
+    double precision, intent(in   )           :: time                  , variance
+    logical         , intent(in   ), optional :: ratesCalculation
+    double precision                          :: barrier
+    logical                                   :: ratesCalculationActual
+    integer                                   :: iRemap                , remapCount
+
+    ! Initialize the module if necessary.
     call Excursion_Sets_Barrier_Initialize
 
     ! Compute the original barrier and its gradient.
@@ -245,11 +245,11 @@ contains
 
   function Excursion_Sets_Barrier_Name()
     !% Return the fully-qualified name of the selected excursion set barrier.
-    type(varying_string) :: Excursion_Sets_Barrier_Name  
-                                                      
+    type(varying_string) :: Excursion_Sets_Barrier_Name
+
     Excursion_Sets_Barrier_Name=barrierName
     return
   end function Excursion_Sets_Barrier_Name
-  
+
 end module Excursion_Sets_Barriers
 

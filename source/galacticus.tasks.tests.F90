@@ -22,7 +22,7 @@ module Galacticus_Tasks_Tests
   implicit none
   private
   public :: Galacticus_Task_Test
-  
+
 contains
 
   !# <galacticusTask>
@@ -38,10 +38,10 @@ contains
     !# </include>
     implicit none
     logical, save :: doneTests=.false.
-    
+
     if (.not.doneTests) then
        doneTests=.true.
-       
+
        ! Begin a unit testing group.
        call Unit_Tests_Begin_Group("Galacticus self tests")
 
@@ -52,7 +52,7 @@ contains
 
        ! End the unit testing group.
        call Unit_Tests_End_Group
-       
+
        ! Finish testing and report results.
        call Unit_Tests_Finish
 

@@ -21,13 +21,13 @@ subroutine Mass_Distribution_Beta_Profile_Initialize(self,beta,coreRadius,densit
   use Numerical_Constants_Math
   use Hypergeometric_Functions
   implicit none
-  class           (massDistributionBetaProfile), intent(  out)           :: self                                           
-  double precision                             , intent(in   )           :: beta                , coreRadius               
-  double precision                             , intent(in   ), optional :: densityNormalization, mass      , outerRadius  
-  logical                                      , intent(in   ), optional :: isDimensionless                                
-  double precision                                                       :: r                                              
-  
-  ! Store beta parameter.                                                                                                                      
+  class           (massDistributionBetaProfile), intent(  out)           :: self
+  double precision                             , intent(in   )           :: beta                , coreRadius
+  double precision                             , intent(in   ), optional :: densityNormalization, mass      , outerRadius
+  logical                                      , intent(in   ), optional :: isDimensionless
+  double precision                                                       :: r
+
+  ! Store beta parameter.
   self%beta      =beta
   ! Store core radius.
   self%coreRadius=coreRadius
@@ -56,12 +56,12 @@ double precision function Mass_Distribution_Beta_Profile_Density(self,coordinate
   !% Return the density at the specified {\tt coordinates} in a $\beta$-profile mass distribution.
   use Coordinates
   implicit none
-  class           (massDistributionBetaProfile), intent(in   ) :: self         
-  class           (coordinate                 ), intent(in   ) :: coordinates  
-  type            (coordinateSpherical        )                :: position     
-  double precision                                             :: r            
-  
-  ! Get position in spherical coordinate system.                                                                          
+  class           (massDistributionBetaProfile), intent(in   ) :: self
+  class           (coordinate                 ), intent(in   ) :: coordinates
+  type            (coordinateSpherical        )                :: position
+  double precision                                             :: r
+
+  ! Get position in spherical coordinate system.
   position=coordinates
   ! Compute density.
   r=position%r()/self%coreRadius

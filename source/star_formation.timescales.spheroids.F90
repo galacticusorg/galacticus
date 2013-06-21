@@ -24,19 +24,19 @@ module Star_Formation_Timescales_Spheroids
   implicit none
   private
   public :: Star_Formation_Timescale_Spheroid
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                        :: starFormationTimescaleSpheroidsInitialized=.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                   
-  type     (varying_string                            )          :: starFormationTimescaleSpheroidsMethod               
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                   
-  procedure(Star_Formation_Timescale_Spheroid_Template), pointer :: Star_Formation_Timescale_Spheroid_Get     =>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                        :: starFormationTimescaleSpheroidsInitialized=.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                            )          :: starFormationTimescaleSpheroidsMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Star_Formation_Timescale_Spheroid_Template), pointer :: Star_Formation_Timescale_Spheroid_Get     =>null()
   abstract interface
      double precision function Star_Formation_Timescale_Spheroid_Template(thisNode)
        import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode  
+       type(treeNode), intent(inout), pointer :: thisNode
      end function Star_Formation_Timescale_Spheroid_Template
   end interface
 
@@ -53,7 +53,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.starFormationTimescaleSpheroidsInitialized) then
-       !$omp critical(Star_Formation_Timescale_Spheroids_Initialization) 
+       !$omp critical(Star_Formation_Timescale_Spheroids_Initialization)
        if (.not.starFormationTimescaleSpheroidsInitialized) then
           ! Get the spheroid star formation timescale method parameter.
           !@ <inputParameter>
@@ -77,7 +77,7 @@ contains
                &,'method ' //char(starFormationTimescaleSpheroidsMethod)//' is unrecognized')
           starFormationTimescaleSpheroidsInitialized=.true.
        end if
-       !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization) 
+       !$omp end critical(Star_Formation_Timescale_Spheroids_Initialization)
     end if
     return
   end subroutine Star_Formation_Timescale_Spheroids_Initialize
@@ -85,9 +85,9 @@ contains
   double precision function Star_Formation_Timescale_Spheroid(thisNode)
     !% Returns the timescale (in Gyr) for star formation in the spheroid component of {\tt thisNode}.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-    
-    ! Initialize the module.                                                 
+    type(treeNode), intent(inout), pointer :: thisNode
+
+    ! Initialize the module.
     call Star_Formation_Timescale_Spheroids_Initialize
 
     ! Get the energy using the selected method.
@@ -95,5 +95,5 @@ contains
 
     return
   end function Star_Formation_Timescale_Spheroid
-  
+
 end module Star_Formation_Timescales_Spheroids

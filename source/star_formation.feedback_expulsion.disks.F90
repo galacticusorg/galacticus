@@ -24,20 +24,20 @@ module Star_Formation_Feedback_Expulsion_Disks
   implicit none
   private
   public :: Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                                  :: starFormationExpulsiveFeedbackDisksInitialized =.false.  
-  
-  ! Name of cooling rate available method used.                                                                                                                                  
-  type     (varying_string                                      )          :: starFormationExpulsiveFeedbackDisksMethod                
-  
-  ! Pointer to the function that actually does the calculation.                                                                                                                                  
-  procedure(Star_Formation_Expulsive_Feedback_Disk_Rate_Template), pointer :: Star_Formation_Expulsive_Feedback_Disk_Rate_Get=>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                                                  :: starFormationExpulsiveFeedbackDisksInitialized =.false.
+
+  ! Name of cooling rate available method used.
+  type     (varying_string                                      )          :: starFormationExpulsiveFeedbackDisksMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Star_Formation_Expulsive_Feedback_Disk_Rate_Template), pointer :: Star_Formation_Expulsive_Feedback_Disk_Rate_Get=>null()
   abstract interface
      double precision function Star_Formation_Expulsive_Feedback_Disk_Rate_Template(thisNode,starFormationRate,energyInputRate)
        import treeNode
-       type            (treeNode), intent(inout), pointer :: thisNode                            
-       double precision          , intent(in   )          :: energyInputRate, starFormationRate  
+       type            (treeNode), intent(inout), pointer :: thisNode
+       double precision          , intent(in   )          :: energyInputRate, starFormationRate
      end function Star_Formation_Expulsive_Feedback_Disk_Rate_Template
   end interface
 
@@ -54,12 +54,12 @@ contains
 
     ! Initialize if necessary.
     if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
-       !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
+       !$omp critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)
        if (.not.starFormationExpulsiveFeedbackDisksInitialized) then
           ! Get the disk star formation expulsive feedback method parameter.
           !@ <inputParameter>
           !@   <name>starFormationExpulsiveFeedbackDisksMethod</name>
-          !@   <defaultValue>null</defaultValue>       
+          !@   <defaultValue>null</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The name of the method to be used for calculations of expulsive \gls{sne} feedback in disks.
@@ -78,7 +78,7 @@ contains
                &,'method ' //char(starFormationExpulsiveFeedbackDisksMethod)//' is unrecognized')
           starFormationExpulsiveFeedbackDisksInitialized=.true.
        end if
-       !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization) 
+       !$omp end critical(Star_Formation_Expulsive_Feedback_Disks_Initialization)
     end if
 
     return
@@ -87,10 +87,10 @@ contains
   double precision function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate(thisNode,starFormationRate,energyInputRate)
     !% Returns the expulsive outflow rate due to star formation in the disk component of {\tt thisNode}.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode                            
-    double precision          , intent(in   )          :: energyInputRate, starFormationRate  
-    
-    ! Initialize the module.                                                                                       
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(in   )          :: energyInputRate, starFormationRate
+
+    ! Initialize the module.
     call Star_Formation_Expulsive_Feedback_Disks_Initialize
 
     ! Get the energy using the selected method.
@@ -98,5 +98,5 @@ contains
 
     return
   end function Star_Formation_Expulsive_Feedback_Disk_Outflow_Rate
-  
+
 end module Star_Formation_Feedback_Expulsion_Disks

@@ -23,8 +23,8 @@ module Galacticus_Meta_Compute_Times_File
   public :: Galacticus_Time_Per_Tree_File_Initialize
 
   ! Coefficients of the fitting function.
-  double precision, dimension(0:2) :: fitCoefficient 
-  
+  double precision, dimension(0:2) :: fitCoefficient
+
 contains
 
   !# <timePerTreeMethod>
@@ -37,15 +37,15 @@ contains
     use FoX_DOM
     use Galacticus_Error
     implicit none
-    type            (varying_string  ), intent(in   )          :: timePerTreeMethod                                   
-    procedure       (double precision), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get                        
-    type            (Node            )               , pointer :: doc                            , thisCoefficient, & 
-         &                                                        thisFit                                             
-    type            (NodeList        )               , pointer :: coefficientList                , fitList            
-    integer                                                    :: iTerm                          , ioErr              
-    double precision                                           :: coefficient                 (1)                     
-    type            (varying_string  )                         :: timePerTreeFitFileName                              
-    
+    type            (varying_string  ), intent(in   )          :: timePerTreeMethod
+    procedure       (double precision), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get
+    type            (Node            )               , pointer :: doc                            , thisCoefficient, &
+         &                                                        thisFit
+    type            (NodeList        )               , pointer :: coefficientList                , fitList
+    integer                                                    :: iTerm                          , ioErr
+    double precision                                           :: coefficient                 (1)
+    type            (varying_string  )                         :: timePerTreeFitFileName
+
     if (timePerTreeMethod == 'file') then
        Galacticus_Time_Per_Tree_Get => Galacticus_Time_Per_Tree_File
 
@@ -81,13 +81,13 @@ contains
   double precision function Galacticus_Time_Per_Tree_File(treeRootMass)
     !% Provides estimates of the time taken to evolve a merger tree in \glc.
     implicit none
-    double precision, intent(in   ) :: treeRootMass    
-    integer                         :: iTerm           
-    double precision                :: logTreeRootMass 
-    
+    double precision, intent(in   ) :: treeRootMass
+    integer                         :: iTerm
+    double precision                :: logTreeRootMass
+
     ! Find the logarithm of the tree mass.
     logTreeRootMass=log10(treeRootMass)
-    
+
     Galacticus_Time_Per_Tree_File=0.0
     do iTerm=0,2
        Galacticus_Time_Per_Tree_File=Galacticus_Time_Per_Tree_File+fitCoefficient(iTerm)*logTreeRootMass**iTerm
@@ -96,5 +96,5 @@ contains
 
     return
   end function Galacticus_Time_Per_Tree_File
-  
+
 end module Galacticus_Meta_Compute_Times_File

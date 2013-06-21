@@ -30,25 +30,25 @@ module Intergalactic_Medium_State_File
        & Intergalactic_Medium_State_File_Current_File_Format_Version
 
   ! Name of the file from which to read intergalactic medium state data.
-  type            (varying_string   )                            :: intergalaticMediumStateFileName                                                                 
-  
+  type            (varying_string   )                            :: intergalaticMediumStateFileName
+
   ! Flag indicating whether or not data has been read.
-  logical                                                        :: intergalaticMediumStateDataRead         =.false.                                                
-  
+  logical                                                        :: intergalaticMediumStateDataRead         =.false.
+
   ! Data tables.
-  integer                                                        :: redshiftCount                                                                                   
-  double precision                   , allocatable, dimension(:) :: electronFractionTable                           , temperatureTable                          , & 
-       &                                                            timeTable                                                                                       
-  
+  integer                                                        :: redshiftCount
+  double precision                   , allocatable, dimension(:) :: electronFractionTable                           , temperatureTable                          , &
+       &                                                            timeTable
+
   ! Interpolation objects.
-  type            (fgsl_interp_accel)                            :: interpolationAcceleratorElectronFraction        , interpolationAcceleratorTemperature           
-  type            (fgsl_interp      )                            :: interpolationObjectElectronFraction             , interpolationObjectTemperature                
-  logical                                                        :: interpolationResetElectronFraction      =.true. , interpolationResetTemperature      =.true.    
+  type            (fgsl_interp_accel)                            :: interpolationAcceleratorElectronFraction        , interpolationAcceleratorTemperature
+  type            (fgsl_interp      )                            :: interpolationObjectElectronFraction             , interpolationObjectTemperature
+  logical                                                        :: interpolationResetElectronFraction      =.true. , interpolationResetTemperature      =.true.
   !$omp threadprivate(interpolationAcceleratorElectronFraction,interpolationObjectElectronFraction,interpolationResetElectronFraction)
   !$omp threadprivate(interpolationAcceleratorTemperature     ,interpolationObjectTemperature     ,interpolationResetTemperature     )
   ! Current file format version for intergalactic medium state files.
-  integer                            , parameter                 :: fileFormatVersionCurrent                =1                                                      
-  
+  integer                            , parameter                 :: fileFormatVersionCurrent                =1
+
 contains
 
   !# <intergalaticMediumStateMethod>
@@ -59,9 +59,9 @@ contains
     !% Initializes the ``file'' intergalactic medium state module.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod                                                    
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get, Intergalactic_Medium_Temperature_Get 
-    
+    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod
+    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get, Intergalactic_Medium_Temperature_Get
+
     ! Test if our method has been selected.
     if (intergalaticMediumStateMethod == 'file') then
        ! Set procedure pointers.
@@ -84,8 +84,8 @@ contains
 
   subroutine Intergalactic_Medium_File_Set_File(fileName)
     !% Allow an external module to set the filename to be used for intergalatic medium state data.
-    type(varying_string), intent(in   ) :: fileName 
-    
+    type(varying_string), intent(in   ) :: fileName
+
     intergalaticMediumStateFileName=fileName
     return
   end subroutine Intergalactic_Medium_File_Set_File
@@ -105,12 +105,12 @@ contains
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    type            (Node    ), pointer :: doc                 , thisItem                   
-    type            (NodeList), pointer :: electronFractionList, itemList , redshiftList, & 
-         &                                 temperatureList                                  
-    integer                             :: fileFormatVersion   , iRedshift, ioErr           
-    double precision                    :: redshift                                         
-    
+    type            (Node    ), pointer :: doc                 , thisItem
+    type            (NodeList), pointer :: electronFractionList, itemList , redshiftList, &
+         &                                 temperatureList
+    integer                             :: fileFormatVersion   , iRedshift, ioErr
+    double precision                    :: redshift
+
     ! Check if data has yet to be read.
     if (.not.intergalaticMediumStateDataRead) then
 
@@ -162,8 +162,8 @@ contains
     !% Return the temperature of the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: time 
-    
+    double precision, intent(in   ) :: time
+
     ! Ensure that data has been read.
     call Intergalactic_Medium_State_File_Read_Data
 
@@ -179,8 +179,8 @@ contains
     !% Return the electron fraction in the intergalactic medium at the specified {\tt time} by interpolating in tabulated data,
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: time 
-    
+    double precision, intent(in   ) :: time
+
     ! Ensure that data has been read.
     call Intergalactic_Medium_State_File_Read_Data
 

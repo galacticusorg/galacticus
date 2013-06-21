@@ -23,18 +23,18 @@ module Galacticus_Meta_Compute_Times
   implicit none
   private
   public :: Galacticus_Time_Per_Tree
-  
-  ! Flag to indicate if this module has been initialized.  
-  logical                                    :: metaComputeTimesInitialized =.false.  
-  
-  ! Name of tree timing method used.                                                                                 
-  type     (varying_string        )          :: timePerTreeMethod                     
-  
-  ! Pointer to the function that actually does the calculation.                                                                                 
-  procedure(Time_Per_Tree_Template), pointer :: Galacticus_Time_Per_Tree_Get=>null()  
+
+  ! Flag to indicate if this module has been initialized.
+  logical                                    :: metaComputeTimesInitialized =.false.
+
+  ! Name of tree timing method used.
+  type     (varying_string        )          :: timePerTreeMethod
+
+  ! Pointer to the function that actually does the calculation.
+  procedure(Time_Per_Tree_Template), pointer :: Galacticus_Time_Per_Tree_Get=>null()
   abstract interface
      double precision function Time_Per_Tree_Template(treeRootMass)
-       double precision, intent(in   ) :: treeRootMass  
+       double precision, intent(in   ) :: treeRootMass
      end function Time_Per_Tree_Template
   end interface
 
@@ -49,7 +49,7 @@ contains
     !# </include>
     implicit none
 
-    !$omp critical(Galacticus_Time_Per_Tree_Initialization) 
+    !$omp critical(Galacticus_Time_Per_Tree_Initialization)
     ! Initialize if necessary.
     if (.not.metaComputeTimesInitialized) then
        ! Get the time per tree method parameter.
@@ -73,22 +73,22 @@ contains
             &,'method '//char(timePerTreeMethod)//' is unrecognized')
        metaComputeTimesInitialized=.true.
     end if
-    !$omp end critical(Galacticus_Time_Per_Tree_Initialization) 
-    
+    !$omp end critical(Galacticus_Time_Per_Tree_Initialization)
+
     return
   end subroutine Galacticus_Time_Per_Tree_Initialize
 
   double precision function Galacticus_Time_Per_Tree(treeRootMass)
     !% Returns the time (in seconds) to compute a tree of mass {\tt treeRootMass}.
     implicit none
-    double precision, intent(in   ) :: treeRootMass  
-    
-    ! Initialize the module.                                              
+    double precision, intent(in   ) :: treeRootMass
+
+    ! Initialize the module.
     call Galacticus_Time_Per_Tree_Initialize
 
     ! Call the function to do the actual calculation.
     Galacticus_Time_Per_Tree=Galacticus_Time_Per_Tree_Get(treeRootMass)
     return
   end function Galacticus_Time_Per_Tree
-  
+
 end module Galacticus_Meta_Compute_Times

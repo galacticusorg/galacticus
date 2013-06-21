@@ -28,15 +28,15 @@ program Test_Make_Ranges
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical ranges")
-  
+
   ! Create a linear range.
   range1=Make_Range(1.0d0,3.0d0,size(range1),rangeType=rangeTypeLinear)
   call Assert("linear range creation",range1,[1.0d0,1.2d0,1.4d0,1.6d0,1.8d0,2.0d0,2.2d0,2.4d0,2.6d0,2.8d0,3.0d0])
-  
+
   ! Create a linear range in an offset array.
   range2=Make_Range(1.0d0,3.0d0,size(range2),rangeType=rangeTypeLinear)
   call Assert("linear range creation (offset array)",range2,[1.0d0,1.2d0,1.4d0,1.6d0,1.8d0,2.0d0,2.2d0,2.4d0,2.6d0,2.8d0,3.0d0])
-  
+
   ! Create a logarithmic range.
   range1=Make_Range(10.0d0,1000.0d0,size(range1),rangeType=rangeTypeLogarithmic)
   call Assert("logarithmic range creation",range1,10.0d0**([1.0d0,1.2d0,1.4d0,1.6d0,1.8d0,2.0d0,2.2d0,2.4d0,2.6d0,2.8d0,3.0d0]),relTol=1.0d-6)

@@ -33,8 +33,8 @@ contains
     use Numerical_Constants_Atomic
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: radius  
-                                            
+    double precision, intent(in   ) :: radius
+
     Chemicals_Mass_To_Density_Conversion=3.0d0*massSolar/atomicMassUnit/4.0d0/Pi/(hecto*megaParsec*radius)**3
     return
   end function Chemicals_Mass_To_Density_Conversion

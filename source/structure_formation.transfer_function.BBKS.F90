@@ -23,20 +23,20 @@ module Transfer_Function_BBKS
   implicit none
   private
   public :: Transfer_Function_BBKS_Initialize, Transfer_Function_BBKS_State_Store, Transfer_Function_BBKS_State_Retrieve
-  
+
   ! Flag to indicate if this module has been initialized.
-  logical                     :: transferFunctionInitialized           =.false.      
-  
-  ! Wavenumber range and fineness of gridding.                                                                                
-  double precision            :: logWavenumberMaximum                  =log(10.0d0)  
-  double precision            :: logWavenumberMinimum                  =log(1.0d-5)  
-  integer         , parameter :: numberPointsPerDecade                 =1000         
-  
-  ! Warm dark matter free-streaming length.                                                                                
-  double precision            :: transferFunctionWDMFreeStreamingLength              
-                                                                                  
+  logical                     :: transferFunctionInitialized           =.false.
+
+  ! Wavenumber range and fineness of gridding.
+  double precision            :: logWavenumberMaximum                  =log(10.0d0)
+  double precision            :: logWavenumberMinimum                  =log(1.0d-5)
+  integer         , parameter :: numberPointsPerDecade                 =1000
+
+  ! Warm dark matter free-streaming length.
+  double precision            :: transferFunctionWDMFreeStreamingLength
+
 contains
-  
+
   !# <transferFunctionMethod>
   !#  <unitName>Transfer_Function_BBKS_Initialize</unitName>
   !# </transferFunctionMethod>
@@ -44,9 +44,9 @@ contains
     !% Initializes the ``transfer function from BBKS'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string             ), intent(in   )          :: transferFunctionMethod      
-    procedure(Transfer_Function_BBKS_Make), intent(inout), pointer :: Transfer_Function_Tabulate  
-                                                                                               
+    type     (varying_string             ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_BBKS_Make), intent(inout), pointer :: Transfer_Function_Tabulate
+
     if (transferFunctionMethod == 'BBKS') then
        ! Return a pointer to our tabulation function.
        Transfer_Function_Tabulate => Transfer_Function_BBKS_Make
@@ -54,7 +54,7 @@ contains
        ! Get input parameters.
        !@ <inputParameter>
        !@   <name>transferFunctionWDMFreeStreamingLength</name>
-       !@   <defaultValue>0</defaultValue>       
+       !@   <defaultValue>0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The warm dark matter free streaming length (in Mpc).
@@ -75,15 +75,15 @@ contains
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision                           , intent(in   ) :: logWavenumber                                                   
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber     
-    integer                                    , intent(  out) :: transferFunctionNumberPoints                                    
-    integer                                                    :: iWavenumber                                                     
-    double precision                                           :: Gamma                       , q                             , & 
-         &                                                        wavenumber                  , wavenumberHUnits              , & 
-         &                                                        wavenumberScaleFree                                             
-    
-    ! Set wavenumber range and number of points in table.                                                                                                                           
+    double precision                           , intent(in   ) :: logWavenumber
+    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                    , intent(  out) :: transferFunctionNumberPoints
+    integer                                                    :: iWavenumber
+    double precision                                           :: Gamma                       , q                             , &
+         &                                                        wavenumber                  , wavenumberHUnits              , &
+         &                                                        wavenumberScaleFree
+
+    ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
     logWavenumberMaximum=max(logWavenumberMaximum,logWavenumber+ln10)
     transferFunctionNumberPoints=int((logWavenumberMaximum-logWavenumberMinimum)*dble(numberPointsPerDecade)/ln10)
@@ -108,7 +108,7 @@ contains
     end do
     return
   end subroutine Transfer_Function_BBKS_Make
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Transfer_Function_BBKS_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -116,13 +116,13 @@ contains
     !% Write the tablulation state to file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-                                                     
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Transfer_Function_BBKS_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Transfer_Function_BBKS_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -130,12 +130,12 @@ contains
     !% Retrieve the tabulation state from the file.
     use FGSL
     implicit none
-    integer           , intent(in   ) :: stateFile      
-    type   (fgsl_file), intent(in   ) :: fgslStateFile  
-    
-    ! Read the minimum and maximum tabulated times.                                                 
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
+    ! Read the minimum and maximum tabulated times.
     read (stateFile) logWavenumberMinimum,logWavenumberMaximum
     return
   end subroutine Transfer_Function_BBKS_State_Retrieve
-    
+
 end module Transfer_Function_BBKS

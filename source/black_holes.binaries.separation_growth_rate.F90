@@ -26,15 +26,15 @@ module Black_Hole_Binary_Separations
   private
   public :: Black_Hole_Binary_Separation_Growth_Rate
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                      :: blackHoleBinarySeparationGrowthRateInitialized=.false.  
-  
-  ! Name of mass movement method used.                                                                                                                     
-  type     (varying_string                          )          :: blackHoleBinarySeparationGrowthRateMethod               
-  
-  ! Pointer to the subroutine that returns descriptors for mass movement.                                                                                                                     
-  procedure(Black_Hole_Binary_Separation_Growth_Rate), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get  =>null()  
-                                                                                                                       
+  ! Flag to indicate if this module has been initialized.
+  logical                                                      :: blackHoleBinarySeparationGrowthRateInitialized=.false.
+
+  ! Name of mass movement method used.
+  type     (varying_string                          )          :: blackHoleBinarySeparationGrowthRateMethod
+
+  ! Pointer to the subroutine that returns descriptors for mass movement.
+  procedure(Black_Hole_Binary_Separation_Growth_Rate), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get  =>null()
+
 contains
 
   double precision function Black_Hole_Binary_Separation_Growth_Rate(thisBlackHoleComponent)
@@ -46,8 +46,8 @@ contains
     include 'black_holes.binary.separation_growth_rate.modules.inc'
     !# </include>
     implicit none
-    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent  
-                                                                                  
+    class(nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
+
     if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
        !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
        if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
@@ -81,5 +81,5 @@ contains
 
     return
   end function Black_Hole_Binary_Separation_Growth_Rate
-  
+
 end module Black_Hole_Binary_Separations

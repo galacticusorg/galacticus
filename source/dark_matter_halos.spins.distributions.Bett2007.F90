@@ -27,18 +27,18 @@ module Halo_Spin_Distributions_Bett2007
        & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve
 
   ! Parameters of the spin distribution.
-  double precision                                      :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0                                       
-  
+  double precision                                      :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0
+
   ! Tabulation of the spin distribution.
-  integer                   , parameter                 :: spinDistributionTableNumberPoints=1000                                                                          
-  double precision          , parameter                 :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.         
-  double precision          , parameter                 :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_. 
-  double precision                                      :: spinDistributionTableMaximum                                                                                    
-  double precision          , allocatable, dimension(:) :: spinDistributionTableCumulative         , spinDistributionTableSpin                                             
-  
+  integer                   , parameter                 :: spinDistributionTableNumberPoints=1000
+  double precision          , parameter                 :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.
+  double precision          , parameter                 :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_.
+  double precision                                      :: spinDistributionTableMaximum
+  double precision          , allocatable, dimension(:) :: spinDistributionTableCumulative         , spinDistributionTableSpin
+
   ! Random number objects.
-  type            (fgsl_rng)                            :: clonedPseudoSequenceObject              , randomSequenceObject                                                  
-  logical                                               :: resetRandomSequence              =.true., resetRandomSequenceSnapshot                                           
+  type            (fgsl_rng)                            :: clonedPseudoSequenceObject              , randomSequenceObject
+  logical                                               :: resetRandomSequence              =.true., resetRandomSequenceSnapshot
   !$omp threadprivate(resetRandomSequence,randomSequenceObject,resetRandomSequenceSnapshot,clonedPseudoSequenceObject)
 contains
 
@@ -53,10 +53,10 @@ contains
     use Numerical_Ranges
     use Gamma_Functions
     implicit none
-    type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod 
-    procedure(Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get       
-    integer                                                            :: iSpin                      
-    
+    type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
+    procedure(Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
+    integer                                                            :: iSpin
+
     if (haloSpinDistributionMethod == 'Bett2007') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Bett2007
        !@ <inputParameter>
@@ -107,20 +107,20 @@ contains
     use Pseudo_Random
     use Numerical_Interpolation
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode                        
-    type            (fgsl_interp      ), save                   :: interpolationObject             
-    type            (fgsl_interp_accel), save                   :: interpolationAccelerator        
-    logical                            , save                   :: resetInterpolation      =.true. 
+    type            (treeNode         ), intent(inout), pointer :: thisNode
+    type            (fgsl_interp      ), save                   :: interpolationObject
+    type            (fgsl_interp_accel), save                   :: interpolationAccelerator
+    logical                            , save                   :: resetInterpolation      =.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision                                            :: randomDeviate                   
-    
+    double precision                                            :: randomDeviate
+
     randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
     Halo_Spin_Distribution_Bett2007=Interpolate(spinDistributionTableNumberPoints,spinDistributionTableCumulative&
          &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation&
          &,extrapolationType=extrapolationTypeFixed)
     return
   end function Halo_Spin_Distribution_Bett2007
-  
+
   !# <galacticusStateSnapshotTask>
   !#  <unitName>Halo_Spin_Distribution_Bett2007_Snapshot</unitName>
   !# </galacticusStateSnapshotTask>
@@ -132,7 +132,7 @@ contains
     resetRandomSequenceSnapshot=resetRandomSequence
     return
   end subroutine Halo_Spin_Distribution_Bett2007_Snapshot
-  
+
   !# <galacticusStateStoreTask>
   !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Store</unitName>
   !# </galacticusStateStoreTask>
@@ -141,14 +141,14 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     write (stateFile) resetRandomSequenceSnapshot
     if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
     return
   end subroutine Halo_Spin_Distribution_Bett2007_State_Store
-  
+
   !# <galacticusStateRetrieveTask>
   !#  <unitName>Halo_Spin_Distribution_Bett2007_State_Retrieve</unitName>
   !# </galacticusStateRetrieveTask>
@@ -157,12 +157,12 @@ contains
     use FGSL
     use Pseudo_Random
     implicit none
-    integer           , intent(in   ) :: stateFile     
-    type   (fgsl_file), intent(in   ) :: fgslStateFile 
-    
+    integer           , intent(in   ) :: stateFile
+    type   (fgsl_file), intent(in   ) :: fgslStateFile
+
     read (stateFile) resetRandomSequence
     if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
     return
   end subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve
-  
+
 end module Halo_Spin_Distributions_Bett2007

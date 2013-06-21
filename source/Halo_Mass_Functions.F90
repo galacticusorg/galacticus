@@ -25,11 +25,11 @@ program Halo_Mass_Functions
   use Memory_Management
   use Halo_Mass_Function_Tasks
   implicit none
-  integer                             , parameter :: fileNameLengthMaximum         =1024                 
-  character(len=fileNameLengthMaximum)            :: fileCharacter                                       
-  type     (varying_string           )            :: haloMassFunctionOutputFileName     , parameterFile  
-  
-  ! Read in basic code memory usage.                                                                                                    
+  integer                             , parameter :: fileNameLengthMaximum         =1024
+  character(len=fileNameLengthMaximum)            :: fileCharacter
+  type     (varying_string           )            :: haloMassFunctionOutputFileName     , parameterFile
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('Halo_Mass_Functions.size')
 
   ! Get the name of the parameter file from the first command line argument.
@@ -42,7 +42,7 @@ program Halo_Mass_Functions
 
   ! Open the output file.
   call Halo_Mass_Function_Open_File(haloMassFunctionOutputFileName)
-  
+
   ! Open the parameter file.
   call Input_Parameters_File_Open(parameterFile,haloMassFunctionOutputFile)
 
@@ -54,7 +54,7 @@ program Halo_Mass_Functions
 
   ! Close the parameter file.
   call Input_Parameters_File_Close
-  
+
   ! Close the output file.
   call Halo_Mass_Function_Close_File
 

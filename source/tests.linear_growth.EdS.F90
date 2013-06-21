@@ -24,19 +24,19 @@ program Tests_Linear_Growth_EdS
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision                , dimension(8), parameter :: redshift       =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]                
-  type            (varying_string)                          :: parameterFile                                                                            
-  character       (len=1024      )                          :: message                                                                                  
-  integer                                                   :: iExpansion                                                                               
-  double precision                                          :: expansionFactor                                                          , linearGrowth  
-  
-  ! Read in basic code memory usage.                                                                                                                                                   
+  double precision                , dimension(8), parameter :: redshift       =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
+  type            (varying_string)                          :: parameterFile
+  character       (len=1024      )                          :: message
+  integer                                                   :: iExpansion
+  double precision                                          :: expansionFactor                                                          , linearGrowth
+
+  ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.EdS.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter")
 
-  ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.  
+  ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.
   parameterFile='testSuite/parameters/linearGrowth/EdS.xml'
   call Input_Parameters_File_Open(parameterFile)
   do iExpansion=1,size(redshift)
@@ -45,7 +45,7 @@ program Tests_Linear_Growth_EdS
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowth,expansionFactor,relTol=1.0d-3)
   end do
-  call Input_Parameters_File_Close  
+  call Input_Parameters_File_Close
 
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -27,9 +27,9 @@ module Merger_Trees_Evolve_Timesteps_Template
   abstract interface
      subroutine End_Of_Timestep_Task_Template(thisTree,thisNode,deadlockStatus)
        import mergerTree, treeNode
-       type   (mergerTree), intent(in   )          :: thisTree        
-       type   (treeNode  ), intent(inout), pointer :: thisNode        
-       integer            , intent(inout)          :: deadlockStatus  
+       type   (mergerTree), intent(in   )          :: thisTree
+       type   (treeNode  ), intent(inout), pointer :: thisNode
+       integer            , intent(inout)          :: deadlockStatus
      end subroutine End_Of_Timestep_Task_Template
   end interface
 

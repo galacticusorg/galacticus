@@ -24,15 +24,15 @@ module Satellite_Merging_Remnant_Sizes
   private
   public :: Satellite_Merging_Remnant_Size
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                            :: satelliteMergingRemnantSizeInitialized=.false.  
-  
-  ! Name of mass movement method used.                                                                                                   
-  type     (varying_string                )          :: satelliteMergingRemnantSizeMethod               
-  
-  ! Pointer to the subroutine that returns descriptors for mass movement.                                                                                                   
-  procedure(Satellite_Merging_Remnant_Size), pointer :: Satellite_Merging_Remnant_Size_Do     =>null()  
-                                                                                                     
+  ! Flag to indicate if this module has been initialized.
+  logical                                            :: satelliteMergingRemnantSizeInitialized=.false.
+
+  ! Name of mass movement method used.
+  type     (varying_string                )          :: satelliteMergingRemnantSizeMethod
+
+  ! Pointer to the subroutine that returns descriptors for mass movement.
+  procedure(Satellite_Merging_Remnant_Size), pointer :: Satellite_Merging_Remnant_Size_Do     =>null()
+
 contains
 
   !# <satelliteMergerTask>
@@ -48,8 +48,8 @@ contains
     include 'satellites.merging.remnant_sizes.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode  
-                                                     
+    type(treeNode), intent(inout), pointer :: thisNode
+
     if (.not.satelliteMergingRemnantSizeInitialized) then
        !$omp critical(satelliteMergingRemnantSizeInitialize)
        if (.not.satelliteMergingRemnantSizeInitialized) then
@@ -83,5 +83,5 @@ contains
 
     return
   end subroutine Satellite_Merging_Remnant_Size
-  
+
 end module Satellite_Merging_Remnant_Sizes

@@ -30,46 +30,46 @@ module Excursion_Sets_First_Crossing_Farahi
   public :: Excursion_Sets_First_Crossing_Farahi_Initialize
 
   ! Variables used in tabulation the first crossing function.
-  double precision                                                              :: timeMaximum                                      =0.0d0  , timeMinimum                         =0.0d0 , & 
-       &                                                                           varianceMaximum                                  =0.0d0                                                   
-  integer                                                                       :: timeTableCount                                           , varianceTableCount                             
-  integer                                                           , parameter :: varianceTableNumberPerUnitProbability            =1000                                                    
-  integer                                                           , parameter :: timeTableNumberPerDecade                         =10     , varianceTableNumberPerDecade        =400   , & 
-       &                                                                           varianceTableNumberPerUnit                       =40                                                      
-  double precision                   , allocatable, dimension(:,:)              :: firstCrossingProbabilityTable                                                                             
-  double precision                   , allocatable, dimension(:  )              :: timeTable                                                , varianceTable                                  
-  double precision                                                              :: varianceTableStep                                                                                         
-  logical                                                                       :: tableInitialized                                 =.false.                                                 
-  type            (fgsl_interp_accel)                                           :: interpolationAcceleratorTime                             , interpolationAcceleratorVariance               
-  logical                                                                       :: interpolationResetTime                           =.true. , interpolationResetVariance          =.true.    
-  
+  double precision                                                              :: timeMaximum                                      =0.0d0  , timeMinimum                         =0.0d0 , &
+       &                                                                           varianceMaximum                                  =0.0d0
+  integer                                                                       :: timeTableCount                                           , varianceTableCount
+  integer                                                           , parameter :: varianceTableNumberPerUnitProbability            =1000
+  integer                                                           , parameter :: timeTableNumberPerDecade                         =10     , varianceTableNumberPerDecade        =400   , &
+       &                                                                           varianceTableNumberPerUnit                       =40
+  double precision                   , allocatable, dimension(:,:)              :: firstCrossingProbabilityTable
+  double precision                   , allocatable, dimension(:  )              :: timeTable                                                , varianceTable
+  double precision                                                              :: varianceTableStep
+  logical                                                                       :: tableInitialized                                 =.false.
+  type            (fgsl_interp_accel)                                           :: interpolationAcceleratorTime                             , interpolationAcceleratorVariance
+  logical                                                                       :: interpolationResetTime                           =.true. , interpolationResetVariance          =.true.
+
   ! Variables used in tabulation the first crossing rate function.
-  double precision                                                  , parameter :: redshiftMaximumRate                              =30.0d0 , redshiftMinimumRate                 =0.0d0     
-  double precision                                                              :: timeMaximumRate                                  =0.0d0  , timeMinimumRate                     =0.0d0 , & 
-       &                                                                           varianceMaximumRate                              =0.0d0                                                   
-  integer                                                                       :: timeTableCountRate                                       , varianceTableCountRate                     , & 
-       &                                                                           varianceTableCountRateBase                                                                                
-  double precision                   , allocatable, dimension(:,:,:)            :: firstCrossingTableRate                                                                                    
-  double precision                   , allocatable, dimension(:,:  )            :: nonCrossingTableRate                                                                                      
-  double precision                   , allocatable, dimension(:    )            :: timeTableRate                                            , varianceTableRate                          , & 
-       &                                                                           varianceTableRateBase                                                                                     
-  logical                                                                       :: tableInitializedRate                             =.false.                                                 
-  type            (fgsl_interp_accel)                                           :: interpolationAcceleratorTimeRate                         , interpolationAcceleratorVarianceRate       , & 
-       &                                                                           interpolationAcceleratorVarianceRateBase                                                                  
-  logical                                                                       :: interpolationResetTimeRate                       =.true. , interpolationResetVarianceRate      =.true., & 
-       &                                                                           interpolationResetVarianceRateBase               =.true.                                                  
-  
+  double precision                                                  , parameter :: redshiftMaximumRate                              =30.0d0 , redshiftMinimumRate                 =0.0d0
+  double precision                                                              :: timeMaximumRate                                  =0.0d0  , timeMinimumRate                     =0.0d0 , &
+       &                                                                           varianceMaximumRate                              =0.0d0
+  integer                                                                       :: timeTableCountRate                                       , varianceTableCountRate                     , &
+       &                                                                           varianceTableCountRateBase
+  double precision                   , allocatable, dimension(:,:,:)            :: firstCrossingTableRate
+  double precision                   , allocatable, dimension(:,:  )            :: nonCrossingTableRate
+  double precision                   , allocatable, dimension(:    )            :: timeTableRate                                            , varianceTableRate                          , &
+       &                                                                           varianceTableRateBase
+  logical                                                                       :: tableInitializedRate                             =.false.
+  type            (fgsl_interp_accel)                                           :: interpolationAcceleratorTimeRate                         , interpolationAcceleratorVarianceRate       , &
+       &                                                                           interpolationAcceleratorVarianceRateBase
+  logical                                                                       :: interpolationResetTimeRate                       =.true. , interpolationResetVarianceRate      =.true., &
+       &                                                                           interpolationResetVarianceRateBase               =.true.
+
   ! File name used to store tabulations.
-  type            (varying_string   )                                           :: excursionSetFirstCrossingFarahiFileName                                                                   
-  
+  type            (varying_string   )                                           :: excursionSetFirstCrossingFarahiFileName
+
   ! The fractional step in time used to compute barrier crossing rates.
-  double precision                                                              :: excursionSetFirstCrossingFarahiFractionalTimeStep                                                         
-  
+  double precision                                                              :: excursionSetFirstCrossingFarahiFractionalTimeStep
+
   ! Record of variance and time in previous call to rate functions.
-  double precision                                                              :: timeRatePrevious                                         , varianceRatePrevious                           
-  double precision                                , dimension(0:1)              :: hTimeRate                                                , hVarianceRate                                  
-  integer                                                                       :: iTimeRate                                                , iVarianceRate                                  
-  
+  double precision                                                              :: timeRatePrevious                                         , varianceRatePrevious
+  double precision                                , dimension(0:1)              :: hTimeRate                                                , hVarianceRate
+  integer                                                                       :: iTimeRate                                                , iVarianceRate
+
 contains
 
   !# <excursionSetFirstCrossingMethod>
@@ -81,10 +81,10 @@ contains
     !% Initialize the ``Farahi'' first crossing distribution method for excursion sets module.
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: excursionSetFirstCrossingMethod                                                          
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get, Excursion_Sets_First_Crossing_Rate_Get, & 
-         &                                                 Excursion_Sets_Non_Crossing_Rate_Get                                                     
-    
+    type     (varying_string  ), intent(in   )          :: excursionSetFirstCrossingMethod
+    procedure(double precision), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get, Excursion_Sets_First_Crossing_Rate_Get, &
+         &                                                 Excursion_Sets_Non_Crossing_Rate_Get
+
     if (excursionSetFirstCrossingMethod == 'Farahi') then
        Excursion_Sets_First_Crossing_Probability_Get => Excursion_Sets_First_Crossing_Probability_Farahi
        Excursion_Sets_First_Crossing_Rate_Get        => Excursion_Sets_First_Crossing_Rate_Farahi
@@ -121,7 +121,7 @@ contains
   double precision function Excursion_Sets_First_Crossing_Probability_Farahi(variance,time)
     !% Return the probability for excursion set first crossing using the methodology of Farahi.
     use ISO_Varying_String
-    use Numerical_Constants_Math    
+    use Numerical_Constants_Math
     use Numerical_Ranges
     use Numerical_Interpolation
     use Input_Parameters
@@ -132,18 +132,18 @@ contains
     use Galacticus_Input_Paths
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )  :: time                         , variance          
-    double precision                , dimension(0:1) :: hTime                        , hVariance         
-    double precision                , parameter      :: varianceTableTolerance=1.0d-6                    
-    logical                                          :: makeTable                                        
-    integer                                          :: i                            , iTime         , & 
-         &                                              iVariance                    , j             , & 
-         &                                              jTime                        , jVariance     , & 
-         &                                              loopCount                    , loopCountTotal    
-    double precision                                 :: sigma1f                                          
-    character       (len=6         )                 :: label                                            
-    type            (varying_string)                 :: message                                          
-    
+    double precision                , intent(in   )  :: time                         , variance
+    double precision                , dimension(0:1) :: hTime                        , hVariance
+    double precision                , parameter      :: varianceTableTolerance=1.0d-6
+    logical                                          :: makeTable
+    integer                                          :: i                            , iTime         , &
+         &                                              iVariance                    , j             , &
+         &                                              jTime                        , jVariance     , &
+         &                                              loopCount                    , loopCountTotal
+    double precision                                 :: sigma1f
+    character       (len=6         )                 :: label
+    type            (varying_string)                 :: message
+
     ! Determine if we need to make the table.
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     ! Read tables from file if possible.
@@ -252,12 +252,12 @@ contains
        interpolationResetVariance=.true.
        interpolationResetTime    =.true.
        ! Record that the table is now built.
-       tableInitialized=.true.   
+       tableInitialized=.true.
        ! Write the table to file if possible.
        if (excursionSetFirstCrossingFarahiFileName /= 'none') call Excursion_Sets_First_Crossing_Farahi_Write_File()
     end if
     !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
-    
+
     ! Get interpolation in time.
     iTime    =Interpolate_Locate                 (timeTableCount      ,timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
     hTime    =Interpolate_Linear_Generate_Factors(timeTableCount      ,timeTable    ,iTime    ,time    )
@@ -265,7 +265,7 @@ contains
     ! Get interpolation in variance.
     iVariance=Interpolate_Locate                 (varianceTableCount+1,varianceTable,interpolationAcceleratorVariance,variance,reset=interpolationResetVariance)
     hVariance=Interpolate_Linear_Generate_Factors(varianceTableCount+1,varianceTable,iVariance,variance)
-    
+
     ! Compute first crossing probability by interpolating.
     Excursion_Sets_First_Crossing_Probability_Farahi=0.0d0
     do jTime=0,1
@@ -291,21 +291,21 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )               :: time                             , varianceProgenitor           
-    double precision                , parameter                   :: varianceMinimumDefault    =1.0d-2                               
-    double precision                , parameter                   :: varianceTolerance         =1.0d-6                               
-    real            (kind=kind_quad), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, & 
-         &                                                           varianceTableRateQuad                                           
-    logical                                                       :: makeTable                                                       
-    integer                                                       :: i                                , iTime                    , & 
-         &                                                           iVariance                        , j                        , & 
-         &                                                           loopCount                        , loopCountTotal               
-    double precision                                              :: timeProgenitor                   , varianceMinimumRate          
-    character       (len=6         )                              :: label                                                           
-    type            (varying_string)                              :: message                                                         
-    real            (kind=kind_quad)                              :: crossingFraction                 , effectiveBarrierInitial  , & 
-         &                                                           sigma1f                          , varianceTableStepRate        
-    
+    double precision                , intent(in   )               :: time                             , varianceProgenitor
+    double precision                , parameter                   :: varianceMinimumDefault    =1.0d-2
+    double precision                , parameter                   :: varianceTolerance         =1.0d-6
+    real            (kind=kind_quad), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
+         &                                                           varianceTableRateQuad
+    logical                                                       :: makeTable
+    integer                                                       :: i                                , iTime                    , &
+         &                                                           iVariance                        , j                        , &
+         &                                                           loopCount                        , loopCountTotal
+    double precision                                              :: timeProgenitor                   , varianceMinimumRate
+    character       (len=6         )                              :: label
+    type            (varying_string)                              :: message
+    real            (kind=kind_quad)                              :: crossingFraction                 , effectiveBarrierInitial  , &
+         &                                                           sigma1f                          , varianceTableStepRate
+
     ! Determine if we need to make the table.
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     ! Read tables from file if possible.
@@ -375,7 +375,7 @@ contains
        do iTime=1,timeTableCountRate
           ! Compute a suitable progenitor time.
           timeProgenitor=timeTableRate(iTime)*(1.0d0-excursionSetFirstCrossingFarahiFractionalTimeStep)
-          
+
           ! Loop through the starting variances.
           do iVariance=0,varianceTableCountRateBase
              call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
@@ -483,7 +483,7 @@ contains
        ! Deallocate work arrays.
        deallocate(varianceTableRateBaseQuad )
        deallocate(varianceTableRateQuad     )
-       deallocate(firstCrossingTableRateQuad)       
+       deallocate(firstCrossingTableRateQuad)
        call Galacticus_Display_Counter_Clear(       verbosityWorking)
        call Galacticus_Display_Unindent     ("done",verbosityWorking)
        ! Reset the interpolators.
@@ -497,7 +497,7 @@ contains
        varianceRatePrevious=-1.0d0
        timeRatePrevious    =-1.0d0
        ! Record that the table is now built.
-       tableInitializedRate=.true.   
+       tableInitializedRate=.true.
        ! Write the table to file if possible.
        if (excursionSetFirstCrossingFarahiFileName /= 'none') call Excursion_Sets_First_Crossing_Farahi_Write_File()
     end if
@@ -510,11 +510,11 @@ contains
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    double precision, intent(in   )  :: time               , variance, varianceProgenitor    
-    double precision, dimension(0:1) :: hVarianceProgenitor                                  
-    integer                          :: iVarianceProgenitor, jTime   , jVariance         , & 
-         &                              jVarianceProgenitor                                  
-    
+    double precision, intent(in   )  :: time               , variance, varianceProgenitor
+    double precision, dimension(0:1) :: hVarianceProgenitor
+    integer                          :: iVarianceProgenitor, jTime   , jVariance         , &
+         &                              jVarianceProgenitor
+
     ! For progenitor variances less than or equal to the original variance, return zero.
     if (varianceProgenitor <= variance) then
        Excursion_Sets_First_Crossing_Rate_Farahi=0.0d0
@@ -584,9 +584,9 @@ contains
     !% Return the rate for excursion set non-crossing.
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   ) :: time , variance  
-    integer                         :: jTime, jVariance 
-    
+    double precision, intent(in   ) :: time , variance
+    integer                         :: jTime, jVariance
+
     ! Ensure that the rate is tabulated.
     call Excursion_Sets_First_Crossing_Rate_Tabulate_Farahi(variance,time)
 
@@ -597,7 +597,7 @@ contains
        iTimeRate    =Interpolate_Locate                 (timeTableCountRate      ,timeTableRate    ,interpolationAcceleratorTimeRate    ,time    ,reset=interpolationResetTimeRate    )
        hTimeRate    =Interpolate_Linear_Generate_Factors(timeTableCountRate      ,timeTableRate    ,iTimeRate    ,time    )
     end if
-    
+
     ! Get interpolation in variance.
     if (variance /= varianceRatePrevious) then
        varianceRatePrevious=variance
@@ -625,26 +625,26 @@ contains
     use Kind_Numbers
     use Excursion_Sets_Barriers
     implicit none
-    real            (kind=kind_quad)                :: Excursion_Sets_Barrier_Effective            
-    real            (kind=kind_quad), intent(in   ) :: variance                        , variance0 
-    double precision                , intent(in   ) :: time                            , time0     
-    
+    real            (kind=kind_quad)                :: Excursion_Sets_Barrier_Effective
+    real            (kind=kind_quad), intent(in   ) :: variance                        , variance0
+    double precision                , intent(in   ) :: time                            , time0
+
     Excursion_Sets_Barrier_Effective=                                                                              &
          &                            Excursion_Sets_Barrier(real(variance ,kind=8),time ,ratesCalculation=.true.) &
          &                           -Excursion_Sets_Barrier(real(variance0,kind=8),time0,ratesCalculation=.true.)
     return
   end function Excursion_Sets_Barrier_Effective
-  
+
  function erfApproximation(x)
     !% An \href{http://sites.google.com/site/winitzki/sergei-winitzkis-files/erf-approx.pdf}{approximation to the error function}
     !% that is designed to be very accurate in the vicinity of zero and infinity.
     use Kind_Numbers
     use Numerical_Constants_Math
     implicit none
-    real(kind=kind_quad)                :: erfApproximation                                                                                                             
-    real(kind=kind_quad), intent(in   ) :: x                                                                                                                            
-    real(kind=kind_quad), parameter     :: a               =8.0_kind_quad*(PiQuadPrecision-3.0_kind_quad)/3.0_kind_quad/PiQuadPrecision/(4.0_kind_quad-PiQuadPrecision) 
-    
+    real(kind=kind_quad)                :: erfApproximation
+    real(kind=kind_quad), intent(in   ) :: x
+    real(kind=kind_quad), parameter     :: a               =8.0_kind_quad*(PiQuadPrecision-3.0_kind_quad)/3.0_kind_quad/PiQuadPrecision/(4.0_kind_quad-PiQuadPrecision)
+
     erfApproximation=sqrt(1.0_kind_quad-exp(-x**2*(4.0_kind_quad/PiQuadPrecision+a*x**2)/(1.0_kind_quad+a*x**2)))
     return
   end function erfApproximation
@@ -656,9 +656,9 @@ contains
     use Memory_Management
     use Numerical_Interpolation
     implicit none
-    type            (hdf5Object)                            :: dataFile                  , dataGroup              
-    double precision            , allocatable, dimension(:) :: varianceTableBaseTemporary, varianceTableTemporary 
-    
+    type            (hdf5Object)                            :: dataFile                  , dataGroup
+    double precision            , allocatable, dimension(:) :: varianceTableBaseTemporary, varianceTableTemporary
+
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(excursionSetFirstCrossingFarahiFileName)) return
     ! Open the data file.
@@ -738,13 +738,13 @@ contains
     call dataFile%close()
     return
   end subroutine Excursion_Sets_First_Crossing_Farahi_Read_File
-  
+
   subroutine Excursion_Sets_First_Crossing_Farahi_Write_File()
     !% Write tabulated data on excursion set first crossing probabilities to file.
     use IO_HDF5
     implicit none
-    type(hdf5Object) :: dataFile, dataGroup 
-    
+    type(hdf5Object) :: dataFile, dataGroup
+
     ! Don't write anything if neither table is initialized.
     if (.not.(tableInitialized.or.tableInitializedRate)) return
     ! Open the data file.
@@ -777,13 +777,13 @@ contains
     !% varies from logarithmic to linear spacing with the transition point controlled by {\tt ratioAtMaximum}.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   )          :: rangeMaximum               , rangeMinimum    , & 
-         &                                      ratioAtMaximum                                   
-    integer         , intent(in   )          :: rangeNumber                                      
-    double precision, dimension(rangeNumber) :: rangeValues   (rangeNumber)                      
-    integer                                  :: iRange                                           
-    double precision                         :: rangeLinear                , rangeLogarithmic    
-    
+    double precision, intent(in   )          :: rangeMaximum               , rangeMinimum    , &
+         &                                      ratioAtMaximum
+    integer         , intent(in   )          :: rangeNumber
+    double precision, dimension(rangeNumber) :: rangeValues   (rangeNumber)
+    integer                                  :: iRange
+    double precision                         :: rangeLinear                , rangeLogarithmic
+
     do iRange=1,rangeNumber
        rangeLinear        =        rangeMinimum +   (rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
        rangeLogarithmic   =exp(log(rangeMinimum)+log(rangeMaximum/rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1))
@@ -791,5 +791,5 @@ contains
     end do
     return
   end function Make_Variance_Range
-  
+
 end module Excursion_Sets_First_Crossing_Farahi

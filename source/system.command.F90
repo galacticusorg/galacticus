@@ -22,18 +22,18 @@ module System_Command
   implicit none
   private
   public :: System_Command_Do
-  
+
 contains
-  
+
   subroutine System_Command_Do(command,iStatus)
     !% Executes the system command {\tt command}, optionally returning the resulting status in {\tt iStatus}.
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type   (varying_string), intent(in   )           :: command        
-    integer                , intent(  out), optional :: iStatus        
-    integer                                          :: iStatusActual  
-                                                                    
+    type   (varying_string), intent(in   )           :: command
+    integer                , intent(  out), optional :: iStatus
+    integer                                          :: iStatusActual
+
     call System(char(command),iStatusActual)
     if (present(iStatus)) then
        iStatus=iStatusActual
@@ -42,5 +42,5 @@ contains
     end if
     return
   end subroutine System_Command_Do
-  
+
 end module System_Command

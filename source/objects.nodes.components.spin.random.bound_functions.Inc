@@ -21,7 +21,7 @@ double precision function SpinRandomSpinGrowthRate(self)
   !% Return the {\tt spinGrowthRate} property of the {\tt SpinRandom} component.
   implicit none
   class(nodeComponentSpinRandom), intent(inout) :: self
-  
+
   SpinRandomSpinGrowthRate=0.0d0
   return
 end function SpinRandomSpinGrowthRate

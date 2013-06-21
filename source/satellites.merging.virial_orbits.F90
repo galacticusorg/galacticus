@@ -25,15 +25,15 @@ module Virial_Orbits
   private
   public :: Virial_Orbital_Parameters
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                       :: virialOrbitsInitialized      =.false.  
-  
-  ! Name of virial overdensity method used.                                                                                     
-  type     (varying_string           )          :: virialOrbitsMethod                     
-  
-  ! Pointer to the function that returns virial orbital parameters.                                                                                     
-  procedure(Virial_Orbital_Parameters), pointer :: Virial_Orbital_Parameters_Get=>null()  
-                                                                                       
+  ! Flag to indicate if this module has been initialized.
+  logical                                       :: virialOrbitsInitialized      =.false.
+
+  ! Name of virial overdensity method used.
+  type     (varying_string           )          :: virialOrbitsMethod
+
+  ! Pointer to the function that returns virial orbital parameters.
+  procedure(Virial_Orbital_Parameters), pointer :: Virial_Orbital_Parameters_Get=>null()
+
 contains
 
   function Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits) result (thisOrbit)
@@ -45,10 +45,10 @@ contains
     include 'satellites.merging.virial_orbits.modules.inc'
     !# </include>
     implicit none
-    type   (keplerOrbit)                         :: thisOrbit                      
-    type   (treeNode   ), intent(inout), pointer :: hostNode           , thisNode  
-    logical             , intent(in   )          :: acceptUnboundOrbits            
-                                                                                
+    type   (keplerOrbit)                         :: thisOrbit
+    type   (treeNode   ), intent(inout), pointer :: hostNode           , thisNode
+    logical             , intent(in   )          :: acceptUnboundOrbits
+
     if (.not.virialOrbitsInitialized) then
        !$omp critical(virialOrbitsInitialized)
        if (.not.virialOrbitsInitialized) then

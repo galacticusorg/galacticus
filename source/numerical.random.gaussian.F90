@@ -24,10 +24,10 @@ module Gaussian_Random
   implicit none
   private
   public :: Gaussian_Random_Get, Gaussian_Random_Free
-  
-  logical                 :: Seed_Is_Set        =.false. 
-  integer                 :: gaussianRandomSeed          
-  integer(kind=fgsl_long) :: gaussianRandomSeedC=-1      
+
+  logical                 :: Seed_Is_Set        =.false.
+  integer                 :: gaussianRandomSeed
+  integer(kind=fgsl_long) :: gaussianRandomSeedC=-1
   !$omp threadprivate(gaussianRandomSeedC)
 contains
 
@@ -36,11 +36,11 @@ contains
     use Input_Parameters
     !$ use OMP_Lib
     implicit none
-    type            (fgsl_rng), intent(inout)           :: pseudoSequenceObject 
-    double precision          , intent(in   )           :: width                
-    logical                   , intent(inout), optional :: reset                
-    logical                                             :: resetActual          
-    
+    type            (fgsl_rng), intent(inout)           :: pseudoSequenceObject
+    double precision          , intent(in   )           :: width
+    logical                   , intent(inout), optional :: reset
+    logical                                             :: resetActual
+
     ! Determine if we need to reset.
     if (present(reset)) then
        resetActual=reset
@@ -48,7 +48,7 @@ contains
     else
        resetActual=.false.
     end if
-    
+
     ! Read in the random number seed if necessary.
     !$omp critical (Gaussian_Random_Get)
     if (.not.Seed_Is_Set) then
@@ -66,11 +66,11 @@ contains
        Seed_Is_Set=.true.
     end if
     !$omp end critical (Gaussian_Random_Get)
-    
+
     if (resetActual.or..not.FGSL_Well_Defined(pseudoSequenceObject)) then
        pseudoSequenceObject=FGSL_RNG_Alloc(FGSL_RNG_Default)
        if (gaussianRandomSeedC < 0) then
-          gaussianRandomSeedC=gaussianRandomSeed 
+          gaussianRandomSeedC=gaussianRandomSeed
           !$ gaussianRandomSeedC=gaussianRandomSeedC+omp_get_thread_num()
        end if
        gaussianRandomSeedC=gaussianRandomSeedC+1
@@ -79,14 +79,14 @@ contains
     Gaussian_Random_Get=FGSL_Ran_Gaussian(pseudoSequenceObject,width)
     return
   end function Gaussian_Random_Get
-  
+
   subroutine Gaussian_Random_Free(pseudoSequenceObject)
     !% Frees a pseudo-random sequence object.
     implicit none
-    type(fgsl_rng), intent(inout) :: pseudoSequenceObject 
-    
+    type(fgsl_rng), intent(inout) :: pseudoSequenceObject
+
     call FGSL_RNG_Free(pseudoSequenceObject)
     return
   end subroutine Gaussian_Random_Free
-  
+
 end module Gaussian_Random

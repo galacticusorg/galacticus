@@ -33,9 +33,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod 
-    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get 
-    
+    type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
+    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+
     if (powerSpectrumNonlinearMethod == 'Peacock-Dodds1996') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_PeacockDodds1996
     return
   end subroutine Power_Spectrum_Nonlinear_PeacockDodds1996_Initialize
@@ -48,19 +48,19 @@ contains
     use Galacticus_Error
     use Linear_Growth
     implicit none
-    double precision, intent(in   ) :: time                        , waveNumber          
-    integer         , parameter     :: iterationCountMaximum=1000                        
-    double precision, parameter     :: tolerance            =1.0d-3                      
-    double precision, parameter     :: updateFraction       =0.1d0                       
-    logical                         :: converged                                         
-    integer                         :: iterationCount                                    
-    double precision                :: A                           , B               , & 
-         &                             V                           , alpha           , & 
-         &                             beta                        , fNL             , & 
-         &                             fNLPrevious                 , g               , & 
-         &                             n                           , waveNumberLinear, & 
-         &                             x                                                 
-    
+    double precision, intent(in   ) :: time                        , waveNumber
+    integer         , parameter     :: iterationCountMaximum=1000
+    double precision, parameter     :: tolerance            =1.0d-3
+    double precision, parameter     :: updateFraction       =0.1d0
+    logical                         :: converged
+    integer                         :: iterationCount
+    double precision                :: A                           , B               , &
+         &                             V                           , alpha           , &
+         &                             beta                        , fNL             , &
+         &                             fNLPrevious                 , g               , &
+         &                             n                           , waveNumberLinear, &
+         &                             x
+
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
     fNL        =Power_Spectrum_Dimensionless(waveNumber)
     fNLPrevious=fNL
@@ -104,5 +104,5 @@ contains
     Power_Spectrum_Nonlinear_PeacockDodds1996=(2.0d0*Pi)**3*fNL/4.0d0/Pi/waveNumber**3
     return
   end function Power_Spectrum_Nonlinear_PeacockDodds1996
-  
+
 end module Power_Spectra_Nonlinear_PeacockDodds1996

@@ -25,8 +25,8 @@ module Merger_Trees_Dump
   public :: Merger_Tree_Dump
 
   ! Internal indices used for labelling outputs.
-  integer(kind=kind_int8) :: outputCount          
-  integer(kind=kind_int8) :: treeIndexPrevious=-1 
+  integer(kind=kind_int8) :: outputCount
+  integer(kind=kind_int8) :: treeIndexPrevious=-1
   !$omp threadprivate(outputCount,treeIndexPrevious)
 contains
 
@@ -39,33 +39,33 @@ contains
     use Galacticus_Nodes
     use ISO_Varying_String
     implicit none
-    integer         (kind=kind_int8    )              , intent(in   )                    :: treeIndex                                          
-    type            (treeNode          )              , intent(in   )          , pointer :: baseNode                                           
-    integer         (kind=kind_int8    ), dimension(:), intent(in   ), optional          :: highlightNodes                                     
-    character       (len=*             )              , intent(in   ), optional          :: backgroundColor          , edgeColor           , & 
-         &                                                                                  edgeStyle                , highlightColor      , & 
-         &                                                                                  highlightStyle           , nodeColor           , & 
-         &                                                                                  nodeStyle                                          
-    logical                                           , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , & 
-         &                                                                                  scaleNodesByLogMass                                
-    type            (varying_string    )              , intent(in   ), optional          :: path                                               
-    type            (treeNode          )                                       , pointer :: thisNode                                           
-    class           (nodeComponentBasic)                                       , pointer :: parentBasicComponent     , thisBasicComponent      
-    logical                                                                              :: edgeLengthsToTimesActual , labelNodesActual    , & 
-         &                                                                                  scaleNodesByLogMassActual                          
-    integer                                                                              :: fileUnit                                           
-    double precision                                                                     :: nodeMass                 , nodeMassMaximum     , & 
-         &                                                                                  nodeMassMinimum          , timeDifference      , & 
-         &                                                                                  timeMaximum              , timeMinimum             
-    character       (len=  20          )                                                 :: backgroundColorActual    , color               , & 
-         &                                                                                  edgeColorActual          , edgeStyleActual     , & 
-         &                                                                                  highlightColorActual     , highlightStyleActual, & 
-         &                                                                                  nodeColorActual          , nodeStyleActual     , & 
-         &                                                                                  outputCountFormatted     , style               , & 
-         &                                                                                  treeIndexFormatted                                 
-    character       (len=1024          )                                                 :: fileName                                           
-    type            (varying_string    )                                                 :: fullFileName                                       
-    
+    integer         (kind=kind_int8    )              , intent(in   )                    :: treeIndex
+    type            (treeNode          )              , intent(in   )          , pointer :: baseNode
+    integer         (kind=kind_int8    ), dimension(:), intent(in   ), optional          :: highlightNodes
+    character       (len=*             )              , intent(in   ), optional          :: backgroundColor          , edgeColor           , &
+         &                                                                                  edgeStyle                , highlightColor      , &
+         &                                                                                  highlightStyle           , nodeColor           , &
+         &                                                                                  nodeStyle
+    logical                                           , intent(in   ), optional          :: edgeLengthsToTimes       , labelNodes          , &
+         &                                                                                  scaleNodesByLogMass
+    type            (varying_string    )              , intent(in   ), optional          :: path
+    type            (treeNode          )                                       , pointer :: thisNode
+    class           (nodeComponentBasic)                                       , pointer :: parentBasicComponent     , thisBasicComponent
+    logical                                                                              :: edgeLengthsToTimesActual , labelNodesActual    , &
+         &                                                                                  scaleNodesByLogMassActual
+    integer                                                                              :: fileUnit
+    double precision                                                                     :: nodeMass                 , nodeMassMaximum     , &
+         &                                                                                  nodeMassMinimum          , timeDifference      , &
+         &                                                                                  timeMaximum              , timeMinimum
+    character       (len=  20          )                                                 :: backgroundColorActual    , color               , &
+         &                                                                                  edgeColorActual          , edgeStyleActual     , &
+         &                                                                                  highlightColorActual     , highlightStyleActual, &
+         &                                                                                  nodeColorActual          , nodeStyleActual     , &
+         &                                                                                  outputCountFormatted     , style               , &
+         &                                                                                  treeIndexFormatted
+    character       (len=1024          )                                                 :: fileName
+    type            (varying_string    )                                                 :: fullFileName
+
     ! If the tree index differs from the previous one, then reset the output count.
     if (treeIndex /= treeIndexPrevious) then
        treeIndexPrevious=treeIndex
@@ -74,7 +74,7 @@ contains
 
     ! Increment the count of the number of outputs.
     outputCount=outputCount+1
-    
+
     ! Get optional arguments or set defaults.
     if (present(backgroundColor    )) then
        backgroundColorActual    =backgroundColor
@@ -224,5 +224,5 @@ contains
 
     return
   end subroutine Merger_Tree_Dump
-  
+
 end module Merger_Trees_Dump

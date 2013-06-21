@@ -25,12 +25,12 @@ module Cooling_Functions_CMB_Compton
   private
   public :: Cooling_Function_CMB_Compton_Initialize, Cooling_Function_CMB_Compton,&
        & Cooling_Function_Density_Slope_CMB_Compton, Cooling_Function_Temperature_Slope_CMB_Compton
-  
+
   ! Flag indicating whether or not this cooling function is selected.
-  logical :: functionSelected=.false.  
-                                    
+  logical :: functionSelected=.false.
+
 contains
-  
+
   !# <coolingFunctionMethods>
   !#  <unitName>Cooling_Function_CMB_Compton_Initialize</unitName>
   !#  <methodName>CMBCompton</methodName>
@@ -38,10 +38,10 @@ contains
   subroutine Cooling_Function_CMB_Compton_Initialize(coolingFunctionMethods,coolingFunctionsMatched)
     !% Initializes the ``atomic CIE cooling function from {\sc Cloudy}'' module.
     implicit none
-    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)  
-    integer                , intent(inout) :: coolingFunctionsMatched     
-    
-    ! Check if this cooling function has been selected.                                                                   
+    type   (varying_string), intent(in   ) :: coolingFunctionMethods (:)
+    integer                , intent(inout) :: coolingFunctionsMatched
+
+    ! Check if this cooling function has been selected.
     if (any(coolingFunctionMethods == 'CMBCompton')) then
        functionSelected=.true.
        coolingFunctionsMatched=coolingFunctionsMatched+1
@@ -62,17 +62,17 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen                                                                                               , temperature  
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                                                                                      
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                                                                                                  
-    type            (radiationStructure), intent(in   ) :: radiation                                                                                                                          
-    double precision                    , intent(  out) :: coolingFunction                                                                                                                    
-    double precision                    , parameter     :: comptonRateNormalization=4.0d0*thomsonCrossSection*radiationConstant*boltzmannsConstant/electronMass/speedLight/ergs               
-    double precision                                    :: electronDensity                                                                                                                    
-    
-    ! Check if this cooling function has been selected.                                                                                                                                                                                       
+    double precision                    , intent(in   ) :: numberDensityHydrogen                                                                                               , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunction
+    double precision                    , parameter     :: comptonRateNormalization=4.0d0*thomsonCrossSection*radiationConstant*boltzmannsConstant/electronMass/speedLight/ergs
+    double precision                                    :: electronDensity
+
+    ! Check if this cooling function has been selected.
     if (functionSelected) then
-       
+
        ! Get the electron density.
        electronDensity=Electron_Density(temperature,numberDensityHydrogen,gasAbundances,radiation)
 
@@ -89,7 +89,7 @@ contains
 
     return
   end subroutine Cooling_Function_CMB_Compton
-  
+
   !# <coolingFunctionDensitySlopeCompute>
   !#   <unitName>Cooling_Function_Density_Slope_CMB_Compton</unitName>
   !# </coolingFunctionDensitySlopeCompute>
@@ -101,36 +101,36 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature                     
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                            
-    type            (radiationStructure), intent(in   ) :: radiation                                                    
-    double precision                    , intent(  out) :: coolingFunctionDensitySlope                                  
-    double precision                                    :: coolingFunction            , electronDensityDensityLogSlope  
-    
-    ! Check if this cooling function has been selected.                                                                                                                 
+    double precision                    , intent(in   ) :: numberDensityHydrogen      , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunctionDensitySlope
+    double precision                                    :: coolingFunction            , electronDensityDensityLogSlope
+
+    ! Check if this cooling function has been selected.
     if (functionSelected) then
-       
+
        ! Get the cooling function.
        call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-       
+
        ! Get logarithmic slope of electron density with density.
        electronDensityDensityLogSlope=Electron_Density_Density_Log_Slope(temperature,numberDensityHydrogen,gasAbundances&
             &,radiation)
 
        ! Depends only on the behavior of electron density with density.
        coolingFunctionDensitySlope=electronDensityDensityLogSlope*coolingFunction/numberDensityHydrogen
-       
+
     else
-       
+
        ! Not selected, return zero.
        coolingFunctionDensitySlope=0.0d0
-       
+
     end if
-       
+
     return
   end subroutine Cooling_Function_Density_Slope_CMB_Compton
-  
+
   !# <coolingFunctionTemperatureSlopeCompute>
   !#   <unitName>Cooling_Function_Temperature_Slope_CMB_Compton</unitName>
   !# </coolingFunctionTemperatureSlopeCompute>
@@ -142,19 +142,19 @@ contains
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none
-    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature                         
-    type            (abundances        ), intent(in   ) :: gasAbundances                                                        
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensities                                                    
-    type            (radiationStructure), intent(in   ) :: radiation                                                            
-    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope                                      
-    double precision                                    :: coolingFunction                , electronDensityTemperatureLogSlope  
-    
-    ! Check if this cooling function has been selected.                                                                                                                         
+    double precision                    , intent(in   ) :: numberDensityHydrogen          , temperature
+    type            (abundances        ), intent(in   ) :: gasAbundances
+    type            (chemicalAbundances), intent(in   ) :: chemicalDensities
+    type            (radiationStructure), intent(in   ) :: radiation
+    double precision                    , intent(  out) :: coolingFunctionTemperatureSlope
+    double precision                                    :: coolingFunction                , electronDensityTemperatureLogSlope
+
+    ! Check if this cooling function has been selected.
     if (functionSelected) then
-              
+
        ! Get the cooling function.
        call Cooling_Function_CMB_Compton(coolingFunction,temperature,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
-       
+
        ! Get logarithmic slope of electron density with temperature.
        electronDensityTemperatureLogSlope=Electron_Density_Temperature_Log_Slope(temperature,numberDensityHydrogen,gasAbundances&
             &,radiation)
@@ -162,15 +162,15 @@ contains
        ! Compute the partial derivative of the cooling rate with respect to temperature.
        coolingFunctionTemperatureSlope=coolingFunction*(electronDensityTemperatureLogSlope/temperature+1.0d0/(temperature&
             &-Radiation_Temperature(radiation,[radiationTypeCMB])))
-       
+
     else
-       
+
        ! Not selected, return zero.
        coolingFunctionTemperatureSlope=0.0d0
-       
+
     end if
-       
+
     return
   end subroutine Cooling_Function_Temperature_Slope_CMB_Compton
-  
+
 end module Cooling_Functions_CMB_Compton

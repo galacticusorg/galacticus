@@ -29,8 +29,8 @@ contains
     !% Computes the error function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument  
-                                              
+    double precision, intent(in   ) :: argument
+
     Error_Function=FGSL_SF_Erf(argument)
     return
   end function Error_Function
@@ -39,8 +39,8 @@ contains
     !% Computes the complementary error function.
     use FGSL
     implicit none
-    double precision, intent(in   ) :: argument  
-                                              
+    double precision, intent(in   ) :: argument
+
     Error_Function_Complementary=FGSL_SF_ErfC(argument)
     return
   end function Error_Function_Complementary

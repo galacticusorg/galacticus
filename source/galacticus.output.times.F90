@@ -24,14 +24,14 @@ module Galacticus_Output_Times
   public :: Galacticus_Output_Time_Count, Galacticus_Output_Time, Galacticus_Next_Output_Time
 
   ! Flag to indicate if output times have been initialized.
-  logical                                     :: outputsInitialized=.false.  
-  
-  ! Array of output times.                                                                        
-  integer                                     :: outputCount                 
-  double precision, allocatable, dimension(:) :: outputTimes                 
-                                                                          
+  logical                                     :: outputsInitialized=.false.
+
+  ! Array of output times.
+  integer                                     :: outputCount
+  double precision, allocatable, dimension(:) :: outputTimes
+
 contains
-  
+
   subroutine Output_Times_Initialize()
     !% Initialize the output times.
     use Input_Parameters
@@ -40,9 +40,9 @@ contains
     use Histories
     use Cosmology_Functions
     implicit none
-    integer          :: iOutput     
-    double precision :: aExpansion  
-                                 
+    integer          :: iOutput
+    double precision :: aExpansion
+
     if (.not.outputsInitialized) then
        !$omp critical (Tasks_Evolve_Tree_Initialize)
        if (.not.outputsInitialized) then
@@ -66,19 +66,19 @@ contains
           else
              call Get_Input_Parameter('outputRedshifts',outputTimes                     )
           end if
-          
+
           ! Convert redshifts to times.
           do iOutput=1,outputCount
              aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
              outputTimes(iOutput)=Cosmology_Age(aExpansion)
           end do
-          
+
           ! Sort the times.
           call Sort_Do(outputTimes)
-          
+
           ! Set history ranges to include these times.
           call History_Set_Times(timeEarliest=outputTimes(1),timeLatest=outputTimes(outputCount))
-          
+
           ! Flag that this module is now initialized.
           outputsInitialized=.true.
        end if
@@ -86,14 +86,14 @@ contains
     end if
     return
   end subroutine Output_Times_Initialize
-  
+
   integer function Galacticus_Output_Time_Count()
     !% Return the number of outputs.
     implicit none
 
     ! Ensure the module is initialized.
     call Output_Times_Initialize()
-    
+
     ! Return the number of outputs.
     Galacticus_Output_Time_Count=outputCount
     return
@@ -102,11 +102,11 @@ contains
   double precision function Galacticus_Output_Time(iOutput)
     !% Returns the time of the output indexed by {\tt iOutput}.
     implicit none
-    integer, intent(in   ) :: iOutput  
-    
-    ! Ensure the module is initialized.                                
+    integer, intent(in   ) :: iOutput
+
+    ! Ensure the module is initialized.
     call Output_Times_Initialize()
-    
+
     ! Return the requested output time.
     if (iOutput >=1 .and. iOutput <= outputCount) then
        Galacticus_Output_Time=outputTimes(iOutput)
@@ -120,11 +120,11 @@ contains
     !% Returns the time of the next output after {\tt currentTime}.
     use Arrays_Search
     implicit none
-    double precision, intent(in   ) :: currentTime  
-    
-    ! Ensure the module is initialized.                                             
+    double precision, intent(in   ) :: currentTime
+
+    ! Ensure the module is initialized.
     call Output_Times_Initialize()
-  
+
     ! If the current time exceeds the last output, return an unphysical value.
     if      (currentTime > outputTimes(outputCount)) then
        Galacticus_Next_Output_Time=-1.0d0

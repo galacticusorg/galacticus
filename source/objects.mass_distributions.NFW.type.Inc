@@ -17,9 +17,9 @@
 
 type, public, extends(massDistributionSpherical) :: massDistributionNFW
    !% The NFW \citep{navarro_structure_1996} density profile.
-   double precision :: densityNormalization, scaleLength  
+   double precision :: densityNormalization, scaleLength
  contains
-   procedure :: initialize=>Mass_Distribution_NFW_Initialize  
-   procedure :: density   =>Mass_Distribution_NFW_Density     
+   procedure :: initialize=>Mass_Distribution_NFW_Initialize
+   procedure :: density   =>Mass_Distribution_NFW_Density
 end type massDistributionNFW
-  
+

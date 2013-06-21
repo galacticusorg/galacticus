@@ -24,10 +24,10 @@ module Galactic_Structure_Densities
   public :: Galactic_Structure_Density
 
   ! Module scope variables used in mapped function.
-  double precision, dimension(3) :: positionSphericalShared                       
-  integer                        :: componentTypeShared    , massTypeShared   , & 
-       &                            weightByShared         , weightIndexShared    
-  logical                        :: haloLoadedShared                              
+  double precision, dimension(3) :: positionSphericalShared
+  integer                        :: componentTypeShared    , massTypeShared   , &
+       &                            weightByShared         , weightIndexShared
+  logical                        :: haloLoadedShared
   !$omp threadprivate(positionSphericalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
 contains
 
@@ -44,16 +44,16 @@ contains
     include 'galactic_structure.density.tasks.modules.inc'
     !# </include>
     implicit none
-    type            (treeNode         ), intent(inout)          , pointer :: thisNode                                         
-    integer                            , intent(in   ), optional          :: componentType              , coordinateSystem, & 
-         &                                                                   massType                   , weightBy        , & 
-         &                                                                   weightIndex                                      
-    logical                            , intent(in   ), optional          :: haloLoaded                                       
-    double precision                   , intent(in   )                    :: position                (3)                      
-    procedure       (Component_Density)                         , pointer :: componentDensityFunction                         
-    integer                                                               :: coordinateSystemActual                           
-    double precision                                                      :: componentDensity                                 
-    
+    type            (treeNode         ), intent(inout)          , pointer :: thisNode
+    integer                            , intent(in   ), optional          :: componentType              , coordinateSystem, &
+         &                                                                   massType                   , weightBy        , &
+         &                                                                   weightIndex
+    logical                            , intent(in   ), optional          :: haloLoaded
+    double precision                   , intent(in   )                    :: position                (3)
+    procedure       (Component_Density)                         , pointer :: componentDensityFunction
+    integer                                                               :: coordinateSystemActual
+    double precision                                                      :: componentDensity
+
     ! Determine position in spherical coordinate system to use.
     if (present(coordinateSystem)) then
        coordinateSystemActual=coordinateSystem
@@ -110,13 +110,13 @@ contains
     !# </include>
     return
   end function Galactic_Structure_Density
-  
+
   double precision function Component_Density(component)
     !% Unary function returning the density in a component. Suitable for mapping over components.
     use Galacticus_Nodes
     implicit none
-    class(nodeComponent), intent(inout) :: component 
-    
+    class(nodeComponent), intent(inout) :: component
+
     Component_Density=component%density(positionSphericalShared,componentTypeShared&
          &,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
     return

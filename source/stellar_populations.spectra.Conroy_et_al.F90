@@ -23,12 +23,12 @@ module Stellar_Population_Spectra_Conroy
   implicit none
   private
   public :: Stellar_Population_Spectra_Conroy_Initialize
-  
+
   ! List of which IMFs have been generated and read so far.
-  logical, allocatable, dimension(:) :: imfRead 
-  
+  logical, allocatable, dimension(:) :: imfRead
+
 contains
-  
+
   !# <stellarPopulationSpectraMethod>
   !#  <unitName>Stellar_Population_Spectra_Conroy_Initialize</unitName>
   !# </stellarPopulationSpectraMethod>
@@ -36,10 +36,10 @@ contains
        &,Stellar_Population_Spectrum_Tabulation_Get)
     !% Initializes the ``Conroy-White-Gunn2009'' module.
     implicit none
-    type     (varying_string                               ), intent(in   )          :: stellarPopulationSpectraMethod             
-    procedure(Stellar_Population_Spectra_Conroy_Get        ), intent(inout), pointer :: Stellar_Population_Spectra_Get             
-    procedure(Stellar_Population_Spectrum_Tabulation_Conroy), intent(inout), pointer :: Stellar_Population_Spectrum_Tabulation_Get 
-    
+    type     (varying_string                               ), intent(in   )          :: stellarPopulationSpectraMethod
+    procedure(Stellar_Population_Spectra_Conroy_Get        ), intent(inout), pointer :: Stellar_Population_Spectra_Get
+    procedure(Stellar_Population_Spectrum_Tabulation_Conroy), intent(inout), pointer :: Stellar_Population_Spectrum_Tabulation_Get
+
     if (stellarPopulationSpectraMethod == 'Conroy-White-Gunn2009') then
        Stellar_Population_Spectra_Get             => Stellar_Population_Spectra_Conroy_Get
        Stellar_Population_Spectrum_Tabulation_Get => Stellar_Population_Spectrum_Tabulation_Conroy
@@ -59,13 +59,13 @@ contains
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    integer                         , intent(in   )               :: imfIndex                                 
-    logical                         , allocatable  , dimension(:) :: imfReadTemporary                         
-    double precision                , allocatable  , dimension(:) :: imfMass                     , imfPhi     
-    integer                                                       :: iIMF                        , imfUnit    
-    type            (varying_string)                              :: command                     , imfName, & 
-         &                                                           stellarPopulationSpectraFile             
-    
+    integer                         , intent(in   )               :: imfIndex
+    logical                         , allocatable  , dimension(:) :: imfReadTemporary
+    double precision                , allocatable  , dimension(:) :: imfMass                     , imfPhi
+    integer                                                       :: iIMF                        , imfUnit
+    type            (varying_string)                              :: command                     , imfName, &
+         &                                                           stellarPopulationSpectraFile
+
     ! Ensure that array for IMF index mappings is sufficiently large.
     if (allocated(imfRead)) then
        if (size(imfRead) < imfIndex) then
@@ -111,7 +111,7 @@ contains
 
        ! Flag that this IMF has been read.
        imfRead(imfIndex)=.true.
-       
+
     end if
 
     return
@@ -124,28 +124,28 @@ contains
     use Stellar_Population_Spectra_File
     use Abundances_Structure
     implicit none
-    type            (abundances), intent(in   ) :: abundancesStellar             
-    double precision            , intent(in   ) :: age              , wavelength 
-    integer                     , intent(in   ) :: imfIndex                      
-    
+    type            (abundances), intent(in   ) :: abundancesStellar
+    double precision            , intent(in   ) :: age              , wavelength
+    integer                     , intent(in   ) :: imfIndex
+
     ! Ensure that IMF has been initialized.
     call Stellar_Population_Spectra_Conroy_Initialize_IMF(imfIndex)
-    
+
     ! Call routine to interpolate in the tabulated function.
     Stellar_Population_Spectra_Conroy_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
 
     return
   end function Stellar_Population_Spectra_Conroy_Get
-    
+
   subroutine Stellar_Population_Spectrum_Tabulation_Conroy(imfIndex,agesCount,metallicitiesCount,age,metallicity)
     !% Return a tabulation of ages and metallicities at which stellar spectra for the specified IMF should be tabulated.
     use Memory_Management
     use Stellar_Population_Spectra_File
     implicit none
-    integer                                    , intent(in   ) :: imfIndex                      
-    integer                                    , intent(  out) :: agesCount, metallicitiesCount 
-    double precision, allocatable, dimension(:), intent(  out) :: age      , metallicity        
-    
+    integer                                    , intent(in   ) :: imfIndex
+    integer                                    , intent(  out) :: agesCount, metallicitiesCount
+    double precision, allocatable, dimension(:), intent(  out) :: age      , metallicity
+
     ! Ensure that this IMF is initialized.
     call Stellar_Population_Spectra_Conroy_Initialize_IMF(imfIndex)
 
@@ -154,5 +154,5 @@ contains
 
     return
   end subroutine Stellar_Population_Spectrum_Tabulation_Conroy
-  
+
 end module Stellar_Population_Spectra_Conroy

@@ -22,11 +22,11 @@ subroutine Mass_Distribution_Hernquist_Initialize(self,scaleLength,densityNormal
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class           (massDistributionHernquist), intent(  out)           :: self                                     
-  double precision                           , intent(in   ), optional :: densityNormalization, mass, scaleLength  
-  logical                                    , intent(in   ), optional :: isDimensionless                          
-  
-  ! Determine if profile is dimensionless.                                                                                                              
+  class           (massDistributionHernquist), intent(  out)           :: self
+  double precision                           , intent(in   ), optional :: densityNormalization, mass, scaleLength
+  logical                                    , intent(in   ), optional :: isDimensionless
+
+  ! Determine if profile is dimensionless.
   if      (present(isDimensionless     )) then
      self%dimensionless=isDimensionless
   else
@@ -69,12 +69,12 @@ double precision function Mass_Distribution_Hernquist_Density(self,coordinates)
   !% Return the density at the specified {\tt coordinates} in a Hernquist mass distribution.
   use Coordinates
   implicit none
-  class           (massDistributionHernquist), intent(in   ) :: self         
-  class           (coordinate               ), intent(in   ) :: coordinates  
-  type            (coordinateSpherical      )                :: position     
-  double precision                                           :: r            
-  
-  ! Get position in spherical coordinate system.                                                                        
+  class           (massDistributionHernquist), intent(in   ) :: self
+  class           (coordinate               ), intent(in   ) :: coordinates
+  type            (coordinateSpherical      )                :: position
+  double precision                                           :: r
+
+  ! Get position in spherical coordinate system.
   position=coordinates
   ! Compute the density at this position.
   r=position%r()/self%scaleLength
@@ -88,10 +88,10 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
   use Numerical_Comparison
   use Galacticus_Error
   implicit none
-  class           (massDistributionHernquist), intent(in   )           :: self        
-  double precision                           , intent(in   )           :: moment      
-  logical                                    , intent(  out), optional :: isInfinite  
-                                                                                   
+  class           (massDistributionHernquist), intent(in   )           :: self
+  double precision                           , intent(in   )           :: moment
+  logical                                    , intent(  out), optional :: isInfinite
+
   if (moment <= 0.0d0 .or. moment >= 3.0d0) then
      ! Handle cases where the moment is infinite.
      if (present(isInfinite)) then
@@ -121,10 +121,10 @@ double precision function Mass_Distribution_Hernquist_Mass_Enc_By_Sphere(self,ra
   !% Computes the mass enclosed within a sphere of given {\tt radius} for Hernquist mass distributions.
   use Numerical_Constants_Math
   implicit none
-  class           (massDistributionHernquist), intent(in   ), target :: self              
-  double precision                           , intent(in   )         :: radius            
-  double precision                                                   :: fractionalRadius  
-                                                                                       
+  class           (massDistributionHernquist), intent(in   ), target :: self
+  double precision                           , intent(in   )         :: radius
+  double precision                                                   :: fractionalRadius
+
   fractionalRadius=radius/self%scaleLength
   Mass_Distribution_Hernquist_Mass_Enc_By_Sphere=2.0d0*Pi*self%densityNormalization*fractionalRadius**2/(1.0d0+fractionalRadius)**2
   return
@@ -135,12 +135,12 @@ double precision function Mass_Distribution_Hernquist_Potential(self,coordinates
   use Numerical_Constants_Physical
   use Coordinates
   implicit none
-  class           (massDistributionHernquist), intent(in   ) :: self         
-  class           (coordinate               ), intent(in   ) :: coordinates  
-  type            (coordinateSpherical      )                :: position     
-  double precision                                           :: r            
-  
-  ! Get position in spherical coordinate system.                                                                        
+  class           (massDistributionHernquist), intent(in   ) :: self
+  class           (coordinate               ), intent(in   ) :: coordinates
+  type            (coordinateSpherical      )                :: position
+  double precision                                           :: r
+
+  ! Get position in spherical coordinate system.
   position=coordinates
   ! Compute the potential at this position.
   Mass_Distribution_Hernquist_Potential=-self%mass/(self%scaleLength+position%r())
@@ -152,9 +152,9 @@ end function Mass_Distribution_Hernquist_Potential
 double precision function Mass_Distribution_Hernquist_Half_Mass_Radius(self)
   !% Return the half-mass radius of a Hernquist mass distribution.
   implicit none
-  class           (massDistributionHernquist), intent(in   ) :: self                                                   
-  double precision                           , parameter     :: halfMassRadiusToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)  
-                                                                                                                    
+  class           (massDistributionHernquist), intent(in   ) :: self
+  double precision                           , parameter     :: halfMassRadiusToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)
+
   Mass_Distribution_Hernquist_Half_Mass_Radius=halfMassRadiusToScaleRadius*self%scaleLength
   return
 end function Mass_Distribution_Hernquist_Half_Mass_Radius

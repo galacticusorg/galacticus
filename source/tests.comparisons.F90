@@ -22,7 +22,7 @@ program Test_Comparison
   use Unit_Tests
   use Numerical_Comparison
   implicit none
- 
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("numerical comparison")
 

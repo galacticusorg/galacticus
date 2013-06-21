@@ -24,8 +24,8 @@ module Satellite_Merging_Remnant_Sizes_Cole2000
   public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
 
   ! Parameter controlling the orbital energy used in the calculation.
-  double precision :: mergerRemnantSizeOrbitalEnergy 
-  
+  double precision :: mergerRemnantSizeOrbitalEnergy
+
 contains
 
   !# <satelliteMergingRemnantSizeMethod>
@@ -36,9 +36,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                         ), intent(in   )          :: satelliteMergingRemnantSizeMethod 
-    procedure(Satellite_Merging_Remnant_Size_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do 
-    
+    type     (varying_string                         ), intent(in   )          :: satelliteMergingRemnantSizeMethod
+    procedure(Satellite_Merging_Remnant_Size_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do
+
     if (satelliteMergingRemnantSizeMethod == 'Cole2000') then
        Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Cole2000
        !@ <inputParameter>
@@ -70,24 +70,24 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type            (treeNode      ), intent(inout), pointer :: thisNode                                                        
-    type            (treeNode      )               , pointer :: hostNode                                                        
-    double precision                , parameter              :: bindingEnergyFormFactor   =0.5d+0                               
-    double precision                , parameter              :: absoluteMassTolerance     =1.0d-6                               
-    double precision                , parameter              :: relativeMassTolerance     =1.0d-9                               
-    double precision                                         :: angularMomentumFactor            , hostDarkMatterBoost      , & 
-         &                                                      hostMass                         , hostRadius               , & 
-         &                                                      hostSpheroidMass                 , hostSpheroidMassPreMerger, & 
-         &                                                      hostSpheroidMassTotal            , progenitorsEnergy        , & 
-         &                                                      remnantSpheroidGasMass           , remnantSpheroidMass      , & 
-         &                                                      satelliteDarkMatterBoost         , satelliteMass            , & 
-         &                                                      satelliteRadius                  , satelliteSpheroidMass    , & 
-         &                                                      satelliteSpheroidMassTotal                                      
-    character       (len= 2        )                         :: joinString                                                      
-    character       (len=40        )                         :: dataString                                                      
-    type            (varying_string)                         :: message                                                         
-    logical                                                  :: errorCondition                                                  
-    
+    type            (treeNode      ), intent(inout), pointer :: thisNode
+    type            (treeNode      )               , pointer :: hostNode
+    double precision                , parameter              :: bindingEnergyFormFactor   =0.5d+0
+    double precision                , parameter              :: absoluteMassTolerance     =1.0d-6
+    double precision                , parameter              :: relativeMassTolerance     =1.0d-9
+    double precision                                         :: angularMomentumFactor            , hostDarkMatterBoost      , &
+         &                                                      hostMass                         , hostRadius               , &
+         &                                                      hostSpheroidMass                 , hostSpheroidMassPreMerger, &
+         &                                                      hostSpheroidMassTotal            , progenitorsEnergy        , &
+         &                                                      remnantSpheroidGasMass           , remnantSpheroidMass      , &
+         &                                                      satelliteDarkMatterBoost         , satelliteMass            , &
+         &                                                      satelliteRadius                  , satelliteSpheroidMass    , &
+         &                                                      satelliteSpheroidMassTotal
+    character       (len= 2        )                         :: joinString
+    character       (len=40        )                         :: dataString
+    type            (varying_string)                         :: message
+    logical                                                  :: errorCondition
+
     ! Find the node to merge with.
     hostNode => thisNode%mergesWith()
 
@@ -99,7 +99,7 @@ contains
        remnantRadius                 =remnantNoChangeValue
        remnantCircularVelocity       =remnantNoChangeValue
        remnantSpecificAngularMomentum=remnantNoChangeValue
-    else       
+    else
        ! Check that the properties of the galaxies are physically reasonable.
        errorCondition=.false.
        if     (                                                                         &
@@ -169,13 +169,13 @@ contains
           progenitorsEnergy=0.0d0
           if (hostRadius                 > 0.0d0)                                                                                     &
                & progenitorsEnergy=progenitorsEnergy+                           hostSpheroidMassTotal**2/                 hostRadius
-          if (           satelliteRadius > 0.0d0)                                                                                     & 
-               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal                      **2/ satelliteRadius  
+          if (           satelliteRadius > 0.0d0)                                                                                     &
+               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal                      **2/ satelliteRadius
           if (hostRadius+satelliteRadius > 0.0d0)                                                                                     &
                & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
                &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
           remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
-          
+
           ! Also compute the specific angular momentum at the half-mass radius.
           remnantCircularVelocity=sqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
           remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
@@ -184,7 +184,7 @@ contains
           remnantRadius                 =remnantNoChangeValue
           remnantCircularVelocity       =remnantNoChangeValue
           remnantSpecificAngularMomentum=remnantNoChangeValue
-       end if       
+       end if
     end if
     return
   end subroutine Satellite_Merging_Remnant_Size_Cole2000

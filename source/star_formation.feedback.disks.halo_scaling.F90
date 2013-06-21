@@ -27,9 +27,9 @@ module Star_Formation_Feedback_Disks_Halo_Scaling
   public :: Star_Formation_Feedback_Disks_Halo_Scaling_Initialize
 
   ! Parameters of the feedback model.
-  double precision :: diskOutflowFraction              , diskOutflowRedshiftExponent, & 
-       &              diskOutflowVirialVelocityExponent                                 
-  
+  double precision :: diskOutflowFraction              , diskOutflowRedshiftExponent, &
+       &              diskOutflowVirialVelocityExponent
+
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -40,9 +40,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod              
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get 
-    
+    type     (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod
+    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+
     if (starFormationFeedbackDisksMethod == 'haloScaling') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling
        ! Get parameters of for the feedback calculation.
@@ -92,12 +92,12 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode                                               
-    double precision                    , intent(in   )          :: energyInputRate                    , starFormationRate 
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent                                     
-    double precision                    , parameter              :: virialVelocityNormalization=200.0d0                    
-    double precision                                             :: expansionFactor                    , virialVelocity    
-    
+    type            (treeNode          ), intent(inout), pointer :: thisNode
+    double precision                    , intent(in   )          :: energyInputRate                    , starFormationRate
+    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    double precision                    , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                                             :: expansionFactor                    , virialVelocity
+
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
 
@@ -113,5 +113,5 @@ contains
          & /expansionFactor**diskOutflowRedshiftExponent
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling
-  
+
 end module Star_Formation_Feedback_Disks_Halo_Scaling
