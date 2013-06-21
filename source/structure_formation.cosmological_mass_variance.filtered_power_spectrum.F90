@@ -96,6 +96,7 @@ contains
     use Numerical_Constants_Math
     use Numerical_Integration
     use Cosmological_Parameters
+    use Power_Spectrum_Window_Functions
     implicit none
     double precision                            , intent(in   ) :: mass
     logical                                     , intent(in   ) :: useTopHat
@@ -106,8 +107,8 @@ contains
 
     smoothingMass=mass
     topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
-    wavenumberMinimum=0.0d0/topHatRadius
-    wavenumberMaximum=1.0d3/topHatRadius
+    wavenumberMinimum=    0.0d0/topHatRadius
+    wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
     if (useTopHat) then
        Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand_TopHat,parameterPointer&
             &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2

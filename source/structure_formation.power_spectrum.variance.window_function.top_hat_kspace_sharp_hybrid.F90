@@ -34,7 +34,7 @@ contains
   !# <powerSpectrumWindowFunctionMethod>
   !#  <unitName>Power_Spectrum_Window_Functions_TH_KSS_Hybrid_Initialize</unitName>
   !# </powerSpectrumWindowFunctionMethod>
-  subroutine Power_Spectrum_Window_Functions_TH_KSS_Hybrid_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get)
+  subroutine Power_Spectrum_Window_Functions_TH_KSS_Hybrid_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
     !% Initializes the ``topHatKSpaceSharpHybrid'' power spectrum variance window function module.
     use Numerical_Constants_Math
     use Cosmological_Parameters
@@ -42,13 +42,15 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    procedure(Power_Spectrum_Window_Function_TH_KSS_Hybrid), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid), pointer, intent(inout) :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
     character(len=32          )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText
     double precision                                    :: powerSpectrumWindowFunctionSharpKSpaceNormalization
 
     if (powerSpectrumWindowFunctionMethod == 'topHatKSpaceSharpHybrid') then
        ! Set a pointer to our function.
-       Power_Spectrum_Window_Function_Get => Power_Spectrum_Window_Function_TH_KSS_Hybrid
+       Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_TH_KSS_Hybrid
+       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid
        ! Get parameters. 
        !@ <inputParameter>
        !@   <name>powerSpectrumWindowFunctionSharpKSpaceNormalization</name>
@@ -100,8 +102,7 @@ contains
     implicit none
     double precision, intent(in) :: wavenumber,smoothingMass
     double precision, parameter  :: xSeriesMaximum=1.0d-3
-    double precision             :: totalRadius,topHatRadius,kSpaceSharpRadius,wavenumberCutOff,x,xSquared,topHatWindowFunction&
-         &,sharpKWindowFunction
+    double precision             :: totalRadius,topHatRadius,kSpaceSharpRadius,wavenumberCutOff,x,xSquared,topHatWindowFunction
 
     ! Find the radius enclosing this mass.
     totalRadius=((3.0d0/4.0d0/Pi)*smoothingMass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
@@ -141,6 +142,21 @@ contains
     Power_Spectrum_Window_Function_TH_KSS_Hybrid=wavenumberCutOff*topHatWindowFunction
     return
   end function Power_Spectrum_Window_Function_TH_KSS_Hybrid
+  
+  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid(smoothingMass)
+    !% Computes the maximum wavenumber at which the window function for calculations of the variance in the power spectrum is
+    !% non-zero. Specifically, uses a convolution of top-hat real-space and sharp $k$-space window functions. The top-hat radius
+    !% is $r_{\rm th}$, while the $k$-space cut-off wavenumber is $k_{\rm s}=a/r_{\rm s}$, where $a=${\tt
+    !% [powerSpectrumWindowFunctionSharpKSpaceNormalization]}. The two radii are chosen such that $r_{\rm th}^2 + r_{\rm s}^2 = (3
+    !% M / 4 \pi \bar{rho})^{1/3}$ and $r_{\rm s}=\beta r_{\rm th}$ where $\beta=${\tt
+    !% [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
+    implicit none
+    double precision, intent(in) :: smoothingMass
+    double precision, parameter  :: wavenumberLarge=1.0d30 ! Effective infinity.
+    
+    Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid=wavenumberLarge
+    return
+  end function Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid
   
 end module Power_Spectrum_Window_Functions_TH_KSS_Hybrid
 

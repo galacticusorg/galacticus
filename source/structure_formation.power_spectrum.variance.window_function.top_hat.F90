@@ -28,14 +28,18 @@ contains
   !# <powerSpectrumWindowFunctionMethod>
   !#  <unitName>Power_Spectrum_Window_Functions_Top_Hat_Initialize</unitName>
   !# </powerSpectrumWindowFunctionMethod>
-  subroutine Power_Spectrum_Window_Functions_Top_Hat_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get)
+  subroutine Power_Spectrum_Window_Functions_Top_Hat_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
     !% Initializes the ``topHat'' power spectrum variance window function module.
     use ISO_Varying_String
     implicit none
     type     (varying_string  ),          intent(in   ) :: powerSpectrumWindowFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    procedure(Power_Spectrum_Window_Function_Top_Hat), pointer, intent(inout) :: Power_Spectrum_Window_Function_Get
+    procedure(Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat), pointer, intent(inout) :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
     
-    if (powerSpectrumWindowFunctionMethod == 'topHat') Power_Spectrum_Window_Function_Get => Power_Spectrum_Window_Function_Top_Hat
+    if (powerSpectrumWindowFunctionMethod == 'topHat') then
+       Power_Spectrum_Window_Function_Get                    => Power_Spectrum_Window_Function_Top_Hat
+       Power_Spectrum_Window_Function_Wavenumber_Maximum_Get => Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat
+    end if
     return
   end subroutine Power_Spectrum_Window_Functions_Top_Hat_Initialize
   
@@ -67,6 +71,17 @@ contains
     end if
     return
   end function Power_Spectrum_Window_Function_Top_Hat
+  
+  double precision function Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat(smoothingMass)
+    !% Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
+    !% variance of the power spectrum.
+    implicit none
+    double precision, intent(in) :: smoothingMass
+    double precision, parameter  :: wavenumberLarge=1.0d30 ! Effective infinity.
+
+    Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat=wavenumberLarge
+    return
+  end function Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat
   
 end module Power_Spectrum_Window_Functions_Top_Hat
 
