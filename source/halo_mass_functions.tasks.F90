@@ -80,12 +80,27 @@ contains
     use Cosmology_Functions
     use Linear_Growth
     use Virial_Density_Contrast
+    use Galacticus_Display
     use Galacticus_Calculations_Resets
     implicit none
     class(nodeComponentBasic), pointer :: thisBasicComponent
-    integer                            :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput
+    integer                            :: haloMassFunctionsPointsPerDecade,haloMassFunctionsCount,iMass,outputCount,iOutput,verbosityLevel
     double precision                   :: haloMassFunctionsMassMinimum,haloMassFunctionsMassMaximum
     type (mergerTree        )          :: thisTree
+
+    ! Get the verbosity level parameter.
+    !@ <inputParameter>
+    !@   <name>verbosityLevel</name>
+    !@   <defaultValue>1</defaultValue>
+    !@   <attachedTo>module</attachedTo>
+    !@   <description>
+    !@     The level of verbosity for \glc\ (higher values give more verbosity).
+    !@   </description>
+    !@   <type>integer</type>
+    !@   <cardinality>1</cardinality>
+    !@ </inputParameter>
+    call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+    call Galacticus_Verbosity_Level_Set(verbosityLevel)
 
     ! Get the requested output redshifts.
     outputCount=max(Get_Input_Parameter_Array_Size('outputRedshifts'),1)
