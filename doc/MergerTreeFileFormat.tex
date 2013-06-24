@@ -564,7 +564,7 @@ GROUP "treeIndex" {
 \subsection{Standard Datasets}
 
 \begin{description}
- \item [{\tt firstNode}] For each tree, gives the position in the {\tt haloTrees} datasets of the first node in the tree (note that dataset indexing begins at 0). This \emph{does not} necessarily have to be the root node of the tree---nodes in a single tree can be stored in any order in the {\tt haloTrees} datasets, providing that they are contiguous;
+ \item [{\tt firstNode}] For each tree, gives the position\footnote{That is, it gives the array index of the first node of the tree in the {\tt haloTrees/nodeIndex} dataset for example. It does \emph{not} give the {\tt nodeIndex} of the first node in the tree.} in the {\tt haloTrees} datasets of the first node in the tree (note that dataset indexing begins at 0). This \emph{does not} necessarily have to be the root node of the tree---nodes in a single tree can be stored in any order in the {\tt haloTrees} datasets, providing that they are contiguous;
  \item [{\tt numberOfNodes}] For each tree, gives the number of nodes in the tree;
  \item [{\tt treeIndex}] A unique ID number for each tree;
  \item [{\tt treeWeight}] A weight factor specifying the number density of each tree required to construct a representative sample. If not present, it is acceptable to assume that the weight is $1/${\tt boxSize}$^3$ if that attribute is present in the {\tt simulation} group.
