@@ -1,4 +1,5 @@
 <coolingFunctions>
+  <fileFormat>1</fileFormat>
   <coolingFunction>
     <coolingRate>
       <datum>7.7417e-30</datum>

@@ -29,28 +29,26 @@ die('Atomic_CIE_Cloudy_Driver.pl: this script supports file format version '.$fi
     unless ( $fileFormat == $fileFormatCurrent );
 
 # Determine if we need to compute cooling functions.
-my $computeCoolingFunctions;
+my $computeCoolingFunctions = 0;
 if ( -e $coolingFunctionFile ) {
     my $xmlDoc = new XML::Simple;
     my $coolingFunction = $xmlDoc->XMLin($coolingFunctionFile);
     if ( exists($coolingFunction->{'fileFormat'}) ) { 
-	$computeCoolingFunctions = 1 unless ( $coolingFunction->{'fileFormat'} == $fileFormatCurrent );
-    } else {
-	$computeCoolingFunctions = 0;
+	$computeCoolingFunctions = 1
+	    unless ( $coolingFunction->{'fileFormat'} == $fileFormatCurrent );
     }
 } else {
     $computeCoolingFunctions = 1;
 }
 
 # Determine if we need to compute cooling functions.
-my $computeChemicalStates;
+my $computeChemicalStates = 0;
 if ( -e $chemicalStateFile ) {
     my $xmlDoc = new XML::Simple;
     my $chemicalState = $xmlDoc->XMLin($chemicalStateFile);
     if ( exists($chemicalState->{'fileFormat'}) ) { 
-	$computeChemicalStates = 1 unless ( $chemicalState->{'fileFormat'} == $fileFormatCurrent );
-    } else {
-	$computeChemicalStates = 0;
+	$computeChemicalStates = 1
+	    unless ( $chemicalState->{'fileFormat'} == $fileFormatCurrent );
     }
 } else {
     $computeChemicalStates = 1;
@@ -210,10 +208,10 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	@{${${$coolingFunctions{'coolingFunction'}}[$iCoolingFunction]}{'temperature'}->{'datum'}}     = @temperatures;
 
 	# Store chemical state data.
-	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'electronDensity'}->{'datum'}} = @electronDensities;
-	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
-	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
-	@{${${$chemicalStates{'ionizationState'}}[$iChemicalState]}{'temperature'    }->{'datum'}} = @temperatures;
+	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'electronDensity'}->{'datum'}} = @electronDensities;
+	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'hiDensity'      }->{'datum'}} = @hiDensities;
+	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'hiiDensity'     }->{'datum'}} = @hiiDensities;
+	@{${${$chemicalStates{'chemicalState'}}[$iChemicalState]}{'temperature'    }->{'datum'}} = @temperatures;
 	
     }
     
@@ -232,6 +230,8 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     $coolingFunctions{'description'} = "CIE cooling functions computed by Cloudy ".$cloudyVersion;
     ${$coolingFunctions{'units'}}[0] = "Temperature: Kelvin";
     ${$coolingFunctions{'units'}}[1] = "Cooling rate: Lambda(T)/ergs cm^3 s^-1";
+    # Add file format.
+    $chemicalStates{'fileFormat'} = $fileFormatCurrent;
   
     # Chemical states:
     # Specify extrapolation methods in temperature.
@@ -245,9 +245,11 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'limit'}  = "high";
     ${${${$chemicalStates{'extrapolation'}}{'metallicity'}}[1]}{'method'} = "fixed";
     # Add some description.
-    $chemicalStates{'description'} = "CIE ionization states computed by Cloudy 08.00";
+    $chemicalStates{'description'} = "CIE ionization states computed by Cloudy ".$cloudyVersion;
     ${$chemicalStates{'units'}}[0] = "Temperature: Kelvin";
     ${$chemicalStates{'units'}}[1] = "Densities: by number relative to hydrogen";
+    # Add file format.
+    $chemicalStates{'fileFormat'} = $fileFormatCurrent;
 
     # Output cooling functions to an XML file.
     if ( $computeCoolingFunctions == 1 ) {

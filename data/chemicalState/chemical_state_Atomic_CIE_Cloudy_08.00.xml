@@ -1,4 +1,4 @@
-<ionizationStates>
+<chemicalStates>
   <description>CIE ionization states computed by Cloudy 08.00</description>
   <fileFormat>1</fileFormat>
   <extrapolation>
@@ -19,7 +19,7 @@
       <method>fixed</method>
     </temperature>
   </extrapolation>
-  <ionizationState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -1069,8 +1069,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -2120,8 +2120,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -3171,8 +3171,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -4222,8 +4222,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -5273,8 +5273,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -6324,8 +6324,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -7375,8 +7375,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -8426,8 +8426,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362076217756673</datum>
@@ -9477,8 +9477,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355795130559743</datum>
       <datum>0.0362159598486019</datum>
@@ -10528,8 +10528,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355877064848793</datum>
       <datum>0.0362159598486019</datum>
@@ -11579,8 +11579,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0355959018006083</datum>
       <datum>0.0362242998416699</datum>
@@ -12630,8 +12630,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0356040990035957</datum>
       <datum>0.0362326417553133</datum>
@@ -13681,8 +13681,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0356204990730845</datum>
       <datum>0.0362576790241196</datum>
@@ -14732,8 +14732,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.035661532304264</datum>
       <datum>0.0362910889640948</datum>
@@ -15783,8 +15783,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0357190582511197</datum>
       <datum>0.0363580012300143</datum>
@@ -16834,8 +16834,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0358343886814277</datum>
       <datum>0.0364753946925608</datum>
@@ -17885,8 +17885,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.036032965012816</datum>
       <datum>0.0366775231599495</datum>
@@ -18936,8 +18936,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0363831251239939</datum>
       <datum>0.0370339469397536</datum>
@@ -19987,8 +19987,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0369828179780266</datum>
       <datum>0.0376443671073645</datum>
@@ -21038,8 +21038,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0380189396320561</datum>
       <datum>0.0386990229190269</datum>
@@ -22089,8 +22089,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0397557544927053</datum>
       <datum>0.0404762248687873</datum>
@@ -23140,8 +23140,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0425304521683435</datum>
       <datum>0.0433012067738004</datum>
@@ -24191,8 +24191,8 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.04682739513736</datum>
       <datum>0.0476760207367496</datum>
@@ -25242,7 +25242,7 @@
       <datum>891250938.133879</datum>
       <datum>944060876.286065</datum>
     </temperature>
-  </ionizationState>
+  </chemicalState>
   <units>Temperature: Kelvin</units>
   <units>Densities: by number relative to hydrogen</units>
-</ionizationStates>
+</chemicalStates>

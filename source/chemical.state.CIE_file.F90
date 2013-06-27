@@ -420,8 +420,8 @@ contains
     call extractDataContent(version,fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','file format version is out of date')
 
-    ! Get a list of all <ionizationState> elements.
-    chemicalStateList => getElementsByTagname(doc,"ionizationState")
+    ! Get a list of all <chemicalState> elements.
+    chemicalStateList => getElementsByTagname(doc,"chemicalState")
     chemicalStateMetallicityNumberPoints=getLength(chemicalStateList)
 
     ! Extract data from first chemical state and count number of temperatures present.
