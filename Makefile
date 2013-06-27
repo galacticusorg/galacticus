@@ -26,7 +26,7 @@ FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ $
 # Fortran77 compiler flags:
 F77FLAGS = -g
 # Error checking flags
-FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow
+FCFLAGS += -Wall -g -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
 #FCFLAGS += -fbounds-check
 # Add profiling.
