@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -22,9 +24,10 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Disk_Scalelengths.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -35,6 +38,7 @@ if ( $#ARGV == 2 ) {
 
 # Check if output location is file or directory.
 my $outputDir;
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
     $outputDir = ".";
@@ -43,9 +47,10 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo."/Disk_Scalelengths.pdf";
     $outputDir = $outputTo;
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Create data structure to read the results.
+my $dataBlock;
 $dataBlock->{'file'} = $galacticusFile;
 $dataBlock->{'store'} = 0;
 &HDF5::Get_Parameters($dataBlock);
@@ -53,31 +58,31 @@ $dataBlock->{'store'} = 0;
 &HDF5::Select_Output($dataBlock,0.0);
 $dataBlock->{'tree'} = "all";
 &HDF5::Get_Dataset($dataBlock,['mergerTreeWeight','diskRadius','magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega','bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas']);
-$dataSets = $dataBlock->{'dataSets'};
-$scaleLength = $dataSets->{'diskRadius'};
-$magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
-$morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
-$weight = $dataSets->{'mergerTreeWeight'};
+my $dataSets = $dataBlock->{'dataSets'};
+my $scaleLength = $dataSets->{'diskRadius'};
+my $magnitude = $dataSets->{'magnitudeTotal:RGO_I:rest:z0.0000:dustAtlas[faceOn]:vega'};
+my $morphology = $dataSets->{'bulgeToTotalLuminosities:RGO_I:rest:z0.0000:dustAtlas'};
+my $weight = $dataSets->{'mergerTreeWeight'};
 delete($dataBlock->{'dataSets'});
   
 # Initialize chi^2 accumulator.
-$chiSquared = 0.0;
-$degreesOfFreedom = 0;
+my $chiSquared = 0.0;
+my $degreesOfFreedom = 0;
 
 # Read the XML data file.
-undef(@tmpFiles);
-$xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
+my @tmpFiles;
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Disk_Sizes_Dejong_2000.xml");
 my $i = -1;
 my @leafFiles;
 my @plotFiles;
-foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
-    $columns = $dataSet->{'columns'};
-    $x = pdl @{$columns->{'scaleLength'}->{'data'}};
-    $y = pdl @{$columns->{'distribution'}->{'data'}};
-    $yUpperLimit = pdl @{$columns->{'distributionUpperLimit'}->{'data'}};
-    $yUpperError = pdl @{$columns->{'distributionErrorUp'}->{'data'}};
-    $yLowerError = pdl @{$columns->{'distributionErrorDown'}->{'data'}};
+foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
+    my $columns = $dataSet->{'columns'};
+    my $x = pdl @{$columns->{'scaleLength'}->{'data'}};
+    my $y = pdl @{$columns->{'distribution'}->{'data'}};
+    my $yUpperLimit = pdl @{$columns->{'distributionUpperLimit'}->{'data'}};
+    my $yUpperError = pdl @{$columns->{'distributionErrorUp'}->{'data'}};
+    my $yLowerError = pdl @{$columns->{'distributionErrorDown'}->{'data'}};
     $x = $x*($columns->{'scaleLength'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
     $yUpperError = +$y*(10.0**$yUpperError)-$y;
     $yLowerError = -$y/(10.0**$yLowerError)+$y;
@@ -89,26 +94,26 @@ foreach $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yP          ->index($zeroPoints) .=      $yUpperLimit->index($zeroPoints);
     $yUpperErrorP->index($zeroPoints) .=  0.0                                 ;
     $yLowerErrorP->index($zeroPoints) .= -0.7*$yUpperLimit->index($zeroPoints);
-    $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
-    $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});;
-    $morphologyMinimum = 0.05; # Morpology constraints are approximate, based on De Jong & Lacey's T-type selection of 3 < T < 8.
-    $morphologyMaximum = 0.30;
+    my $magnitudeMinimum = $dataSet->{'magnitudeRange'}->{'minimum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    my $magnitudeMaximum = $dataSet->{'magnitudeRange'}->{'maximum'}-5.0*log10($dataSet->{'magnitudeRange'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
+    my $morphologyMinimum = 0.05; # Morpology constraints are approximate, based on De Jong & Lacey's T-type selection of 3 < T < 8.
+    my $morphologyMaximum = 0.30;
 
     # Select Galacticus galaxies.
-    $logScaleLengthSelected = where(3.0+log10($scaleLength),$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
-    $weightSelected         = where($weight                ,$magnitude > $magnitudeMinimum & $magnitude <= $magnitudeMaximum & $morphology >= $morphologyMinimum & $morphology <= $morphologyMaximum);
-    $xBins = log10($x);
-    ($yGalacticus,$errorGalacticus) = &Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
+    my $logScaleLengthSelected = where(3.0+log10($scaleLength),($magnitude > $magnitudeMinimum) & ($magnitude <= $magnitudeMaximum) & ($morphology >= $morphologyMinimum) & ($morphology <= $morphologyMaximum));
+    my $weightSelected         = where($weight                ,($magnitude > $magnitudeMinimum) & ($magnitude <= $magnitudeMaximum) & ($morphology >= $morphologyMinimum) & ($morphology <= $morphologyMaximum));
+    my $xBins = log10($x);
+    (my $yGalacticus, my$errorGalacticus) = &Histograms::Histogram($xBins,$logScaleLengthSelected,$weightSelected
 							     ,differential => 1);
     $yGalacticus         /= ($magnitudeMaximum-$magnitudeMinimum);
     $errorGalacticus     /= ($magnitudeMaximum-$magnitudeMinimum);
-    $errorUpGalacticus    = $yGalacticus+$errorGalacticus;
-    $errorDownGalacticus  = $yGalacticus-$errorGalacticus;
+    my $errorUpGalacticus    = $yGalacticus+$errorGalacticus;
+    my $errorDownGalacticus  = $yGalacticus-$errorGalacticus;
 
     # Compute chi^2.
-    $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($yUpperError-$yLowerError))**2),$y > 0.0 & $errorGalacticus > 0.0);
-    $chiSquaredRange = sum($chiSquaredList);
-    $degreesOfFreedomRange = nelem($chiSquaredList);
+    my $chiSquaredList = where(($yGalacticus-$y)**2/($errorGalacticus**2+(0.5*($yUpperError-$yLowerError))**2),($y > 0.0) & ($errorGalacticus > 0.0));
+    my $chiSquaredRange = sum($chiSquaredList);
+    my $degreesOfFreedomRange = nelem($chiSquaredList);
     $chiSquared += $chiSquaredRange;
     $degreesOfFreedom += $degreesOfFreedomRange;
 
@@ -179,11 +184,12 @@ unlink(@plotFiles);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'} = "Dejong & Lacey (2000) disk scale length distributions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 

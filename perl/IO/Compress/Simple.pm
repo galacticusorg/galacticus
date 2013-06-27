@@ -1,19 +1,26 @@
 # Contains a Perl module which implements useful compression tools.
 
 package Simple;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use IO::Compress::Bzip2 qw(bzip2 $Bzip2Error);
-
-my $status = 1;
-$status;
 
 sub Compress_Directory {
     # Compress all files in a directory.
 
     # Get the directory name.
-    $directoryName = shift;
+    my $directoryName = shift;
 
     opendir(dirHndl,$directoryName);
-    while ( $fileName = readdir(dirHndl) ) {
+    while ( my $fileName = readdir(dirHndl) ) {
 	unless ( $fileName =~ m/^\./ || $fileName =~ m/\.gz$/ || $fileName =~ m/\.bz2/ ) {
 	    if ( bzip2 "<".$directoryName."/".$fileName.">" => "<".$directoryName."/".$fileName.".bz2>" ) {
 		unlink($directoryName."/".$fileName);
@@ -24,3 +31,5 @@ sub Compress_Directory {
     }
     closedir(dirHndl);
 }
+
+1;

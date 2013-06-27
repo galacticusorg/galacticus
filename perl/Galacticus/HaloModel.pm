@@ -6,6 +6,16 @@
 # Andrew Benson (01-September-2010)
 
 package HaloModel;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
@@ -15,7 +25,21 @@ use PDL::GSLSF::ERF;
 use Data::Dumper;
 
 # Define Pi.
-$Pi = pdl 3.141592653589793;
+my $Pi = pdl 3.141592653589793;
+
+# Interpolator;
+my $interp;
+my $interpXi;
+
+# Wavenumber ranges.
+my $logWaveNumberMinimum;
+my $logWaveNumberMaximum;
+
+# Shared variables;
+my $sigmaJ;
+my $separation;
+my $virialRadius;
+my $growthRate;
 
 # Computes the power spectrum of a selected subset of galaxies. This
 # subroutine should be passed a standard data hash reference as used by
@@ -34,12 +58,14 @@ sub Compute_Power_Spectrum {
     # Get the data hash and indices of selected galaxies.
     my $dataBlock = shift;
     my $selected  = shift;
+    my %options;
     if ( $#_ >= 1 ) {(%options) = @_};
 
     # Check that some galaxies were selected.
     if (nelem($selected) < 1) {die("Compute_Power_Spectrum(): no galaxies were selected")};
 
     # Determine what type of power spectrum to compute.
+    my $redshiftSpace;
     if ( exists($options{'space'}) ) {
 	if ( $options{'space'} eq "redshift" ) {
 	    $redshiftSpace = 1;
@@ -65,13 +91,14 @@ sub Compute_Power_Spectrum {
     $linearPowerSpectrum *= $growthFactor[0]**2;
 
     # Get galaxy data.
-    @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','mergerTreeWeight','nodeBias');
+    my @properties = ('mergerTreeIndex','nodeIndex','isolatedHostIndex','mergerTreeWeight','nodeBias');
     if ( $redshiftSpace == 1 ) {push(@properties,'nodeVirialVelocity','nodeVirialRadius','basicMass')};
     &HDF5::Get_Dataset($dataBlock,\@properties);
     my $dataSets = $dataBlock->{'dataSets'};
 
     # Acquire data on profiles and occupancy.
-    undef($occupancy);
+    my $occupancy;
+    my $profiles;
     for(my $i=0;$i<nelem($selected);++$i) {
 	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
 	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
@@ -87,10 +114,12 @@ sub Compute_Power_Spectrum {
     my $meanDensity = $dataSets->{'mergerTreeWeight'}->index($selected)->sum;
 
     # Compute redshift space terms if required.
+    my $R1;
+    my $R2;
     if ( $redshiftSpace == 1 ) {
 	# Compute the Hubble parameter at the selected redshift.
-	$expansionFactor = $dataBlock->{'outputs'}->{'expansionFactor'}->index($dataBlock->{'output'}-1);
-	$hubble = $dataBlock->{'parameters'}->{'H_0'}
+	my $expansionFactor = $dataBlock->{'outputs'}->{'expansionFactor'}->index($dataBlock->{'output'}-1);
+	my $hubble = $dataBlock->{'parameters'}->{'H_0'}
 	*sqrt(
 	    $dataBlock->{'parameters'}->{'Omega_Matter'}/($expansionFactor**3)
 	    +$dataBlock->{'parameters'}->{'Omega_DE'}
@@ -100,8 +129,8 @@ sub Compute_Power_Spectrum {
 	$growthRate = $growthFactorLogDerivative[0];
 
 	# Construct arrays of wavenumber and power spectrum for interpolation.
-	$logWaveNumber    = log($waveNumber);
-	$logPowerSpectrum = log($linearPowerSpectrum);
+	my $logWaveNumber    = log($waveNumber);
+	my $logPowerSpectrum = log($linearPowerSpectrum);
 	$logWaveNumberMinimum = $logWaveNumber->index(0);
 	$logWaveNumberMaximum = $logWaveNumber->index(nelem($logWaveNumber)-1);
 	
@@ -128,17 +157,19 @@ sub Compute_Power_Spectrum {
 		my $relativeTolerance   = 1.0e-3;
 		my $maximumSubdivisions = 1000;		
 		$sigmaJ = -1;
-		($sigmaSquaredMinus1,$sigmaSquaredError,$iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
+		my $sigmaSquaredError;
+		my $iError;
+		(my $sigmaSquaredMinus1, $sigmaSquaredError, $iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
 										  ,$absoluteTolerance
 										  ,$relativeTolerance
 										  ,$maximumSubdivisions);
 		$sigmaJ = 0;
-		($sigmaSquared0     ,$sigmaSquaredError,$iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
+		(my $sigmaSquared0     , $sigmaSquaredError, $iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
 										  ,$absoluteTolerance
 										  ,$relativeTolerance
 										  ,$maximumSubdivisions);
 		$sigmaJ = 1;
-		($sigmaSquaredPlus1 ,$sigmaSquaredError,$iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
+		(my $sigmaSquaredPlus1 , $sigmaSquaredError, $iError) = gslinteg_qagiu(\&Sigma_Integrand,0.0
 										  ,$absoluteTolerance
 										  ,$relativeTolerance
 										  ,$maximumSubdivisions);
@@ -159,11 +190,11 @@ sub Compute_Power_Spectrum {
 	    }
 	}
     }
-	
+    
     # Compute the 2-halo effective bias.
-    undef($Fg);
-    undef($Fv);
-    undef($twoHaloFactor);
+    my $Fg;
+    my $Fv;
+    my $twoHaloFactor;
     for(my $i=0;$i<nelem($selected);++$i) {
 	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
 	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
@@ -191,17 +222,18 @@ sub Compute_Power_Spectrum {
     }
 
     # Compute 2-halo power spectrum.
-    $twoHaloPowerSpectrum = $linearPowerSpectrum*$twoHaloFactor;
+    my $twoHaloPowerSpectrum = $linearPowerSpectrum*$twoHaloFactor;
  
     # Compute the 1-halo
-    undef($oneHaloPowerSpectrum);
+    my $oneHaloPowerSpectrum;
     for(my $i=0;$i<nelem($selected);++$i) {
 	my $weight    = $dataSets->{'mergerTreeWeight' }->index($selected->index($i));
 	my $nodeIndex = $dataSets->{'nodeIndex'        }->index($selected->index($i));
 	my $treeIndex = $dataSets->{'mergerTreeIndex'  }->index($selected->index($i));
 	my $hostIndex = $dataSets->{'isolatedHostIndex'}->index($selected->index($i));
+	my $profileExponent;
 	if ( $hostIndex == $nodeIndex ) {
-	    $haloRp = 1.0;
+	    my $haloRp = 1.0;
 	    if ( $occupancy->{$treeIndex}->{$hostIndex} > 1 ) {
 		$profileExponent = 2;
 		if ( $redshiftSpace == 1 ) {$haloRp = $R1->{$treeIndex}->{$hostIndex}};
@@ -264,24 +296,24 @@ sub Compute_Correlation_Function {
     my $separationPointsPerDecade = shift;
 
     # Set integration accuracy parameters.
-    $absoluteTolerance = 1.0e-3;
-    $maxDivisions      = 1000;
+    my $absoluteTolerance = 1.0e-3;
+    my $maxDivisions      = 1000;
 
     # Construct arrays of wavenumber and power spectrum for interpolation.
-    $logWaveNumber    = log($waveNumber);
-    $logPowerSpectrum = log($powerSpectrum);
+    my $logWaveNumber    = log($waveNumber);
+    my $logPowerSpectrum = log($powerSpectrum);
 
     # Initialize the interpolator.
-    $interp = PDL::GSL::INTERP->init('cspline',$logWaveNumber,$logPowerSpectrum);
+    $interpXi = PDL::GSL::INTERP->init('cspline',$logWaveNumber,$logPowerSpectrum);
 
     # Create a list of separations.
-    $separationCount = int(log($separationMaximum/$separationMinimum)/log(10.0)*$separationPointsPerDecade)+1;
-    $separations     = exp(sequence($separationCount)*log($separationMaximum/$separationMinimum)/($separationCount-1)+log($separationMinimum));
+    my $separationCount = int(log($separationMaximum/$separationMinimum)/log(10.0)*$separationPointsPerDecade)+1;
+    my $separations     = exp(sequence($separationCount)*log($separationMaximum/$separationMinimum)/($separationCount-1)+log($separationMinimum));
 
     # Loop through separations and compute the correlation function.
-    $correlationFunction = pdl [];
+    my $correlationFunction = pdl [];
     foreach $separation ( $separations->list ) {
-	($xi,$xiError,$iError) = gslinteg_qawf(\&Correlation_Function_Integrand,$separation,'sin',$waveNumber->index(0),$absoluteTolerance,$maxDivisions);
+	(my $xi, my $xiError, my $iError) = gslinteg_qawf(\&Correlation_Function_Integrand,$separation,'sin',$waveNumber->index(0),$absoluteTolerance,$maxDivisions);
 	print "Compute_Correlation_Function(): failed to compute correlation function\n" unless ( $iError == 0 );
 	$correlationFunction = $correlationFunction->append($xi);
     }
@@ -297,13 +329,13 @@ sub Correlation_Function_Integrand {
     my ($myWaveNumber) = @_;
 
     # Get logarithm of wavenumber.
-    $logWaveNumber   = log($myWaveNumber);
+    my $logWaveNumber   = log($myWaveNumber);
 
     # Interpolate to get the power spectrum.
-    $myPowerSpectrum = exp($interp->eval($logWaveNumber,{Extrapolate => 1}));
+    my $myPowerSpectrum = exp($interpXi->eval($logWaveNumber,{Extrapolate => 1}));
 
     # Compute the integrand.
-    $integrand       = ($myWaveNumber**2)*$myPowerSpectrum/2.0/($Pi**2)/$separation/$myWaveNumber;
+    my $integrand       = ($myWaveNumber**2)*$myPowerSpectrum/2.0/($Pi**2)/$separation/$myWaveNumber;
     return $integrand;
 }
 

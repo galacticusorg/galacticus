@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-use XML::Simple;
-use Data::Dumper;
-use File::Copy;
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
     $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
@@ -10,16 +9,19 @@ if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
     $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl");
+use XML::Simple;
+use Data::Dumper;
+use File::Copy;
 
 # Driver script for CMBFast.
 # Andrew Benson (27-Nov-2009)
 
 # Get arguments.
 if ( $#ARGV != 3 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"};
-$parameterFile        = $ARGV[0];
-$transferFunctionFile = $ARGV[1];
-$kMax                 = $ARGV[2];
-$fileFormat           = $ARGV[3];
+my $parameterFile        = $ARGV[0];
+my $transferFunctionFile = $ARGV[1];
+my $kMax                 = $ARGV[2];
+my $fileFormat           = $ARGV[3];
 
 # Ensure the requested file format version is compatible.
 my $fileFormatCurrent = 1;
@@ -42,7 +44,7 @@ unless ( -e $galacticusPath."aux/cmbfast4.5.1" ) {
 
 # Patch the code.
 unless ( -e $galacticusPath."aux/cmbfast4.5.1/configure.patch" ) {
-    foreach $file ( "cmbflat.F.patch", "configure.patch", "recfast.f.patch" ) {
+    foreach my $file ( "cmbflat.F.patch", "configure.patch", "recfast.f.patch" ) {
 	copy($galacticusPath."aux/cmbfast4.5.1_Galacticus_Modifications/".$file,$galacticusPath."aux/cmbfast4.5.1/".$file);
 	if ( $file =~ m/\.patch$/ ) {system("cd ".$galacticusPath."aux/cmbfast4.5.1; patch < $file")};
 	print "$file\n";
@@ -57,31 +59,31 @@ unless ( -e $galacticusPath."aux/cmbfast4.5.1/cmb" ) {
 }
 
 # Specify default parameters.
-$Omega_nu          = 0.0;
-$NNeutrino         = 0;
-$NNeutrinoMassless = 3.04;
-$gStarMassive      = 10.75;
-$NPerLogk          = 10;
+my $Omega_nu          = 0.0;
+my $NNeutrino         = 0;
+my $NNeutrinoMassless = 3.04;
+my $gStarMassive      = 10.75;
+my $NPerLogk          = 10;
 
 # Parse the parameter file.
-$xml = new XML::Simple;
-$data = $xml->XMLin($parameterFile);
-$parameterHash = $data->{'parameter'};
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($parameterFile);
+my $parameterHash = $data->{'parameter'};
 
 # Check that required parameters exist.
-@parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
-foreach $parameter ( @parameters ) {
+my @parameters = ( "Omega_b", "Omega_Matter", "Omega_DE", "H_0", "T_CMB", "Y_He" );
+foreach my $parameter ( @parameters ) {
     die("CMBFast_Driver.pl: FATAL - parameter ".$parameter." can not be found.") unless ( exists($data->{'parameter'}->{$parameter}) );
 }
 
 # Calculate derived parameters.
-$Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
+my $Omega_c = $parameterHash->{'Omega_Matter'}->{'value'}-$parameterHash->{'Omega_b'}->{'value'};
 $kMax = $kMax/($parameterHash->{'H_0'}->{'value'}/100.0);
 
 my $makeFile = 0;
 if ( -e $transferFunctionFile ) {
     my $xmlDoc = new XML::Simple;
-    $transferFunction = $xmlDoc->XMLin($transferFunctionFile);
+    my $transferFunction = $xmlDoc->XMLin($transferFunctionFile);
     if ( exists($transferFunction->{'fileFormat'}) ) { 
 	$makeFile = 1 unless ( $transferFunction->{'fileFormat'} == $fileFormatCurrent );
     } else {
@@ -118,11 +120,13 @@ if ( $makeFile == 1 ) {
    close(cmbPipe);
    
    # Read in the tabulated data and output as an XML file.
+   my @transferFunctionData;
+   my %transferFunction;
    open(inHndl,$galacticusPath."data/transfer_function.tmp");
-   while ( $line = <inHndl> ) {
+   while ( my $line = <inHndl> ) {
        $line =~ s/^\s*//;
-       @columns = split(/\s+/,$line);
-       $k = $columns[0]*($parameterHash->{'H_0'}->{'value'}/100.0);
+       my @columns = split(/\s+/,$line);
+       my $k = $columns[0]*($parameterHash->{'H_0'}->{'value'}/100.0);
        $transferFunctionData[++$#transferFunctionData] = $k." ".$columns[1];
    }
    close(inHndl);
@@ -133,7 +137,7 @@ if ( $makeFile == 1 ) {
        "T(k) - transfer function"
        );
    @{$transferFunction{'description'}} = "Cold dark matter power spectrum created by CMBFast.";
-   foreach $parameter ( @parameters ) {
+   foreach my $parameter ( @parameters ) {
        %{${$transferFunction{'parameter'}}[++$#{$transferFunction{'parameter'}}]} = (
 	   "name" => $parameter,
 	   "value" => $parameterHash->{$parameter}->{'value'}
@@ -149,10 +153,10 @@ if ( $makeFile == 1 ) {
    # Add unique label.
    $transferFunction{'uniqueLabel'} = $data->{'uniqueLabel'};
    # Output the transfer function.
-   $transferFunction = \%transferFunction;
-   $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");
+   my $transferFunctionStructure = \%transferFunction;
+   my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"data");
    open(outHndl,">".$transferFunctionFile);
-   print outHndl $xmlOutput->XMLout($transferFunction);
+   print outHndl $xmlOutput->XMLout($transferFunctionStructure);
    close(outHndl);
 }
 

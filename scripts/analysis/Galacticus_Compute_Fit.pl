@@ -1,4 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use Data::Dumper;
 
@@ -7,35 +17,35 @@ use Data::Dumper;
 
 # Get the name of the Galacticus file to analyze.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisScript>]")};
-$galacticusFile  = $ARGV[0];
-$outputDirectory = $ARGV[1];
-$analysisScript  = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
+my $galacticusFile  = $ARGV[0];
+my $outputDirectory = $ARGV[1];
+my $analysisScript  = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
 $analysisScript  = $ARGV[2] if ( $#ARGV == 2 );
 system("mkdir -p $outputDirectory");
 
 # Open the descriptor file that explains what analysis files to run.
-$xml = new XML::Simple;
-$data = $xml->XMLin($analysisScript);
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($analysisScript);
 
 # Initialize net chi^2 variables.
-$chiSquaredNet = 0.0;
-$degreesOfFreedomNet = 0.0;
+my $chiSquaredNet       = 0.0;
+my $degreesOfFreedomNet = 0.0;
 
 # Loop through all analyses and accumulate fit results.
-foreach $analysis ( @{$data->{'analysis'}} ) {
+my $fitsData;
+foreach my $analysis ( @{$data->{'analysis'}} ) {
     print "Running analysis script: ".$analysis->{'script'}."\n";
-    $fitXML = "";
-    $inXML = 0;
-    open(pipeHndl,$analysis->{'script'}." ".$galacticusFile." ".$outputDirectory." showFit |");
-    while ( $line = <pipeHndl> ) {
+    my $fitXML = "";
+    my $inXML = 0;
+    open(my $pipeHndl,$analysis->{'script'}." ".$galacticusFile." ".$outputDirectory." showFit |");
+    while ( my $line = <$pipeHndl> ) {
 	if ( $line =~ m/^\s*<galacticusFit>/   ) {$inXML = 1};
 	if ( $inXML == 1 ) {$fitXML .= $line};
 	if ( $line =~ m/<\/galacticusFit>\s*$/ ) {$inXML = 1};
     }
-    close(pipeHndl);
-    undef($fitData);
+    close($pipeHndl);
     if ( $fitXML =~ m/<galacticusFit>/ ) {
-	$fitData = $xml->XMLin($fitXML);
+	my $fitData = $xml->XMLin($fitXML);
 	$fitData->{'weight'} = $analysis->{'weight'};
 	${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
 	$chiSquaredNet += $fitData->{'chiSquared'}*$fitData->{'weight'};
@@ -44,8 +54,8 @@ foreach $analysis ( @{$data->{'analysis'}} ) {
 }
 
 # Store the net results.
-$reducedChiSquaredNet = $chiSquaredNet/$degreesOfFreedomNet;
-undef($fitData);
+my $reducedChiSquaredNet = $chiSquaredNet/$degreesOfFreedomNet;
+my $fitData;
 $fitData->{'chiSquared'} = $chiSquaredNet;
 $fitData->{'reducedChiSquared'} = $reducedChiSquaredNet;
 $fitData->{'degreesOfFreedom'} = $degreesOfFreedomNet;
@@ -53,9 +63,9 @@ $fitData->{'name'} = "net";
 ${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
 
 # Output the accumulated results.
-$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFits");
-open(outHndl,">".$outputDirectory."/galacticusFits.xml");
-print outHndl $xmlOutput->XMLout($fitsData);
-close(outHndl);
+my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFits");
+open(my $outHndl,">".$outputDirectory."/galacticusFits.xml");
+print $outHndl $xmlOutput->XMLout($fitsData);
+close($outHndl);
 
 exit;

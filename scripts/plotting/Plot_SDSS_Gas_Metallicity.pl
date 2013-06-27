@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -18,9 +20,10 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Gas_Metallicity.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -30,26 +33,28 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/SDSS_Gas_Metallicity.pdf";
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Specify Solar metallicity and oxygen abundance.
-$solarMetallicity     = pdl 0.0189;
-$solarOxygenAbundance = pdl 4.8977e-4;
+my $solarMetallicity     = pdl 0.0189;
+my $solarOxygenAbundance = pdl 4.8977e-4;
 
 # Minimum gas fraction for galaxies to be considered in this plot.
-$gasFractionMinimum   = pdl 0.1;
+my $gasFractionMinimum   = pdl 0.1;
 
 # Initialize chi^2 accumulator.
-$chiSquared      = 0.0;
-$degreesOfFreedom = 0;
+my $chiSquared      = 0.0;
+my $degreesOfFreedom = 0;
 
 # Create data structure to read the results.
+my $dataBlock;
 $dataBlock->{'file'}  = $galacticusFile;
 $dataBlock->{'store'} = 0;
 &HDF5::Get_Parameters($dataBlock    );
@@ -66,9 +71,9 @@ $dataBlock->{'tree'} = "all";
 			      ,'diskAbundancesGasMetals'
 			      ,'spheroidAbundancesGasMetals'
 		   ]);
-$dataSets = $dataBlock->{'dataSets'};
-$gasFraction    = ($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidMassStellar'});
-$gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$dataSets->{'spheroidAbundancesGasMetals'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
+my $dataSets = $dataBlock->{'dataSets'};
+my $gasFraction    = ($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}+$dataSets->{'diskStellarMass'}+$dataSets->{'spheroidMassStellar'});
+my $gasMetallicity = where(12.0+log10(($dataSets->{'diskAbundancesGasMetals'}+$dataSets->{'spheroidAbundancesGasMetals'})/($dataSets->{'diskMassGas'}+$dataSets->{'spheroidMassGas'}))-log10($solarMetallicity)+log10($solarOxygenAbundance),$gasFraction > $gasFractionMinimum);
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
@@ -76,27 +81,28 @@ print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
 # Read the XML data file.
-undef(@tmpFiles);
-$xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
-$iDataset = 0;
-foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
+my @tmpFiles;
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($galacticusPath."data/observations/abundances/Gas_Phase_Metallicities_SDSS_Tremonti_2004.xml");
+my $iDataset = 0;
+foreach my $dataSet ( @{$data->{'gasMetallicity'}} ) {
     ++$iDataset;
-    $columns = $dataSet->{'columns'};
-    $x = pdl @{$columns->{'magnitude'}->{'data'}};
+    my $columns = $dataSet->{'columns'};
+    my $x = pdl @{$columns->{'magnitude'}->{'data'}};
     $x = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataBlock->{'parameters'}->{'H_0'});
 
     # Compute the distribution of Galacticus galaxies.
-    $filter = $columns->{'magnitude'}->{'filter'};
-    $dust   = $columns->{'magnitude'}->{'dust'};
+    my $filter = $columns->{'magnitude'}->{'filter'};
+    my $dust   = $columns->{'magnitude'}->{'dust'};
+    my $dustLabel;
     if ( $dust eq "corrected" ) {$dustLabel = ""};
     if ( $dust eq "face-on" )   {$dustLabel = ":dustAtlas[faceOn]"};
 
-    $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
-    $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
-    $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
-    $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
-    $results     = &Percentiles::BinnedPercentiles(
+    my $property    = "magnitudeTotal:".$filter.":observed:z0.1000".$dustLabel.":AB";
+    my $magnitude   = where($dataSets->{$property}     ,$gasFraction > $gasFractionMinimum);
+    my $weight      = where($dataSets->{'mergerTreeWeight'},$gasFraction > $gasFractionMinimum);
+    my $percentiles = pdl [2.5,16.0,50.0,84.0,97.5];
+    my $results     = &Percentiles::BinnedPercentiles(
 	$x,
 	$magnitude,
 	$gasMetallicity,
@@ -104,18 +110,18 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
 	$percentiles,
 	);
 
-    $plotCommand = "";
-    $joiner = "";
-    $iPercentile = 0;
-    $chiSquaredRange = 0.0;
-    $degreesOfFreedomRange = 0;
-    $observationalError = pdl $dataSet->{'distributionError'};
-    foreach $percentile ( @{$columns->{'distributionPercentile'}} ) {
+    my $plotCommand = "";
+    my $joiner = "";
+    my $iPercentile = 0;
+    my $chiSquaredRange = 0.0;
+    my $degreesOfFreedomRange = 0;
+    my $observationalError = pdl $dataSet->{'distributionError'};
+    foreach my $percentile ( @{$columns->{'distributionPercentile'}} ) {
 	++$iPercentile;
 
 	# Compute chi^2.
-	$yData       = pdl @{$percentile->{'data'}};
-	$yGalacticus = $results(:,($iPercentile-1));
+	my $yData       = pdl @{$percentile->{'data'}};
+	my $yGalacticus = $results(:,($iPercentile-1));
 	$chiSquaredRange += sum((($yData-$yGalacticus)/$observationalError)**2);
 	$degreesOfFreedomRange += nelem($yData);
 
@@ -123,7 +129,7 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
 	$joiner = ", ";
 	push(@tmpFiles,"gnuplot".$iDataset.":".$iPercentile.".tmp");
 	open(tmpHndl,">gnuplot".$iDataset.":".$iPercentile.".tmp");
-	for ($i=0;$i<nelem($x);++$i) {
+	for (my $i=0;$i<nelem($x);++$i) {
 	    print tmpHndl $x->index($i)." ".$yData->index($i)."\n";
 	}
 	close(tmpHndl);
@@ -133,7 +139,7 @@ foreach $dataSet ( @{$data->{'gasMetallicity'}} ) {
 	    $joiner = ", ";
 	    push(@tmpFiles,"gnuplot".$iDataset.":".$iPercentile."_glc.tmp");
 	    open(tmpHndl,">gnuplot".$iDataset.":".$iPercentile."_glc.tmp");
-	    for ($i=0;$i<nelem($x);++$i) {
+	    for (my $i=0;$i<nelem($x);++$i) {
 		if ( $yGalacticus->index($i) > 0.0 ) {print tmpHndl $x->index($i)." ".$yGalacticus->index($i)."\n"};
 	    }
 	    close(tmpHndl);
@@ -173,11 +179,12 @@ unlink("tmp.ps",@tmpFiles);
 
 # Display chi^2 information
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'} = "Tremonti et al. (2004) SDSS gas-phase metallicity distributions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 

@@ -1,7 +1,16 @@
 #!/usr/bin/env perl
-use lib './perl';
-require System::Redirect;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
+require System::Redirect;
 
 # Locate all allocatable arrays in the code base and determine their type and dimensionality.
 
@@ -10,11 +19,11 @@ if ( $#ARGV != 0 ) {die "Usage: Find_Allocatable_Arrays.pl <sourcedir>"};
 my $sourcedir = $ARGV[0];
 
 # Build a list of source directories.
-$sourcedirs[0] = $sourcedir."/source";
-$bases[0] = "";
+my @sourcedirs = ( $sourcedir."/source" );
+my @bases      = ( "" );
 if ( -e $sourcedir."/Source_Codes" ) {
-    opendir(sdir,"$sourcedir/Source_Codes");
-    while ( $line = readdir sdir ) {
+    opendir(my $sdir,"$sourcedir/Source_Codes");
+    while ( my $line = readdir $sdir ) {
 	$line =~ s/\n//;
 	if ( -d $sourcedir."/Source_Codes/".$line ) {
 	    unless ( $line =~ m/^\.+$/ ) {
@@ -23,60 +32,63 @@ if ( -e $sourcedir."/Source_Codes" ) {
 	    }
 	}
     }
-    closedir(sdir);
+    closedir($sdir);
 }
 
 # Open the source directorys and scan
-$ibase=-1;
-foreach $srcdir ( @sourcedirs ) {
+my $ibase = -1;
+my %type_dim;
+foreach my $srcdir ( @sourcedirs ) {
     ++$ibase;
-    $base = $bases[$ibase];
-    opendir(indir,$srcdir) or die "Can't open the source directory: #!";
-    while (my $fname = readdir indir) {
+    my $base = $bases[$ibase];
+    opendir(my $indir,$srcdir) or die "Can't open the source directory: #!";
+    while (my $fname = readdir $indir) {
 	
 	if ( ( ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" ) || ( lc($fname) =~ m/\.f90t$/ ) ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $fullname = "$srcdir/$fname";
-	    $scanfiles[++$#scanfiles] = $fullname;
+	    my @scanfiles = ( $fullname );
 	    while ( $#scanfiles >= 0 ) {
-		$fullname = $scanfiles[$#scanfiles];
+		my $fullname = $scanfiles[$#scanfiles];
 		--$#scanfiles;
 		if ( ! -e $fullname ) {
+		    my $leaf;
 		    if ( $fullname =~ m/\/([\w\.]+?)$/ ) {
 			$leaf = $1;
 		    } else {
 			$leaf=$fullname;
 		    }
-		    system("$make $leaf");
+		    system("make $leaf");
 		}
-		open(infile,$fullname) or die "Can't open input file: $fullname";
-		while (my $line = <infile>) {
+		open(my $infile,$fullname) or die "Can't open input file: $fullname";
+		while (my $line = <$infile>) {
 		    if ( $line =~ m/,\s*allocatable\s*[,:]/i && $line =~ m/\(\s*:/i && $line =~ m/^\s*([a-zA-Z0-9_\s]+)(\((len|kind)=[\sa-z0-9_]+\))?\s*,/i && $line !~ m/\(\s*kind\s*=\s*HID/ && $line !~ m/\(\s*kind\s*=\s*c_char/ ) {
 			while ( $line =~ m/&\s*$/ ) {
 			    $line =~ s/&\s*$//;
-			    $tline = <infile>;
+			    my $tline = <$infile>;
 			    $tline =~ s/^\s*&//;
 			    $line .= $tline;
 			}
 			# Found a line declaring allocatable arrays.
 			$line =~ m/^\s*([a-zA-Z0-9_\s]+)/i;
-			$vtype = $1;
+			my $vtype = $1;
 			$vtype =~ s/\s*$//;
+			my $kind;
 			if ( $line =~ m/\(kind=([a-zA-Z0-9_]+)\)/i ) {
 			    $kind = $1;
 			} else {
 			    $kind = "";
 			}
 			if ( $line =~ m/dimension\(([:,]+)\)/ ) {
-			    $dimstr = $1;
-			    $dimension = () = $dimstr =~ /:/g;
-			    $type = lc($vtype).":".$dimension.":".$kind;
+			    my $dimstr = $1;
+			    my $dimension = () = $dimstr =~ /:/g;
+			    my $type = lc($vtype).":".$dimension.":".$kind;
 			    ++$type_dim{$type};
 			} else {
 			    while ( $line =~ m/\(([:,]+)\)/ ) {
-				$dimstr = $1;
-				$dimension = () = $dimstr =~ /:/g;
+				my $dimstr = $1;
+				my $dimension = () = $dimstr =~ /:/g;
 				$line =~ s/\([:,]+\)//;
-				$type = lc($vtype).":".$dimension.":".$kind;
+				my $type = lc($vtype).":".$dimension.":".$kind;
 				++$type_dim{$type};
 			    }
 			}
@@ -88,9 +100,10 @@ foreach $srcdir ( @sourcedirs ) {
 }
 
 # Create auxilliary file containing the list of dimensions and lengths for character arrays.
-$iAllocatable = -1;
-for $type ( sort keys %type_dim ) {
-    @entries = split(/:/,$type);
+my $iAllocatable = -1;
+my %allocatables;
+foreach my $type ( sort keys %type_dim ) {
+    my @entries = split(/:/,$type);
     ++$iAllocatable;
     ${${$allocatables{'allocatable'}}[$iAllocatable]}{"type"}      = $entries[0];
     ${${$allocatables{'allocatable'}}[$iAllocatable]}{"dimension"} = $entries[1];
@@ -98,7 +111,7 @@ for $type ( sort keys %type_dim ) {
 }
 
 # Create XML object.
-$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"allocatables");
+my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"allocatables");
 open(outHndl,">./work/build/Allocatable_Arrays.xml.tmp");
 print outHndl $xmlOutput->XMLout(\%allocatables);
 close(outHndl);

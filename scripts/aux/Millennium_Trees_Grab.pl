@@ -1,11 +1,22 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl");
 use Data::Dumper;
 
 # Grab treeand particle data from the Millennium databases.
 # Andrew Benson (18-Mar-2010)
 
 # Create a hash of named arguments.
-$iArg = -1;
+my $iArg = -1;
+my %arguments;
 while ( $iArg < $#ARGV ) {
     ++$iArg;
     if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
@@ -15,13 +26,14 @@ while ( $iArg < $#ARGV ) {
 }
 
 # Specify user and password.
-$sqlUser     = $arguments{"user"};
-$sqlPassword = $arguments{"password"};
+my $sqlUser     = $arguments{"user"};
+my $sqlPassword = $arguments{"password"};
 
 # Specify any selection.
-$selection   = $arguments{"select"};
+my $selection   = $arguments{"select"};
 
 # Specify the treeId property.
+my $treeId;
 if ( exists($arguments{"treeId"}) ) {
     $treeId = $arguments{"treeId"};
 } else {
@@ -29,6 +41,7 @@ if ( exists($arguments{"treeId"}) ) {
 }
 
 # Specify the haloId property.
+my $haloId;
 if ( exists($arguments{"haloId"}) ) {
     $haloId = $arguments{"haloId"};
 } else {
@@ -36,6 +49,7 @@ if ( exists($arguments{"haloId"}) ) {
 }
 
 # Specify the descendantId property.
+my $descendantId;
 if ( exists($arguments{"descendantId"}) ) {
     $descendantId = $arguments{"descendantId"};
 } else {
@@ -43,6 +57,7 @@ if ( exists($arguments{"descendantId"}) ) {
 }
 
 # Specify the output file.
+my $outputFile;
 if ( exists($arguments{"output"}) ) {
     $outputFile = $arguments{"output"};
 } else {
@@ -50,6 +65,7 @@ if ( exists($arguments{"output"}) ) {
 }
 
 # Specify the database table.
+my $table;
 if ( exists($arguments{"table"}) ) {
     $table = $arguments{"table"};
 } else {
@@ -57,6 +73,7 @@ if ( exists($arguments{"table"}) ) {
 }
 
 # Specify the index table.
+my $indexTable;
 if ( exists($arguments{"indexTable"}) ) {
     $indexTable = $arguments{"indexTable"};
 } else {
@@ -64,6 +81,7 @@ if ( exists($arguments{"indexTable"}) ) {
 }
 
 # Specify the snapshot table.
+my $snapshotTable;
 if ( exists($arguments{"snapshotTable"}) ) {
     $snapshotTable = $arguments{"snapshotTable"};
 } else {
@@ -71,6 +89,7 @@ if ( exists($arguments{"snapshotTable"}) ) {
 }
 
 # Specify the particle table.
+my $particleTable;
 if ( exists($arguments{"particleTable"}) ) {
     $particleTable = $arguments{"particleTable"};
 } else {
@@ -78,6 +97,7 @@ if ( exists($arguments{"particleTable"}) ) {
 }
 
 # Determine if particles should be traced.
+my $traceParticles;
 if ( exists($arguments{"traceParticles"}) ) {
     $traceParticles = $arguments{"traceParticles"};
 } else {
@@ -85,6 +105,7 @@ if ( exists($arguments{"traceParticles"}) ) {
 }
 
 # Determine mass to use.
+my $mass;
 if ( exists($arguments{"mass"}) ) {
     $mass = $arguments{"mass"};
 } else {
@@ -92,27 +113,27 @@ if ( exists($arguments{"mass"}) ) {
 }
 
 # Specify the database URL.
-$databaseURL = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=";
+my $databaseURL = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=";
 
 # Build the retrieve command base.
-$getCommandBase = "wget";
-$getCommandBase .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
-$getCommandBase .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
+my $getCommandBase = "wget";
+$getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
+$getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-$sqlQuery = $databaseURL."select indexNode.".$treeId.", indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
+my $sqlQuery = $databaseURL."select indexNode.".$treeId.", indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
 # Append any required selection.
 $sqlQuery .= " and ".$selection unless ( $selection eq "" );
 # Add an order by statement.
 $sqlQuery .= " order by indexNode.".$treeId;
 # Retrieve the data.
-$getCommand = $getCommandBase." \"".$sqlQuery."\" -O ".$outputFile;
+my $getCommand = $getCommandBase." \"".$sqlQuery."\" -O ".$outputFile;
 system($getCommand);
 
 # Trace particles if requested.
 if ( $traceParticles eq "yes" ) {
     # Build the SQL query to retrieve particle data for lost subhalos.
-    $sqlQuery = $databaseURL."select indexNode.".$descendantId.", count(*) as num into countTable from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
+    my $sqlQuery = $databaseURL."select indexNode.".$descendantId.", count(*) as num into countTable from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
     # Append any required selection.
     $sqlQuery .= " and ".$selection unless ( $selection eq "" );
     # Append grouping command.
@@ -124,10 +145,10 @@ if ( $traceParticles eq "yes" ) {
     # Add commands to drop the temporary tables;
     $sqlQuery .= "; drop table countTable; drop table boundTable";
     # Retrieve the data.
-    $getCommand = $getCommandBase." \"".$sqlQuery."\" -O particles.tmp";
+    my $getCommand = $getCommandBase." \"".$sqlQuery."\" -O particles.tmp";
     system($getCommand);
     # Sort the output to get ordering by particle number and then by (decreasing) redshift.
-    $outputFile =~ s/\.csv/_Particles.csv/;
+    my $outputFile =~ s/\.csv/_Particles.csv/;
     system("sort -g -k1,1 -k2,2r -t, -u particles.tmp > ".$outputFile);
     unlink("particles.tmp");
 }
