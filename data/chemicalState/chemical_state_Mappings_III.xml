@@ -1,4 +1,4 @@
-<ionizationStates>
+<chemicalStates>
   <description>Converted from files used by Galform, believed to have been constructed using Mappings III</description>
   <fileFormat>1</fileFormat>
   <extrapolation>
@@ -1533,4 +1533,4 @@
   </ioinizationState>
   <units>Densities: by number relative to hydrogen&lt;</units>
   <url>https://www.cfa.harvard.edu/~lkewley/Mappings/</url>
-</ionizationStates>
+</chemicalStates>

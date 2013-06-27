@@ -815,10 +815,10 @@ The function must return the density (in units of cm$^{-3}$) of each chemical sp
 
 Currently defined chemical state methods are:
 \begin{description}
- \item [\hyperlink{chemical.state.CIE_file.F90:chemical_states_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE ionization state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
+ \item [\hyperlink{chemical.state.CIE_file.F90:chemical_states_cie_file}{{\tt CIE\_from\_file}}] Reads a tabulated CIE chemical state from a file and interpolates in the table to give a result. The XML file containing the table should have the following form:
  \begin{verbatim}
-  <ionizationStates>
-  <ionizationState>
+  <chemicalStates>
+  <chemicalState>
     <temperature>
       <datum>10000.0</datum>
       <datum>15000.0</datum>
@@ -848,12 +848,12 @@ Currently defined chemical state methods are:
       .
     </hiiDensity>
     <metallicity>-4.0</metallicity>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
   .
   .
   .
-  </ionizatonState>
+  </chemicalState>
   <description>Some description of what this chemical state is.</description>
   <extrapolation>
     <metallicity>
@@ -873,7 +873,7 @@ Currently defined chemical state methods are:
       <method>fixed</method>
     </temperature>
   </extrapolation>
- </ionizationStates>
+ </chemicalStates>
  \end{verbatim}
  Each {\tt chemicalState} element should contain two lists (inside {\tt temperature} and {\tt electronDensity} tags) of {\tt datum} elements which specify temperature (in Kelvin) and electron density (by number, relative to hydrogen) respectively, and a {\tt metallicity} element which gives the logarithmic metallcity relative to Solar (a value of -999 or less is taken to imply zero metallicity). Optionally, {\tt hiDensity} and {\tt hiiDensity} elements may be added containing lists of H{\sc i} and H{\sc ii} densities (by number, relative to hydrogen) respectively. Any number of {\tt coolingFunction} elements may appear, but they must be in order of increasing metallicity and must all contain the same set of temperatures. The {\tt extrapolation} element defines how the table is to be extrapolated in the {\tt low} and {\tt high} limits of {\tt temperature} and {\tt metallicity}. The {\tt method} elements can take the following values:
  \begin{description}

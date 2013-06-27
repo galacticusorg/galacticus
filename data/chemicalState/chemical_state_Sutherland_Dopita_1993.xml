@@ -1,6 +1,6 @@
-<ionizationStates>
+<chemicalStates>
   <fileFormat>1</fileFormat>
-  <ionizationState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0022</datum>
       <datum>0.0141</datum>
@@ -188,8 +188,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0000</datum>
       <datum>0.0141</datum>
@@ -377,8 +377,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0022</datum>
       <datum>0.0141</datum>
@@ -566,8 +566,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0022</datum>
       <datum>0.0141</datum>
@@ -755,8 +755,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0022</datum>
       <datum>0.0141</datum>
@@ -944,8 +944,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0023</datum>
       <datum>0.0141</datum>
@@ -1133,8 +1133,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0023</datum>
       <datum>0.0142</datum>
@@ -1322,8 +1322,8 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
-  <ionizationState>
+  </chemicalState>
+  <chemicalState>
     <electronDensity>
       <datum>0.0023</datum>
       <datum>0.0711</datum>
@@ -1510,7 +1510,7 @@
       <datum>2.81838e+08</datum>
       <datum>3.16228e+08</datum>
     </temperature>
-  </ionizationState>
+  </chemicalState>
   <description>CIE ionizationstates from Sutherland &amp; Dopita (1993)</description>
   <source>Sutherland &amp; Dopita (1993; ApJS; 88; 253)</source>
   <url>http://adsabs.harvard.edu/abs/1993ApJS...88..253S</url>
@@ -1534,4 +1534,4 @@
   </extrapolation>
   <units>Temperature: Kelvin</units>
   <units>Densities: by number relative to hydrogen</units>
-</ionizationStates>
+</chemicalStates>
