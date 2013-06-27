@@ -1,39 +1,50 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
+use Fcntl qw(SEEK_SET);
 use XML::Simple;
 use Data::Dumper;
 use Switch;
-use lib './perl';
 require System::Redirect;
 
 # Scans source code for "!#" directives and generates a Makefile.
 
 # Define the source directory.
 if ( $#ARGV != 0 ) {die "Usage: Code_Directive_Parser.pl sourcedir"};
-$sourcedir = $ARGV[0];
-$sourcedirs[0] = $sourcedir."/source";
+my $sourcedir = $ARGV[0];
+my @sourcedirs = ( $sourcedir."/source" );
 
 # Specify verbosity.
-$verbosity = 0;
+my $verbosity = 0;
 
 # Create XML object.
-$xml = new XML::Simple;
+my $xml = new XML::Simple;
 
 # Initialize hashes.
-undef(%includeDirectives);
+my %includeDirectives;
+my $otherDirectives;
 
 # Open the source directory.
-foreach $srcdir ( @sourcedirs ) {
-    opendir(indir,$srcdir) or die "Can't open the source directory: #!";
-    while ($fname = readdir indir) {	
+foreach my $srcdir ( @sourcedirs ) {
+    opendir(my $indir,$srcdir) or die "Can't open the source directory: #!";
+    while (my $fname = readdir $indir) {	
 	if (
 	    ( $fname =~ m/\.[fF](90)??t??$/ || $fname =~ m/\.c(pp)??$/ || $fname =~ m/\.h$/ )
 	    && $fname !~ m/^\.\#/
 	    ) {
-	    $fullname = $srcdir."/".$fname;
+	    my$fullname = $srcdir."/".$fname;
 
 	    # Add the file to the list of filenames to process.
-	    undef(@fileNames);
-	    undef(@filePositions);
+	    my @fileNames;
+	    my @filePositions;
 	    unshift(@fileNames,$fullname);
 	    unshift(@filePositions,-1);
 	    
@@ -41,15 +52,15 @@ foreach $srcdir ( @sourcedirs ) {
 	    while ( $#fileNames >= 0 ) {
 		
 		# Open the file.
-		open($fileHandle,$fileNames[0]) or die "Can't open input file: #!";
+		open(my $fileHandle,$fileNames[0]) or die "Can't open input file: #!";
 		seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
 
-		while ($line = <$fileHandle>) {
-		    $lineNumber = $.;
+		while (my $line = <$fileHandle>) {
+		    my $lineNumber = $.;
 
 		    # Detect include files, and recurse into them.
 		    if ( $line =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
-			$includeFile = $srcdir."/".$1;
+			my $includeFile = $srcdir."/".$1;
 			$includeFile =~ s/\.inc$/.Inc/;
 			if ( -e $includeFile ) {
 			    $filePositions[0] = tell($fileHandle);
@@ -63,11 +74,11 @@ foreach $srcdir ( @sourcedirs ) {
 			$line =~ m/^\s*!\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
 			|| $line =~ m/^\s*\/\/\#\s+(<\s*([a-zA-Z]+)+.*>)\s*$/
 			) {
-			$xmlCode = $1."\n";
-			$xmlTag  = $2;
+			my $xmlCode = $1."\n";
+			my $xmlTag  = $2;
 			# Read ahead until a matching close tag is found.
 			unless ( $xmlCode =~  m/\/>/ ) {
-			    $nextLine = "";
+			    my $nextLine = "";
 			    until ( $nextLine =~ m/<\/$xmlTag>/ || eof($fileHandle) ) {
 				$nextLine = <$fileHandle>;
 				$nextLine =~ s/^\s*!\#\s+//;
@@ -75,22 +86,22 @@ foreach $srcdir ( @sourcedirs ) {
 				$xmlCode .= $nextLine;
 			    }
 			}
-			$data = eval{$xml->XMLin($xmlCode)};
+			my $data = eval{$xml->XMLin($xmlCode)};
 			die("Code_Directive_Parser.pl failed in ".$fullname." at line ".$lineNumber." with message:\n".$@) if ($@);
 			if ( $verbosity == 1 ) {
 			    print "$fname : $xmlCode\n";
 			    print Dumper($data);
 			}
 			# Act on the directive.
-			$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
+			my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>$xmlTag);
 			switch ( $xmlTag ) {
 			    case ( "include" ) {
+				my $fileName;
 				if ( ${$data}{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i ) {
 				    ($fileName = "work/build/".$1) =~ s/\.inc$/\.Inc/;
 				    ${$data}{'fileName'} = $fileName;
 				}
 				delete(${$data}{'content'});
-
 				my $directive = ${$data}{'directive'};
 				$directive = ${$data}{'name'}
 				   if ( exists(${$data}{'name'}) );
@@ -113,26 +124,27 @@ foreach $srcdir ( @sourcedirs ) {
 	}
 
     }
-    closedir(indir);
+    closedir($indir);
 }
 
 # Output a file listing which files contain which directives.
-foreach $xmlTag ( keys(%{$otherDirectives}) ) {
-    undef(@fileNames);
-    foreach $fileName ( keys(%{$otherDirectives->{$xmlTag}} ) ){
+my $outputDirectives;
+foreach my $xmlTag ( keys(%{$otherDirectives}) ) {
+    my @fileNames;
+    foreach my $fileName ( keys(%{$otherDirectives->{$xmlTag}} ) ){
 	push(@fileNames,$fileName);
     }
     @{$outputDirectives->{$xmlTag}->{'file'}} = @fileNames;
 }
-$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"directives");
+my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"directives");
 open(directiveHndl,">./work/build/Code_Directive_Locations.xml");
 print directiveHndl $xmlOutput->XMLout($outputDirectives);
 close(directiveHndl);
 
 # Output the Makefile
 open(makefileHndl,">./work/build/Makefile_Directives");
-foreach $directive ( keys(%includeDirectives) ) {
-    ($fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
+foreach my $directive ( keys(%includeDirectives) ) {
+    (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
     print makefileHndl $fileName.": ./work/build/".$directive.".xml\n";
     print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ./work/build/".$directive.".xml\n";
     print makefileHndl "\n";

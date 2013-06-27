@@ -1,4 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 
 unless ( $#ARGV == 1 ) {die('Usage: Find_Executable_Size.pl Executable Size_File')};
 my $Executable = $ARGV[0];

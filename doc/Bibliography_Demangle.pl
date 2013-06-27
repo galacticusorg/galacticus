@@ -1,4 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 
 # Demangle the Galacticus bibliography to convert accents (and other symbols) to LaTeX syntax.
 # Andrew Benson (27 February 2011)
@@ -11,8 +21,8 @@ while ( my $line = <iHndl> ) {
     $line =~ s/[^\\]%/\\%/g;
 
     # Backslashes.
-    $line =~ s/{\\textbackslash}([a-zA-Z]+)/{\\\1}/g;
-    $line =~ s/{\\textbackslash([a-zA-Z]+)}/{\\\1}/g;
+    $line =~ s/{\\textbackslash}([a-zA-Z]+)/{\\$1}/g;
+    $line =~ s/{\\textbackslash([a-zA-Z]+)}/{\\$1}/g;
     $line =~ s/{\\textbackslash}/\\/g;
 
     # Tildes.
@@ -25,7 +35,7 @@ while ( my $line = <iHndl> ) {
     $line =~ s/{\\textgreater}/\$>\$/g;
 
     # Exponentiation.
-    $line =~ s/{\\textasciicircum}([\+\-\d\.]+)/\$^{\1}\$/g;
+    $line =~ s/{\\textasciicircum}([\+\-\d\.]+)/\$^{$1}\$/g;
     $line =~ s/{\\textasciicircum}/^/g;
 
     # Em dashes.

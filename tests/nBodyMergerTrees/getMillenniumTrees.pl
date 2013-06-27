@@ -1,5 +1,14 @@
 #!/usr/bin/env perl
-use lib "./perl";
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use File::Find;
 use Term::ReadKey;
@@ -7,12 +16,14 @@ use Net::DBus;
 use Switch;
 
 # Read in any configuration options.
+my $config;
 if ( -e "galacticusConfig.xml" ) {
-    $xml = new XML::Simple;
+    my $xml = new XML::Simple;
     $config = $xml->XMLin("galacticusConfig.xml");
 }
 
 # Identify e-mail options for this host.
+my $dbConfig;
 if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
     $dbConfig = $config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}};
 } elsif ( exists($config->{'millenniumDB'}->{'host'}->{'default'}) ) {
@@ -20,7 +31,7 @@ if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
 } else {
     print "Please enter your Millennium database username:\n";
     while (1) {
-	$c = ReadKey(-1);
+	my $c = ReadKey(-1);
 	last if $c eq "\n";
 	$dbConfig->{'user'} .= $c;
     }
@@ -28,14 +39,15 @@ if ( exists($config->{'millenniumDB'}->{'host'}->{$ENV{'HOST'}}) ) {
 }
 
 # Get any password now.
+my $dbPassword;
 switch ( $dbConfig->{'passwordFrom'} ) {
     case ( "input" ) {
 	print "Please enter your Millennium database password:\n";
 	$dbPassword = &getPassword;
     }
     case ( "kdewallet" ) {
-	$appName          = "Galacticus";
-	$folderName       = "glc-millennium-db";
+	my $appName          = "Galacticus";
+	my $folderName       = "glc-millennium-db";
 	my $bus           = Net::DBus->find;
 	my $walletService = $bus->get_service("org.kde.kwalletd");
 	my $walletObject  = $walletService->get_object("/modules/kwalletd");

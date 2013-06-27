@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 
 # Run a set of short Galacticus models spanning a full range of method options to ensure
 # that they at least run to completion.

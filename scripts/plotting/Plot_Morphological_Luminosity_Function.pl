@@ -1,7 +1,9 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -20,13 +22,14 @@ require GnuPlot::LaTeX;
 require XMP::MetaData;
 
 # Option to control whether the morphological classification should be coarse-grained into just three bins.
-$coarseGrain = 0;
+my $coarseGrain = 0;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Morphological_Luminosity_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -37,6 +40,7 @@ if ( $#ARGV == 2 ) {
 
 # Check if output location is file or directory.
 my $outputDir;
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
     $outputDir = ".";
@@ -45,9 +49,10 @@ if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo."/Morphological_Luminosity_Function.pdf";
     $outputDir = $outputTo;
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Create data structure to read the results.
+my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
 &HDF5::Get_Parameters($dataSet);
@@ -61,35 +66,36 @@ $dataSet->{'tree'} = "all";
 		       'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega',
 		       'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'
 		   ]);
-$dataSets  = $dataSet->{'dataSets'};
+my $dataSets  = $dataSet->{'dataSets'};
 
 # Read the XML data file.
-$xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
+my $xml     = new XML::Simple;
+my $data    = $xml->XMLin($galacticusPath."data/observations/luminosityFunctions/Morphological_Luminosity_Functions_2MASS_Devereux_2009.xml");
 
 # Estimate bulge-to-total ratio ranges for each morphological class.
-foreach $morphology ( @{$data->{'morphology'}} ) {
+my $bulgeToTotal;
+foreach my $morphology ( @{$data->{'morphology'}} ) {
 	# Get the luminosity function.
-	$x  = pdl @{$morphology->{'magnitude'         }->{'datum'}};
-	$y  = pdl @{$morphology->{'luminosityFunction'}->{'datum'}};
-	$xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})-0.25                                                         ,$x == -23.25);
-	$xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})+0.25                                                         ,$x == -23.25);
-	$ySelect = where($y*($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
+	my $x  = pdl @{$morphology->{'magnitude'         }->{'datum'}};
+	my $y  = pdl @{$morphology->{'luminosityFunction'}->{'datum'}};
+	my $xMin    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})-0.25                                                         ,$x == -23.25);
+	my $xMax    = where($x-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'})+0.25                                                         ,$x == -23.25);
+	my $ySelect = where($y*($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'},$x == -23.25);
 	$bulgeToTotal->{$morphology->{"class"}}->{"abundance"}              = $ySelect->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"minimum"} = $xMin   ->index(0);
 	$bulgeToTotal->{$morphology->{"class"}}->{"magnitude"}->{"maximum"} = $xMax   ->index(0);
 }
 
 # Morphological classes (ordered).
-@classes = ("Sc-Scd","Sb-Sbc","Sa-Sab","Lenticular","Elliptical");
+my @classes = ("Sc-Scd","Sb-Sbc","Sa-Sab","Lenticular","Elliptical");
 
 # Structure giving bulge-to-total ranges for each morphological class.
 $bulgeToTotal->{"Total"}->{"minimum"} = 0.00;
 $bulgeToTotal->{"Total"}->{"maximum"} = 1.00;
 
 # Compute cumulative morphological fractions.
-$previousFraction = 0.0;
-foreach $class ( @classes ) {
+my $previousFraction = 0.0;
+foreach my $class ( @classes ) {
     unless ( $class eq "Total" ) {
 	$bulgeToTotal->{$class}->{"abundance"} /= $bulgeToTotal->{"Total"}->{"abundance"};
 	$bulgeToTotal->{$class}->{"abundance"} += $previousFraction;
@@ -98,25 +104,25 @@ foreach $class ( @classes ) {
 }
 
 # Compute cumulative fraction of model galaxies by bulge-to-total ratio.
-$weight = where($dataSets->{'mergerTreeWeight'},
-		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
-		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
+my $weight = where($dataSets->{'mergerTreeWeight'},
+		($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50) &
+		($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00)
 		);
-$ratio  = where($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'},
-		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50 &
-		$dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00
+my $ratio  = where($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'},
+		($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} >= -23.50) &
+		($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'} <  -23.00)
 		);
 die("Plot_Morphological_Luminosity_Function.pl: no galaxies found in normalization magnitude range")
     if ( nelem($ratio) == 0 );
-$indices          = $ratio->qsorti;
-$totalWeight      = $weight->sum;
-$orderedRatios    = $ratio->index($indices);
-$cumulativeWeight = ($weight->index($indices)->cumusumover)/$totalWeight;
+my $indices          = $ratio->qsorti;
+my $totalWeight      = $weight->sum;
+my $orderedRatios    = $ratio->index($indices);
+my $cumulativeWeight = ($weight->index($indices)->cumusumover)/$totalWeight;
 
 # Interpolate to get corresponding model bulge-to-total ratios.
 $previousFraction = 0.0;
-foreach $class ( @classes ) {
-    ($ratioBoundary,$error) = interpolate($bulgeToTotal->{$class}->{"abundance"},$cumulativeWeight,$orderedRatios);
+foreach my $class ( @classes ) {
+    (my $ratioBoundary, my $error) = interpolate($bulgeToTotal->{$class}->{"abundance"},$cumulativeWeight,$orderedRatios);
     $bulgeToTotal->{$class}->{"minimum"} = $previousFraction;
     $bulgeToTotal->{$class}->{"maximum"} = $ratioBoundary;
     $previousFraction = $ratioBoundary;
@@ -131,28 +137,30 @@ my $plotFile = $outputFile;
 my $iPlot = 0;
 my @leafFiles;
 my @plotFiles;
-foreach $morphology ( @{$data->{'morphology'}} ) {
+my $chiSquared = 0;
+my $degreesOfFreedom = 0;
+foreach my $morphology ( @{$data->{'morphology'}} ) {
 
     next
 	if ( $coarseGrain == 1 && ( $morphology->{'class'} eq "Lenticular" || $morphology->{'class'} eq "Sc-Scd" ) );
 
     if ( exists($bulgeToTotal->{$morphology->{'class'}}) ) {
 	# Get the luminosity function.
-	$x     = pdl @{$morphology->{'magnitude'              }->{'datum'}};
-	$y     = pdl @{$morphology->{'luminosityFunction'     }->{'datum'}};
-	$error = pdl @{$morphology->{'luminosityFunctionError'}->{'datum'}};
+	my $x     = pdl @{$morphology->{'magnitude'              }->{'datum'}};
+	my $y     = pdl @{$morphology->{'luminosityFunction'     }->{'datum'}};
+	my $error = pdl @{$morphology->{'luminosityFunctionError'}->{'datum'}};
 	
 	if ( $coarseGrain == 1 && $morphology->{'class'} eq "Elliptical" ) {
-	    $m1     = ${$data->{'morphology'}}[$iPlot+1];
-	    $y1     = pdl @{$m1->{'luminosityFunction'     }->{'datum'}};
-	    $error1 = pdl @{$m1->{'luminosityFunctionError'}->{'datum'}};
+	    my $m1     = ${$data->{'morphology'}}[$iPlot+1];
+	    my $y1     = pdl @{$m1->{'luminosityFunction'     }->{'datum'}};
+	    my $error1 = pdl @{$m1->{'luminosityFunctionError'}->{'datum'}};
 	    $y     .= $y+$y1;
 	    $error .= sqrt($error**2+$error1**2);
         }
 	if ( $coarseGrain == 1 && $morphology->{'class'} eq "Sb-Sbc" ) {
-	    $m1     = ${$data->{'morphology'}}[$iPlot+1];
-	    $y1     = pdl @{$m1->{'luminosityFunction'     }->{'datum'}};
-	    $error1 = pdl @{$m1->{'luminosityFunctionError'}->{'datum'}};
+	    my $m1     = ${$data->{'morphology'}}[$iPlot+1];
+	    my $y1     = pdl @{$m1->{'luminosityFunction'     }->{'datum'}};
+	    my $error1 = pdl @{$m1->{'luminosityFunctionError'}->{'datum'}};
 	    $y     .= $y+$y1;
 	    $error .= sqrt($error**2+$error1**2);
         }
@@ -163,32 +171,28 @@ foreach $morphology ( @{$data->{'morphology'}} ) {
 	$error *= ($dataSet->{'parameters'}->{'H_0'}/$morphology->{'luminosityFunction'}->{'hubble'})**$morphology->{'luminosityFunction'}->{'hubbleExponent'};
 
 	# Construct Galacticus luminosity function.
-	$bulgeToTotalMinimum = $bulgeToTotal->{$morphology->{"class"}}->{"minimum"};
-	$bulgeToTotalMaximum = $bulgeToTotal->{$morphology->{"class"}}->{"maximum"};
+	my $bulgeToTotalMinimum = $bulgeToTotal->{$morphology->{"class"}}->{"minimum"};
+	my $bulgeToTotalMaximum = $bulgeToTotal->{$morphology->{"class"}}->{"maximum"};
 	if ( $coarseGrain == 1 && $morphology->{'class'} eq "Elliptical" ) {
 	    $bulgeToTotalMinimum = $bulgeToTotal->{"Lenticular"}->{"minimum"};
 	}
 	if ( $coarseGrain == 1 && $morphology->{'class'} eq "Sb-Sbc" ) {
 	    $bulgeToTotalMinimum = $bulgeToTotal->{"Sc-Scd"}->{"minimum"};
 	}
-
-
-print $morphology->{'class'}." ".$bulgeToTotalMinimum." ".$bulgeToTotalMaximum."\n";
-
-	$magnitude = where($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'},
-			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+	my $magnitude = where($dataSets->{'magnitudeTotal:2MASS_Ks:observed:z0.0000:dustAtlas:vega'},
+			     ($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum)
+			   & ($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum)
 	    );
-	$weight    = where($dataSets->{'mergerTreeWeight'},
-			     $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum
-			   & $dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum
+	my $weight    = where($dataSets->{'mergerTreeWeight'},
+			     ($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} >= $bulgeToTotalMinimum)
+			   & ($dataSets->{'bulgeToTotalLuminosities:2MASS_Ks:observed:z0.0000:dustAtlas'} <= $bulgeToTotalMaximum)
 	    );
 
-	($yGalacticus,$errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);
+	(my $yGalacticus, my $errorGalacticus) = &Histograms::Histogram($x,$magnitude,$weight,differential => 1);
 	
         # Compute chi^2.
-	$thisChiSquared        = sum(($yGalacticus-$y)**2/($errorGalacticus**2+$error**2));
-	$thisDegreesOfFreedom  = nelem($y);
+	my $thisChiSquared        = sum(($yGalacticus-$y)**2/($errorGalacticus**2+$error**2));
+	my $thisDegreesOfFreedom  = nelem($y);
 	$chiSquared           += $thisChiSquared;
 	$degreesOfFreedom     += $thisDegreesOfFreedom;
 
@@ -196,12 +200,12 @@ print $morphology->{'class'}." ".$bulgeToTotalMinimum." ".$bulgeToTotalMaximum."
 	++$iPlot;
 	(my $thisPlot = $plotFile) =~ s/\.pdf/$iPlot.pdf/;
 	(my $thisPlotEPS = $thisPlot) =~ s/\.pdf$/.eps/;
-	open($gnuPlot,"|gnuplot");# 1>/dev/null 2>&1");
+	open(my $gnuPlot,"|gnuplot");# 1>/dev/null 2>&1");
 	print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 	print $gnuPlot "set output '".$thisPlotEPS."'\n";
 	print $gnuPlot "set xlabel '\$M_{\\rm K,vega}\$'\n";
 	print $gnuPlot "set ylabel '\${\\rm d}n/{\\rm d}\log M_{\\rm K,vega} [\\hbox{Mpc}^{-3}]\$'\n";
-	$label = $morphology->{'class'};
+	my $label = $morphology->{'class'};
 	$label .= " + Lenticular" if ( $coarseGrain == 1 && $morphology->{'class'} eq "Elliptical" );
 	$label = "Sb-Scd" if ( $coarseGrain == 1 && $morphology->{'class'} eq "Sb-Sbc" );
 	print $gnuPlot "set title '".$label." K Luminosity Function'\n";
@@ -257,11 +261,12 @@ unlink(@plotFiles);
 
 # Output fit data.
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'} = "Devereuc et al. (2009) morphologically segregated K-band luminosity functions";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 

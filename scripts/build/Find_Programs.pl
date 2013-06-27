@@ -1,4 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 
 # Locate files which contain programs and append to a list of executables.
 
@@ -8,77 +18,78 @@ my $sourcedir = $ARGV[0];
 
 #
 # Open an output file
-open(outfile,">$sourcedir/work/build/Makefile_All_Execs");
+open(my $outfile,">$sourcedir/work/build/Makefile_All_Execs");
 
 #
 # Specify work directory.
-$workDir = "/work/build/";
+my $workDir = "/work/build/";
 
 # Build a list of source directories.
-$sourcedirs[0] = $sourcedir."/source";
-$bases[0] = "";
+my @sourcedirs = ( $sourcedir."/source" );
+my @bases      = ( ""                   );
 
 #
 # Open the source directorys and scan
 #
-$ibase=-1;
-foreach $srcdir ( @sourcedirs ) {
+my @exes;
+my $ibase = -1;
+foreach my $srcdir ( @sourcedirs ) {
     ++$ibase;
-    $base = $bases[$ibase];
-    opendir(indir,$srcdir) or die "Can't open the source directory: #!";
-    while (my $fname = readdir indir) {
+    my $base = $bases[$ibase];
+    opendir(my $indir,$srcdir) or die "Can't open the source directory: #!";
+    while (my $fname = readdir $indir) {
 
 	if ( $fname =~ m/\.[fF](90)?t?$/ && lc($fname) !~ m/^\.\#/ ) {	    
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
-	    open(infile,$fullname) or die "Can't open input file: #!";
-	    @fileinfo=stat infile;
+	    open(my $infile,$fullname) or die "Can't open input file: #!";
+	    my @fileinfo = stat $infile;
 	    
 	    my $hasuses = 0;
 	    my $oname = $fname;
 	    $oname =~ s/\.[fF](90)?t?$/\.o/;
-	    @incfiles = ();
-	    @modfiles = ();
+	    my @incfiles;
+	    my @modfiles;
 	    my $exclude = 0;
-	    while (my $line = <infile>) {
+	    while (my $line = <$infile>) {
 		$exclude = 1
 		    if ( $line =~ m/^\s*!;\s+exclude/ );
 		if ( $line =~ m/^\s*program\s/i ) {
-		    $ename = $fname;
+		    my $ename = $fname;
 		    $ename =~ s/\.[fF](90)?t?$/\.exe/;
-		    $do_entry = 0;
+		    my $do_entry = 0;
 		    if ( $ibase == 0 ) {
-			@exes[++$#exes] = $ename
+			push(@exes,$ename)
 			    unless ( $exclude == 1 );
 			if ( ! -e $sourcedir."/Extensions/Sources/".$fname ) {$do_entry = 1};
 		    } else {
-			if ( ! -e $sourcedir."/$fname" && $exclude == 0 ) {@exes[++$#exes] = $ename};
+			if ( ! -e $sourcedir."/$fname" && $exclude == 0 ) {push(@exes,$ename)};
 			$do_entry = 1;
 		    }
 		    if ( $do_entry == 1 ) {
-			$ofile = $fname;
+			my $ofile = $fname;
 			$ofile =~ s/\.[fF](90)?t?$/\.o/;
-			$dfile = $fname;
+			my $dfile = $fname;
 			$dfile =~ s/\.[fF](90)?t?$/\.d/;
-			$root = $fname;
+			my $root = $fname;
 			$root =~ s/\.[fF](90)?t?$//;
-			$eleaf = $root.".exe";
-			print outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
-			print outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe`\n";
-			print outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
-			print outfile "\t./scripts/build/Find_Parameter_Dependencies.pl $root.exe\n\n";
+			my $eleaf = $root.".exe";
+			print $outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
+			print $outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe`\n";
+			print $outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
+			print $outfile "\t./scripts/build/Find_Parameter_Dependencies.pl $root.exe\n\n";
 		    }
                 }
 	    }
-	    close(infile);
+	    close($infile);
 	}
     }
-    closedir(indir);
+    closedir($indir);
 }
 
-print outfile "\nall_exes = @exes\n";
-close(outfile);
+print $outfile "\nall_exes = ".join(" ",@exes)."\n";
+close($outfile);
 
 exit;
 

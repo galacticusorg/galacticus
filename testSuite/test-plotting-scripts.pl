@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 
 # Run a set of short Galacticus models and make plots from them to test the plotting scripts.
 # Andrew Benson (10-Oct-2012)

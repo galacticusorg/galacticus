@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
     $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -11,6 +13,7 @@ use XML::Simple;
 use Data::Dumper;
 use Switch;
 use Scalar::Util 'reftype';
+use Fcntl qw(SEEK_SET);
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::ModuleUse;
@@ -29,7 +32,7 @@ my $sourceDirectory = $ARGV[0];
 my $xmlFile         = $ARGV[1];
 
 # Specify verbosity.
-$verbosity = 0;
+my $verbosity = 0;
 
 # Set load status of large modules.
 my $componentsLoaded = 0;
@@ -58,8 +61,8 @@ if ( defined($locations) ) {
 	    if (exists($locations->{$buildData->{'directive'}}->{'file'}));
     }
 } else {
-    opendir(indir,$sourceDirectory) or die "Can't open the source directory: #!";
-    while ( my $fname = readdir indir) {	
+    opendir(my $indir,$sourceDirectory) or die "Can't open the source directory: #!";
+    while ( my $fname = readdir $indir) {	
 	if ( $fname =~ m/\.[fF](90)??t??$/ && $fname !~ m/^\.\#/ ) {
 	    my $fullname = $sourceDirectory."/".$fname;
 	    push(@filesToScan,$fullname);
