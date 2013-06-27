@@ -1,6 +1,16 @@
 # Contains a Perl module which implements calculations of binned histograms of weighted data.
 
 package Histograms;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
@@ -9,14 +19,15 @@ sub Histogram {
     # Distribute input data into specified bins, find the total weight and the error.
 
     # Get the arguments.
-    $binCenters  = shift;
-    $xValues     = shift;
-    $weights     = shift;
+    my $binCenters  = shift;
+    my $xValues     = shift;
+    my $weights     = shift;
+    my %options;
     if ( $#_ >= 1 ) {(%options) = @_};
 
-    $binMinimum = pdl zeroes(nelem($binCenters));
-    $binMaximum = pdl zeroes(nelem($binCenters));
-    for($iBin=0;$iBin<nelem($binCenters);++$iBin) {
+    my $binMinimum = pdl zeroes(nelem($binCenters));
+    my $binMaximum = pdl zeroes(nelem($binCenters));
+    for(my $iBin=0;$iBin<nelem($binCenters);++$iBin) {
 	if ( $iBin == 0 ) {
 	    $binMinimum->(($iBin)) .= $binCenters->(($iBin))-0.5*($binCenters->(($iBin+1))-$binCenters->(($iBin)));
 	} else {
@@ -28,12 +39,12 @@ sub Histogram {
 	    $binMaximum->(($iBin)) .= 0.5*($binCenters->(($iBin))+$binCenters->(($iBin+1)));
 	}
     }
-    $binWidth = $binMaximum-$binMinimum;
+    my $binWidth = $binMaximum-$binMinimum;
 
     # Create a PDL for histogram and errors.
-    $histogram  = pdl zeroes(nelem($binCenters));
-    $errors     = pdl zeroes(nelem($binCenters));
-    $covariance = pdl zeroes(nelem($binCenters),nelem($binCenters));
+    my $histogram = pdl zeroes(nelem($binCenters));
+    my $errors    = pdl zeroes(nelem($binCenters));
+    my$covariance = pdl zeroes(nelem($binCenters),nelem($binCenters));
 
     # Method for constructing histogram depends on whether points are being smoothed.
     my $smooth       = 0;
@@ -63,9 +74,9 @@ sub Histogram {
 	$xValuesUsed += grandom(nelem($xValuesUsed))*$options{'gaussianSmooth'}
 	    if ( $smooth == 1 && $smoothRandom == 1 );
 	# Loop through bins.
-	for($iBin=0;$iBin<nelem($binCenters);++$iBin) {	    
+	for(my $iBin=0;$iBin<nelem($binCenters);++$iBin) {
 	    # Select properties in this bin.
-	    $weightsSelected = where($weights,$xValuesUsed >= $binMinimum->index($iBin) & $xValuesUsed < $binMaximum->index($iBin) );
+	    my $weightsSelected = where($weights,($xValuesUsed >= $binMinimum->index($iBin)) & ($xValuesUsed < $binMaximum->index($iBin)) );
 	    # Only compute results for cases where we have at least one entry.
 	    if ( nelem($weightsSelected) >= 1 ) {	
 		
@@ -89,7 +100,7 @@ sub Histogram {
     # Process the histogram according to any options specified.
     if ( exists($options{'normalized'}) && $options{'normalized'} == 1 ) {
 	# Find the total weight.
-	$total = sum($weights);
+	my $total = sum($weights);
 	# Normalize the curve to unit area.
 	$errors     /= $total;
 	$histogram  /= $total;

@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -23,9 +25,10 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Black_Hole_vs_Bulge_Mass.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -35,22 +38,24 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Black_Hole_vs_Bulge_Mass.pdf";
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Define mass bins.
-$logSpheroidMassPoints = pdl 20;
-$logSpheroidMassMin    = pdl 9.0;
-$logSpheroidMassMax    = pdl 12.0;
-$logSpheroidMassBin    = pdl ($logSpheroidMassMax-$logSpheroidMassMin)/$logSpheroidMassPoints;
-$logSpheroidMassBins   = pdl (0..$logSpheroidMassPoints-1)*$logSpheroidMassBin+$logSpheroidMassMin+0.5*$logSpheroidMassBin;
+my $logSpheroidMassPoints = pdl 20;
+my $logSpheroidMassMin    = pdl 9.0;
+my $logSpheroidMassMax    = pdl 12.0;
+my $logSpheroidMassBin    = pdl ($logSpheroidMassMax-$logSpheroidMassMin)/$logSpheroidMassPoints;
+my $logSpheroidMassBins   = pdl (0..$logSpheroidMassPoints-1)*$logSpheroidMassBin+$logSpheroidMassMin+0.5*$logSpheroidMassBin;
 
 # Create data structure to read the results.
+my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
 &HDF5::Get_Parameters($dataSet);
@@ -58,44 +63,49 @@ $dataSet->{'store'} = 0;
 &HDF5::Select_Output($dataSet,0.0);
 $dataSet->{'tree'} = "all";
 &HDF5::Get_Dataset($dataSet,['mergerTreeWeight','spheroidMassStellar','blackHoleMass']);
-$dataSets         = $dataSet->{'dataSets'};
-$mergerTreeWeight     = where($dataSets->{'mergerTreeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
-$spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
-$blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
+my $dataSets         = $dataSet->{'dataSets'};
+my $mergerTreeWeight     = where($dataSets->{'mergerTreeWeight'}       ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
+my $spheroidMass     = where($dataSets->{'spheroidMassStellar'},$dataSets->{'spheroidMassStellar'} > 3.0e8);
+my $blackHoleMass    = where($dataSets->{'blackHoleMass'}      ,$dataSets->{'spheroidMassStellar'} > 3.0e8);
 unless (exists($dataSets->{'blackHoleMass'})) {
     if ( $showFit == 1 ) {
+	my %fitData;
 	$fitData{'name'} = "Haering & Rix (2003) black hole vs. bulge mass relation";
 	$fitData{'chiSquared'} = "undefined";
 	$fitData{'degreesOfFreedom'} = "undefined";
-	$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
 	print $xmlOutput->XMLout(\%fitData);
     }
 } else {
-    $weight           = where($mergerTreeWeight        ,$spheroidMass > 0.0 & $blackHoleMass > 0.0);
-    $logSpheroidMass  = where(log10($spheroidMass ),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
-    $logBlackHoleMass = where(log10($blackHoleMass),$spheroidMass > 0.0 & $blackHoleMass > 0.0);
-    if ( nelem($logSpheroidMass) > 0 ) {
-	($logBlackHoleMassMeanGalacticus,$logBlackHoleMassMeanErrorGalacticus,$logBlackHoleMassSigmaGalacticus,$logBlackHoleMassSigmaErrorGalacticus)
-	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weight);
+    my $weight                     = where($mergerTreeWeight    ,($spheroidMass > 0.0) & ($blackHoleMass > 0.0));
+    my $logSpheroidMassGalacticus  = where(log10($spheroidMass ),($spheroidMass > 0.0) & ($blackHoleMass > 0.0));
+    my $logBlackHoleMassGalacticus = where(log10($blackHoleMass),($spheroidMass > 0.0) & ($blackHoleMass > 0.0));
+    my $logBlackHoleMassMeanGalacticus;
+    my $logBlackHoleMassMeanErrorGalacticus;
+    my $logBlackHoleMassSigmaGalacticus;
+    if ( nelem($logSpheroidMassGalacticus) > 0 ) {
+	($logBlackHoleMassMeanGalacticus, $logBlackHoleMassMeanErrorGalacticus, $logBlackHoleMassSigmaGalacticus, my $logBlackHoleMassSigmaErrorGalacticus)
+	    = &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMassGalacticus,$logBlackHoleMassGalacticus,$weight);
     } else {
-	$logBlackHoleMassMeanGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
+	$logBlackHoleMassMeanGalacticus      = pdl zeroes(nelem($logSpheroidMassBins));
 	$logBlackHoleMassMeanErrorGalacticus = pdl zeroes(nelem($logSpheroidMassBins));
     }
 
     # Define constants.
-    $solarMass = pdl 1.98892e30;
-    $kilo      = pdl 1.0e3;
+    my $solarMass = pdl 1.98892e30;
+    my $kilo      = pdl 1.0e3;
 
     # Read the XML data file.
-    $x      = pdl [];
-    $y      = pdl [];
-    $yError = pdl [];
-    $xml = new XML::Simple;
-    $data = $xml->XMLin($galacticusPath."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
-    foreach $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
+    my $x      = pdl [];
+    my $y      = pdl [];
+    my $yError = pdl [];
+    my $xml = new XML::Simple;
+    my $data = $xml->XMLin($galacticusPath."data/observations/blackHoles/Black_Hole_Mass_vs_Galaxy_Properties_Feoli_Mancini_2009.xml", KeyAttr => "");
+    my %cosmology;
+    foreach my $parameter ( @{$data->{'cosmology'}->{'parameter'}} ) {
 	$cosmology{$parameter->{'name'}} = $parameter->{'value'};
     }
-    foreach $system ( @{$data->{'galaxies'}->{'system'}} ) {
+    foreach my $system ( @{$data->{'galaxies'}->{'system'}} ) {
 	$x      = $x     ->append($system->{'spheroidMass'      });
 	$y      = $y     ->append($system->{'blackHoleMass'     });
 	$yError = $yError->append($system->{'blackHoleMassError'});
@@ -108,17 +118,19 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	$y      .= $y     *($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
 	$yError .= $yError*($dataSet->{'parameters'}->{'H_0'}/$cosmology{'H_0'})**$data->{'units'}->{'velocity'}->{'hubbleExponent'};
     }
-    $xError           = $x*(10.0**0.18-1.0);
-    $logSpheroidMass  = log10($x);
-    $logBlackHoleMass = log10($y);
-    $logError         = $yError/$y/log(10.0);
-    $weights          = 1.0/$logError**2;
-    ($logBlackHoleMassMean,$logBlackHoleMassMeanError,$logBlackHoleMassSigma,$logBlackHoleMassSigmaError)
+    my $xError           = $x*(10.0**0.18-1.0);
+    my $logSpheroidMass  = log10($x);
+    my $logBlackHoleMass = log10($y);
+    my $logError         = $yError/$y/log(10.0);
+    my $weights          = 1.0/$logError**2;
+    (my $logBlackHoleMassMean, my $logBlackHoleMassMeanError, my $logBlackHoleMassSigma, my $logBlackHoleMassSigmaError)
 	= &Means::BinnedMean($logSpheroidMassBins,$logSpheroidMass,$logBlackHoleMass,$weights);
 
     # Compute chi^2.
+    my $degreesOfFreedom;
+    my $chiSquared;
     if ( nelem($logSpheroidMass) > 0 ) {
-	$nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);
+	my $nonzero = which($logBlackHoleMassMeanGalacticus > 0.0);
 	$degreesOfFreedom = nelem($nonzero);
 	$chiSquared = sum((($logBlackHoleMassMean->index($nonzero)-$logBlackHoleMassMeanGalacticus->index($nonzero))**2)/($logBlackHoleMassMeanError->index($nonzero)**2+$logBlackHoleMassMeanErrorGalacticus->index($nonzero)**2));
     } else {
@@ -127,11 +139,12 @@ unless (exists($dataSets->{'blackHoleMass'})) {
     }
     
     if ( $showFit == 1 ) {
+	my %fitData;
 	$fitData{'name'} = "Feoli & Mancini (2009) black hole vs. bulge mass relation";
 	$fitData{'chiSquared'} = $chiSquared;
 	$fitData{'degreesOfFreedom'} = $degreesOfFreedom;
 	$fitData{'fileName'} = $fileName;
-	$xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
 	print $xmlOutput->XMLout(\%fitData);
     }
     
@@ -175,10 +188,10 @@ unless (exists($dataSets->{'blackHoleMass'})) {
 	color      => $PrettyPlots::colorPairs{${$PrettyPlots::colorPairSequences{'slideSequence'}}[0]},
 	title      => $data->{'label'}.' [observed]'
 	);
-    $spheroidMassBins   =  10.0** $logSpheroidMassBins;
-    $blackHoleMassMean  =  10.0** $logBlackHoleMassMeanGalacticus;
-    $blackHoleMassUpper = +10.0**($logBlackHoleMassMeanGalacticus+$logBlackHoleMassSigmaGalacticus)-$blackHoleMassMean;
-    $blackHoleMassLower = -10.0**($logBlackHoleMassMeanGalacticus-$logBlackHoleMassSigmaGalacticus)+$blackHoleMassMean;
+    my $spheroidMassBins   =  10.0** $logSpheroidMassBins;
+    my $blackHoleMassMean  =  10.0** $logBlackHoleMassMeanGalacticus;
+    my $blackHoleMassUpper = +10.0**($logBlackHoleMassMeanGalacticus+$logBlackHoleMassSigmaGalacticus)-$blackHoleMassMean;
+    my $blackHoleMassLower = -10.0**($logBlackHoleMassMeanGalacticus-$logBlackHoleMassSigmaGalacticus)+$blackHoleMassMean;
     &PrettyPlots::Prepare_Dataset(
 	\$plot,
 	$spheroidMassBins,$blackHoleMassMean,

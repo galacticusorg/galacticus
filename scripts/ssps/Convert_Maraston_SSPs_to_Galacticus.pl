@@ -1,4 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
@@ -8,40 +18,40 @@ use PDL::NiceSlice;
 # Andrew Benson (18-October-2010).
 
 # Define the base URL for the data.
-$baseURL = "http://www-astro.physics.ox.ac.uk/~maraston/SSPn/SED/";
+my $baseURL = "http://www-astro.physics.ox.ac.uk/~maraston/SSPn/SED/";
 
 # Specify the files to be downloaded.
-@downloadFiles = (
+my @downloadFiles = (
     "AgegridSSP_Mar05",
     "Sed_Mar05_SSP_Kroupa.tar.gz",
     "Sed_Mar05_SSP_Salpeter.tar.gz"
     );
 
 # Create a data directory.
-$dataDirectory = "SSP_Maraston";
+my $dataDirectory = "SSP_Maraston";
 system("mkdir -p ".$dataDirectory);
 
 # Download data.
-foreach $file ( @downloadFiles ) {
+foreach my $file ( @downloadFiles ) {
     system("wget ".$baseURL.$file." -O ".$dataDirectory."/".$file);
     system("cd ".$dataDirectory."; tar xvfz ".$file) if ( $file =~ m/\.tar\.gz$/ );
 }
 
 # Specify list of IMFs to convert.
-%IMFs = (
+my %IMFs = (
     "Kroupa"   => { label => "kr" },
     "Salpeter" => { label => "ss" }
     );
 
 # Specify horizontal branch morphologies to convert.
-%hbMorphologies = (
+my %hbMorphologies = (
     #"Blue" => { label => "bhb" }, # Ignore blue horizontal branch files as they contain only two ages.
     "Red"  => { label => "rhb" }
     );
 
 # Specify list of metallicities. (Exclude those for which only crude time grids are available.)
-@metallicities     = ( "z0001", "z001", "z002", "z004" );
-%metallicityValues = (
+my @metallicities     = ( "z0001", "z001", "z002", "z004" );
+my %metallicityValues = (
     "z007"  => +0.67,
     "z004"  => +0.35,
     "z002"  => +0.00,
@@ -51,47 +61,49 @@ foreach $file ( @downloadFiles ) {
     );
 
 # Count lines in the age grid file.
-$ageCount = 0;
-open(iHndl,$dataDirectory."/AgegridSSP_Mar05");
-while ( $line = <iHndl> ) {
+my $ageCount = 0;
+open(my $iHndl,$dataDirectory."/AgegridSSP_Mar05");
+while ( my $line = <$iHndl> ) {
     ++$ageCount;
 }
-close(iHndl);
+close($iHndl);
 
 # Loop over all IMFs.
-foreach $IMF ( keys(%IMFs) ) {
+foreach my $IMF ( keys(%IMFs) ) {
 
     # Loop over all horizontal branch morphologies.
-    foreach $hbMorphology ( keys(%hbMorphologies) ) {
+    foreach my $hbMorphology ( keys(%hbMorphologies) ) {
+
+	# Initialize data.
+	my $fluxData;
 
         # Loop over all metallicities.
-	$metallicityData = pdl [];
-	$iMetal = -1;
-	foreach $metallicity ( @metallicities ) {
+	my $metallicityData = pdl [];
+	my $iMetal = -1;
+	my $ages    = pdl [];
+	my $lambdas = pdl [];
+	foreach my $metallicity ( @metallicities ) {
 	    ++$iMetal;
 	    $metallicityData = $metallicityData->append($metallicityValues{$metallicity});
 
-	    # Clear data.
-	    $ages    = pdl [];
-	    $lambdas = pdl [];
-
 	    # Construct file name.
-	    $fileName = $dataDirectory."/sed.".$IMFs{$IMF}->{'label'}.$metallicity.".".$hbMorphologies{$hbMorphology}->{'label'};
+	    my $fileName = $dataDirectory."/sed.".$IMFs{$IMF}->{'label'}.$metallicity.".".$hbMorphologies{$hbMorphology}->{'label'};
 
 	    # Open the file and read data.
-	    $lastAge = -1.0;
-	    $iAge    = -1;
-	    $iLine = 0;
-	    open(iHndl,$fileName);
-	    while ( $line = <iHndl> ) {
+	    my $lastAge = -1.0;
+	    my $iAge    = -1;
+	    my $iLine = 0;
+	    my $fluxes;
+	    open(my $iHndl,$fileName);
+	    while ( my $line = <$iHndl> ) {
 		next if ( $line =~ m/^\s*$/ );
 		++$iLine;
 		$line =~ s/^\s*//;
 		$line =~ s/\s*$//;
-		@columns = split(/\s+/,$line);
-		$age    = $columns[0];
-		$lambda = $columns[2];
-		$flux   = $columns[3];
+		my @columns = split(/\s+/,$line);
+		my $age    = $columns[0];
+		my $lambda = $columns[2];
+		my $flux   = $columns[3];
 		unless ( $age == $lastAge ) {
 		    if ( nelem($lambdas) > 0 ) {
 			++$iAge;
@@ -106,7 +118,7 @@ foreach $IMF ( keys(%IMFs) ) {
 		$lambdas = $lambdas->append($lambda);
 		$fluxes  = $fluxes ->append($flux*$lambda**2);
 	    }
-	    close(iHndl);
+	    close($iHndl);
 	    if (defined($lambdas)) {
 		++$iAge;
 		$fluxData(($iMetal),($iAge),:) .= $fluxes;
@@ -115,13 +127,13 @@ foreach $IMF ( keys(%IMFs) ) {
 	}
 
 	# Convert fluxes to Lsun/Hz.
-	$solarLuminosity   = pdl 3.826e33;
-	$angstromsToMeters = pdl 1.0e-10;
-	$speedOfLight      = pdl 2.998e8;
+	my $solarLuminosity   = pdl 3.826e33;
+	my $angstromsToMeters = pdl 1.0e-10;
+	my $speedOfLight      = pdl 2.998e8;
 	$fluxData *= $angstromsToMeters/$solarLuminosity/$speedOfLight;
 
 	# Create the HDF5 output file.
-	$HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/stellarPopulations/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
+	my $HDFfile = new PDL::IO::HDF5(">".$galacticusPath."data/stellarPopulations/SSP_Spectra_Maraston_hbMorphology".$hbMorphology."_imf".$IMF.".hdf5");
 	$HDFfile->dataset("ages"         )->set($ages           );
 	$HDFfile->dataset("wavelengths"  )->set($lambdas        );
 	$HDFfile->dataset("metallicities")->set($metallicityData);

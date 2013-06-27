@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use lib "./perl";
 use System::Redirect;
 use Date::Format;
@@ -15,12 +17,15 @@ use Term::ReadKey;
 # Andrew Benson (19-Aug-2010).
 
 # Read in any configuration options.
+my $config;
 if ( -e "galacticusConfig.xml" ) {
-    $xml = new XML::Simple;
+    my $xml = new XML::Simple;
     $config = $xml->XMLin("galacticusConfig.xml");
 }
 
 # Identify e-mail options for this host.
+my $emailConfig;
+my $smtpPassword;
 if ( exists($config->{'email'}->{'host'}->{$ENV{'HOST'}}) ) {
     $emailConfig = $config->{'email'}->{'host'}->{$ENV{'HOST'}};
 } elsif ( exists($config->{'email'}->{'host'}->{'default'}) ) {
@@ -36,8 +41,8 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 	    $smtpPassword = &getPassword;
 	}
 	case ( "kdewallet" ) {
-	    $appName          = "Galacticus";
-	    $folderName       = "glc-test-all";
+	    my $appName          = "Galacticus";
+	    my $folderName       = "glc-test-all";
 	    require Net::DBus;
 	    my $bus           = Net::DBus->find;
 	    my $walletService = $bus->get_service("org.kde.kwalletd");
@@ -55,7 +60,7 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 }
 
 # Open a log file.
-$logFile = "testSuite/allTests.log";
+my $logFile = "testSuite/allTests.log";
 open(lHndl,">".$logFile);
 
 # Create a directory for test suite outputs.
@@ -70,7 +75,7 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
 # Define a list of executables to run. Each hash must give the name of the executable and should specify whether or not the
 # executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
 # necessary cause a crash).
-@executablesToRun = (
+my @executablesToRun = (
     {
 	name     => "tests.nodes.exe",                                                    # Tests of Galacticus nodes.
 	valgrind => 0
@@ -295,11 +300,11 @@ print lHndl "    -> Time:\t".time2str("%a %b %e %T (%Z) %Y", time)."\n";
     );
 
 # Run all executables.
-foreach $executable ( @executablesToRun ) {
+foreach my $executable ( @executablesToRun ) {
     print lHndl "\n\n";
     print lHndl ":-> Running test: ".$executable->{'name'}."\n";
     &SystemRedirect::tofile("make ".$executable->{'name'},"allTestsBuild.tmp");
-    $buildSuccess = $?;
+    my $buildSuccess = $?;
     print lHndl slurp("allTestsBuild.tmp");
     unlink("allTestsBuild.tmp");
     if ( $buildSuccess == 0 ) {
@@ -309,7 +314,7 @@ foreach $executable ( @executablesToRun ) {
 	} else {
 	    &SystemRedirect::tofile($executable->{'name'},"allTests.tmp");
 	}
-	$runSuccess = $?;
+	my $runSuccess = $?;
 	print lHndl "FAILED: running ".$executable->{'name'}." failed\n" if ( $runSuccess != 0 );
 	print lHndl slurp("allTests.tmp");
 	unlink("allTests.tmp",$executable->{'name'});
@@ -323,12 +328,12 @@ foreach $executable ( @executablesToRun ) {
 print lHndl "\n\n";
 print lHndl ":-> Building Galacticus...\n";
 &SystemRedirect::tofile("make Galacticus.exe","allTestsBuild.tmp");
-$buildSuccess = $?;
+my $buildSuccess = $?;
 print lHndl slurp("allTestsBuild.tmp");
 unlink("allTestsBuild.tmp");
 if ( $buildSuccess == 0 ) {
     # Run all tests.
-    @testDirs = ( "testSuite" );
+    my @testDirs = ( "testSuite" );
     find(\&runTestScript,@testDirs);
 } else {
     # Build failed, report an error in the log file.
@@ -339,9 +344,10 @@ if ( $buildSuccess == 0 ) {
 close(lHndl);
 
 # Scan the log file for FAILED.
-$lineNumber = 0;
+my $lineNumber = 0;
+my @failLines;
 open(lHndl,$logFile);
-while ( $line = <lHndl> ) {
+while ( my $line = <lHndl> ) {
     ++$lineNumber;
     if ( $line =~ m/FAILED/ ) {
 	push(@failLines,$lineNumber);
@@ -349,7 +355,8 @@ while ( $line = <lHndl> ) {
 }
 close(lHndl);
 open(lHndl,">>".$logFile);
-$emailSubject = "Galacticus test suite log";
+my $emailSubject = "Galacticus test suite log";
+my $exitStatus;
 if ( $#failLines == -1 ) {
     print lHndl "\n\n:-> All tests were successful.\n";
     print       "All tests were successful.\n";
@@ -357,46 +364,48 @@ if ( $#failLines == -1 ) {
     $exitStatus = 0;
 } else {
     print lHndl "\n\n:-> Failures found. See following lines in log file:\n\t".join("\n\t",@failLines)."\n";
-    print $hasFailures." failure(s) found - see ".$logFile." for details.\n";
+    print "Failure(s) found - see ".$logFile." for details.\n";
     $emailSubject .= " [FAILURE]";
     $exitStatus = 1;
 }
 close(lHndl);
 
 # If we have an e-mail address to send the log to, then do so.
-if ( $config->{'contact'}->{'email'} =~ m/\@/ ) {
-    # Get e-mail configuration.
-    $sendMethod = $emailConfig->{'method'};
-    # Construct the message.
-    $message  = "Galacticus test suite log is attached.\n";
-    $msg = MIME::Lite->new(
-	From    => '',
-	To      => $config->{'contact'}->{'email'},
-	Subject => $emailSubject,
-	Type    => 'TEXT',
-	Data    => $message
-	);
-    system("bzip2 -f ".$logFile);
-    $msg->attach(
-	Type     => "application/x-bzip",
-	Path     => $logFile.".bz2",
-	Filename => "allTests.log.bz2"
-	);
-
-    switch ( $sendMethod ) {
-	case ( "sendmail" ) {
+if ( defined($config->{'contact'}->{'email'}) ) {
+    if ( $config->{'contact'}->{'email'} =~ m/\@/ ) {
+	# Get e-mail configuration.
+	my $sendMethod = $emailConfig->{'method'};
+	# Construct the message.
+	my $message  = "Galacticus test suite log is attached.\n";
+	my $msg = MIME::Lite->new(
+	    From    => '',
+	    To      => $config->{'contact'}->{'email'},
+	    Subject => $emailSubject,
+	    Type    => 'TEXT',
+	    Data    => $message
+	    );
+	system("bzip2 -f ".$logFile);
+	$msg->attach(
+	    Type     => "application/x-bzip",
+	    Path     => $logFile.".bz2",
+	    Filename => "allTests.log.bz2"
+	    );
+	
+	switch ( $sendMethod ) {
+	    case ( "sendmail" ) {
 	    $msg->send;
-	}
-	case ( "smtp" ) {
-	    my $smtp; 
-	    $smtp = Net::SMTP::SSL->new($config->{'email'}->{'host'}, Port=>465) or die "Can't connect";
-	    $smtp->auth($config->{'email'}->{'user'},$smtpPassword) or die "Can't authenticate:".$smtp->message();
-	    $smtp->mail( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
-	    $smtp->to( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
-	    $smtp->data() or die "Error:".$smtp->message();
-	    $smtp->datasend($msg->as_string) or die "Error:".$smtp->message();
-	    $smtp->dataend() or die "Error:".$smtp->message();
-	    $smtp->quit() or die "Error:".$smtp->message();
+	    }
+	    case ( "smtp" ) {
+		my $smtp; 
+		$smtp = Net::SMTP::SSL->new($config->{'email'}->{'host'}, Port=>465) or die "Can't connect";
+		$smtp->auth($config->{'email'}->{'user'},$smtpPassword) or die "Can't authenticate:".$smtp->message();
+		$smtp->mail( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
+		$smtp->to( $config->{'contact'}->{'email'}) or die "Error:".$smtp->message();
+		$smtp->data() or die "Error:".$smtp->message();
+		$smtp->datasend($msg->as_string) or die "Error:".$smtp->message();
+		$smtp->dataend() or die "Error:".$smtp->message();
+		$smtp->quit() or die "Error:".$smtp->message();
+	    }
 	}
     }
 }
@@ -405,7 +414,7 @@ exit $exitStatus;
 
 sub runTestScript {
     # Run a test script.
-    $fileName = $_;
+    my $fileName = $_;
     chomp($fileName);
 
     # Test if this is a script to run.

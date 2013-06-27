@@ -1,35 +1,48 @@
 #!/usr/bin/env perl
-
-# Make a plot of the specified transfer function file.
-# Andrew Benson (15-Dec-2009)
-
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use Data::Dumper;
 use Graphics::GnuplotIF;
 use POSIX;
 
+# Make a plot of the specified transfer function file.
+# Andrew Benson (15-Dec-2009)
+
+
 unless ( $#ARGV == 0 || $#ARGV == 1 ) {die "Usage: transfer_function.pl <transferFunctionFile> [<pdfFile>]"};
-$transferFunctionFile = $ARGV[0];
+my $transferFunctionFile = $ARGV[0];
+my $pdfFile;
 if ( $#ARGV == 1 ) {
     $pdfFile          = $ARGV[1];
 } else {
-    ($pdfFile = $transferFunctionFile) =~ s/^data\/(.+)\.xml$/plots\/\1\.pdf/;
+    ($pdfFile = $transferFunctionFile) =~ s/^data\/(.+)\.xml$/plots\/$1\.pdf/;
 }
 
 # Read the XML data file.
-$xml = new XML::Simple;
-$data = $xml->XMLin($transferFunctionFile);
-@dataArray = @{$data -> {'datum'}};
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($transferFunctionFile);
+my @dataArray = @{$data -> {'datum'}};
 
 # Extract the data.
-foreach $datum ( @dataArray ) {
-    @columns = split(/\s+/,$datum);
+my @x;
+my @y;
+foreach my $datum ( @dataArray ) {
+    my @columns = split(/\s+/,$datum);
     $x[++$#x] = $columns[0];
     $y[++$#y] = $columns[1];
 }
 
 # Make the plot.
-$plot1  = Graphics::GnuplotIF->new();
+my $plot1  = Graphics::GnuplotIF->new();
 $plot1->gnuplot_hardcopy( '| ps2pdf - '.$pdfFile, 
 			  'postscript enhanced', 
 			  'color lw 3' );

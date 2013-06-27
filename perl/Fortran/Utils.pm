@@ -1,6 +1,16 @@
 # Contains a Perl module which implements various useful functionality for handling Fortran source code.
 
 package Fortran_Utils;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
@@ -17,37 +27,37 @@ sub Truncate_Fortran_Lines {
     copy($inFile,$inFile."~");
 
     # Specify input and output file names.
-    $outFile = $inFile;
-    $inFile  = $inFile."~";
+    my $outFile = $inFile;
+    $inFile     = $inFile."~";
 
     # Specify maximum line length (short enough to allow inclusion of continuation character).
-    $lineLengthMaximum = 128;
-
+    my $lineLengthMaximum = 128;
+    
     # Open input and output files.
     open(inHandle ,    $inFile );
     open(outHandle,">".$outFile);
     # Loop through the input file.
     while ( ! eof(inHandle) ) {
-	$truncateDo = 0;   # Set to not truncate by default.
-	undef($comments);   # Clear comments buffer.
-	undef($indent);     # Clear indentation string.
-	$line = <inHandle>; # Get the next line.
-	$buffer = $line;    # Put into the buffer.
-	chomp($line);       # Remove newline.
-	$lineLength = length($line);
+	my $truncateDo = 0;    # Set to not truncate by default.
+	my $comments;          # Clear comments buffer.
+	my $indent;            # Clear indentation string.
+	my $line = <inHandle>; # Get the next line.
+	my $buffer = $line;    # Put into the buffer.
+	chomp($line);          # Remove newline.
+	my $lineLength = length($line);
 	if ( $line =~ s/^(\s*)//       ) {$indent   = $1};
 	if ( $line =~ s/(\![^\$].*)$// ) {$comments = $1};         # Remove comments and store in comments buffer.
-	($linesJoined = $line) =~ s/&\s*$//;                       # Put line into joined lines buffer.
+	(my $linesJoined = $line) =~ s/&\s*$//;                    # Put line into joined lines buffer.
 	if ( $lineLength > $lineLengthMaximum ) {$truncateDo = 1}; # Check if line is overlong and flag if necessary.
 
 	# Test for OpenMP directives.
-	$isOpenMpConditional = 0;
-	$isOpenMpDirective   = 0;
+	my $isOpenMpConditional = 0;
+	my $isOpenMpDirective   = 0;
 	if ( $line =~ m/^\s*\!\$\s/  ) {$isOpenMpConditional = 1}; # Line is an OpenMP conditional.
 	if ( $line =~ m/^\s*\!\$omp/ ) {$isOpenMpDirective   = 1}; # Line is an OpenMP directive.
-	$endedOnPreprocessorDirective = 0;
+	my $endedOnPreprocessorDirective = 0;
 	while ( $line =~ m/&\s*$/ ) { # While continuation lines are present, read next line and process in same way.
-	    $inFileStoredPosition = tell(inHandle);
+	    my $inFileStoredPosition = tell(inHandle);
 	    $line = <inHandle>;
 	    if ( $line =~ m/^\#/ ) {
 		seek(inHandle,$inFileStoredPosition,0);
@@ -59,18 +69,18 @@ sub Truncate_Fortran_Lines {
 	    $lineLength = length($line); 
 	    if ( $line =~ s/^(\s*)//  ) {$indent    = $1};
 	    if ( $line =~ s/(\!.*)$// ) {$comments .= $1};
-	    ($lineTemporary  = $line)          =~ s/^\s*&//;
-	    ($linesJoined   .= $lineTemporary) =~ s/&\s*$//;
+	    (my $lineTemporary  = $line)          =~ s/^\s*&//;
+	    ($linesJoined      .= $lineTemporary) =~ s/&\s*$//;
 	    if ( $lineLength > $lineLengthMaximum ) {$truncateDo = 1};
 	}
 	# Check if we need to truncate.
 	unless ( $truncateDo == 0 ) {
 	    # Yes we do - split the line intelligently.
 	    undef($buffer); # Clear the buffer.
-	    $linePrefix = "";
-	    $continuationSuffix = "&";
-	    $continuationPrefix = "&";
-	    $targetLineLength = $lineLengthMaximum-length($indent)-length($continuationSuffix);
+	    my $linePrefix = "";
+	    my $continuationSuffix = "&";
+	    my $continuationPrefix = "&";
+	    my $targetLineLength = $lineLengthMaximum-length($indent)-length($continuationSuffix);
 	    # Check if we need to add directive prefixes.
 	    if ( $isOpenMpConditional == 1 ) {
 		$linesJoined =~ s/\s*\!\$\s*//g;
@@ -84,10 +94,10 @@ sub Truncate_Fortran_Lines {
 		$continuationSuffix = "&";
 		$continuationPrefix  = "";
 	    }
-	    $lineJoiner = "";
+	    my $lineJoiner = "";
 	    while ( length($linesJoined) > $targetLineLength ) {
 		# Find a point to break the line.
-		$breakPoint = $targetLineLength;
+		my $breakPoint = $targetLineLength;
 		while (
 		       ( substr($linesJoined,$breakPoint,1) !~ m/[\s\+\-\*\/\(\)\,\%]/
 			 || substr($linesJoined,0,$breakPoint+1) =~ m/e\s*[\+\-]$/
@@ -455,12 +465,12 @@ sub Format_Variable_Defintions {
 
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
-    $variableList = shift;
+    my $variableList = shift;
     my %options;
     if ( $#_ >= 1 ) {(%options) = @_};
     $options{'lowerCase'} = 1
 	unless ( exists($options{'lowerCase'}) );
-    $options{'keepQualifier'} = 0
+    $options{'keepQualifiers'} = 0
 	unless ( exists($options{'keepQualifiers'}) );
     $options{'removeSpaces'} = 1
 	unless ( exists($options{'removeSpaces'}) );
@@ -484,7 +494,7 @@ sub Extract_Variables {
     }
     # Remove text within matching () pairs.
     while ( $variableList =~ m/[\(\[]/ ) {
-	($extracted,$remainder,$prefix) = extract_bracketed($variableList,"()[]","[\\sa-zA-Z0-9_,:=>\%\\+\\-\\*\\/\.]+");
+	(my $extracted, my $remainder, my $prefix) = extract_bracketed($variableList,"()[]","[\\sa-zA-Z0-9_,:=>\%\\+\\-\\*\\/\.]+");
 	if ( $options{'keepQualifiers'} == 0 ) {
 	    $variableList = $prefix.$remainder;
 	} else {
@@ -500,7 +510,7 @@ sub Extract_Variables {
     $variableList =~ s/=[^,]*(,|$)//g
 	if ( $options{'keepQualifiers'} == 0 );
     # Split variables into an array and store.
-    @variables = split(/\s*,\s*/,$variableList);
+    my @variables = split(/\s*,\s*/,$variableList);
     if ( $options{'keepQualifiers'} == 1 ) {
 	foreach ( @variables ) {
 	    $_ =~ s/\%\%OPEN\%\%/\(/g;

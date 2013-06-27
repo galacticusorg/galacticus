@@ -1,9 +1,18 @@
 #!/usr/bin/env perl
-use lib './perl';
-require Fortran::Utils;
-require File::Changes;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use Switch;
 use XML::Simple;
+require Fortran::Utils;
+require File::Changes;
 
 # Script which builds the include files used by utility.memory_management.F90
 # Andrew Benson (24-Apr-2007)
@@ -12,17 +21,21 @@ use XML::Simple;
 # This script automates the process of writing these routines and ensures that they all conform to the same methodology.
 
 # Create an XML object.
-$xml = new XML::Simple;
+my $xml = new XML::Simple;
 
 # Load the data structure describing what types of allocatable array are needed.
-$allocatables = $xml->XMLin("./work/build/Allocatable_Arrays.xml");
+my $allocatables = $xml->XMLin("./work/build/Allocatable_Arrays.xml");
 
 # Find the longest name length.
-$long_name=0;
-foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
-    $name = $allocatable->{'type'};
+my $long_name = 0;
+foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
+    my $name = $allocatable->{'type'};
     if (length($name) > $long_name) {$long_name = length($name)};
 }
+
+# Define hashes to hold code.
+my %preBlocks;
+my %postBlocks;
 
 # Open files for pre and post "contains" code that will be included into the Memory_Management module.
 open(preContainHandle ,">./work/build/utility.memory_management.precontain.inc.tmp" );
@@ -41,19 +54,21 @@ $preBlocks{"allocInterfaceCode"} = "interface Alloc_Array\n  !% Generic interfac
 $preBlocks{"deallocInterfaceCode"} = "interface Dealloc_Array\n  !% Generic interface to routines which deallocate arrays.\n";
 
 # Loop over all classes of allocatable variable and generate code for them.
-foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
-    $typeName  = $allocatable->{'type'};      # Type of variable.
-    $dimension = $allocatable->{'dimension'}; # Dimensionality.
+foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
+    my $typeName  = $allocatable->{'type'};      # Type of variable.
+    my $dimension = $allocatable->{'dimension'}; # Dimensionality.
+    my $kind;
     unless ( UNIVERSAL::isa($allocatable->{'kind'}, "HASH") ) {
 	$kind    = $allocatable->{'kind'};      # Get kind number if present.
     } else {
 	$kind = "";
     }
-    $type = $typeName;
-    $type =~ s/^(\w)/uc($1)/e;           # Capitalize first letter of word.
-    $type =~ s/([\s_])(\w)/$1.uc($2)/ge; # Capitalize first letter of each subsequent word.
-    $type =~ s/\s/_/g;                   # Convert spaces to underscores.
-    $typeLowerCase = lc($type);          # All lower case version of type name.
+    my $type = $typeName;
+    $type    =~ s/^(\w)/uc($1)/e;           # Capitalize first letter of word.
+    $type    =~ s/([\s_])(\w)/$1.uc($2)/ge; # Capitalize first letter of each subsequent word.
+    $type    =~ s/\s/_/g;                   # Convert spaces to underscores.
+    my $typeLowerCase = lc($type);          # All lower case version of type name.
+    my $typeSize;
     switch ( $typeName ) {
 	case ( "character"        ) {
 	    $typeSize = "len(thisArray)";
@@ -68,11 +83,11 @@ foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     }
 
     # Create version of type name with underscores escaped for LaTeX.
-    $variableTypeLatex = $typeLowerCase;
+    my $variableTypeLatex = $typeLowerCase;
     $variableTypeLatex =~ s/_/\\_/g;
 
     # Create label based on type and dimensionality.
-    $typeLabel = $type."_".$dimension."D";
+    my $typeLabel = $type."_".$dimension."D";
 		
     # Append code to the various interfaces for this variable type.
     $preBlocks{"allocInterfaceCode"}    .= "  module procedure Alloc_Array_"  .$typeLabel.       "\n";
@@ -83,9 +98,9 @@ foreach $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $postBlocks{"deallocCode"} .= "  !% Deallocate a ".$dimension."D ".$variableTypeLatex." array.\n";
     $postBlocks{"deallocCode"} .= "  use Galacticus_Error\n";
     $postBlocks{"deallocCode"} .= "  implicit none\n";
-    $c1_width = 8;
+    my $c1_width = 8;
     if ( length($typeName) > $c1_width ) {$c1_width = length($typeName)};
-    $pad = " " x ($c1_width-length($typeName));
+    my $pad = " " x ($c1_width-length($typeName));
     $postBlocks{"deallocCode"} .= "  ".$typeName.",".$pad." allocatable    :: thisArray(".join(",",split(//,":" x $dimension)).")\n";
     $pad = " " x ($c1_width-length("integer"));
     $postBlocks{"deallocCode"} .= "  integer,".$pad." intent(in), optional :: memoryType\n";
@@ -146,10 +161,10 @@ $preBlocks{"allocInterfaceCode"}    .= "end interface\n\n";
 $preBlocks{"deallocInterfaceCode"}  .= "end interface\n\n";
 
 # Output code blocks to files.
-foreach $preBlockKey ( sort keys %preBlocks ) {
+foreach my $preBlockKey ( sort keys %preBlocks ) {
     print preContainHandle $preBlocks{$preBlockKey};
 }
-foreach $postBlockKey ( sort keys %postBlocks ) {
+foreach my $postBlockKey ( sort keys %postBlocks ) {
     print postContainHandle $postBlocks{$postBlockKey};
 }
 
@@ -158,7 +173,7 @@ close(preContainHandle);
 close(postContainHandle);
 
 # Truncate lines and update old files..
-foreach $file ( "utility.memory_management.precontain.inc", "utility.memory_management.postcontain.inc", "utility.memory_management.use.inc" ) {
+foreach my $file ( "utility.memory_management.precontain.inc", "utility.memory_management.postcontain.inc", "utility.memory_management.use.inc" ) {
     &Fortran_Utils::Truncate_Fortran_Lines("./work/build/".$file.".tmp");
     &File_Changes::Update("./work/build/".$file ,"./work/build/".$file.".tmp" );
 }

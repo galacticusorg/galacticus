@@ -32,6 +32,7 @@ while ( $iArg < $#ARGV ) {
 	$arguments{$1} = $ARGV[$iArg+1];
 	++$iArg;
     }
+my $outputFile;
 }
 
 # Create data structure to read the results.

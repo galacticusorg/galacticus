@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -23,9 +25,10 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_2dFGRS_Correlation_Functions.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -35,15 +38,17 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/2dFGRS_Correlation_Functions.pdf";
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Create data structure to read the results.
+my $dataSet;
 $dataSet->{'file'}  = $galacticusFile;
 $dataSet->{'store'} = 0;
 $dataSet->{'tree'}  = "all";
@@ -53,11 +58,11 @@ $dataSet->{'tree'}  = "all";
 &HDF5::Select_Output         ($dataSet,0.1);
 &HDF5::Get_Datasets_Available($dataSet    );
 &HDF5::Get_Dataset   ($dataSet,['nodeBias','magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega']);
-$dataSets         = $dataSet->{'dataSets'};
+my $dataSets         = $dataSet->{'dataSets'};
 
 # Read the file of observational data.
-$xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
+my $xml     = new XML::Simple;
+my $data    = $xml->XMLin($galacticusPath."data/observations/largeScaleStructure/Correlation_Functions_2dFGRS_Norberg_2002.xml");
 
 # Open a pipe to GnuPlot.
 open(gnuPlot,"|gnuplot 1>/dev/null 2>&1");
@@ -65,48 +70,50 @@ print gnuPlot "set terminal postscript enhanced color lw 3 solid\n";
 print gnuPlot "set output \"tmp.ps\"\n";
 
 # Loop over correlation functions.
-foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
+my $chiSquared       = 0.0;
+my $degreesOfFreedom = 0;
+foreach my $correlationFunction ( @{$data->{'correlationFunction'}} ) {
     # Skip correlation functions with a color selection and those that are not redshift space.
     unless ( exists($correlationFunction->{'colorRange'}) || $correlationFunction->{'space'} ne "redshift" ) {
 	# Get magnitude ranges for this sample.
-	$magnitudeMinimum = $correlationFunction->{'magnitudeRange'}->{'minimum'}
+	my $magnitudeMinimum = $correlationFunction->{'magnitudeRange'}->{'minimum'}
 	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
-	$magnitudeMaximum = $correlationFunction->{'magnitudeRange'}->{'maximum'}
+	my $magnitudeMaximum = $correlationFunction->{'magnitudeRange'}->{'maximum'}
 	-5.0*log10($data->{'magnitudes'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
 	# Get separation, correlation function and errors.
-	$separationData   = pdl @{$correlationFunction->{'separation'                          }->{'datum'}};
-	$xiData           = pdl @{$correlationFunction->{'correlationFunction'                 }->{'datum'}};
-	$xiBootData       = pdl @{$correlationFunction->{'correlationFunctionBootstrapped'     }->{'datum'}};
-	$xiBootErrorData  = pdl @{$correlationFunction->{'correlationFunctionBootstrappedError'}->{'datum'}};
+	my $separationData   = pdl @{$correlationFunction->{'separation'                          }->{'datum'}};
+	my $xiData           = pdl @{$correlationFunction->{'correlationFunction'                 }->{'datum'}};
+	my $xiBootData       = pdl @{$correlationFunction->{'correlationFunctionBootstrapped'     }->{'datum'}};
+	my $xiBootErrorData  = pdl @{$correlationFunction->{'correlationFunctionBootstrappedError'}->{'datum'}};
 	# Convert separation for Hubble constant.
 	$separationData  *= ($dataSet->{'parameters'}->{'H_0'}/$correlationFunction->{'separation'}->{'hubble'})**$correlationFunction->{'separation'}->{'hubbleExponent'};
 	# Get error on actual correlation function.
-	$xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
+	my $xiErrorData      = $xiData*$xiBootErrorData/$xiBootData;
 
 	# Select a matching subset of model galaxies.
-	$selected         = which(($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum)
+	my $selected         = which(($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} >= $magnitudeMinimum)
 				  & ($dataSets->{'magnitudeTotal:bJ:observed:z0.1000:dustAtlas:vega'} < $magnitudeMaximum));
 
 	# Skip empty selections.
 	unless ( nelem($selected) == 0 ) {
 
 	    # Get the power spectrum for these galaxies.
-	    ($waveNumber,$linearPowerSpectrum,$galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum($dataSet
-													 ,$selected
-													 ,space => "redshift");
+	    (my $waveNumber, my $linearPowerSpectrum, my $galaxyPowerSpectrum) = &HaloModel::Compute_Power_Spectrum($dataSet
+														    ,$selected
+														    ,space => "redshift");
 	    # Compute the two-point correlation functions.
-	    $separationMinimum         = $separationData->index(0);
-	    $separationMaximum         = $separationData->index(nelem($separationData)-1);
-	    $separationPointsPerDecade = (nelem($separationData)-1)/log10($separationMaximum/$separationMinimum);
-	    ($separations,$galaxyCorrelationFunction) = &HaloModel::Compute_Correlation_Function( $waveNumber
-												  ,$galaxyPowerSpectrum
-												  ,$separationMinimum
-												  ,$separationMaximum
-												  ,$separationPointsPerDecade);
+	    my $separationMinimum         = $separationData->index(0);
+	    my $separationMaximum         = $separationData->index(nelem($separationData)-1);
+	    my $separationPointsPerDecade = (nelem($separationData)-1)/log10($separationMaximum/$separationMinimum);
+	    (my $separations, my $galaxyCorrelationFunction) = &HaloModel::Compute_Correlation_Function( $waveNumber
+													 ,$galaxyPowerSpectrum
+													 ,$separationMinimum
+													 ,$separationMaximum
+													 ,$separationPointsPerDecade);
 	    
 	    # Compute chi^2.
-	    $thisChiSquared        = sum(($galaxyCorrelationFunction-$xiData)**2/($xiErrorData**2));
-	    $thisDegreesOfFreedom  = nelem($xiData);
+	    my $thisChiSquared        = sum(($galaxyCorrelationFunction-$xiData)**2/($xiErrorData**2));
+	    my $thisDegreesOfFreedom  = nelem($xiData);
 	    $chiSquared           += $thisChiSquared;
 	    $degreesOfFreedom     += $thisDegreesOfFreedom;
 	    
@@ -123,14 +130,14 @@ foreach $correlationFunction ( @{$data->{'correlationFunction'}} ) {
 	    print gnuPlot "set format x \"10^{\%L}\"\n";
 	    print gnuPlot "set format y \ \"10^{\%L}\"\n";
 	    print gnuPlot "set pointsize 1.0\n";
-	    $plotCommand  = "plot '-' with errorbars pt 6 title \"".$data->{'label'}."\"";
+	    my $plotCommand  = "plot '-' with errorbars pt 6 title \"".$data->{'label'}."\"";
 	    $plotCommand .= ", '-' title \"Galacticus\"";
 	    print gnuPlot $plotCommand."\n";
-	    for ($i=0;$i<nelem($separationData);++$i) {
+	    for (my $i=0;$i<nelem($separationData);++$i) {
 		print gnuPlot $separationData->index($i)." ".$xiData->index($i)." ".$xiErrorData->index($i)."\n";
 	    }
 	    print gnuPlot "e\n";
-	    for ($i=0;$i<nelem($separations);++$i) {
+	    for (my $i=0;$i<nelem($separations);++$i) {
 		print gnuPlot $separations->index($i)." ".$galaxyCorrelationFunction->index($i)."\n";
 	    }
 	    print gnuPlot "e\n";
@@ -146,15 +153,16 @@ system("ps2pdf tmp.ps ".$outputFile);
 &MetaData::Write($outputFile,$galacticusFile,$self);
 
 # Clean up files.
-unlink("tmp.ps",@tmpFiles);
+unlink("tmp.ps");
 
 # Output fit measure if required.
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'            } = "Norberg et al. (2002) galaxy correlation functions";
     $fitData{'chiSquared'      } = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'        } = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 
