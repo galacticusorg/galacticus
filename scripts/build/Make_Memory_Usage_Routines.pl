@@ -68,7 +68,7 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $type    =~ s/([\s_])(\w)/$1.uc($2)/ge; # Capitalize first letter of each subsequent word.
     $type    =~ s/\s/_/g;                   # Convert spaces to underscores.
     my $typeLowerCase = lc($type);          # All lower case version of type name.
-    my $typeSize;
+    my $typeSize = "";
     switch ( $typeName ) {
 	case ( "character"        ) {
 	    $typeSize = "len(thisArray)";
