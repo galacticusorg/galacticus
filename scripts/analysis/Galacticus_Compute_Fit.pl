@@ -18,38 +18,50 @@ $xml = new XML::Simple;
 $data = $xml->XMLin($analysisScript);
 
 # Initialize net chi^2 variables.
-$chiSquaredNet = 0.0;
+$chiSquaredNet       = 0.0;
 $degreesOfFreedomNet = 0.0;
 
 # Loop through all analyses and accumulate fit results.
-foreach $analysis ( @{$data->{'analysis'}} ) {
+my @analyses;
+if ( UNIVERSAL::isa($data->{'analysis'},"ARRAY") ) {
+    push(@analyses,@{$data->{'analysis'}});
+} else {
+    push(@analyses,$data->{'analysis'});
+}
+foreach $analysis ( @analyses ) {
     print "Running analysis script: ".$analysis->{'script'}."\n";
     $fitXML = "";
     $inXML = 0;
-    open(pipeHndl,$analysis->{'script'}." ".$galacticusFile." ".$outputDirectory." showFit |");
-    while ( $line = <pipeHndl> ) {
-	if ( $line =~ m/^\s*<galacticusFit>/   ) {$inXML = 1};
+    system($analysis->{'script'}." ".$galacticusFile." ".$outputDirectory."/".$analysis->{'name'}.".xml ".$outputDirectory."/".$analysis->{'name'}.".pdf");
+    open(iHndl,$outputDirectory."/".$analysis->{'name'}.".xml");
+    while ( $line = <iHndl> ) {
+	if ( $line =~ m/^\s*<constraint>/   ) {$inXML = 1};
 	if ( $inXML == 1 ) {$fitXML .= $line};
-	if ( $line =~ m/<\/galacticusFit>\s*$/ ) {$inXML = 1};
+	if ( $line =~ m/<\/constraint>\s*$/ ) {$inXML = 1};
     }
-    close(pipeHndl);
+    close(iHndl);
     undef($fitData);
-    if ( $fitXML =~ m/<galacticusFit>/ ) {
+    if ( $fitXML =~ m/<constraint>/ ) {
 	$fitData = $xml->XMLin($fitXML);
 	$fitData->{'weight'} = $analysis->{'weight'};
 	${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
-	$chiSquaredNet += $fitData->{'chiSquared'}*$fitData->{'weight'};
-	$degreesOfFreedomNet += $fitData->{'degreesOfFreedom'}*$fitData->{'weight'};
+	if      ( exists($fitData->{'chiSquared'  }) ) {
+	    $chiSquaredNet       +=      $fitData->{'chiSquared'      }*$fitData->{'weight'};
+	    $degreesOfFreedomNet +=      $fitData->{'degreesOfFreedom'}*$fitData->{'weight'};
+	} elsif ( exists($fitData->{'logLikelihood'}) ) {
+	    $chiSquaredNet       += -2.0*$fitData->{'logLikelihood'   }*$fitData->{'weight'};
+	    $degreesOfFreedomNet +=  1.0                               *$fitData->{'weight'};;    
+	}
     }
 }
 
 # Store the net results.
 $reducedChiSquaredNet = $chiSquaredNet/$degreesOfFreedomNet;
 undef($fitData);
-$fitData->{'chiSquared'} = $chiSquaredNet;
+$fitData->{'chiSquared'       } = $chiSquaredNet;
 $fitData->{'reducedChiSquared'} = $reducedChiSquaredNet;
-$fitData->{'degreesOfFreedom'} = $degreesOfFreedomNet;
-$fitData->{'name'} = "net";
+$fitData->{'degreesOfFreedom' } = $degreesOfFreedomNet;
+$fitData->{'name'             } = "net";
 ${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
 
 # Output the accumulated results.
