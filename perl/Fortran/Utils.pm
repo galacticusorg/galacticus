@@ -127,7 +127,9 @@ sub Truncate_Fortran_Lines {
 	    # Append the remaining text of the joined buffer and any comments.
 	    $buffer .= $indent.$linePrefix.$lineJoiner.$linesJoined;
 	    if ( $endedOnPreprocessorDirective == 1 ) {$buffer .= $continuationSuffix};
-	    $buffer .= $comments."\n";
+	    $buffer .= $comments
+		if ( defined($comments) );
+	    $buffer .= "\n";
 	}
 	print outHandle $buffer;
     }
