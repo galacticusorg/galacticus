@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -20,9 +22,10 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -32,76 +35,79 @@ if ( $#ARGV == 2 ) {
 }
 
 # Get parameters for the Galacticus model.
+my $dataBlock;
 $dataBlock->{'file'} = $galacticusFile;
 &HDF5::Get_Parameters($dataBlock);
 
 # Check if output location is file or directory.
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/Star_Formation_History.pdf";
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Extract global data
 &HDF5::Get_History($dataBlock,['historyExpansion','historyStarFormationRate']);
-$history        = $dataBlock->{'history'};
-$time           = $history->{'historyTime'};
-$redshift       = 1.0/$history->{'historyExpansion'}-1.0;
-$SFR            = $history->{'historyStarFormationRate'}/1.0e9;
-$stellarDensity = $history->{'historyStellarDensity'};
+my $history        = $dataBlock->{'history'};
+my $time           = $history->{'historyTime'};
+my $redshift       = 1.0/$history->{'historyExpansion'}-1.0;
+my $SFR            = $history->{'historyStarFormationRate'}/1.0e9;
+my $stellarDensity = $history->{'historyStellarDensity'};
 
 # Determine IMF correction factor.
-$imfCorrection = 1.0;
+my $imfCorrection = 1.0;
 if ( $dataBlock->{'parameters'}->{'imfSelectionFixed'} eq "Chabrier" ) {
     $imfCorrection = 0.6;
 }
 
 # Define redshift bins.
-$redshiftPoints = pdl 16;
-$redshiftMin    = pdl 0.0;
-$redshiftMax    = pdl 8.0;
-$redshiftBin    = pdl ($redshiftMax-$redshiftMin)/$redshiftPoints;
-$redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$redshiftBin;
+my $redshiftPoints = pdl 16;
+my $redshiftMin    = pdl 0.0;
+my $redshiftMax    = pdl 8.0;
+my $redshiftBin    = pdl ($redshiftMax-$redshiftMin)/$redshiftPoints;
+my $redshiftBins   = pdl (0..$redshiftPoints-1)*$redshiftBin+$redshiftMin+0.5*$redshiftBin;
 
 # Read the XML data file.
-$xml = new XML::Simple;
-$data = $xml->XMLin($galacticusPath."data/observations/starFormationRate/Star_Formation_Rate_Data.xml");
-$iDataset = -1;
-$chiSquared = 0.0;
-$degreesOfFreedom = 0;
-foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
-    $columns = $dataSet->{'columns'};
-    $x = pdl @{$columns->{'redshift'}->{'data'}};
-    $xLowerError = pdl @{$columns->{'redshiftErrorDown'}->{'data'}};
-    $xUpperError = pdl @{$columns->{'redshiftErrorUp'}->{'data'}};
+my $xml = new XML::Simple;
+my $data = $xml->XMLin($galacticusPath."data/observations/starFormationRate/Star_Formation_Rate_Data.xml");
+my $iDataset = -1;
+my $chiSquared = 0.0;
+my $degreesOfFreedom = 0;
+my @dataSets;
+foreach my $dataSet ( @{$data->{'starFormationRate'}} ) {
+    my $columns = $dataSet->{'columns'};
+    my $x = pdl @{$columns->{'redshift'}->{'data'}};
+    my $xLowerError = pdl @{$columns->{'redshiftErrorDown'}->{'data'}};
+    my $xUpperError = pdl @{$columns->{'redshiftErrorUp'}->{'data'}};
     $xLowerError = $x-$xLowerError;
     $xUpperError = $x+$xUpperError;
-    $y = pdl @{$columns->{'sfr'}->{'data'}};
-    $yLowerError = pdl @{$columns->{'sfrErrorDown'}->{'data'}};
-    $yUpperError = pdl @{$columns->{'sfrErrorUp'}->{'data'}};
+    my $y = pdl @{$columns->{'sfr'}->{'data'}};
+    my $yLowerError = pdl @{$columns->{'sfrErrorDown'}->{'data'}};
+    my $yUpperError = pdl @{$columns->{'sfrErrorUp'}->{'data'}};
     $yUpperError = (10.0**($y+$yUpperError));
     $yLowerError = (10.0**($y-$yLowerError));
     $y = (10.0**$y);
 
     # Compute cosmology corrections.
-    $cosmologyData = Astro::Cosmology->new(
+    my $cosmologyData = Astro::Cosmology->new(
 	omega_matter => $columns->{'sfr'}->{'omega'},
 	omega_lambda => $columns->{'sfr'}->{'lambda'},
 	H0           => $columns->{'sfr'}->{'hubble'}
 	);
-    $cosmologyGalacticus = Astro::Cosmology->new(
+    my $cosmologyGalacticus = Astro::Cosmology->new(
 	omega_matter => $dataBlock->{'parameters'}->{'Omega_Matter'},
 	omega_lambda => $dataBlock->{'parameters'}->{'Omega_DE'},
 	H0           => $dataBlock->{'parameters'}->{'H_0'}
 	);
 
-    $volumeElementData            = $cosmologyData      ->differential_comoving_volume($x);
-    $volumeElementGalacticus      = $cosmologyGalacticus->differential_comoving_volume($x);
-    $luminosityDistanceData       = $cosmologyData      ->luminosity_distance         ($x);
-    $luminosityDistanceGalacticus = $cosmologyGalacticus->luminosity_distance         ($x);
-    $cosmologyCorrection = ($volumeElementData/$volumeElementGalacticus)*($luminosityDistanceGalacticus/$luminosityDistanceData)**2;
+    my $volumeElementData            = $cosmologyData      ->differential_comoving_volume($x);
+    my $volumeElementGalacticus      = $cosmologyGalacticus->differential_comoving_volume($x);
+    my $luminosityDistanceData       = $cosmologyData      ->luminosity_distance         ($x);
+    my $luminosityDistanceGalacticus = $cosmologyGalacticus->luminosity_distance         ($x);
+    my $cosmologyCorrection = ($volumeElementData/$volumeElementGalacticus)*($luminosityDistanceGalacticus/$luminosityDistanceData)**2;
     
     # Apply cosmology corrections.
     $y           = $y          *$cosmologyCorrection;
@@ -124,30 +130,31 @@ foreach $dataSet ( @{$data->{'starFormationRate'}} ) {
     $dataSets[$iDataset]->{'label'}       = $dataSet->{'label'};
 
     # Compute a binned mean star formation rate.
-    $e      = sqrt($yUpperError**2+$yLowerError**2);
-    $weight = 1.0/($yUpperError**2+$yLowerError**2);
-    ($yBinned,$yBinnedError,$ySigma,$ySigmaError)
+    my $e      = sqrt($yUpperError**2+$yLowerError**2);
+    my $weight = 1.0/($yUpperError**2+$yLowerError**2);
+    (my $yBinned, my $yBinnedError, my $ySigma, my $ySigmaError)
 	= &Means::BinnedMean($redshiftBins,$x,$y,$weight);
-    ($eBinned,$eBinnedError,$eSigma,$eSigmaError)
+    (my $eBinned, my $eBinnedError, my $eSigma, my $eSigmaError)
 	= &Means::BinnedMean($redshiftBins,$x,$e,$weight);
-    $sigmaMax = which($ySigma > $eBinned);
+    my $sigmaMax = which($ySigma > $eBinned);
     $eBinned->index($sigmaMax) .= $ySigma->index($sigmaMax);
-    $empty = which($yBinnedError == 0.0);
+    my $empty = which($yBinnedError == 0.0);
     $eBinned->index($empty) .= 1.0e30;
 
     # Interpolate model to data points and compute chi^2.
-    ($sfrInterpolated,$error) = interpolate($redshiftBins,$redshift,$SFR);
+    (my $sfrInterpolated, my $error) = interpolate($redshiftBins,$redshift,$SFR);
     $chiSquared += sum((($yBinned-$sfrInterpolated)/$eBinned)**2);
     $degreesOfFreedom += nelem($yBinned)-nelem($empty);
 }
 
 # Display chi^2 information if requested.
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'} = "Volume averaged star formation rate history.";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 

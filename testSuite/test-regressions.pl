@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 use File::Find;
 
 # Run a set of short Galacticus models which test cases that have failed before,
@@ -11,16 +13,16 @@ system("find data/stellarPopulations -name '".$_."' -atime +14 -exec rm {} \;")
     foreach ( "Stellar_*_Yield_*_*.xml", "Stellar_Recycled_Fraction_*_*.xml", "Stellar_Energy_Input_*_*.xml" );
 
 # Find all regression parameter files and run them.
-$outputDirectory = "outputs/regressions";
+my $outputDirectory = "outputs/regressions";
 system("mkdir -p ".$outputDirectory);
-@regressionDirs = ( "regressions" );
+my @regressionDirs = ( "regressions" );
 find(\&runRegressions,@regressionDirs);
 
 exit;
 
 sub runRegressions {
     # Run a regression case.
-    $fileName = $_;
+    my $fileName = $_;
     chomp($fileName);
 
     # Test if this is a parameter fil to run.

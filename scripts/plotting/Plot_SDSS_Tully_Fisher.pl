@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -24,9 +26,10 @@ $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
 if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Tully_Fisher.pl <galacticusFile> <outputDir/File> [<showFit>]")};
-$self           = $0;
-$galacticusFile = $ARGV[0];
-$outputTo       = $ARGV[1];
+my $self           = $0;
+my $galacticusFile = $ARGV[0];
+my $outputTo       = $ARGV[1];
+my $showFit;
 if ( $#ARGV == 2 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
@@ -36,22 +39,24 @@ if ( $#ARGV == 2 ) {
 }
 
 # Check if output location is file or directory.
+my $outputFile;
 if ( $outputTo =~ m/\.pdf$/ ) {
     $outputFile = $outputTo;
 } else {
     system("mkdir -p $outputTo");
     $outputFile = $outputTo."/SDSS_Tully_Fisher.pdf";
 }
-($fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/\1/;
+(my $fileName = $outputFile) =~ s/^.*?([^\/]+.pdf)$/$1/;
 
 # Define magnitude bins.
-$magnitudePoints = pdl 10;
-$magnitudeMin    = pdl -24;
-$magnitudeMax    = pdl -19;
-$magnitudeBin    = pdl ($magnitudeMax-$magnitudeMin)/$magnitudePoints;
-$magnitudeBins   = pdl (0..$magnitudePoints-1)*$magnitudeBin+$magnitudeMin+0.5*$magnitudeBin;
+my $magnitudePoints = pdl 10;
+my $magnitudeMin    = pdl -24;
+my $magnitudeMax    = pdl -19;
+my $magnitudeBin    = pdl ($magnitudeMax-$magnitudeMin)/$magnitudePoints;
+my $magnitudeBins   = pdl (0..$magnitudePoints-1)*$magnitudeBin+$magnitudeMin+0.5*$magnitudeBin;
 
 # Create data structure to read the results.
+my $dataSet;
 $dataSet->{'file'} = $galacticusFile;
 $dataSet->{'store'} = 0;
 &HDF5::Get_Parameters($dataSet);
@@ -59,48 +64,49 @@ $dataSet->{'store'} = 0;
 &HDF5::Select_Output($dataSet,0.1);
 $dataSet->{'tree'} = "all";
 &HDF5::Get_Dataset($dataSet,['mergerTreeWeight','magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB','bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas','diskVelocity']);
-$dataSets     = $dataSet->{'dataSets'};
-$magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
-$bulgeToTotal = $dataSets->{'bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas'};
-$velocity     = $dataSets->{'diskVelocity'};
-$weight       = $dataSets->{'mergerTreeWeight'};
+my $dataSets     = $dataSet->{'dataSets'};
+my $magnitude    = $dataSets->{'magnitudeTotal:SDSS_i:observed:z0.1000:dustAtlas[faceOn]:AB'};
+my $bulgeToTotal = $dataSets->{'bulgeToTotalLuminosities:SDSS_i:observed:z0.1000:dustAtlas'};
+my $velocity     = $dataSets->{'diskVelocity'};
+my $weight       = $dataSets->{'mergerTreeWeight'};
 delete($dataSet->{'dataSets'});
 # Select galaxies which are disk-dominated.
-$selection         = which ($bulgeToTotal < 0.3);
+my $selection         = which ($bulgeToTotal < 0.3);
 # Create subsets of the galaxy properties including only the disk-dominated galaxies.
-$magnitudeSelected = $magnitude->index($selection);
-$velocitySelected  = $velocity ->index($selection);
-$weightSelected    = $weight   ->index($selection);
-($velocityMeanGalacticus,$velocityMeanErrorGalacticus,$velocitySigmaGalacticus,$velocitySigmaErrorGalacticus)
+my $magnitudeSelected = $magnitude->index($selection);
+my $velocitySelected  = $velocity ->index($selection);
+my $weightSelected    = $weight   ->index($selection);
+(my $velocityMeanGalacticus, my $velocityMeanErrorGalacticus, my $velocitySigmaGalacticus, my $velocitySigmaErrorGalacticus)
     = &Means::BinnedMean($magnitudeBins,$magnitudeSelected,$velocitySelected,$weightSelected);
 
 # Read the XML data file.
-$xml     = new XML::Simple;
-$data    = $xml->XMLin($galacticusPath."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
-$columns = $data->{'tullyFisher'}->{'columns'};
-$x       = pdl @{$columns->{'magnitude'}->{'data'}};
+my $xml     = new XML::Simple;
+my $data    = $xml->XMLin($galacticusPath."data/observations/tullyFisherRelation/Tully_Fisher_SDSS_Pizagno_2007.xml");
+my $columns = $data->{'tullyFisher'}->{'columns'};
+my $x       = pdl @{$columns->{'magnitude'}->{'data'}};
 $x       = $x-5.0*log10($columns->{'magnitude'}->{'hubble'}/$dataSet->{'parameters'}->{'H_0'});
-$y       = pdl @{$columns->{'diskVelocity'}->{'data'}};
-$xError  = pdl @{$columns->{'magnitudeError'}->{'data'}};
-$yError  = pdl @{$columns->{'diskVelocityError'}->{'data'}};
-$yWeight = 1.0/$yError**2;
-($velocityMean,$velocityMeanError,$velocitySigma,$velocitySigmaError)
+my $y       = pdl @{$columns->{'diskVelocity'}->{'data'}};
+my $xError  = pdl @{$columns->{'magnitudeError'}->{'data'}};
+my $yError  = pdl @{$columns->{'diskVelocityError'}->{'data'}};
+my $yWeight = 1.0/$yError**2;
+(my $velocityMean, my $velocityMeanError, my $velocitySigma, my $velocitySigmaError)
     = &Means::BinnedMean($magnitudeBins,$x,$y,$yWeight);
 
 # Compute chi^2.
-$nonZeroMeanError  = which ($velocityMeanError **2+$velocityMeanErrorGalacticus **2 > 0.0);
-$nonZeroSigmaError = which ($velocitySigmaError**2+$velocitySigmaErrorGalacticus**2 > 0.0);
-$degreesOfFreedom = nelem($nonZeroMeanError)+nelem($nonZeroSigmaError);
-$chiSquared = sum((($velocityMean->index($nonZeroMeanError)-$velocityMeanGalacticus->index($nonZeroMeanError))**2)
+my $nonZeroMeanError  = which ($velocityMeanError **2+$velocityMeanErrorGalacticus **2 > 0.0);
+my $nonZeroSigmaError = which ($velocitySigmaError**2+$velocitySigmaErrorGalacticus**2 > 0.0);
+my $degreesOfFreedom = nelem($nonZeroMeanError)+nelem($nonZeroSigmaError);
+my $chiSquared = sum((($velocityMean->index($nonZeroMeanError)-$velocityMeanGalacticus->index($nonZeroMeanError))**2)
 		  /($velocityMeanError->index($nonZeroMeanError)**2+$velocityMeanErrorGalacticus->index($nonZeroMeanError)**2))
     +sum((($velocitySigma->index($nonZeroSigmaError)-$velocitySigmaGalacticus->index($nonZeroSigmaError))**2)
 	 /($velocitySigmaError->index($nonZeroSigmaError)**2+$velocitySigmaErrorGalacticus->index($nonZeroSigmaError)**2));
 if ( $showFit == 1 ) {
+    my %fitData;
     $fitData{'name'} = "Pizagno et al. (2007) SDSS Tully-Fisher relation";
     $fitData{'chiSquared'} = $chiSquared;
     $fitData{'degreesOfFreedom'} = $degreesOfFreedom;
     $fitData{'fileName'} = $fileName;
-    $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
+    my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFit");
     print $xmlOutput->XMLout(\%fitData);
 }
 

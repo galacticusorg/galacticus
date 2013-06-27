@@ -1,28 +1,37 @@
 #!/usr/bin/env perl
-use lib "./perl";
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::IO::HDF5;
 use PDL::IO::HDF5::Dataset;
-use Galacticus::HDF5;
-use Stats::Histograms;
 use Data::Dumper;
+require Galacticus::HDF5;
+require Stats::Histograms;
 
 # Plot various statistics of galaxies computed with N-body and Monte Carlo merger trees for comparison.
 # Andrew Benson (4-October-2010).
 
 # Specify the models to plot, including labels and model number.
-@models = (
-	   { label => "N-body; subhalo merger times + targets", number => 1 },
-	   { label => "N-body; subhalo merger times"          , number => 2 },
-	   { label => "N-body; analytic merger times"         , number => 3 },
-	   { label => "Monte Carlo"                           , number => 4 }
-	   );
+my @models = (
+    { label => "N-body; subhalo merger times + targets", number => 1 },
+    { label => "N-body; subhalo merger times"          , number => 2 },
+    { label => "N-body; analytic merger times"         , number => 3 },
+    { label => "Monte Carlo"                           , number => 4 }
+    );
 
 # Specify the list of properties to read from each model.
-@properties = ( "mergerTreeWeight", "diskStellarMass", "spheroidStellarMass", "diskScaleLength", "spheroidScaleLength", "diskGasMass", "spheroidGasMass", "blackHoleMass", "diskStellarMetals", "spheroidStellarMetals", "diskGasMetals", "spheroidGasMetals", "nodeMass", "nodeIsIsolated", "timeToMerge" );
+my @properties = ( "mergerTreeWeight", "diskStellarMass", "spheroidStellarMass", "diskScaleLength", "spheroidScaleLength", "diskGasMass", "spheroidGasMass", "blackHoleMass", "diskStellarMetals", "spheroidStellarMetals", "diskGasMetals", "spheroidGasMetals", "nodeMass", "nodeIsIsolated", "timeToMerge" );
 
 # Specify a list of plots to make.
-@plots = (
+my @plots = (
 	  { fileName => "tests/nBodyMergerTrees/plots/diskStellarMass.pdf"    , xMin => 3.0, xMax => 12.0, xBin => 0.5, xType => "log", x => "diskStellarMass"    , xLabel => "M_{stars, disk} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]"    , yLabel => "df/d ln M_{stars,disk}"    , title => "Disk stellar mass"     },
 	  { fileName => "tests/nBodyMergerTrees/plots/spheroidStellarMass.pdf", xMin => 3.0, xMax => 12.0, xBin => 0.5, xType => "log", x => "spheroidStellarMass", xLabel => "M_{stars, spheroid} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]", yLabel => "df/d ln M_{stars,spheroid}", title => "Spheroid stellar mass" },
 	  { fileName => "tests/nBodyMergerTrees/plots/diskGasMass.pdf"        , xMin => 3.0, xMax => 12.0, xBin => 0.5, xType => "log", x => "diskGasMass"        , xLabel => "M_{stars, disk} [M_{{/=12 O}&{/*-.66 O}{/=12 \267}}]"    , yLabel => "df/d ln M_{stars,disk}"    , title => "Disk gas mass"         },
@@ -39,28 +48,24 @@ use Data::Dumper;
 	  );
 
 # Read properties from each model.
-$iModel = -1;
-foreach $model ( @models ) {
+my $iModel = -1;
+my @modelValues;
+foreach my $model ( @models ) {
     ++$iModel;
-    delete($dataSet{'dataSets'});
-    delete($dataSet{'mergerTreesAvailable'});
-    delete($dataSet{'parameters'});
-    delete($dataSet{'outputs'});
-    delete($dataSet{'dataSetsAvailable'});
-    undef($dataSet);
-    $dataSet{'file' } = "tests/nBodyMergerTrees/models/galacticus_0:".$model->{'number'}."/galacticus.hdf5";
-    $dataSet{'store'} = 0;
-    $dataSet{'tree' } = "all";
-    &HDF5::Select_Output(\%dataSet,0.0);
-    &HDF5::Get_Dataset(\%dataSet,\@properties);
-    $dataSets         = \%{$dataSet{'dataSets'}};
-    foreach $property ( @properties ) {
-	${$modelValues[$iModel]}{$property} = ${$dataSets->{$property}};
+    my $dataSet;
+    $dataSet->{'file' } = "tests/nBodyMergerTrees/models/galacticus_0:".$model->{'number'}."/galacticus.hdf5";
+    $dataSet->{'store'} = 0;
+    $dataSet->{'tree' } = "all";
+    &HDF5::Select_Output($dataSet,0.0);
+    &HDF5::Get_Dataset($dataSet,\@properties);
+    my $dataSets         = $dataSet->{'dataSets'};
+    foreach my $property ( @properties ) {
+	${$modelValues[$iModel]}{$property} = $dataSets->{$property};
     }
 }
 
 # Make plots.
-foreach $plot ( @plots ) {
+foreach my $plot ( @plots ) {
 
     # Open a pipe to GnuPlot.
     open(gnuPlot,"|gnuplot");
@@ -84,17 +89,19 @@ foreach $plot ( @plots ) {
     }
     print gnuPlot "set pointsize 1.0\n";
     print gnuPlot "plot";
-    $joiner = " ";
-    foreach $model ( @models ) {
+    my $joiner = " ";
+    foreach my $model ( @models ) {
 	print gnuPlot $joiner."'-' with yerrorbars title '".$model->{'label'}."'";
 	$joiner = ", ";
     }
     print gnuPlot "\n";
-    foreach $modelValue ( @modelValues ) {
+    foreach my $modelValue ( @modelValues ) {
 	# Construct the bins to use.
-	$nBins = int(($plot->{'xMax'}-$plot->{'xMin'})/$plot->{'xBin'});
-	$bins  = pdl (0..$nBins-1)*$plot->{'xBin'}+$plot->{'xMin'}+0.5*$plot->{'xBin'};
+	my $nBins = int(($plot->{'xMax'}-$plot->{'xMin'})/$plot->{'xBin'});
+	my $bins  = pdl (0..$nBins-1)*$plot->{'xBin'}+$plot->{'xMin'}+0.5*$plot->{'xBin'};
 	# Construct the x values to use.
+	my $x;
+	my $xBins;
 	if ( $plot->{'xType'} eq "log" ) {
 	    $x     = log10($modelValue->{$plot->{'x'}});
 	    $xBins = 10.0**$bins;
@@ -102,11 +109,9 @@ foreach $plot ( @plots ) {
 	    $x     = $modelValue->{$plot->{'x'}};
 	    $xBins = $bins;
 	}
-	$w = $modelValue->{'mergerTreeWeight'};
-	#$satellites = which($modelValue->{'nodeIsIsolated'} == 0);
-	#$w->index($satellites) .= 0.0;
-	($y,$error) = &Histograms::Histogram($bins,$x,$w,differential => 1,normalized => 1);
-	for ($i=0;$i<nelem($xBins);++$i) {
+	my $w = $modelValue->{'mergerTreeWeight'};
+	(my $y, my $error) = &Histograms::Histogram($bins,$x,$w,differential => 1,normalized => 1);
+	for (my $i=0;$i<nelem($xBins);++$i) {
 	    print gnuPlot $xBins->index($i)." ".$y->index($i)." ".$error->index($i)."\n";
 	}
 	print gnuPlot "e\n";

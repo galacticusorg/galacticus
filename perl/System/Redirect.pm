@@ -1,11 +1,21 @@
 package SystemRedirect;
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 
 sub tofile {
-    ($command, $file) = @_;
-
+    (my $command, my $file) = @_;
+    
     # Save current standard output and standard errer    
-    open(OLDOUT, ">&STDOUT");
-    open(OLDERR, ">&STDERR");
+    open OLDOUT, '>&', \*STDOUT or die "Can't duplicate STDOUT: $!";
+    open OLDERR, '>&', \*STDERR or die "Can't duplicate STDERR: $!";
     
     # Open new standard output and error
     open(STDOUT, ">$file") || die "Can't redirect stdout";
@@ -16,15 +26,15 @@ sub tofile {
     
     # Run the system command.
     system($command);
-    $result = $?;
+    my $result = $?;
     
     # Close the output file
     close(STDOUT);
     close(STDERR);
     
     # Restore standard output and error
-    open(STDOUT, ">&OLDOUT");
-    open(STDERR, ">&OLDERR");
+    open STDOUT, '>&', \*OLDOUT or die "Cannot duplicate OLDOUT: $!";
+    open STDERR, '>&', \*OLDERR or die "Cannot duplicate OLDERR: $!";
 
     return $result;
 }

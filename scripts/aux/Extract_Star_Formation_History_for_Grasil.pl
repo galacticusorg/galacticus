@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
@@ -21,54 +23,55 @@ require GnuPlot::LaTeX;
 
 # Read arguments.
 die ("Usage: Extract_Star_Formation_History_for_Grasil.pl <inputFile> <outputIndex> <treeIndex> <nodeIndex> <grasilFile> [<plotFile>]") unless ( $#ARGV == 4 || $#ARGV == 5 );
-$inputFile   = $ARGV[0];
-$outputIndex = $ARGV[1];
-$treeIndex   = $ARGV[2];
-$nodeIndex   = $ARGV[3];
-$grasilFile  = $ARGV[4];
-$plotFile    = $ARGV[5] if ( $#ARGV == 5 );
+my $inputFile   = $ARGV[0];
+my $outputIndex = $ARGV[1];
+my $treeIndex   = $ARGV[2];
+my $nodeIndex   = $ARGV[3];
+my $grasilFile  = $ARGV[4];
+my $plotFile    = $ARGV[5] if ( $#ARGV == 5 );
 
 # Define prefixes.
-$giga        = 1.0e9;
+my $giga        = 1.0e9;
 
 # Define Solar metallicity.
-$metallicitySolar = 0.0188;
+my $metallicitySolar = 0.0188;
 
 # Open the Galacticus file.
-$HDFfile = new PDL::IO::HDF5($inputFile);
+my $HDFfile = new PDL::IO::HDF5($inputFile);
 
 # Get the output time.
-@outputTime          = $HDFfile->group("Outputs/Output".$outputIndex)->attrGet("outputTime");
+my @outputTime          = $HDFfile->group("Outputs/Output".$outputIndex)->attrGet("outputTime");
 
 # Get the metallicities at which star formation rates are tabulated.
-$metallicities       = $HDFfile->group("starFormationHistories")->dataset("metallicities")->get;
+my $metallicities       = $HDFfile->group("starFormationHistories")->dataset("metallicities")->get;
 
 # Read the tree indices, offsets and node counts.
-$treeIndices         = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeIndex"     )->get;
-$treeNodeStart       = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeStartIndex")->get;
-$treeNodeCount       = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeCount"     )->get;
+my $treeIndices         = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeIndex"     )->get;
+my $treeNodeStart       = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeStartIndex")->get;
+my $treeNodeCount       = $HDFfile->group("Outputs/Output".$outputIndex)->dataset("mergerTreeCount"     )->get;
 
 # Get the offset positions for the tree.
-$selection = which($treeIndices == $treeIndex);
-$start = $treeNodeStart->index($selection);
-$count = $treeNodeCount->index($selection);
-$end   = $start+$count-1;
+my $selection = which($treeIndices == $treeIndex);
+my $start = $treeNodeStart->index($selection);
+my $count = $treeNodeCount->index($selection);
+my $end   = $start+$count-1;
 
 # Read in galaxy data.
-$nodeIndices         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("nodeIndex"                  )->get($start,$end);
-$diskScaleLength     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskRadius"                 )->get($start,$end);
-$spheroidScaleLength = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidRadius"             )->get($start,$end);
-$diskStellarMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassStellar"            )->get($start,$end);
-$spheroidStellarMass = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassStellar"        )->get($start,$end);
-$diskGasMass         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassGas"                )->get($start,$end);
-$spheroidGasMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassGas"            )->get($start,$end);
-$diskGasMetals       = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskAbundancesGasMetals"    )->get($start,$end);
-$spheroidGasMetals   = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidAbundancesGasMetals")->get($start,$end);
+my $nodeIndices         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("nodeIndex"                  )->get($start,$end);
+my $diskScaleLength     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskRadius"                 )->get($start,$end);
+my $spheroidScaleLength = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidRadius"             )->get($start,$end);
+my $diskStellarMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassStellar"            )->get($start,$end);
+my $spheroidStellarMass = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassStellar"        )->get($start,$end);
+my $diskGasMass         = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskMassGas"                )->get($start,$end);
+my $spheroidGasMass     = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidMassGas"            )->get($start,$end);
+my $diskGasMetals       = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("diskAbundancesGasMetals"    )->get($start,$end);
+my $spheroidGasMetals   = $HDFfile->group("Outputs/Output".$outputIndex."/nodeData")->dataset("spheroidAbundancesGasMetals")->get($start,$end);
 
 # Find the node in question.
-$selected = which($nodeIndices == $nodeIndex);
+my $selected = which($nodeIndices == $nodeIndex);
 
 # Convert from total metals to metallicity.
+my $diskGasMetallicity;
 if ( $diskGasMass    (($selected)) > 0.0 ) {
     $diskGasMetallicity      = $diskGasMetals    (($selected))/$diskGasMass    (($selected));
     $diskGasMetallicity     .= 1.0 if ( $diskGasMetallicity > 1.0 );
@@ -76,6 +79,7 @@ if ( $diskGasMass    (($selected)) > 0.0 ) {
 } else {
     $diskGasMetallicity      = 0.0;
 }
+my $spheroidGasMetallicity;
 if ( $spheroidGasMass(($selected)) > 0.0 ) {
     $spheroidGasMetallicity  = $spheroidGasMetals(($selected))/$spheroidGasMass(($selected));
     $spheroidGasMetallicity .= 1.0 if ( $spheroidGasMetallicity > 1.0 );
@@ -85,12 +89,15 @@ if ( $spheroidGasMass(($selected)) > 0.0 ) {
 }
 
 # Get a list of available datasets and convert to a hash.
-@dataSets = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->datasets;
-foreach $dataSet ( @dataSets ) {
+my @dataSets = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->datasets;
+my %availableDatasets;
+foreach my $dataSet ( @dataSets ) {
     $availableDatasets{$dataSet} = 1;
 }
 
 # Read in the star formation data.
+my $diskTime;
+my $diskSFH;
 if ( exists($availableDatasets{"diskTime".$nodeIndex}) ) {
     $diskTime            = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("diskTime"    .$nodeIndex)->get;
     $diskSFH             = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("diskSFH"     .$nodeIndex)->get;
@@ -99,6 +106,8 @@ if ( exists($availableDatasets{"diskTime".$nodeIndex}) ) {
     $diskTime            = ones  (1);
     $diskSFH             = zeroes(1,nelem($metallicities));
 }
+my $spheroidTime;
+my $spheroidSFH;
 if ( exists($availableDatasets{"spheroidTime".$nodeIndex}) ) {
     $spheroidTime        = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("spheroidTime".$nodeIndex)->get;
     $spheroidSFH         = $HDFfile->group("starFormationHistories/Output".$outputIndex."/mergerTree".$treeIndex)->dataset("spheroidSFH" .$nodeIndex)->get;
@@ -109,22 +118,22 @@ if ( exists($availableDatasets{"spheroidTime".$nodeIndex}) ) {
 }
 
 # Compute time steps.
-$diskTimeBegin       = pdl [0.0];
+my $diskTimeBegin       = pdl [0.0];
 if ( nelem($diskTime) > 1 ) {
     $diskTimeBegin       = $diskTimeBegin->append($diskTime->index(sequence(nelem($diskTime)-1)));
 } else {
     $diskTimeBegin       = $diskTimeBegin;
 }
-$diskTimeStep        = $diskTime-$diskTimeBegin;
-$diskTimeCentral     = ($diskTime+$diskTimeBegin)/2.0;
-$spheroidTimeBegin   = pdl [0.0];
+my $diskTimeStep        = $diskTime-$diskTimeBegin;
+my $diskTimeCentral     = ($diskTime+$diskTimeBegin)/2.0;
+my $spheroidTimeBegin   = pdl [0.0];
 if ( nelem($spheroidTime) > 1 ) {
     $spheroidTimeBegin   = $spheroidTimeBegin->append($spheroidTime->index(sequence(nelem($spheroidTime)-1)));
 } else {
     $spheroidTimeBegin   = $spheroidTimeBegin;
 }
-$spheroidTimeStep    = $spheroidTime-$spheroidTimeBegin;
-$spheroidTimeCentral = ($spheroidTime+$spheroidTimeBegin)/2.0;
+my $spheroidTimeStep    = $spheroidTime-$spheroidTimeBegin;
+my $spheroidTimeCentral = ($spheroidTime+$spheroidTimeBegin)/2.0;
 
 # Open the Grasil output file.
 open(gHndl,">".$grasilFile);
@@ -143,13 +152,13 @@ print gHndl "#  Gas metallicity (disk, spheroid) [       ]:\t".$diskGasMetallici
 
 # See if we can check the integration of star formation histories.
 print gHndl "#\n";
-@starFormationParameters = $HDFfile->group("Parameters")->attrGet("imfSelectionMethod","stellarPopulationPropertiesMethod");
+my @starFormationParameters = $HDFfile->group("Parameters")->attrGet("imfSelectionMethod","stellarPopulationPropertiesMethod");
 if ( $starFormationParameters[0] eq "fixed" && $starFormationParameters[1] eq "instantaneous" ) {
-    @imfSelectionFixed = $HDFfile->group("Parameters")->attrGet("imfSelectionFixed");
-    $imfRecycledAttributeName = "imf".$imfSelectionFixed[0]."RecycledInstantaneous";
-    @recycledFraction = $HDFfile->group("Parameters")->attrGet($imfRecycledAttributeName);
-    $diskSFHIntegrated     = (1.0-$recycledFraction[0])*$diskSFH    ->sum;
-    $spheroidSFHIntegrated = (1.0-$recycledFraction[0])*$spheroidSFH->sum;
+    my @imfSelectionFixed = $HDFfile->group("Parameters")->attrGet("imfSelectionFixed");
+    my $imfRecycledAttributeName = "imf".$imfSelectionFixed[0]."RecycledInstantaneous";
+    my @recycledFraction = $HDFfile->group("Parameters")->attrGet($imfRecycledAttributeName);
+    my $diskSFHIntegrated     = (1.0-$recycledFraction[0])*$diskSFH    ->sum;
+    my $spheroidSFHIntegrated = (1.0-$recycledFraction[0])*$spheroidSFH->sum;
     print gHndl "# Fractional error in SFH integration:\n";
     if ( $diskStellarMass    (($selected)) > 0.0 ) {
 	print gHndl "#  Disk    :\t".abs($diskSFHIntegrated    -$diskStellarMass    (($selected)))/$diskStellarMass    (($selected))."\n";
@@ -170,11 +179,11 @@ print gHndl "#\n";
 print gHndl "# Metallicities: ".join("\t",$metallicities->list)."\n";
 
 # Compute mean star formation rates.
-$diskSFR             = $diskSFH    /$diskTimeStep    /$giga;
-$spheroidSFR         = $spheroidSFH/$spheroidTimeStep/$giga;
+my $diskSFR             = $diskSFH    /$diskTimeStep    /$giga;
+my $spheroidSFR         = $spheroidSFH/$spheroidTimeStep/$giga;
 
 # Make a plot.
-$sfrMinimum = 1.0e-2;
+my $sfrMinimum = 1.0e-2;
 if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $sfrMinimum) ) ) {
     # Declare variables for GnuPlot;
     my ($gnuPlot, $outputFile, $outputFileEPS, $plot);
@@ -199,10 +208,12 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
     print $gnuPlot "set ylabel '\$\\dot{M}_\\star\$ \$[M_\\odot \\hbox{yr}^{-1}]\$'\n";
     print $gnuPlot "set xrange [0.0:15.0]\n";
     print $gnuPlot "set yrange [1.0e-2:1.0e2]\n";
-    $iColor = -1;
-    for($i=0;$i<$spheroidSFR->dim(1);++$i) {
+    my $iColor = -1;
+    for(my $i=0;$i<$spheroidSFR->dim(1);++$i) {
 	++$iColor;
 	if (any($spheroidSFR(:,($i)) > $sfrMinimum)) {
+	    my $metallicityLow;
+	    my $metallicityHigh;
 	    if ( $i == 0 ) {
 		$metallicityLow = 0.0;
 	    } else {
@@ -213,7 +224,7 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 	    } else {
 		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
 	    }
-	    $label = "\\\\small Spheroid: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
+	    my $label = "\\\\small Spheroid: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
 	    &PrettyPlots::Prepare_Dataset(\$plot,
 					  $spheroidTimeCentral, $spheroidSFR(:,($i)),
 					  style => "point", symbol => [4,5], weight => [5,3],
@@ -222,9 +233,11 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 	}
     }
     $iColor = -1;
-    for($i=0;$i<$diskSFR->dim(1);++$i) {
+    for(my $i=0;$i<$diskSFR->dim(1);++$i) {
 	++$iColor;
 	if (any($diskSFR(:,($i)) > $sfrMinimum)) {
+	    my $metallicityLow;
+	    my $metallicityHigh;
 	    if ( $i == 0 ) {
 		$metallicityLow = 0.0;
 	    } else {
@@ -235,7 +248,7 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 	    } else {
 		$metallicityHigh = FormatSigFigs($metallicities->index($i),2);
 	    }
-	    $label = "\\\\small Disk: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
+	    my $label = "\\\\small Disk: \$".$metallicityLow."<Z<".$metallicityHigh."\$";
 	    &PrettyPlots::Prepare_Dataset(\$plot,
 					  $diskTimeCentral, $diskSFR(:,($i)),
 					  style => "point", symbol => [6,7], weight => [5,3],
@@ -253,9 +266,9 @@ if ( defined($plotFile) && ( any($diskSFR > $sfrMinimum) || any($spheroidSFR > $
 print gHndl "#\n";
 print gHndl "# Disk star formation rate:\n";
 print gHndl "# Time [Gyr] | SFR [M_Solar/yr]\n";
-$table = Text::Table->new();
-for($j=0;$j<$diskTimeCentral->nelem;++$j) {
-    undef(@rowData);
+my $table = Text::Table->new();
+for(my $j=0;$j<$diskTimeCentral->nelem;++$j) {
+    my @rowData;
     $rowData[0] = $diskTimeCentral->index($j);
     push(@rowData,$diskSFR(($j),:)->list);
     $table->add(@rowData);
@@ -267,8 +280,8 @@ print gHndl "#\n";
 print gHndl "# Spheroid star formation rate:\n";
 print gHndl "# Time [Gyr] | SFR [M_Solar/yr]\n";
 $table = Text::Table->new();
-for($j=0;$j<$spheroidTimeCentral->nelem;++$j) {
-    undef(@rowData);
+for(my $j=0;$j<$spheroidTimeCentral->nelem;++$j) {
+    my @rowData;
     $rowData[0] = $spheroidTimeCentral->index($j);
     push(@rowData,$spheroidSFR(($j),:)->list);
     $table->add(@rowData);

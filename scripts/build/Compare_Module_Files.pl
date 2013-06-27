@@ -1,3 +1,15 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
+
 # Compare two .mod files which are given on the command line.
 #
 # Note that if a compiler (i.e. a compiler and operating system) is specified on
@@ -22,41 +34,43 @@
 # Don't forget to write the routine at the bottom of the script.
 my (%compiler_array);
 %compiler_array = (
-  "ABSOFT-f95-on-DARWIN"   =>  ABSOFT_f95_on_DARWIN,
-  "ABSOFT-f95-on-LINUX"    =>  ABSOFT_f95_on_LINUX,
-  "COMPAQ-f90-on-OSF1"     =>  COMPAQ_f90_on_OSF1,
-  "COMPAQ-f95-on-OSF1"     =>  COMPAQ_f95_on_OSF1,
-  "COMPAQ-f95-on-LINUX"    =>  COMPAQ_f95_on_LINUX,
-  "DEC-f90-on-OSF1"        =>  DEC_f90_on_OSF1,
-  "DEC-f95-on-OSF1"        =>  DEC_f95_on_OSF1,
-  "FUJITSU-f90-on-LINUX"   =>  FUJITSU_f90_on_LINUX,
-  "FUJITSU-f95-on-LINUX"   =>  FUJITSU_f95_on_LINUX,
-  "GCC-f95-on-LINUX"       =>  GCC_f95_on_LINUX,
-  "IBM-xlf-on-AIX"         =>  IBM_xlf_on_AIX,
-  "IBM-xlf90-on-AIX"       =>  IBM_xlf90_on_AIX,
-  "INTEL-ifc-on-LINUX"     =>  INTEL_ifc_on_LINUX,
-  "INTEL-ifort-on-LINUX"   =>  INTEL_ifort_on_LINUX,
-  "INTEL-ifort9-on-LINUX"  =>  INTEL_ifort9_on_LINUX,
-  "LAHEY-lf95-on-LINUX"    =>  LAHEY_lf95_on_LINUX,
-  "MIPSPRO-f90-on-IRIX64"  =>  MIPSPRO_f90_on_IRIX64,
-  "NEC-f90-on-SX8"         =>  NEC_f90_on_SX8,
-  "PGI-pgf95-on-LINUX"     =>  PGI_pgf95_on_LINUX,
-  "SUNSTUDIO-f95-on-LINUX" =>  SUNSTUDIO_f95_on_LINUX,
-  "WORKSHOP-f90-on-SUNOS"  =>  WORKSHOP_f90_on_SUNOS,
-  "WORKSHOP-f95-on-SUNOS"  =>  WORKSHOP_f95_on_SUNOS);
+  "ABSOFT-f95-on-DARWIN"   =>  \&ABSOFT_f95_on_DARWIN,
+  "ABSOFT-f95-on-LINUX"    =>  \&ABSOFT_f95_on_LINUX,
+  "COMPAQ-f90-on-OSF1"     =>  \&COMPAQ_f90_on_OSF1,
+  "COMPAQ-f95-on-OSF1"     =>  \&COMPAQ_f95_on_OSF1,
+  "COMPAQ-f95-on-LINUX"    =>  \&COMPAQ_f95_on_LINUX,
+  "DEC-f90-on-OSF1"        =>  \&DEC_f90_on_OSF1,
+  "DEC-f95-on-OSF1"        =>  \&DEC_f95_on_OSF1,
+  "FUJITSU-f90-on-LINUX"   =>  \&FUJITSU_f90_on_LINUX,
+  "FUJITSU-f95-on-LINUX"   =>  \&FUJITSU_f95_on_LINUX,
+  "GCC-f95-on-LINUX"       =>  \&GCC_f95_on_LINUX,
+  "IBM-xlf-on-AIX"         =>  \&IBM_xlf_on_AIX,
+  "IBM-xlf90-on-AIX"       =>  \&IBM_xlf90_on_AIX,
+  "INTEL-ifc-on-LINUX"     =>  \&INTEL_ifc_on_LINUX,
+  "INTEL-ifort-on-LINUX"   =>  \&INTEL_ifort_on_LINUX,
+  "INTEL-ifort9-on-LINUX"  =>  \&INTEL_ifort9_on_LINUX,
+  "LAHEY-lf95-on-LINUX"    =>  \&LAHEY_lf95_on_LINUX,
+  "MIPSPRO-f90-on-IRIX64"  =>  \&MIPSPRO_f90_on_IRIX64,
+  "NEC-f90-on-SX8"         =>  \&NEC_f90_on_SX8,
+  "PGI-pgf95-on-LINUX"     =>  \&PGI_pgf95_on_LINUX,
+  "SUNSTUDIO-f95-on-LINUX" =>  \&SUNSTUDIO_f95_on_LINUX,
+  "WORKSHOP-f90-on-SUNOS"  =>  \&WORKSHOP_f90_on_SUNOS,
+  "WORKSHOP-f95-on-SUNOS"  =>  \&WORKSHOP_f95_on_SUNOS
+);
 
 #*******************************************************************************
 # Argument checking.
 #
-$argerr=0;
-$n_arg=$#ARGV+1;
+my $argerr=0;
+my $n_arg=$#ARGV+1;
 $n_arg >= 2 || do {print STDERR "Error : need at least two arguments\n"; $argerr=1; };
-@ARGS = @ARGV[0 .. $n_arg-3];
-$file1 = $ARGV[$n_arg-2];
-$file2 = $ARGV[$n_arg-1];
+my @ARGS = @ARGV[0 .. $n_arg-3];
+my $file1 = $ARGV[$n_arg-2];
+my $file2 = $ARGV[$n_arg-1];
 
+my $fc;
 while (@ARGS) {
-  $arg=shift @ARGS;
+  my $arg=shift @ARGS;
   for ($arg) {
     /^-compiler/ && do {
       $fc=shift @ARGS;
@@ -78,7 +92,7 @@ if ($argerr==1) {
     "\tfilename1 and filename2 are the two files to compare.\n",
     "\t\"-compiler compiler_id\" specifies the name of the compiler.\n");
    print STDERR "\nThe following list of compilers are recognised by -compiler :\n";
-   foreach $word (keys %compiler_array) { print STDERR "\t$word\n"; }
+   foreach my $word (keys %compiler_array) { print STDERR "\t$word\n"; }
    print STDERR "\n";
    exit 1;
 }
@@ -92,17 +106,17 @@ if ($argerr==1) {
 #*******************************************************************************
 # quick filesize comparison.
 #
-$size1 = (stat($file1))[7];
-$size2 = (stat($file2))[7];
+my $size1 = (stat($file1))[7];
+my $size2 = (stat($file2))[7];
 ($size1 == $size2) or exit 1;
 
 #*******************************************************************************
 # In this bit, we farm out to various routines to set an array of file offsets
 # where differences between the files are to be ignored.  Then do the
 # comparison.
-@skip_array = ();
+my @skip_array = ();
 if (defined $fc) {
-  $routine = $compiler_array{$fc};
+  my $routine = $compiler_array{$fc};
   defined ($routine) && &$routine; # call the corresponding subroutine to $fc
 }
 
@@ -111,7 +125,7 @@ open(FILE2,$file2) or die "Cannot open $file2\n";
 binmode(FILE1);
 binmode(FILE2);
 
-$result = &do_compare();  # do the actual comparison
+my $result = &do_compare();  # do the actual comparison
 close(FILE2);
 close(FILE1);
 exit $result;
@@ -120,7 +134,7 @@ exit $result;
 # Now for the subroutines.
 #*******************************************************************************
 sub do_compare {
-  $i = 0;
+  my $i = 0;
   while ((! eof FILE1) && (! eof FILE2)) {
     $i++;
     if (getc(FILE1) ne getc(FILE2)) {
@@ -168,16 +182,16 @@ sub FUJITSU_f95_on_LINUX {
 
 sub IBM_xlf_on_AIX {
 # version 5.1, untested, copied from xlf90 below.
-  @reverse = (29,30,31,32,33,34,35,36,37,38,39,40,41,42);
-  foreach $i (@reverse) {
+  my @reverse = (29,30,31,32,33,34,35,36,37,38,39,40,41,42);
+  foreach my $i (@reverse) {
     push @skip_array,$size1-$i+1;
   }
 }
 
 sub IBM_xlf90_on_AIX {
 # version 5.1.  Offsets start from end of file.
-  @reverse = (29,30,31,32,33,34,35,36,37,38,39,40,41,42);
-  foreach $i (@reverse) {
+  my @reverse = (29,30,31,32,33,34,35,36,37,38,39,40,41,42);
+  foreach my $i (@reverse) {
     push @skip_array,$size1-$i+1;
   }
 }
@@ -207,7 +221,7 @@ sub INTEL_ifc_on_LINUX {
     $lastreclength = length($_);
   }
   close(FILE1);
-  for ($j=0; $j<$lastreclength; $j++) {
+  for (my $j=0; $j<$lastreclength; $j++) {
     push @skip_array,$size1-$j;
   }
   return 0;
