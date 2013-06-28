@@ -106,6 +106,7 @@ contains
     use Memory_Management
     use Tables
     use Kind_Numbers
+    use Galacticus_Error
     implicit none
     double precision                         , intent(in   ) :: time
     integer                                  , intent(in   ) :: calculationType
@@ -163,6 +164,11 @@ contains
           if (.not.finder%isInitialized()) then
              call finder%rootFunction(collapseRoot                       )
              call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+             call finder%rangeExpand (                                                           &
+                  &                   rangeExpandUpward          =0.5d0                        , &
+                  &                   rangeExpandType            =rangeExpandMultiplicative    , &
+                  &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive  &
+                  &)
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the corresponding critical overdensity.
@@ -174,6 +180,10 @@ contains
                   &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
                   &                   iTime                                                                  &
                   &                  )
+             ! Check for non-monotonic decline.
+             if (iTime > 1) then
+                if (deltaTable%y(iTime) >= deltaTable%y(iTime-1)) call Galacticus_Error_Report('Make_Table','accuracy lost in tablulation of critical overdensity (usually results for computing critical overdensity for very large cosmic times)')
+             end if
          case (calculationDeltaVirial)
              ! Compute the maximum radius of the perturbation.
              radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
