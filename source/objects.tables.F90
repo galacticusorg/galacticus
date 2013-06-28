@@ -194,6 +194,7 @@ module Tables
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
      !% Table type supporting one dimensional table with logarithmic spacing in $x$.
+     double precision :: xLinearPrevious,xLogarithmicPrevious
    contains
      procedure :: create             =>Table_Logarithmic_1D_Create
      procedure :: interpolate        =>Table_Logarithmic_1D_Interpolate
@@ -235,6 +236,8 @@ module Tables
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
+     double precision :: xLinearPrevious,xLogarithmicPrevious
+     double precision :: xMinimum,xMaximum
    contains
      procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
      procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
@@ -662,7 +665,11 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
 
-    Table_Logarithmic_1D_Interpolate=self%table1DLinearLinear%interpolate(log(x),table)
+    if (x /= self%xLinearPrevious) then
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_1D_Interpolate=self%table1DLinearLinear%interpolate(self%xLogarithmicPrevious,table)
     return
   end function Table_Logarithmic_1D_Interpolate
 
@@ -673,7 +680,11 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
 
-    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(log(x),table)/x
+    if (x /= self%xLinearPrevious) then
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table)/x
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
@@ -915,6 +926,9 @@ contains
 
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount)
+    ! Store the minimum and maximum x-values for rapid look-up.
+    self%xMinimum=exp(self%xv(     1))
+    self%xMaximum=exp(self%xv(xCount))
     return
   end subroutine Table_Logarithmic_CSpline_1D_Create
 
@@ -925,7 +939,15 @@ contains
     class  (table1DLogarithmicCSpline), intent(inout) :: self
     integer                           , intent(in   ) :: i
 
-    Table_Logarithmic_CSpline_1D_X=exp(self%table1DLinearCSpline%x(i))
+    ! Check for end-points, and return stored values if possible.
+    if      (i ==  1                      ) then
+       Table_Logarithmic_CSpline_1D_X=self%xMinimum
+    else if (i == -1 .or. i == self%xCount) then
+       Table_Logarithmic_CSpline_1D_X=self%xMaximum
+    else
+       ! No stored value is available - simply look up the required value.
+       Table_Logarithmic_CSpline_1D_X=exp(self%table1DLinearCSpline%x(i))
+    end if
     return
   end function Table_Logarithmic_CSpline_1D_X
 
@@ -947,7 +969,11 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
 
-    Table_Logarithmic_CSpline_1D_Interpolate=self%table1DLinearCSpline%interpolate(log(x),table)
+    if (x /= self%xLinearPrevious) then
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_CSpline_1D_Interpolate=self%table1DLinearCSpline%interpolate(self%xLogarithmicPrevious,table)
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate
 
@@ -958,7 +984,11 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
 
-    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(log(x),table)/x
+    if (x /= self%xLinearPrevious) then
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table)/x
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
