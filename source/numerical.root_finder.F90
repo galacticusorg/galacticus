@@ -193,62 +193,110 @@ contains
        end select
        select case (self%rangeExpandType)
        case (rangeExpandAdditive      )
-          if     (                                 &
-               &  self%rangeExpandUpward   > 0.0d0 &
-               &  .and.                            &
-               &  .not.rangeUpperAsExpected        &
-               &  .and.                            &
-               &  (                                &
-               &   xHigh < self%rangeUpwardLimit   &
-               &   .or.                            &
-               &   .not.self%rangeUpwardLimitSet   &
-               &  )                                &
+          if     (                                    &
+               &  (                                   &
+               &   (                                  &
+               &     self%rangeExpandUpward   > 1.0d0 &
+               &    .and.                             &
+               &     xHigh                    > 0.0d0 &
+               &   )                                  &
+               &   .or.                               &
+               &   (                                  &
+               &     self%rangeExpandUpward   < 1.0d0 &
+               &    .and.                             &
+               &     xHigh                    < 0.0d0 &
+               &   )                                  &
+               &  )                                   &
+               &  .and.                               &
+               &  .not.rangeUpperAsExpected           &
+               &  .and.                               &
+               &  (                                   &
+               &   xHigh < self%rangeUpwardLimit      &
+               &   .or.                               &
+               &   .not.self%rangeUpwardLimitSet      &
+               &  )                                   &
                & ) then
              xHigh=xHigh+self%rangeExpandUpward
              if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
              rangeChanged=.true.
           end if
-          if     (                                 &
-               &  self%rangeExpandDownward < 0.0d0 &
-               &  .and.                            &
-               &  .not.rangeLowerAsExpected        &
-               &  .and.                            &
-               &  (                                &
-               &   xLow  > self%rangeDownwardLimit &
-               &   .or.                            &
-               &   .not.self%rangeDownwardLimitSet &
-               &  )                                &
+          if     (                                    &
+               &  (                                   &
+               &   (                                  &
+               &     self%rangeExpandDownward < 1.0d0 &
+               &    .and.                             &
+               &     xLow                     > 0.0d0 &
+               &   )                                  &
+               &   .or.                               &
+               &   (                                  &
+               &     self%rangeExpandDownward > 1.0d0 &
+               &    .and.                             &
+               &     xLow                     < 0.0d0 &
+               &   )                                  &
+               &  )                                   &
+               &  .and.                               &
+               &  .not.rangeLowerAsExpected           &
+               &  .and.                               &
+               &  (                                   &
+               &   xLow  > self%rangeDownwardLimit    &
+               &   .or.                               &
+               &   .not.self%rangeDownwardLimitSet    &
+               &  )                                   &
                & ) then
              xLow =xLow +self%rangeExpandDownward
              if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
              rangeChanged=.true.
           end if
        case (rangeExpandMultiplicative)
-          if     (                                 &
-               &  self%rangeExpandUpward   > 1.0d0 &
-               &  .and.                            &
-               &  .not.rangeUpperAsExpected        &
-               &  .and.                            &
-               &  (                                &
-               &   xHigh < self%rangeUpwardLimit   &
-               &   .or.                            &
-               &   .not.self%rangeUpwardLimitSet   &
-               &  )                                &
+          if     (                                    &
+               &  (                                   &
+               &   (                                  &
+               &     self%rangeExpandUpward   > 1.0d0 &
+               &    .and.                             &
+               &     xHigh                    > 0.0d0 &
+               &   )                                  &
+               &   .or.                               &
+               &   (                                  &
+               &     self%rangeExpandUpward   < 1.0d0 &
+               &    .and.                             &
+               &     xHigh                    < 0.0d0 &
+               &   )                                  &
+               &  )                                   &
+               &  .and.                               &
+               &  .not.rangeUpperAsExpected           &
+               &  .and.                               &
+               &  (                                   &
+               &   xHigh < self%rangeUpwardLimit      &
+               &   .or.                               &
+               &   .not.self%rangeUpwardLimitSet      &
+               &  )                                   &
                & ) then
              xHigh=xHigh*self%rangeExpandUpward
              if (self%rangeUpwardLimitSet  ) xHigh=min(xHigh,self%rangeUpwardLimit  )
              rangeChanged=.true.
           end if
-          if     (                                 &
-               &  self%rangeExpandDownward < 1.0d0 &
-               &  .and.                            &
-               &  .not.rangeLowerAsExpected        &
-               &  .and.                            &
-               &  (                                &
-               &   xLow  > self%rangeDownwardLimit &
-               &   .or.                            &
-               &   .not.self%rangeDownwardLimitSet &
-               &  )                                &
+          if     (                                    &
+               &  (                                   &
+               &   (                                  &
+               &     self%rangeExpandDownward < 1.0d0 &
+               &    .and.                             &
+               &     xLow                     > 0.0d0 &
+               &   )                                  &
+               &   .or.                               &
+               &   (                                  &
+               &     self%rangeExpandDownward > 1.0d0 &
+               &    .and.                             &
+               &     xLow                     < 0.0d0 &
+               &   )                                  &
+               &  )                                   &
+               &  .and.                               &
+               &  .not.rangeLowerAsExpected           &
+               &  .and.                               &
+               &  (                                   &
+               &   xLow  > self%rangeDownwardLimit    &
+               &   .or.                               &
+               &   .not.self%rangeDownwardLimitSet    &
+               &  )                                   &
                & ) then
              xLow =xLow *self%rangeExpandDownward
              if (self%rangeDownwardLimitSet) xLow =max(xLow ,self%rangeDownwardLimit)
