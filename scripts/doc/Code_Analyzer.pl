@@ -122,7 +122,6 @@ sub processFile {
 
 	# Initialize the unitIdList array and the units hash.
 	my @unitIdList = ( $fileName );
-	my %units;
 	$units{$fileName} = {
 	    unitType => "file",
 	    unitName => $fileName
@@ -380,8 +379,6 @@ sub Output_Data {
 	my $parentID;
 	if ( exists($units{$unitID}->{"belongsTo"}) ) {
 	    $parentID = $units{$unitID}->{"belongsTo"};
-	} else {
-	    $parentID = "";
 	}
 	# Check if this is an abstract interface.
 	my $unitIsAbstract;
@@ -391,11 +388,11 @@ sub Output_Data {
 	    $unitIsAbstract = 0;
 	}
 	# Check if parent is an abstract interface.
-	my $parentUnitIsAbstract;
-	if ( $units{$parentID}->{"unitType"} eq "interface" && $units{$parentID}->{"unitName"} eq "" ) {
-	    $parentUnitIsAbstract = 1;
-	} else {
-	    $parentUnitIsAbstract = 0;
+	my $parentUnitIsAbstract = 0;
+	if ( defined($parentID) ) {
+	    if ( $units{$parentID}->{"unitType"} eq "interface" && $units{$parentID}->{"unitName"} eq "" ) {
+		$parentUnitIsAbstract = 1;
+	    }
 	}
 	
 	# Output header line for unit, skipping nameless interfaces (i.e. abstract interfaces) and any children of such interfaces.
@@ -426,10 +423,12 @@ sub Output_Data {
 		print $outputHandle $tableOpen;
 		$tableIsOpen = 1;
 	    }
-	    print $outputHandle "\\emph{Code lines:} & \\multicolumn{2}{l}{".$units{$unitID}->{"codeLines"}."} \\\\\n";
+	    if ( exists($units{$unitID}->{"codeLines"}) ) {
+		print $outputHandle "\\emph{Code lines:} & \\multicolumn{2}{l}{".$units{$unitID}->{"codeLines"}."} \\\\\n";
+	    }
 
 	    # Output any parent.
-	    unless ( $parentID eq "" ) {
+	    if  ( defined($parentID) ) {
 		if ( $tableIsOpen == 0 ) {
 		    print $outputHandle $tableOpen;
 		    $tableIsOpen = 1;
@@ -447,10 +446,14 @@ sub Output_Data {
 		my @unsortedModules = keys(%{$units{$unitID}->{"modulesUsed"}});
 		my @sortedModules = sort(@unsortedModules);
 		foreach ( @sortedModules ) {
-		    if ( $modules{$_} eq "" ) {
-			$_ = "{\\tt ".&latex_encode($_)."}";
+		    if ( exists($modules{$_}) ) {
+			if ( $modules{$_} eq "" ) {
+			    $_ = "{\\tt ".&latex_encode($_)."}";
+			} else {
+			    $_ = "\\hyperlink{".$modules{$_}."}{{\\tt ".&latex_encode($_)."}}";
+			}
 		    } else {
-			$_ = "\\hyperlink{".$modules{$_}."}{{\\tt ".&latex_encode($_)."}}";
+			$_ = "{\\tt ".&latex_encode($_)."}";
 		    }
 		}
 		&printTwoColumn($outputHandle,\@sortedModules);
