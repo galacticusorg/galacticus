@@ -31,7 +31,7 @@ Alternatively, GNU Make can be downloaded and installed from source as described
 \begin{verbatim}
 yum install gcc-gfortran
 \end{verbatim}
-Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.8.0 or later of {\tt gcc-gfortran}---earlier versions \emph{will not work}.
+Alternatively, GNU Fortran can be downloaded and installed from source as described online. Note that \glc\ requires v4.9.0 or later of {\tt gcc-gfortran}---earlier versions \emph{will not work}.
 
 \item [g++] \glc\ contains some C++ components. We use \href{http://gcc.gnu.org/projects/cxx0x.html}{GNU C++} to compile \glc. You can use other C++ compilers, but we make no claims as to whether they will produce correctly working code. On Fedora the following (as root) will install GNU C++:
 \begin{verbatim}
@@ -296,7 +296,7 @@ This will create the {\tt Galacticus.exe} executable. The build takes some time,
 
 The {\tt Makefile} contains a few options that you may want to adjust:
 \begin{description}
- \item[{\tt FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.8.0+. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
+ \item[{\tt FCCOMPILER}] The command to invoke a Fortran 2003 compliant compiler. \glc\ should compile with any such compiler. In practice, we have only tried it using {\sc GFortran} v4.9.0+. In particular, \glc\ makes use of certain Fortran 2003 features (notably procedure pointers, type-bound procedures and class variables) which older compilers might not handle (and some newer compilers might still have difficulty with);
  \item[{\tt CCOMPILER}] The command to invoke a C compiler.
  \item[{\tt CPPCOMPILER}] The command to invoke a C++ compiler.
  \item[{\tt PREPROCESSOR}] The command to invoke a preprocessor to handle {\tt \#IFDEF} etc. statements. We normally use {\tt cpp};
@@ -491,9 +491,9 @@ make install
 ! Install Galacticus:
 
 wget "http://users.obs.carnegiescience.edu/abenson/galacticus/versions/\
-galacticus_v0.9.1.tar.bz2"
-tar xvfj galacticus_v0.9.1.tar.bz2
-cd Galacticus/v0.9.1
+galacticus_v0.9.2.tar.bz2"
+tar xvfj galacticus_v0.9.2.tar.bz2
+cd Galacticus/v0.9.2
 
 ! Add to Makefile (below the GALACTICUS_FCFLAGS = line):
 
@@ -512,7 +512,7 @@ The following guidelines have been tested on a MacBook Pro, running Mac OS X V10
 
 \subsection{Update GNU compilers}
 
-It is likely that the default compiler is older than GCC v4.8 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\tt gcc}. For the case of MacPorts, this requires,
+It is likely that the default compiler is older than GCC v4.9 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\tt gcc}. For the case of MacPorts, this requires,
 
 \begin{verbatim}
 $ sudo port -v install gcc48 +gfortran
