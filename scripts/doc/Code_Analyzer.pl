@@ -316,7 +316,7 @@ sub processFile {
 		  $functionSeek =~ s/"[^"]+"//g;
 		  while ( $functionSeek =~ m/\(/ ) {
 		      (my $extracted, my $remainder, my $prefix) = extract_bracketed($functionSeek,"()","[^\\(]+");
-		      if ( $prefix =~ m/(([a-z0-9_]+)\s*%\s*)*([a-z0-9_]+)$/ ) {
+		      if ( $prefix =~ m/(([a-z0-9_]+)\s*\%\s*)([a-z0-9_]+)$/ ) {
 			  my $functionName = lc($3);
 			  (my $derivedType = lc($1)) =~ s/%\s*$//;
 			  if ( $derivedType eq "" ) {$derivedType = -1};
