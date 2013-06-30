@@ -30,7 +30,8 @@ my %staticLinkDependencies =
      fgsl_gfortran => [ "gsl"                              ],
      gsl           => [ "gslcblas"                         ],
      FoX_dom       => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
-     FoX_sax       => [ "FoX_common"                       ]
+     FoX_sax       => [ "FoX_common"                       ],
+     FoX_common    => [ "FoX_fsys"                         ]
     );
 
 # Initialize a hash of required libraries.
