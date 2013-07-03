@@ -129,7 +129,7 @@ contains
 
     ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
     if (sigma > sigmaTable%y(1)) then
-       Mass_from_Cosmolgical_Root_Variance=exp(sigmaTable%x(1))
+       Mass_from_Cosmolgical_Root_Variance=sigmaTable%x(1)
     else
        ! Find the largest mass corresponding to this sigma.
        iMass=sigmaTable%size()
