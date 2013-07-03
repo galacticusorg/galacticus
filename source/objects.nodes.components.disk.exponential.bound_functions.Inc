@@ -97,6 +97,7 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   use Galactic_Structure_Options
   use Numerical_Constants_Math
   use Coordinate_Systems
+  use Tables
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential)           , intent(inout)           :: self
@@ -254,6 +255,7 @@ end function Node_Component_Disk_Exponential_Rotation_Curve
 
 double precision function Node_Component_Disk_Exponential_Rotation_Curve_Gradient(self,radius,componentType,massType,haloLoaded)
   !% Computes the rotation curve gradient for an exponential disk.
+  use Tables
   use Node_Component_Disk_Exponential_Data
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
