@@ -267,10 +267,6 @@ contains
     end if
 
     ! Compute the angular momentum factor.
-    ! <v0.9.1> This is actually not the way that Cole et al. (2000) do this. Instead they directly compute the mass of dark matter
-    ! inside the half mass radius of each galaxy. The angularMomentumFactor is then equal to a mass-weighted mean of (1+f_DM) for
-    ! the host and satellite. This will be implemented once Galacticus has a generic function for getting the enclosed mass of
-    ! dark matter in an adiabatically contracted halo.
     if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
        angularMomentumFactor=angularMomentumFactor/(satelliteSpheroidMass+hostSpheroidMass)
     else
