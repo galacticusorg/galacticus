@@ -19,7 +19,6 @@
 
 module Merger_Trees_Construct_Fully_Specified
   !% Implements building of merger trees using a fully-specified description read from file.
-  use Merger_Trees
   use ISO_Varying_String
   implicit none
   private
@@ -40,8 +39,8 @@ contains
     !% Initializes the merger tree construction ``fully-specified'' module.
     use Input_Parameters
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+    type     (varying_string                       ), intent(in   )          :: mergerTreeConstructMethod
+    procedure(Merger_Tree_Construct_Fully_Specified), intent(inout), pointer :: Merger_Tree_Construct
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'fullySpecified') then
@@ -71,14 +70,14 @@ contains
     use Memory_Management
     use Galacticus_Display
     implicit none
-    type   (mergerTree    )             , intent(inout) :: thisTree
-    logical                             , intent(in   ) :: skipTree
-    type   (treeNodeList  ), allocatable, dimension(:)  :: nodeArray
-    type   (node          ), pointer                    :: doc        , nodeDefinition
-    type   (nodeList      ), pointer                    :: nodes
-    integer                                             :: i          , ioErr         , nodeCount
-    integer(kind=kind_int8)                             :: indexValue
-    logical                                             :: processTree
+    type   (mergerTree    )             , intent(inout), target :: thisTree
+    logical                             , intent(in   )         :: skipTree
+    type   (treeNodeList  ), allocatable, dimension(:)          :: nodeArray
+    type   (node          ), pointer                            :: doc        , nodeDefinition
+    type   (nodeList      ), pointer                            :: nodes
+    integer                                                     :: i          , ioErr         , nodeCount
+    integer(kind=kind_int8)                                     :: indexValue
+    logical                                                     :: processTree
 
     !$omp critical(Merger_Tree_Construct_Fully_Specified_Process)
     ! If the tree is already processed, return.
@@ -104,7 +103,7 @@ contains
     ! Iterate over nodes.
     do i=1,nodeCount
        ! Create the node.
-       call thisTree%createNode(nodeArray(i)%node)
+       nodeArray(i)%node => treeNode(hostTree=thisTree)
        ! Get the node definition.
        nodeDefinition => item(nodes,i-1)
        ! Assign an index to the node.

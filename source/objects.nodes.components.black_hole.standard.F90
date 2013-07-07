@@ -704,7 +704,6 @@ contains
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
-    use Merger_Tree_Active
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentBasic    )               , pointer :: thisBasicComponent
@@ -1117,7 +1116,6 @@ contains
     use Kind_Numbers
     use ISO_Varying_String
     use String_Handling
-    use Merger_Tree_Active
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     double precision                    , intent(in   )          :: massBlackHole1    , massBlackHole2
@@ -1137,10 +1135,10 @@ contains
     !$omp critical (Node_Component_Black_Hole_Standard_Output_Merger)
     mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
-    call mergersGroup%writeDataset([massBlackHole1           ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
-    call mergersGroup%writeDataset([massBlackHole2           ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
-    call mergersGroup%writeDataset([thisBasicComponent%time()],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
-    call mergersGroup%writeDataset([activeTreeWeight         ],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
+    call mergersGroup%writeDataset([massBlackHole1                ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
+    call mergersGroup%writeDataset([massBlackHole2                ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
+    call mergersGroup%writeDataset([thisBasicComponent%time()     ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
+    call mergersGroup%writeDataset([thisNode%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()
     !$omp end critical (Node_Component_Black_Hole_Standard_Output_Merger)

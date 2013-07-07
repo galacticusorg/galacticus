@@ -19,7 +19,7 @@
 
 module Merger_Tree_Build
   !% Implements building of merger trees after drawing masses at random from a mass function.
-  use Merger_Trees
+  use Galacticus_Nodes
   use ISO_Varying_String
   implicit none
   private
@@ -46,7 +46,7 @@ module Merger_Tree_Build
   abstract interface
      subroutine Merger_Tree_Builder_Template(thisTree)
        import mergerTree
-       type(mergerTree), intent(inout) :: thisTree
+       type(mergerTree), intent(inout), target :: thisTree
      end subroutine Merger_Tree_Builder_Template
   end interface
 
@@ -75,7 +75,7 @@ contains
     !# </include>
     implicit none
     type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
-    procedure       (                          )             , intent(inout), pointer :: Merger_Tree_Construct
+    procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
     type            (Node                      )                            , pointer :: doc                                 , thisTree
     type            (NodeList                  )                            , pointer :: rootMassList
     integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
@@ -353,17 +353,16 @@ contains
 
   subroutine Merger_Tree_Build_Do(thisTree,skipTree)
     !% Build a merger tree.
-    use Galacticus_Nodes
     use Galacticus_State
     use Kind_Numbers
     use String_Handling
     implicit none
-    type   (mergerTree        ), intent(inout) :: thisTree
-    logical                    , intent(in   ) :: skipTree
-    class  (nodeComponentBasic), pointer       :: baseNodeBasicComponent
-    integer(kind=kind_int8    ), parameter     :: baseNodeIndex         =1
-    integer(kind=kind_int8    )                :: thisTreeIndex
-    type   (varying_string    )                :: message
+    type   (mergerTree        ), intent(inout), target :: thisTree
+    logical                    , intent(in   )         :: skipTree
+    class  (nodeComponentBasic), pointer               :: baseNodeBasicComponent
+    integer(kind=kind_int8    ), parameter             :: baseNodeIndex         =1
+    integer(kind=kind_int8    )                        :: thisTreeIndex
+    type   (varying_string    )                        :: message
 
     ! Get a base halo mass and initialize. Do this within an OpenMP critical section so that threads don't try to get the same
     ! tree.
@@ -388,7 +387,7 @@ contains
        ! Give the tree an index.
        thisTree%index=thisTreeIndex
        ! Create the base node.
-       call thisTree%createNode(thisTree%baseNode,baseNodeIndex)
+       thisTree%baseNode => treeNode(baseNodeIndex,thisTree)
        ! Assign a weight to the tree.
        thisTree%volumeWeight=treeWeight(thisTreeIndex)
        ! Get the basic component of the base node.

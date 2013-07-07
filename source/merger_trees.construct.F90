@@ -19,8 +19,8 @@
 
 module Merger_Tree_Construction
   !% Constructs/destructs merger trees.
+  use Galacticus_Nodes
   use ISO_Varying_String
-  use Merger_Trees
   implicit none
   private
   public :: Merger_Tree_Create
@@ -35,8 +35,8 @@ module Merger_Tree_Construction
   abstract interface
      subroutine Merger_Tree_Construct_Template(thisTree,skipTree)
        import mergerTree
-       type   (mergerTree), intent(inout) :: thisTree
-       logical            , intent(in   ) :: skipTree
+       type   (mergerTree), intent(inout), target :: thisTree
+       logical            , intent(in   )         :: skipTree
      end subroutine Merger_Tree_Construct_Template
   end interface
 

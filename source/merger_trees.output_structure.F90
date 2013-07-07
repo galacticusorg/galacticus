@@ -42,7 +42,6 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Output(thisTree)
     !% Output the structure of {\tt thisTree}.
-    use Merger_Trees
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management

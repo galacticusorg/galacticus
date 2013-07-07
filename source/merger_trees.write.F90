@@ -53,7 +53,6 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Numerical_Interpolation
-    use Merger_Trees
     use Merger_Tree_Data_Structure
     use Galacticus_Nodes
     use Input_Parameters

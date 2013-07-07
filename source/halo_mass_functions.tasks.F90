@@ -73,7 +73,6 @@ contains
   subroutine Halo_Mass_Function_Compute
     !% Computes mass functions and related properties for output.
     use Galacticus_Nodes
-    use Merger_Trees
     use Halo_Mass_Function
     use Dark_Matter_Halo_Biases
     use Memory_Management
@@ -93,7 +92,7 @@ contains
          &                                           iMass                       , iOutput                         , &
          &                                           outputCount                 , verbosityLevel
     double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
-    type            (mergerTree        )          :: thisTree
+    type            (treeNode          ), pointer :: thisNode
 
     ! Get the verbosity level parameter.
     !@ <inputParameter>
@@ -211,10 +210,10 @@ contains
     call Alloc_Array(haloMassFunction_virialRadius     ,[haloMassFunctionsCount,outputCount])
 
     ! Create a node object.
-    call thisTree%createNode(thisTree%baseNode)
+    thisNode => treeNode()
 
     ! Get the basic component.
-    thisBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
+    thisBasicComponent => thisNode%basic(autoCreate=.true.)
 
     ! Loop over all output times.
     do iOutput=1,outputCount
@@ -227,7 +226,7 @@ contains
        ! Loop over all halo masses.
        do iMass=1,haloMassFunctionsCount
           ! Reset calculations.
-          call Galacticus_Calculations_Reset(thisTree%baseNode)
+          call Galacticus_Calculations_Reset(thisNode)
           ! Set the mass in the node.
           call thisBasicComponent%massSet(haloMassFunction_Mass(iMass,iOutput))
           ! Compute halo properties.
@@ -239,10 +238,10 @@ contains
           !      &,haloMassFunction_Mass(iMass,iOutput),haloMassEffectiveInfinity)
           haloMassFunction_sigma            (iMass,iOutput)=Cosmological_Mass_Root_Variance(haloMassFunction_Mass(iMass,iOutput))
           haloMassFunction_nu               (iMass,iOutput)=outputCriticalOverdensities(iOutput)/haloMassFunction_sigma(iMass,iOutput)
-          haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias              (thisTree%baseNode)
-          haloMassFunction_virialVelocity   (iMass,iOutput)=Dark_Matter_Halo_Virial_Velocity   (thisTree%baseNode)
-          haloMassFunction_virialTemperature(iMass,iOutput)=Dark_Matter_Halo_Virial_Temperature(thisTree%baseNode)
-          haloMassFunction_virialRadius     (iMass,iOutput)=Dark_Matter_Halo_Virial_Radius     (thisTree%baseNode)
+          haloMassFunction_bias             (iMass,iOutput)=Dark_Matter_Halo_Bias              (thisNode)
+          haloMassFunction_virialVelocity   (iMass,iOutput)=Dark_Matter_Halo_Virial_Velocity   (thisNode)
+          haloMassFunction_virialTemperature(iMass,iOutput)=Dark_Matter_Halo_Virial_Temperature(thisNode)
+          haloMassFunction_virialRadius     (iMass,iOutput)=Dark_Matter_Halo_Virial_Radius     (thisNode)
        end do
 
     end do

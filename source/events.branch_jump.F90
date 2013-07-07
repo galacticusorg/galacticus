@@ -64,6 +64,8 @@ contains
     else
        newHost      %firstSatellite => thisNode
     end if
+    ! Update the host tree pointer in the node to point to its new tree.
+    thisNode%hostTree => newHost%hostTree
     ! Locate the paired event in the host and remove it.
     call newHost%removePairedEvent(thisEvent)
     ! Since we changed the tree, record that the tree is not deadlocked.

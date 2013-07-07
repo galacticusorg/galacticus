@@ -41,8 +41,8 @@ contains
     !% Initialize the ``state restore'' method for constructing merger trees.
     use Input_Parameters
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+    type     (varying_string           ), intent(in   )          :: mergerTreeConstructMethod
+    procedure(Merger_Tree_State_Restore), intent(inout), pointer :: Merger_Tree_Construct
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'stateRestore') then
@@ -68,7 +68,6 @@ contains
 
   subroutine Merger_Tree_State_Store(thisTree,storeFile)
     !% Store the complete internal state of a merger tree to file.
-    use Merger_Trees
     use Galacticus_Nodes
     use Galacticus_State
     implicit none
@@ -160,19 +159,18 @@ contains
 
   subroutine Merger_Tree_State_Restore(thisTree,skipTree)
     !% Restores the state of a merger tree from file.
-    use Merger_Trees
     use Galacticus_Nodes
     use Galacticus_State
     use Galacticus_Error
     implicit none
-    type   (mergerTree    ), intent(inout)               :: thisTree
-    logical                , intent(in   )               :: skipTree
-    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
-    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
-         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
-         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex
-    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID
+    type   (mergerTree    ), intent(inout)              , target :: thisTree
+    logical                , intent(in   )                       :: skipTree
+    type   (treeNodeList  ), allocatable  , dimension(:)         :: nodes
+    integer                                                      :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
+         &                                                          firstSatelliteIndex, formationNodeIndex, iNode              , &
+         &                                                          mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
+         &                                                          parentIndex        , siblingIndex      , siblingMergeeIndex
+    integer(kind=kind_int8)                                      :: nodeIndex          , nodeUniqueID
 
     ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve
@@ -186,8 +184,8 @@ contains
     ! Allocate a list of nodes.
     allocate(nodes(nodeCount))
     ! Create nodes.
-     do iNode=1,nodeCount
-        call thisTree%createNode(nodes(iNode)%node)
+    do iNode=1,nodeCount
+       nodes(iNode)%node => treeNode(hostTree=thisTree)
     end do
     ! Assign the tree base node.
     if (.not.skipTree) thisTree%baseNode => nodes(nodeArrayIndex)%node

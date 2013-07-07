@@ -20,7 +20,6 @@
 module Galacticus_Output_Merger_Tree
   !% Implements writing a merger tree to the \glc\ output file.
   use ISO_Varying_String
-  use Merger_Trees
   use Galacticus_HDF5
   use Kind_Numbers
   implicit none
@@ -309,6 +308,7 @@ contains
     !% Make an group in the \glc\ file in which to store {\tt thisTree}.
     use Numerical_Constants_Astronomical
     use String_Handling
+    use Galacticus_Nodes
     implicit none
     type   (mergerTree    ), intent(inout) :: thisTree
     integer                , intent(in   ) :: iOutput

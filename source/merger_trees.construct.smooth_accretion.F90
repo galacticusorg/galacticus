@@ -21,7 +21,6 @@
 module Merger_Tree_Smooth_Accretion
   !% Implements building of simple merger trees with smooth mass accretion histories and no branches using the fitting function of
   !% \cite{wechsler_concentrations_2002}.
-  use Merger_Trees
   use ISO_Varying_String
   implicit none
   private
@@ -45,8 +44,8 @@ contains
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeConstructMethod
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Construct
+    type     (varying_string                 ), intent(in   )          :: mergerTreeConstructMethod
+    procedure(Merger_Tree_Smooth_Accretion_Do), intent(inout), pointer :: Merger_Tree_Construct
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'smoothAccretion') then
@@ -108,13 +107,13 @@ contains
     use Kind_Numbers
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type            (mergerTree        )         , intent(inout) :: thisTree
-    logical                                      , intent(in   ) :: skipTree
-    type            (treeNode          ), pointer                :: currentNode        , newNode
-    class           (nodeComponentBasic), pointer                :: baseBasicComponent , newBasicComponent
-    integer         (kind=kind_int8    )                         :: nodeIndex
-    double precision                                             :: expansionFactorBase, mergerTreeBaseTime, nodeMass, &
-         &                                                          nodeTime
+    type            (mergerTree        )         , intent(inout), target :: thisTree
+    logical                                      , intent(in   )         :: skipTree
+    type            (treeNode          ), pointer                        :: currentNode        , newNode
+    class           (nodeComponentBasic), pointer                        :: baseBasicComponent , newBasicComponent
+    integer         (kind=kind_int8    )                                 :: nodeIndex
+    double precision                                                     :: expansionFactorBase, mergerTreeBaseTime, nodeMass, &
+         &                                                                  nodeTime
 
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
@@ -123,7 +122,7 @@ contains
        thisTree%index=1
        ! Create the base node.
        nodeIndex=1
-       call thisTree%createNode(thisTree%baseNode,nodeIndex)
+       thisTree%baseNode => treeNode(nodeIndex,thisTree)
        baseBasicComponent => thisTree%baseNode%basic(autoCreate=.true.)
        ! Assign an arbitrary weight to the tree.
        thisTree%volumeWeight=1.0
@@ -145,7 +144,7 @@ contains
           ! Increment node index.
           nodeIndex=nodeIndex+1
           ! Create a node.
-          call thisTree%createNode(newNode,nodeIndex)
+          newNode => treeNode(nodeIndex,thisTree)
           newBasicComponent => newNode%basic(autoCreate=.true.)
           ! Adjust the mass by the specified factor.
           nodeMass=nodeMass*mergerTreeHaloMassDeclineFactor

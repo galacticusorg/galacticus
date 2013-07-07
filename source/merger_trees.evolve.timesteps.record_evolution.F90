@@ -173,7 +173,6 @@ contains
 
   subroutine Merger_Tree_Record_Evolution_Store(thisTree,thisNode,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
-    use Merger_Trees
     use Galacticus_Nodes
     use Numerical_Interpolation
     use Galactic_Structure_Options
