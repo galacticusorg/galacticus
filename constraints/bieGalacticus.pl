@@ -336,8 +336,10 @@ if ( $autoRestart eq "true" ) {
     print oHndl "#PBS -l nodes=".$nodeCount.":ppn=".$threadsPerNode."\n";
     print oHndl "#PBS -o ".$config->{'workDirectory'}."/mcmc/bie_restart1.out\n";
     print oHndl "#PBS -e ".$config->{'workDirectory'}."/mcmc/bie_restart1.err\n";
-    print oHndl "#PBS -l walltime=".$config->{'wallTime'}."\n"
-	if ( exists($config->{'wallTime'}) );
+    print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
+	if ( exists($config->{'walltimeLimit'}) );
+    print oHndl "#PBS -l mem=".$config->{'memoryLimit'}."\n"
+	if ( exists($config->{'memoryLimit'}) );
     print oHndl "#PBS -N galacticusBIE\n";
     print oHndl "#PBS -V\n";
     print oHndl "#PBS -W depend=afternotok:".$jobNumber."\n";
@@ -391,8 +393,10 @@ if ( $autoRestart eq "true" ) {
     print oHndl "#PBS -l nodes=".$nodeCount.":ppn=".$threadsPerNode."\n";
     print oHndl "#PBS -o ".$config->{'workDirectory'}."/mcmc/bie_restart1.out\n";
     print oHndl "#PBS -e ".$config->{'workDirectory'}."/mcmc/bie_restart1.err\n";
-    print oHndl "#PBS -l walltime=".$config->{'wallTime'}."\n"
-	if ( exists($config->{'wallTime'}) );
+    print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
+	if ( exists($config->{'walltimeLimit'}) );
+    print oHndl "#PBS -l mem=".$config->{'memoryLimit'}."\n"
+	if ( exists($config->{'memoryLimit'}) );
     print oHndl "#PBS -N galacticusBIE\n";
     print oHndl "#PBS -V\n";
     my $pwd = `pwd`;
