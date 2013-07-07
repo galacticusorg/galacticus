@@ -40,7 +40,6 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Mass_Accretion_History_Output(thisTree)
     !% Output the mass accretion history of {\tt thisTree}.
-    use Merger_Trees
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management

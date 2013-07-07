@@ -15,88 +15,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module defining the merger tree object type.
+!% Contains a module which implements evolution of a single node in a merger tree.
 
-module Merger_Trees
-  !% Defines the merger tree object type.
-  use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
-  use               IO_HDF5
-  use               ISO_Varying_String
-  use               Kind_Numbers
-  use               fodeiv2
-  implicit none
+module Merger_Trees_Evolve_Node
+  !% Implements evolution of a single node in a merger tree.
+  use Galacticus_Nodes
+  use Kind_Numbers
+  use ISO_Varying_String
+  use FODEIV2
   private
-  public :: mergerTree, Tree_Node_Is_Accurate, Tree_Node_Get
-
-  type mergerTree
-     !% The merger tree object type.
-     integer         (kind=kind_int8)          :: index
-     type            (hdf5Object    )          :: hdf5Group
-     double precision                          :: volumeWeight
-     logical                                   :: initialized
-     type            (treeNode      ), pointer :: baseNode    =>null()
-     type            (mergerTree    ), pointer :: nextTree    =>null()
-   contains
-     ! Tree creation/destruction.
-     !@ <objectMethods>
-     !@   <object>mergerTree</object>
-     !@   <objectMethod>
-     !@     <method>destroy</method>
-     !@     <description>Destroys the merger tree, including all nodes and their components.</description>
-     !@     <type>\void</type>
-     !@     <arguments></arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>destroyBranch</method>
-     !@     <description>
-     !@       Destroys a branch of a merger tree starting from the supplied node. All nodes and their components are destroyed.
-     !@     </description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>createNode</method>
-     !@     <description>Creates {\tt thisNode}.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout, \textcolor{red}{\textless integer(kind\_int8)\textgreater} [index]\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>promoteNode</method>
-     !@     <description>Promotes {\tt thisNode} to take the place of its parent node.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>getNode</method>
-     !@     <description>Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists.</description>
-     !@     <type>\textcolor{red}{\textless *type(treeNode)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)\textgreater} nodeIndex\argin</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>mergeNode</method>
-     !@     <description>Causes {\tt thisNode} to undergo a node merger event with its parent node.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout</arguments>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>evolveNode</method>
-     !@     <description>Evolves {\tt thisNode} over a suitable timestep.</description>
-     !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *type(treeNode)\textgreater} thisNode\arginout, \doublezero endTime\argin, \logicalzero\ interrupted\argout, \textcolor{red}{\textless *function(*type(treeNode)} thisNode\arginout\textcolor{red}{)\textgreater} interruptProcedure\argout</arguments>
-     !@   </objectMethod>
-     !@ </objectMethods>
-     procedure :: destroy      =>Merger_Tree_Destroy
-     procedure :: destroyBranch=>Merger_Tree_Destroy_Branch
-     procedure :: createNode   =>Tree_Node_Create
-     procedure :: promoteNode  =>Tree_Node_Promote
-     procedure :: evolveNode   =>Tree_Node_Evolve
-     procedure :: mergeNode    =>Events_Node_Merger
-     procedure :: getNode      =>Tree_Node_Get
-  end type mergerTree
-
-  ! Flag to indicate if the tree node create routines have been initialized.
-  logical                                     :: treeNodeCreateInitialized=.false.
+  public :: Tree_Node_Evolve, Tree_Node_Promote, Events_Node_Merger, Tree_Node_Is_Accurate
 
   ! Count of number of different possible component types.
   integer                                     :: componentTypesCount      =0
@@ -146,171 +74,6 @@ module Merger_Trees
   procedure(), pointer :: Galacticus_ODE_Error_Handler=>Tree_Node_ODEs_Error_Handler
 
 contains
-
-  subroutine Merger_Tree_Destroy(thisTree)
-    !% Destroys the entire merger tree.
-    implicit none
-    class(mergerTree), intent(inout) :: thisTree
-
-    select type (thisTree)
-    type is (mergerTree)
-       ! Destroy all nodes.
-       if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
-       ! Destroy the HDF5 group associated with this tree.
-       call thisTree%hdf5Group%destroy()
-    end select
-    return
-  end subroutine Merger_Tree_Destroy
-
-  subroutine Merger_Tree_Destroy_Branch(thisTree,thisNode)
-    !% Destroy a branch of a tree which begins at {\tt thisNode}.
-    implicit none
-    class(mergerTree), intent(inout)          :: thisTree
-    type (treeNode  ), intent(inout), pointer :: thisNode
-    type (treeNode  )               , pointer :: destroyNode, nextNode
-
-    ! Descend to the tip of the branch.
-    call thisNode%walkBranchWithSatellites(thisNode,nextNode)
-    ! Loop over all tree nodes.
-    do while (associated(nextNode))
-       ! Keep of a record of the current node, so that we can destroy it.
-       destroyNode => nextNode
-
-       ! Walk to the next node in the tree.
-       call destroyNode%walkBranchWithSatellites(thisNode,nextNode)
-
-       ! If the node about to be destroyed is the primary progenitor of its parent we must move the child pointer of the parent to
-       ! point to the node's sibling. This is necessary as parent-child pointers are used to establish satellite status and so
-       ! will be utilized when walking the tree. Failure to do this can result in attempts to use dangling pointers.
-       if (associated(destroyNode%parent)) then
-          if (associated(destroyNode%parent%firstChild,destroyNode)) destroyNode%parent%firstChild => destroyNode%sibling
-       end if
-
-       ! Destroy the current node.
-       call destroyNode%destroy()
-       deallocate(destroyNode)
-    end do
-    ! Destroy the base node of the branch.
-    if (associated(thisNode%parent)) then
-       if (associated(thisNode%parent%firstChild,thisNode)) thisNode%parent%firstChild => thisNode%sibling
-    end if
-    call thisNode%destroy()
-    deallocate(thisNode)
-    return
-  end subroutine Merger_Tree_Destroy_Branch
-
-  subroutine Tree_Node_Create(thisTree,thisNode,index)
-    !% Return a pointer to a newly created and initialized tree node.
-    use Galacticus_Error
-    use Memory_Management
-    implicit none
-    class  (mergerTree    ), intent(inout)           :: thisTree
-    type   (treeNode      ), intent(inout), pointer  :: thisNode
-    integer(kind=kind_int8), intent(in   ), optional :: index
-    integer                                          :: allocErr
-
-    ! Initialize tree node methods if necessary.
-    call Tree_Node_Create_Initialize
-
-    ! Allocate the object.
-    allocate(thisNode,stat=allocErr)
-    if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Create','unable to allocate node')
-    call Memory_Usage_Record(sizeof(thisNode),memoryType=memoryTypeNodes)
-
-    ! Initialize the node.
-    call thisNode%initialize(index)
-
-    return
-  end subroutine Tree_Node_Create
-
-  subroutine Tree_Node_Create_Initialize
-    !% Initializes tree node create by calling all relevant initialization routines.
-    use Input_Parameters
-    implicit none
-
-    if (.not.treeNodeCreateInitialized) then
-
-       ! Initialize tree node methods.
-       call Galacticus_Nodes_Initialize()
-
-       ! Flag that tree node methods are now initialized.
-       treeNodeCreateInitialized=.true.
-
-    end if
-    return
-  end subroutine Tree_Node_Create_Initialize
-
-  subroutine Tree_Node_Promote(thisTree,thisNode)
-    !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
-    use String_Handling
-    use Galacticus_Display
-    !# <include directive="nodePromotionTask" type="moduleUse">
-    include 'objects.tree_node.promote.modules.inc'
-    !# </include>
-    implicit none
-    class(mergerTree    ), intent(inout)          :: thisTree
-    type (treeNode      ), intent(inout), pointer :: thisNode
-    type (treeNode      )               , pointer :: parentNode, satelliteNode
-    type (varying_string)                         :: message
-
-    ! Get pointer to parent node.
-    parentNode => thisNode%parent
-
-    ! Display a message.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
-       message='Promoting node '
-       message=message//thisNode%index()//' to '//parentNode%index()
-       call Galacticus_Display_Message(message,verbosityInfo)
-    end if
-
-    ! Perform any processing necessary before this halo is promoted.
-    !# <include directive="nodePromotionTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
-    include 'objects.tree_node.promote.inc'
-    !# </include>
-
-    ! Move the components of thisNode to the parent.
-    call thisNode%moveComponentsTo(parentNode)
-
-    ! Copy any formation node data to the parent, and update the formation node's parentNode pointer to point to the new parent.
-    if (associated(thisNode%formationNode)) then
-       if (associated(parentNode%formationNode)) then
-          call parentNode%formationNode%destroy()
-          deallocate(parentNode%formationNode)
-       end if
-       allocate(parentNode%formationNode)
-       call thisNode%formationNode%copyNodeTo(parentNode%formationNode)
-       parentNode%formationNode%parent => parentNode
-    end if
-
-    ! Transfer any satellite nodes to the parent.
-    if (associated(thisNode%firstSatellite)) then
-       ! Attach the satellite nodes to the parent.
-       if (associated(parentNode%firstSatellite)) then
-          ! Find the last satellite of the parent node.
-          satelliteNode         => parentNode%lastSatellite()
-          satelliteNode%sibling => thisNode  %firstSatellite
-       else
-          parentNode%firstSatellite => thisNode%firstSatellite
-       end if
-       ! Get the first satellite of thisNode.
-       satelliteNode => thisNode%firstSatellite
-       do while (associated(satelliteNode))
-          ! Set the parent node for this satellite to the parent.
-          satelliteNode%parent => parentNode
-          satelliteNode        => satelliteNode%sibling
-       end do
-    end if
-
-    ! Nullify the child pointer for the parent.
-    parentNode%firstChild => null()
-
-    ! Destroy the node.
-    call thisNode%destroy()
-    deallocate(thisNode)
-
-    return
-  end subroutine Tree_Node_Promote
 
   subroutine Tree_Node_Evolve_Initialize
     !% Initializes the tree evolving routines by reading in parameters
@@ -390,9 +153,9 @@ contains
   subroutine Tree_Node_Evolve(thisTree,thisNode,endTime,interrupted,interruptProcedure)
     !% Evolves {\tt thisNode} to time {\tt endTime}, or until evolution is interrupted.
     use ODEIV2_Solver
-    use FODEIV2
     use Memory_Management
     use Galacticus_Calculations_Resets
+    use, intrinsic :: ISO_C_Binding
     !# <include directive="preEvolveTask" type="moduleUse">
     include 'objects.tree_node.pre_evolve.modules.inc'
     !# </include>
@@ -546,6 +309,7 @@ contains
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
     use FGSL
+    use, intrinsic :: ISO_C_Binding
     implicit none
     integer  (kind=c_int                  )                       :: Tree_Node_ODEs
     real     (kind=c_double               )               , value :: time
@@ -685,6 +449,78 @@ contains
   end subroutine Tree_Node_Evolve_Error_Analyzer
 #endif
 
+  subroutine Tree_Node_Promote(thisTree,thisNode)
+    !% Transfer the properties of {\tt thisNode} to its parent node, then destroy it.
+    use String_Handling
+    use Galacticus_Display
+    !# <include directive="nodePromotionTask" type="moduleUse">
+    include 'objects.tree_node.promote.modules.inc'
+    !# </include>
+    implicit none
+    class(mergerTree    ), intent(inout)          :: thisTree
+    type (treeNode      ), intent(inout), pointer :: thisNode
+    type (treeNode      )               , pointer :: parentNode, satelliteNode
+    type (varying_string)                         :: message
+
+    ! Get pointer to parent node.
+    parentNode => thisNode%parent
+
+    ! Display a message.
+    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Promoting node '
+       message=message//thisNode%index()//' to '//parentNode%index()
+       call Galacticus_Display_Message(message,verbosityInfo)
+    end if
+
+    ! Perform any processing necessary before this halo is promoted.
+    !# <include directive="nodePromotionTask" type="functionCall" functionType="void">
+    !#  <functionArgs>thisNode</functionArgs>
+    include 'objects.tree_node.promote.inc'
+    !# </include>
+
+    ! Move the components of thisNode to the parent.
+    call thisNode%moveComponentsTo(parentNode)
+
+    ! Copy any formation node data to the parent, and update the formation node's parentNode pointer to point to the new parent.
+    if (associated(thisNode%formationNode)) then
+       if (associated(parentNode%formationNode)) then
+          call parentNode%formationNode%destroy()
+          deallocate(parentNode%formationNode)
+       end if
+       allocate(parentNode%formationNode)
+       call thisNode%formationNode%copyNodeTo(parentNode%formationNode)
+       parentNode%formationNode%parent => parentNode
+    end if
+
+    ! Transfer any satellite nodes to the parent.
+    if (associated(thisNode%firstSatellite)) then
+       ! Attach the satellite nodes to the parent.
+       if (associated(parentNode%firstSatellite)) then
+          ! Find the last satellite of the parent node.
+          satelliteNode         => parentNode%lastSatellite()
+          satelliteNode%sibling => thisNode  %firstSatellite
+       else
+          parentNode%firstSatellite => thisNode%firstSatellite
+       end if
+       ! Get the first satellite of thisNode.
+       satelliteNode => thisNode%firstSatellite
+       do while (associated(satelliteNode))
+          ! Set the parent node for this satellite to the parent.
+          satelliteNode%parent => parentNode
+          satelliteNode        => satelliteNode%sibling
+       end do
+    end if
+
+    ! Nullify the child pointer for the parent.
+    parentNode%firstChild => null()
+
+    ! Destroy the node.
+    call thisNode%destroy()
+    deallocate(thisNode)
+
+    return
+  end subroutine Tree_Node_Promote
+
   subroutine Events_Node_Merger(thisTree,thisNode)
     !% Handles instances where {\tt thisNode} is about to merge with its parent node.
     use Input_Parameters
@@ -746,24 +582,4 @@ contains
     return
   end subroutine Events_Node_Merger
 
-  function Tree_Node_Get(thisTree,nodeIndex)
-    !% Return a pointer to a node in {\tt thisTree} given the index of the node.
-    implicit none
-    class  (mergerTree    ), intent(in   ) :: thisTree
-    integer(kind=kind_int8), intent(in   ) :: nodeIndex
-    type   (treeNode      ), pointer       :: Tree_Node_Get, thisNode
-
-    Tree_Node_Get => null()
-    thisNode => thisTree%baseNode
-    do while (associated(thisNode))
-       if (thisNode%index() == nodeIndex) then
-          Tree_Node_Get => thisNode
-          return
-       end if
-       ! <gfortan 4.6> explicitly specify the target as thisNode since we can't use the "_Same_Node" tree walking procedures.
-       call thisNode%walkTreeWithSatellites(thisNode)
-    end do
-    return
-  end function Tree_Node_Get
-
-end module Merger_Trees
+end module Merger_Trees_Evolve_Node

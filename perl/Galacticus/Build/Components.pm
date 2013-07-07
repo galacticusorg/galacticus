@@ -1777,6 +1777,12 @@ sub Generate_Tree_Node_Object {
 	     type       => "nodeEvent",
 	     attributes => [ "public", "pointer" ],
 	     variables  => [ "event" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "mergerTree",
+	     attributes => [ "public", "pointer" ],
+	     variables  => [ "hostTree" ]
 	 }
 	);
     foreach ( @{$buildData->{'componentClassList'}} ) {
@@ -5383,11 +5389,17 @@ sub Generate_Tree_Node_Creation_Function {
 	     type       => "kind=kind_int8",
 	     attributes => [ "intent(in   )", "optional" ],
 	     variables  => [ "index" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "mergerTree",
+	     attributes => [ "intent(in   )", "optional", "target" ],
+	     variables  => [ "hostTree" ]
 	 }
 	);
     # Create the function code.
     my $functionCode;
-    $functionCode .= "  subroutine treeNodeInitialize(self,index)\n";
+    $functionCode .= "  subroutine treeNodeInitialize(self,index,hostTree)\n";
     $functionCode .= "    !% Initialize a {\\tt treeNode} object.\n";
     $functionCode .= "    use Galacticus_Error\n";
     $functionCode .= "    implicit none\n";
@@ -5404,6 +5416,8 @@ sub Generate_Tree_Node_Creation_Function {
 	$functionCode .= "       self%component".padComponentClass(ucfirst($_),[0,0])."(1)%hostNode => self\n";
     }
     $functionCode .= "    end select\n";
+    $functionCode .= "    ! Assign a host tree if supplied.\n";
+    $functionCode .= "    if (present(hostTree)) self%hostTree => hostTree\n";
     $functionCode .= "    ! Assign index if supplied.\n";
     $functionCode .= "    if (present(index)) call self%indexSet(index)\n";
     $functionCode .= "    ! Assign a unique ID.\n";

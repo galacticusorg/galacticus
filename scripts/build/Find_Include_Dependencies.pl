@@ -51,7 +51,7 @@ foreach my $srcdir ( @sourcedirs ) {
     opendir(my $indir,$srcdir) or die "Can't open the source directory: #!";
     while (my $fname = readdir $indir) {
 	
-	if ( ( lc($fname) =~ m/\.f(90)??t??$/ || lc($fname) =~ m/\.c(pp)??$/ || lc($fname) =~ m/\.h??$/ ) && lc($fname) !~ m/^\.\#/ ) {
+	if ( ( lc($fname) =~ m/\.f(90)??t??$/ || lc($fname) =~ m/\.inc$/ || lc($fname) =~ m/\.c(pp)??$/ || lc($fname) =~ m/\.h??$/ ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $pname = $fname;
 	    my $fullname = "$srcdir/$fname";
 	    my $doesio = 0;
@@ -60,7 +60,6 @@ foreach my $srcdir ( @sourcedirs ) {
 	    
 	    my $hasincludes = 0;
 	    my $oname = $fname;
-	    $oname =~ s/\.f90$/\.o/;
 	    $oname =~ s/\.F90$/\.o/;
 	    $oname =~ s/\.f90t$/\.o/;
 	    $oname =~ s/\.F90t$/\.o/;

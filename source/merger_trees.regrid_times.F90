@@ -50,7 +50,6 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Regrid_Time(thisTree)
     !% Regrid times of halos in {\tt thisTree}.
-    use Merger_Trees
     use Galacticus_Nodes
     use Input_Parameters
     use Numerical_Ranges
@@ -306,7 +305,7 @@ contains
                    if (allocErr/=0) call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unable to allocate new nodes')
                    do iTime=iNow+1,iParent
                       nodeIndex=nodeIndex+1_kind_int8
-                      call currentTree%createNode(newNodes(iTime-iNow)%node)
+                      newNodes(iTime-iNow)%node => treeNode(hostTree=currentTree)
                       call newNodes(iTime-Inow)%node%indexSet(nodeIndex)
                    end do
                    ! Assign node properties and build links.

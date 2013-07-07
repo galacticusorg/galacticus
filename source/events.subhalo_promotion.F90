@@ -30,11 +30,11 @@ contains
     use Input_Parameters
     use Galacticus_Nodes
     use Galacticus_Error
-    use Merger_Trees
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Merger_Trees_Evolve_Node
     implicit none
     class  (nodeEvent     ), intent(in   )          :: thisEvent
     type   (treeNode      ), intent(inout), pointer :: thisNode
@@ -62,7 +62,7 @@ contains
     thisNode%sibling         => null()
     promotionNode%firstChild => thisNode
     ! Promote the halo.
-    call thisTree%promoteNode(thisNode)
+    call Tree_Node_Promote(thisTree,thisNode)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=isNotDeadlocked
     ! Record that the task was performed.

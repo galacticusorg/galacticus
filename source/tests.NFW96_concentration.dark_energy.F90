@@ -28,12 +28,10 @@ program Test_NFW96_Concentration_Dark_Energy
   use Dark_Matter_Profiles_Concentrations
   use Cosmology_Functions
   use Cosmological_Parameters
-  use Merger_Trees
   use Galacticus_Nodes
   use String_Handling
   use Unit_Tests
   implicit none
-  type            (mergerTree        )                         , pointer :: thisTree
   type            (treeNode          )                         , pointer :: thisNode
   class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
   integer                             , dimension(6), parameter          :: chardenLogHaloMass    =[10,11,12,13,14,15]
@@ -54,7 +52,7 @@ program Test_NFW96_Concentration_Dark_Energy
   call Input_Parameters_File_Open(parameterFile)
 
   ! Create a node.
-  call thisTree%createNode(thisNode)
+  thisNode => treeNode()
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
