@@ -107,8 +107,10 @@ while ( $scratchDirectory =~ m/\$([_A-Z]+)/ ) {
 }
 
 # Ensure scratch and work directories exist.
-system("mkdir -p ".$config->{'workDirectory'}."/mcmc");
-system("mkdir -p ".$scratchDirectory);
+system("mkdir -p ".$config->{'workDirectory'}."/mcmc")
+    unless ( -e $config->{'workDirectory'}."/mcmc" );
+system("mkdir -p ".$scratchDirectory)
+    unless ( -e $scratchDirectory );
 
 # Report.
 if ( exists($config->{'report'}) ) {
