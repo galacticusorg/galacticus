@@ -172,7 +172,6 @@ contains
 
   subroutine Merger_Tree_History_Store(thisTree,thisNode,deadlockStatus)
     !% Store various properties in global arrays.
-    use Merger_Trees
     use Numerical_Interpolation
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses

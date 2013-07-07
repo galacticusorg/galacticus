@@ -14,6 +14,7 @@ use Data::Dumper;
 use Switch;
 use Scalar::Util 'reftype';
 use Fcntl qw(SEEK_SET);
+use UNIVERSAL;
 require Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::ModuleUse;
@@ -54,7 +55,7 @@ $buildData->{'moduleName'} = "";
 # Find files to scan.
 my @filesToScan;
 if ( defined($locations) ) {
-    if ( reftype($locations->{$buildData->{'directive'}}->{'file'}) eq 'ARRAY' ) {
+    if ( UNIVERSAL::isa($locations->{$buildData->{'directive'}}->{'file'},'ARRAY') ) {
 	@filesToScan = @{$locations->{$buildData->{'directive'}}->{'file'}};
     } else {	
 	@filesToScan = ( $locations->{$buildData->{'directive'}}->{'file'} )

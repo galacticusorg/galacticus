@@ -31,7 +31,6 @@ contains
 
   subroutine Merger_Trees_Render_Dump(thisTree)
     !% Dumps information on merger tree structure useful for rendering 3D views of merger trees.
-    use Merger_Trees
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Cosmology_Functions

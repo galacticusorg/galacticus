@@ -29,14 +29,12 @@ program Test_Zhao2009_Flat
   use Dark_Matter_Profiles_Concentrations
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
-  use Merger_Trees
   use Galacticus_Nodes
   use Unit_Tests
   use String_Handling
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (mergerTree        )                         , pointer :: thisTree
   type            (treeNode          )                         , pointer :: thisNode
   class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
   integer                             , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
@@ -63,7 +61,7 @@ program Test_Zhao2009_Flat
   call Input_Parameters_File_Open(parameterFile)
 
   ! Create a node.
-  call thisTree%createNode(thisNode)
+  thisNode => treeNode()
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)

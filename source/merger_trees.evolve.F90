@@ -52,8 +52,8 @@ contains
 
   subroutine Merger_Tree_Evolve_To(thisTree,endTime)
     !% Evolves all properties of a merger tree to the specified time.
+    use Merger_Trees_Evolve_Node
     use Merger_Trees_Evolve_Timesteps_Template
-    use Merger_Trees
     use Merger_Trees_Initialize
     use Merger_Trees_Dump
     use Galacticus_Error
@@ -288,7 +288,7 @@ contains
                       ! Update record of earliest time in the tree.
                       earliestTimeInTree=min(earliestTimeInTree,endTimeThisNode)
                       ! Evolve the node to the next interrupt event, or the end time.
-                      call currentTree%evolveNode(thisNode,endTimeThisNode,interrupted,interruptProcedure)
+                      call Tree_Node_Evolve(currentTree,thisNode,endTimeThisNode,interrupted,interruptProcedure)
 
                       ! Check for interrupt.
                       if (interrupted) then
@@ -312,12 +312,12 @@ contains
                          case (.false.)
                             ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
                             ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging event.
-                            if (.not.thisNode%isSatellite()) call currentTree%mergeNode(thisNode)
+                            if (.not.thisNode%isSatellite()) call Events_Node_Merger(currentTree,thisNode)
                          case (.true.)
                             ! This is the major progenitor, so promote the node to its parent as it is the main progenitor providing
                             ! that the node has no siblings - this ensures that any siblings have already been evolved and become
                             ! satellites of the parent halo.
-                            if (.not.associated(thisNode%sibling)) call currentTree%promoteNode(thisNode)
+                            if (.not.associated(thisNode%sibling)) call Tree_Node_Promote(currentTree,thisNode)
                          end select
                       end if
                    end if
@@ -374,6 +374,7 @@ contains
   double precision function Evolve_To_Time(thisNode,endTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determine the time to which {\tt thisNode} should be evolved.
     use Merger_Trees_Evolve_Timesteps_Template
+    use Merger_Trees_Evolve_Node
     use Merger_Tree_Timesteps
     use Cosmology_Functions
     use Input_Parameters
@@ -381,7 +382,6 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
-    use Merger_Trees
     use Evolve_To_Time_Reports
     use Kind_Numbers
     implicit none
@@ -696,7 +696,6 @@ contains
 
   subroutine Perform_Node_Events(thisTree,thisNode,deadlockStatus)
     !% Perform any events associated with {\tt thisNode}.
-    use Merger_Trees
     implicit none
     type            (mergerTree        ), intent(in   )          :: thisTree
     type            (treeNode          ), intent(inout), pointer :: thisNode

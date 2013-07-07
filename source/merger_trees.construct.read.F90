@@ -19,7 +19,6 @@
 
 module Merger_Tree_Read
   !% Implements reading of merger trees from an HDF5 file.
-  use Merger_Trees
   use Galacticus_Nodes
   use ISO_Varying_String
   use IO_HDF5
@@ -174,18 +173,18 @@ contains
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type            (varying_string), intent(in   )          :: mergerTreeConstructMethod
-    procedure       (              ), intent(inout), pointer :: Merger_Tree_Construct
-    integer                                                  :: haloMassesIncludeSubhalosInteger  , hubbleExponent             , &
-         &                                                      iOutput                           , simulationIsPeriodicInteger, &
-         &                                                      treesAreSelfContained             , treesHaveSubhalos          , &
-         &                                                      velocitiesIncludeHubbleFlowInteger
-    double precision                                         :: cosmologicalParameter
-    character       (len=14        )                         :: valueString
-    type            (varying_string)                         :: message
-    double precision                                         :: localLittleH0                     , localOmegaBaryon           , &
-         &                                                      localOmegaDE                      , localOmegaMatter           , &
-         &                                                      localSigma8
+    type            (varying_string     ), intent(in   )          :: mergerTreeConstructMethod
+    procedure       (Merger_Tree_Read_Do), intent(inout), pointer :: Merger_Tree_Construct
+    integer                                                       :: haloMassesIncludeSubhalosInteger  , hubbleExponent             , &
+         &                                                           iOutput                           , simulationIsPeriodicInteger, &
+         &                                                           treesAreSelfContained             , treesHaveSubhalos          , &
+         &                                                           velocitiesIncludeHubbleFlowInteger
+    double precision                                              :: cosmologicalParameter
+    character       (len=14        )                              :: valueString
+    type            (varying_string)                              :: message
+    double precision                                              :: localLittleH0                     , localOmegaBaryon           , &
+         &                                                           localOmegaDE                      , localOmegaMatter           , &
+         &                                                           localSigma8
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -719,18 +718,18 @@ contains
     use ISO_Varying_String
     use Merger_Tree_Read_State
     implicit none
-    type            (mergerTree                    )                             , intent(inout) :: thisTree
-    logical                                                                      , intent(in   ) :: skipTree
-    double precision                                , allocatable, dimension(:  )                :: historyMass        , historyTime
-    double precision                                , allocatable, dimension(:,:)                :: position           , velocity
-    type            (nodeData                      ), allocatable, dimension(:  ), target        :: nodes
-    type            (treeNodeList                  ), allocatable, dimension(:  )                :: thisNodeList
-    logical                                         , allocatable, dimension(:  )                :: childIsSubhalo
-    integer         (kind=HSIZE_T                  )             , dimension(1  )                :: firstNodeIndex     , nodeCount
-    integer                                                                                      :: isolatedNodeCount
-    integer         (kind=kind_int8                )                                             :: historyCountMaximum, iNode
-    logical                                                                                      :: haveTree
-    type            (varying_string                )                                             :: message
+    type            (mergerTree                    )                             , intent(inout), target :: thisTree
+    logical                                                                      , intent(in   )         :: skipTree
+    double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime
+    double precision                                , allocatable, dimension(:,:)                        :: position           , velocity
+    type            (nodeData                      ), allocatable, dimension(:  ), target                :: nodes
+    type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList
+    logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo
+    integer         (kind=HSIZE_T                  )             , dimension(1  )                        :: firstNodeIndex     , nodeCount
+    integer                                                                                              :: isolatedNodeCount
+    integer         (kind=kind_int8                )                                                     :: historyCountMaximum, iNode
+    logical                                                                                              :: haveTree
+    type            (varying_string                )                                                     :: message
 
     !$omp critical(mergerTreeReadTree)
     ! Increment the tree to read index.
@@ -787,7 +786,7 @@ contains
        ! If the tree is to be skipped, do not read it.
        if (skipTree) then
           ! Simply allocate a base node to indicate that the tree exists.
-          call thisTree%createNode(thisTree%baseNode)
+          thisTree%baseNode => treeNode(hostTree=thisTree)
        else
           ! Set tree properties.
           ! treeIndex
@@ -1466,7 +1465,7 @@ contains
           iIsolatedNode=iIsolatedNode+1
           ! Store a record of where this node goes in the isolated node list.
           nodes(iNode)%isolatedNodeIndex=iIsolatedNode
-          call thisTree%createNode(nodeList(iIsolatedNode)%node)
+          nodeList(iIsolatedNode)%node => treeNode(hostTree=thisTree)
           call nodeList(iIsolatedNode)%node%indexSet(nodes(iNode)%nodeIndex)
           nodes(iNode)%node => nodeList(iIsolatedNode)%node
        end if
@@ -1480,17 +1479,17 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target::                    thisTree
-    type     (nodeData          )         , dimension(:), intent(inout) ::      nodes
-    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList
-    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent
-    type     (mergerTree        ), pointer                              ::      currentTree
-    type     (nodeData          ), pointer                              ::      parentNode
-    integer                                                             ::      iNode
-    integer  (kind=kind_int8    )                                       ::      iIsolatedNode
-    type     (varying_string    )                                       ::      message
-    character(len=12            )                                       ::      label
-    logical                                                             ::      assignLastIsolatedTime
+    type     (mergerTree        )                       , intent(inout) , target :: thisTree
+    type     (nodeData          )         , dimension(:), intent(inout)          :: nodes
+    type     (treeNodeList      )         , dimension(:), intent(inout)          :: nodeList
+    class    (nodeComponentBasic), pointer                                       :: nodeBasicComponent
+    type     (mergerTree        ), pointer                                       :: currentTree
+    type     (nodeData          ), pointer                                       :: parentNode
+    integer                                                                      :: iNode
+    integer  (kind=kind_int8    )                                                :: iIsolatedNode
+    type     (varying_string    )                                                :: message
+    character(len=12            )                                                :: label
+    logical                                                                      :: assignLastIsolatedTime
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
