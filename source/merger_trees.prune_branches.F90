@@ -39,7 +39,6 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Prune_Branches(thisTree)
     !% Prune branches from {\tt thisTree}.
-    use Merger_Trees
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

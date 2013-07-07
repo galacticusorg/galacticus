@@ -25,11 +25,9 @@ program Test_Prada2011_Concentration
   use Dark_Matter_Profiles_Concentrations
   use Cosmology_Functions
   use Cosmological_Parameters
-  use Merger_Trees
   use Galacticus_Nodes
   use Unit_Tests
   implicit none
-  type            (mergerTree        )                                 , pointer :: thisTree
   type            (treeNode          )                                 , pointer :: thisNode
   class           (nodeComponentBasic)                                 , pointer :: thisBasicComponent
   type            (varying_string    )                                           :: message                                                    , parameterFile
@@ -51,7 +49,7 @@ program Test_Prada2011_Concentration
   call Input_Parameters_File_Open(parameterFile)
 
   ! Create a node.
-  call thisTree%createNode(thisNode)
+  thisNode => treeNode()
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)

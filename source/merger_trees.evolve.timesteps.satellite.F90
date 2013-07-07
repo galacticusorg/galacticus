@@ -153,7 +153,6 @@ contains
 
   subroutine Satellite_Merger_Process(thisTree,thisNode,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use Merger_Trees
     use Galacticus_Nodes
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String

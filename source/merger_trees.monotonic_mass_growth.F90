@@ -35,7 +35,6 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Monotonic_Mass_Growth(thisTree)
     !% Enforce monotonic mass growth along branches of {\tt thisTree}.
-    use Merger_Trees
     use Galacticus_Nodes
     use Input_Parameters
     implicit none

@@ -28,7 +28,6 @@ contains
   double precision function Time_Step_Get(thisNode,evolveToTime,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Computes a suitable timestep over which to evolve a node in a tree.
     use Galacticus_Nodes
-    use Merger_Trees
     use Input_Parameters
     use Galacticus_Error
     use Merger_Trees_Evolve_Timesteps_Template

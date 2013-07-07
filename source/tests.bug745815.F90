@@ -22,12 +22,10 @@ program Tests_Bug745815
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Merger_Trees
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
   type   (varying_string)          :: parameterFile
-  type   (mergerTree    )          :: thisTree
   type   (treeNodeList  )          :: nodes        (5)
   logical                          :: nodeFound    (5)
   type   (treeNode      ), pointer :: thisNode
@@ -45,7 +43,7 @@ program Tests_Bug745815
 
   ! Create nodes.
   do iNode=1,5
-     call thisTree%createNode(nodes(iNode)%node)
+     nodes(iNode)%node => treeNode()
   end do
 
   ! Set indices of nodes.

@@ -19,7 +19,6 @@
 
 module Merger_Trees_Evolve_Timesteps_Template
   !% Defines the template for tasks performed at the end of timesteps.
-  use Merger_Trees
   use Galacticus_Nodes
   implicit none
   public

@@ -18,7 +18,6 @@
 program Tests_Tree_Branch_Destroy
   use Unit_Tests
   use Memory_Management
-  use Merger_Trees
   use Galacticus_Nodes
   use Kind_Numbers
   implicit none
@@ -37,7 +36,7 @@ program Tests_Tree_Branch_Destroy
 
   ! Create nodes.
   do iNode=1,5
-     call thisTree%createNode(nodes(iNode)%node)
+     nodes(iNode)%node => treeNode()
   end do
   thisTree%baseNode => nodes(1)%node
 

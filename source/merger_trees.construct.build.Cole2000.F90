@@ -19,7 +19,6 @@
 
 module Merger_Tree_Build_Cole2000
   !% Implements building of merger trees using the algorithm of \cite{cole_hierarchical_2000}.
-  use Merger_Trees
   use FGSL
   implicit none
   private
@@ -41,6 +40,7 @@ module Merger_Tree_Build_Cole2000
   ! Variables used in integrands.
   double precision           :: currentTime
   !$omp threadprivate(currentTime)
+
 contains
 
   !# <mergerTreeBuildMethod>
@@ -52,8 +52,8 @@ contains
     use ISO_Varying_String
     use Cosmology_Functions
     implicit none
-    type     (varying_string), intent(in   )          :: mergerTreeBuildMethod
-    procedure(              ), intent(inout), pointer :: Merger_Tree_Build
+    type     (varying_string               ), intent(in   )          :: mergerTreeBuildMethod
+    procedure(Merger_Tree_Build_Do_Cole2000), intent(inout), pointer :: Merger_Tree_Build
 
     ! Check if our method is to be used.
     if (mergerTreeBuildMethod == 'Cole2000') then
@@ -122,16 +122,16 @@ contains
     use Kind_Numbers
     use Merger_Trees_Build_Mass_Resolution
     implicit none
-    type            (mergerTree        ), intent(inout) :: thisTree
-    type            (treeNode          ), pointer       :: newNode1          , newNode2          , thisNode
-    class           (nodeComponentBasic), pointer       :: newBasicComponent1, newBasicComponent2, thisBasicComponent
-    integer         (kind=kind_int8    )                :: nodeIndex
-    double precision                                    :: accretionFraction , baseNodeTime      , branchingProbability, &
-         &                                                 collapseTime      , deltaCritical     , deltaCritical1      , &
-         &                                                 deltaCritical2    , deltaW            , nodeMass1           , &
-         &                                                 nodeMass2         , time              , uniformRandom       , &
-         &                                                 massResolution
-    logical                                             :: doBranch
+    type            (mergerTree        ), intent(inout), target :: thisTree
+    type            (treeNode          ), pointer               :: newNode1          , newNode2          , thisNode
+    class           (nodeComponentBasic), pointer               :: newBasicComponent1, newBasicComponent2, thisBasicComponent
+    integer         (kind=kind_int8    )                        :: nodeIndex
+    double precision                                            :: accretionFraction , baseNodeTime      , branchingProbability, &
+         &                                                         collapseTime      , deltaCritical     , deltaCritical1      , &
+         &                                                         deltaCritical2    , deltaW            , nodeMass1           , &
+         &                                                         nodeMass2         , time              , uniformRandom       , &
+         &                                                         massResolution
+    logical                                                     :: doBranch
 
     nodeIndex          =  1                 ! Initialize the node index counter to unity.
     thisNode           => thisTree%baseNode ! Point to the base node.
@@ -208,7 +208,7 @@ contains
           case (.true.)
              ! Branching occurs - create two progenitors.
              nodeIndex=nodeIndex+1
-             call thisTree%createNode(newNode1,nodeIndex)
+             newNode1 => treeNode(nodeIndex,thisTree)
              newBasicComponent1 => newNode1%basic(autoCreate=.true.)
              ! Compute mass of one of the new nodes. First convert the realized probability back to a rate.
              branchingProbability=uniformRandom/deltaW
@@ -223,7 +223,7 @@ contains
              call newBasicComponent1%timeSet(deltaCritical1)
              ! Create second progenitor.
              nodeIndex=nodeIndex+1
-             call thisTree%createNode(newNode2,nodeIndex)
+             newNode2 => treeNode(nodeIndex,thisTree)
              newBasicComponent2 => newNode2%basic(autoCreate=.true.)
              ! Compute mass of second new node.
              nodeMass2=thisBasicComponent%mass()*(1.0d0-accretionFraction)-nodeMass1
@@ -244,7 +244,7 @@ contains
           case (.false.)
              ! No branching occurs - create one progenitor.
              nodeIndex=nodeIndex+1
-             call thisTree%createNode(newNode1,nodeIndex)
+             newNode1 => treeNode(nodeIndex,thisTree)
              newBasicComponent1 => newNode1%basic(autoCreate=.true.)
              ! Compute new mass accounting for sub-resolution accretion.
              nodeMass1=thisBasicComponent%mass()*(1.0d0-accretionFraction)

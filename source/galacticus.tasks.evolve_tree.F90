@@ -44,16 +44,15 @@ contains
   !# </galacticusTask>
   logical function Galacticus_Task_Evolve_Tree()
     !% Evolves the complete set of merger trees as specified.
+    use Galacticus_Nodes
     use ISO_Varying_String
     use String_Handling
-    use Merger_Trees
     use Merger_Trees_Evolve
     use Galacticus_Output_Merger_Tree
     use Galacticus_Display
     use Galacticus_Nodes
     use Input_Parameters
     use Galacticus_Output_Times
-    use Merger_Tree_Active
     use Memory_Management
     use System_Load
     use Semaphores
@@ -213,9 +212,6 @@ contains
                      &           )
              end do
 
-             ! Set this as the active tree.
-             activeTreeWeight=thisTree%volumeWeight
-
              ! Perform any pre-evolution tasks on the tree.
              !# <include directive="mergerTreePreEvolveTask" type="functionCall" functionType="void">
              !#  <functionArgs>thisTree</functionArgs>
@@ -279,7 +275,7 @@ contains
 
   subroutine Get_Tree(iTree,skipTree,thisTree,finished)
     !% Get a tree to process.
-    use Merger_Trees
+    use Galacticus_Nodes
     use Merger_Tree_Construction
     !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'

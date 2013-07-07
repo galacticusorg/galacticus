@@ -28,7 +28,6 @@ contains
   double precision function Merger_Tree_Cladistic_Information_Content(thisTree)
     !% Compute the cladistic information content (CIC; \citealt{thorley_information_1998}) of a merger tree in bits.
     use Factorials
-    use Merger_Trees
     use Galacticus_Nodes
     implicit none
     type            (mergerTree), intent(in   ) :: thisTree

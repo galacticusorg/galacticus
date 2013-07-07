@@ -32,6 +32,8 @@ module Galacticus_Nodes
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Astronomical
   use Numerical_Constants_Physical
+  use IO_HDF5
+  use FODEIV2
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Interrupt_Procedure_Template
   !! <gfortran4.8> workaround
@@ -97,6 +99,9 @@ module Galacticus_Nodes
      type(treeNode), pointer :: node
   end type treeNodeList
 
+  ! Include merger tree object.
+  include "objects.merger_trees.type.inc"
+
   ! Zero dimension arrays to be returned as defaults.
   double precision                , dimension(0)         :: nullDouble1d
 
@@ -110,6 +115,11 @@ module Galacticus_Nodes
   ! Event ID counter.
   integer         (kind=kind_int8)                       :: eventID           =0
 
+  ! Define a constructor for treeNodes.
+  interface treeNode
+     module procedure Tree_Node_Constructor
+  end interface treeNode
+
   ! Include node methods.
   !# <include directive="component" type="component">
   include 'objects.nodes.components.inc'
@@ -117,6 +127,29 @@ module Galacticus_Nodes
 
   !
   ! Functions for treeNode class.
+  function Tree_Node_Constructor(index,hostTree)
+    !% Return a pointer to a newly created and initialized {\tt treeNode}.
+    use Galacticus_Error
+    use Memory_Management
+    implicit none
+    type   (treeNode      ), pointer                         :: Tree_Node_Constructor
+    integer(kind=kind_int8), intent(in   ), optional         :: index
+    type   (mergerTree    ), intent(in   ), optional, target :: hostTree
+    integer                                                  :: allocErr
+    
+    ! Initialize tree node methods if necessary.
+    call Tree_Node_Create_Initialize
+    
+    ! Allocate the object.
+    allocate(Tree_Node_Constructor,stat=allocErr)
+    if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Constructor','unable to allocate node')
+    call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
+    
+    ! Initialize the node.
+    call Tree_Node_Constructor%initialize(index,hostTree)
+    return
+  end function Tree_Node_Constructor
+  
   function Tree_Node_Type(self)
     !% Returns the name of a {\tt treeNode} object.
     implicit none
@@ -952,5 +985,8 @@ module Galacticus_Nodes
     Boolean_True=.true.
     return
   end function Boolean_True
+
+  ! Include functions for the merger tree class.
+  include "objects.merger_trees.functions.inc"
 
 end module Galacticus_Nodes
