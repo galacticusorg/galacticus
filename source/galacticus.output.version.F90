@@ -26,7 +26,7 @@ module Galacticus_Versioning
   ! Define the version.
   integer, parameter :: versionMajor   =0
   integer, parameter :: versionMinor   =9
-  integer, parameter :: versionRevision=1
+  integer, parameter :: versionRevision=2
 
   ! Include the automatically generated Bazaar revision number.
   include 'galacticus.output.version.revision.inc'
