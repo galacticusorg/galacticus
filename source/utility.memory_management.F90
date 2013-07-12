@@ -232,13 +232,19 @@ contains
     endif
   end subroutine Code_Memory_Usage
 
-  subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount)
+  subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)
     !% Record a change in memory usage.
+    use Galacticus_Display
+    use ISO_Varying_String
+    use String_Handling
     use, intrinsic :: ISO_C_Binding
     implicit none
-    integer(kind=C_SIZE_T), intent(in   )           :: elementsUsed
-    integer               , intent(in   ), optional :: addRemove      , blockCount      , memoryType
-    integer                                         :: addRemoveActual, blockCountActual, memoryTypeActual
+    integer  (kind=C_SIZE_T ), intent(in   )           :: elementsUsed
+    integer                  , intent(in   ), optional :: addRemove      , blockCount      , memoryType      , &
+         &                                                line
+    character(len=*         ), intent(in   ), optional :: file
+    integer                                           :: addRemoveActual, blockCountActual, memoryTypeActual
+    type     (varying_string)                         :: message
 
     if (present(memoryType)) then
        memoryTypeActual=memoryType
@@ -259,6 +265,14 @@ contains
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+elementsUsed*addRemoveActual
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+sign(blockCountActual,addRemoveActual)*allocationOverhead
     !$omp end critical(Memory_Management_Usage)
+    if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+       if (present(file).and.present(line)) then
+          message='memory record: '
+          message=message//elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
+          message=message//' ['//file//':'//line//']'
+          call Galacticus_Display_Message(message)
+       end if
+    end if
     return
   end subroutine Memory_Usage_Record
 
