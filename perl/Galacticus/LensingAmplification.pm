@@ -4,6 +4,15 @@
 package LensingAmplification;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V092"} = getcwd()."/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::Math;
 use PDL::NiceSlice;
@@ -11,10 +20,10 @@ use PDL::GSL::INTEG;
 use PDL::GSL::INTERP;
 use PDL::Fit::LM;
 use PDL::IO::HDF5;
-use Galacticus::HDF5;
 use Astro::Cosmology;
 use DateTime;
 use Data::Dumper;
+require Galacticus::HDF5;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
     "^lensingAmplification\$" => \&LensingAmplification::Get_Amplification
@@ -27,9 +36,6 @@ my $omegaDE0;
 my $sourceRedshift;
 my $cosmology;
 my $kappaEmpty;
-
-my $status = 1;
-$status;
 
 sub Get_Amplification {
     # Get the data structure.
@@ -377,3 +383,5 @@ sub Fit_Parameters {
     $dy[0] .= $momentsDomegaKappa;
     $dy[1] .= $momentsDaKappa;
 }
+
+1;

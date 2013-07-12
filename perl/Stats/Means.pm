@@ -54,19 +54,28 @@ sub BinnedMean {
 	    my $sumWeight2  = sum(                    $weightsSelected**2);
 	    # Compute mean and dispersion.
 	    $mean           ->index($iBin) .= $sumYWeight/$sumWeight;
+	    # Source: http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Statistical_properties
 	    $meanError      ->index($iBin) .= ($sumY2Weight/$sumWeight-($sumYWeight/$sumWeight)**2)/($sumWeight**2/$sumWeight2);
 	    if ( $meanError->index($iBin) > 0.0 ) {
 		$meanError->index($iBin) .= sqrt($meanError->index($iBin));
 	    } else {
 		$meanError->index($iBin) .= 0.0;
 	    }
-	    $dispersion     ->index($iBin) .= $sumY2Weight/$sumWeight-($sumYWeight/$sumWeight)**2;
+	    # Source: http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance
+	    $dispersion     ->index($iBin) .= ($sumY2Weight+$mean->index($iBin)**2*$sumWeight-2.0*$mean->index($iBin)*$sumYWeight)*$sumWeight/($sumWeight**2-$sumWeight2);
 	    if ( $dispersion->index($iBin) > 0.0 ) {
 		$dispersion->index($iBin) .= sqrt($dispersion->index($iBin));
 	    } else {
 		$dispersion->index($iBin) .= 0.0;
 	    }
-	    $dispersionError->index($iBin) .= $dispersion->index($iBin)*sqrt(2.0*$sumWeight2/$sumWeight**2);
+	    # Source: http://mcs.une.edu.au/~stat354/notes/node63.html
+	    $dispersionError->index($iBin) .= $dispersion->index($iBin)
+		*0.5
+		*sqrt(
+		    2.0
+		    *$sumWeight**2/(1.0*$sumWeight**2-$sumWeight2)
+		    *$sumWeight**2/(2.0*$sumWeight**2-$sumWeight2)
+		);
 
 	} else {
 
