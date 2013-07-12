@@ -1,0 +1,17 @@
+<!-- A standard set of constraints for Galacticus which uses just the local SDSS z=0.07 -->
+<!-- stellar mass function and ALFALFA z=0.00 HI mass function                          -->
+<constraintCompilation>
+
+  <!-- z=0.07 stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.00 HI mass function -->
+  <constraint>
+    <definition>constraints/constraints/hiMassFunction_ALFALFA_z0.00.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
