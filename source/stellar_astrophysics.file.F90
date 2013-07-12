@@ -270,9 +270,10 @@ contains
   double precision function Star_Initial_Mass_File(lifetime,metallicity)
     !% Return the initial mass of a star of given {\tt lifetime} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: lifetime              , metallicity
-    type            (interp2dIrregularObject)                :: interpolationWorkspace
-    logical                                                  :: resetInterpolation
+    double precision                         , intent(in   ) :: lifetime                     , metallicity
+    type            (interp2dIrregularObject), save          :: interpolationWorkspace
+    logical                                  , save          :: resetInterpolation    =.true.
+    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
 
     resetInterpolation=.true.
     Star_Initial_Mass_File=Interpolate_2D_Irregular(stellarLifetime,stellarLifetimeMetallicity,stellarLifetimeMass,lifetime&
@@ -283,9 +284,10 @@ contains
   double precision function Star_Lifetime_File(initialMass,metallicity)
     !% Return the lifetime of a star (in Gyr) given an {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: initialMass           , metallicity
-    type            (interp2dIrregularObject)                :: interpolationWorkspace
-    logical                                                  :: resetInterpolation
+    double precision                         , intent(in   ) :: initialMass                  , metallicity
+    type            (interp2dIrregularObject), save          :: interpolationWorkspace
+    logical                                  , save          :: resetInterpolation    =.true.
+    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
 
     resetInterpolation=.true.
     Star_Lifetime_File=Interpolate_2D_Irregular(stellarLifetimeMass,stellarLifetimeMetallicity,stellarLifetime,initialMass&
@@ -297,9 +299,10 @@ contains
   double precision function Star_Ejected_Mass_File(initialMass,metallicity)
     !% Return the mass ejected during the lifetime of a star of given {\tt initialMass} and {\tt metallicity}.
     implicit none
-    double precision                         , intent(in   ) :: initialMass           , metallicity
-    type            (interp2dIrregularObject)                :: interpolationWorkspace
-    logical                                                  :: resetInterpolation
+    double precision                         , intent(in   ) :: initialMass                  , metallicity
+    type            (interp2dIrregularObject), save          :: interpolationWorkspace
+    logical                                  , save          :: resetInterpolation    =.true.
+    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
 
     ! Compute the ejected mass.
     resetInterpolation=.true.
@@ -313,10 +316,11 @@ contains
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
     use Memory_Management
     implicit none
-    double precision                         , intent(in   )           :: initialMass           , metallicity
+    double precision                         , intent(in   )           :: initialMass                  , metallicity
     integer                                  , intent(in   ), optional :: atomIndex
-    type            (interp2dIrregularObject)                          :: interpolationWorkspace
-    logical                                                            :: resetInterpolation
+    type            (interp2dIrregularObject), save                    :: interpolationWorkspace
+    logical                                  , save                    :: resetInterpolation    =.true.
+    !$omp threadprivate(interpolationWorkspace,resetInterpolation)
     integer                                                            :: elementIndex
 
     if (present(atomIndex)) then
