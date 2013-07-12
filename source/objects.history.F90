@@ -259,12 +259,9 @@ contains
     implicit none
     class  (history), intent(inout)           :: thisHistory
     logical         , intent(in   ), optional :: recordMemory
-    integer                                   :: historyCount      , timesCount
     logical                                   :: recordMemoryActual
 
     if (allocated(thisHistory%time)) then
-       timesCount  =size(thisHistory%time      )
-       historyCount=size(thisHistory%data,dim=2)
        if (present(recordMemory)) then
           recordMemoryActual=recordMemory
        else
@@ -617,10 +614,12 @@ contains
            if (thisHistory%time(iPoint) >= addHistory%time(1) .and. thisHistory%time(iPoint) <= addHistory%time(addHistoryPointCount)) then
 
              ! Interpolate addHistory to point in thisHistory.
+              interpolationReset=.true.
               interpolationPoint  =Interpolate_Locate(addHistoryPointCount,addHistory%time,interpolationAccelerator&
                    &,thisHistory%time(iPoint),interpolationReset)
               interpolationFactors=Interpolate_Linear_Generate_Factors(addHistoryPointCount,addHistory%time,interpolationPoint&
                    &,thisHistory%time(iPoint))
+              call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
 
               ! Add them.
               forall(iHistory=1:size(thisHistory%data,dim=2))
