@@ -91,6 +91,7 @@ contains
     if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Get the satellite component and check if it is of preset class.
     thisSatelliteComponent   => thisNode  %satellite(autoCreate=.true.)
+    call thisSatelliteComponent%destroy()
     ! Get the parent node of this node.
     parentNode               => thisNode  %parent
     parentSatelliteComponent => parentNode%satellite(                 )
