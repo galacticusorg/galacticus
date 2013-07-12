@@ -49,6 +49,7 @@ end function Node_Component_Disk_Exponential_Half_Mass_Radius
 double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
   !% Computes the mass within a given radius for an exponential disk.
   use Galactic_Structure_Options
+  use Tables
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
