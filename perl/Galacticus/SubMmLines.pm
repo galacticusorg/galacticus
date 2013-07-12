@@ -3,9 +3,18 @@
 package SubMmLines;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+ $ENV{"GALACTICUS_ROOT_V092"} = getcwd()."/";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use PDL;
-use Galacticus::HDF5;
-use Galacticus::Grasil;
+require Galacticus::HDF5;
+require Galacticus::Grasil;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
 			       "luminosityCII"   => \&SubMmLines::Get_CIIline,

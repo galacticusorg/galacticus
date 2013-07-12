@@ -50,16 +50,16 @@ program Tests_IO_HDF5
   type            (varying_string), allocatable, dimension( :)             :: varStringValueArrayReread
   double precision                             , dimension(10,10)          :: doubleValueArray2d
   double precision                             , dimension(10,10)          :: doubleValueArray2dRereadStatic
-  double precision                , allocatable, dimension( :, :)          :: doubleValueArray2dReread
+  double precision                , allocatable, dimension( :, :)          :: doubleValueArray2dReread      , doubleValueArray2dRereadExpect
   double precision                             , dimension(10,10,10)       :: doubleValueArray3d
   double precision                             , dimension(10,10,10)       :: doubleValueArray3dRereadStatic
-  double precision                , allocatable, dimension( :, :, :)       :: doubleValueArray3dReread
+  double precision                , allocatable, dimension( :, :, :)       :: doubleValueArray3dReread      , doubleValueArray3dRereadExpect
   double precision                             , dimension(10,10,10,10)    :: doubleValueArray4d
   double precision                             , dimension(10,10,10,10)    :: doubleValueArray4dRereadStatic
-  double precision                , allocatable, dimension( :, :, :, :)    :: doubleValueArray4dReread
+  double precision                , allocatable, dimension( :, :, :, :)    :: doubleValueArray4dReread      , doubleValueArray4dRereadExpect
   double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5d
   double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
-  double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread
+  double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.HDF5.size')
@@ -381,6 +381,19 @@ program Tests_IO_HDF5
         ! Append to the extensible double 2-D array dataset.
         doubleValueArray2d=1.414d0
         call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensible",appendTo=.true.)
+        ! Write a new dataset to which we will then append.
+        doubleValueArray2d=3.141d0
+        call groupObject%writeDataset(doubleValueArray2d,"doubleDataset2dArrayExtensibleAppendDim","This is an extensible dataset to which we will append",appendTo=.true.)
+        ! Append to the extensible double 2-D array dataset.
+        doubleValueArray2d=1.414d0
+        call groupObject%writeDataset(doubleValueArray2d(1:1,:),"doubleDataset2dArrayExtensibleAppendDim",appendTo=.true.,appendDimension=1)
+        ! Re-read the array.
+        call groupObject%readDataset("doubleDataset2dArrayExtensibleAppendDim",doubleValueArray2dReread)
+        allocate(doubleValueArray2dRereadExpect(11,10))
+        doubleValueArray2dRereadExpect( :,:)=3.141d0
+        doubleValueArray2dRereadExpect(11,:)=1.414d0
+        call Assert("append to arbitrary dimension of a 2-D array double dataset",doubleValueArray2dReread,doubleValueArray2dRereadExpect)
+        deallocate(doubleValueArray2dRereadExpect)
      end if
 
      ! Write a double 2-D array dataset to the group.
@@ -442,6 +455,19 @@ program Tests_IO_HDF5
         ! Append to the extensible double 3-D array dataset.
         doubleValueArray3d=1.414d0
         call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensible",appendTo=.true.)
+        ! Write a new dataset to which we will then append.
+        doubleValueArray3d=3.141d0
+        call groupObject%writeDataset(doubleValueArray3d,"doubleDataset3dArrayExtensibleAppendDim","This is an extensible dataset to which we will append",appendTo=.true.)
+        ! Append to the extensible double 2-D array dataset.
+        doubleValueArray3d=1.414d0
+        call groupObject%writeDataset(doubleValueArray3d(:,1:1,:),"doubleDataset3dArrayExtensibleAppendDim",appendTo=.true.,appendDimension=2)
+        ! Re-read the array.
+        call groupObject%readDataset("doubleDataset3dArrayExtensibleAppendDim",doubleValueArray3dReread)
+        allocate(doubleValueArray3dRereadExpect(10,11,10))
+        doubleValueArray3dRereadExpect(:, :,:)=3.141d0
+        doubleValueArray3dRereadExpect(:,11,:)=1.414d0
+        call Assert("append to arbitrary dimension of a 3-D array double dataset",doubleValueArray3dReread,doubleValueArray3dRereadExpect)
+        deallocate(doubleValueArray3dRereadExpect)
      end if
 
      ! Write a double 3-D array dataset to the group.
@@ -489,6 +515,19 @@ program Tests_IO_HDF5
         ! Append to the extensible double 4-D array dataset.
         doubleValueArray4d=1.414d0
         call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensible",appendTo=.true.)
+        ! Write a new dataset to which we will then append.
+        doubleValueArray4d=3.141d0
+        call groupObject%writeDataset(doubleValueArray4d,"doubleDataset4dArrayExtensibleAppendDim","This is an extensible dataset to which we will append",appendTo=.true.)
+        ! Append to the extensible double 2-D array dataset.
+        doubleValueArray4d=1.414d0
+        call groupObject%writeDataset(doubleValueArray4d(:,:,1:1,:),"doubleDataset4dArrayExtensibleAppendDim",appendTo=.true.,appendDimension=3)
+        ! Re-read the array.
+        call groupObject%readDataset("doubleDataset4dArrayExtensibleAppendDim",doubleValueArray4dReread)
+        allocate(doubleValueArray4dRereadExpect(10,10,11,10))
+        doubleValueArray4dRereadExpect(:,:, :,:)=3.141d0
+        doubleValueArray4dRereadExpect(:,:,11,:)=1.414d0
+        call Assert("append to arbitrary dimension of a 4-D array double dataset",doubleValueArray4dReread,doubleValueArray4dRereadExpect)
+        deallocate(doubleValueArray4dRereadExpect)
      end if
 
      ! Write a double 4-D array dataset to the group.
@@ -540,6 +579,19 @@ program Tests_IO_HDF5
         ! Append to the extensible double 5-D array dataset.
         doubleValueArray5d=1.415d0
         call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensible",appendTo=.true.)
+        ! Write a new dataset to which we will then append.
+        doubleValueArray5d=3.141d0
+        call groupObject%writeDataset(doubleValueArray5d,"doubleDataset5dArrayExtensibleAppendDim","This is an extensible dataset to which we will append",appendTo=.true.)
+        ! Append to the extensible double 2-D array dataset.
+        doubleValueArray5d=1.415d0
+        call groupObject%writeDataset(doubleValueArray5d(:,:,:,1:1,:),"doubleDataset5dArrayExtensibleAppendDim",appendTo=.true.,appendDimension=4)
+        ! Re-read the array.
+        call groupObject%readDataset("doubleDataset5dArrayExtensibleAppendDim",doubleValueArray5dReread)
+        allocate(doubleValueArray5dRereadExpect(10,10,10,11,10))
+        doubleValueArray5dRereadExpect(:,:,:, :,:)=3.141d0
+        doubleValueArray5dRereadExpect(:,:,:,11,:)=1.415d0
+        call Assert("append to arbitrary dimension of a 5-D array double dataset",doubleValueArray5dReread,doubleValueArray5dRereadExpect)
+        deallocate(doubleValueArray5dRereadExpect)
      end if
 
      ! Write a double 5-D array dataset to the group.
