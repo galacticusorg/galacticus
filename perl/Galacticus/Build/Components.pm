@@ -4642,6 +4642,7 @@ sub Generate_Node_Move_Function {
 	$functionCode .= "      do i=1,size(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "        call targetNode%component".padComponentClass(ucfirst($_),[0,0])."(i)%destroy()\n";
 	$functionCode .= "      end do\n";
+	$functionCode .= "      deallocate(targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
 	$functionCode .= "    end if\n";
 	$functionCode .= "    if (allocated(self      %component".padComponentClass(ucfirst($_),[0,0]).")) then\n";
 	$functionCode .= "       call Move_Alloc(self%component".padComponentClass(ucfirst($_),[0,0]).",targetNode%component".padComponentClass(ucfirst($_),[0,0]).")\n";
@@ -5703,6 +5704,28 @@ sub Generate_Component_Assignment_Function {
 	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
 	    if ( exists($property->{'linkedData'}) ) {
 		my $linkedDataName = $property->{'linkedData'};		
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		my @contents = ( "value" );
+		push(@contents,"rate ","scale")
+		    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
+		switch ( $linkedData->{'type'} ) {
+		    case ( "real"    ) {
+			# Deallocate if necessary.
+			foreach ( @contents ) {
+			    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0])."%".$_.") \n"
+				if ( $linkedData->{'rank'} > 0 );
+			}
+		    }
+		    case ( "integer" ) {
+			# Nothing to do in this case.
+		    }
+		    case ( "logical" ) {
+			# Nothing to do in this case.
+		    }
+		    else {
+			$functionCode .= "    call to%".padLinkedData($linkedDataName,[0,0])."%value%destroy()\n";
+		    }
+		}
 		$functionCode .= "          to%".padLinkedData($linkedDataName,[0,0])."%value=from%".padLinkedData($linkedDataName,[0,0])."%value\n";
 	    }
 	}
