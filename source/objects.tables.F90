@@ -112,14 +112,14 @@ module Tables
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
-     procedure                                 :: destroy            =>Table_1D_Destroy
-     procedure                                 :: reverse            =>Table_1D_Reverse
-     procedure                                 :: isMonotonic        =>Table1D_Is_Monotonic
-     procedure                                 :: size               =>Table1D_Size
-     procedure                                 :: x                  =>Table1D_X
-     procedure                                 :: y                  =>Table1D_Y
-     procedure                                 :: xs                 =>Table1D_Xs
-     procedure                                 :: ys                 =>Table1D_Ys
+     procedure                                 :: destroy             => Table_1D_Destroy
+     procedure                                 :: reverse             => Table_1D_Reverse
+     procedure                                 :: isMonotonic         => Table1D_Is_Monotonic
+     procedure                                 :: size                => Table1D_Size
+     procedure                                 :: x                   => Table1D_X
+     procedure                                 :: y                   => Table1D_Y
+     procedure                                 :: xs                  => Table1D_Xs
+     procedure                                 :: ys                  => Table1D_Ys
   end type table1D
 
   interface
@@ -154,13 +154,14 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                          =>Table_Generic_1D_Create
-     procedure :: destroy                         =>Table_Generic_1D_Destroy
+     procedure :: create                           => Table_Generic_1D_Create
+     procedure :: destroy                          => Table_Generic_1D_Destroy
      procedure :: Table_Generic_1D_Populate
      procedure :: Table_Generic_1D_Populate_Single
-     generic   :: populate            => Table_Generic_1D_Populate, Table_Generic_1D_Populate_Single
-     procedure :: interpolate        =>Table_Generic_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Generic_1D_Interpolate_Gradient
+     generic   :: populate                         => Table_Generic_1D_Populate            , &
+          &                                           Table_Generic_1D_Populate_Single
+     procedure :: interpolate                      => Table_Generic_1D_Interpolate
+     procedure :: interpolateGradient              => Table_Generic_1D_Interpolate_Gradient
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -184,22 +185,22 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                         =>Table_Linear_1D_Create
+     procedure :: create                          => Table_Linear_1D_Create
      procedure :: Table_Linear_1D_Populate
      procedure :: Table_Linear_1D_Populate_Single
-     generic   :: populate            => Table_Linear_1D_Populate, Table_Linear_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_1D_Interpolate_Gradient
+     generic   :: populate                        => Table_Linear_1D_Populate, Table_Linear_1D_Populate_Single
+     procedure :: interpolate                     => Table_Linear_1D_Interpolate
+     procedure :: interpolateGradient             => Table_Linear_1D_Interpolate_Gradient
   end type table1DLinearLinear
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
      !% Table type supporting one dimensional table with logarithmic spacing in $x$.
    contains
-     procedure :: create             =>Table_Logarithmic_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_1D_X
-     procedure :: xs                 =>Table_Logarithmic_1D_Xs
+     procedure :: create              => Table_Logarithmic_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_1D_X
+     procedure :: xs                  => Table_Logarithmic_1D_Xs
   end type table1DLogarithmicLinear
 
   type, extends(table1D) :: table1DLinearCSpline
@@ -225,22 +226,24 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                                 =>Table_Linear_CSpline_1D_Create
+     procedure :: create                                  => Table_Linear_CSpline_1D_Create
+     procedure :: destroy                                 => Table_Linear_CSpline_1D_Destroy
      procedure :: Table_Linear_CSpline_1D_Populate
      procedure :: Table_Linear_CSpline_1D_Populate_Single
-     generic   :: populate            => Table_Linear_CSpline_1D_Populate, Table_Linear_CSpline_1D_Populate_Single
-     procedure :: interpolate        =>Table_Linear_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Linear_CSpline_1D_Interpolate_Gradient
+     generic   :: populate                                => Table_Linear_CSpline_1D_Populate            , &
+          &                                                  Table_Linear_CSpline_1D_Populate_Single
+     procedure :: interpolate                             => Table_Linear_CSpline_1D_Interpolate
+     procedure :: interpolateGradient                     => Table_Linear_CSpline_1D_Interpolate_Gradient
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
    contains
-     procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
-     procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
-     procedure :: interpolateGradient=>Table_Logarithmic_CSpline_1D_Interpolate_Gradient
-     procedure :: x                  =>Table_Logarithmic_CSpline_1D_X
-     procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
+     procedure :: create              => Table_Logarithmic_CSpline_1D_Create
+     procedure :: interpolate         => Table_Logarithmic_CSpline_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_CSpline_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_CSpline_1D_X
+     procedure :: xs                  => Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
 
 contains
@@ -303,7 +306,7 @@ contains
     !% Return the $y$-values for a 1D table.
     use Galacticus_Error
     implicit none
-    class(table1D), intent(in   ) :: self
+    class           (table1D), intent(in   )                                      :: self
     double precision         , dimension(size(self%yv,dim=1),size(self%yv,dim=2)) :: Table1D_Ys
 
     Table1D_Ys=self%yv
