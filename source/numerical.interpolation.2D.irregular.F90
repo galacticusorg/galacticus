@@ -88,21 +88,21 @@ contains
     realWorkspaceSize   =8                                   *dataPointCount
     if (allocated(workspace%integerWork)) then
        if (size(workspace%integerWork) < integerWorkspaceSize) then
-          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=-1)
+          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=-1,file=__FILE__,line=__LINE__)
           deallocate(workspace%integerWork                      )
           allocate  (workspace%integerWork(integerWorkspaceSize))
-          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=+1)
+          call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=+1,file=__FILE__,line=__LINE__)
        end if
        if (size(workspace%realWork   ) < realWorkspaceSize   ) then
-          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=-1)
+          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=-1,file=__FILE__,line=__LINE__)
           deallocate(workspace%realWork                         )
           allocate  (workspace%realWork   (realWorkspaceSize   ))
-          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=+1)
+          call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=+1,file=__FILE__,line=__LINE__)
        end if
     else
        allocate(workspace%integerWork(integerWorkspaceSize))
        allocate(workspace%realWork   (realWorkspaceSize   ))
-       call Memory_Usage_Record(sizeof(workspace%integerWork)+sizeof(workspace%realWork),blockCount=2)
+       call Memory_Usage_Record(sizeof(workspace%integerWork)+sizeof(workspace%realWork),blockCount=2,file=__FILE__,line=__LINE__)
     end if
 
     ! Call the subroutine that does the interpolation.
