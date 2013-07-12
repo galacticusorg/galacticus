@@ -6825,24 +6825,26 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_3D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_3D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 3-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     class           (hdf5Object    )                  , intent(inout), target   :: thisObject
-    character       (len=*         )                  , intent(in   ), optional :: commentText                , datasetName
+    character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
-    integer                                           , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer                                           , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
+         &                                                                         appendDimension
     type            (hdf5Object    )                  , intent(  out), optional :: datasetReturned
-    integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions          , hyperslabCount      , &
-         &                                                                         hyperslabStart             , newDatasetDimensions, &
-         &                                                                         newDatasetDimensionsMaximum
-    integer                                                                     :: datasetRank                , errorCode
-    integer         (kind=HID_T    )                                            :: dataspaceID                , newDataspaceID
-    logical                                                                     :: appendToActual             , preExisted
+    integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions           , hyperslabCount             , &
+         &                                                                         hyperslabStart              , newDatasetDimensions       , &
+         &                                                                         newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
+    integer                                                                     :: datasetRank                 , errorCode                  , &
+         &                                                                         appendDimensionActual
+    integer         (kind=HID_T    )                                            :: dataspaceID                 , newDataspaceID
+    logical                                                                     :: appendToActual              , preExisted
     type            (hdf5Object    )                                            :: datasetObject
-    type            (varying_string)                                            :: datasetNameActual          , message
+    type            (varying_string)                                            :: datasetNameActual           , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -6922,16 +6924,21 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:3) /= newDatasetDimensions(2:3))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_3D',message)
        end if
        ! Set the hyperslab.
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
        newDatasetDimensions   =datasetDimensions
        hyperslabStart         =0
@@ -7568,24 +7575,26 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_4D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_4D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 4-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     class           (hdf5Object    )                    , intent(inout), target   :: thisObject
-    character       (len=*         )                    , intent(in   ), optional :: commentText                , datasetName
+    character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
-    integer                                             , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer                                             , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
+         &                                                                           appendDimension
     type            (hdf5Object    )                    , intent(  out), optional :: datasetReturned
-    integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions          , hyperslabCount      , &
-         &                                                                           hyperslabStart             , newDatasetDimensions, &
-         &                                                                           newDatasetDimensionsMaximum
-    integer                                                                       :: datasetRank                , errorCode
-    integer         (kind=HID_T    )                                              :: dataspaceID                , newDataspaceID
-    logical                                                                       :: appendToActual             , preExisted
+    integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions           , hyperslabCount             , &
+         &                                                                           hyperslabStart              , newDatasetDimensions       , &
+         &                                                                           newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
+    integer                                                                       :: datasetRank                 , errorCode                  , &
+         &                                                                           appendDimensionActual
+    integer         (kind=HID_T    )                                              :: dataspaceID                 , newDataspaceID
+    logical                                                                       :: appendToActual              , preExisted
     type            (hdf5Object    )                                              :: datasetObject
-    type            (varying_string)                                              :: datasetNameActual          , message
+    type            (varying_string)                                              :: datasetNameActual           , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -7665,16 +7674,21 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:4) /= newDatasetDimensions(2:4))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_4D',message)
        end if
        ! Set the hyperslab.
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
        newDatasetDimensions   =datasetDimensions
        hyperslabStart         =0
@@ -8311,24 +8325,26 @@ contains
     return
   end subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Allocatable
 
-  subroutine IO_HDF5_Write_Dataset_Double_5D(thisObject,datasetValue,datasetName,commentText,appendTo,chunkSize,compressionLevel,datasetReturned)
+  subroutine IO_HDF5_Write_Dataset_Double_5D(thisObject,datasetValue,datasetName,commentText,appendTo,appendDimension,chunkSize,compressionLevel,datasetReturned)
     !% Open and write a double 5-D array dataset in {\tt thisObject}.
     use Galacticus_Error
     implicit none
     class           (hdf5Object    )                      , intent(inout), target   :: thisObject
-    character       (len=*         )                      , intent(in   ), optional :: commentText                , datasetName
+    character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
-    integer                                               , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer                                               , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
+         &                                                                             appendDimension
     type            (hdf5Object    )                      , intent(  out), optional :: datasetReturned
-    integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions          , hyperslabCount      , &
-         &                                                                             hyperslabStart             , newDatasetDimensions, &
-         &                                                                             newDatasetDimensionsMaximum
-    integer                                                                         :: datasetRank                , errorCode
-    integer         (kind=HID_T    )                                                :: dataspaceID                , newDataspaceID
-    logical                                                                         :: appendToActual             , preExisted
+    integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions           , hyperslabCount             , &
+         &                                                                             hyperslabStart              , newDatasetDimensions       , &
+         &                                                                             newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
+    integer                                                                         :: datasetRank                 , errorCode                  , &
+         &                                                                             appendDimensionActual
+    integer         (kind=HID_T    )                                                :: dataspaceID                 , newDataspaceID
+    logical                                                                         :: appendToActual              , preExisted
     type            (hdf5Object    )                                                :: datasetObject
-    type            (varying_string)                                                :: datasetNameActual          , message
+    type            (varying_string)                                                :: datasetNameActual           , message
 
     ! Check that this module is initialized.
     call IO_HDF_Assert_Is_Initialized
@@ -8408,16 +8424,21 @@ contains
           message="could not close dataspace for dataset '"//trim(datasetNameActual)//"'"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
        end if
-       ! Ensure that all dimensions after the first are of the same size.
-       if (any(dataSetDimensions(2:5) /= newDatasetDimensions(2:5))) then
-          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions after first must be same as original dataset"
+       ! Determine the dimension for appending.
+       appendDimensionActual=1
+       if (present(appendDimension)) appendDimensionActual=appendDimension
+       ! Ensure that all dimensions other than the one being appended to are of the same size.
+       newDatasetDimensionsFiltered                       =newDatasetDimensions
+       newDatasetDimensionsFiltered(appendDimensionActual)=dataSetDimensions   (appendDimensionActual)
+       if (any(dataSetDimensions /= newDatasetDimensionsFiltered)) then
+          message="when appending to dataset '"//trim(datasetNameActual)//"' all dimensions other than that being appended to must be same as original dataset"
           call Galacticus_Error_Report('IO_HDF5_Write_Dataset_Double_5D',message)
        end if
        ! Set the hyperslab.
-       hyperslabStart         =0
-       hyperslabStart      (1)=newDatasetDimensions(1)
-       hyperslabCount         =dataSetDimensions
-       newDatasetDimensions(1)=newDatasetDimensions(1)+datasetDimensions(1)
+       hyperslabStart                             =0
+       hyperslabStart      (appendDimensionActual)=newDatasetDimensions(appendDimensionActual)
+       hyperslabCount                             =dataSetDimensions
+       newDatasetDimensions(appendDimensionActual)=newDatasetDimensions(appendDimensionActual)+datasetDimensions(appendDimensionActual)
     else
        newDatasetDimensions   =datasetDimensions
        hyperslabStart         =0
