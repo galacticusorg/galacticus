@@ -26,12 +26,10 @@ module Node_Component_Spheroid_Standard
   use Node_Component_Spheroid_Standard_Data
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Rate_Compute           , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Rotation_Curve         , Node_Component_Spheroid_Standard_Density                      , &
-       &    Node_Component_Spheroid_Standard_Potential              , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Radius_Solver          , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve             , Node_Component_Spheroid_Standard_Rotation_Curve_Gradient      , &
-       &    Node_Component_Spheroid_Standard_Initialize             , Node_Component_Spheroid_Standard_Post_Evolve                  , &
+  public :: Node_Component_Spheroid_Standard_Rate_Compute     , Node_Component_Spheroid_Standard_Scale_Set                    , &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
+       &    Node_Component_Spheroid_Standard_Radius_Solver    , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
+       &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
        &    Node_Component_Spheroid_Standard_Satellite_Merging
 
   !# <component>
@@ -147,7 +145,11 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Standard_Enclosed_Mass" bindsTo="component" />
+  !#   <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
+  !#   <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
+  !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
+  !#   <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>
@@ -1076,171 +1078,6 @@ use kind_numbers
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Satellite_Merging
-
-  !# <rotationCurveTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Rotation_Curve</unitName>
-  !# </rotationCurveTask>
-  double precision function Node_Component_Spheroid_Standard_Rotation_Curve(thisNode,radius,componentType,massType,haloLoaded)
-    !% Computes the rotation curve at a given radius for a standard spheroid.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode
-    integer                                , intent(in   )           :: componentType, massType
-    double precision                       , intent(in   )           :: radius
-    logical                                , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid
-    double precision                                                 :: componentMass
-
-    ! Set to zero by default.
-    Node_Component_Spheroid_Standard_Rotation_Curve=0.0d0
-
-    ! Return immediately for non-positive radius.
-    if (radius <= 0.0d0) return
-
-    ! Compute if a spheroid is present.
-    thisSpheroid => thisNode%spheroid()
-    componentMass=thisSpheroid%enclosedMass(radius,componentType,massType,weightByMass&
-         &,weightIndexNull,haloLoaded)
-    if (componentMass > 0.0d0) Node_Component_Spheroid_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
-         &*componentMass)/sqrt(radius)
-    return
-  end function Node_Component_Spheroid_Standard_Rotation_Curve
-
-  !# <rotationCurveGradientTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Rotation_Curve_Gradient</unitName>
-  !# </rotationCurveGradientTask>
-  double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(thisNode,radius,componentType,massType,haloLoaded)
-    !% Computes the rotation curve gradient for the standard spheroid.
-    use Galacticus_Nodes
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Math
-    implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode
-    integer                                , intent(in   )           :: componentType   , massType
-    double precision                       , intent(in   )           :: radius
-    logical                                , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroid
-    double precision                                                 :: componentDensity, componentMass, positionSpherical(3)
-
-    ! Set to zero by default.
-    Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=0.0d0
-
-    ! Return immediatelt for non-positive radius.
-    if (radius <= 0.0d0) return
-
-    ! Compute if a spheroid is present.
-    positionSpherical= [radius,0.0d0,0.0d0]
-    thisSpheroid => thisNode%spheroid()
-    componentMass    =thisSpheroid%enclosedMass(radius           ,componentType,massType, &
-         & weightByMass,weightIndexNull,haloLoaded)
-    componentDensity=Node_Component_Spheroid_Standard_Density      (thisNode,positionSpherical,componentType,massType, &
-         & weightByMass,weightIndexNull,haloLoaded)
-    if (componentMass == 0.0d0 .or. componentDensity == 0.0d0) return
-    Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=  &
-         &                  gravitationalConstantGalacticus    &
-         &                 *(                                  &
-         &                   -componentMass/radius**2          &
-         &                   +4.0d0*Pi*radius*componentDensity &
-         &                  )
-    return
-  end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
-
-  !# <potentialTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Potential</unitName>
-  !# </potentialTask>
-  double precision function Node_Component_Spheroid_Standard_Potential(thisNode,radius,componentType,massType,haloLoaded)
-    use Galactic_Structure_Options
-    use Numerical_Constants_Physical
-    use Coordinates
-    !% Return the potential due to the standard spheroid.
-    type            (treeNode             ), intent(inout), pointer  :: thisNode
-    integer                                , intent(in   )           :: componentType        , massType
-    double precision                       , intent(in   )           :: radius
-    logical                                , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent
-    double precision                                                 :: componentMass
-    type            (coordinateSpherical  )                          :: position
-
-    ! Set to zero by default.
-    Node_Component_Spheroid_Standard_Potential=0.0d0
-
-    ! Return immediately for non-positive radius.
-    if (radius <= 0.0d0) return
-
-    ! Get the spheroid component and check that it is of the standard class.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
-    class is (nodeComponentSpheroidStandard)
-       ! Compute if a spheroid is present.
-       componentMass=thisSpheroidComponent%enclosedMass(radiusLarge,componentType,massType,weightByMass&
-            &,weightIndexNull,haloLoaded)
-       if (componentMass > 0.0d0 .and. thisSpheroidComponent%radius() > 0.0d0) then
-          position=[radius/thisSpheroidComponent%radius(),0.0d0,0.0d0]
-          Node_Component_Spheroid_Standard_Potential=(gravitationalConstantGalacticus*componentMass&
-               &/thisSpheroidComponent%radius())*spheroidMassDistribution%potential(position)
-       end if
-    end select
-    return
-  end function Node_Component_Spheroid_Standard_Potential
-
-  !# <densityTask>
-  !#  <unitName>Node_Component_Spheroid_Standard_Density</unitName>
-  !# </densityTask>
-  double precision function Node_Component_Spheroid_Standard_Density(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
-    !% Computes the density at a given position for an standard spheroid.
-    use Galactic_Structure_Options
-    use Numerical_Constants_Math
-    use Coordinates
-    implicit none
-    type            (treeNode             ), intent(inout), pointer  :: thisNode
-    integer                                , intent(in   )           :: componentType           , massType, weightBy, &
-         &                                                              weightIndex
-    double precision                       , intent(in   )           :: positionSpherical    (3)
-    logical                                , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentSpheroid)               , pointer  :: thisSpheroidComponent
-    type            (coordinateSpherical  )                          :: position
-
-    Node_Component_Spheroid_Standard_Density=0.0d0
-    if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
-
-    ! Get the spheroid component and check that it is of the standard class.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
-       class is (nodeComponentSpheroidStandard)
-
-       if (thisSpheroidComponent%radius() <= 0.0d0) return
-       select case (weightBy)
-       case (weightByMass      )
-          select case (massType)
-          case (massTypeAll,massTypeBaryonic,massTypeGalactic)
-             Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()+thisSpheroidComponent%massStellar()
-          case (massTypeGaseous)
-             Node_Component_Spheroid_Standard_Density=thisSpheroidComponent%massGas()
-          case (massTypeStellar)
-             Node_Component_Spheroid_Standard_Density=                                thisSpheroidComponent%massStellar()
-          end select
-       case (weightByLuminosity)
-          select case (massType)
-          case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
-             luminositiesSpheroid=thisSpheroidComponent%luminositiesStellar()
-             Node_Component_Spheroid_Standard_Density=luminositiesSpheroid(weightIndex)
-          end select
-       end select
-       ! Return if density is zero.
-       if (Node_Component_Spheroid_Standard_Density <= 0.0d0) then
-          Node_Component_Spheroid_Standard_Density=0.0d0
-          return
-       end if
-       ! Compute actual density.
-       position=[positionSpherical(1)/thisSpheroidComponent%radius(),0.0d0,0.0d0]
-       Node_Component_Spheroid_Standard_Density=(Node_Component_Spheroid_Standard_Density/thisSpheroidComponent%radius()**3)&
-            &*spheroidMassDistribution%density(position)
-    end select
-    return
-  end function Node_Component_Spheroid_Standard_Density
 
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Spheroid_Standard_Radius_Solver_Plausibility</unitName>
