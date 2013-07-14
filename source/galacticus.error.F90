@@ -36,6 +36,10 @@ module Galacticus_Error
      end subroutine H5Close_C
   end interface
 
+  ! Public error codes.
+  integer, public, parameter :: errorStatusSuccess=0
+  integer, public, parameter :: errorStatusFail   =1
+
 contains
 
   subroutine Galacticus_Error_Report_VarStr(unitName,message)

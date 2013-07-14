@@ -24,11 +24,15 @@ module Numerical_Integration
   private
   public :: Integrate, Integrate_Done
 
+  ! Module scope error status.
+  integer :: errorStatusGlobal
+
 contains
 
   recursive double precision function Integrate(lowerLimit,upperLimit,integrand,parameterPointer,integrandFunction&
-       &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset)
+       &,integrationWorkspace,maxIntervals,toleranceAbsolute,toleranceRelative,hasSingularities,integrationRule,reset,errorStatus)
     !% Integrates the supplied {\tt integrand} function.
+    use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
     double precision                            , external                           :: integrand
@@ -36,10 +40,12 @@ contains
     type            (c_ptr                     )           , intent(in   )           :: parameterPointer
     type            (fgsl_function             )           , intent(inout)           :: integrandFunction
     type            (fgsl_integration_workspace)           , intent(inout)           :: integrationWorkspace
+    type            (fgsl_error_handler_t      )                                     :: integrationErrorHandler         , standardGslErrorHandler
     integer                                                , intent(in   ), optional :: integrationRule                 , maxIntervals
     double precision                                       , intent(in   ), optional :: toleranceAbsolute               , toleranceRelative
     logical                                                , intent(in   ), optional :: hasSingularities
     logical                                                , intent(inout), optional :: reset
+    integer                                                , intent(  out), optional :: errorStatus
     integer                                     , parameter                          :: maxIntervalsDefault     =1000
     double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10
     integer                                                                          :: integrationRuleActual           , status
@@ -87,6 +93,13 @@ contains
        integrandFunction   =FGSL_Function_Init(integrand,parameterPointer)
     end if
 
+    ! Set error handler if necessary.
+    if (present(errorStatus)) then
+       integrationErrorHandler=FGSL_Error_Handler_Init(Integration_GSL_Error_Handler)
+       standardGslErrorHandler=FGSL_Set_Error_Handler (integrationErrorHandler      )
+       errorStatusGlobal=errorStatusSuccess
+    end if
+
     ! Do the integration
     select case (hasSingularitiesActual)
     case (.false.)
@@ -97,6 +110,12 @@ contains
             &,maxIntervalsActual,integrationWorkspace,integrationValue,integrationError)
     end select
     Integrate=integrationValue
+
+    ! Reset error handler.
+    if (present(errorStatus)) then
+       errorStatus            =errorStatusGlobal
+       standardGslErrorHandler=FGSL_Set_Error_Handler (standardGslErrorHandler)
+    end if
     return
   end function Integrate
 
@@ -110,5 +129,15 @@ contains
     call FGSL_Integration_Workspace_Free(integrationWorkspace)
     return
   end subroutine Integrate_Done
+
+  subroutine Integration_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
+    !% Handle errors from the GSL library during integration.
+    use, intrinsic :: ISO_C_Binding
+    type     (c_ptr     ), value :: file       , reason
+    integer  (kind=c_int), value :: errorNumber, line
+
+    errorStatusGlobal=errorNumber
+    return
+  end subroutine Integration_GSL_Error_Handler
 
 end module Numerical_Integration

@@ -53,6 +53,9 @@ module Generalized_Press_Schechter_Branching
   ! Control for inclusion of smooth accretion rates.
   logical                     :: generalizedPressSchechterSmoothAccretion
 
+  ! Record of issued warnings.
+  logical                     :: subresolutionFractionIntegrandFailureWarned =.false.
+
 contains
 
   !# <treeBranchingMethod>
@@ -151,6 +154,7 @@ contains
     character       (len=26        )                :: label
     type            (rootFinder    ), save          :: finder
     !$omp threadprivate(finder)
+
     ! Ensure excursion set calculations have sufficient range in sigma.
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Initialize global variables.
@@ -216,9 +220,9 @@ contains
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     type            (c_ptr                     )                :: parameterPointer
 
-    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum&
-         &,Branching_Probability_Integrand_Generalized,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
-         &,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
+    Generalized_Press_Schechter_Branch_Mass_Root=probabilitySeek-Integrate(probabilityMinimumMass,massMaximum &
+         &,Branching_Probability_Integrand_Generalized,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+         &=0.0d0 ,toleranceRelative=branchingProbabilityIntegrandToleraceRelative,integrationRule=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
   end function Generalized_Press_Schechter_Branch_Mass_Root
@@ -273,16 +277,23 @@ contains
     use Numerical_Integration
     use Excursion_Sets_First_Crossings
     use Merger_Tree_Branching_Modifiers
+    use Galacticus_Error
+    use ISO_Varying_String
+    use Galacticus_Display
     implicit none
-    double precision                            , intent(in   ) :: deltaCritical                        , haloMass       , &
+    double precision                            , intent(in   ) :: deltaCritical                                 , haloMass       , &
          &                                                         massResolution
-    double precision                            , save          :: massResolutionPrevious        =-1.0d0, resolutionSigma
+    double precision                            , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                                            :: massMaximum                          , massMinimum    , &
+    double precision                            , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
+    double precision                                            :: massMaximum                                    , massMinimum    , &
          &                                                         resolutionSigmaOverParentSigma
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
+    integer                                                     :: errorStatus
+    type            (varying_string            )                :: message
+    character       (len=9                     )                :: label
 
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.
@@ -309,8 +320,27 @@ contains
        massMaximum=massResolution
        Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction&
             &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized ,parameterPointer,integrandFunction&
-            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 ,integrationRule=FGSL_Integ_Gauss15)
+            &,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3 ,integrationRule=FGSL_Integ_Gauss15&
+            &,errorStatus=errorStatus)
        call Integrate_Done(integrandFunction,integrationWorkspace)
+       if (errorStatus /= errorStatusSuccess) then
+          if (resolutionSigmaOverParentSigma < 1.0d0+resolutionSigmaOverParentSigmaTolerance) then
+             Generalized_Press_Schechter_Subresolution_Fraction=-1.0d0
+          else
+             ! Attempt the integral again with lower tolerance. Issue a warnings if this is the first time this has happened.
+             !$omp critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
+             if (.not.subresolutionFractionIntegrandFailureWarned) then
+                message='WARNING: Integration of the subresolution fraction in the generalized Press-Schechter branching probability module failed.'//char(10)//'Will try again with lower tolerance. This warning will not be issued again.'
+                call Galacticus_Display_Message(message,verbosity=verbosityWarn)
+                subresolutionFractionIntegrandFailureWarned=.true.
+             end if
+             !$omp end critical(Generalized_Press_Schechter_Subresolution_Fraction_Warn)
+             Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction &
+                  &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized ,parameterPointer&
+                  &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2 ,integrationRule&
+                  &=FGSL_Integ_Gauss15)  
+          end if
+       end if
     else
        Generalized_Press_Schechter_Subresolution_Fraction=-1.0d0
     end if
