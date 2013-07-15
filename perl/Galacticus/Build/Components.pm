@@ -4285,26 +4285,23 @@ sub Generate_Component_Get_Functions {
 	$functionCode .= "    use Galacticus_Error\n";   
  	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-    	$functionCode .= "    select type (self)\n";
-    	$functionCode .= "    class is (treeNode)\n";
-    	$functionCode .= "       instanceActual=1\n";
-    	$functionCode .= "       if (present(instance)) instanceActual=instance\n";
-    	$functionCode .= "       autoCreateActual=.false.\n";
-    	$functionCode .= "       if (present(autoCreate)) autoCreateActual=autoCreate\n";
-	$functionCode .= "       if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
+    	$functionCode .= "    instanceActual=1\n";
+    	$functionCode .= "    if (present(instance)) instanceActual=instance\n";
+    	$functionCode .= "    autoCreateActual=.false.\n";
+    	$functionCode .= "    if (present(autoCreate)) autoCreateActual=autoCreate\n";
+	$functionCode .= "    if (autoCreateActual.and.allocated(self%component".ucfirst($componentClassName).")) then\n";
 	# If we are allowed to autocreate the component and it still has generic type then deallocate it to
 	# force it to be created later.
-	$functionCode .= "         if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
-	$functionCode .= "       end if\n";
-    	$functionCode .= "       if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
-    	$functionCode .= "         if (autoCreateActual) then\n";
-	$functionCode .= "            call self%".lc($componentClassName)."Create"."()\n";
-	$functionCode .= "         else\n";
-	$functionCode .= "            call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
-	$functionCode .= "         end if\n";
-    	$functionCode .= "       end if\n";
-    	$functionCode .= "       ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
-    	$functionCode .= "    end select\n";
+	$functionCode .= "      if (same_type_as(self%component".ucfirst($componentClassName)."(1),".ucfirst($componentClassName)."Class)) deallocate(self%component".ucfirst($componentClassName).")\n";
+	$functionCode .= "    end if\n";
+    	$functionCode .= "    if (.not.allocated(self%component".ucfirst($componentClassName).")) then\n";
+    	$functionCode .= "      if (autoCreateActual) then\n";
+	$functionCode .= "         call self%".lc($componentClassName)."Create"."()\n";
+	$functionCode .= "      else\n";
+	$functionCode .= "         call Galacticus_Error_Report('".$componentClassName."Get','component is not allocated')\n";
+	$functionCode .= "      end if\n";
+    	$functionCode .= "    end if\n";
+    	$functionCode .= "    ".$componentClassName."Get => self%component".ucfirst($componentClassName)."(instanceActual)\n";
     	$functionCode .= "    return\n";
     	$functionCode .= "  end function ".$componentClassName."Get\n";
 	# Insert into the function list.
