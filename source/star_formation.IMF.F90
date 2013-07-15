@@ -506,7 +506,7 @@ contains
           ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file')
+          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous','Unable to parse recycled fractions file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
           ! Check the version number.
           dataList => getElementsByTagname(doc,"fileFormat")
           if (getLength(dataList) == 1) then
@@ -906,7 +906,7 @@ contains
              ! Open the XML file containing energy input.
              call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
              doc => parseFile(char(fileName),iostat=ioErr)
-             if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file')
+             if (ioErr /= 0) call Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous','Unable to parse metal yields file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
              ! Check the version number.
              dataList => getElementsByTagname(doc,"fileFormat")
              if (getLength(dataList) == 1) then
@@ -1352,7 +1352,7 @@ contains
            ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file')
+          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input filee "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
           ! Check the version number.
           dataList => getElementsByTagname(doc,"fileFormat")
           if (getLength(dataList) == 1) then
