@@ -101,6 +101,25 @@ Alternatively, it can be installed from CPAN using:
 perl -MCPAN -e 'install List::MoreUtils'
 \end{verbatim}
 
+\item [\href{http://search.cpan.org/~jfitz/List-Uniq-0.20/lib/List/Uniq.pm}{{\tt List::Uniq}}] Provides functionality to find unique items in lists in Perl. It is used in \glc's build system. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install List::Uniq'
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/~grantm/XML-SAX-0.99/SAX.pm}{{\tt XML::SAX}}] Provides functionality to parse XML in Perl. It is used in \glc's build system. On Fedora the following (as root) will install {\tt XML::SAX}:
+\begin{verbatim}
+yum install perl-XML-SAX
+\end{verbatim}
+Alternatively, it can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install XML::SAX
+\end{verbatim}
+
+\item [\href{http://search.cpan.org/~samtregar/XML-Validator-Schema-1.08/Schema.pm}{{\tt XML::Validator::Schema}}] Provides functionality to validate XML in Perl. It is used in \glc's build system to validate the \gls{component} \gls{dsl}. It can be installed from CPAN using:
+\begin{verbatim}
+perl -MCPAN -e 'install XML::Validator::Schema
+\end{verbatim}
+
 \item [\href{http://search.cpan.org/~kstephens/Data-Match-0.06/lib/Sort/Topological.pm}{{\tt Sort::Topological }}] This module implements dependency based sort and is used by the \glc\ build system to ensure that tasks are performed in the correct order. It can be installed using
 \begin{verbatim}
 perl -MCPAN -e 'install Sort::Topological'
