@@ -131,6 +131,7 @@ contains
     use Galacticus_Display
     use Galacticus_Input_Paths
     use Kind_Numbers
+    !$ use OMP_Lib
     implicit none
     double precision                , intent(in   )  :: time                         , variance
     double precision                , dimension(0:1) :: hTime                        , hVariance
@@ -256,7 +257,6 @@ contains
        ! Write the table to file if possible.
        if (excursionSetFirstCrossingFarahiFileName /= 'none') call Excursion_Sets_First_Crossing_Farahi_Write_File()
     end if
-    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
 
     ! Get interpolation in time.
     iTime    =Interpolate_Locate                 (timeTableCount      ,timeTable    ,interpolationAcceleratorTime    ,time    ,reset=interpolationResetTime    )
@@ -277,6 +277,7 @@ contains
                &                                           *firstCrossingProbabilityTable(iVariance-1+jVariance,iTime+jTime)
        end do
     end do
+    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     return
   end function Excursion_Sets_First_Crossing_Probability_Farahi
 
@@ -478,7 +479,7 @@ contains
            firstCrossingTableRate(:,:,iTime)= firstCrossingTableRate(:,:,iTime)                 &
                 &                            /timeTableRate         (    iTime)                 &
                 &                            /excursionSetFirstCrossingFarahiFractionalTimeStep
-       end do
+        end do
        !$omp end parallel do
        ! Deallocate work arrays.
        deallocate(varianceTableRateBaseQuad )
@@ -561,7 +562,6 @@ contains
     else
        hVarianceProgenitor=Interpolate_Linear_Generate_Factors(varianceTableCountRate+1,varianceTableRate,iVarianceProgenitor,varianceProgenitor-variance)
     end if
-    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
 
     ! Compute first crossing probability by interpolating.
     Excursion_Sets_First_Crossing_Rate_Farahi=0.0d0
@@ -577,6 +577,7 @@ contains
           end do
        end do
     end do
+    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     return
   end function Excursion_Sets_First_Crossing_Rate_Farahi
 
@@ -604,7 +605,6 @@ contains
        iVarianceRate=Interpolate_Locate                 (varianceTableCountRateBase+1,varianceTableRateBase,interpolationAcceleratorVarianceRateBase,variance,reset=interpolationResetVarianceRateBase)
        hVarianceRate=Interpolate_Linear_Generate_Factors(varianceTableCountRateBase+1,varianceTableRateBase,iVarianceRate,variance)
     end if
-    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
 
     ! Compute non-crossing probability by interpolating.
     Excursion_Sets_Non_Crossing_Rate_Farahi=0.0d0
@@ -617,6 +617,7 @@ contains
                &                                  *nonCrossingTableRate(iVarianceRate-1+jVariance,iTimeRate+jTime)
        end do
     end do
+    !$omp end critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
     return
   end function Excursion_Sets_Non_Crossing_Rate_Farahi
 
@@ -626,12 +627,20 @@ contains
     use Excursion_Sets_Barriers
     implicit none
     real            (kind=kind_quad)                :: Excursion_Sets_Barrier_Effective
-    real            (kind=kind_quad), intent(in   ) :: variance                        , variance0
-    double precision                , intent(in   ) :: time                            , time0
+    real            (kind=kind_quad), intent(in   ) :: variance                                       , variance0
+    double precision                , intent(in   ) :: time                                           , time0
+    real            (kind=kind_quad), save          :: variance0Previous               =-1.0_kind_quad, time0Previous=-1.0_kind_quad, &
+         &                                             barrier0Previous
+    !$omp threadprivate(variance0Previous,time0Previous,barrier0Previous)
 
-    Excursion_Sets_Barrier_Effective=                                                                              &
-         &                            Excursion_Sets_Barrier(real(variance ,kind=8),time ,ratesCalculation=.true.) &
-         &                           -Excursion_Sets_Barrier(real(variance0,kind=8),time0,ratesCalculation=.true.)
+    if (variance0 /= variance0Previous .or. time0 /= time0Previous) then
+       variance0Previous=variance0
+       time0Previous    =time0
+       barrier0Previous =Excursion_Sets_Barrier(real(variance0,kind=8),time0,ratesCalculation=.true.)
+    end if
+    Excursion_Sets_Barrier_Effective=                                                                            &
+         &                            Excursion_Sets_Barrier(real(variance,kind=8),time,ratesCalculation=.true.) &
+         &                           -barrier0Previous
     return
   end function Excursion_Sets_Barrier_Effective
 

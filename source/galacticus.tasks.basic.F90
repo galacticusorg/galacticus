@@ -29,6 +29,7 @@ contains
   logical function Galacticus_Task_Start()
     use Input_Parameters
     use Galacticus_Output_Open
+    !$ use OMP_Lib
     implicit none
     logical, save :: doneStart     =.false.
     integer       :: verbosityLevel
@@ -50,6 +51,9 @@ contains
 
        ! Open the Galacticus output file.
        call Galacticus_Output_Open_File
+
+       ! Tell OpenMP that nested parallelism is allowed.
+       call omp_set_nested(.true.)
 
        call Galacticus_Display_Indent('Starting task set')
        doneStart=.true.
