@@ -18,6 +18,8 @@ use Data::Dumper;
 use Text::Table;
 use Sort::Topological qw(toposort);
 use Scalar::Util 'reftype';
+use XML::SAX::ParserFactory;
+use XML::Validator::Schema;
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require File::Changes;
@@ -28,7 +30,7 @@ require Galacticus::Build::Hooks;
 %Hooks::moduleHooks = 
     (
      %Hooks::moduleHooks,
-     component => {parse => \&Components_Parse_Directive, generate => \&Components_Generate_Output}
+     component => {parse => \&Components_Parse_Directive, generate => \&Components_Generate_Output, validate => \&Components_Validate}
     );
 
 # Include debugging code.
@@ -47,6 +49,17 @@ my $fullyQualifiedNameLengthMax         = 0;
 my $propertyNameLengthMax               = 0;
 my $linkedDataNameLengthMax             = 0;
 my $implementationPropertyNameLengthMax = 0;
+
+sub Components_Validate {
+    # Validate a component document.
+    my $document  = shift;
+    my $file      = shift;
+    my $validator = XML::Validator::Schema->new(file => 'schema/componentSchema.xsd');
+    my $parser    = XML::SAX::ParserFactory->parser(Handler => $validator); 
+    eval { $parser->parse_string($document) };
+    die "Component failed validation in file ".$file.":\n".$@
+	if $@;
+}
 
 sub Components_Parse_Directive {
     # Parse content for a "component" directive.

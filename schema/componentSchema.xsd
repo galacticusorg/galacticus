@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate definitions of Galacticus components -->
+
+  <!-- Type definition for levels, used in "bindsTo" attributes -->
+  <xs:simpleType name="level">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="top"      />
+      <xs:enumeration value="component"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Component definition -->
+  <xs:element name="component">
+    <xs:complexType>
+      <xs:all>
+	<xs:element name="class"      type="xs:string" minOccurs="1"/>
+	<xs:element name="name"       type="xs:string" minOccurs="1"/>
+	<xs:element name="isDefault"                   minOccurs="0" >
+	  <xs:simpleType>
+	    <xs:restriction base="xs:string">
+	      <xs:enumeration value="no" />
+	      <xs:enumeration value="yes"/>
+	    </xs:restriction>
+	  </xs:simpleType>
+	</xs:element>
+	<xs:element name="output"                      minOccurs="0" >
+	  <xs:complexType>
+	    <xs:attribute name="instances" use="required">
+	      <xs:simpleType>
+		<xs:restriction base="xs:string">
+		  <xs:enumeration value="first" />
+		</xs:restriction>
+	      </xs:simpleType>	      
+	    </xs:attribute>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="extends"                     minOccurs="0" >
+	  <xs:complexType>
+	    <xs:all>
+	      <xs:element name="class" type="xs:string" minOccurs="1"/>
+	      <xs:element name="name"  type="xs:string" minOccurs="1"/>
+	    </xs:all>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="createFunction"                minOccurs="0" >
+	  <xs:complexType>
+	    <xs:attribute name="isDeferred" type="xs:boolean" use="required" />
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="properties"                  minOccurs="0" >
+	  <xs:complexType>
+	    <xs:element name="property">
+	      <xs:complexType>
+		<xs:all>
+		  <xs:element name="name" type="xs:string" minOccurs="1"/>
+		  <xs:element name="type"                  minOccurs="1" >
+		    <xs:simpleType>
+		      <xs:restriction base="xs:string">
+			<xs:enumeration value="real"       />
+			<xs:enumeration value="integer"    />
+			<xs:enumeration value="logical"    />
+			<xs:enumeration value="chemicals"  />
+			<xs:enumeration value="abundances" />
+			<xs:enumeration value="history"    />
+			<xs:enumeration value="keplerOrbit"/>
+		      </xs:restriction>
+		    </xs:simpleType>
+		  </xs:element>
+		  <xs:element name="rank"                  minOccurs="1" >
+		    <xs:simpleType>
+		      <xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="1"/>
+		      </xs:restriction>
+		    </xs:simpleType>
+		  </xs:element>
+		  <xs:element name="attributes"            minOccurs="1" >
+		    <xs:complexType>
+		      <xs:attribute name="isSettable"     type="xs:boolean" use="required"/>
+		      <xs:attribute name="isGettable"     type="xs:boolean" use="required"/>
+		      <xs:attribute name="isEvolvable"    type="xs:boolean" use="required"/>
+		      <xs:attribute name="createIfNeeded" type="xs:boolean"               />
+		      <xs:attribute name="makeGeneric"    type="xs:boolean"               />
+		      <xs:attribute name="isDeferred"     type="xs:string"                />
+		      <xs:attribute name="bindsTo"        type="level"                    />
+		    </xs:complexType>
+		  </xs:element>
+		  <xs:element name="output"                minOccurs="0" >
+		    <xs:complexType>
+		      <xs:attribute name="unitsInSI" type="xs:string"               />
+		      <xs:attribute name="comment"   type="xs:string" use="required"/>
+		      <xs:attribute name="condition" type="xs:string"               />
+		      <xs:attribute name="labels"    type="xs:string"               />
+		      <xs:attribute name="count"     type="xs:string"               />
+		      <xs:attribute name="modules"   type="xs:string"               />
+		    </xs:complexType>
+		  </xs:element>
+		  <xs:element name="classDefault"                   minOccurs="0" >
+		    <xs:complexType>
+		      <xs:simpleContent>
+			<xs:extension base="xs:string">
+			  <xs:attribute name="modules" type="xs:string"/>
+			  <xs:attribute name="count"   type="xs:string"/>
+			</xs:extension>
+		      </xs:simpleContent>
+		    </xs:complexType>
+		  </xs:element>
+		  <xs:element name="getFunction"                    minOccurs="0" >
+		    <xs:complexType>
+		      <xs:simpleContent>
+			<xs:extension base="xs:string">
+			  <xs:attribute name="bindsTo" type="level"/>
+			</xs:extension>
+		      </xs:simpleContent>
+		    </xs:complexType>
+		  </xs:element>
+		  <xs:element name="setFunction"                    minOccurs="0" >
+		    <xs:complexType>
+		      <xs:simpleContent>
+			<xs:extension base="xs:string">
+			  <xs:attribute name="bindsTo" type="level"/>
+			</xs:extension>
+		      </xs:simpleContent>
+		    </xs:complexType>
+		  </xs:element>
+		  <xs:element name="isVirtual"    type="xs:boolean" minOccurs="0"/>
+		</xs:all>
+	      </xs:complexType>
+	    </xs:element>
+	  </xs:complexType>
+	</xs:element>
+	<xs:element name="bindings"                  minOccurs="0" >
+	  <xs:complexType>
+	    <xs:element name="binding"            minOccurs="1" >
+	      <xs:complexType>
+		<xs:attribute name="method"      type="xs:string" use="required"/>
+		<xs:attribute name="function"    type="xs:string" use="required"/>
+		<xs:attribute name="bindsTo"     type="level"                   />		
+		<xs:attribute name="description" type="xs:string"               />		
+		<xs:attribute name="type"        type="xs:string"               />		
+		<xs:attribute name="returnType"  type="xs:string"               />		
+		<xs:attribute name="arguments"   type="xs:string"               />		
+	      </xs:complexType>
+	    </xs:element>
+	  </xs:complexType>
+	</xs:element>	
+	<xs:element name="functions"   type="xs:string" minOccurs="0"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

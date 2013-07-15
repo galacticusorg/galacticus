@@ -163,6 +163,10 @@ foreach my $currentFileName ( @filesToScan ) {
 		    foreach my $hook ( keys(%Hooks::moduleHooks) ) {
 			if ( $buildData->{'type'} eq $hook ) {
 			    $foundMatch = 1;
+			    if ( exists($Hooks::moduleHooks{$hook}->{'validate'}) ) {
+				my $validateFunction = $Hooks::moduleHooks{$hook}->{'validate'};
+				&{$validateFunction}($xmlCode,$currentFileName);
+			    }
 			    my $parseFunction = $Hooks::moduleHooks{$hook}->{'parse'};
 			    &{$parseFunction}($buildData);
 			}
