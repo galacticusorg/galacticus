@@ -66,9 +66,9 @@ if ( scalar(@grasilFilesRoots) > 1 ) {
     # Launch a thread for each given name.
     foreach my $grasilFilesRoot ( @grasilFilesRoots ) {
 	if ( $^V lt v5.14.0 ) { 
-	    $grasilThreads[++$#grasilThreads] = threads->create( sub {system("cd `dirname ".$grasilFilesRoot."`; ulimit -t ".$cpuLimit."; ".$grasilPath."/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`");});
+	    push(@grasilThreads,threads->create( sub {system("cd `dirname ".$grasilFilesRoot."`; ulimit -t ".$cpuLimit."; ".$grasilPath."/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`");}));
 	} else {
-	    $grasilThreads[++$#grasilThreads] = threads->create({'context' => 'void'}, sub {system("cd `dirname ".$grasilFilesRoot."`; ulimit -t ".$cpuLimit."; ".$grasilPath."/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`");});
+	    push(@grasilThreads,threads->create({'context' => 'void'}, sub {system("cd `dirname ".$grasilFilesRoot."`; ulimit -t ".$cpuLimit."; ".$grasilPath."/grasil `basename ".$grasilFilesRoot."` &> `basename ".$grasilFilesRoot.".log`");}));
 	}
     }
     

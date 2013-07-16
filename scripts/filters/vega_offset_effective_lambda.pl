@@ -18,17 +18,18 @@ use File::Copy;
 # Andrew Benson (16-Feb-2010)
 
 # Check arguments make sense.
-if ( $#ARGV > 1 ) {die("Usage: vega_offset_effective_lambda.pl [<filtersDirectory> [<vegaSpectrumFile>]]")};
+die("Usage: vega_offset_effective_lambda.pl [<filtersDirectory> [<vegaSpectrumFile>]]")
+    unless ( scalar(@ARGV) <= 3 );
 # Get the filters directory if one is specified.
 my $filtersDirectory;
-if ( $#ARGV >= 0 ) {
+if ( scalar(@ARGV) > 0 ) {
     $filtersDirectory = $ARGV[0];
 } else {
     $filtersDirectory = "./data/filters";
 }
 # Get the Vega spectrum file.
 my $vegaSpectrumFile;
-if ( $#ARGV == 1 ) {
+if ( scalar(@ARGV) == 2 ) {
     $vegaSpectrumFile = $ARGV[1];
 } else {
     # None given, so use the default.
@@ -44,10 +45,10 @@ if ( $#ARGV == 1 ) {
 		$line =~ s/^\s*//;
 		$line =~ s/\s*$//;
 		my @columns = split(/\s+/,$line);
-		if ( $#columns > 0) {
+		if ( scalar(@columns) > 1 ) {
 		    $columns[2] = $columns[2]*10.0;             # Convert to Angstroms.
 		    $columns[4] = $columns[4]/($columns[2]**2); # Convert to F_lambda.
-		    ${$vegaSpectrum{'datum'}}[++$#{$vegaSpectrum{'datum'}}] = $columns[2]."\t".$columns[4];
+		    push(@{$vegaSpectrum{'datum'}},$columns[2]."\t".$columns[4]);
 		}
 	    }
 	}

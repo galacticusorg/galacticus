@@ -68,12 +68,15 @@ my $powerSpectrumIndex = $parameters(($parameterMap{'n_s'}));
 
 # Construct data for XML output.
 my $parameterData;
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_M"           , value => $Omega_M           ->list};
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_DE"          , value => $Omega_DE          ->list};
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "Omega_b"           , value => $Omega_b           ->list};
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "sigma_8"           , value => $sigma_8           ->list};
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "H_0"               , value => $H_0               ->list};
-${$parameterData->{'parameter'}}[++$#{$parameterData->{'parameter'}}] = { name => "powerSpectrumIndex", value => $powerSpectrumIndex->list};
+push(
+    @{$parameterData->{'parameter'}},
+    { name => "Omega_M"           , value => $Omega_M           ->list},
+    { name => "Omega_DE"          , value => $Omega_DE          ->list},
+    { name => "Omega_b"           , value => $Omega_b           ->list},
+    { name => "sigma_8"           , value => $sigma_8           ->list},
+    { name => "H_0"               , value => $H_0               ->list},
+    { name => "powerSpectrumIndex", value => $powerSpectrumIndex->list}
+    );
 
 # Output data as XML.
 my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");

@@ -21,6 +21,7 @@ require XMP::MetaData;
 
 # Get name of input and output files.
 die("luminosityFunction_K_z0.pl <galacticusFile> [options]") unless ( scalar(@ARGV) >= 1 );
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $self           = $0;
 my $galacticusFile = $ARGV[0];
 # Create a hash of named arguments.

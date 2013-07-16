@@ -16,11 +16,13 @@ use Data::Dumper;
 # Andrew Benson (01-Mar-2010)
 
 # Get the name of the Galacticus file to analyze.
-if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisScript>]")};
+die("Galacticus_Compute_Fit.pl <galacticusFile> <outputDirectory> [<analysisScript>]")
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $galacticusFile  = $ARGV[0];
 my $outputDirectory = $ARGV[1];
 my $analysisScript  = $galacticusPath."data/analyses/Galacticus_Compute_Fit_Analyses.xml";
-$analysisScript  = $ARGV[2] if ( $#ARGV == 2 );
+$analysisScript  = $ARGV[2] 
+    if ( scalar(@ARGV) == 3 );
 system("mkdir -p $outputDirectory");
 
 # Open the descriptor file that explains what analysis files to run.
@@ -54,7 +56,7 @@ foreach my $analysis ( @analyses ) {
     if ( $fitXML =~ m/<constraint>/ ) {
 	my $fitData = $xml->XMLin($fitXML);
 	$fitData->{'weight'} = $analysis->{'weight'};
-	${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
+	push(@{$fitsData->{'galacticusFit'}},$fitData);
 	if      ( exists($fitData->{'chiSquared'  }) ) {
 	    $chiSquaredNet       +=      $fitData->{'chiSquared'      }*$fitData->{'weight'};
 	    $degreesOfFreedomNet +=      $fitData->{'degreesOfFreedom'}*$fitData->{'weight'};
@@ -72,7 +74,7 @@ $fitData->{'chiSquared'       } = $chiSquaredNet;
 $fitData->{'reducedChiSquared'} = $reducedChiSquaredNet;
 $fitData->{'degreesOfFreedom' } = $degreesOfFreedomNet;
 $fitData->{'name'             } = "net";
-${$fitsData->{'galacticusFit'}}[++$#{$fitsData->{'galacticusFit'}}] = $fitData;
+push(@{$fitsData->{'galacticusFit'}},$fitData);
 
 # Output the accumulated results.
 my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"galacticusFits");

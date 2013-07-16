@@ -40,7 +40,7 @@ my $outputCount = 5;
 # Specify range of M2 (final mass) bins.
 my @rootBins = ( 12.0, 13.5, 15.0 );
 my $rootBinStep = 0.301029996;
-my $rootBinCount = $#rootBins+1;
+my $rootBinCount = scalar(@rootBins);
 
 # Create array of masses for conditional mass function.
 my $dummy = pdl[1..10];

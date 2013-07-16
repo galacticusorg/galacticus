@@ -25,12 +25,13 @@ require XMP::MetaData;
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Get name of input and output files.
-if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_SDSS_Tully_Fisher.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+die("Plot_SDSS_Tully_Fisher.pl <galacticusFile> <outputDir/File> [<showFit>]")
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $self           = $0;
 my $galacticusFile = $ARGV[0];
 my $outputTo       = $ARGV[1];
 my $showFit;
-if ( $#ARGV == 2 ) {
+if ( scalar(@ARGV) == 3 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
     if ( lc($showFit) eq "noshowfit" ) {$showFit = 0};

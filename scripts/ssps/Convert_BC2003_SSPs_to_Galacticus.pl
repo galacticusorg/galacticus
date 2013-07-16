@@ -168,7 +168,7 @@ foreach my $model ( @modelsToConvert ) {
 		    $line =~ s/\s*$//;
 		    my @columns = split(/\s+/,$line);
 		    $wavelengthCount = shift(@columns) if ( $wavelengthCount == -1 );
-		    if ( nelem($spectrum) + $#columns + 1 <= $wavelengthCount ) {
+		    if ( nelem($spectrum) + scalar(@columns) <= $wavelengthCount ) {
 			$spectrum = $spectrum->append(pdl @columns);
 			$line = "";
 		    } else {

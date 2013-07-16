@@ -9,7 +9,8 @@ use Data::Dumper;
 # Andrew Benson 25-Mar-2012
 
 # Get source directory
-unless ($#ARGV == 1) {die 'Usage: Extract_Contributors.pl <sourceDir> <outputFile>'};
+die 'Usage: Extract_Contributors.pl <sourceDir> <outputFile>'
+    unless ( scalar(@ARGV) ==  2);
 my $sourceDir  = $ARGV[0];
 my $outputFile = $ARGV[1];
 
