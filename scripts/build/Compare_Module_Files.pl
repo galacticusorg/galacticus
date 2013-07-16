@@ -62,7 +62,7 @@ my (%compiler_array);
 # Argument checking.
 #
 my $argerr=0;
-my $n_arg=$#ARGV+1;
+my $n_arg=scalar(@ARGV);
 $n_arg >= 2 || do {print STDERR "Error : need at least two arguments\n"; $argerr=1; };
 my @ARGS = @ARGV[0 .. $n_arg-3];
 my $file1 = $ARGV[$n_arg-2];

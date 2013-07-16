@@ -19,7 +19,8 @@ use Data::Dumper;
 # Andrew Benson (05-June-2011)
 
 # Get arguments.
-die ("Usage: metaAnalysis.pl <modelFile> <outputFolder>") unless ( $#ARGV == 1 );
+die ("Usage: metaAnalysis.pl <modelFile> <outputFolder>")
+    unless ( scalar(@ARGV) == 2 );
 my $modelFile    = $ARGV[0];
 my $outputFolder = $ARGV[1];
 

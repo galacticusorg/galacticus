@@ -28,13 +28,14 @@ require System::Redirect;
 # Andrew Benson (11-June-2010)
 
 # Get command line arguments.
-if ( $#ARGV < 0 ) {die("Usage: Run_Galacticus.pl <runFile>")};
+die("Usage: Run_Galacticus.pl <runFile>")
+    unless ( scalar(@ARGV) >= 1 );
 my $runFile = $ARGV[0];
 
 # Create a hash of named arguments.
 my $iArg = -1;
 my %arguments;
-while ( $iArg < $#ARGV ) {
+while ( $iArg < scalar(@ARGV)-1 ) {
     ++$iArg;
     if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
 	$arguments{$1} = $ARGV[$iArg+1];
@@ -107,7 +108,7 @@ if ( $threadCount <= 1 || $launchMethod eq "condor" || $launchMethod eq "pbs" ) 
 } else {
     my @threads = ();
     for(my $iThread=0;$iThread<$threadCount;++$iThread) {
-	$threads[++$#threads] = new Thread \&Launch_Models, $modelsToRun;
+	push(@threads,new Thread \&Launch_Models, $modelsToRun);
 	sleep 1; # Adds a pause to minimize file race conditions.
     }
     foreach my $thread ( @threads ) {
@@ -262,7 +263,7 @@ sub Launch_Models {
 		    my $xml = new XML::Simple;
 		    my $data = $xml->XMLin($baseParameters,ForceArray => 1);
 		    my @parameterArray = @{$data->{'parameter'}};
-		    for(my $i=0;$i<=$#parameterArray;++$i) {
+		    for(my $i=0;$i<scalar(@parameterArray);++$i) {
 			$parameters{${$parameterArray[$i]->{'name'}}[0]} = ${$parameterArray[$i]->{'value'}}[0];
 		    }
 		}
@@ -310,8 +311,13 @@ sub Launch_Models {
 		    unless ( $name eq "label" ) {
 			my $value = $parameters{$name};
 			$value =~ s/\%\%galacticusOutputPath\%\%/$galacticusOutputDirectory/g;
-			$parameterArray[++$#parameterArray]->{'name'}  = $name;
-			$parameterArray[  $#parameterArray]->{'value'} = $value;
+			push(
+			    @parameterArray,
+			    {
+				name  => $name,
+				value => $value
+			    }
+			    );
 		    }
 		}
 		$data->{'parameter'} = \@parameterArray;
@@ -381,7 +387,8 @@ sub Launch_Models {
 			print oHndl "Universe                = ".$condorUniverse."\n";
 			print oHndl "Allow_Startup_Script    = True\n" if ( $condorUniverse eq "standard" );
 			print oHndl "Environment             = ".$condorEnvironment."\n" unless ( $condorEnvironment eq "" );
-			print oHndl "Requirements            = (".join(") && (",@condorRequirements).")\n" if ( $#condorRequirements >= 0 );
+			print oHndl "Requirements            = (".join(") && (",@condorRequirements).")\n"
+			    if ( scalar(@condorRequirements) > 0 );
 			print oHndl "+RequiresWholeMachine   = True\n" if ( $modelsToRun->{'condor'}->{'wholeMachine'} eq "true" );
 			print oHndl "Queue\n";
 			close(oHndl);

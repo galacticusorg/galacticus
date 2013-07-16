@@ -107,7 +107,7 @@ foreach my $IMF ( keys(%IMFs) ) {
 		unless ( $age == $lastAge ) {
 		    if ( nelem($lambdas) > 0 ) {
 			++$iAge;
-			$fluxData = pdl zeroes($#metallicities+1,$ageCount,nelem($fluxes)) unless (defined($fluxData));
+			$fluxData = pdl zeroes(scalar(@metallicities),$ageCount,nelem($fluxes)) unless (defined($fluxData));
 			$fluxData(($iMetal),($iAge),:) .= $fluxes;
 		    }
 		    $lambdas = pdl [];

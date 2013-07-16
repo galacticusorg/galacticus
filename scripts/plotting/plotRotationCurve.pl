@@ -37,7 +37,7 @@ my $outputFile       = $ARGV[4];
 # Get named arguments.
 my %arguments;
 my $iArg = 4;
-while ( $iArg < $#ARGV ) {
+while ( $iArg < scalar(@ARGV)-1 ) {
     ++$iArg;
     if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
 	$arguments{$1} = $ARGV[$iArg+1];

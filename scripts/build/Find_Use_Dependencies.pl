@@ -9,14 +9,18 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
  $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
+use List::Uniq ':all';
 use Data::Dumper;
 
 # Locate source files which have dependencies on modules.
 
 # Define the source directory
-if ( $#ARGV != 0 && $#ARGV != 1 ) {die "Usage: Find_Use_Dependencies.pl sourcedir"};
+die "Usage: Find_Use_Dependencies.pl sourcedir"
+    unless ( scalar(@ARGV) == 1 || scalar(@ARGV) == 2 );
 my $sourcedir = $ARGV[0];
-if ( $#ARGV == 1 ) { my $make = $ARGV[1] } else { my $make = "make" }
+my $make = "make";
+$make = $ARGV[1]
+    if ( scalar(@ARGV) == 2 );
 
 # Specify work directory.
 my $workDir = "/work/build/";
@@ -57,7 +61,7 @@ foreach my $makefile ( "Makefile" ) {
     while ( my $line = <$ophndl> ) {
         if ( $line =~ m/^\s*FCFLAGS\s*\+??=/ ) {
             while ( $line =~ s/\s\-D([0-9A-Z]+)\s// ) {
-                $preprocs[++$#preprocs] = $1;
+                push(@preprocs,$1);
             }
         }
     }
@@ -66,10 +70,10 @@ foreach my $makefile ( "Makefile" ) {
 my $environmentOptions = $ENV{"GALACTICUS_FLAGS"};
 if ( defined($environmentOptions) ) {
     while ( $environmentOptions =~ s/\s\-D([0-9A-Z]+)\s// ) {
-	$preprocs[++$#preprocs] = $1;
+	push(@preprocs,$1);
     }
     while ( $environmentOptions =~ s/\s\-D([0-9A-Z]+)$// ) {
-	$preprocs[++$#preprocs] = $1;
+	push(@preprocs,$1);
     }
 }
 
@@ -86,8 +90,8 @@ if ( -e $sourcedirs[0] ) {
 	$line =~ s/\n//;
 	if ( -d $sourcedirs[0]."/".$line ) {
 	    unless ( $line =~ m/^\.+$/ ) {
-		$sourcedirs[++$#sourcedirs] = $sourcedirs[0]."/".$line;
-		$bases[++$#bases] = $line."/";
+		push(@sourcedirs,$sourcedirs[0]."/".$line    );
+		push(@bases     ,                   $line."/");
 	    }
 	}
     }
@@ -131,10 +135,9 @@ foreach my $srcdir ( @sourcedirs ) {
 	    my @extra_includes;
 	    my %libraryDependencies;
 
-	    $scanfiles[++$#scanfiles] = $fullname;
-	    while ( $#scanfiles >= 0 ) {
-		$fullname = $scanfiles[$#scanfiles];
-		--$#scanfiles;
+	    push(@scanfiles,$fullname);
+	    while ( scalar(@scanfiles) > 0 ) {
+		$fullname = pop(@scanfiles);
 		if ( ! -e $fullname ) {
 		    my $leaf;
 		    if ( $fullname =~ m/\/([\w\.]+?)$/ ) {
@@ -162,23 +165,23 @@ foreach my $srcdir ( @sourcedirs ) {
 		    if ( $line =~ m/^\#/ ) {
 			if ( $line =~ m/^\#ifdef\s+([0-9A-Z_]+)\s*$/ ) {
 			    my $this_preproc = $1;
-			    $preproc_stack_name[++$#preproc_stack_name] = $this_preproc;
-			    $preproc_stack_state[++$#preproc_stack_state] = 1;
+			    push(@preproc_stack_name ,$this_preproc);
+			    push(@preproc_stack_state,1            );
 			}
 			if ( $line =~ m/^\#ifndef\s+([0-9A-Z_]+)\s*$/ ) {
 			    my $this_preproc = $1;
-			    $preproc_stack_name[++$#preproc_stack_name] = $this_preproc;
-			    $preproc_stack_state[++$#preproc_stack_state] = 0;
+			    push(@preproc_stack_name ,$this_preproc);
+			    push(@preproc_stack_state,0            );
 			}
 			if ( $line =~ m/^\#endif\s*$/ ) {
-			    --$#preproc_stack_name;
-			    --$#preproc_stack_state;
+			    pop(@preproc_stack_name );
+			    pop(@preproc_stack_state);
 			}
 			if ( $line =~ m/^\#else\s*$/ ) {
-			    $preproc_stack_state[$#preproc_stack_state] = 1-$preproc_stack_state[$#preproc_stack_state];
+			    $preproc_stack_state[-1] = 1-$preproc_stack_state[-1];
 			}
 			$active = 1;
-			for(my $i=0;$i<=$#preproc_stack_state;++$i) {
+			for(my $i=0;$i<scalar(@preproc_stack_state);++$i) {
 			    my $this_active;
 			    if ( $preproc_stack_state[$i] == 1 ) {
 				$this_active = 0;
@@ -223,9 +226,9 @@ foreach my $srcdir ( @sourcedirs ) {
 			    my $ifile = $2;
 			    (my $Ifile = $ifile) =~ s/\.inc$/.Inc/;
 			    if ( -e $sourcedir."/source/".$Ifile ) {
-				$scanfiles[++$#scanfiles] = $sourcedir."/source/".$Ifile;
+				push(@scanfiles,$sourcedir."/source/".$Ifile);
 			    } elsif ( -e $sourcedir."/work/build/".$ifile ) {
-				$scanfiles[++$#scanfiles] = $sourcedir."/work/build/".$ifile;
+				push(@scanfiles,$sourcedir."/work/build/".$ifile);
 			    }
 			}
 		    }
@@ -249,57 +252,45 @@ foreach my $srcdir ( @sourcedirs ) {
 		}
 	    }
 	    
-# Process output for files which had use statements
+	    # Process output for files which had use statements
 	    if ( $hasuses == 1 ) {
-# Sort the list of used files
+		# Sort the list of used files
 		my @sortedinc = sort @incfiles;
-# Remove any duplicate entries
-		if ($#sortedinc > 0) {
-		    for (my $i = 1; $i <= $#sortedinc; $i += 1) {
-			if ($sortedinc[$i] eq $sortedinc[$i-1]) {
-			    if ( $i < $#sortedinc ) {
-				for (my $j = $i; $j < $#sortedinc; $j += 1) {
-				    $sortedinc[$j] = $sortedinc[$j+1];
-				}
-			    }
-			    $i -= 1;
-			    $#sortedinc -= 1;
-			}
-		    }
-		}
+		# Remove any duplicate entries
+		@sortedinc = uniq(@sortedinc);
 		
-		for (my $i = 0; $i <= $#sortedinc; $i += 1) {
+		for (my $i = 0; $i < scalar(@sortedinc); $i += 1) {
 		    foreach my $item (@modfiles) {
 			if ( $sortedinc[$i] eq $item ) {
-			    if ( $i < $#sortedinc ) {
-				for (my $j = $i; $j < $#sortedinc; $j += 1) {
+			    if ( $i < scalar(@sortedinc)-1 ) {
+				for (my $j = $i; $j < scalar(@sortedinc)-1; $j += 1) {
 				    $sortedinc[$j] = $sortedinc[$j+1];
 				}
 			    }
 			    $i -= 1;
-			    $#sortedinc -= 1;
+			    pop(@sortedinc);
 			    last;
 			}
 		    }
 		}
 
                 # Output the dependencies
-		if ($#sortedinc >= 0 || $#extra_includes >= 0) {
+		if (scalar(@sortedinc) > 0 || scalar(@extra_includes) > 0) {
 		    print $outfile ".".$workDir.$base.$oname,": ";
-		    if ( $#sortedinc >= 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
 		    print $outfile " Makefile";
 		    foreach my $extra_include ( @extra_includes ) {
 			print $outfile " $extra_include";
 		    }
 		    print $outfile "\n";
-		    for (my $i = 0; $i <= $#sortedinc; $i += 1) {
+		    for (my $i = 0; $i < scalar(@sortedinc); $i += 1) {
 			$sortedinc[$i] =~ s/.mod\s$/.mod.d /;
 		    }
 		    my $dname = $oname;
 		    $dname =~ s/.o$/.d/;
 		    $dname =~ s/.Inc$/.d/;
 		    print $outfile ".".$workDir.$base.$dname,": ";
-		    if ( $#sortedinc >= 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
 		    foreach my $extra_include ( @extra_includes ) {
 			(my $dFile = $extra_include) =~ s/\.o$/.d/;
 			print $outfile " ".$dFile;
@@ -321,14 +312,14 @@ foreach my $srcdir ( @sourcedirs ) {
 		    print $outfile "\t\@sort -u .$workDir$base$dname -o .$workDir$base$dname\n\n";
 
 		    # Create rules for making dependency trees with GraphViz.
-		    for (my $i = 0; $i <= $#sortedinc; $i += 1) {
+		    for (my $i = 0; $i < scalar(@sortedinc); $i += 1) {
 			$sortedinc[$i] =~ s/\.d$/.gv /;
 		    }
 		    my $gvname = $pname.".gv";
 		    $dname = $oname;
 		    $dname =~ s/.o$/.d/;
 		    print $outfile ".".$workDir.$base.$gvname,": .".$workDir.$base.$dname." ";
-		    if ( $#sortedinc >= 0 ) {print $outfile ".",join(".",@sortedinc)};
+		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
 		    print $outfile "\n";
 		    print $outfile "\t\@echo \\\"$pname\\\" > .$workDir$base$gvname\n";
 		    foreach my $extra_include ( @extra_includes ) {

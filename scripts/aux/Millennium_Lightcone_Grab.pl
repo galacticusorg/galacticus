@@ -13,7 +13,8 @@ use XML::Simple;
 # Andrew Benson (20-January-2011)
 
 # Get the data directory.
-die("Usage: Millennium_Lightcone_Grab.pl <dataDirectory> <surveySize> <maxRedshift> [options....]") unless ( $#ARGV >= 2 );
+die("Usage: Millennium_Lightcone_Grab.pl <dataDirectory> <surveySize> <maxRedshift> [options....]") 
+    unless ( scalar(@ARGV) >= 3 );
 my $dataDirectory = $ARGV[0];
 my $surveySize    = $ARGV[1];
 my $maxRedshift   = $ARGV[2];
@@ -21,7 +22,7 @@ my $maxRedshift   = $ARGV[2];
 # Create a hash of named arguments.
 my $iArg = -1;
 my %arguments;
-while ( $iArg < $#ARGV ) {
+while ( $iArg < scalar(@ARGV)-1 ) {
     ++$iArg;
     if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
 	$arguments{$1} = $ARGV[$iArg+1];
@@ -393,9 +394,9 @@ print "   ...done\n";
 my @treeIDs        = sort(keys(%treeIDs));
 my $temporaryFile  = "tmp.csv";
 system("make Millennium_Merger_Tree_File_Maker.exe");
-for(my $iTree=0;$iTree<=$#treeIDs;$iTree+=$treeBlockCount) {
+for(my $iTree=0;$iTree<scalar(@treeIDs);$iTree+=$treeBlockCount) {
     my $jTree = $iTree+$treeBlockCount-1;
-    if ( $jTree > $#treeIDs ) {$jTree = $#treeIDs};
+    if ( $jTree > scalar(@treeIDs)-1 ) {$jTree = scalar(@treeIDs)-1};
     my $select = "root.treeId in (".join(",",@treeIDs[$iTree..$jTree]).")";
     
     # Define the name of the tree file.

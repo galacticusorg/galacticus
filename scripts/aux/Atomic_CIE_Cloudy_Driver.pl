@@ -17,7 +17,8 @@ use Fcntl qw (:flock);
 # Andrew Benson (26-Jan-2010)
 
 # Get arguments.
-if ( $#ARGV != 3 ) {die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile> <fileFormatVersion>"};
+die "Usage: Atomic_CIE_Cloudy_Driver.pl <logMetallicityMaximum> <coolingFunctionFile> <chemicalStateFile> <fileFormatVersion>"
+    unless ( scalar(@ARGV) == 4 );
 my $logMetallicityMaximum = $ARGV[0];
 my $coolingFunctionFile   = $ARGV[1];
 my $chemicalStateFile     = $ARGV[2];
@@ -81,7 +82,7 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
     my $logMetallicity = $logMetallicityMinimum-$logMetallicityDelta;
     while ( $logMetallicity < $logMetallicityMaximum ) {
 	$logMetallicity += $logMetallicityDelta;	
-	$logMetallicities[++$#logMetallicities] = $logMetallicity;
+	push(@logMetallicities,$logMetallicity);
     }
 
     # Specify Solar and primodial helium abundances (as used in Cloudy).
@@ -181,8 +182,8 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	    my $temperature = $dataColumns[1];
 	    my $heatingRate = $dataColumns[2];
 	    my $coolingRate = $dataColumns[3];
-	    $temperatures[++$#temperatures] = $temperature;
-	    $coolingRates[++$#coolingRates] = $coolingRate;
+	    push(@temperatures,$temperature);
+	    push(@coolingRates,$coolingRate);
 	}
 	close(coolHandle);
 	unlink($coolingTempFile);
@@ -194,11 +195,11 @@ if ( $computeCoolingFunctions == 1 || $computeChemicalStates == 1 ) {
 	    my $separator   = <overviewHandle>;
 	    my @dataColumns = split(/\s+/,$dataLine);
 	    my $electronDensity = 10.0**$dataColumns[4];
-	    $electronDensities[++$#electronDensities] = $electronDensity;
+	    push(@electronDensities,$electronDensity);
 	    my $hiDensity       = 10.0**$dataColumns[6];
-	    $hiDensities      [++$#hiDensities      ] = $hiDensity;
+	    push(@hiDensities      ,      $hiDensity);
 	    my $hiiDensity      = 10.0**$dataColumns[7];
-	    $hiiDensities     [++$#hiiDensities     ] = $hiiDensity;
+	    push(@hiiDensities     ,     $hiiDensity);
 	}
 	close(overviewHandle);
 	unlink($overviewTempFile);

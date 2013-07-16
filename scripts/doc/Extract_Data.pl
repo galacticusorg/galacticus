@@ -20,7 +20,8 @@ require Fortran::Utils;
 # Andrew Benson 12-Mar-2010
 
 # Get source directory
-unless ($#ARGV == 1) {die 'Usage: Extract_Data.pl <sourceDir> <outputRoot>'};
+die 'Usage: Extract_Data.pl <sourceDir> <outputRoot>'
+    unless ( scalar(@ARGV) == 2 );
 my $sourceDir  = $ARGV[0];
 my $outputRoot = $ARGV[1];
 
@@ -86,12 +87,12 @@ foreach my $fileName ( @fileNames ) {
 	# Check for entering, leaving program units.
 	if ( $rawLine =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
 	    my $moduleName = $1;
-	    unless ( $moduleName eq "procedure" ) {$programUnits[++$#programUnits] = "module:".$moduleName};
+	    unless ( $moduleName eq "procedure" ) {push(@programUnits,"module:".$moduleName)};
 	}
-	if ( $rawLine =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "program:".$1};
-	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "subroutine:".$2};
-	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {$programUnits[++$#programUnits] = "function:".$5};
-	if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {--$#programUnits};
+	if ( $rawLine =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"program:".$1)};
+	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"subroutine:".$2)};
+	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"function:".$5)};
+	if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {pop(@programUnits)};
 
 	# Check for derived-type definitions.
 	if ( defined($processedLine) ) {
@@ -154,7 +155,7 @@ foreach my $fileName ( @fileNames ) {
 			foreach ( @{$contents->{'entry'}}) {
 			    push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
 			}
-			my $programUnitIndex = $#programUnits;
+			my $programUnitIndex = scalar(@programUnits)-1;
 			$programUnitIndex = -1 
 			    unless ( defined($programUnits[$programUnitIndex]) );
 			my $regEx = "^module";
@@ -172,7 +173,7 @@ foreach my $fileName ( @fileNames ) {
 			my $attachedTo;
 			my $attachedAt;
 			if ( exists($contents->{'attachedTo'}) ) {
-			    my $programUnitIndex = $#programUnits;
+			    my $programUnitIndex = scalar(@programUnits)-1;
 			    my $regEx = $contents->{'attachedTo'}.":";
 			    $programUnitIndex = -1 
 				unless ( defined($programUnits[$programUnitIndex]) );
@@ -187,8 +188,8 @@ foreach my $fileName ( @fileNames ) {
 				$attachedAt = -1;
 			    }
 			} else {
-			    $attachedTo = "{\\tt ".$programUnits[$#programUnits]."}";
-			    $attachedAt = $#programUnits;
+			    $attachedTo = "{\\tt ".$programUnits[-1]."}";
+			    $attachedAt = scalar(@programUnits)-1;
 			}
 
 			my $attachedLink = $leafName.":";

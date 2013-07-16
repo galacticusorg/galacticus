@@ -18,7 +18,8 @@ require System::Redirect;
 # Scans source code for "!#" directives and generates a Makefile.
 
 # Define the source directory.
-if ( $#ARGV != 0 ) {die "Usage: Code_Directive_Parser.pl sourcedir"};
+die "Usage: Code_Directive_Parser.pl sourcedir"
+    unless ( scalar(@ARGV) == 1 );
 my $sourcedir = $ARGV[0];
 my @sourcedirs = ( $sourcedir."/source" );
 
@@ -49,7 +50,7 @@ foreach my $srcdir ( @sourcedirs ) {
 	    unshift(@filePositions,-1);
 	    
 	    # Process files until none remain.
-	    while ( $#fileNames >= 0 ) {
+	    while ( scalar(@fileNames) > 0 ) {
 		
 		# Open the file.
 		open(my $fileHandle,$fileNames[0]) or die "Can't open input file: #!";

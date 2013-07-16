@@ -26,7 +26,8 @@ require Fortran::Utils;
 # Andrew Benson (01-May-2010)
 
 # Get arguments.
-die("Usage: Code_Analyzer.pl <sourceDir> <outputFile>") unless ( $#ARGV == 1 );
+die("Usage: Code_Analyzer.pl <sourceDir> <outputFile>") 
+    unless ( scalar(@ARGV) == 2 );
 my @sourceDir;
 push(@sourceDir,$ARGV[0]);
 my $outputFile = $ARGV[1];
@@ -135,7 +136,7 @@ sub processFile {
 	    my @filePositions = (        -1 );
 
 	    # Process files until none remain.
-	    while ( $#fileNames >= 0 ) {
+	    while ( scalar(@fileNames) > 0 ) {
 
 		# Open the file.
 		open(my $fileHandle,$fileNames[0]);
@@ -172,7 +173,7 @@ sub processFile {
 			  my $matchIndex = $unitOpeners{$unitType}->{"unitName"};
 			  my $unitName   = lc($matches[$matchIndex-1]);
 			  # Get the ID of the parent unit.
-			  my $parentID = $unitIdList[$#unitIdList];
+			  my $parentID = $unitIdList[-1];
 			  # Generate identifier for this unit.
 			  my $unitID = $parentID.":".$unitName;
 			  # Add this unit to the "contains" list for its parent.
@@ -198,7 +199,7 @@ sub processFile {
 			  my $matchIndex = $unitClosers{$unitType}->{"unitName"};
 			  my $unitName   = lc($matches[$matchIndex-1]);
 			  # Get ID of last unit opening.
-			  my $openerID = $unitIdList[$#unitIdList];
+			  my $openerID = $unitIdList[-1];
 			  # Check we have a matching opening.
 			  unless ( $unitType eq $units{$openerID}->{"unitType"} && ( $unitName eq $units{$openerID}->{"unitName"} || $unitType =~ m/interface/i ) ) {
 			      print "Unit close does not match unit open:\n";
@@ -208,7 +209,7 @@ sub processFile {
 			      die;
 			  }
 			  # Remove entry from ID list.
-			  --$#unitIdList;
+			  pop(@unitIdList);
 			  # Mark line as processed.
 			  $lineProcessed = 1;
 		      }
@@ -217,7 +218,7 @@ sub processFile {
 
 		  # Check for source code comments.
 		  if ( $bufferedComments =~ m/$commentRegex/i ) {
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      (my $trimmedComments = $bufferedComments) =~ s/^\s*\%//;
 		      $units{$unitId}->{"comments"} .= $trimmedComments;
 		      # Mark line as processed.
@@ -228,7 +229,7 @@ sub processFile {
 		  # Check for use statements.
 		  if ( $processedLine =~ m/$useRegex/i ) {
 		      my $moduleName = lc($3);
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      $units{$unitId}->{"modulesUsed"}->{$moduleName} = 1;
 		      # Mark line as processed.
 		      $lineProcessed = 1;
@@ -238,7 +239,7 @@ sub processFile {
 		  # Check for direct subroutine calls.
 		  if ( $processedLine =~ m/$callRegex/i ) {
 		      my $subroutineName = lc($2);
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = -1;
 		      # Mark line as processed.
 		      $lineProcessed = 1;
@@ -249,7 +250,7 @@ sub processFile {
 		  if ( $processedLine =~ m/$callTypeBoundRegex/i ) {
 		      my $subroutineName = lc($3);
 		      my $variableName   = lc($2);
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      # Store the name of the type-bound subroutine call, and the name of the variable it was applied to.
 		      $units{$unitId}->{"subroutinesCalled"}->{$subroutineName} = $variableName;
 		      # Mark line as processed.
@@ -258,12 +259,12 @@ sub processFile {
 		  if ( $lineProcessed == 1 ) {next LINE};
 
 		  # Check for type-bound procedures.
-		  if ( $units{$unitIdList[$#unitIdList]}->{"unitType"} eq "type" ) {
+		  if ( $units{$unitIdList[-1]}->{"unitType"} eq "type" ) {
 		      if ( $processedLine =~ m/$typeBoundRegex/i ) {
 			  my $methodName = lc($2);
 			  (my $procedureList = lc($3)) =~ s/\s//g;
 			  my @procedures = split(/,/,$procedureList);
-			  my $unitId = $unitIdList[$#unitIdList];
+			  my $unitId = $unitIdList[-1];
 			  @{$units{$unitId}->{"methods"}->{$methodName}} = @procedures;
 			  # Mark line as processed.
 			  $lineProcessed = 1;
@@ -278,7 +279,7 @@ sub processFile {
 			  my $matchIndex = $intrinsicDeclarations{$intrinsicType}->{"variables"};
 			  my $variablesList = lc($matches[$matchIndex-1]);
 			  # Get ID of unit.
-			  my $unitId = $unitIdList[$#unitIdList];
+			  my $unitId = $unitIdList[-1];
 			  my @variables = &Fortran_Utils::Extract_Variables($variablesList);
 			  # Store the variable list.
 			  push(@{$units{$unitId}->{$intrinsicType}},@variables);
@@ -293,7 +294,7 @@ sub processFile {
 		      my $derivedType = $1;
 		      my $variablesList = $3;
 		      my @variables = &Fortran_Utils::Extract_Variables($variablesList);		    
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      push(@{$units{$unitId}->{"derivedTypesUsed"}->{$derivedType}},@variables);
 		      # Mark line as processed.
 		      $lineProcessed = 1;
@@ -303,7 +304,7 @@ sub processFile {
 		  # Check for module procedures.
 		  if ( $processedLine =~ m/$moduleProcedureRegex/i ) {
 		      my $procedureName = lc($1);
-		      my $unitId = $unitIdList[$#unitIdList];
+		      my $unitId = $unitIdList[-1];
 		      $units{$unitId}->{"moduleProcedures"}->{$procedureName} = 1;
 		      # Mark line as processed.
 		      $lineProcessed = 1;
@@ -320,7 +321,7 @@ sub processFile {
 			  my $functionName = lc($3);
 			  (my $derivedType = lc($1)) =~ s/%\s*$//;
 			  if ( $derivedType eq "" ) {$derivedType = -1};
-			  my $unitId = $unitIdList[$#unitIdList];
+			  my $unitId = $unitIdList[-1];
 			  $units{$unitId}->{"functionCalls"}->{$functionName} = $derivedType;
 		      }
 		      $functionSeek = $remainder;
