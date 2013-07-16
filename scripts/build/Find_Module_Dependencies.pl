@@ -5,7 +5,8 @@ use warnings;
 # Locate source files which create modules
 
 # Define the source directory
-if ( $#ARGV != 0 ) {die "Usage: Find_Module_Dependencies.pl sourcedir"};
+die "Usage: Find_Module_Dependencies.pl sourcedir"
+    unless ( scalar(@ARGV) == 1 );
 my $sourcedir = $ARGV[0];
 
 #
@@ -25,8 +26,8 @@ if ( -e $sourcedirs[0] ) {
 	$line =~ s/\n//;
 	if ( -d $sourcedirs[0]."/".$line ) {
 	    unless ( $line =~ m/^\.+$/ ) {
-		$sourcedirs[++$#sourcedirs] = $sourcedirs[0]."/".$line;
-		$bases[++$#bases] = $line."/";
+		push(@sourcedirs,$sourcedirs[0]."/".$line    );
+		push(@bases     ,                   $line."/");
 		system("mkdir -p ./work/build/$line");
 	    }
 	}
@@ -58,9 +59,8 @@ foreach my $srcdir ( @sourcedirs ) {
 	    my @generics;
 	    my @allmods;
 	    my @scanfiles = ( $fullname );
-	    while ( $#scanfiles >= 0 ) {
-		$fullname = $scanfiles[$#scanfiles];
-		--$#scanfiles;
+	    while ( scalar(@scanfiles) > 0 ) {
+		$fullname = pop(@scanfiles);
 		open(my $infile,$fullname) or die "Can't open input file: $fullname";
 		
 		while (my $line = <$infile>) {
@@ -94,7 +94,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			    my $sublen = length($tline)-$startpos;
 			    my $incfile = substr($tline,$startpos,$sublen).".mod";
 			    $incfile =~ s/\r//g;
-			    $allmods[++$#allmods] = $incfile;
+			    push(@allmods,$incfile);
 			    print $outfile ".".$workDir.lc($incfile),": .",$workDir,$base,$oname,"\n";
 			    print $outfile "\t\@if [ ! -f .",$workDir.lc($incfile)," ]; then \\\n";
 			    print $outfile "\t  rm .$workDir$base$oname ; \\\n";
@@ -116,7 +116,7 @@ foreach my $srcdir ( @sourcedirs ) {
 
 			}
 		    }
-		    if ( $line =~ m/include\s+\'(\w+)\'/i ) {$scanfiles[++$#scanfiles] = $sourcedir."/".$1;};
+		    if ( $line =~ m/include\s+\'(\w+)\'/i ) {push(@scanfiles,$sourcedir."/".$1);};
 		}
 		close($infile);
 

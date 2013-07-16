@@ -20,12 +20,13 @@ require GnuPlot::LaTeX;
 require XMP::MetaData;
 
 # Get name of input and output files.
-if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+die("Plot_HI_Gas_Mass_Function.pl <galacticusFile> <outputDir/File> [<showFit>]")
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $self           = $0;
 my $galacticusFile = $ARGV[0];
 my $outputTo       = $ARGV[1];
 my $showFit;
-if ( $#ARGV == 2 ) {
+if ( scalar(@ARGV) == 3 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
     if ( lc($showFit) eq "noshowfit" ) {$showFit = 0};

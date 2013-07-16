@@ -15,7 +15,8 @@ require System::Redirect;
 # Locate all allocatable arrays in the code base and determine their type and dimensionality.
 
 # Define the source directory
-if ( $#ARGV != 0 ) {die "Usage: Find_Allocatable_Arrays.pl <sourcedir>"};
+die "Usage: Find_Allocatable_Arrays.pl <sourcedir>"
+    unless ( scalar(@ARGV) == 1 );
 my $sourcedir = $ARGV[0];
 
 # Build a list of source directories.
@@ -27,8 +28,8 @@ if ( -e $sourcedir."/Source_Codes" ) {
 	$line =~ s/\n//;
 	if ( -d $sourcedir."/Source_Codes/".$line ) {
 	    unless ( $line =~ m/^\.+$/ ) {
-		$sourcedirs[++$#sourcedirs] = $sourcedir."/Source_Codes/".$line;
-		$bases[++$#bases] = "Source_Codes/".$line."/";
+		push(@sourcedirs,$sourcedir."/Source_Codes/".$line    );
+		push(@bases     ,            "Source_Codes/".$line."/");
 	    }
 	}
     }
@@ -47,9 +48,8 @@ foreach my $srcdir ( @sourcedirs ) {
 	if ( ( ( ( lc($fname) =~ m/\.f(90)??$/ ) && ! -e $srcdir."/".$fname."t" ) || ( lc($fname) =~ m/\.f90t$/ ) ) && lc($fname) !~ m/^\.\#/ ) {
 	    my $fullname = "$srcdir/$fname";
 	    my @scanfiles = ( $fullname );
-	    while ( $#scanfiles >= 0 ) {
-		my $fullname = $scanfiles[$#scanfiles];
-		--$#scanfiles;
+	    while ( scalar(@scanfiles) > 0 ) {
+		my $fullname = pop(@scanfiles);
 		if ( ! -e $fullname ) {
 		    my $leaf;
 		    if ( $fullname =~ m/\/([\w\.]+?)$/ ) {

@@ -17,7 +17,8 @@ use File::Copy;
 # Andrew Benson (27-Nov-2009)
 
 # Get arguments.
-if ( $#ARGV != 3 ) {die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"};
+die "Usage: CMBFast_Driver.pl <parameterFile> <transferFunctionFile> <kMax> <fileFormatVersion>"
+    unless ( scalar(@ARGV) == 4 );
 my $parameterFile        = $ARGV[0];
 my $transferFunctionFile = $ARGV[1];
 my $kMax                 = $ARGV[2];
@@ -127,7 +128,7 @@ if ( $makeFile == 1 ) {
        $line =~ s/^\s*//;
        my @columns = split(/\s+/,$line);
        my $k = $columns[0]*($parameterHash->{'H_0'}->{'value'}/100.0);
-       $transferFunctionData[++$#transferFunctionData] = $k." ".$columns[1];
+       push(@transferFunctionData,$k." ".$columns[1]);
    }
    close(inHndl);
    unlink($galacticusPath."data/transfer_function.tmp","nu1.dat",$parameterFile);
@@ -138,9 +139,11 @@ if ( $makeFile == 1 ) {
        );
    @{$transferFunction{'description'}} = "Cold dark matter power spectrum created by CMBFast.";
    foreach my $parameter ( @parameters ) {
-       %{${$transferFunction{'parameter'}}[++$#{$transferFunction{'parameter'}}]} = (
-	   "name" => $parameter,
-	   "value" => $parameterHash->{$parameter}->{'value'}
+       push(@{$transferFunction{'parameter'}},	    
+	    {
+		"name" => $parameter,
+		"value" => $parameterHash->{$parameter}->{'value'}
+	    }
 	   );
    }
    # Add extrapolation data.

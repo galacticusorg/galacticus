@@ -18,7 +18,7 @@ use Data::Dumper;
 # Create a hash of named arguments.
 my $iArg = -1;
 my %arguments;
-while ( $iArg < $#ARGV ) {
+while ( $iArg < scalar(@ARGV)-1 ) {
     ++$iArg;
     if ( $ARGV[$iArg] =~ m/^\-\-(.*)/ ) {
 	$arguments{$1} = $ARGV[$iArg+1];

@@ -63,6 +63,9 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 my $logFile = "testSuite/allTests.log";
 open(lHndl,">".$logFile);
 
+# Clean up previous build.
+system("rm -rf work/build/*");
+
 # Create a directory for test suite outputs.
 system("rm -rf testSuite/outputs");
 system("mkdir -p testSuite/outputs");
@@ -357,7 +360,7 @@ close(lHndl);
 open(lHndl,">>".$logFile);
 my $emailSubject = "Galacticus test suite log";
 my $exitStatus;
-if ( $#failLines == -1 ) {
+if ( scalar(@failLines) == 0 ) {
     print lHndl "\n\n:-> All tests were successful.\n";
     print       "All tests were successful.\n";
     $emailSubject .= " [success]";

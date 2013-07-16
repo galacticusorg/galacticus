@@ -17,11 +17,11 @@ use POSIX;
 # Make a plot of the specified transfer function file.
 # Andrew Benson (15-Dec-2009)
 
-
-unless ( $#ARGV == 0 || $#ARGV == 1 ) {die "Usage: transfer_function.pl <transferFunctionFile> [<pdfFile>]"};
+die "Usage: transfer_function.pl <transferFunctionFile> [<pdfFile>]"
+    unless ( scalar(@ARGV) == 1 || scalar(@ARGV) == 2 );
 my $transferFunctionFile = $ARGV[0];
 my $pdfFile;
-if ( $#ARGV == 1 ) {
+if ( scalar(@ARGV) == 2 ) {
     $pdfFile          = $ARGV[1];
 } else {
     ($pdfFile = $transferFunctionFile) =~ s/^data\/(.+)\.xml$/plots\/$1\.pdf/;
@@ -37,8 +37,8 @@ my @x;
 my @y;
 foreach my $datum ( @dataArray ) {
     my @columns = split(/\s+/,$datum);
-    $x[++$#x] = $columns[0];
-    $y[++$#y] = $columns[1];
+    push(@x,$columns[0]);
+    push(@y,$columns[1]);
 }
 
 # Make the plot.

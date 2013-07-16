@@ -10,7 +10,8 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
 }
 unshift(@INC, $galacticusPath."perl"); 
 
-unless ( $#ARGV == 1 ) {die('Usage: Find_Executable_Size.pl Executable Size_File')};
+die('Usage: Find_Executable_Size.pl Executable Size_File')
+    unless ( scalar(@ARGV) == 2 );
 my $Executable = $ARGV[0];
 my $Size_File  = $ARGV[1];
 

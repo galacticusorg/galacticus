@@ -12,9 +12,10 @@ use Data::Dumper;
 # Merges Galacticus models.
 # Andrew Benson (8-July-2010)
 
-if ( $#ARGV < 1 ) {die("Usage: Merge_Models.pl <model1> ...... <outputModel>")};
-my @mergeFileNames = @ARGV[0..$#ARGV-1];
-my $outputFileName = $ARGV[$#ARGV];
+die("Usage: Merge_Models.pl <model1> ...... <outputModel>")
+    unless ( scalar(@ARGV) > 1 );
+my @mergeFileNames = @ARGV[0..scalar(@ARGV)-2];
+my $outputFileName = $ARGV[-1];
 
 # Quit if output file already exists.
 die ("Merge_Models.pl: output file already exists") if ( -e $outputFileName );
@@ -25,7 +26,7 @@ my $outputFile = new PDL::IO::HDF5(">".$outputFileName);
 my @mergeFiles;
 foreach my $mergeFileName ( @mergeFileNames ) {
     print "-> Opening file for merge: ".$mergeFileName."\n";
-    $mergeFiles[++$#mergeFiles] = new PDL::IO::HDF5($mergeFileName);
+    push(@mergeFiles,new PDL::IO::HDF5($mergeFileName));
 }
 
 # Copy UUID attributes.
@@ -267,7 +268,7 @@ foreach my $outputGroup ( keys(%outputRules) ) {
 		# Place the base group on a stack.
 		my @groupStack = ( $outputGroup );
 		# Process groups until none remain.
-		while ( $#groupStack >= 0 ) {
+		while ( scalar(@groupStack) > 1 ) {
 		    # Pop a group from the stack.
 		    my $thisGroup = shift @groupStack;
 		    # Get a list of groups.
