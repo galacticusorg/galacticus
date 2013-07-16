@@ -17,7 +17,8 @@ require Galacticus::HDF5;
 # Extracts parameter values from a Galacticus output file and writes them to an XML file in a format suitable to re-use by Galacticus.
 # Andrew Benson (10-Mar-2010)
 
-if ( $#ARGV != 1 ) {die("Usage: Extract_Parameter_File.pl <inputGalacticusFile> <outputParameterFile>")};
+die("Usage: Extract_Parameter_File.pl <inputGalacticusFile> <outputParameterFile>")
+    unless ( scalar(@ARGV) == 2 );
 my $galacticusFile = $ARGV[0];
 my $parametersFile = $ARGV[1];
 

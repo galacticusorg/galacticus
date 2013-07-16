@@ -18,7 +18,8 @@ unshift(@INC,$galacticusPath."perl");
 # Andrew Benson (18-January-2011)
 
 # Get arguments.
-if ( $#ARGV != 1 ) {die "Usage: RecFast_Driver.pl <parameterFile> <outputFile>"};
+die "Usage: RecFast_Driver.pl <parameterFile> <outputFile>"
+    unless ( scalar(@ARGV) == 2 );
 my $parameterFile = $ARGV[0];
 my $outputFile    = $ARGV[1];
 

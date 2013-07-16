@@ -13,7 +13,8 @@ unshift(@INC, $galacticusPath."perl");
 # Locate files which contain programs and append to a list of executables.
 
 # Define the source directory
-if ( $#ARGV != 0 ) {die "Usage: Find_Programs.pl sourcedir"};
+die "Usage: Find_Programs.pl sourcedir"
+    unless ( scalar(@ARGV) == 1 );
 my $sourcedir = $ARGV[0];
 
 #

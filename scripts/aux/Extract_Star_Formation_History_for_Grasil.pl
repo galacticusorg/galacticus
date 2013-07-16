@@ -22,13 +22,15 @@ require GnuPlot::LaTeX;
 # Andrew Benson (06-September-2010)
 
 # Read arguments.
-die ("Usage: Extract_Star_Formation_History_for_Grasil.pl <inputFile> <outputIndex> <treeIndex> <nodeIndex> <grasilFile> [<plotFile>]") unless ( $#ARGV == 4 || $#ARGV == 5 );
+die ("Usage: Extract_Star_Formation_History_for_Grasil.pl <inputFile> <outputIndex> <treeIndex> <nodeIndex> <grasilFile> [<plotFile>]")
+    unless ( scalar(@ARGV) == 5 || scalar(@ARGV) == 6 );
 my $inputFile   = $ARGV[0];
 my $outputIndex = $ARGV[1];
 my $treeIndex   = $ARGV[2];
 my $nodeIndex   = $ARGV[3];
 my $grasilFile  = $ARGV[4];
-my $plotFile    = $ARGV[5] if ( $#ARGV == 5 );
+my $plotFile    = $ARGV[5] 
+    if ( scalar(@ARGV) == 6 );
 
 # Define prefixes.
 my $giga        = 1.0e9;

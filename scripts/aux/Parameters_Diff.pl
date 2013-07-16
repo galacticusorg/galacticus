@@ -6,7 +6,8 @@ use Scalar::Util qw(looks_like_number);
 use Data::Dumper;
 
 # Read the command line arguments.
-if ( $#ARGV != 1 ) {die("Usage: Parameters_Diff.pl <file1> <file2>")};
+die("Usage: Parameters_Diff.pl <file1> <file2>")
+    unless ( scalar(@ARGV) == 2 );
 my $file1 = $ARGV[0];
 my $file2 = $ARGV[1];
 

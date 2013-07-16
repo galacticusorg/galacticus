@@ -17,10 +17,11 @@ use POSIX;
 # Make a plot of the specified transfer function file.
 # Andrew Benson (27-Jan-2009)
 
-unless ( $#ARGV == 0 || $#ARGV == 1 ) {die "Usage: cooling_function.pl <coolingFunctionFile> [<pdfFile>]"};
+die "Usage: cooling_function.pl <coolingFunctionFile> [<pdfFile>]"
+    unless ( scalar(@ARGV) == 1 || scalar(@ARGV) == 2 );
 my $coolingFunctionFile = $ARGV[0];
 my $pdfFile;
-if ( $#ARGV == 1 ) {
+if ( scalar(@ARGV) == 2 ) {
     $pdfFile         = $ARGV[1];
 } else {
     ($pdfFile = $coolingFunctionFile) =~ s/^data\/(.+)\.xml$/plots\/$1\.pdf/;
@@ -49,12 +50,12 @@ my @coolingFunctionsArray = @{$data -> {'coolingFunction'}};
 my $lZMin = 100.0;
 my $lZMax = -100.0;
 my @plotTitles;
-for (my $iCoolingFunction=0;$iCoolingFunction<=$#coolingFunctionsArray;++$iCoolingFunction) {
+for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$iCoolingFunction) {
     my $metallicity = ${$coolingFunctionsArray[$iCoolingFunction]}{'metallicity'};
     if ( $metallicity <= -999.0 ) {
-	$plotTitles[++$#plotTitles] = "Primordial";
+	push(@plotTitles,"Primordial");
     } else {
-	$plotTitles[++$#plotTitles] = "log_{10}(Z/Z_{{/=12 O}&{/*-.66 O}{/=12 \267}}) = ".$metallicity;
+	push(@plotTitles,"log_{10}(Z/Z_{{/=12 O}&{/*-.66 O}{/=12 \267}}) = ".$metallicity);
 	if ( $metallicity > $lZMax ) {$lZMax=$metallicity};
 	if ( $metallicity < $lZMin ) {$lZMin=$metallicity};
     }
@@ -67,7 +68,7 @@ $plot1->gnuplot_cmd("set cbrange [".$lZMin.":".$lZMax."]");
 my @x;
 my @y;
 my @refArray;
-for (my $iCoolingFunction=0;$iCoolingFunction<=$#coolingFunctionsArray;++$iCoolingFunction) {
+for (my $iCoolingFunction=0;$iCoolingFunction<scalar(@coolingFunctionsArray);++$iCoolingFunction) {
     
     # Get the data for this cooling function.
     my @hashArray;
@@ -75,7 +76,7 @@ for (my $iCoolingFunction=0;$iCoolingFunction<=$#coolingFunctionsArray;++$iCooli
     @{$y[$iCoolingFunction]} = @{$coolingFunctionsArray[$iCoolingFunction]->{'coolingRate'}->{'datum'}};
     ${$hashArray[$iCoolingFunction]}{'x_values'} = \@{$x[$iCoolingFunction]};
     ${$hashArray[$iCoolingFunction]}{'y_values'} = \@{$y[$iCoolingFunction]};
-    my $cFrac = $iCoolingFunction/$#coolingFunctionsArray;
+    my $cFrac = $iCoolingFunction/(scalar(@coolingFunctionsArray)-1);
     ${$hashArray[$iCoolingFunction]}{'style_spec'} = "lines linetype 1 palette frac ".$cFrac;
 
     $refArray[$iCoolingFunction] = \%{$hashArray[$iCoolingFunction]};

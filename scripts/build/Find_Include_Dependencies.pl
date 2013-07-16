@@ -9,11 +9,13 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
     $galacticusPath = "./";
 }
 unshift(@INC, $galacticusPath."perl"); 
+use List::Uniq ':all';
 
 # Locate source files which have dependencies on include files
 
 # Define the source directory
-if ( $#ARGV != 0 ) {die "Usage: Find_Include_Dependencies.pl sourcedir"};
+die "Usage: Find_Include_Dependencies.pl sourcedir"
+    unless ( scalar(@ARGV) == 1 );
 my $sourcedir = $ARGV[0];
 
 #
@@ -29,8 +31,8 @@ if ( -e $sourcedir."/Source_Codes" ) {
 	$line =~ s/\n//;
 	if ( -d $sourcedir."/Source_Codes/".$line ) {
 	    unless ( $line =~ m/^\.+$/ ) {
-		$sourcedirs[++$#sourcedirs] = $sourcedir."/Source_Codes/".$line;
-		$bases[++$#bases] = "Source_Codes/".$line."/";
+		push(@sourcedirs,$sourcedir."/Source_Codes/".$line    );
+		push(@bases     ,            "Source_Codes/".$line."/");
 	    }
 	}
     }
@@ -83,19 +85,7 @@ foreach my $srcdir ( @sourcedirs ) {
 		# Sort the list of included files
 		my @sortedinc = sort @incfiles;
 		# Remove any duplicate entries
-		if ($#sortedinc > 0) {
-		    for (my $i = 1; $i <= $#sortedinc; $i += 1) {
-			if ($sortedinc[$i] eq $sortedinc[$i-1]) {
-			    if ( $i < $#sortedinc ) {
-				for (my $j = $i; $j < $#sortedinc; $j += 1) {
-				    $sortedinc[$j] = $sortedinc[$j+1];
-				}
-			    }
-			    $i -= 1;
-			    $#sortedinc -= 1;
-			}
-		    }
-		}
+		@sortedinc = uniq(@sortedinc);
 		# Output the dependencies
 		print $outfile "./work/build/".$base,$oname,":";
 		foreach my $inc ( @sortedinc ) {
@@ -106,21 +96,22 @@ foreach my $srcdir ( @sourcedirs ) {
 		    if ( -e $ext_Iinc ) {
 			if ( $ibase == 0 ) {
 			    print $outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$Iinc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$Iinc)};
 			} else {
 			    print $outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$Iinc};			}
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$srcdir."/".$Iinc)};
+			}
 		    } elsif ( -e $ext_inc ) {
 			if ( $ibase == 0 ) {
 			    print $outfile " ./work/build/$inc";
-			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$inc)};
 			} else {
 			    print $outfile " ./work/build/$srcdir/$inc";
-			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$srcdir."/".$inc};
+			    if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$srcdir."/".$inc)};
 			}
 		    } else {
 			print $outfile " ./work/build/$inc";
-			if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {$All_Auto_Includes[++$#All_Auto_Includes]=$inc};
+			if ( $inc =~ m/\.inc$/ && ! exists($nonAutoInclude{$inc}) ) {push(@All_Auto_Includes,$inc)};
 		    }
 		}
 		print $outfile "\n\n";

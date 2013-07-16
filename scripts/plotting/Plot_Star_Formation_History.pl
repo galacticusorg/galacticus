@@ -21,12 +21,13 @@ require GnuPlot::LaTeX;
 require XMP::MetaData;
 
 # Get name of input and output files.
-if ( $#ARGV != 1 && $#ARGV != 2 ) {die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")};
+die("Plot_Star_Formation_History.pl <galacticusFile> <outputDir/File> [<showFit>]")
+    unless ( scalar(@ARGV) == 2 || scalar(@ARGV) == 3 );
 my $self           = $0;
 my $galacticusFile = $ARGV[0];
 my $outputTo       = $ARGV[1];
 my $showFit;
-if ( $#ARGV == 2 ) {
+if ( scalar(@ARGV) == 3 ) {
     $showFit    = $ARGV[2];
     if ( lc($showFit) eq "showfit"   ) {$showFit = 1};
     if ( lc($showFit) eq "noshowfit" ) {$showFit = 0};
@@ -183,7 +184,7 @@ print $gnuPlot "set format y '\$10^{\%L}\$'\n";
 print $gnuPlot "set xrange [-0.25:9.0]\n";
 print $gnuPlot "set yrange [0.005:1.0]\n";
 print $gnuPlot "set pointsize 2.0\n";
-for($iDataset=0;$iDataset<=$#dataSets;++$iDataset) {
+for($iDataset=0;$iDataset<scalar(@dataSets);++$iDataset) {
     &PrettyPlots::Prepare_Dataset(
 	 \$plot,
 	 $dataSets[$iDataset]->{'x'},$dataSets[$iDataset]->{'y'},

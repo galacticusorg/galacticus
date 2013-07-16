@@ -17,6 +17,7 @@ require Stats::Means;
 # Andrew Benson (7-July-2013)
 
 # Check individual compilation.
+system("find . -type f -name \"*.pl\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
 system("find perl -type f -name \"*.pm\" | xargs -n 1 perl -c 1>perl.tmp 2>&1; sed -r s/failed/FAILED/g perl.tmp; rm perl.tmp");
 
 # Statistics
