@@ -30,9 +30,6 @@ module Galacticus_Output_Tree_Half_Light_Properties
   ! Number of luminosities.
   integer :: luminositiesCount
 
-  ! Number of properties.
-  integer :: halfLightPropertyCount
-
   ! Flag indicating whether or not half-light data is to be output.
   logical :: outputHalfLightData
 
@@ -61,10 +58,7 @@ contains
           call Get_Input_Parameter('outputHalfLightData',outputHalfLightData,defaultValue=.false.)
 
           ! Get the number of luminosities in use.
-          if (outputHalfLightData) then
-             luminositiesCount=Stellar_Population_Luminosities_Count()
-             halfLightPropertyCount=2*luminositiesCount
-          end if
+          if (outputHalfLightData) luminositiesCount=Stellar_Population_Luminosities_Count()
 
           ! Flag that module is now initialized.
           outputHalfLightDataInitialized=.true.
@@ -99,30 +93,32 @@ contains
     ! Return property names if we are outputting half-light data.
     if (outputHalfLightData) then
        do iLuminosity=1,luminositiesCount
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>halfLightRadius</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Radius enclosing half the galaxy light [Mpc]</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='halfLightRadius'//Stellar_Population_Luminosities_Name(iLuminosity)
-          doublePropertyComments(doubleProperty)='Radius enclosing half the galaxy light [Mpc]'
-          doublePropertyUnitsSI (doubleProperty)=megaParsec
-          doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>halfLightMass</name>
-          !@   <datatype>real</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Mass enclosed within the galaxy half-light radius [Solar masses]</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          doublePropertyNames   (doubleProperty)='halfLightMass'//Stellar_Population_Luminosities_Name(iLuminosity)
-          doublePropertyComments(doubleProperty)='Mass enclosed within the galaxy half-light radius [Solar masses]'
-          doublePropertyUnitsSI (doubleProperty)=massSolar
+          if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
+             doubleProperty=doubleProperty+1
+             !@ <outputProperty>
+             !@   <name>halfLightRadius</name>
+             !@   <datatype>real</datatype>
+             !@   <cardinality>0..1</cardinality>
+             !@   <description>Radius enclosing half the galaxy light [Mpc]</description>
+             !@   <label>???</label>
+             !@   <outputType>nodeData</outputType>
+             !@ </outputProperty>
+             doublePropertyNames   (doubleProperty)='halfLightRadius'//Stellar_Population_Luminosities_Name(iLuminosity)
+             doublePropertyComments(doubleProperty)='Radius enclosing half the galaxy light [Mpc]'
+             doublePropertyUnitsSI (doubleProperty)=megaParsec
+             doubleProperty=doubleProperty+1
+             !@ <outputProperty>
+             !@   <name>halfLightMass</name>
+             !@   <datatype>real</datatype>
+             !@   <cardinality>0..1</cardinality>
+             !@   <description>Mass enclosed within the galaxy half-light radius [Solar masses]</description>
+             !@   <label>???</label>
+             !@   <outputType>nodeData</outputType>
+             !@ </outputProperty>
+             doublePropertyNames   (doubleProperty)='halfLightMass'//Stellar_Population_Luminosities_Name(iLuminosity)
+             doublePropertyComments(doubleProperty)='Mass enclosed within the galaxy half-light radius [Solar masses]'
+             doublePropertyUnitsSI (doubleProperty)=massSolar
+          end if
        end do
     end if
     return
@@ -134,6 +130,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Half_Light_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of half-light properties to be written to the \glc\ output file.
+    use Stellar_Population_Properties_Luminosities
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
@@ -143,7 +140,7 @@ contains
     call Galacticus_Output_Tree_Half_Light_Initialize
 
     ! Increment property count if we are outputting half-light data.
-    if (outputHalfLightData) doublePropertyCount=doublePropertyCount+halfLightPropertyCount
+    if (outputHalfLightData) doublePropertyCount=doublePropertyCount+2*Stellar_Population_Luminosities_Output_Count(time)
     return
   end subroutine Galacticus_Output_Tree_Half_Light_Property_Count
 
@@ -157,6 +154,7 @@ contains
     use Kind_Numbers
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Stellar_Population_Properties_Luminosities
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -175,21 +173,26 @@ contains
 
        ! Loop over luminosities.
        do iLuminosity=1,luminositiesCount
-
-          ! Get the half-light radius.
-          halfLightRadius=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeStellar&
-               &,weightBy=weightByLuminosity,weightIndex=iLuminosity)
-
-          ! Find the total mass enclosed.
-          massEnclosed   =Galactic_Structure_Enclosed_Mass(thisNode,halfLightRadius,componentType=componentTypeAll,massType&
-               &=massTypeAll)
-
-          ! Store the resulting radius.
-          doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=halfLightRadius
-          doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=massEnclosed
-
+          
+          ! Find luminosities which are to be output at this output time.
+          if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
+             
+             ! Get the half-light radius.
+             halfLightRadius=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeStellar&
+                  &,weightBy=weightByLuminosity,weightIndex=iLuminosity)
+             
+             ! Find the total mass enclosed.
+             massEnclosed   =Galactic_Structure_Enclosed_Mass(thisNode,halfLightRadius,componentType=componentTypeAll,massType&
+                  &=massTypeAll)
+             
+             ! Store the resulting radius.
+             doubleProperty=doubleProperty+1
+             doubleBuffer(doubleBufferCount,doubleProperty)=halfLightRadius
+             doubleProperty=doubleProperty+1
+             doubleBuffer(doubleBufferCount,doubleProperty)=massEnclosed
+             
+          end if
+          
        end do
 
     end if

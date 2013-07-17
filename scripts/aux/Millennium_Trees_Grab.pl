@@ -64,6 +64,12 @@ die("Millennium_Trees_Grab.pl: SQL database access username and password must be
 
 # Specify any selection.
 my $selection   = $arguments{"select"};
+if ( exists($arguments{"selectFile"}) ) {
+    open(iHndl,$arguments{"selectFile"});
+    $selection = <iHndl>;
+    chomp($selection);
+    close(iHndl);
+}
 
 # Specify the treeId property.
 my $treeId;
@@ -114,6 +120,9 @@ if ( exists($arguments{"indexTable"}) ) {
     $indexNode = "node";
     $indexTable = $table;
 }
+my $indexNode = "indexNode";
+$indexNode = "node"
+    if ( $indexTable eq $table );
 
 # Specify the snapshot table.
 my $snapshotTable;
@@ -152,19 +161,38 @@ my $databaseURL = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&S
 
 # Build the retrieve command base.
 my $getCommandBase = "wget";
+$getCommandBase   .= " --no-proxy --retry-connrefused";
 $getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
 $getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root";
-$sqlQuery   .= ", ".$indexTable." indexNode"
-    unless ( $indexNode eq "node" );
-$sqlQuery   .= " where node.haloId between root.haloId and root.haloId\%2B999999";
-$sqlQuert   .= " and node.haloId = indexNode.".$haloId
-    unless ( $indexNode eq "node" );
-
+my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node";
+# Add the root node if it is used in the selection.
+$sqlQuery .= ", ".$table." root"
+    if ( $selection =~ m/root\./ );
+# Add the index node if the index table differs from the node table.
+$sqlQuery .= ", ".$indexTable." ".$indexNode.""
+    if ( $indexTable ne $table );
+# Create a where statement.
+my $where = " where";
+# Add implicit join on root node only if the selection uses the root node.
+$where .= " root.haloId = node.treeId"
+    if ( $selection =~ m/root\./ );
+# Add implicit join on index node only if the index table differs from the node table.
+if ( $indexTable ne $table ) {
+    $where .= " and"
+	unless ( $where eq " where" );
+    $where .= " ".$indexNode.".".$haloId." = node.haloId";
+}
 # Append any required selection.
-$sqlQuery .= " and ".$selection unless ( $selection eq "" );
+unless ( $selection eq "" ) {
+    $where .= " and "
+	unless ( $where eq " where" );
+    $where .= $selection;
+}
+# Append the where statement.
+$sqlQuery .= $where
+    unless ( $where eq " where" );
 # Add an order by statement.
 $sqlQuery .= " order by ".$indexNode.".".$treeId;
 # Retrieve the data.
@@ -174,7 +202,7 @@ system($getCommand);
 # Trace particles if requested.
 if ( $traceParticles eq "yes" ) {
     # Build the SQL query to retrieve particle data for lost subhalos.
-    my $sqlQuery = $databaseURL."select ".$indexNode.".".$descendantId.", count(*) as num into countTable from ".$table." node, ".$table." root";
+    my $sqlQuery = $databaseURL."select ".$indexNode.".".$descendantId.", count(*) as num into countTable from ".$indexTable." ".$indexNode.", ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
     $sqlQuery   .= ", ".$indexTable." indexNode"
     unless ( $indexNode eq "node" );
     $sqlQuery   .= " where root.haloId = node.treeId";
@@ -183,7 +211,7 @@ if ( $traceParticles eq "yes" ) {
     # Append any required selection.
     $sqlQuery   .= " and ".$selection unless ( $selection eq "" );
     # Append grouping command.
-    $sqlQuery   .= " group by ".$indexNode.".".$descendantId;
+    $sqlQuery .= " group by ".$indexNode.".".$descendantId;
     # Add command to find nodes which are not the only antescendents.
     $sqlQuery   .= "; select node.mostBoundId, node.snapNum into boundTable from countTable, ".$table." node where countTable.num > 1 and node.descendantId = countTable.".$descendantId;
     # Add command to select most bound particles trajectories corresponding to these nodes.

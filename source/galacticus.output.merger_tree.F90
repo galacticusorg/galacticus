@@ -76,6 +76,7 @@ contains
     use Galacticus_Output_Open
     use Galacticus_Merger_Tree_Output_Filters
     use Input_Parameters
+    use Galactic_Structure_Radii
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -187,6 +188,9 @@ contains
              ! Get the basic component.
              thisBasicComponent => thisNode%basic()
              if (thisBasicComponent%time() == time) then
+             ! Ensure that galactic structure is up to date.
+             call Galactic_Structure_Radii_Solve(thisNode)
+             ! Test whether this test passes all output filters.
                 nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
                 if (nodePassesFilter) then
                    ! Establish node link properties.
