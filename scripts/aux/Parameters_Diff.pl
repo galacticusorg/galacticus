@@ -26,7 +26,7 @@ foreach my $parameter1 ( keys(%{$parameters1->{'parameter'}}) ) {
     # Test if the parameter exists in the second file.
     unless ( exists($parameters2->{'parameter'}->{$parameter1}) ) {
 	# It does not.
-	print "Parameter ".$parameter1." in file 1 is not present in file 2.\n";
+	print "Parameter ".$parameter1." [value: ".$parameters1->{'parameter'}->{$parameter1}->{'value'}."] in file 1 is not present in file 2.\n";
 	$filesMatch = 0;
     } else {
 	# It does, so test for equality. Have to figure out if the values are numeric or strings.
@@ -72,7 +72,7 @@ foreach my $parameter1 ( keys(%{$parameters1->{'parameter'}}) ) {
 foreach my $parameter2 ( keys(%{$parameters2->{'parameter'}}) ) {
     # Check that the parameter also exists in the first file.
     unless ( exists($parameters1->{'parameter'}->{$parameter2}) ) {
-	print "Parameter ".$parameter2." in file 2 is not present in file 1.\n";
+	print "Parameter ".$parameter2." [value: ".$parameters2->{'parameter'}->{$parameter2}->{'value'}."] in file 2 is not present in file 1.\n";
 	$filesMatch = 0;
     }
 }
