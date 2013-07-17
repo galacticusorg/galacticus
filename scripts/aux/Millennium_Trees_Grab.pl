@@ -9,6 +9,7 @@ if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
     $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl");
+use XML::Simple;
 use Data::Dumper;
 
 # Grab treeand particle data from the Millennium databases.
@@ -25,9 +26,41 @@ while ( $iArg < scalar(@ARGV)-1 ) {
     }
 }
 
+# Initialize database access username and password.
+my $sqlUser;
+my $sqlPassword;
+
 # Specify user and password.
-my $sqlUser     = $arguments{"user"};
-my $sqlPassword = $arguments{"password"};
+$sqlUser     = $arguments{"user"    }
+    if ( exists($arguments{'user'    }) );
+$sqlPassword = $arguments{"password"}
+    if ( exists($arguments{'password'}) );
+
+# Parse the Galacticus config file if it is present.
+if ( -e $galacticusPath."/galacticusConfig.xml" ) {
+    my $xml    = new XML::Simple;
+    my $config = $xml->XMLin($galacticusPath."/galacticusConfig.xml");
+    if ( exists($config->{'millenniumDB'}->{'host'}) ) {
+	foreach ( keys(%{$config->{'millenniumDB'}->{'host'}}) ) {
+	    if ( $_ eq $ENV{'HOSTNAME'} || $_ eq "default" ) {
+		$sqlUser     = $config->{'millenniumDB'}->{'host'}->{$_}->{'user'    }
+		    if ( exists($config->{'millenniumDB'}->{'host'}->{$_}->{'user'    }) );
+		$sqlPassword = $config->{'millenniumDB'}->{'host'}->{$_}->{'password'}
+		    if ( exists($config->{'millenniumDB'}->{'host'}->{$_}->{'password'}) );
+		if ( exists($config->{'millenniumDB'}->{'host'}->{$_}->{'passwordFrom'}) ) {
+		    if ( $config->{'millenniumDB'}->{'host'}->{$_}->{'passwordFrom'} eq "input" ) {
+			$sqlPassword = <>;
+			chomp($sqlPassword);
+		    }
+		}
+	    }
+	}
+    }
+}
+
+# If no user name or password is supplied, exit.
+die("Millennium_Trees_Grab.pl: SQL database access username and password must be supplied")
+    unless ( defined($sqlUser) && defined($sqlPassword) );
 
 # Specify any selection.
 my $selection   = $arguments{"select"};
@@ -75,8 +108,10 @@ if ( exists($arguments{"table"}) ) {
 # Specify the index table.
 my $indexTable;
 if ( exists($arguments{"indexTable"}) ) {
+    $indexNode  = "indexNode";
     $indexTable = $arguments{"indexTable"};
 } else {
+    $indexNode = "node";
     $indexTable = $table;
 }
 
@@ -121,11 +156,17 @@ $getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" 
 $getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-my $sqlQuery = $databaseURL."select indexNode.".$treeId.", indexNode.".$haloId.", indexNode.".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
+my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node, ".$table." root";
+$sqlQuery   .= ", ".$indexTable." indexNode"
+    unless ( $indexNode eq "node" );
+$sqlQuery   .= " where node.haloId between root.haloId and root.haloId\%2B999999";
+$sqlQuert   .= " and node.haloId = indexNode.".$haloId
+    unless ( $indexNode eq "node" );
+
 # Append any required selection.
 $sqlQuery .= " and ".$selection unless ( $selection eq "" );
 # Add an order by statement.
-$sqlQuery .= " order by indexNode.".$treeId;
+$sqlQuery .= " order by ".$indexNode.".".$treeId;
 # Retrieve the data.
 my $getCommand = $getCommandBase." \"".$sqlQuery."\" -O ".$outputFile;
 system($getCommand);
@@ -133,17 +174,22 @@ system($getCommand);
 # Trace particles if requested.
 if ( $traceParticles eq "yes" ) {
     # Build the SQL query to retrieve particle data for lost subhalos.
-    my $sqlQuery = $databaseURL."select indexNode.".$descendantId.", count(*) as num into countTable from ".$table." node, ".$table." root, ".$indexTable." indexNode where root.haloId = node.treeId and node.haloId = indexNode.".$haloId;
+    my $sqlQuery = $databaseURL."select ".$indexNode.".".$descendantId.", count(*) as num into countTable from ".$table." node, ".$table." root";
+    $sqlQuery   .= ", ".$indexTable." indexNode"
+    unless ( $indexNode eq "node" );
+    $sqlQuery   .= " where root.haloId = node.treeId";
+    $sqlQuery   .= " and node.haloId = indexNode.".$haloId
+	unless ( $indexNode eq "node" );
     # Append any required selection.
-    $sqlQuery .= " and ".$selection unless ( $selection eq "" );
+    $sqlQuery   .= " and ".$selection unless ( $selection eq "" );
     # Append grouping command.
-    $sqlQuery .= " group by indexNode.".$descendantId;
+    $sqlQuery   .= " group by ".$indexNode.".".$descendantId;
     # Add command to find nodes which are not the only antescendents.
-    $sqlQuery .= "; select node.mostBoundId, node.snapNum into boundTable from countTable, ".$table." node where countTable.num > 1 and node.descendantId = countTable.".$descendantId;
+    $sqlQuery   .= "; select node.mostBoundId, node.snapNum into boundTable from countTable, ".$table." node where countTable.num > 1 and node.descendantId = countTable.".$descendantId;
     # Add command to select most bound particles trajectories corresponding to these nodes.
-    $sqlQuery .= "; select snap.id, times.redshift, snap.snapNum, snap.x, snap.y, snap.z, snap.vx, snap.vy, snap.vz from boundTable, ".$particleTable." snap, ".$snapshotTable." times where boundTable.mostBoundId = snap.id and boundTable.snapNum <= snap.snapnum and times.snapnum = snap.snapNum";
+    $sqlQuery   .= "; select snap.id, times.redshift, snap.snapNum, snap.x, snap.y, snap.z, snap.vx, snap.vy, snap.vz from boundTable, ".$particleTable." snap, ".$snapshotTable." times where boundTable.mostBoundId = snap.id and boundTable.snapNum <= snap.snapnum and times.snapnum = snap.snapNum";
     # Add commands to drop the temporary tables;
-    $sqlQuery .= "; drop table countTable; drop table boundTable";
+    $sqlQuery   .= "; drop table countTable; drop table boundTable";
     # Retrieve the data.
     my $getCommand = $getCommandBase." \"".$sqlQuery."\" -O particles.tmp";
     system($getCommand);
