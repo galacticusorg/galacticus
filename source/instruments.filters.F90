@@ -156,9 +156,11 @@ contains
     double precision, intent(in   ) :: wavelength
 
     ! Interpolate in the tabulated response curve.
+    !$omp critical (Filter_Response)
     Filter_Response=Interpolate(filterResponses(filterIndex)%nPoints,filterResponses(filterIndex)%wavelength&
          &,filterResponses(filterIndex)%response,filterResponses(filterIndex)%interpolationObject&
          &,filterResponses(filterIndex)%interpolationAccelerator,wavelength ,reset=filterResponses(filterIndex)%reset)
+    !$omp end critical (Filter_Response)
     return
   end function Filter_Response
 

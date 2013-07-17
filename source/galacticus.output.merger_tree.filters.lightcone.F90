@@ -67,10 +67,13 @@ contains
     type            (varying_string), dimension(:), intent(in   ) :: filterNames
     type            (Node          ), pointer                     :: doc                            , thisItem
     type            (NodeList      ), pointer                     :: itemList
-    integer                                                       :: iAxis                          , iOutput                  , &
+    integer                                                       :: iAxis                          , iOutput                     , &
          &                                                           ioErr                          , lengthUnitsHubbleExponent
-    double precision                                              :: lengthUnitsInSI                , unitConversionLength
+    double precision                                              :: lengthUnitsInSI                , unitConversionLength        , &
+         &                                                           lightconeTimeTemp              , lightconeMinimumDistanceTemp, &
+         &                                                           lightconeMaximumDistanceTemp
     type            (varying_string)                              :: filterLightconeGeometryFileName
+    logical                                                       :: filterLightconeFixedTime
     character       (len=11        )                              :: tagName
     character       (len=10        )                              :: geometryLabel
 
@@ -92,6 +95,19 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('filterLightconeGeometryFileName',filterLightconeGeometryFileName)
+          ! Get option controlling whether output should occur at a fixed time.
+          !@ <inputParameter>
+          !@   <name>filterLightconeFixedTime</name>
+          !@   <defaultValue>false</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    Specifies if lightcone output should occur at a fixed time (as opposed to the usual case where time evolves along the lightcone). Intended for the construction of lightcones with no evolution. 
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('filterLightconeFixedTime',filterLightconeFixedTime,defaultValue=.false.)
 
           ! Extract data from geometry specification file.
           !$omp critical (FoX_DOM_Access)
@@ -181,6 +197,23 @@ contains
           end do
           lightconeMaximumDistance=lightconeMaximumDistance*unitConversionLength
           call destroy(doc)
+          ! If requested, reduce the list of lightcone output times to the final time, and have
+          ! it incorporate the full radial length of the lightcone. This allows the construction
+          ! of lightcones with no evolution along the cone.
+          if (filterLightconeFixedTime) then
+             lightconeTimeTemp           =lightConeTime           (getLength(itemList))
+             lightconeMinimumDistanceTemp=lightconeMinimumDistance(getLength(itemList))
+             lightconeMaximumDistanceTemp=lightconeMaximumDistance(                  1)
+             call Dealloc_Array(lightconeTime           )
+             call Dealloc_Array(lightconeMinimumDistance)
+             call Dealloc_Array(lightconeMaximumDistance)
+             call Alloc_Array(lightconeTime           ,[1])
+             call Alloc_Array(lightconeMinimumDistance,[1])
+             call Alloc_Array(lightconeMaximumDistance,[1])
+             lightConeTime           (1)=lightconeTimeTemp
+             lightConeMinimumDistance(1)=lightconeMinimumDistanceTemp
+             lightConeMaximumDistance(1)=lightconeMaximumDistanceTemp
+          end if
           !$omp end critical (FoX_DOM_Access)
        end if
        ! Flag that this filter is now initialized.
@@ -204,7 +237,7 @@ contains
     class           (nodeComponentBasic   )                               , pointer :: thisBasicComponent
     class           (nodeComponentPosition)                               , pointer :: thisPositionComponent
     double precision                       , parameter                              :: timeTolerance        =1.0d-3
-    integer                                , dimension(3,3)                         :: periodicRange
+    integer                                , dimension(3,2)                         :: periodicRange
     double precision                       , dimension(3  )                         :: galaxyPosition              , galaxyVelocity
     logical                                                                         :: galaxyIsInFieldOfView       , galaxyIsInLightcone
     integer                                                                         :: i                           , iAxis              , iOutput, &
