@@ -279,7 +279,6 @@ if ( $makeFile == 1 ) {
 	);
 
 }
-exit;
 
 unlink("galacticus.imf");
 
