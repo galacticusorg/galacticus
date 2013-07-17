@@ -195,7 +195,7 @@ sub Get_AGN_Luminosity {
     my $electronVolt      = pdl 1.60217646000e-19; # J.
 
     # Ensure spectra file exists.
-    &Build_AGN_Spectra;
+    &Build_AGN_Spectra($fileFormatCurrent);
 
     # Determine the filter, frame and redshift for which the luminosity is required.
     if ( $dataSetName =~ m/^agnLuminosity:([^:]+):([^:]+):z([\d\.]+)(:noAbsorption)?(:alpha[0-9\-\+\.]+)??$/ ) {
