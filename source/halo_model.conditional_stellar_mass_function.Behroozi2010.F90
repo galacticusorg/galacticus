@@ -19,33 +19,31 @@
 
 module Conditional_Stellar_Mass_Functions_Behroozi2010
   !% Implements the \cite{behroozi_comprehensive_2010} fitting function descriptions of the conditional stellar mass function.
-  use FGSL
+  use Tables
   private
   public :: Conditional_Stellar_Mass_Functions_Behroozi2010_Initialize
 
   ! Parameters of the Behroozi et al. fitting function.
-  double precision                                               :: conditionalStellarMassFunctionBehrooziAlphaSatellite
-  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10M1
-  double precision                                               :: conditionalStellarMassFunctionBehrooziLog10Mstar0
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBeta
-  double precision                                               :: conditionalStellarMassFunctionBehrooziDelta
-  double precision                                               :: conditionalStellarMassFunctionBehrooziGamma
-  double precision                                               :: conditionalStellarMassFunctionBehrooziSigmaLogMstar
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBCut
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBSatellite
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaCut
-  double precision                                               :: conditionalStellarMassFunctionBehrooziBetaSatellite
-  double precision                                               :: Mstar0
+  double precision                                        :: conditionalStellarMassFunctionBehrooziAlphaSatellite
+  double precision                                        :: conditionalStellarMassFunctionBehrooziLog10M1
+  double precision                                        :: conditionalStellarMassFunctionBehrooziLog10Mstar0
+  double precision                                        :: conditionalStellarMassFunctionBehrooziBeta
+  double precision                                        :: conditionalStellarMassFunctionBehrooziDelta
+  double precision                                        :: conditionalStellarMassFunctionBehrooziGamma
+  double precision                                        :: conditionalStellarMassFunctionBehrooziSigmaLogMstar
+  double precision                                        :: conditionalStellarMassFunctionBehrooziBCut
+  double precision                                        :: conditionalStellarMassFunctionBehrooziBSatellite
+  double precision                                        :: conditionalStellarMassFunctionBehrooziBetaCut
+  double precision                                        :: conditionalStellarMassFunctionBehrooziBetaSatellite
+  double precision                                        :: Mstar0
 
   ! Tablulation of stellar-halo mass relation.
-  integer                            , parameter                 :: fMassStellarTablePointsPerDecade                    =10
-  integer                                                        :: fMassStellarTableCount
-  double precision                                               :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8
-  double precision                                               :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum
-  double precision                   , allocatable, dimension(:) :: fMassHaloTable                                              , fMassStellarTable
-  logical                                                        :: interpolationReset                                  =.false.
-  type            (fgsl_interp      )                            :: interpolationObject
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator
+  integer                                   , parameter   :: fMassStellarTablePointsPerDecade                    =10
+  integer                                                 :: fMassStellarTableCount
+  double precision                                        :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8
+  double precision                                        :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum
+  type            (table1DLogarithmicLinear)              :: fMassStellarTable
+  class           (table1D                 ), allocatable :: fMassHaloTable
 
 contains
 
@@ -270,22 +268,26 @@ contains
     double precision, dimension(2), save                :: fMassHaloStored           , massCutStored             , &
          &                                                 massSatelliteStored       , massStellarPrevious=-1.0d0
     !$omp threadprivate(massStellarPrevious,fMassHaloStored,massSatelliteStored,massCutStored)
+
     ! Ensure that the stellar-halo mass relation is tabulated over a sufficient range.
     !$omp critical(CSMF_Behroozi2010_Tabulate)
     do while (massHalo < fMassHaloTableMinimum .or. massHalo > fMassHaloTableMaximum)
        if (massHalo < fMassHaloTableMinimum) fMassStellarTableMinimum=0.5d0*fMassStellarTableMinimum
        if (massHalo > fMassHaloTableMaximum) fMassStellarTableMaximum=2.0d0*fMassStellarTableMaximum
        fMassStellarTableCount=int(log10(fMassStellarTableMaximum/fMassStellarTableMinimum)*fMassStellarTablePointsPerDecade)+1
-       if (allocated(fMassStellarTable)) call Dealloc_Array(fMassStellarTable)
-       if (allocated(fMassHaloTable   )) call Dealloc_Array(fMassHaloTable   )
-       call Alloc_Array(fMassStellarTable,[fMassStellarTableCount])
-       call Alloc_Array(fMassHaloTable   ,[fMassStellarTableCount])
-       fMassStellarTable    =Make_Range(fMassStellarTableMinimum,fMassStellarTableMaximum,fMassStellarTableCount,rangeType=rangeTypeLogarithmic)
-       fMassHaloTable       =fSHMRInverse(fMassStellarTable)
-       fMassHaloTableMinimum=fMassHaloTable(                     1)
-       fMassHaloTableMaximum=fMassHaloTable(fMassStellarTableCount)
-       call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-       interpolationReset=.true.
+       call fMassStellarTable%destroy ()
+       call fMassStellarTable%create  (                                                 &
+            &                          fMassStellarTableMinimum                       , &
+            &                          fMassStellarTableMaximum                       , &
+            &                          fMassStellarTableCount                         , &
+            &                          extrapolationType       =extrapolationTypeAbort  &
+            &                         )
+       call fMassStellarTable%populate(                                                 &
+            &                          fSHMRInverse(fMassStellarTable%xs())             &
+            &                         )
+       call fMassStellarTable%reverse (                                                 &
+            &                          fMassHaloTable                                   &
+            &                         )
     end do
     !$omp end critical(CSMF_Behroozi2010_Tabulate)
 
@@ -317,8 +319,7 @@ contains
     ! Computed the forward stellar-halo mass relation is halo mass has changed.
     if (massHalo /= massHaloPrevious) then
        massHaloPrevious=massHalo
-       fMassStellar=Interpolate(fMassStellarTableCount,fMassHaloTable,fMassStellarTable,interpolationObject&
-            &,interpolationAccelerator,massHalo ,extrapolationType=extrapolationTypeNone,reset=interpolationReset)
+       fMassStellar=fMassHaloTable%interpolate(massHalo)
     end if
 
     ! Compute the number of central galaxies.

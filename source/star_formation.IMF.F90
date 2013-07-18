@@ -324,12 +324,13 @@ contains
     return
   end function IMF_Yield_Instantaneous
 
-  subroutine IMF_Tabulate(imfIndex,imfMass,imfPhi)
+  subroutine IMF_Tabulate(imfIndex,imf)
     !% Returns a tabulation of the IMF with sufficient resolution to resolve all features.
+    use Tables
     implicit none
-    integer                                    , intent(in   ) :: imfIndex
-    double precision, allocatable, dimension(:), intent(inout) :: imfMass   , imfPhi
-    logical                                                    :: imfMatched
+    class  (table1D), intent(inout), allocatable :: imf
+    integer         , intent(in   )              :: imfIndex
+    logical                                      :: imfMatched
 
     ! Initialize the IMF subsystem.
     call Star_Formation_IMF_Initialize
@@ -337,7 +338,7 @@ contains
     ! Get the recycled fraction from the appropriate IMF.
     imfMatched=.false.
     !# <include directive="imfTabulate" type="functionCall" functionType="void">
-    !#  <functionArgs>imfIndex,imfMatched,imfMass,imfPhi</functionArgs>
+    !#  <functionArgs>imfIndex,imfMatched,imf</functionArgs>
     !#  <onReturn>if (imfMatched) return</onReturn>
     include 'star_formation.IMF.tabulate.inc'
     !# </include>
