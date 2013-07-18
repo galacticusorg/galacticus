@@ -331,7 +331,12 @@ unless ( -e $dataDirectory."/treeIDs.data" ) {
 			    my $condition2 = $lightCone1." <= ".$millenniumDistancesMax->index($i);
 			    my $condition3 = "abs(".$lightCone2.")/(".$lightCone1.") < ".$tanHalfAngle;
 			    my $condition4 = "abs(".$lightCone3.")/(".$lightCone1.") < ".$tanHalfAngle;
-			    my $condition5 = "snapNum = ".$millenniumSnapshots->index($i);
+			    my $condition5 = "snapNum = ";
+			    unless ( exists($arguments{"fixedSnapshot"}) ) {
+				$condition5 .= $millenniumSnapshots->index($i);
+			    } else {
+				$condition5 .= $arguments{"fixedSnapshot"};
+			    }
 			    
 			    # Combine all conditions.
 			    my $condition = 
@@ -344,11 +349,10 @@ unless ( -e $dataDirectory."/treeIDs.data" ) {
 			    # Construct SQL query.
 			    $condition =~ s/\+/%2B/g;
 			    $condition =~ s/\//%2F/g;
-			    my $sqlQuery = "http://www.g-vo.org/MyMillennium3?action=doQuery&SQL=select treeId,snapNum,x,y,z from MPAHaloTrees..MHalo ".$condition;
+			    my $sqlQuery = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=select treeId,snapNum,x,y,z from MPAHaloTrees..MHalo ".$condition;
 			    my $outputFile = "tmp.data";
 			    my $getCommand = "wget --http-user=".$sqlUser." --http-passwd=".$sqlPassword." \"".$sqlQuery."\" -O ".$outputFile;
 			    system($getCommand);
-			    
 			    my $lineCount = 0;
 			    my $gotOK     = 0;
 			    open(iHndl,$outputFile);
@@ -406,11 +410,18 @@ for(my $iTree=0;$iTree<scalar(@treeIDs);$iTree+=$treeBlockCount) {
     unless ( -e $treeFile ) {
 	print "Retrieving data for ".$treeFile."...\n";
 	
-	# Run the script to grab the trees.
-	system("scripts/aux/Millennium_Trees_Grab.pl --user ".$sqlUser." --password ".$sqlPassword." --table MPAHaloTrees..MHalo --traceParticles no --select \"".$select."\" --output ".$temporaryFile);
+	# Write the SQL selection to a file.
+	open(oHndl,">sqlSelect.txt");
+	print oHndl $select."\n";
+	close(oHndl);
 
+	# Run the script to grab the trees.
+	system("scripts/aux/Millennium_Trees_Grab.pl --user ".$sqlUser." --password ".$sqlPassword." --table MPAHaloTrees..MHalo --traceParticles no --selectFile sqlSelect.txt --output ".$temporaryFile);
+	
 	# Process into Galacticus format.
-	system("./Millennium_Merger_Tree_File_Maker.exe ".$temporaryFile." none ".$treeFile);
+	system("./Millennium_Merger_Tree_File_Maker.exe ".$temporaryFile." none ".$treeFile." galacticus 1");
+	die("Millennium_Lightcone_Grab.pl: failed to build merger tree file")
+	    unless ( $? == 0 );
 	unlink($temporaryFile);
 
 	print "   ...done\n";

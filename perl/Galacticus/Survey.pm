@@ -9,12 +9,14 @@ use Astro::Cosmology;
 use Data::Dumper;
 
 %HDF5::galacticusFunctions = ( %HDF5::galacticusFunctions,
-			       "comovingDistance"    => \&Survey::Get_SurveyProperties,
-			       "luminosityDistance"  => \&Survey::Get_SurveyProperties,
-			       "distanceModulus"     => \&Survey::Get_SurveyProperties,
-			       "redshift"            => \&Survey::Get_SurveyProperties,
-			       "angularWeight"       => \&Survey::Get_SurveyProperties,
-			       "^lightconeAngle[12]" => \&Survey::Get_LightconeAngles
+			       "comovingDistance"        => \&Survey::Get_SurveyProperties,
+			       "luminosityDistance"      => \&Survey::Get_SurveyProperties,
+			       "distanceModulus"         => \&Survey::Get_SurveyProperties,
+			       "redshift"                => \&Survey::Get_SurveyProperties,
+			       "angularWeight"           => \&Survey::Get_SurveyProperties,
+			       "angularDiameterDistance" => \&Survey::Get_SurveyProperties,
+			       "^lightconeAngle[12]\$"   => \&Survey::Get_LightconeAngles ,
+			       "^angularPosition[12]\$"  => \&Survey::Get_LightconeAngles
     );
 
 sub Get_SurveyProperties {
@@ -88,7 +90,7 @@ sub Get_SurveyProperties {
 	    $dataSets->{$dataSetName} = sqrt($dataSets->{"lightconePositionX"}**2+$dataSets->{"lightconePositionY"}**2+$dataSets->{"lightconePositionZ"}**2);
 	}
     }
-    if ( $dataSetName eq "redshift"           ) {
+    if ( $dataSetName eq "redshift"                ) {
 	if ( $useLightcone == 0 ) {
 	    # Ensure that we have the "comovingDistance" property.
 	    &HDF5::Get_Dataset($dataBlock,["comovingDistance"]);
@@ -118,6 +120,13 @@ sub Get_SurveyProperties {
 	# frequencies which boosts F_nu.
 	$dataSets->{$dataSetName} = 25.0+5.0*log10($dataSets->{"luminosityDistance"})-2.5*log10(1.0+$dataSets->{"redshift"});
     }
+    if ( $dataSetName eq "angularDiameterDistance" ) {
+	# Ensure that we have the "comovingDistance" property.
+	&HDF5::Get_Dataset($dataBlock,["comovingDistance","redshift"]);
+	my $dataSets = $dataBlock->{'dataSets'};
+	# Compute the angular diameter distance for each galaxy.
+	$dataSets->{$dataSetName} = $dataSets->{"comovingDistance"}/(1.0+$dataSets->{"redshift"});
+    }
     if ( $dataSetName eq "angularWeight"      ) {
 	if ( $useLightcone == 0 ) {
 	    # Ensure that we have the "mergerTreeWeight" property.
@@ -139,7 +148,7 @@ sub Get_LightconeAngles {
     &HDF5::Get_Dataset($dataBlock,["lightconePositionX","lightconePositionY","lightconePositionZ"]);
     # Construct the relevant angles.
     my $dataSets = $dataBlock->{'dataSets'};
-    if ( $dataSetName eq "lightconeAngle1" ) {
+    if ( $dataSetName eq "lightconeAngle1" || $dataSetName eq "angularPosition1" ) {
 	$dataSets->{$dataSetName} = atan2($dataSets->{'lightconePositionY'},$dataSets->{'lightconePositionX'});
     } else {
 	$dataSets->{$dataSetName} = atan2($dataSets->{'lightconePositionZ'},$dataSets->{'lightconePositionX'});

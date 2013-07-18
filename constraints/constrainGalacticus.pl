@@ -22,7 +22,8 @@ require Galacticus::Constraints::Parameters;
 # Andrew Benson (02-September-2011)
 
 # Get command line arguments.
-die("Usage: constrainGalacticus.pl <workDirectory> <compilationFile> <parameterFile> <projectDirectory>") unless ( $#ARGV >= 3 );
+die("Usage: constrainGalacticus.pl <workDirectory> <compilationFile> <parameterFile> <projectDirectory> [options]")
+    unless ( scalar(@ARGV) >= 4 );
 my $workDirectory    = $ARGV[0];
 my $compilationFile  = $ARGV[1];
 my $parameterFile    = $ARGV[2];

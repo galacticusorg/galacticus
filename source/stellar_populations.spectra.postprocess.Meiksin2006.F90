@@ -30,19 +30,17 @@ contains
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethods)
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods
+    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), pointer, intent(inout) :: postprocessingFunction
 
-    methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Meiksin2006')
+    if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Meiksin2006
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
 
-  !# <stellarPopulationSpectraPostprocess>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006</unitName>
-  !# </stellarPopulationSpectraPostprocess>
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006(wavelength,redshift,modifier)
+  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006(wavelength,age,redshift,modifier)
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{meiksin_colour_2006}.
     use Numerical_Constants_Atomic
