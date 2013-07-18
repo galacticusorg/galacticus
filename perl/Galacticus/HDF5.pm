@@ -17,10 +17,12 @@ our %galacticusFunctions = ();
 my %propertyKnowledgeBase = (
     "^nodeVirial(Radius|Velocity)\$" => sub {my ($d,$r)=@_;return {add => {outputVirialData => "true"}} if ($d =~ m/$r/)},
     "^nodeBias\$" => sub {my ($d,$r)=@_;return {add => {outputHaloModelData => "true"}} if ($d =~ m/$r/)},
-    "^(disk|spheroid)StellarLuminosity:([^:]+):([^:]+):z([0-9\.]+)\$" => sub {my ($d,$r)=@_;return {append => {luminosityFilter => $2, luminosityType => $3, luminosityRedshift => $4}} if ($d =~ m/$r/)}
+    "^(disk|spheroid)StellarLuminosity:([^:]+):([^:]+):z([0-9\.]+)\$" => sub {my ($d,$r)=@_;return {append => {luminosityFilter => $2, luminosityType => $3, luminosityRedshift => $4}} if ($d =~ m/$r/)},
+    "StellarLuminosity:.*:recent\$" => sub {my ($d,$r)=@_;return {advice => "\"recent\" stellar luminosity can be obtained by defining a \"recent\" [luminosityPostprocessSet] and setting [stellarPopulationSpectraPostprocessRecentMethods] to include \"recent\".\n"} if ($d =~ m/$r/)}
     );
 our @missingDatasets;
 our %parameterList;
+our $advice = "";
 
 sub Open_File {
     my $dataBlock = shift;
@@ -300,6 +302,9 @@ sub Get_Dataset {
 				    $parameterList{$parameter} .= $solutions->{'append'}->{$parameter};
 				}
 			    }
+			    if ( exists($solutions->{'advice'}) ) {
+				$advice .= $solutions->{'advice'};
+			    }
 			}
 		    }
 		}		
@@ -308,14 +313,17 @@ sub Get_Dataset {
     }
     if ( scalar(@missingDatasets) > 0 ) {
 	print "Some requested datasets were not found: ".join(" ",@missingDatasets)."\n";
-	print "To resolve this issue try adding the following to your input parameter file:\n";
-	foreach my $parameter ( keys(%parameterList) ) {
-	    print "<parameter>\n";
-	    print "  <name>".$parameter."</name>\n";
-	    print "  <value>".$parameterList{$parameter}."</value>\n";
-	    print "</parameter>\n";
+	print $advice;
+	if ( scalar(keys(%parameterList)) > 0 ) {
+	    print "To resolve this issue try adding the following to your input parameter file:\n";
+	    foreach my $parameter ( keys(%parameterList) ) {
+		print "<parameter>\n";
+		print "  <name>".$parameter."</name>\n";
+		print "  <value>".$parameterList{$parameter}."</value>\n";
+		print "</parameter>\n";
+	    }
+	    print "\nThis may not be a complete list of additional parameters required to solve this issue - check carefully what outputs are required and ensure that you have requested these from Galacticus.\n";
 	}
-	print "\nThis may not be a complete list of additional parameters required to solve this issue - check carefully what outputs are required and ensure that you have requested these from Galacticus.\n";
 	die();
     }
 }

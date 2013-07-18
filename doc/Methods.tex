@@ -4781,43 +4781,40 @@ Note that the high resolution spectra from \cite{bruzual_stellar_2003} may requi
 
 Additional methods for postprocessing specta of stellar populations can be added using the {\tt stellarPopulationSpectraPostprocessMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Meiksin2006} method is described by a directive:
 \begin{verbatim}
- !# <stellarPopulationSpectraPostprocessMethod>
+ !# <stellarPopulationSpectraPostprocessInitialize>
  !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
- !# </stellarPopulationSpectraPostprocessMethod>
+ !# </stellarPopulationSpectraPostprocessInitialize>
 \end{verbatim}
 Here, {\tt Stellar\_Population\_Spectra\_Postprocess\_Meiksin2006\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
+  subroutine Method_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     implicit none
-    type(varying_string),          intent(in)    :: stellarPopulationSpectraPostprocessMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Population_Spectra_Postprocess_Get
-    
-    if (stellarPopulationSpectraPostprocessMethod == 'myMethod') then
-        Stellar_Population_Spectra_Postprocess_Get => My_Method_Postprocess_Get
-    end if
+    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethods
+    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+
+    if (stellarPopulationSpectraPostprocessMethod == 'myMethod') postprocessingFunction => myPostprocessor
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationSpectraPostprocessMethod} input parameter. The procedure pointer {\tt Stellar\_Population\_Spectra\_Postprocess\_Get} must be set to point to a function which returns a multiplicative factor by which stellar spectra will be scaled. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The stellar spectra postprocessing function must have the form:
+where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationSpectraPostprocessMethod} input parameter. The procedure pointer {\tt postprocessingFunction} should be set to point to function with the following form:
 \begin{verbatim}
-  double precision function Stellar_Population_Spectra_Postprocess_Get(wavelength,redshift)
+  subroutine Method_Compute(wavelength,age,redshift,modifier)
     implicit none
-    double precision, intent(in) :: wavelength,redshift
-    .
-    .
-    .
+    double precision, intent(in   ) :: wavelength,age,redshift
+    double precision, intent(inout) :: modifier
+
     return
-  end function Stellar_Population_Spectra_Postprocess_Get
+  end subroutine Method_Compute
 \end{verbatim}
-The function is given the rest-frame {\tt wavelength} (in \AA) and the {\tt redshift} of the radiation and should return a multiplicative factor by which the spectrum will be scaled.
+This function must multiply {\tt modifier} by the factor by which stellar spectra will be scaled. The function is given the rest-frame {\tt wavelength} (in \AA), {\tt age} of the population (in Gyr), and the {\tt redshift} of the radiation and should return a multiplicative factor by which the spectrum will be scaled.
 
 Currently defined stellar population postprocessing methods are:
 \begin{description}
 \item [\hyperlink{stellar_populations.spectra.postprocess.Meiksin2006.F90:stellar_population_spectra_postprocessing_meiksin2006}{{\tt Meiksin2006}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
 \item [\hyperlink{stellar_populations.spectra.postprocess.Madau1995.F90:stellar_population_spectra_postprocessing_madau1995}{{\tt Madau1995}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
-\item [\hyperlink{stellar_populations.spectra.postprocess.null.F90:stellar_population_spectra_postprocess_null}{{\tt null}}] Performs no postprocessing.
+\item [\hyperlink{stellar_populations.spectra.postprocess.Lyman_continuum_suppress.F90:stellar_population_spectra_postprocessing_lyc_suppress}{{\tt lymanContinuumSuppress}}] Suppresses all luminosity in the Lyman continuum.
+\item [\hyperlink{stellar_populations.spectra.postprocess.recent.F90:stellar_population_spectra_postprocessing_recent}{{\tt recent}}] Suppresses all from populations with ages in excess of {\tt [recentPopulationsTimeLimit]}.
+\item [\hyperlink{stellar_populations.spectra.postprocess.identity.F90:stellar_population_spectra_postprocessing_identity}{{\tt identity}}] This is an identity operator, i.e. it leaves the spectrum unchanged.
 \end{description}
 
 \subsubsection{Stellar Feedback}

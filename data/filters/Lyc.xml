@@ -1,0 +1,18 @@
+<filter>
+  <description>Lyman continuum filter</description>
+  <name>Lyc</name>
+  <origin>definition</origin>
+  <note>
+    This is a top-hat filter designed to count photons in the Lyman-continuum. As such it is defined to by zero at the
+    Lyman-continuum edge and rise sharply 0.01Å shortward of the edge. The filter cuts off shortward of 10Å to avoid divergences
+    in integrations at zero wavelength.
+  </note>
+  <response>
+    <datum> 10.000 0.0</datum>
+    <datum> 10.010 1.0</datum>
+    <datum>911.852 1.0</datum>
+    <datum>911.862 0.0</datum>
+  </response>
+  <effectiveWavelength>460.931</effectiveWavelength>
+  <vegaOffset>-28.9234846476052</vegaOffset>
+</filter>

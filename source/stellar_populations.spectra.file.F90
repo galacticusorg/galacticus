@@ -169,9 +169,6 @@ contains
     ! Check for out of range conditions.
     if (age > spectra(imfLookupIndex)%stellarPopulationSpectraAges(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints))&
          & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','age exceeds the maximum tabulated')
-    if (wavelength < spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(1) .or.&
-         & wavelength > spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints))&
-         & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','wavelength is out of range')
     metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
        write (metallicityLabel,'(f12.6)') metallicity
@@ -180,7 +177,17 @@ contains
        message=message//trim(adjustl(metallicityLabel))//']'
        call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
     end if
-
+    
+    ! Assume zero flux outside of the tabulated wavelength range.
+    if     (                                                                                                                                                   &
+         &   wavelength < spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(                                                                      1) &
+         & .or.                                                                                                                                                &
+         &   wavelength > spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(spectra(imfLookupIndex)%stellarPopulationSpectraWavelengthsNumberPoints) &
+         & ) then
+       Stellar_Population_Spectra_File_Interpolate=0.0d0
+       return
+    end if
+    
     ! Get the interpolations.
     iAge=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints&
          &,spectra(imfLookupIndex)%stellarPopulationSpectraAges,spectra(imfLookupIndex)%interpolationAcceleratorAge,age&

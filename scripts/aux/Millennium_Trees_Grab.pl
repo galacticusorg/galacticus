@@ -113,6 +113,7 @@ if ( exists($arguments{"table"}) ) {
 
 # Specify the index table.
 my $indexTable;
+my $indexNode;
 if ( exists($arguments{"indexTable"}) ) {
     $indexNode  = "indexNode";
     $indexTable = $arguments{"indexTable"};
