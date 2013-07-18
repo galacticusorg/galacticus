@@ -62,6 +62,12 @@ module Galacticus_Output_Merger_Tree
   ! Flag indicating if merger tree references are to be output.
   logical                                                                        :: mergerTreeOutputReferences
 
+  ! Option indicating whether galaxies are to be output.
+  logical                                                      :: mergerTreeOutput
+
+  ! Analyses to carry out.
+  type(varying_string)          , dimension(:),   allocatable  :: mergerTreeAnalyses
+
 contains
 
   subroutine Galacticus_Merger_Tree_Output(thisTree,iOutput,time,isLastOutput)
@@ -77,6 +83,9 @@ contains
     !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
     !# </include>
+    !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
+    include 'galacticus.output.merger_tree.analysis.modules.inc'
+    !# </include>
     implicit none
     type            (mergerTree        )              , intent(inout), target   :: thisTree
     integer                                           , intent(in   )           :: iOutput
@@ -87,7 +96,7 @@ contains
     class           (nodeComponentBasic), pointer                               :: thisBasicComponent
     type            (mergerTree        ), pointer                               :: currentTree
     integer                                                                     :: doubleProperty    , iGroup        , iProperty, &
-         &                                                                         integerProperty
+         &                                                                         integerProperty   , analysisCount
     logical                                                                     :: nodePassesFilter
     type            (hdf5Object        )                                        :: toDataset
 
@@ -100,6 +109,18 @@ contains
 
        ! Get input parameters.
        !@ <inputParameter>
+       !@   <name>mergerTreeOutput</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether or not to output galaxies.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeOutput'          ,mergerTreeOutput           ,defaultValue=.true.)
+       !@ <inputParameter>
        !@   <name>mergerTreeOutputReferences</name>
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -111,6 +132,24 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeOutputReferences',mergerTreeOutputReferences,defaultValue=.false.)
+       !@ <inputParameter>
+       !@   <name>mergerTreeAnalyses</name>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    List of analyses to carry out on merger trees.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       analysisCount=Get_Input_Parameter_Array_Size('mergerTreeAnalyses')
+       if (analysisCount > 0) then
+          allocate(mergerTreeAnalyses(analysisCount))
+          call Get_Input_Parameter('mergerTreeAnalyses',mergerTreeAnalyses)
+       else
+          allocate(mergerTreeAnalyses(1))
+          mergerTreeAnalyses=""
+       end if
 
        ! Flag that the module is now initialized.
        mergerTreeOutputInitialized=.true.
@@ -118,10 +157,10 @@ contains
     end if
 
     ! Create an output group.
-    call Make_Output_Group(iOutput,time)
+    if (mergerTreeOutput) call Make_Output_Group(iOutput,time)
 
     ! Ensure that the output filter subsystem is initialized.
-    call Galacticus_Merger_Tree_Output_Filter_Initialize()
+    if (mergerTreeOutput) call Galacticus_Merger_Tree_Output_Filter_Initialize()
 
     ! Iterate over trees.
     currentTree => thisTree
@@ -130,104 +169,102 @@ contains
        ! Get the base node of the tree.
        thisNode => currentTree%baseNode
 
-       ! Count up the number of properties to be output.
-       call Count_Properties        (time,thisNode)
-
-       ! Ensure buffers are allocated for temporary property storage.
-       call Allocate_Buffers
-
-       ! Get names for all properties to be output.
-       call Establish_Property_Names(time,thisNode)
+       ! Initialize output buffers.
+       if (mergerTreeOutput) then
+          ! Count up the number of properties to be output.
+          call Count_Properties        (time,thisNode)          
+          ! Ensure buffers are allocated for temporary property storage.
+          call Allocate_Buffers        (             )
+          ! Get names for all properties to be output.
+          call Establish_Property_Names(time,thisNode)
+       end if
 
        ! Loop over all nodes in the tree.
        integerPropertiesWritten=0
        doublePropertiesWritten =0
        do while (associated(thisNode))
-          ! Get the basic component.
-          thisBasicComponent => thisNode%basic()
-          if (thisBasicComponent%time() == time) then
+          ! Accumulate galaxies if output is to be performed.
+          if (mergerTreeOutput) then
+             ! Get the basic component.
+             thisBasicComponent => thisNode%basic()
+             if (thisBasicComponent%time() == time) then
              ! Ensure that galactic structure is up to date.
              call Galactic_Structure_Radii_Solve(thisNode)
              ! Test whether this test passes all output filters.
-             nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
-             if (nodePassesFilter) then
-                ! Establish node link properties.
-                if (integerPropertyCount > 0) then
-                   integerProperty=0
-                   integerBufferCount=integerBufferCount+1
+                nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
+                if (nodePassesFilter) then
+                   ! Establish node link properties.
+                   if (integerPropertyCount > 0) then
+                      integerProperty=0
+                      integerBufferCount=integerBufferCount+1
+                   end if
+                   if (doublePropertyCount > 0) then
+                      doubleProperty=0
+                      doubleBufferCount=doubleBufferCount+1
+                   end if
+                   ! Establish all other properties.
+                   call thisNode%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
+                   !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
+                   !#  <functionArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</functionArgs>
+                   include 'galacticus.output.merger_tree.tasks.inc'
+                   !# </include>
+                   ! If buffer is full, dump it to file.
+                   if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
+                   if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
                 end if
-                if (doublePropertyCount > 0) then
-                   doubleProperty=0
-                   doubleBufferCount=doubleBufferCount+1
-                end if
-
-                ! Establish all other properties.
-                call thisNode%output(integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time)
-                !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
-                !#  <functionArgs>thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time</functionArgs>
-                include 'galacticus.output.merger_tree.tasks.inc'
+                ! Do any extra output tasks.
+                !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
+                !#  <functionArgs>thisNode,iOutput,currentTree%index,nodePassesFilter</functionArgs>
+                include 'galacticus.output.merger_tree.tasks.extra.inc'
                 !# </include>
-
-                ! If buffer is full, dump it to file.
-                if (integerBufferCount == bufferSize) call Integer_Buffer_Dump(iOutput)
-                if (doubleBufferCount  == bufferSize) call Double_Buffer_Dump (iOutput)
-
              end if
-
-             ! Do any extra output tasks.
-             !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-             !#  <functionArgs>thisNode,iOutput,currentTree%index,nodePassesFilter</functionArgs>
-             include 'galacticus.output.merger_tree.tasks.extra.inc'
-             !# </include>
-
           end if
+          ! Perform analysis tasks.
+          !# <include directive="mergerTreeAnalysisTask" type="functionCall" functionType="void">
+          !#  <functionArgs>currentTree,thisNode,iOutput,mergerTreeAnalyses</functionArgs>
+          include 'galacticus.output.merger_tree.analysis.inc'
+          !# </include>
           call thisNode%walkTreeWithSatellites(thisNode)
        end do
-       if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
-       if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
-
-       ! Compute the start and length of regions to reference.
-       !$omp critical(HDF5_Access)
-       referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
-       referenceStart (1)=outputGroups(iOutput)%length
-
-       ! Create references to the datasets if requested.
-       if (mergerTreeOutputReferences) then
-
-          ! Ensure that a group has been made for this merger tree.
-          call Galacticus_Merger_Tree_Output_Make_Group(currentTree,iOutput)
-
-          ! Create references for this tree.
-          if (integerPropertyCount > 0 .and. integerPropertiesWritten > 0) then
-             do iProperty=1,integerPropertyCount
-                toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(integerPropertyNames(iProperty))
-                call currentTree%hdf5Group%createReference1D(toDataset,integerPropertyNames(iProperty),referenceStart+1,referenceLength)
-                call toDataset%close()
-             end do
+       ! Finished output.
+       if (mergerTreeOutput) then
+          if (integerPropertyCount > 0 .and. integerBufferCount > 0) call Integer_Buffer_Dump(iOutput)
+          if (doublePropertyCount  > 0 .and. doubleBufferCount  > 0) call Double_Buffer_Dump (iOutput)
+          ! Compute the start and length of regions to reference.
+          !$omp critical(HDF5_Access)
+          referenceLength(1)=max(integerPropertiesWritten,doublePropertiesWritten)
+          referenceStart (1)=outputGroups(iOutput)%length
+          ! Create references to the datasets if requested.
+          if (mergerTreeOutputReferences) then
+             ! Ensure that a group has been made for this merger tree.
+             call Galacticus_Merger_Tree_Output_Make_Group(currentTree,iOutput)             
+             ! Create references for this tree.
+             if (integerPropertyCount > 0 .and. integerPropertiesWritten > 0) then
+                do iProperty=1,integerPropertyCount
+                   toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(integerPropertyNames(iProperty))
+                   call currentTree%hdf5Group%createReference1D(toDataset,integerPropertyNames(iProperty),referenceStart+1,referenceLength)
+                   call toDataset%close()
+                end do
+             end if
+             if (doublePropertyCount > 0  .and. doublePropertiesWritten  > 0) then
+                do iProperty=1,doublePropertyCount
+                   toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(doublePropertyNames(iProperty))
+                   call currentTree%hdf5Group%createReference1D(toDataset,doublePropertyNames(iProperty),referenceStart+1,referenceLength)
+                   call toDataset%close()
+                end do
+             end if
+             ! Close the tree group.
+             call currentTree%hdf5Group%close()
           end if
-          if (doublePropertyCount > 0  .and. doublePropertiesWritten  > 0) then
-             do iProperty=1,doublePropertyCount
-                toDataset=outputGroups(iOutput)%nodeDataGroup%openDataset(doublePropertyNames(iProperty))
-                call currentTree%hdf5Group%createReference1D(toDataset,doublePropertyNames(iProperty),referenceStart+1,referenceLength)
-                call toDataset%close()
-             end do
-          end if
-
-          ! Close the tree group.
-          call currentTree%hdf5Group%close()
-
+          ! Store the start position and length of the node data for this tree, along with its volume weight.
+          call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
+          call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
+          call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
+          call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                   ,appendTo=.true.)
+          ! Increment the number of nodes written to this output group.
+          outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
+          !$omp end critical(HDF5_Access)
        end if
-
-       ! Store the start position and length of the node data for this tree, along with its volume weight.
-       call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
-       call outputGroups(iOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
-       call outputGroups(iOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-       call outputGroups(iOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                   ,appendTo=.true.)
-
-       ! Increment the number of nodes written to this output group.
-       outputGroups(iOutput)%length=outputGroups(iOutput)%length+referenceLength(1)
-       !$omp end critical(HDF5_Access)
-
        ! Skip to the next tree.
        currentTree => currentTree%nextTree
     end do
