@@ -19,7 +19,7 @@
 
 module Intergalactic_Medium_State
   !% Implements calculations of the intergalactic medium thermal and ionization state.
-  use FGSL
+  use Tables
   implicit none
   private
   public :: Intergalactic_Medium_Electron_Fraction, Intergalactic_Medium_Temperature,&
@@ -39,23 +39,15 @@ module Intergalactic_Medium_State
   end interface
 
   ! Electron scattering optical depth tables.
-  integer                            , parameter                 :: electronScatteringTablePointsPerDecade          =100
-  logical                                                        :: electronScatteringTableInitialized              =.false.
-  integer                                                        :: electronScatteringTableNumberPoints
-  double precision                   , allocatable, dimension(:) :: electronScatteringTableOpticalDepth                     , electronScatteringTableOpticalDepthFullyIonized       , &
-       &                                                            electronScatteringTableTime
-  double precision                                               :: electronScatteringTableTimeMaximum                      , electronScatteringTableTimeMinimum
-
-  ! Interpolator variables.
-  type            (fgsl_interp      )                            :: interpolationObject                                     , interpolationOpticalDepthFullyIonizedObject           , &
-       &                                                            interpolationOpticalDepthObject
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator                                , interpolationOpticalDepthAccelerator                  , &
-       &                                                            interpolationOpticalDepthFullyIonizedAccelerator
-  logical                                                        :: interpolationOpticalDepthFullyIonizedReset      =.true. , interpolationOpticalDepthReset                 =.true., &
-       &                                                            interpolationReset                              =.true.
+  integer                                   , parameter   :: electronScatteringTablePointsPerDecade=100
+  logical                                                 :: electronScatteringTableInitialized    =.false.
+  integer                                                 :: electronScatteringTableNumberPoints
+  double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum
+  type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized
+  class           (table1D                 ), allocatable :: electronScatteringInverse                     , electronScatteringFullyIonizedInverse
 
   ! Option controlling whether electron scattering optical depth calculations should assume a fully ionized universe.
-  logical                                                        :: fullyIonized
+  logical                                                 :: fullyIonized
 
 contains
 
@@ -144,13 +136,9 @@ contains
     assumeFullyIonizedActual=.false.
     if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
     if (assumeFullyIonizedActual) then
-       Intergalactic_Medium_Electron_Scattering_Optical_Depth=-Interpolate(electronScatteringTableNumberPoints &
-            &,electronScatteringTableTime,electronScatteringTableOpticalDepthFullyIonized,interpolationObject&
-            &,interpolationAccelerator,time ,reset =interpolationReset)
+       Intergalactic_Medium_Electron_Scattering_Optical_Depth=-electronScatteringFullyIonized%interpolate(time)
     else
-       Intergalactic_Medium_Electron_Scattering_Optical_Depth=-Interpolate(electronScatteringTableNumberPoints &
-            &,electronScatteringTableTime,electronScatteringTableOpticalDepth,interpolationObject,interpolationAccelerator,time &
-            &,reset =interpolationReset)
+       Intergalactic_Medium_Electron_Scattering_Optical_Depth=-electronScattering            %interpolate(time)
     end if
     !$omp end critical (IGM_State_Electron_Scattering_Interpolation)
     return
@@ -172,16 +160,16 @@ contains
     if (opticalDepth < 0.0d0) call Galacticus_Error_Report('Intergalactic_Medium_Electron_Scattering_Time','optical depth must be non-negative')
 
     ! Determine which optical depth to use.
-    assumeFullyIonizedActual=.false.
+    assumeFullyIonizedActual=.true.!false.
     if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
 
     ! Ensure that the table is initialized.
     time=Cosmology_Age(1.0d0)
     call IGM_State_Electron_Scattering_Tabulate(time)
-    do while (                                                                                                          &
-         &     (.not.assumeFullyIonizedActual .and. electronScatteringTableOpticalDepth            (1) > -opticalDepth) &
-         &    .or.                                                                                                      &
-         &     (     assumeFullyIonizedActual .and. electronScatteringTableOpticalDepthFullyIonized(1) > -opticalDepth) &
+    do while (                                                                                           &
+         &     (.not.assumeFullyIonizedActual .and. electronScattering            %y(1) > -opticalDepth) &
+         &    .or.                                                                                       &
+         &     (     assumeFullyIonizedActual .and. electronScatteringFullyIonized%y(1) > -opticalDepth) &
          &   )
        time=time/2.0d0
        call IGM_State_Electron_Scattering_Tabulate(time)
@@ -189,14 +177,9 @@ contains
 
     !$omp critical     (IGM_State_Electron_Scattering_Interpolation)
     if (assumeFullyIonizedActual) then
-       Intergalactic_Medium_Electron_Scattering_Time=Interpolate(electronScatteringTableNumberPoints &
-            &,electronScatteringTableOpticalDepthFullyIonized,electronScatteringTableTime&
-            &,interpolationOpticalDepthFullyIonizedObject ,interpolationOpticalDepthFullyIonizedAccelerator,-opticalDepth ,reset &
-            &=interpolationOpticalDepthFullyIonizedReset)
+       Intergalactic_Medium_Electron_Scattering_Time=electronScatteringFullyIonizedInverse%interpolate(-opticalDepth)
     else
-       Intergalactic_Medium_Electron_Scattering_Time=Interpolate(electronScatteringTableNumberPoints &
-            &,electronScatteringTableOpticalDepth,electronScatteringTableTime,interpolationOpticalDepthObject&
-            &,interpolationOpticalDepthAccelerator,-opticalDepth ,reset =interpolationOpticalDepthReset)
+       Intergalactic_Medium_Electron_Scattering_Time=electronScatteringInverse            %interpolate(-opticalDepth)
     end if
     !$omp end critical (IGM_State_Electron_Scattering_Interpolation)
     return
@@ -210,6 +193,7 @@ contains
     use Cosmology_Functions
     use Memory_Management
     use Numerical_Ranges
+    use FGSL
     implicit none
     double precision                            , intent(in   ) :: time
     type            (c_ptr                     )                :: parameterPointer
@@ -225,41 +209,58 @@ contains
        ! Decide how many points to tabulate and allocate table arrays.
        electronScatteringTableNumberPoints=int(log10(electronScatteringTableTimeMaximum/electronScatteringTableTimeMinimum)&
             &*dble(electronScatteringTablePointsPerDecade))+1
-       if (allocated(electronScatteringTableTime)) then
-          call Dealloc_Array(electronScatteringTableTime                    )
-          call Dealloc_Array(electronScatteringTableOpticalDepth            )
-          call Dealloc_Array(electronScatteringTableOpticalDepthFullyIonized)
-       end if
-       call Alloc_Array(electronScatteringTableTime                    ,[electronScatteringTableNumberPoints])
-       call Alloc_Array(electronScatteringTableOpticalDepth            ,[electronScatteringTableNumberPoints])
-       call Alloc_Array(electronScatteringTableOpticalDepthFullyIonized,[electronScatteringTableNumberPoints])
-       ! Create a range of time.
-       electronScatteringTableTime=Make_Range(electronScatteringTableTimeMinimum ,electronScatteringTableTimeMaximum&
-            &,electronScatteringTableNumberPoints,rangeType=rangeTypeLogarithmic)
+       ! Create the tables.
+       call electronScattering            %destroy()
+       call electronScatteringFullyIonized%destroy()
+       call electronScattering            %create (                                     &
+            &                                      electronScatteringTableTimeMinimum , &
+            &                                      electronScatteringTableTimeMaximum , &
+            &                                      electronScatteringTableNumberPoints  &
+            &                                     )
+       call electronScatteringFullyIonized%create (                                     &
+            &                                      electronScatteringTableTimeMinimum , &
+            &                                      electronScatteringTableTimeMaximum , &
+            &                                      electronScatteringTableNumberPoints  &
+            &                                     )
        ! Loop over times and populate tables.
        do iTime=1,electronScatteringTableNumberPoints-1
           fullyIonized=.false.
-          electronScatteringTableOpticalDepth(iTime)=-Integrate(electronScatteringTableTime(iTime)&
-               &,electronScatteringTableTimeMaximum ,IGM_State_Electron_Scattering_Integrand ,parameterPointer,integrandFunction &
-               &,integrationWorkspace ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+          call electronScattering%populate(                                                 &
+               &                 -Integrate(                                                &
+               &                            electronScattering%x(iTime)                   , &
+               &                            electronScatteringTableTimeMaximum            , &
+               &                            IGM_State_Electron_Scattering_Integrand       , &
+               &                            parameterPointer                              , &
+               &                            integrandFunction                             , &
+               &                            integrationWorkspace                          , &
+               &                            toleranceAbsolute                      =0.0d+0, &
+               &                            toleranceRelative                      =1.0d-3  &
+               &                           )                                              , &
+               &                  iTime                                                     &
+               &                 )
           call Integrate_Done(integrandFunction,integrationWorkspace)
           fullyIonized=.true.
-          electronScatteringTableOpticalDepthFullyIonized(iTime)=-Integrate(electronScatteringTableTime(iTime)&
-               &,electronScatteringTableTimeMaximum ,IGM_State_Electron_Scattering_Integrand ,parameterPointer,integrandFunction &
-               &,integrationWorkspace ,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+          call electronScatteringFullyIonized%populate(                                                           &
+               &                                       -Integrate(                                                &
+               &                                                  electronScatteringFullyIonized%x(iTime)       , &
+               &                                                  electronScatteringTableTimeMaximum            , &
+               &                                                  IGM_State_Electron_Scattering_Integrand       , &
+               &                                                  parameterPointer                              , &
+               &                                                  integrandFunction                             , &
+               &                                                  integrationWorkspace                          , &
+               &                                                  toleranceAbsolute                      =0.0d+0, &
+               &                                                  toleranceRelative                      =1.0d-3  &
+               &                                                 )                                              , &
+               &                  iTime                                                                           &
+               &                 )
           call Integrate_Done(integrandFunction,integrationWorkspace)
        end do
-       electronScatteringTableOpticalDepth            (electronScatteringTableNumberPoints)=0.0d0
-       electronScatteringTableOpticalDepthFullyIonized(electronScatteringTableNumberPoints)=0.0d0
-       ! Ensure interpolations get reset.
-       call Interpolate_Done(interpolationObject                        ,interpolationAccelerator                        ,interpolationReset                        )
-       call Interpolate_Done(interpolationOpticalDepthObject            ,interpolationOpticalDepthAccelerator            ,interpolationOpticalDepthReset            )
-       call Interpolate_Done(interpolationOpticalDepthFullyIonizedObject,interpolationOpticalDepthFullyIonizedAccelerator,interpolationOpticalDepthFullyIonizedReset)
-       interpolationReset                        =.true.
-       interpolationOpticalDepthReset            =.true.
-       interpolationOpticalDepthFullyIonizedReset=.true.
+       call electronScattering            %populate(0.0d0,electronScatteringTableNumberPoints)
+       call electronScatteringFullyIonized%populate(0.0d0,electronScatteringTableNumberPoints)
+       call electronScattering            %reverse (electronScatteringInverse                )
+       call electronScatteringFullyIonized%reverse (electronScatteringFullyIonizedInverse    )
        ! Specify that tabulation has been made.
-       electronScatteringTableInitialized        =.true.
+       electronScatteringTableInitialized=.true.
     end if
     !$omp end critical (IGM_State_Electron_Scattering_Interpolation)
     return
@@ -293,6 +294,7 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Intergalactic_Medium_State_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
@@ -306,6 +308,7 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Intergalactic_Medium_State_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
