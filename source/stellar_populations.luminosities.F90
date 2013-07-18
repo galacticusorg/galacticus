@@ -42,9 +42,11 @@ module Stellar_Population_Luminosities
 
   ! Module global variables used in integrations.
   double precision                                             :: ageTabulate                                                    , redshiftTabulate
-  integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate
+  integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate      , &
+       &                                                          postprocessingChainIndexTabulate
   type            (abundances     )                            :: abundancesTabulate
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
+
   ! Flag indicating if this module has been initialized yet.
   logical                                                      :: moduleInitialized                                      =.false.
 
@@ -53,7 +55,7 @@ module Stellar_Population_Luminosities
 
 contains
 
-  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,imfIndex,abundancesStellar,age,redshift)
+  function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,abundancesStellar,age,redshift)
     !% Returns the luminosity for a $1 M_\odot$ simple stellar population of given {\tt abundances} and {\tt age} drawn from IMF
     !% specified by {\tt imfIndex} and observed through the filter specified by {\tt filterIndex}.
     use Memory_Management
@@ -69,9 +71,9 @@ contains
     use ISO_Varying_String
     use String_Handling
     implicit none
-    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex       , &
-         &                                                                                                        luminosityIndex              (:)
-    double precision                                                                           , intent(in   ) :: age                          (:), redshift    (:)
+    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
+         &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
+    double precision                                                                           , intent(in   ) :: age                          (:), redshift                (:)
     type            (abundances                )                                               , intent(in   ) :: abundancesStellar
     double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
     type            (luminosityTable           ), allocatable, dimension(:)                                    :: luminosityTablesTemporary
@@ -79,11 +81,12 @@ contains
     logical                                     , allocatable, dimension(:)                                    :: isTabulatedTemporary
     double precision                                         , dimension(2)                                    :: wavelengthRange
     double precision                                         , dimension(0:1)                                  :: hAge                            , hMetallicity
-    integer                                                                                                    :: iAge                            , iLuminosity    , &
-         &                                                                                                        iMetallicity                    , jAge           , &
-         &                                                                                                        jMetallicity
+    integer                                                                                                    :: iAge                            , iLuminosity                , &
+         &                                                                                                        iMetallicity                    , jAge                       , &
+         &                                                                                                        jMetallicity                    , loopCount                  , &
+         &                                                                                                        loopCountMaximum
     logical                                                                                                    :: computeTable
-    double precision                                                                                           :: ageLast                         , metallicity    , &
+    double precision                                                                                           :: ageLast                         , metallicity                , &
          &                                                                                                        normalization
     type            (c_ptr                     )                                                               :: parameterPointer
     type            (fgsl_function             )                                                               :: integrandFunction
@@ -164,7 +167,7 @@ contains
 
           ! Display a message and counter.
           message='Tabulating stellar luminosities for '//char(IMF_Name(imfIndex))//' IMF, luminosity '
-          message=message//iLuminosity
+          message=message//iLuminosity//' of '//size(luminosityIndex)
           call Galacticus_Display_Indent (message,verbosityWorking)
           call Galacticus_Display_Counter(0,.true.,verbosityWorking)
 
@@ -172,29 +175,18 @@ contains
           wavelengthRange=Filter_Extent(filterIndex(iLuminosity))
 
           ! Integrate over the wavelength range.
-          filterIndexTabulate=filterIndex(iLuminosity)
-          imfIndexTabulate=imfIndex
-          redshiftTabulate=redshift(iLuminosity)
+          filterIndexTabulate             =filterIndex             (iLuminosity)
+          postprocessingChainIndexTabulate=postprocessingChainIndex(iLuminosity)
+          redshiftTabulate                =redshift                (iLuminosity)
+          imfIndexTabulate                =imfIndex
+          loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
+          loopCount                       =0
           do iAge=1,luminosityTables(imfIndex)%agesCount
              ageTabulate=luminosityTables(imfIndex)%age(iAge)
              do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
-
                 ! Update the counter.
-                call Galacticus_Display_Counter(                                                                                               &
-                     &                           int(                                                                                          &
-                     &                                100.0d0                                                                                  &
-                     &                               *dble(                                                                                    &
-                     &                                      luminosityTables(imfIndex)%metallicitiesCount*iAge                                 &
-                     &                                     +                                              iMetallicity                         &
-                     &                                    )                                                                                    &
-                     &                               /dble(                                                                                    &
-                     &                                      luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount &
-                     &                                    )                                                                                    &
-                     &                              )                                                                                          &
-                     &                          ,.false.                                                                                       &
-                     &                          ,verbosityWorking                                                                              &
-                     &                         )
-
+                loopCount=loopCount+1
+                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
                 call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
                      &,metallicityType=logarithmicByMassSolar)
                 luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge,iMetallicity) &
@@ -296,7 +288,7 @@ contains
     ! bolometer/calorimeter type detector).
     wavelengthRedshifted=wavelength/(1.0d0+redshiftTabulate)
     Filter_Luminosity_Integrand=Filter_Response(filterIndexTabulate,wavelength)*Stellar_Population_Spectrum(abundancesTabulate &
-         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(wavelengthRedshifted,redshiftTabulate)/wavelength
+         &,ageTabulate,wavelengthRedshifted,imfIndexTabulate)*Stellar_Population_Spectrum_PostProcess(postprocessingChainIndexTabulate,wavelengthRedshifted,ageTabulate,redshiftTabulate)/wavelength
     return
   end function Filter_Luminosity_Integrand
 

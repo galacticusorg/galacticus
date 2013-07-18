@@ -15,7 +15,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!% Contains a module which provides properties related to luminosities of stellar populations that are being tracked.
+
 module Stellar_Population_Properties_Luminosities
+  !% Provides properties related to luminosities of stellar populations that are being tracked.
   use ISO_Varying_String
   implicit none
   private
@@ -27,10 +30,12 @@ module Stellar_Population_Properties_Luminosities
 
   ! Arrays which hold the luminosity specifications.
   integer                                                     :: luminosityCount
-  integer                         , allocatable, dimension(:) :: luminosityFilterIndex                , luminosityIndex
-  double precision                , allocatable, dimension(:) :: luminosityCosmicTime                 , luminosityRedshift
+  integer                         , allocatable, dimension(:) :: luminosityFilterIndex                , luminosityIndex               , &
+       &                                                         luminosityPostprocessingChainIndex
+  double precision                , allocatable, dimension(:) :: luminosityCosmicTime                 , luminosityRedshift            , &
+       &                                                         luminosityBandRedshift
   type            (varying_string), allocatable, dimension(:) :: luminosityFilter                     , luminosityName                , &
-       &                                                         luminosityType
+       &                                                         luminosityType                       , luminosityPostprocessSet
 
   ! Luminosity output options.
   integer                                                     :: luminosityOutputOption
@@ -122,8 +127,8 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex,imfSelected,abundancesStellar&
-         &,ages,luminosityRedshift)
+    Stellar_Population_Luminosities_Get=Stellar_Population_Luminosity(luminosityIndex,luminosityFilterIndex&
+         &,luminosityPostprocessingChainIndex,imfSelected,abundancesStellar ,ages,luminosityRedshift)
     return
   end function Stellar_Population_Luminosities_Get
 
@@ -145,8 +150,10 @@ contains
     use Memory_Management
     use Instruments_Filters
     use Cosmology_Functions
+    use String_Handling
+    use Stellar_Population_Spectra_Postprocess
     implicit none
-    integer                          :: iLuminosity
+    integer                          :: iLuminosity               , jLuminosity
     double precision                 :: expansionFactor
     character       (len=10        ) :: redshiftLabel
     type            (varying_string) :: luminosityOutputOptionText
@@ -187,21 +194,29 @@ contains
           ! Read in the parameters which specify the luminosities to be computed.
           luminosityCount=Get_Input_Parameter_Array_Size('luminosityRedshift')
           if (Get_Input_Parameter_Array_Size('luminosityFilter') /= luminosityCount) call&
-               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityFilter and luminosityCount&
+               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityFilter and luminosityRedshift&
                & input arrays must have same dimension')
           if (Get_Input_Parameter_Array_Size('luminosityType') /= luminosityCount) call&
-               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityType and luminosityCount&
+               & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityType and luminosityRedshift&
                & input arrays must have same dimension')
+          if (Input_Parameter_Is_Present('luminosityBandRedshift')) then
+             if (Get_Input_Parameter_Array_Size('luminosityBandRedshift') /= luminosityCount) call&
+                  & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityBandRedshift and luminosityRedshift&
+                  & input arrays must have same dimension')
+          end if
 
           if (luminosityCount > 0) then
-             call Alloc_Array(luminosityRedshift   ,[luminosityCount])
-             call Alloc_Array(luminosityCosmicTime ,[luminosityCount])
-             allocate(luminosityFilter(luminosityCount))
-             allocate(luminosityType  (luminosityCount))
-             allocate(luminosityName  (luminosityCount))
-             call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityName),blockCount=3)
-             call Alloc_Array(luminosityFilterIndex,[luminosityCount])
-             call Alloc_Array(luminosityIndex      ,[luminosityCount])
+             call Alloc_Array(luminosityRedshift                ,[luminosityCount])
+             call Alloc_Array(luminosityBandRedshift            ,[luminosityCount])
+             call Alloc_Array(luminosityCosmicTime              ,[luminosityCount])
+             allocate(luminosityFilter        (luminosityCount))
+             allocate(luminosityType          (luminosityCount))
+             allocate(luminosityName          (luminosityCount))
+             allocate(luminosityPostprocessSet(luminosityCount))
+             call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityName)+sizeof(luminosityPostprocessSet),blockCount=4)
+             call Alloc_Array(luminosityFilterIndex             ,[luminosityCount])
+             call Alloc_Array(luminosityIndex                   ,[luminosityCount])
+             call Alloc_Array(luminosityPostprocessingChainIndex,[luminosityCount])
              !@ <inputParameter>
              !@   <name>luminosityRedshift</name>
              !@   <attachedTo>module</attachedTo>
@@ -212,6 +227,20 @@ contains
              !@   <cardinality>0..*</cardinality>
              !@ </inputParameter>
              call Get_Input_Parameter('luminosityRedshift',luminosityRedshift)
+             if (Input_Parameter_Is_Present('luminosityBandRedshift')) then
+                !@ <inputParameter>
+                !@   <name>luminosityBandRedshift</name>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@     If present, force filters to be shifted to this redshift rather than that specified by {\tt [luminosityRedshift]}. Allows sampling of the SED at wavelengths corresponding to other redshifts.
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..*</cardinality>
+                !@ </inputParameter>
+                call Get_Input_Parameter('luminosityBandRedshift',luminosityBandRedshift)
+             else
+                luminosityBandRedshift=luminosityRedshift
+             end if
              !@ <inputParameter>
              !@   <name>luminosityFilter</name>
              !@   <attachedTo>module</attachedTo>
@@ -239,13 +268,41 @@ contains
              !@   <cardinality>0..*</cardinality>
              !@ </inputParameter>
              call Get_Input_Parameter('luminosityType'    ,luminosityType    )
+             ! Read postprocessing set information.          
+             if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') > 0) then
+                if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') /= luminosityCount) call&
+                     & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityPostprocessSet and luminosityFilter&
+                     & input arrays must have same dimension')
+                !@ <inputParameter>
+                !@   <name>luminosityPostprocessSet</name>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@     The name of the set of postprocessing algorithms to apply to this filter.
+                !@   </description>
+                !@   <type>string</type>
+                !@   <cardinality>0..*</cardinality>
+                !@ </inputParameter>
+                call Get_Input_Parameter('luminosityPostprocessSet',luminosityPostprocessSet)
+             else
+                luminosityPostprocessSet="default"
+             end if
 
              ! Process the list of luminosities.
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
-                write (redshiftLabel,'(f7.4)') luminosityRedshift(iLuminosity)
+                write (redshiftLabel,'(f7.4)') luminosityBandRedshift(iLuminosity)
                 luminosityName(iLuminosity)=luminosityFilter(iLuminosity)//":"//luminosityType(iLuminosity)//":z"&
                      &//trim(adjustl(redshiftLabel))
+                if (luminosityPostprocessSet(iLuminosity) /= "default") luminosityName(iLuminosity)=luminosityName(iLuminosity)&
+                     &//":"//char(luminosityPostprocessSet(iLuminosity))
+                ! Check for duplicated luminosities.
+                if (iLuminosity > 1) then
+                   do jLuminosity=1,iLuminosity-1
+                      if (luminosityName(iLuminosity) == luminosityName(jLuminosity)) then
+                         call Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosity '//luminosityName(iLuminosity)//' appears more than once in the input parameter file')
+                      end if
+                   end do
+                end if
                 ! Assign an index for this luminosity.
                 luminosityIndex(iLuminosity)=iLuminosity
                 ! Get the index of the specified filter.
@@ -263,6 +320,8 @@ contains
                 case default
                    call Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','unrecognized filter type')
                 end select
+                ! Find the index for the postprocessing chain to be applied to this filter.
+                luminosityPostprocessingChainIndex(iLuminosity)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(iLuminosity))
              end do
           end if
           luminositiesInitialized=.true.

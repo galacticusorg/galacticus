@@ -1750,19 +1750,29 @@ Selected with {\tt stellarPopulationSpectraMethod}$=${\tt file} this method read
 
 \section{Stellar Population Spectra Postprocessing}
 
-Stellar population spectra are postprocessed (to handle, for example, absorption by the \gls{igm}). The method used to postprocess spectra is specified by the {\tt stellarPopulationSpectraPostprocessMethod} parameter.
+Stellar population spectra are postprocessed (to handle, for example, absorption by the \gls{igm}).
+
+Different chains of postprocessing methods can be applied to different filters. The {\tt [luminosityPostprocessSet]} parameter specifies, for each filter, which chain of postprocessing filters to use. (If this parameter is not present then ``{\tt default}'' is assumed for all filters.) The filters used in each chain are specified by the input parameter {\tt [stellarPopulationSpectraPostprocess\textless setName\textgreater Method]} where {\tt \textless setName\textgreater} is the name specified in {\tt [luminosityPostprocessSet]}.
 
 \subsection{Meiksin (2006) IGM Attenuation}
 
-Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt Meiksin2006} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt Meiksin2006} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
 
 \subsection{Madau (1995) IGM Attenuation}
 
-Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt Madau1995} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt Madau1995} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
 
-\subsection{Null Method}
+\subsection{Lyman-continuum Suppression}
 
-Selected with {\tt stellarPopulationSpectraPostprocessMethod}$=${\tt null} this method performs no postprocessing.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt lymanContinuumSuppression} this method suppresses all emission in the Lyman continuum.
+
+\subsection{Recent Star Formation}
+
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt recent} this method suppresses all emission from populations older than {\tt [recentPopulationsTimeLimit]}.
+
+\subsection{Identity}
+
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt identity} this method leaves the spectrum unchanged.
 
 \section{Stellar Astrophysics}
 
