@@ -19,6 +19,7 @@
 
 module Virial_Orbits_Wetzel2010
   !% Implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
+  use Tables
   use FGSL
   use, intrinsic :: ISO_C_Binding
   implicit none
@@ -26,28 +27,30 @@ module Virial_Orbits_Wetzel2010
   public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
        & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
 
-  type            (fgsl_rng)                            :: clonedPseudoSequenceObject                            , pseudoSequenceObject
-  logical                                               :: resetSequence                              =.true.    , resetSequenceSnapshot
+  type            (fgsl_rng                )              :: clonedPseudoSequenceObject                            , pseudoSequenceObject
+  logical                                                 :: resetSequence                              =.true.    , resetSequenceSnapshot
   !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
   ! Table of the cumulative distribution for the pericentric radius.
-  integer                   , parameter                 :: pericentricRadiusPointsPerDecade           =10
-  integer                                               :: pericentricRadiusCount
-  double precision          , parameter                 :: pericentricRadiusMaximum                   =1.0d2     , pericentricRadiusMinimum    =1.0d-6
-  double precision          , allocatable, dimension(:) :: pericentricRadiusTableCumulativeProbability           , pericentricRadiusTableRadius
+  integer                                   , parameter   :: pericentricRadiusPointsPerDecade           =10
+  integer                                                 :: pericentricRadiusCount
+  double precision                          , parameter   :: pericentricRadiusMaximum                   =1.0d2     , pericentricRadiusMinimum    =1.0d-6
+  type            (table1DLogarithmicLinear)              :: pericentricRadiusTable
+  class           (table1D                 ), allocatable :: pericentricRadiusTableInverse
 
   ! Parameters of the fitting functions.
-  double precision          , parameter                 :: circularityAlpha1                          =0.242d0   , circularityBeta1            =2.360d0 , &
-       &                                                   circularityGamma1                          =0.108d0   , circularityGamma2           =1.05d0  , &
-       &                                                   circularityP1                              =0.0d0
-  double precision          , parameter                 :: pericenterAlpha1                           =0.450d0   , pericenterBeta1             =-0.395d0, &
-       &                                                   pericenterGamma1                           =0.109d0   , pericenterGamma2            =0.85d0  , &
-       &                                                   pericenterP1                               =-4.0d0
-  double precision          , parameter                 :: c1Maximum                                  =9.999999d0, r1Minimum                   =0.05d0
+  double precision                          , parameter   :: circularityAlpha1                          =0.242d0   , circularityBeta1            =2.360d0 , &
+       &                                                     circularityGamma1                          =0.108d0   , circularityGamma2           =1.05d0  , &
+       &                                                     circularityP1                              =0.0d0
+  double precision                          , parameter   :: pericenterAlpha1                           =0.450d0   , pericenterBeta1             =-0.395d0, &
+       &                                                     pericenterGamma1                           =0.109d0   , pericenterGamma2            =0.85d0  , &
+       &                                                     pericenterP1                               =-4.0d0
+  double precision                          , parameter   :: c1Maximum                                  =9.999999d0, r1Minimum                   =0.05d0
 
   ! Global variables used in root finding.
-  double precision                                      :: C0                                                    , C1                                   , &
-       &                                                   uniformDeviate
+  double precision                                        :: C0                                                    , C1                                   , &
+       &                                                     uniformDeviate
   !$omp threadprivate(uniformDeviate,C0,C1)
+
 contains
 
   !# <virialOrbitsMethod>
@@ -56,15 +59,14 @@ contains
   subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Memory_Management
-    use Numerical_Ranges
     use Hypergeometric_Functions
     use Kepler_Orbits
     implicit none
     type            (varying_string                      ), intent(in   )          :: virialOrbitsMethod
     procedure       (Virial_Orbital_Parameters_Wetzel2010), intent(inout), pointer :: Virial_Orbital_Parameters_Get
     integer                                                                        :: iRadius
-    double precision                                                               :: x                            , xGamma2
+    double precision                                                               :: x                            , xGamma2                           , &
+         &                                                                            probabilityCumulative        , probabilityCumulativeNormalization
 
     if (virialOrbitsMethod == 'Wetzel2010') then
        ! Set procedure pointer to our orbital parameter function.
@@ -73,22 +75,30 @@ contains
        ! Construct a look-up table for the pericentric radius distribution.
        ! Determine number of points to use in the tabulation.
        pericentricRadiusCount=int(log10(pericentricRadiusMaximum/pericentricRadiusMinimum)*dble(pericentricRadiusPointsPerDecade))+1
-       ! Allocate space for the table.
-       call Alloc_Array(pericentricRadiusTableRadius               ,[pericentricRadiusCount])
-       call Alloc_Array(pericentricRadiusTableCumulativeProbability,[pericentricRadiusCount])
        ! Construct a range of radii.
-       pericentricRadiusTableRadius=Make_Range(pericentricRadiusMinimum,pericentricRadiusMaximum,pericentricRadiusCount,rangeType=rangeTypeLogarithmic)
+       call pericentricRadiusTable%destroy()
+       call pericentricRadiusTable%create(pericentricRadiusMinimum,pericentricRadiusMaximum,pericentricRadiusCount)
        ! For each radius, compute the cumulative probability.
-       do iRadius=1,pericentricRadiusCount
-          x      =pericentricRadiusTableRadius(iRadius)
+       do iRadius=pericentricRadiusCount,1,-1
+          x      =pericentricRadiusTable%x(iRadius)
           xGamma2=x**pericenterGamma2
-          pericentricRadiusTableCumulativeProbability(iRadius)=exp(-xGamma2)*x*(                                                                                                          &
-               &  pericenterGamma2*(1.0d0+pericenterGamma2*(1.0d0+xGamma2))*Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)/(1.0d0+pericenterGamma2) &
-               & +                                                          Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)*(1.0d0+pericenterGamma2) &
-               &                                                                )
+          probabilityCumulative=                                                                                                    &
+               &  exp(-xGamma2)                                                                                                     &
+               &  *x                                                                                                                &
+               &  *(                                                                                                                &
+               &     pericenterGamma2                                                                                               &
+               &    *(                                                                                                              &
+               &       1.0d0                                                                                                        &
+               &      +pericenterGamma2                                                                                             &
+               &      *(1.0d0+xGamma2)                                                                                              &
+               &     )                                                                                                              &
+               &    *Hypergeometric_1F1([2.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)/(1.0d0+pericenterGamma2) &
+               &    +Hypergeometric_1F1([1.0d0],[(1.0d0+3.0d0*pericenterGamma2)/pericenterGamma2],xGamma2)*(1.0d0+pericenterGamma2) &
+               &   )
+          if (iRadius == pericentricRadiusCount) probabilityCumulativeNormalization=probabilityCumulative
+          call pericentricRadiusTable%populate(probabilityCumulative/probabilityCumulativeNormalization,iRadius)
        end do
-       ! Normalize to unit probability.
-       pericentricRadiusTableCumulativeProbability=pericentricRadiusTableCumulativeProbability/pericentricRadiusTableCumulativeProbability(pericentricRadiusCount)
+       call pericentricRadiusTable%reverse(pericentricRadiusTableInverse)
     end if
     return
   end subroutine Virial_Orbital_Parameters_Wetzel2010_Initialize
@@ -99,7 +109,6 @@ contains
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Critical_Overdensity
-    use Numerical_Interpolation
     use Root_Finder
     use Cosmology_Functions
     use Kepler_Orbits
@@ -111,10 +120,6 @@ contains
     double precision                          , parameter                         :: toleranceAbsolute       =0.0d0 , toleranceRelative     =1.0d-2
     double precision                          , parameter                         :: circularityMaximum      =1.0d0 , circularityMinimum    =0.0d0
     double precision                          , parameter                         :: redshiftMaximum         =5.0d0 , expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type            (fgsl_interp       ), save                                    :: interpolationObject
-    type            (fgsl_interp_accel ), save                                    :: interpolationAccelerator
-    logical                             , save                                    :: interpolationReset      =.true.
-    !$omp threadprivate(interpolationObject,interpolationAccelerator,interpolationReset)
     type            (rootFinder        ), save                                    :: finder
     !$omp threadprivate(finder)
     double precision                                                              :: R1                                                    , apocentricRadius           , &
@@ -170,26 +175,23 @@ contains
     ! Search for an orbit.
     foundOrbit=.false.
     do while (.not.foundOrbit)
-
        ! Compute pericentric radius by inversion in table.
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
-       pericentricRadius=R1*Interpolate(pericentricRadiusCount,pericentricRadiusTableCumulativeProbability&
-            &,pericentricRadiusTableRadius ,interpolationObject,interpolationAccelerator,uniformDeviate ,reset=interpolationReset)
-
+       pericentricRadius=R1*pericentricRadiusTableInverse%interpolate(uniformDeviate)
        ! Compute circularity by root finding in the cumulative probability distribution.
        uniformDeviate=Pseudo_Random_Get(pseudoSequenceObject,resetSequence)
        circularity=finder%find(rootRange=[circularityMinimum,circularityMaximum])
        ! Check that this is an orbit which actually reaches the virial radius.
-       eccentricityInternal=sqrt(1.0-circularity**2)
+       eccentricityInternal=sqrt(1.0d0-circularity**2)
        apocentricRadius    =pericentricRadius*(1.0d0+eccentricityInternal)/(1.0d0-eccentricityInternal)
-       foundOrbit=apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
+       foundOrbit          =apocentricRadius >= 1.0d0 .and. pericentricRadius <= 1.0d0
     end do
 
     ! Get length scale for this orbit.
     radialScale  =Dark_Matter_Halo_Virial_Radius(hostNode)
 
     ! Set eccentricity and periapsis.
-    call thisOrbit%eccentricitySet    (sqrt(1.0-circularity**2)    )
+    call thisOrbit%eccentricitySet    (sqrt(1.0d0-circularity**2)   )
     call thisOrbit%radiusPericenterSet(pericentricRadius*radialScale)
 
     return

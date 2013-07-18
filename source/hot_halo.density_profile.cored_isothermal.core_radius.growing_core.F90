@@ -24,7 +24,7 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
   !% dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial radius constant (similar
   !% to the algorithm of \citep{cole_hierarchical_2000}).
   use Galacticus_Nodes
-  use FGSL
+  use Tables
   implicit none
   private
   public :: Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize,&
@@ -32,21 +32,17 @@ module Hot_Halo_Density_Cored_Isothermal_Core_Radii_Growing_Core
        & Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve
 
   ! Parameters of the model.
-  double precision                                               :: isothermalCoreRadiusOverScaleRadius        , isothermalCoreRadiusOverVirialRadiusMaximum
+  double precision                                        :: isothermalCoreRadiusOverScaleRadius        , isothermalCoreRadiusOverVirialRadiusMaximum
 
   ! Minimum and maximum radii (in units of the virial radius) allowed for cores.
-  double precision                                               :: coreRadiusMaximum                          , coreRadiusMinimum
+  double precision                                        :: coreRadiusMaximum                          , coreRadiusMinimum
 
   ! Tabulation of core radius vs. virial density relation.
-  integer                            , parameter                 :: coreRadiusTablePointsPerDecade     =100
-  integer                                                        :: coreRadiusTableCount
-  double precision                   , allocatable, dimension(:) :: coreRadiusTableCoreRadius                  , coreRadiusTableDensityFactor
-  logical                                                        :: coreRadiusTableInitialized         =.false.
-
-  ! Interpolator variables.
-  type            (fgsl_interp      )                            :: interpolationObject
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator
-  logical                                                        :: interpolationReset                 =.true.
+  integer                                   , parameter   :: coreRadiusTablePointsPerDecade     =100
+  integer                                                 :: coreRadiusTableCount
+  logical                                                 :: coreRadiusTableInitialized         =.false.
+  type            (table1DLogarithmicLinear)              :: coreRadiusTable
+  class           (table1D                 ), allocatable :: coreRadiusTableInverse
 
 contains
 
@@ -143,19 +139,15 @@ contains
        ! Create a tabulation of core radius vs. virial density factor if necessary.
        !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
        makeTable=(.not.coreRadiusTableInitialized)
-       if (.not.makeTable) makeTable=(isothermalCoreRadiusOverVirialRadiusInitial < coreRadiusTableCoreRadius(coreRadiusTableCount))
+       if (.not.makeTable) makeTable=(isothermalCoreRadiusOverVirialRadiusInitial < coreRadiusTable%x(-1))
        if (makeTable) then
           coreRadiusMinimum   =min(isothermalCoreRadiusOverScaleRadius,isothermalCoreRadiusOverVirialRadiusInitial)
           coreRadiusMaximum   =isothermalCoreRadiusOverVirialRadiusMaximum
           coreRadiusTableCount=int(log10(coreRadiusMaximum/coreRadiusMinimum)*dble(coreRadiusTablePointsPerDecade))+1
-          if (allocated(coreRadiusTableCoreRadius   )) call Dealloc_Array(coreRadiusTableCoreRadius   )
-          if (allocated(coreRadiusTableDensityFactor)) call Dealloc_Array(coreRadiusTableDensityFactor)
-          call Alloc_Array(coreRadiusTableCoreRadius   ,[coreRadiusTableCount])
-          call Alloc_Array(coreRadiusTableDensityFactor,[coreRadiusTableCount])
-          coreRadiusTableCoreRadius   =Make_Range(coreRadiusMaximum,coreRadiusMinimum,coreRadiusTableCount,rangeType=rangeTypeLogarithmic)
-          coreRadiusTableDensityFactor=Growing_Core_Virial_Density_Function(coreRadiusTableCoreRadius)
-          call Interpolate_Done(interpolationObject,interpolationAccelerator,interpolationReset)
-          interpolationReset=.true.
+          call coreRadiusTable%destroy (                                                          )
+          call coreRadiusTable%create  (coreRadiusMaximum,coreRadiusMinimum,coreRadiusTableCount  )
+          call coreRadiusTable%populate(Growing_Core_Virial_Density_Function(coreRadiusTable%xs()))
+          call coreRadiusTable%reverse (coreRadiusTableInverse                                    )
           coreRadiusTableInitialized=.true.
        end if
        !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
@@ -167,11 +159,10 @@ contains
        !$omp critical (Hot_Halo_Density_Growing_Core_Interpolation)
        if      (hotGasFraction >= 1.0d0                                             ) then
           isothermalCoreRadiusOverVirialRadius=isothermalCoreRadiusOverVirialRadiusInitial
-       else if (targetValue    <= coreRadiusTableDensityFactor(1)) then
-          isothermalCoreRadiusOverVirialRadius=coreRadiusTableCoreRadius(1)
+       else if (targetValue    <= coreRadiusTable%y(1)) then
+          isothermalCoreRadiusOverVirialRadius=coreRadiusTable%x(1)
        else
-          isothermalCoreRadiusOverVirialRadius=Interpolate(coreRadiusTableCount,coreRadiusTableDensityFactor,coreRadiusTableCoreRadius&
-               &,interpolationObject,interpolationAccelerator,targetValue,reset=interpolationReset)
+          isothermalCoreRadiusOverVirialRadius=coreRadiusTableInverse%interpolate(targetValue)
        end if
        !$omp end critical (Hot_Halo_Density_Growing_Core_Interpolation)
        isothermalCoreRadiusOverVirialRadiusInitialSaved=isothermalCoreRadiusOverVirialRadiusInitial
@@ -198,6 +189,7 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Store(stateFile,fgslStateFile)
     !% Write the tablulation state to file.
+    use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile
@@ -211,6 +203,7 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radius_GC_State_Retrieve(stateFile,fgslStateFile)
     !% Retrieve the tabulation state from the file.
+    use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile
     type   (fgsl_file), intent(in   ) :: fgslStateFile

@@ -58,10 +58,11 @@ contains
     use Stellar_Population_Spectra_File
     use Galacticus_Input_Paths
     use String_Handling
+    use Tables
     implicit none
     integer                         , intent(in   )               :: imfIndex
     logical                         , allocatable  , dimension(:) :: imfReadTemporary
-    double precision                , allocatable  , dimension(:) :: imfMass                     , imfPhi
+    class           (table1D       ), allocatable                 :: imf
     integer                                                       :: iIMF                        , imfUnit
     type            (varying_string)                              :: command                     , imfName, &
          &                                                           stellarPopulationSpectraFile
@@ -90,16 +91,13 @@ contains
        stellarPopulationSpectraFile=char(Galacticus_Input_Path())//'data/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.4_imf'//imfName//'.hdf5'
 
        ! Generate the IMF tabulation.
-       if (allocated(imfMass)) call Dealloc_Array(imfMass)
-       if (allocated(imfPhi )) call Dealloc_Array(imfPhi )
-       call IMF_Tabulate(imfIndex,imfMass,imfPhi)
+       call IMF_Tabulate(imfIndex,imf)
        open(newunit=imfUnit,file="galacticus.imf",status="unknown",form="formatted")
-       do iIMF=1,size(imfMass)
-          write (imfUnit,'(2(1x,e12.6))') imfMass(iIMF),imfPhi(iIMF)
+       do iIMF=1,imf%size()
+          write (imfUnit,'(2(1x,e12.6))') imf%x(iIMF),imf%y(iIMF)
        end do
        close(imfUnit)
-       call Dealloc_Array(imfMass)
-       call Dealloc_Array(imfPhi )
+       call imf%destroy()
 
        ! Call the driver script to generate this file.
        command=char(Galacticus_Input_Path())//'scripts/aux/Conroy_SPS_Driver.pl '//imfName//' '//stellarPopulationSpectraFile

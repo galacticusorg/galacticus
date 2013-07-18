@@ -206,24 +206,29 @@ contains
   !# <imfTabulate>
   !#  <unitName>Star_Formation_IMF_Tabulate_Chabrier</unitName>
   !# </imfTabulate>
-  subroutine Star_Formation_IMF_Tabulate_Chabrier(imfSelected,imfMatched,imfMass,imfPhi)
+  subroutine Star_Formation_IMF_Tabulate_Chabrier(imfSelected,imfMatched,imf)
     !% Register the name of this IMF.
-    use Memory_Management
-    use Numerical_Ranges
+    use Tables
     use Star_Formation_IMF_PPL
     implicit none
-    integer                                    , intent(in   ) :: imfSelected
-    logical                                    , intent(inout) :: imfMatched
-    double precision, allocatable, dimension(:), intent(inout) :: imfMass        , imfPhi
-    integer         , parameter                                :: nPoints    =100
+    integer                      , intent(in   ) :: imfSelected
+    logical                      , intent(inout) :: imfMatched
+    class  (table1D), allocatable, intent(inout) :: imf
+    integer         , parameter                  :: nPoints    =100
 
     if (imfSelected == imfIndex) then
-       call Star_Formation_IMF_Initialize_Chabrier
-       call Alloc_Array(imfMass,[nPoints])
-       call Alloc_Array(imfPhi ,[nPoints])
-       imfMass=Make_Range(chabrierMassLower,chabrierMassUpper,nPoints,rangeType=rangeTypeLogarithmic)
-       imfPhi =Chabrier_Phi(imfMass)
-       imfMatched=.true.
+       call Star_Formation_IMF_Initialize_Chabrier()
+       allocate(table1DLogarithmicLinear :: imf)
+       select type (imf)
+       type is (table1DLogarithmicLinear)
+          call imf%create  (                   &
+               &            chabrierMassLower, &
+               &            chabrierMassUpper, &
+               &            nPoints            &
+               &           )
+          call imf%populate(Chabrier_Phi(imf%xs()))
+          imfMatched=.true.
+       end select
     end if
     return
   end subroutine Star_Formation_IMF_Tabulate_Chabrier

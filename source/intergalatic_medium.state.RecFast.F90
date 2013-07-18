@@ -59,6 +59,8 @@ contains
        ! Ensure that the RecFast data file has been generated.
 
        ! Generate the name of the data file and an XML input parameter file.
+       command='mkdir -p '//char(Galacticus_Input_Path())//'data/intergalacticMedium'
+       call System_Command_Do(command)
        recfastFile  =char(Galacticus_Input_Path())//'data/intergalacticMedium/recFast'
        parameterFile=char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)

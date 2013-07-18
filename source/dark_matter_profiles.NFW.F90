@@ -29,43 +29,40 @@ module Dark_Matter_Profiles_NFW
        & Dark_Matter_Profile_NFW_Reset
 
   ! Minimum and maximum concentrations to tabulate.
-  double precision                                                      :: concentrationMinimum                   =1.0d0
-  double precision                                                      :: concentrationMaximum                   =20.0d0
+  double precision                                        :: concentrationMinimum                   =1.0d0
+  double precision                                        :: concentrationMaximum                   =20.0d0
   ! Minimum and maximum radii to tabulate.
-  double precision                                                      :: freefallRadiusMinimum                  =1.0d-3 , radiusMinimum                            =1.0d-3
-  double precision                                                      :: freefallRadiusMaximum                  =1.0d+2 , radiusMaximum                            =1.0d+2
-  double precision                                                      :: freefallTimeMinimum                            , specificAngularMomentumMinimum
-  double precision                                                      :: freefallTimeMaximum                            , specificAngularMomentumMaximum
+  double precision                                        :: freefallRadiusMinimum                  =1.0d-3 , radiusMinimum                            =1.0d-3
+  double precision                                        :: freefallRadiusMaximum                  =1.0d+2 , radiusMaximum                            =1.0d+2
+  double precision                                        :: freefallTimeMinimum                            , specificAngularMomentumMinimum
+  double precision                                        :: freefallTimeMaximum                            , specificAngularMomentumMaximum
   ! Number of points per decade of concentration in NFW tabulations.
-  integer                                   , parameter                 :: nfwTablePointsPerDecade                =100
-  integer                                   , parameter                 :: nfwInverseTablePointsPerDecade         =100
-  integer                                   , parameter                 :: nfwFreefallTablePointsPerDecade        =100
+  integer                                   , parameter   :: nfwTablePointsPerDecade                =100
+  integer                                   , parameter   :: nfwInverseTablePointsPerDecade         =100
+  integer                                   , parameter   :: nfwFreefallTablePointsPerDecade        =100
   ! Tables of NFW properties.
-  logical                                                               :: nfwFreefallTableInitialized            =.false., nfwInverseTableInitialized               =.false., &
+  logical                                                 :: nfwFreefallTableInitialized            =.false., nfwInverseTableInitialized               =.false., &
        &                                                                   nfwTableInitialized                    =.false.
-  integer                                                               :: nfwFreefallTableNumberPoints                   , nfwInverseTableNumberPoints                      , &
+  integer                                                 :: nfwFreefallTableNumberPoints                   , nfwInverseTableNumberPoints                      , &
        &                                                                   nfwTableNumberPoints
-  double precision                          , allocatable, dimension(:) :: nfwFreefallRadius                              , nfwFreefallTime                                  , &
-       &                                                                   nfwRadius                                      , nfwSpecificAngularMomentum
-  integer                                   , parameter                 :: nfwConcentrationEnergyIndex            =1      , nfwConcetrationRotationNormalizationIndex=2
-  type            (table1DLogarithmicLinear)                            :: nfwConcentrationTable
+  integer                                   , parameter   :: nfwConcentrationEnergyIndex            =1      , nfwConcetrationRotationNormalizationIndex=2
+  type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
 
-  ! Interpolator variables.
-  type            (fgsl_interp             )                            :: interpolationFreefallObject                    , interpolationInverseObject
-  type            (fgsl_interp_accel       )                            :: interpolationFreefallAccelerator               , interpolationInverseAccelerator
-  logical                                                               :: interpolationFreefallReset             =.true. , interpolationInverseReset                =.true.
+  ! Tables.
+  type            (table1DLogarithmicLinear)              :: nfwSpecificAngularMomentum                    , nfwFreeFall
+  class           (table1D                 ), allocatable :: nfwSpecificAngularMomentumInverse             , nfwFreefallInverse
 
   ! Module variables used in integrations.
-  double precision                                                      :: concentrationParameter                         , radiusStart
+  double precision                                        :: concentrationParameter                         , radiusStart
 
   ! Record of unique ID of node which we last computed results for.
-  integer         (kind=kind_int8          )                            :: lastUniqueID                           =-1
+  integer         (kind=kind_int8          )              :: lastUniqueID                           =-1
   !$omp threadprivate(lastUniqueID)
   ! Record of whether or not quantities have been computed.
-  logical                                                               :: specificAngularMomentumScalingsComputed=.false.
+  logical                                                 :: specificAngularMomentumScalingsComputed=.false.
   !$omp threadprivate(specificAngularMomentumScalingsComputed)
   ! Stored values of computed quantities.
-  double precision                                                      :: specificAngularMomentumLengthScale             , specificAngularMomentumScale
+  double precision                                        :: specificAngularMomentumLengthScale             , specificAngularMomentumScale
   !$omp threadprivate(specificAngularMomentumLengthScale,specificAngularMomentumScale)
 contains
 
@@ -208,21 +205,17 @@ contains
     if (retabulate) then
        ! Decide how many points to tabulate and allocate table arrays.
        nfwInverseTableNumberPoints=int(log10(radiusMaximum/radiusMinimum)*dble(nfwInverseTablePointsPerDecade))+1
-       if (allocated(nfwRadius)) then
-          call Dealloc_Array(nfwRadius                 )
-          call Dealloc_Array(nfwSpecificAngularMomentum)
-       end if
-       call Alloc_Array(nfwRadius                 ,[nfwInverseTableNumberPoints])
-       call Alloc_Array(nfwSpecificAngularMomentum,[nfwInverseTableNumberPoints])
        ! Create a range of radii.
-       nfwRadius=Make_Range(radiusMinimum,radiusMaximum,nfwInverseTableNumberPoints,rangeType=rangeTypeLogarithmic)
+       call nfwSpecificAngularMomentum%destroy(                                                       )
+       call nfwSpecificAngularMomentum%create (radiusMinimum,radiusMaximum,nfwInverseTableNumberPoints)
        ! Loop over radii and populate tables.
        do iRadius=1,nfwInverseTableNumberPoints
-          nfwSpecificAngularMomentum(iRadius)=Specific_Angular_Momentum_NFW_Scale_Free(nfwRadius(iRadius))
+          call nfwSpecificAngularMomentum%populate(                                                                                 &
+               &                                   Specific_Angular_Momentum_NFW_Scale_Free(nfwSpecificAngularMomentum%x(iRadius)), &
+               &                                   iRadius                                                                          &
+               &                                  )          
        end do
-       ! Ensure interpolations get reset.
-       call Interpolate_Done(interpolationInverseObject,interpolationInverseAccelerator,interpolationInverseReset)
-       interpolationInverseReset=.true.
+       call nfwSpecificAngularMomentum%reverse(nfwSpecificAngularMomentumInverse)
        ! Specify that tabulation has been made.
        nfwInverseTableInitialized=.true.
     end if
@@ -372,14 +365,11 @@ contains
 
     ! Interpolate to get the dimensionless radius at which this specific angular momentum is found.
     !$omp critical(NFW_Inverse_Interpolation)
-    Radius_from_Specific_Angular_Momentum_NFW=Interpolate(nfwInverseTableNumberPoints,nfwSpecificAngularMomentum,nfwRadius &
-         &,interpolationInverseObject,interpolationInverseAccelerator,specificAngularMomentumScaleFree,reset &
-         &=interpolationInverseReset)
+    Radius_from_Specific_Angular_Momentum_NFW=nfwSpecificAngularMomentumInverse%interpolate(specificAngularMomentumScaleFree)
     !$omp end critical(NFW_Inverse_Interpolation)
 
     ! Convert to a physical radius.
     Radius_from_Specific_Angular_Momentum_NFW=Radius_from_Specific_Angular_Momentum_NFW*specificAngularMomentumLengthScale
-
     return
   end function Radius_from_Specific_Angular_Momentum_NFW
 
@@ -715,11 +705,8 @@ contains
 
     ! Interpolate to get the freefall radius.
     !$omp critical(NFW_Freefall_Interpolation)
-    Dark_Matter_Profile_Freefall_Radius_NFW=Interpolate(nfwFreefallTableNumberPoints,nfwFreefallTime,nfwFreefallRadius &
-         &,interpolationFreefallObject,interpolationFreefallAccelerator,freefallTimeScaleFree,reset=interpolationFreefallReset)&
-         &*radiusScale
+    Dark_Matter_Profile_Freefall_Radius_NFW=nfwFreefallInverse%interpolate(freefallTimeScaleFree)*radiusScale
     !$omp end critical(NFW_Freefall_Interpolation)
-
     return
   end function Dark_Matter_Profile_Freefall_Radius_NFW
 
@@ -768,9 +755,7 @@ contains
 
     ! Interpolate to get the freefall radius growth rate.
     !$omp critical(NFW_Freefall_Interpolation)
-    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=Interpolate_Derivative(nfwFreefallTableNumberPoints,nfwFreefallTime,nfwFreefallRadius &
-         &,interpolationFreefallObject,interpolationFreefallAccelerator,freefallTimeScaleFree,reset=interpolationFreefallReset)&
-         &*radiusScale/timeScale
+    Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW=nfwFreefallInverse%interpolateGradient(freefallTimeScaleFree)*radiusScale/timeScale
     !$omp end critical(NFW_Freefall_Interpolation)
     return
   end function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
@@ -804,25 +789,19 @@ contains
        retabulate=.true.
     end do
     if (retabulate) then
-
        ! Decide how many points to tabulate and allocate table arrays.
        nfwFreefallTableNumberPoints=int(log10(freefallRadiusMaximum/freefallRadiusMinimum)*dble(nfwFreefallTablePointsPerDecade))+1
-       if (allocated(nfwFreefallRadius)) then
-          call Dealloc_Array(nfwFreefallRadius)
-          call Dealloc_Array(nfwFreefallTime  )
-       end if
-       call Alloc_Array(nfwFreefallRadius,[nfwFreefallTableNumberPoints])
-       call Alloc_Array(nfwFreefallTime  ,[nfwFreefallTableNumberPoints])
-       ! Create a range of radii.
-       nfwFreefallRadius=Make_Range(freefallRadiusMinimum,freefallRadiusMaximum,nfwFreefallTableNumberPoints,rangeType&
-            &=rangeTypeLogarithmic)
+       ! Create the table.
+       call nfwFreefall%destroy(                                                                        )
+       call nfwFreefall%create (freefallRadiusMinimum,freefallRadiusMaximum,nfwFreefallTableNumberPoints)
        ! Loop over radii and populate tables.
        do iRadius=1,nfwFreefallTableNumberPoints
-          nfwFreefallTime(iRadius)=Freefall_Time_Scale_Free(nfwFreefallRadius(iRadius))
+          call nfwFreefall%populate(                                                  &
+               &                    Freefall_Time_Scale_Free(nfwFreefall%x(iRadius)), & 
+               &                                                           iRadius    &
+               &                   )          
        end do
-       ! Ensure interpolations get reset.
-       call Interpolate_Done(interpolationFreefallObject,interpolationFreefallAccelerator,interpolationFreefallReset)
-       interpolationFreefallReset=.true.
+       call nfwFreefall%reverse(nfwFreefallInverse)
        ! Specify that tabulation has been made.
        nfwFreefallTableInitialized=.true.
     end if
