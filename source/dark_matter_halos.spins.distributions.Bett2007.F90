@@ -21,25 +21,28 @@ module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
   use Galacticus_Nodes
+  use Tables
   implicit none
   private
   public :: Halo_Spin_Distribution_Bett2007_Initialize, Halo_Spin_Distribution_Bett2007_Snapshot,&
        & Halo_Spin_Distribution_Bett2007_State_Store, Halo_Spin_Distribution_Bett2007_State_Retrieve
 
   ! Parameters of the spin distribution.
-  double precision                                      :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0
+  double precision                                        :: spinDistributionBett2007Alpha           , spinDistributionBett2007Lambda0
 
   ! Tabulation of the spin distribution.
-  integer                   , parameter                 :: spinDistributionTableNumberPoints=1000
-  double precision          , parameter                 :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.
-  double precision          , parameter                 :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_.
-  double precision                                      :: spinDistributionTableMaximum
-  double precision          , allocatable, dimension(:) :: spinDistributionTableCumulative         , spinDistributionTableSpin
+  integer                                   , parameter   :: spinDistributionTableNumberPoints=1000
+  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.
+  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_.
+  double precision                                        :: spinDistributionTableMaximum
+  type            (table1DLogarithmicLinear)              :: spinDistributionTable
+  class           (table1D                 ), allocatable :: spinDistributionTableInverse
 
   ! Random number objects.
-  type            (fgsl_rng)                            :: clonedPseudoSequenceObject              , randomSequenceObject
-  logical                                               :: resetRandomSequence              =.true., resetRandomSequenceSnapshot
+  type            (fgsl_rng                )              :: clonedPseudoSequenceObject              , randomSequenceObject
+  logical                                                 :: resetRandomSequence              =.true., resetRandomSequenceSnapshot
   !$omp threadprivate(resetRandomSequence,randomSequenceObject,resetRandomSequenceSnapshot,clonedPseudoSequenceObject)
+
 contains
 
   !# <haloSpinDistributionMethod>
@@ -56,6 +59,7 @@ contains
     type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
     procedure(Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
     integer                                                            :: iSpin
+    double precision                                                   :: spinDimensionless
 
     if (haloSpinDistributionMethod == 'Bett2007') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Bett2007
@@ -82,21 +86,34 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('spinDistributionBett2007Alpha',spinDistributionBett2007Alpha,defaultValue=2.509d0)
 
-       ! Tabulate the cumulative distribution.
-       call Alloc_Array(spinDistributionTableSpin      ,[spinDistributionTableNumberPoints])
-       call Alloc_Array(spinDistributionTableCumulative,[spinDistributionTableNumberPoints])
        ! Maximum value of x=(lambda/lambda_0)^(3/alpha) to tabulate.
        spinDistributionTableMaximum=(spinDistributionTableSpinMaximum/spinDistributionBett2007Lambda0)**(3.0d0/spinDistributionBett2007Alpha)
-       ! Generate a range of spins.
-       spinDistributionTableSpin=Make_Range(spinDistributionTableMinimum,spinDistributionTableMaximum&
-            &,spinDistributionTableNumberPoints,rangeType=rangeTypeLogarithmic)
+       ! Tabulate the cumulative distribution.
+       call spinDistributionTable%destroy()
+       call spinDistributiontable%create(&
+            &                            spinDistributionBett2007Lambda0*spinDistributionTableMinimum**(spinDistributionBett2007Alpha/3.0d0), &
+            &                            spinDistributionBett2007Lambda0*spinDistributionTableMaximum**(spinDistributionBett2007Alpha/3.0d0), &
+            &                            spinDistributionTableNumberPoints                                                                  , &
+            &                            extrapolationType=extrapolationTypeFix                                                               &
+            &                           )
        ! Compute the cumulative probability distribution.
        do iSpin=1,spinDistributionTableNumberPoints
-          spinDistributionTableCumulative(iSpin)=Gamma_Function_Incomplete_Complementary(spinDistributionBett2007Alpha&
-               &,spinDistributionBett2007Alpha*spinDistributionTableSpin(iSpin))
+          spinDimensionless=                                         &
+               &            (                                        &
+               &              spinDistributionTable%x(iSpin)         &
+               &             /spinDistributionBett2007Lambda0        &
+               &            )**(3.0d0/spinDistributionBett2007Alpha)
+          call spinDistributionTable%populate(                                                                        &
+               &                              Gamma_Function_Incomplete_Complementary                                 &
+               &                                                                     (                                &
+               &                                                                       spinDistributionBett2007Alpha, &
+               &                                                                       spinDistributionBett2007Alpha  &
+               &                                                                      *spinDimensionless              &
+               &                                                                     )                              , &
+               &                              iSpin                                                                   &
+               &                             )
        end do
-       ! Convert the dimensionless quantity into an actual spin.
-       spinDistributionTableSpin=spinDistributionBett2007Lambda0*(spinDistributionTableSpin**(spinDistributionBett2007Alpha/3.0d0))
+       call spinDistributionTable%reverse(spinDistributionTableInverse)
     end if
     return
   end subroutine Halo_Spin_Distribution_Bett2007_Initialize
@@ -105,19 +122,12 @@ contains
     !% Return a halo spin from a lognormal distribution.
     use Galacticus_Nodes
     use Pseudo_Random
-    use Numerical_Interpolation
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    type            (fgsl_interp      ), save                   :: interpolationObject
-    type            (fgsl_interp_accel), save                   :: interpolationAccelerator
-    logical                            , save                   :: resetInterpolation      =.true.
-    !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision                                            :: randomDeviate
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision                                   :: randomDeviate
 
     randomDeviate=Pseudo_Random_Get(randomSequenceObject,resetRandomSequence)
-    Halo_Spin_Distribution_Bett2007=Interpolate(spinDistributionTableNumberPoints,spinDistributionTableCumulative&
-         &,spinDistributionTableSpin,interpolationObject,interpolationAccelerator,randomDeviate,reset=resetInterpolation&
-         &,extrapolationType=extrapolationTypeFixed)
+    Halo_Spin_Distribution_Bett2007=spinDistributionTableInverse%interpolate(randomDeviate)
     return
   end function Halo_Spin_Distribution_Bett2007
 

@@ -22,6 +22,17 @@ module Tables
   use FGSL
   private
   public :: table,table1D,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
+ 
+  !@ <enumeration>
+  !@  <name>extrapolationType</name>
+  !@  <description>Used to specify the type of extrapolation to use when interpolating in tables.</description>
+  !@  <entry label="extrapolationTypeExtrapolate"/>
+  !@  <entry label="extrapolationTypeFix"        />
+  !@  <entry label="extrapolationTypeAbort"      />
+  !@ </enumeration>
+  integer, parameter, public :: extrapolationTypeExtrapolate=1
+  integer, parameter, public :: extrapolationTypeFix        =2
+  integer, parameter, public :: extrapolationTypeAbort      =3
 
   type, abstract :: table
      !% Basic table type.
@@ -49,7 +60,7 @@ module Tables
 
   type, abstract, extends(table) :: table1D
      !% Basic table type.
-     integer                                       :: xCount
+     integer                                       :: xCount,extrapolationType
      double precision, allocatable, dimension(:  ) :: xv
      double precision, allocatable, dimension(:,:) :: yv
    contains
@@ -109,6 +120,12 @@ module Tables
      !@     <arguments>\intzero\ i,\intzero\ [table]</arguments>
      !@     <description>Return an array of all $y$-values. If {\tt table} is specified then the {\tt table}$^{\rm th}$ table is used for the $y$-values, otherwise the first table is used.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>xEffective</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ x</arguments>
+     !@     <description>Return the effective value of $x$ to use in table interpolations.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
@@ -120,6 +137,7 @@ module Tables
      procedure                                 :: y                   => Table1D_Y
      procedure                                 :: xs                  => Table1D_Xs
      procedure                                 :: ys                  => Table1D_Ys
+     procedure                                 :: xEffective          => Table1D_Find_Effective_X
   end type table1D
 
   interface
@@ -373,26 +391,31 @@ contains
     return
   end function Table1D_Size
 
-  subroutine Table_Generic_1D_Create(self,x,tableCount)
+  subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType)
     !% Create a 1-D generic table.
     use Memory_Management
     use Numerical_Ranges
     implicit none
     class           (table1DGeneric)              , intent(inout)           :: self
     double precision                , dimension(:), intent(in   )           :: x
-    integer                                       , intent(in   ), optional :: tableCount
+    integer                                       , intent(in   ), optional :: tableCount      ,extrapolationType
     integer                                                                 :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
-
     ! Allocate arrays and construct the x-range.
     self%xCount=size(x)
     call Alloc_Array(self%xv,[size(x)                 ])
     call Alloc_Array(self%yv,[size(x),tableCountActual])
     self%xv   =x
     self%reset=.true.
+    ! Set extrapolation type.
+    if (present(extrapolationType)) then
+       self%extrapolationType=extrapolationType
+    else
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
     return
   end subroutine Table_Generic_1D_Create
 
@@ -463,7 +486,7 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate=Interpolate(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,x,reset=self%reset)
+    Table_Generic_1D_Interpolate=Interpolate(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate
 
@@ -478,11 +501,11 @@ contains
 
     tableActual=1
     if (present(table)) tableActual=table
-    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,x,reset=self%reset)
+    Table_Generic_1D_Interpolate_Gradient=Interpolate_Derivative(size(self%xv),self%xv,self%yv(:,tableActual),self%interpolator,self%accelerator,self%xEffective(x),reset=self%reset)
     return
   end function Table_Generic_1D_Interpolate_Gradient
 
-  subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount)
+  subroutine Table_Linear_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
@@ -490,19 +513,24 @@ contains
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: xMaximum        , xMinimum
     integer                              , intent(in   )           :: xCount
-    integer                              , intent(in   ), optional :: tableCount
+    integer                              , intent(in   ), optional :: tableCount      , extrapolationType
     integer                                                        :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
-
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
     call Alloc_Array(self%xv,[xCount                 ])
     call Alloc_Array(self%yv,[xCount,tableCountActual])
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
+    ! Set extrapolation type.
+    if (present(extrapolationType)) then
+       self%extrapolationType=extrapolationType
+    else
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
     return
   end subroutine Table_Linear_1D_Create
 
@@ -566,23 +594,24 @@ contains
     double precision                     , intent(in   )           :: x
     integer                              , intent(in   ), optional :: table
     integer                                                        :: i    , tableActual
-    double precision                                               :: h
+    double precision                                               :: h    , xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+    xEffective=self%xEffective(x)
+    if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
        ! Determine the location in the table.
-       if      (x <  self%xv(          1)) then
+       if      (xEffective <  self%xv(          1)) then
           i=1
-       else if (x >= self%xv(self%xCount)) then
+       else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=max(min(int((x-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
+          i=max(min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
        end if
        ! Compute the interpolating factor.
-       h=(x-self%xv(i))*self%inverseDeltaX
+       h=(xEffective-self%xv(i))*self%inverseDeltaX
        ! Interpolate in the table.
        self%tablePrevious=tableActual
        self%    yPrevious=self%yv(i,tableActual)*(1.0d0-h)+self%yv(i+1,tableActual)*h
@@ -599,19 +628,21 @@ contains
     double precision                     , intent(in   )           :: x
     integer                              , intent(in   ), optional :: table
     integer                                                        :: i    , tableActual
+    double precision                                               :: xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+    xEffective=self%xEffective(x)
+    if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
        ! Determine the location in the table.
-       if      (x <  self%xv(          1)) then
+       if      (xEffective <  self%xv(          1)) then
           i=1
-       else if (x >= self%xv(self%xCount)) then
+       else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((x-self%xv(1))*self%inverseDeltaX)+1
+          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
        ! Interpolate in the table.
        self%dTablePrevious=tableActual
@@ -621,7 +652,7 @@ contains
     return
   end function Table_Linear_1D_Interpolate_Gradient
 
-  subroutine Table_Logarithmic_1D_Create(self,xMinimum,xMaximum,xCount,tableCount)
+  subroutine Table_Logarithmic_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
     use Memory_Management
     use Numerical_Ranges
@@ -629,10 +660,10 @@ contains
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: xMaximum  , xMinimum
     integer                                   , intent(in   )           :: xCount
-    integer                                   , intent(in   ), optional :: tableCount
+    integer                                   , intent(in   ), optional :: tableCount, extrapolationType
 
     ! Call the creator for linear tables with the logarithms of the input x range.
-    call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount)
+    call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
   end subroutine Table_Logarithmic_1D_Create
 
@@ -676,11 +707,11 @@ contains
     double precision                          , intent(in   )           :: x
     integer                                   , intent(in   ), optional :: table
 
-    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(log(x),table)/x
+    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(log(x),table)/self%xEffective(x)
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
-  subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount)
+  subroutine Table_Linear_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D linear table.
     use Memory_Management
     use Numerical_Ranges
@@ -688,13 +719,12 @@ contains
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: xMaximum        , xMinimum
     integer                               , intent(in   )           :: xCount
-    integer                               , intent(in   ), optional :: tableCount
+    integer                               , intent(in   ), optional :: tableCount      , extrapolationType
     integer                                                         :: tableCountActual
 
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
-
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
     call Alloc_Array(self%xv,[xCount                 ])
@@ -703,6 +733,12 @@ contains
     self%xv           =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX=self%xv(2)-self%xv(1)
     self%inverseDeltaX=1.0d0/self%deltaX
+    ! Set extrapolation type.
+    if (present(extrapolationType)) then
+       self%extrapolationType=extrapolationType
+    else
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
     return
   end subroutine Table_Linear_CSpline_1D_Create
 
@@ -849,23 +885,24 @@ contains
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
     integer                                                         :: i    , tableActual
-    double precision                                                :: a    , b          , c, d, dx
+    double precision                                                :: a    , b          , c, d, dx, xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+    xEffective=self%xEffective(x)
+    if (xEffective /= self%xPrevious .or. tableActual /= self%tablePrevious) then
        ! Determine the location in the table.
-       if      (x <  self%xv(          1)) then
+       if      (xEffective <  self%xv(          1)) then
           i=1
-       else if (x >= self%xv(self%xCount)) then
+       else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((x-self%xv(1))*self%inverseDeltaX)+1
+          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
        ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,x,i,a,b,c,d,dx)
+       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
        ! Interpolate in the table.
        self%tablePrevious=tableActual
        self%    yPrevious=a+dx*(b+dx*(c+dx*d))
@@ -881,23 +918,24 @@ contains
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
     integer                                                         :: i    , tableActual
-    double precision                                                :: a    , b          , c, d, dx
+    double precision                                                :: a    , b          , c, d, dx, xEffective
 
     ! Determine which table to use.
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
-    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+    xEffective=self%xEffective(x)
+    if (xEffective /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
        ! Determine the location in the table.
-       if      (x <  self%xv(          1)) then
+       if      (xEffective <  self%xv(          1)) then
           i=1
-       else if (x >= self%xv(self%xCount)) then
+       else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((x-self%xv(1))*self%inverseDeltaX)+1
+          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
        end if
        ! Compute polynomial coefficients.
-       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,x,i,a,b,c,d,dx)
+       call Table_Linear_CSpline_1D_Coefficients(self,tableActual,xEffective,i,a,b,c,d,dx)
        ! Interpolate in the table.
        self%dTablePrevious=tableActual
        self%    dyPrevious=b+dx*(2.0d0*c+dx*3.0d0*d)
@@ -906,7 +944,7 @@ contains
     return
   end function Table_Linear_CSpline_1D_Interpolate_Gradient
 
-  subroutine Table_Logarithmic_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount)
+  subroutine Table_Logarithmic_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
     use Memory_Management
     use Numerical_Ranges
@@ -914,10 +952,10 @@ contains
     class           (table1DLogarithmicCSpline), intent(inout)           :: self
     double precision                           , intent(in   )           :: xMaximum  , xMinimum
     integer                                    , intent(in   )           :: xCount
-    integer                                    , intent(in   ), optional :: tableCount
+    integer                                    , intent(in   ), optional :: tableCount, extrapolationType
 
     ! Call the creator for linear tables with the logarithms of the input x range.
-    call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount)
+    call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
     return
   end subroutine Table_Logarithmic_CSpline_1D_Create
 
@@ -961,8 +999,34 @@ contains
     double precision                           , intent(in   )           :: x
     integer                                    , intent(in   ), optional :: table
 
-    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(log(x),table)/x
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(log(x),table)/self%xEffective(x)
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
+
+  double precision function Table1D_Find_Effective_X(self,x)
+    !% Return the effective value of $x$ to use in table interpolations.
+    use Galacticus_Error
+    implicit none
+    class           (table1D), intent(inout) :: self
+    double precision         , intent(in   ) :: x
+
+    if (x < self%x(1) .or. x > self%x(-1)) then
+       select case (self%extrapolationType)
+       case (extrapolationTypeExtrapolate)
+          Table1D_Find_Effective_X=x
+       case (extrapolationTypeFix        )
+          if (x < self%x(1)) then
+             Table1D_Find_Effective_X=self%x( 1)
+          else
+             Table1D_Find_Effective_X=self%x(-1)
+          end if
+       case default
+          call Galacticus_Error_Report('Table_1D_Find_Effective_X','x is out of range')
+       end select
+    else
+       Table1D_Find_Effective_X=x
+    end if
+    return
+  end function Table1D_Find_Effective_X
 
 end module Tables
