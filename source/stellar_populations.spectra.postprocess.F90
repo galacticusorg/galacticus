@@ -120,8 +120,8 @@ contains
     do i=1,methodCount
        nullify(postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%apply)
        ! Include file that makes calls to all available method initialization routines.
-       !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="code" action="subroutine">
-       !#  <subroutineArgs>postprocessingChainNamesTemporary(i),postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%apply</subroutineArgs>
+       !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="functionCall" functionType="void">
+       !#  <functionArgs>postprocessingChainNamesTemporary(i),postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%apply</functionArgs>
        include 'stellar_populations.spectra.postprocess.initialize.inc'
        !# </include>
        if (.not.associated(postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%apply)) call Galacticus_Error_Report('Stellar_Population_Spectrum_Postprocess_Index','postprocessing method "'//postprocessingChainNamesTemporary(i)//'" is not recognized')
