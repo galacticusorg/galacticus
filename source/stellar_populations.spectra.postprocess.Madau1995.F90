@@ -30,24 +30,23 @@ contains
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Madau1995_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize(stellarPopulationSpectraPostprocessMethods)
+  subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``Madau1995'' stellar spectrum postprocessing module.
     implicit none
-    type(varying_string), dimension(:), intent(in   ) :: stellarPopulationSpectraPostprocessMethods
-
-    methodIsActive=any(stellarPopulationSpectraPostprocessMethods == 'Madau1995')
+    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    
+    if (stellarPopulationSpectraPostprocessMethod == 'Madau1995') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Madau1995
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Madau1995_Initialize
 
-  !# <stellarPopulationSpectraPostprocess>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Madau1995</unitName>
-  !# </stellarPopulationSpectraPostprocess>
-  subroutine Stellar_Population_Spectra_Postprocess_Madau1995(wavelength,redshift,modifier)
+  subroutine Stellar_Population_Spectra_Postprocess_Madau1995(wavelength,age,redshift,modifier)
     !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
     !% by the intervening intergalactic medium according to \cite{madau_radiative_1995}.
     use Numerical_Constants_Atomic
     implicit none
-    double precision              , intent(in   ) :: redshift                                                                                                                      , wavelength
+    double precision              , intent(in   ) :: redshift                                                                                                                      , wavelength                       , &
+         &                                           age
     double precision              , intent(inout) :: modifier
     double precision, dimension(9), parameter     :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]
     double precision, dimension(9)                :: opticalDepthLymanLines
