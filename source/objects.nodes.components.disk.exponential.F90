@@ -326,6 +326,7 @@ contains
     use ISO_Varying_String
     use Abundances_Structure
     use Histories
+    use Galacticus_Error
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
@@ -399,8 +400,8 @@ contains
 
        end if
        ! Trap negative angular momentum.
-       if (thisDiskComponent%angularMomentum < 0.0d0) then
-          if (thisDiskComponent%massStellar+thisDiskComponent%massGas <= 0.0d0) then
+       if (thisDiskComponent%angularMomentum() < 0.0d0) then
+          if (thisDiskComponent%massStellar()+thisDiskComponent%massGas() <= 0.0d0) then
              call thisDiskComponent%angularMomentumSet(0.0d0)
           else
              call Galacticus_Error_Report('Node_Component_Disk_Exponential_Post_Evolve','negative angular momentum in disk with positive mass')
