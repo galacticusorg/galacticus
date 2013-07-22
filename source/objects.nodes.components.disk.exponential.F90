@@ -327,10 +327,13 @@ contains
     use Abundances_Structure
     use Histories
     use Galacticus_Error
+    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
     class           (nodeComponentBasic)               , pointer :: thisBasicComponent
+    class           (nodeComponentSpin )               , pointer :: thisSpin
+    double precision                    , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                             :: diskMass                      , fractionalError, &
          &                                                          specificAngularMomentum
@@ -401,10 +404,31 @@ contains
        end if
        ! Trap negative angular momentum.
        if (thisDiskComponent%angularMomentum() < 0.0d0) then
-          if (thisDiskComponent%massStellar()+thisDiskComponent%massGas() <= 0.0d0) then
+          thisSpin => thisNode%spin()
+          if      (                                             &
+               &     thisDiskComponent  %massStellar    ()      &
+               &    +thisDiskComponent  %massGas        ()      &
+               &   <=                                           &
+               &     0.0d0                                      &
+               &  ) then
              call thisDiskComponent%angularMomentumSet(0.0d0)
+          else if (                                             &
+               &     abs(thisDiskComponent%angularMomentum())   &
+               &    /(                                          &
+               &         thisDiskComponent%massStellar    ()    &
+               &      +  thisDiskComponent%massGas        ()    &
+               &     )                                          &
+               &   <                                            &
+               &     angularMomentumTolerance                   &
+               &    *Dark_Matter_Halo_Virial_Radius  (thisnode) &
+               &    *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+               &    *thisSpin%spin()                            &
+               &  ) then
           else
-             call Galacticus_Error_Report('Node_Component_Disk_Exponential_Post_Evolve','negative angular momentum in disk with positive mass')
+             call Galacticus_Error_Report(                                                        &
+                  &                       'Node_Component_Disk_Exponential_Post_Evolve'         , &
+                  &                       'negative angular momentum in disk with positive mass'  &
+                  &                      )
           end if
        end if
     end select
