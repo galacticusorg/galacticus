@@ -364,6 +364,8 @@ contains
              reversedSelf%yv(:,i)=Array_Reverse(reversedSelf%yv(:,i))
           end do
        end if
+       ! Copy the extrapolation option from the original table.
+       reversedSelf%extrapolationType=self%extrapolationType
     end select
     return
   end subroutine Table_1D_Reverse
