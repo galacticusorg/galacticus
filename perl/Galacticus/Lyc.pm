@@ -49,7 +49,7 @@ sub Get_Lyc_Luminosity {
 	my $component = $1;
 	my $redshift  = $2;
 	# Construct the name of the corresponding luminosity property.
-	my $luminosityDataset = $component."StellarLuminosity:Lyc:rest:z".$redshift.$postprocessingChain;
+	my $luminosityDataset = $component."LuminositiesStellar:Lyc:rest:z".$redshift.$postprocessingChain;
 	&HDF5::Get_Dataset($model,[$luminosityDataset]);
 	my $dataSets = $model->{'dataSets'};
 	$dataSets->{$dataSetName} = $dataSets->{$luminosityDataset}*($luminosityAB/$plancksConstant/$lycUnits)*log($wavelengthMaximum/$wavelengthMinimum);
