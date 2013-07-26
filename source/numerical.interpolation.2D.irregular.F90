@@ -24,9 +24,6 @@ module Numerical_Interpolation_2D_Irregular
   private
   public :: Interpolate_2D_Irregular, interp2dIrregularObject
 
-  ! Specify an explicit dependence on the bivar.o object file.
-  !: ./work/build/Bivar/bivar.o
-
   ! A derived type used for storing workspace for the interpolation.
   type interp2dIrregularObject
      integer         , allocatable, dimension(:), private :: integerWork
@@ -43,6 +40,7 @@ contains
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset)
     !% Perform interpolation on a set of points irregularly spaced on a 2D surface.
     use Memory_Management
+    use Bivar
     implicit none
     type            (interp2dIrregularObject)                               , intent(inout)           :: workspace
     double precision                         , dimension(:)                 , intent(in   )           :: dataX                         , dataY                    , &
@@ -92,24 +90,26 @@ contains
           deallocate(workspace%integerWork                      )
           allocate  (workspace%integerWork(integerWorkspaceSize))
           call Memory_Usage_Record(sizeof(workspace%integerWork),addRemove=+1,file=__FILE__,line=__LINE__)
+          workspace%integerWork=0
        end if
        if (size(workspace%realWork   ) < realWorkspaceSize   ) then
           call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=-1,file=__FILE__,line=__LINE__)
           deallocate(workspace%realWork                         )
           allocate  (workspace%realWork   (realWorkspaceSize   ))
           call Memory_Usage_Record(sizeof(workspace%realWork),addRemove=+1,file=__FILE__,line=__LINE__)
+          workspace%realWork=0.0d0
        end if
     else
        allocate(workspace%integerWork(integerWorkspaceSize))
        allocate(workspace%realWork   (realWorkspaceSize   ))
        call Memory_Usage_Record(sizeof(workspace%integerWork)+sizeof(workspace%realWork),blockCount=2,file=__FILE__,line=__LINE__)
+       workspace%integerWork=0
+       workspace%realWork   =0.0d0
     end if
 
     ! Call the subroutine that does the interpolation.
-    !$omp critical(TwoD_Irregular_Interpolation)
     call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ,interpolatedPointCount,interpolateX&
          &,interpolateY,Interpolate_2D_Irregular_Array,workspace%integerWork,workspace%realWork)
-    !$omp end critical(TwoD_Irregular_Interpolation)
 
     return
   end function Interpolate_2D_Irregular_Array
