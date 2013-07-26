@@ -45,7 +45,7 @@ module Stellar_Population_Luminosities
   integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate      , &
        &                                                          postprocessingChainIndexTabulate
   type            (abundances     )                            :: abundancesTabulate
-  !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate)
+  !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate,postprocessingChainIndexTabulate)
 
   ! Flag indicating if this module has been initialized yet.
   logical                                                      :: moduleInitialized                                      =.false.
@@ -181,10 +181,12 @@ contains
           imfIndexTabulate                =imfIndex
           loopCountMaximum                =luminosityTables(imfIndex)%metallicitiesCount*luminosityTables(imfIndex)%agesCount
           loopCount                       =0
+          !$omp parallel do private(iAge,iMetallicity,integrandFunction,integrationWorkspace) copyin(filterIndexTabulate,postprocessingChainIndexTabulate,redshiftTabulate,imfIndexTabulate)
           do iAge=1,luminosityTables(imfIndex)%agesCount
              ageTabulate=luminosityTables(imfIndex)%age(iAge)
              do iMetallicity=1,luminosityTables(imfIndex)%metallicitiesCount
                 ! Update the counter.
+                !$omp atomic
                 loopCount=loopCount+1
                 call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountMaximum)),.false.,verbosityWorking)
                 call abundancesTabulate%metallicitySet(luminosityTables(imfIndex)%metallicity(iMetallicity) &
@@ -197,6 +199,7 @@ contains
                 call Integrate_Done(integrandFunction,integrationWorkspace)
              end do
           end do
+          !$omp end parallel do
 
           ! Clear the counter and write a completion message.
           call Galacticus_Display_Counter_Clear(           verbosityWorking)

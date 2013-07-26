@@ -81,7 +81,9 @@ module Star_Formation_IMF
 
   ! Module global variables used in integration.
   integer                                                                           :: atomIndexGlobal                                , imfSelectedGlobal
+  !$omp threadprivate(atomIndexGlobal,imfSelectedGlobal)
   double precision                                                                  :: lifetime                                       , metallicity
+  !$omp threadprivate(lifetime,metallicity)
 
   ! Count of number of individual elements tracked.
   integer                                                                           :: elementCount
@@ -263,7 +265,6 @@ contains
           !#  <ignoreRegex>^imf.*YieldInstantaneous$</ignoreRegex>
           !# </uniqueLabel>
           imfUniqueLabel=Star_Formation_IMF_Label(includeVersion=.true.,asHash=.true.)
-
           ! Flag that the module is now initialized.
           imfInitialized=.true.
        end if
@@ -438,7 +439,8 @@ contains
          &                                                                                                              iMetallicity                                       , iRecycledFraction                         , &
          &                                                                                                              imfCount                                           , imfSelected                               , &
          &                                                                                                              ioErr                                              , metallicityIndex                          , &
-         &                                                                                                              tableIndex
+         &                                                                                                              tableIndex                                         , loopCount                                 , &
+         &                                                                                                              loopCountTotal
     double precision                                                                                          ::        maximumMass                                        , minimumMass                               , &
          &                                                                                                              recycledFractionMaximum                            , recycledFractionMinimum
     character       (len=20                    )                                                              ::        parameterValue                                     , progressMessage
@@ -630,6 +632,9 @@ contains
           ! Loop over ages and metallicities and compute the recycled fraction.
           imfSelectedGlobal=imfSelected
           call xml_NewElement(recycledFractionDoc,"recycledFraction")
+          loopCountTotal=recycledFractionTableMetallicityCount*recycledFractionTableAgeCount
+          loopCount     =0
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
           do iAge=1,recycledFractionTableAgeCount
              lifetime=recycledFractionTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -642,30 +647,34 @@ contains
                    metallicity=recycledFractionTableMetallicity(iMetallicity)
                 end if
                 ! Update the counter.
-                call Galacticus_Display_Counter(                                                                                &
-                     &                           int(                                                                           &
-                     &                                100.0d0                                                                   &
-                     &                               *dble( recycledFractionTableMetallicityCount*iAge                          &
-                     &                                     +                                      iMetallicity                  &
-                     &                                    )                                                                     &
-                     &                               /dble(recycledFractionTableMetallicityCount*recycledFractionTableAgeCount) &
-                     &                              )                                                                           &
-                     &                          ,.false.                                                                        &
-                     &                          ,verbosityWorking                                                               &
+                !$omp atomic
+                loopCount=loopCount+1
+                call Galacticus_Display_Counter(                                                   &
+                     &                           int(100.0d0*dble(loopCount)/dble(loopCountTotal)) &
+                     &                          ,.false.                                           &
+                     &                          ,verbosityWorking                                  &
                      &                         )
                 ! Find the minimum and maximum masses to integrate over for this IMF.
                 minimumMass=IMF_Minimum_Mass(imfSelected)
                 maximumMass=IMF_Maximum_Mass(imfSelected)
                 ! Integrate ejected mass over the IMF between these limits.
                 recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                     &,Recycled_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-3&
-                     &,toleranceRelative=1.0d-4)
+                     &,Recycled_Fraction_Integrand ,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute&
+                     &=1.0d-3 ,toleranceRelative=1.0d-4)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
-                ! Enforce monotonicity in the recycled fraction. Non-monotonicity can arise due to the vagaries of interpolating stellar
-                ! lifetimes in an irregular grid of stellar models.
-                if (iAge > 1) recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))&
-                     &=max(recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected)),recycledFractionTable(iAge-1&
-                     &,iMetallicity,recycledFractionIndex(imfSelected)))
+             end do
+          end do
+          !$omp end parallel do
+          do iAge=1,recycledFractionTableAgeCount
+             do iMetallicity=1,recycledFractionTableMetallicityCount
+                ! Enforce monotonicity in the recycled fraction. Non-monotonicity can arise due to the vagaries of interpolating
+                ! stellar lifetimes in an irregular grid of stellar models.
+                if (iAge > 1 )                                                                               &
+                     & recycledFractionTable       (iAge  ,iMetallicity,recycledFractionIndex(imfSelected))  &
+                     &   =max(                                                                               &
+                     &        recycledFractionTable(iAge  ,iMetallicity,recycledFractionIndex(imfSelected)), &
+                     &        recycledFractionTable(iAge-1,iMetallicity,recycledFractionIndex(imfSelected))  &
+                     &       )
                 call xml_NewElement(recycledFractionDoc,"data")
                 write (parameterValue,'(e10.4)') recycledFractionTable(iAge,iMetallicity,recycledFractionIndex(imfSelected))
                 call xml_AddCharacters(recycledFractionDoc,trim(parameterValue))
@@ -828,7 +837,8 @@ contains
           &                                                                                                                   iMetalYield                        , iMetallicity                              , &
           &                                                                                                                   imfCount                           , imfSelected                               , &
           &                                                                                                                   ioErr                              , metallicityIndex                          , &
-          &                                                                                                                   tableIndex
+          &                                                                                                                   tableIndex                         , loopCount                                 , &
+          &                                                                                                                   loopCountTotal
      double precision                                                                                                      :: maximumMass                        , minimumMass                               , &
           &                                                                                                                   yieldMaximum                       , yieldMinimum
      character       (len=20                    )                                                                          :: parameterValue                     , progressMessage
@@ -1059,6 +1069,9 @@ contains
                 ! Individual element.
                 call xml_NewElement(metalYieldDoc,"elementYield")
              end select
+             loopCountTotal=metalYieldTableMetallicityCount*metalYieldTableAgeCount
+             loopCount     =0
+             !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
              do iAge=1,metalYieldTableAgeCount
                 lifetime=metalYieldTableAge(iAge)
                 write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -1071,35 +1084,35 @@ contains
                       metallicity=metalYieldTableMetallicity(iMetallicity)
                    end if
                    ! Update the counter.
-                   call Galacticus_Display_Counter(                                                                    &
-                        &                           int(                                                               &
-                        &                                100.0d0                                                       &
-                        &                               *dble(                                                         &
-                        &                                      metalYieldTableMetallicityCount*iAge                    &
-                        &                                     +                                iMetallicity            &
-                        &                                    )                                                         &
-                        &                               /dble(metalYieldTableMetallicityCount*metalYieldTableAgeCount) &
-                        &                              )                                                               &
-                        &                          ,.false.                                                            &
-                        &                          ,verbosityWorking                                                   &
+                   !$omp atomic
+                   loopCount=loopCount+1
+                   call Galacticus_Display_Counter(                                                   &
+                        &                           int(100.0d0*dble(loopCount)/dble(loopCountTotal)) &
+                        &                          ,.false.                                           &
+                        &                          ,verbosityWorking                                  &
                         &                         )
-                    ! Find the minimum and maximum masses to integrate over for this IMF.
-                    minimumMass=IMF_Minimum_Mass(imfSelected)
-                    maximumMass=IMF_Maximum_Mass(imfSelected)
-                    ! Integrate ejected mass over the IMF between these limits.
-                    metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
-                         &,Metal_Yield_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
-                         &,toleranceRelative=1.0d-5)
-                    call Integrate_Done(integrandFunction,integrationWorkspace)
-                    ! Enforce monotonicity in the metal yield. Non-monotonicity can arise due to the vagaries of interpolating stellar
-                    ! lifetimes in an irregular grid of stellar models.
-                    if (iAge > 1) metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))&
-                         &=max(metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected)),metalYieldTable(iAge-1&
-                         &,iMetallicity,iElement,metalYieldIndex(imfSelected)))
-                    call xml_NewElement(metalYieldDoc,"data")
-                    write (parameterValue,'(e10.4)') metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))
-                    call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
-                    call xml_EndElement(metalYieldDoc,"data")
+                   ! Find the minimum and maximum masses to integrate over for this IMF.
+                   minimumMass=IMF_Minimum_Mass(imfSelected)
+                   maximumMass=IMF_Maximum_Mass(imfSelected)
+                   ! Integrate ejected mass over the IMF between these limits.
+                   metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))=Integrate(minimumMass,maximumMass&
+                        &,Metal_Yield_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-4&
+                        &,toleranceRelative=1.0d-5)
+                   call Integrate_Done(integrandFunction,integrationWorkspace)
+                end do
+             end do
+             !$omp end parallel do
+             do iAge=1,metalYieldTableAgeCount
+                do iMetallicity=1,metalYieldTableMetallicityCount
+                   ! Enforce monotonicity in the metal yield. Non-monotonicity can arise due to the vagaries of interpolating
+                   ! stellar lifetimes in an irregular grid of stellar models.
+                   if (iAge > 1) metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))&
+                        &=max(metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected)),metalYieldTable(iAge-1&
+                        &,iMetallicity,iElement,metalYieldIndex(imfSelected)))
+                   call xml_NewElement(metalYieldDoc,"data")
+                   write (parameterValue,'(e10.4)') metalYieldTable(iAge,iMetallicity,iElement,metalYieldIndex(imfSelected))
+                   call xml_AddCharacters(metalYieldDoc,trim(parameterValue))
+                   call xml_EndElement(metalYieldDoc,"data")
                 end do
              end do
              select case (iElement)
@@ -1284,7 +1297,8 @@ contains
          &                                                                                                              iEnergyInput                                  , iMetallicity                              , &
          &                                                                                                              imfCount                                      , imfSelected                               , &
          &                                                                                                              ioErr                                         , metallicityIndex                          , &
-         &                                                                                                              tableIndex
+         &                                                                                                              tableIndex                                    , loopCount                                 , &
+         &                                                                                                              loopCountTotal
     double precision                                                                                          ::        energyInputMaximum                            , energyInputMinimum                        , &
          &                                                                                                              maximumMass                                   , minimumMass
     character       (len=20                    )                                                              ::        parameterValue                                , progressMessage
@@ -1467,10 +1481,12 @@ contains
              call xml_EndElement(energyInputDoc,"data")
           end do
           call xml_EndElement(energyInputDoc,"metallicities")
-
           ! Loop over ages and metallicities and compute the recycled fraction.
           imfSelectedGlobal=imfSelected
           call xml_NewElement(energyInputDoc,"energyInput")
+          loopCountTotal=energyInputTableMetallicityCount*energyInputTableAgeCount
+          loopCount     =0
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
           do iAge=1,energyInputTableAgeCount
              lifetime=energyInputTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -1483,16 +1499,12 @@ contains
                    metallicity=energyInputTableMetallicity(iMetallicity)
                 end if
                 ! Update the counter.
-                call Galacticus_Display_Counter(                                                                      &
-                     &                           int(                                                                 &
-                     &                                100.0d0                                                         &
-                     &                               *dble( energyInputTableMetallicityCount*iAge                     &
-                     &                                     +                                 iMetallicity             &
-                     &                                    )                                                           &
-                     &                               /dble(energyInputTableMetallicityCount*energyInputTableAgeCount) &
-                     &                              )                                                                 &
-                     &                          ,.false.                                                              &
-                     &                          ,verbosityWorking                                                     &
+                !$omp atomic
+                loopCount=loopCount+1
+                call Galacticus_Display_Counter(                                                   &
+                     &                           int(100.0d0*dble(loopCount)/dble(loopCountTotal)) &
+                     &                          ,.false.                                           &
+                     &                          ,verbosityWorking                                  &
                      &                         )
                 ! Find the minimum and maximum masses to integrate over for this IMF.
                 minimumMass=IMF_Minimum_Mass(imfSelected)
@@ -1502,6 +1514,11 @@ contains
                      &,Cumulative_Energy_Integrand,parameterPointer,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0&
                      &,toleranceRelative=1.0d-3)
                 call Integrate_Done(integrandFunction,integrationWorkspace)
+             end do
+          end do
+          !$omp end parallel do
+          do iAge=1,energyInputTableAgeCount
+             do iMetallicity=1,energyInputTableMetallicityCount
                 ! Enforce monotonicity in the cumulative energy input. Non-monotonicity can arise due to the vagaries of
                 ! interpolating stellar lifetimes in an irregular grid of stellar models.
                 if (iAge > 1) energyInputTable(iAge,iMetallicity,energyInputIndex(imfSelected))&

@@ -75,8 +75,10 @@ contains
     double precision, dimension(2)  :: Filter_Extent
     integer         , intent(in   ) :: filterIndex
 
+    !$omp critical (Filter_Get_Index_Lock)
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
+    !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Extent
 
@@ -156,11 +158,11 @@ contains
     double precision, intent(in   ) :: wavelength
 
     ! Interpolate in the tabulated response curve.
-    !$omp critical (Filter_Response)
+    !$omp critical (Filter_Get_Index_Lock)
     Filter_Response=Interpolate(filterResponses(filterIndex)%nPoints,filterResponses(filterIndex)%wavelength&
          &,filterResponses(filterIndex)%response,filterResponses(filterIndex)%interpolationObject&
          &,filterResponses(filterIndex)%interpolationAccelerator,wavelength ,reset=filterResponses(filterIndex)%reset)
-    !$omp end critical (Filter_Response)
+    !$omp end critical (Filter_Get_Index_Lock)
     return
   end function Filter_Response
 

@@ -1,3 +1,13 @@
+module Bivar
+  private
+  public :: idbvip
+
+  integer ( kind = 4 ) nit
+  integer ( kind = 4 ) itpv
+  !$omp threadprivate (nit,itpv)
+
+contains
+
 subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
 
 !*****************************************************************************80
@@ -82,7 +92,6 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
   integer ( kind = 4 ) nip
 
   integer ( kind = 4 ) iip
-  integer ( kind = 4 ) itpv
   integer ( kind = 4 ) iwk(max(31,27+ncp)*ndp+nip)
   integer ( kind = 4 ) jwipc
   integer ( kind = 4 ) jwipl
@@ -100,7 +109,6 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
   integer ( kind = 4 ) ndppv
   integer ( kind = 4 ) nip0
   integer ( kind = 4 ) nippv
-  integer ( kind = 4 ) nit
   integer ( kind = 4 ) nl
   integer ( kind = 4 ) nt
   real ( kind = 8 ) wk(8*ndp)
@@ -110,12 +118,6 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
   real ( kind = 8 ) yi(nip)
   real ( kind = 8 ) zd(ndp)
   real ( kind = 8 ) zi(nip)
-
-  save /idlc/
-  save /idpi/
-
-  common /idlc/ nit
-  common /idpi/ itpv
 !
 !  Setting of some input parameters to local variables,
 !  for MD = 1, 2, 3.
@@ -290,7 +292,7 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
   end do
 
   return
-end
+end subroutine idbvip
 subroutine idcldp ( ndp, xd, yd, ncp, ipc )
 
 !*****************************************************************************80
@@ -517,7 +519,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
  2091 format(1x/' ***   all collinear data points.')
  2092 format('   ndp  = ',i5,5x,'ncp  = ',i5/ &
          ' error detected in routine   idcldp'/)
-      end
+   end subroutine idcldp
       subroutine idgrid ( xd, yd, nt, ipt, nl, ipl, nxi, nyi, xi, yi, ngp, igp )
 
 !*****************************************************************************80
@@ -901,7 +903,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   450 continue
 
       return
-      end
+   end subroutine idgrid
       subroutine idlctn ( ndp, xd, yd, nt, ipt, nl, ipl, xii, yii, iti, &
         iwk, wk)
 
@@ -972,6 +974,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
 !    data; the data should not be altered by the user between calls for the
 !    same set of data, as it will be reused rather than being recomputed.
 !
+use omp_lib
   implicit none
 
   integer ( kind = 4 ) ndp
@@ -1001,7 +1004,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   integer ( kind = 4 ) jiwk
   integer ( kind = 4 ) jwk
   integer ( kind = 4 ) ndp0
-  integer ( kind = 4 ) nit
   integer ( kind = 4 ) nl0
   integer ( kind = 4 ) nt0
   integer ( kind = 4 ) ntl
@@ -1039,9 +1041,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   real ( kind = 8 ) ys1
   real ( kind = 8 ) ys2
 
-  save /idlc/
-
-  common /idlc/ nit
 !
 !  Statement functions.
 !
@@ -1255,7 +1254,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
       itipv = it0
 
       return
-      end
+      end subroutine idlctn
       subroutine idpdrv ( ndp, xd, yd, zd, ncp, ipc, pd )
 
 !*****************************************************************************80
@@ -1502,7 +1501,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
       end do
 
       return
-      end
+   end subroutine idpdrv
       subroutine idptip ( xd, yd, zd, nt, ipt, nl, ipl, pdd, iti, xii, yii, zii )
 
 !*****************************************************************************80
@@ -1605,7 +1604,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   integer ( kind = 4 ) ipt(3*nt)
   integer ( kind = 4 ) it0
   integer ( kind = 4 ) iti
-  integer ( kind = 4 ) itpv
   integer ( kind = 4 ) jipl
   integer ( kind = 4 ) jipt
   integer ( kind = 4 ) jpd
@@ -1665,10 +1663,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   real ( kind = 8 ) zuv(3)
   real ( kind = 8 ) zv(3)
   real ( kind = 8 ) zvv(3)
-
-  save /idpi/
-
-  common/idpi/itpv
 
   equivalence (p5,p50)
 !
@@ -1979,7 +1973,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
       zii = p0+u*(p1+u*p20)
 
       return
-      end
+    end subroutine idptip
       subroutine idsfft ( md, ncp, ndp, xd, yd, zd, nxi, nyi, xi, yi, zi, iwk, wk )
 
 !*****************************************************************************80
@@ -2076,7 +2070,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   integer ( kind = 4 ) il1
   integer ( kind = 4 ) il2
   integer ( kind = 4 ) iti
-  integer ( kind = 4 ) itpv
   integer ( kind = 4 ) iwk(max(31,27+ncp)*ndp+nxi*nyi)
   integer ( kind = 4 ) ixi
   integer ( kind = 4 ) iyi
@@ -2118,10 +2111,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   real ( kind = 8 ) yi(nyi)
   real ( kind = 8 ) zd(ndp)
   real ( kind = 8 ) zi(nxi*nyi)
-
-  save /idpi/
-
-  common /idpi/ itpv
 !
 !  Setting of some input parameters to local variables, for MD = 1, 2, 3.
 !
@@ -2280,7 +2269,7 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
          '   md  = ',i4,10x,'ncp  = ',i6,10x,'ndp  = ',i6, &
          10x,'nxi  = ',i6,10x,'nyi  = ',i6/ &
          ' error detected in routine   idsfft'/)
-      end
+    end subroutine idsfft
       subroutine idtang ( ndp, xd, yd, nt, ipt, nl, ipl, iwl, iwp, wk )
 
 !*****************************************************************************80
@@ -2369,7 +2358,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   real ( kind = 8 ) dy21
   real ( kind = 8 ) dymn
   real ( kind = 8 ) dymx
-  integer ( kind = 4 ) idxchg
   integer ( kind = 4 ) ilf
   integer ( kind = 4 ) ilft2
   integer ( kind = 4 ) ip
@@ -3016,4 +3004,6 @@ subroutine idcldp ( ndp, xd, yd, ncp, ipc )
   idxchg = idx
 
   return
-end
+end function idxchg
+
+end module Bivar
