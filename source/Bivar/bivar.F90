@@ -2871,7 +2871,7 @@ use omp_lib
  2092 format(1x/' ***   all collinear data points.'/ &
          '   ndp  = ',i5)
  2093 format(' error detected in routine   idtang'/)
-      end
+      end subroutine idtang
       function idxchg ( x, y, i1, i2, i3, i4 )
 
 !*****************************************************************************80
