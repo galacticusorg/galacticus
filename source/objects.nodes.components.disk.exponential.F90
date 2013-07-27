@@ -425,9 +425,20 @@ contains
                &    *thisSpin%spin()                            &
                &  ) then
           else
-             call Galacticus_Error_Report(                                                        &
-                  &                       'Node_Component_Disk_Exponential_Post_Evolve'         , &
-                  &                       'negative angular momentum in disk with positive mass'  &
+             message='negative angular momentum in disk with positive mass'
+             write (valueString,'(e12.6)') thisDiskComponent%angularMomentum()
+             message=message//char(10)//' -> angular momentum       = '//trim(valueString)
+             write (valueString,'(e12.6)') thisDiskComponent%massStellar    ()
+             message=message//char(10)//' -> stellar mass           = '//trim(valueString)
+             write (valueString,'(e12.6)') thisDiskComponent%massGas        ()
+             message=message//char(10)//' -> gas mass               = '//trim(valueString)
+             write (valueString,'(e12.6)')  Dark_Matter_Halo_Virial_Radius  (thisnode) &
+                  &                  *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+                  &                  *thisSpin%spin()
+             message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
+             call Galacticus_Error_Report(                                               &
+                  &                       'Node_Component_Disk_Exponential_Post_Evolve', &
+                  &                       message                                        &
                   &                      )
           end if
        end if
