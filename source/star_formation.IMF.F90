@@ -634,7 +634,7 @@ contains
           call xml_NewElement(recycledFractionDoc,"recycledFraction")
           loopCountTotal=recycledFractionTableMetallicityCount*recycledFractionTableAgeCount
           loopCount     =0
-          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal)
           do iAge=1,recycledFractionTableAgeCount
              lifetime=recycledFractionTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -1071,7 +1071,7 @@ contains
              end select
              loopCountTotal=metalYieldTableMetallicityCount*metalYieldTableAgeCount
              loopCount     =0
-             !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
+             !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin(imfSelectedGlobal,atomIndexGlobal)
              do iAge=1,metalYieldTableAgeCount
                 lifetime=metalYieldTableAge(iAge)
                 write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
@@ -1486,7 +1486,7 @@ contains
           call xml_NewElement(energyInputDoc,"energyInput")
           loopCountTotal=energyInputTableMetallicityCount*energyInputTableAgeCount
           loopCount     =0
-          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace)
+          !$omp parallel do private (iAge,iMetallicity,progressMessage,minimumMass,maximumMass,integrandFunction,integrationWorkspace) copyin (imfSelectedGlobal)
           do iAge=1,energyInputTableAgeCount
              lifetime=energyInputTableAge(iAge)
              write (progressMessage,'(a6,e8.2,a4)') 'age = ',lifetime,' Gyr'
