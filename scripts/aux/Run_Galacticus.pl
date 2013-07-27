@@ -19,6 +19,7 @@ use Sys::CPU;
 use MIME::Lite;
 use Switch;
 use Clone qw(clone);
+use Digest::MD5 qw(md5_hex);
 require IO::Compress::Simple;
 require System::Redirect;
 
@@ -222,6 +223,11 @@ sub Launch_Models {
     # Create empty PBS model queue.
     @{$modelsToRun->{'pbs'}->{'modelQueue'}} = ();
 
+    # Determine if output directory names will be md5 hashes.
+    my $useMD5Names = "no";
+    $useMD5Names = $modelsToRun->{'md5Names'}
+      if ( exists($modelsToRun->{'md5Names'}) );
+
     # Loop through all model sets.
     my $iModelSet = -1;
     foreach my $parameterSet ( @{$modelsToRun->{'parameters'}} ) {
@@ -250,9 +256,25 @@ sub Launch_Models {
 	    # Specify the output directory.
 	    my $galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$iModelSet.":".$iModel;
 	    $galacticusOutputDirectory .= "_".$parameterData->{'label'} if ( exists($parameterData->{'label'}) );
+
+	    # Change output directory name to an md5 hash if so requested.
+	    my $descriptor;
+	    if ( $useMD5Names eq "yes" ) {
+		foreach my $parameter ( keys(%{$parameterData}) ) {
+		    $descriptor .= $parameter.":".$parameterData->{$parameter}.":";
+		}
+		my $md5 = md5_hex($descriptor);
+		$galacticusOutputDirectory = $rootDirectory."/".$modelBaseName."_".$md5;
+	    }
+
 	    # If the output directory does not exist, then create it.
 	    unless ( -e $galacticusOutputDirectory || $runOnInstance != $thisInstance ) {		
 		system("mkdir -p ".$galacticusOutputDirectory);
+		if ( defined($descriptor) ) {
+		    open(oHndl,">".$galacticusOutputDirectory."/md5Descriptor.txt");
+		    print oHndl $descriptor."\n";
+		    close(oHndl);
+		}
 		
 		# Specify the output file.
 		my $galacticusOutputFile = $galacticusOutputDirectory."/galacticus.hdf5";
