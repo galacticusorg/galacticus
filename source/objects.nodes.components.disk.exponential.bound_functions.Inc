@@ -154,6 +154,7 @@ double precision function Node_Component_Disk_Exponential_Potential(self,radius,
   use Numerical_Constants_Physical
   use Bessel_Functions
   use Galactic_Structure_Options
+  use Tables
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self

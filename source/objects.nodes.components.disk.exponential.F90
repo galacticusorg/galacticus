@@ -149,7 +149,7 @@ module Node_Component_Disk_Exponential
   ! Parameters controlling the physical implementation.
   double precision                            :: diskMassToleranceAbsolute                , diskOutflowTimescaleMinimum, &
        &                                         diskStructureSolverRadius
-  logical                                     :: diskRadiusSolverCole2000Method
+  logical                                     :: diskRadiusSolverCole2000Method           , diskNegativeAngularMomentumAllowed
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -163,6 +163,7 @@ module Node_Component_Disk_Exponential
   logical                                     :: moduleInitialized                =.false.
   logical                                     :: threadAllocationDone             =.false.
   !$omp threadprivate(threadAllocationDone)
+
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -250,6 +251,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('heightToRadialScaleDisk',heightToRadialScaleDisk,defaultValue=0.137d0)
+       !@ <inputParameter>
+       !@   <name>diskNegativeAngularMomentumAllowed</name>
+       !@   <defaultValue>true</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether or not negative angular momentum is allowed for the disk.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('diskNegativeAngularMomentumAllowed',diskNegativeAngularMomentumAllowed,defaultValue=.true.)
 
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -412,34 +424,37 @@ contains
                &     0.0d0                                      &
                &  ) then
              call thisDiskComponent%angularMomentumSet(0.0d0)
-          else if (                                             &
-               &     abs(thisDiskComponent%angularMomentum())   &
-               &    /(                                          &
-               &         thisDiskComponent%massStellar    ()    &
-               &      +  thisDiskComponent%massGas        ()    &
-               &     )                                          &
-               &   <                                            &
-               &     angularMomentumTolerance                   &
-               &    *Dark_Matter_Halo_Virial_Radius  (thisnode) &
-               &    *Dark_Matter_Halo_Virial_Velocity(thisnode) &
-               &    *thisSpin%spin()                            &
-               &  ) then
-          else
-             message='negative angular momentum in disk with positive mass'
-             write (valueString,'(e12.6)') thisDiskComponent%angularMomentum()
-             message=message//char(10)//' -> angular momentum       = '//trim(valueString)
-             write (valueString,'(e12.6)') thisDiskComponent%massStellar    ()
-             message=message//char(10)//' -> stellar mass           = '//trim(valueString)
-             write (valueString,'(e12.6)') thisDiskComponent%massGas        ()
-             message=message//char(10)//' -> gas mass               = '//trim(valueString)
-             write (valueString,'(e12.6)')  Dark_Matter_Halo_Virial_Radius  (thisnode) &
-                  &                  *Dark_Matter_Halo_Virial_Velocity(thisnode) &
-                  &                  *thisSpin%spin()
-             message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
-             call Galacticus_Error_Report(                                               &
-                  &                       'Node_Component_Disk_Exponential_Post_Evolve', &
-                  &                       message                                        &
-                  &                      )
+          else if (.not.diskNegativeAngularMomentumAllowed) then
+             if  (                                             &
+               &    abs(thisDiskComponent%angularMomentum())   &
+               &   /(                                          &
+               &        thisDiskComponent%massStellar    ()    &
+               &     +  thisDiskComponent%massGas        ()    &
+               &    )                                          &
+               &  <                                            &
+               &    angularMomentumTolerance                   &
+               &   *Dark_Matter_Halo_Virial_Radius  (thisnode) &
+               &   *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+               &   *thisSpin%spin()                            &
+               & ) then
+                call thisDiskComponent%angularMomentumSet(0.0d0)
+           else
+                message='negative angular momentum in disk with positive mass'
+                write (valueString,'(e12.6)') thisDiskComponent%angularMomentum()
+                message=message//char(10)//' -> angular momentum       = '//trim(valueString)
+                write (valueString,'(e12.6)') thisDiskComponent%massStellar    ()
+                message=message//char(10)//' -> stellar mass           = '//trim(valueString)
+                write (valueString,'(e12.6)') thisDiskComponent%massGas        ()
+                message=message//char(10)//' -> gas mass               = '//trim(valueString)
+                write (valueString,'(e12.6)')  Dark_Matter_Halo_Virial_Radius  (thisnode) &
+                     &                  *Dark_Matter_Halo_Virial_Velocity(thisnode) &
+                     &                  *thisSpin%spin()
+                message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
+                call Galacticus_Error_Report(                                               &
+                     &                       'Node_Component_Disk_Exponential_Post_Evolve', &
+                     &                       message                                        &
+                     &                      )
+             end if
           end if
        end if
     end select
