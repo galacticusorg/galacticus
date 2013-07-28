@@ -59,6 +59,7 @@
 		      <xs:restriction base="xs:string">
 			<xs:enumeration value="real"       />
 			<xs:enumeration value="integer"    />
+			<xs:enumeration value="longInteger"/>
 			<xs:enumeration value="logical"    />
 			<xs:enumeration value="chemicals"  />
 			<xs:enumeration value="abundances" />

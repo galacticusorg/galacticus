@@ -148,10 +148,9 @@ contains
           if (thisBasicComponent%time() == time) then
              ! Ensure that galactic structure is up to date.
              call Galactic_Structure_Radii_Solve(thisNode)
-             ! Test whether this test passes all output filters.
+             ! Test whether this node passes all output filters.
              nodePassesFilter=Galacticus_Merger_Tree_Output_Filter(thisNode)
              if (nodePassesFilter) then
-                ! Establish node link properties.
                 if (integerPropertyCount > 0) then
                    integerProperty=0
                    integerBufferCount=integerBufferCount+1
