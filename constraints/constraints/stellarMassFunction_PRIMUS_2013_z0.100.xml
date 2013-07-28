@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the PRIMUS z~0.10 stellar mass functions. -->
+<constraint>
+  <name>PRIMUS z~0.100 stellar mass functions</name>
+  <label>primusStellarMassFunctionZ0.100</label>
+  <outputRedshift>0.100</outputRedshift>
+  <haloMassResolution>5.0e9</haloMassResolution>
+  <haloMassMinimum>2.0e10</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_PRIMUS_z0.100.pl</analysis>
+</constraint>
