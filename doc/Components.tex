@@ -857,7 +857,7 @@ This \gls{component} records statistics associated with galaxy merging.
 
 \subsubsection{Properties}
 
-The scale dark matter profile implementation defines the following properties:
+The standard merging statistics implementation defines the following properties:
 \begin{description}
  \item [{\tt galaxyMajorMergerTime}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\tt mergingStatisticsGalaxyMajorMergerTime}];
  \item [{\tt nodeMajorMergerTime}] The time of the last major merger (as defined by the {\tt [nodeMajorMergerFraction]} parameter) between this \gls{node} and another, output as the time \emph{since} the last major merger [{\tt mergingStatisticsNodeMajorMergerTime}];
@@ -880,6 +880,31 @@ The times of the last mergers do not evolve.
 \noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
 
 \noindent\emph{Node promotion:} The time of the last major \gls{node} merger is updated to that of the parent if that time is more recent.\\
+
+\subsection{``Recent'' Implementation}
+
+\subsubsection{Properties}
+
+The recent merging statistics implementation defines the following properties:
+\begin{description}
+ \item [{\tt recentMajorMergerTime}] The number of node major mergers (defined as a merger with mass ratio in excess of {\tt [nodeMajorMergerFraction]}) occuring within a recent interval, $\Delta t$ where $\Delta t = ${\tt [nodeRecentMajorMergerInterval]}~Gyr if {\tt [nodeRecentMajorMergerIntervalType]}$=${\tt absolute}, or $\Delta t = ${\tt [nodeRecentMajorMergerInterval]}$\tau_{\rm dyn}$ (where $\tau_{\rm dyn}$ is the halo dynamical time) if {\tt [nodeRecentMajorMergerIntervalType]}$=${\tt dynamical}. [{\tt mergingStatisticsRecentMajorMergerTime}];
+\end{description}
+
+\subsubsection{Initialization}
+
+The number of recent mergers for each output time are initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+The number of recent mergers do not evolve.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} If the merger is major and occurs within $\Delta t$ of an output time, the number of recent major mergers is increased by one.\\
+
+\noindent\emph{Satellite merging:} N/A.\\
+
+\noindent\emph{Node promotion:} N/A.\\
 
 \section{Formation Times}\label{sec:ComponentFormationTimes}
 
