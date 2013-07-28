@@ -282,6 +282,7 @@ sub dataObjectDocName {
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
 	    case ( "integer"     ) {$name .= "integer"                 }
+	    case ( "longInteger" ) {$name .= "integer(kind=kind_int8)" }
 	    case ( "logical"     ) {$name .= "logical"                 }
 	    case ( "real"        ) {$name .= "double"                  }
 	    case ( "chemicals"   ) {$name .= "type(chemicalAbundances)"}
@@ -315,6 +316,7 @@ sub dataObjectName {
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
 	    case ( "integer"     ) {$name .= "Integer"            }
+	    case ( "longInteger" ) {$name .= "LongInteger"        }
 	    case ( "logical"     ) {$name .= "Logical"            }
 	    case ( "real"        ) {$name .= "Double"             }
 	    case ( "chemicals"   ) {$name .= "ChemicalAbundances" }
@@ -355,6 +357,10 @@ sub dataObjectPrimitiveName {
 	    case ( "integer"     ) {
 		$name = "integer"                 ;
 		$type = "Integer"                 ;
+	    }
+	    case ( "longInteger" ) {
+		$name = "integer(kind=kind_int8)" ;
+		$type = "LongInteger"             ;
 	    }
 	    case ( "logical"     ) {
 		$name = "logical"                 ;
@@ -417,36 +423,40 @@ sub Data_Object_Definition {
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
 	    case ( "integer"     ) {
-		$intrinsicName = "integer"           ;
-		$label         = "Integer"           ;
+		$intrinsicName = "integer"                ;
+		$label         = "Integer"                ;
+	    }
+	    case ( "longInteger" ) {
+		$intrinsicName = "integer(kind=kind_int8)";
+		$label         = "LongInteger"            ;
 	    }
 	    case ( "logical"     ) {
-		$intrinsicName = "logical"           ;
-		$label         = "Logical"           ;
+		$intrinsicName = "logical"                ;
+		$label         = "Logical"                ;
 	    }
 	    case ( "real"        ) {
-		$intrinsicName = "double precision"  ;
-		$label         = "Double"            ;
+		$intrinsicName = "double precision"       ;
+		$label         = "Double"                 ;
 	    }
 	    case ( "abundances"  ) {
-		$intrinsicName = "type"              ;
-		$type          = "abundances"        ;
-		$label         = "Abundances"        ;
+		$intrinsicName = "type"                   ;
+		$type          = "abundances"             ;
+		$label         = "Abundances"             ;
 	    }
 	    case ( "history"     ) {
-		$intrinsicName = "type"              ;
-		$type          = "history"           ;
-		$label         = "History"           ;
+		$intrinsicName = "type"                   ;
+		$type          = "history"                ;
+		$label         = "History"                ;
 	    }
 	    case ( "chemicals"   ) {
-		$intrinsicName = "type"              ;
-		$type          = "chemicalAbundances";
-		$label         = "ChemicalAbundances";
+		$intrinsicName = "type"                   ;
+		$type          = "chemicalAbundances"     ;
+		$label         = "ChemicalAbundances"     ;
 	    }
 	    case ( "keplerOrbit" ) {
-		$intrinsicName = "type"              ;
-		$type          = "keplerOrbit"       ;
-		$label         = "KeplerOrbit"       ;
+		$intrinsicName = "type"                   ;
+		$type          = "keplerOrbit"            ;
+		$label         = "KeplerOrbit"            ;
 	    }
 	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
 	}
@@ -2892,9 +2902,10 @@ sub Generate_Implementation_Dump_Functions {
 	# Format labels for different data types.
 	my %formatLabel = 
 	    (
-	     real    => "'(e12.6)'",
-	     integer => "'(i8)'",
-	     logical => "*"
+	     real        => "'(e12.6)'",
+	     integer     => "'(i8)'",
+	     longInteger => "'(i16)'",
+	     logical     => "*"
 	    );
 	# Generate dump function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump(self)\n";
@@ -2917,7 +2928,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "    write (label,".$formatLabel{$linkedData->{'type'}}.") self%".padLinkedData($linkedDataName,[0,0])."%value\n";
 				$functionCode .= "    message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))."'//label\n";
 				$functionCode .= "    call Galacticus_Display_Message(message)\n";
@@ -2931,7 +2942,7 @@ sub Generate_Implementation_Dump_Functions {
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "    do i=1,size(self%".$linkedDataName."%value)\n";
 				$functionCode .= "       write (label,'(i3)') i\n";
 				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
@@ -3004,7 +3015,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "    write (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
 			    }
 			    else {
@@ -3016,7 +3027,7 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    if (allocated(self%".$linkedDataName."%value)) then\n";
 			$functionCode .= "       write (fileHandle) size(self%".$linkedDataName."%value)\n";
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "      write (fileHandle) self%".$linkedDataName."%value\n";
 			    }
 			    else {
@@ -3084,7 +3095,7 @@ sub Generate_Implementation_Dump_Functions {
 		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "    read (fileHandle) self%".padLinkedData($linkedDataName,[0,0])."%value\n";
 			    }
 			    else {
@@ -3096,7 +3107,7 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    if (isAllocated) then\n";
 			$functionCode .= "       read (fileHandle) arraySize\n";
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%value,[arraySize])\n";
 				$functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
 			    }
@@ -3179,17 +3190,20 @@ sub Generate_Implementation_Initializor_Functions {
 		} else {
 		    # Set to null.
 		    switch ( $linkedData->{'type'} ) {
-			case ( "real"    ) {
+			case ( "real"        ) {
 			    if ( $linkedData->{'rank'} == 0 ) {
 				$initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0.0d0\n";
 			    } else {
 				$initializeCode .= "            call Alloc_Array(self%".padLinkedData($linkedDataName,[0,0])."%value,[".join(",","0" x $linkedData->{'rank'})."])\n";
 			    }
 			}
-			case ( "integer" ) {
+			case ( "integer"     ) {
 			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0\n";
 			}
-			case ( "logical" ) {
+			case ( "longInteger" ) {
+			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=0_kind_int8\n";
+			}
+			case ( "logical"     ) {
 			    $initializeCode .= "            self%".padLinkedData($linkedDataName,[0,0])."%value=.false.\n";
 			}
 			else {
@@ -3323,6 +3337,9 @@ sub Generate_Implementation_Builder_Functions {
 			    case ( [ "real", "integer", "logical" ] ) {
 				$functionCode .= "      call extractDataContent(property,self%".padLinkedData($linkedDataName,[0,0])."%value)\n";
 			    }
+			    case ( [ "longInteger" ] ) {
+				$functionCode .= "      call Galacticus_Error_Report('Node_Component_".ucfirst($componentID)."_Builder','building of long integer properties currently not supported')\n";
+			    }
 			    else {
 				$functionCode .= "      call self%".padLinkedData($linkedDataName,[0,0])."%value%builder(property)\n";
 			    }
@@ -3339,7 +3356,7 @@ sub Generate_Implementation_Builder_Functions {
 			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			$functionCode .= "    if (getLength(propertyList) >= 1) then\n";
 			switch ( $linkedData->{'type'} ) {
-			    case ( [ "real", "integer", "logical" ] ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
 				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[getLength(propertyList)])\n"
 				    foreach ( @gsr );
 				$functionCode .= "      do i=1,getLength(propertyList)\n";
@@ -3447,7 +3464,7 @@ sub Generate_Implementation_Output_Functions {
 		    $type = $property->{'type'};		
 		}
 		$outputTypes{$type} = 1
-		    unless ( $type eq "real" || $type eq "integer" );
+		    unless ( $type eq "real" || $type eq "integer" || $type eq "longInteger" );
 	    }
 	}
 	my @outputTypes;
@@ -3487,13 +3504,14 @@ sub Generate_Implementation_Output_Functions {
 	    # Initialize counts.
 	    my %typeCount =
 		(
-		 real    => 0,
+		 double  => 0,
 		 integer => 0
 		);
 	    my %typeMap =
 		(
-		 real    => "double",
-		 integer => "integer"
+		 real        => "double" ,
+		 integer     => "integer",
+		 longInteger => "integer"
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -3537,14 +3555,14 @@ sub Generate_Implementation_Output_Functions {
 		    }
 		    # Increment the counters.
 		    switch ( $type ) {
-			case ( [ "real", "integer" ] ) {
+			case ( [ "real", "integer", "longInteger" ] ) {
 			    if ( $rank == 0 ) {
 				if ( exists($property->{'output'}->{'condition'}) ) {
 				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 				    $functionCode .= "    if (".$condition.") ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 				} elsif ( $count =~ m/^\d/ ) {
-				    $typeCount{$type} += $count;
+				    $typeCount{$typeMap{$type}} += $count;
 				} else {
 				    $functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 				}
@@ -3558,7 +3576,7 @@ sub Generate_Implementation_Output_Functions {
 				    $functionCode .= "    end do\n";
 				} else {
 				    if ( $count =~ m/^\d/ ) {
-					$typeCount{$type} += $count;
+					$typeCount{$typeMap{$type}} += $count;
 				    } else {
 					$functionCode .= "    ".$typeMap{$type}."PropertyCount=".$typeMap{$type}."PropertyCount+".$count."\n";
 				    }  
@@ -3579,8 +3597,8 @@ sub Generate_Implementation_Output_Functions {
 		    }
 		}
 	    }
-	    $functionCode .= "    doublePropertyCount =doublePropertyCount +".$typeCount{'real'   }."\n"
-		unless ( $typeCount{'real'   } == 0 );
+	    $functionCode .= "    doublePropertyCount =doublePropertyCount +".$typeCount{'double' }."\n"
+		unless ( $typeCount{'double' } == 0 );
 	    $functionCode .= "    integerPropertyCount=integerPropertyCount+".$typeCount{'integer'}."\n"
 		unless ( $typeCount{'integer'} == 0 );
 	    $functionCode .= "    end if\n"
@@ -3662,8 +3680,9 @@ sub Generate_Implementation_Output_Functions {
 	    }
 	    my %typeMap =
 		(
-		 real    => "double",
-		 integer => "integer"
+		 real        => "double" ,
+		 integer     => "integer",
+		 longInteger => "integer"
 		);
 	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
 		my $property = $component->{'properties'}->{'property'}->{$propertyName};
@@ -3688,7 +3707,7 @@ sub Generate_Implementation_Output_Functions {
 		    }		   
 		    # Increment the counters.
 		    switch ( $type ) {
-			case ( [ "real", "integer" ] ) {
+			case ( [ "real", "integer", "longInteger" ] ) {
 			    # Insert metadata for SimDB.
 			    $functionCode .= "       !@ <outputProperty>\n";
 			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
@@ -5232,13 +5251,16 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "      ! No specific component exists, we must interrupt and create one.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
 				switch ( $linkedData->{'type'} ) {
-				    case ( "real" ) {
+				    case ( "real"        ) {
 					$functionCode .= "   if (setValue == 0.0d0) return\n";
 				    }
-				    case ( "integer" ) {
+				    case ( "integer"     ) {
 					die('integer should not be evolvable')
 				    }
-				    case ( "logical" ) {
+				    case ( "longInteger" ) {
+					die('longInteger should not be evolvable')
+				    }
+				    case ( "logical"     ) {
 					die('logical should not be evolvable')
 				    }
 				    else {
@@ -5247,13 +5269,16 @@ sub Generate_GSR_Functions {
 				}
 			    } else {
 				switch ( $linkedData->{'type'} ) {
-				    case ( "real" ) {
+				    case ( "real"        ) {
 					$functionCode .= "   if (all(setValue == 0.0d0)) return\n";
 				    }
-				    case ( "integer" ) {
+				    case ( "integer"     ) {
 					die('integer should not be evolvable')
 				    }
-				    case ( "logical" ) {
+				    case ( "longInteger" ) {
+					die('integer should not be evolvable')
+				    }
+				    case ( "logical"     ) {
 					die('logical should not be evolvable')
 				    }
 				    else {
@@ -5311,13 +5336,16 @@ sub Generate_GSR_Functions {
 			    $functionCode .= "    ! No specific component exists, so we must interrupt and create one unless the rate is zero.\n";
 			    if ( $linkedData->{'rank'} == 0 ) {
 				switch ( $linkedData->{'type'} ) {
-				    case ( "real" ) {
+				    case ( "real"        ) {
 					$functionCode .= "   if (setValue == 0.0d0) return\n";
 				    }
-				    case ( "integer" ) {
+				    case ( "integer"     ) {
 					die('integer should not be evolvable')
 				    }
-				    case ( "logical" ) {
+				    case ( "longInteger" ) {
+					die('longInteger should not be evolvable')
+				    }
+				    case ( "logical"     ) {
 					die('logical should not be evolvable')
 				    }
 				    else {
@@ -5326,13 +5354,16 @@ sub Generate_GSR_Functions {
 				}
 			    } else {
 				switch ( $linkedData->{'type'} ) {
-				    case ( "real" ) {
+				    case ( "real"        ) {
 					$functionCode .= "   if (all(setValue == 0.0d0)) return\n";
 				    }
-				    case ( "integer" ) {
+				    case ( "integer"     ) {
 					die('integer should not be evolvable')
 				    }
-				    case ( "logical" ) {
+				    case ( "longInteger" ) {
+					die('longInteger should not be evolvable')
+				    }
+				    case ( "logical"     ) {
 					die('logical should not be evolvable')
 				    }
 				    else {
@@ -5722,17 +5753,20 @@ sub Generate_Component_Assignment_Function {
 		push(@contents,"rate ","scale")
 		    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 		switch ( $linkedData->{'type'} ) {
-		    case ( "real"    ) {
+		    case ( "real"        ) {
 			# Deallocate if necessary.
 			foreach ( @contents ) {
 			    $functionCode .= "   if (allocated(to%".padLinkedData($linkedDataName,[0,0])."%".$_.")) call Dealloc_Array(to%".padLinkedData($linkedDataName,[0,0])."%".$_.") \n"
 				if ( $linkedData->{'rank'} > 0 );
 			}
 		    }
-		    case ( "integer" ) {
+		    case ( "integer"     ) {
 			# Nothing to do in this case.
 		    }
-		    case ( "logical" ) {
+		    case ( "longInteger" ) {
+			# Nothing to do in this case.
+		    }
+		    case ( "logical"     ) {
 			# Nothing to do in this case.
 		    }
 		    else {
@@ -6296,7 +6330,7 @@ sub Generate_Component_Class_Output_Functions {
 			$type = $property->{'type'};		
 		    }
 		    $outputTypes{$type} = 1
-			unless ( $type eq "real" || $type eq "integer" );
+			unless ( $type eq "real" || $type eq "integer" || $type eq "longInteger" );
 		}
 	    }
 	}
@@ -6343,8 +6377,9 @@ sub Generate_Component_Class_Output_Functions {
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	my %typeMap =
 	    (
-	     real    => "double",
-	     integer => "integer"
+	     real        => "double" ,
+	     integer     => "integer",
+	     longInteger => "integer"
 	    );
 	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
@@ -6406,7 +6441,7 @@ sub Generate_Component_Class_Output_Functions {
 		    }
 		    # Increment the counters.
 		    switch ( $type ) {
-			case ( [ "real", "integer" ] ) {
+			case ( [ "real", "integer", "longInteger" ] ) {
 			    if ( $rank == 0 ) {
 				if ( exists($property->{'output'}->{'condition'}) ) {
 				    my $condition = $property->{'output'}->{'condition'};
@@ -6529,13 +6564,16 @@ sub Generate_Component_Implementation_Destruction_Functions {
 		my $linkedDataName = $property->{'linkedData'};
 		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
 		switch ( $linkedData->{'type'} ) {
-		    case ( "real"    ) {
+		    case ( "real"        ) {
 			# Nothing to do in this case.
 		    }
-		    case ( "integer" ) {
+		    case ( "integer"     ) {
 			# Nothing to do in this case.
 		    }
-		    case ( "logical" ) {
+		    case ( "longInteger" ) {
+			# Nothing to do in this case.
+		    }
+		    case ( "logical"     ) {
 			# Nothing to do in this case.
 		    }
 		    else {
@@ -6617,6 +6655,9 @@ sub Generate_ODE_Initialization_Functions {
 			case ( "integer" ) {
 			    die "Build_Include_File.pl: integer data type should not be evolvable";
 			}
+			case ( "longInteger" ) {
+			    die "Build_Include_File.pl: longInteger data type should not be evolvable";
+			}
 			case ( "logical" ) {
 			    die "Build_Include_File.pl: logical data type should not be evolvable";
 			}
@@ -6665,6 +6706,9 @@ sub Generate_ODE_Initialization_Functions {
 			}
 			case ( "integer" ) {
 			    die "Integer data type should not be evolvable";
+			}
+			case ( "longInteger" ) {
+			    die "longInteger data type should not be evolvable";
 			}
 			case ( "logical" ) {
 			    die "Logical data type should not be evolvable";
@@ -6937,13 +6981,16 @@ sub Generate_Component_Class_Default_Value_Functions {
 		    # Insert code to return zero values by default.
 		    if ( $linkedData->{'rank'} == 0 ) {
 			switch ( $linkedData->{'type'} ) {
-			    case ( "real"    ) {
+			    case ( "real"        ) {
 				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0.0d0\n";
 			    }
-			    case ( "integer" ) {
+			    case ( "integer"     ) {
 				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0\n";
 			    }
-			    case ( "logical" ) {
+			    case ( "longInteger" ) {
+				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=0_kind_int8\n";
+			    }
+			    case ( "logical"     ) {
 				$functionCode .= "    ".ucfirst($componentClassName).ucfirst($propertyName)."=.false.\n";
 			    }
 			    else {

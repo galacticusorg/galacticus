@@ -21,7 +21,9 @@ module Galacticus_Output_Times
   !% Provides output times.
   implicit none
   private
-  public :: Galacticus_Output_Time_Count, Galacticus_Output_Time, Galacticus_Next_Output_Time
+  public :: Galacticus_Output_Time_Count, Galacticus_Output_Time         , &
+       &    Galacticus_Next_Output_Time , Galacticus_Previous_Output_Time, &
+       &    Galacticus_Output_Time_Index
 
   ! Flag to indicate if output times have been initialized.
   logical                                     :: outputsInitialized=.false.
@@ -116,6 +118,23 @@ contains
     return
   end function Galacticus_Output_Time
 
+  integer function Galacticus_Output_Time_Index(time)
+    !% Returns the index of the output given the corresponding time.
+    use Galacticus_Error
+    use Numerical_Comparison
+    use Arrays_Search
+    implicit none
+    double precision, intent(in   ) :: time
+
+    ! Ensure the module is initialized.
+    call Output_Times_Initialize()
+
+    Galacticus_Output_Time_Index=Search_Array(outputTimes,time)
+    if (Values_Differ(time,outputTimes(Galacticus_Output_Time_Index),relTol=1.0d-6)) &
+         & call Galacticus_Error_Report('Galacticus_Output_Time_Index','time does not correspond to an output')
+    return
+  end function Galacticus_Output_Time_Index
+
   double precision function Galacticus_Next_Output_Time(currentTime)
     !% Returns the time of the next output after {\tt currentTime}.
     use Arrays_Search
@@ -135,5 +154,26 @@ contains
     end if
     return
   end function Galacticus_Next_Output_Time
+
+  double precision function Galacticus_Previous_Output_Time(currentTime)
+    !% Returns the time of the previous output prior to {\tt currentTime}.
+    use Arrays_Search
+    implicit none
+    double precision, intent(in   ) :: currentTime
+
+    ! Ensure the module is initialized.
+    call Output_Times_Initialize()
+
+    if      (currentTime > outputTimes(outputCount)) then
+       ! If the current time exceeds the last output, return the last output.
+       Galacticus_Previous_Output_Time=outputTimes(outputCount)
+    else if (currentTime < outputTimes(          1)) then
+       ! If the current time preceeds the first output, return and unphysical value.
+       Galacticus_Previous_Output_Time=-1.0d0
+    else
+       Galacticus_Previous_Output_Time=outputTimes(Search_Array(outputTimes,currentTime))
+    end if
+    return
+  end function Galacticus_Previous_Output_Time
 
 end module Galacticus_Output_Times

@@ -49,6 +49,17 @@ module Galacticus_Nodes
      integer :: value
   end type nodeDataIntegerScalar
 
+
+  type, private :: nodeDataInteger1d
+     !% Type describing a non-evolvable 1-D integer property of a node component.
+     integer, allocatable, dimension(:) :: value
+  end type nodeDataInteger1d
+
+  type, private :: nodeDataLongIntegerScalar
+     !% Type describing a non-evolvable scalar long integer property of a node component.
+     integer(kind=kind_int8) :: value
+  end type nodeDataLongIntegerScalar
+
   type, private :: nodeDataDoubleScalarEvolvable
      !% Type describing an evolvable scalar double property of a node component.
      double precision :: rate, scale, value
@@ -103,6 +114,7 @@ module Galacticus_Nodes
   include "objects.merger_trees.type.inc"
 
   ! Zero dimension arrays to be returned as defaults.
+  integer                         , dimension(0)         :: nullInteger1d
   double precision                , dimension(0)         :: nullDouble1d
 
   ! Labels for function mapping reduction types.
