@@ -87,7 +87,7 @@ contains
        !@   <defaultValue>2.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     The time interval used to define ``recent'' mergers in the {\tt recent} merging statistics component. This parameter is in units of Gyr if {\tt [nodeRecentMajorMergerIntervalType]}$=${\tt absolute}, or in units of the halo dynamical time if {\tt [nodeRecentMajorMergerIntervalType]}$=${\tt dynmical}.
+       !@     The time interval used to define ``recent'' mergers in the {\tt recent} merging statistics component. This parameter is in units of Gyr if {\tt [nodeRecentMajorMergerIntervalType]}$={\tt absolute}, or in units of the halo dynamical time if {\tt [nodeRecentMajorMergerIntervalType]}$={\tt dynmical}.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
@@ -98,7 +98,7 @@ contains
        !@   <defaultValue>dynamical</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@     Specifies the units for the {\tt [nodeRecentMajorMergerInterval]} parameter. If set to ${\tt absolute} then {\tt [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\tt dynamical} {\tt [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.
+       !@     Specifies the units for the {\tt [nodeRecentMajorMergerInterval]} parameter. If set to {\tt absolute} then {\tt [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\tt dynamical} {\tt [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.
        !@   </description>
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>

@@ -20,6 +20,7 @@ use Sort::Topological qw(toposort);
 use Scalar::Util 'reftype';
 use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
+use LaTeX::Encode;
 use Carp 'verbose';
 $SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 require File::Changes;
@@ -281,14 +282,14 @@ sub dataObjectDocName {
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"     ) {$name .= "integer"                 }
-	    case ( "longInteger" ) {$name .= "integer(kind=kind_int8)" }
-	    case ( "logical"     ) {$name .= "logical"                 }
-	    case ( "real"        ) {$name .= "double"                  }
-	    case ( "chemicals"   ) {$name .= "type(chemicalAbundances)"}
-	    case ( "abundances"  ) {$name .= "type(abundances)"        }
-	    case ( "history"     ) {$name .= "type(history)"           }
-	    case ( "keplerOrbit" ) {$name .= "type(keplerOrbit)"       }
+	    case ( "integer"     ) {$name .= "integer"                  }
+	    case ( "longInteger" ) {$name .= "integer(kind=kind\\_int8)"}
+	    case ( "logical"     ) {$name .= "logical"                  }
+	    case ( "real"        ) {$name .= "double"                   }
+	    case ( "chemicals"   ) {$name .= "type(chemicalAbundances)" }
+	    case ( "abundances"  ) {$name .= "type(abundances)"         }
+	    case ( "history"     ) {$name .= "type(history)"            }
+	    case ( "keplerOrbit" ) {$name .= "type(keplerOrbit)"        }
 	    else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
 	}
     } else {
@@ -6775,7 +6776,7 @@ sub Generate_Null_Binding_Functions {
 		);
 	    my $functionCode;
 	    $functionCode  = "  subroutine ".$componentClassName."NullBindingSet".$label.$intent."(self,setValue)\n";
-	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
+	    $functionCode .= "    !% A null set function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
@@ -6808,7 +6809,7 @@ sub Generate_Null_Binding_Functions {
 		 }
 		);
 	    $functionCode  = "  subroutine ".$componentClassName."NullBindingRate".$label.$intent."(self,setValue,interrupt,interruptProcedure)\n";
-	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
+	    $functionCode .= "    !% A null rate function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
@@ -6835,7 +6836,7 @@ sub Generate_Null_Binding_Functions {
 		 
 		);
 	    $functionCode  = "  function ".$componentClassName."NullBinding".$label.$intent."(self)\n";
-	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".lc($intrinsicType)."s.\n";
+	    $functionCode .= "    !% A null get function for rank ".$nullFunction->{'rank'}." ".latex_encode(lc($intrinsicType))."s.\n";
 	    $functionCode .= "    implicit none\n";
 	    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
 	    $functionCode .= "    return\n";
