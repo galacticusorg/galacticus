@@ -12,8 +12,9 @@ unshift(@INC,$galacticusPath."perl");
 use PDL;
 use PDL::NiceSlice;
 use PDL::Basic;
-use Graphics::GnuplotIF;
 use XML::Simple;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 require Galacticus::HDF5;
 require Stats::Histograms;
 
@@ -62,8 +63,10 @@ foreach my $massFunction ( @{$data->{'massFunction'}} ) {
 }
 
 # Run Galacticus to generate the data.
-print "  -> Running Galacticus to generate merger trees...\n";
-system($galacticusPath."Galacticus.exe ".$galacticusPath."tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
+unless ( -e $galacticusOutput ) {
+    print "  -> Running Galacticus to generate merger trees...\n";
+    system($galacticusPath."Galacticus.exe ".$galacticusPath."tests/progenitorMassFunction/Progenitor_Mass_Function_Parameters.xml");
+}
 
 # Create data structure to read the results.
 my $dataSet;
@@ -77,6 +80,8 @@ print "  -> Found ".$treesCount." trees: processing.......\n";
 # Loop through trees.
 for (my $iTree=1;$iTree<=$treesCount;$iTree+=1) {
     $dataSet->{'tree'} = $iTree;
+    my $logRootNodeMass;
+    my $rootNodeMass;
     # Loop over outputs.
     for (my $iOutput=$outputCount;$iOutput>0;--$iOutput) {
 	$dataSet->{'output'} = $iOutput;
@@ -93,14 +98,12 @@ for (my $iTree=1;$iTree<=$treesCount;$iTree+=1) {
 	delete($dataSets->{'nodeIsIsolated'});
 	delete($dataSets->{'basicMass'});
 	# Compute fractional node masses and take the log.
-	my $logRootNodeMass;
-	my $rootNodeMass;
 	if ( $iOutput == $outputCount ) {
 	    $logRootNodeMass = $isolatedNodeMass->index(0);
-	    $rootNodeMass = $weight->index(0);
+	    $rootNodeMass    = $weight          ->index(0);
 	}
 	$isolatedNodeMass = $isolatedNodeMass-$logRootNodeMass;
-	$weight = $weight/$rootNodeMass;
+	$weight           = $weight/$rootNodeMass;
 
 	if ( $iOutput < $outputCount ) {
 	    # Determine in which tree bin this should lie.
@@ -131,50 +134,52 @@ for (my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
 # Create the plot.
 print "  -> Creating the plot...\n";
 my $plotName = $galacticusPath."tests/progenitorMassFunction/progenitorMassFunction.pdf";
-my $plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$plotName, 
-			  'postscript enhanced', 
-			  'color lw 3' );
-$plot1->gnuplot_cmd("set multiplot");
-$plot1->gnuplot_cmd("set size 0.33,0.25");
-$plot1->gnuplot_cmd("set label \"M_1/M_2\" at screen 0.5, screen -0.08 center");
-$plot1->gnuplot_cmd("set label \"df_{CMF}/dlog_{10}M_1\" at screen -0.06, screen 0.5 center rotate");
-for (my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
-    for (my $iOutput=$outputCount-1;$iOutput>0;--$iOutput) {
-	my $ox = 0.33*$rootBin;
+my $gnuPlot;
+my $plotFile = $plotName;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set multiplot\n";
+print $gnuPlot "set label '{\\small \$M_1/M_2\$}' at screen 0.5, screen -0.08 center\n";
+print $gnuPlot "set label '{\\small \${\\rm d}f_{\\rm CMF}/{\\rm d}\log_{10}M_1\$}' at screen -0.02, screen 0.5 center rotate\n";
+for(my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
+    for(my $iOutput=$outputCount-1;$iOutput>0;--$iOutput) {
+	my $plot;
+	my $ox = 0.07+0.31*$rootBin;
 	my $oy = 1.0-0.25*$iOutput;
-	$plot1->gnuplot_cmd("set origin ".$ox.",".$oy);
-	$plot1->gnuplot_cmd("set lmargin 0");
-	$plot1->gnuplot_cmd("set rmargin 0");
-	$plot1->gnuplot_cmd("set tmargin 0");
-	$plot1->gnuplot_cmd("set bmargin 0");
-	$plot1->gnuplot_cmd("set logscale xy");
-	$plot1->gnuplot_cmd("unset key");
+	print $gnuPlot "set size 0.31,0.25\n";
+	print $gnuPlot "set origin ".$ox.",".$oy."\n";
+	print $gnuPlot "set border; set xtics; set ytics\n";
+	print $gnuPlot "set lmargin 0\n";
+	print $gnuPlot "set rmargin 0\n";
+	print $gnuPlot "set tmargin 0\n";
+	print $gnuPlot "set bmargin 0\n";	
+	print $gnuPlot "set logscale xy\n";
+	print $gnuPlot "unset key\n";
 	if ( $rootBin == 0 ) {
-	    $plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
+	    print $gnuPlot "set format y '\\hspace{-1mm}{\\small \$10^{\%L}\$}'\n";
 	} else {
-	    $plot1->gnuplot_cmd("set format y \"\"");
+	    print $gnuPlot "set format y ''\n";
 	}
 	if ( $iOutput == $outputCount-1 ) {
-	    $plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
+	    print $gnuPlot "set format x '{\\small \$10^{\%L}\$}'\n";
 	} else {
-	    $plot1->gnuplot_cmd("set format x \"\"");
+	    print $gnuPlot "set format x ''\n";
 	}
-	$plot1->gnuplot_cmd("set yrange [0.01:3.0]");
-	my @x = list($Mval);
-	my @y = list($progenitorMF->(($rootBin),($iOutput-1),:));
+	print $gnuPlot "set yrange [0.01:3.0]\n";
 	my $M2;
 	if ( $rootBin == 0 ) {
 	    $M2 = "1.000e+12";
-	    $plot1->gnuplot_cmd("set xrange [0.003:2.0]");
+	    print $gnuPlot "set xrange [0.003:2.0]\n";
 	}
 	if ( $rootBin == 1 ) {
 	    $M2 = "3.160e+13";
-	    $plot1->gnuplot_cmd("set xrange [0.0001:2.0]");
+	    print $gnuPlot "set xrange [0.0001:2.0]\n";
 	}
 	if ( $rootBin == 2 ) {
 	    $M2 = "1.000e+15";
-	    $plot1->gnuplot_cmd("set xrange [0.000003:2.0]");
+	    print $gnuPlot "set xrange [0.000003:2.0]\n";
 	}
 	my $z1;
 	if ( $iOutput == 4 ) {$z1 = "0.5"};
@@ -182,15 +187,30 @@ for (my $rootBin=0;$rootBin<$rootBinCount;++$rootBin) {
 	if ( $iOutput == 2 ) {$z1 = "2.0"};
 	if ( $iOutput == 1 ) {$z1 = "4.0"};
 	my $label = $M2.":".$z1;
-	my @xM = @{${$millenniumData{$label}}{'Mass'}};
-	my @yM = @{${$millenniumData{$label}}{'Fcmf'}};
-	$plot1->gnuplot_plot_many( \@x, \@y, \@xM, \@yM );
+	my $xM = pdl @{${$millenniumData{$label}}{'Mass'}};
+	my $yM = pdl @{${$millenniumData{$label}}{'Fcmf'}};
+	&PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $Mval,$progenitorMF->(($rootBin),($iOutput-1),:),
+	    style  => "point",
+	    symbol => [6,7],
+	    weight => [3,1],
+	    color  => $PrettyPlots::colorPairs{'redYellow'}
+	    );
+	&PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $xM,$yM,
+	    style  => "point",
+	    symbol => [6,7],
+	    weight => [3,1],
+	    color  => $PrettyPlots::colorPairs{'cornflowerBlue'}
+	    );
+	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot, multiPlot => 1);
     }
 }
-$plot1->gnuplot_cmd("unset multiplot");
+print $gnuPlot "unset multiplot\n";
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
 print "  -> Plot is available in: ".$plotName."\n";
-
-# Remove the Galacticus output.
-unlink($galacticusOutput);
 
 exit;

@@ -11,8 +11,9 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use Data::Dumper;
-use Graphics::GnuplotIF;
-use POSIX;
+use PDL;
+require GnuPlot::PrettyPlots;
+require GnuPlot::LaTeX;
 
 # Make a plot of the specified transfer function file.
 # Andrew Benson (15-Dec-2009)
@@ -33,26 +34,51 @@ my $data = $xml->XMLin($transferFunctionFile);
 my @dataArray = @{$data -> {'datum'}};
 
 # Extract the data.
-my @x;
-my @y;
+my $x = pdl [];
+my $y = pdl [];
 foreach my $datum ( @dataArray ) {
     my @columns = split(/\s+/,$datum);
-    push(@x,$columns[0]);
-    push(@y,$columns[1]);
+    $x = $x->append($columns[0]);
+    $y = $y->append($columns[1]);
 }
 
-# Make the plot.
-my $plot1  = Graphics::GnuplotIF->new();
-$plot1->gnuplot_hardcopy( '| ps2pdf - '.$pdfFile, 
-			  'postscript enhanced', 
-			  'color lw 3' );
-$plot1->gnuplot_set_xlabel("Wavenumber [Mpc^{-1}]");
-$plot1->gnuplot_set_ylabel("Transfer function");
-$plot1->gnuplot_set_plot_titles( "T(k)" );
-$plot1->gnuplot_set_title("Transfer Function");
-$plot1->gnuplot_cmd("set logscale xy");
-$plot1->gnuplot_cmd("set format y \"10^{\%L}\"");
-$plot1->gnuplot_cmd("set format x \"10^{\%L}\"");
-$plot1->gnuplot_plot_xy( \@x, \@y );
+# Make a plot of the transfer function.
+my $plot;
+my $gnuPlot;
+my $plotFile = $pdfFile;
+(my $plotFileEPS = $plotFile) =~ s/\.pdf$/.eps/;
+open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
+print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
+print $gnuPlot "set output '".$plotFileEPS."'\n";
+print $gnuPlot "set title 'Transfer Function' offset screen 0,-0.02\n";
+print $gnuPlot "set xlabel 'Wavenumber [Mpc\$^{-1}\$]'\n";
+print $gnuPlot "set ylabel 'Transfer function'\n";
+print $gnuPlot "set lmargin screen 0.15\n";
+print $gnuPlot "set rmargin screen 0.95\n";
+print $gnuPlot "set bmargin screen 0.15\n";
+print $gnuPlot "set tmargin screen 0.95\n";
+print $gnuPlot "set key off\n";
+print $gnuPlot "set logscale xy\n";
+print $gnuPlot "set mxtics 10\n";
+print $gnuPlot "set mytics 10\n";
+print $gnuPlot "set format x '\$10^{\%L}\$'\n";
+print $gnuPlot "set format y '\$10^{\%L}\$'\n";
+my $xMinimum = minimum($x)*0.9;
+my $xMaximum = maximum($x)/0.9;
+my $yMinimum = minimum($y)*0.9;
+my $yMaximum = maximum($y)/0.9;
+print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
+print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
+print $gnuPlot "set pointsize 2.0\n";
+&PrettyPlots::Prepare_Dataset(
+    \$plot,
+    $x,$y,
+    style  => "line",
+    weight => [3,1],
+    color  => $PrettyPlots::colorPairs{'redYellow'}
+    );
+&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+close($gnuPlot);
+&LaTeX::GnuPlot2PDF($plotFileEPS, margin => 2);
 
 exit;
