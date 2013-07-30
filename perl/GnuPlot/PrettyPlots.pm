@@ -241,8 +241,15 @@ sub Prepare_Dataset {
     my %lineColor;
     $lineColor{'lower'} = "";
     $lineColor{'upper'} = "";
-    $lineColor{'lower'} = " lc rgbcolor \"".${$options{'color'}}[0]."\"" if ( exists($options{'color'}) );
-    $lineColor{'upper'} = " lc rgbcolor \"".${$options{'color'}}[1]."\"" if ( exists($options{'color'}) );
+    if ( exists($options{'color'}) ) {
+	if ( ${$options{'color'}}[0] =~ m/palette/ ) {
+	    $lineColor{'lower'} = " lc ".${$options{'color'}}[0];
+	    $lineColor{'upper'} = " lc ".${$options{'color'}}[1];
+	} else {
+	    $lineColor{'lower'} = " lc rgbcolor \"".${$options{'color'}}[0]."\"";
+	    $lineColor{'upper'} = " lc rgbcolor \"".${$options{'color'}}[1]."\"";
+	}
+    }
 
     # Create attribute for line type, assuming no specification if type option is not present.
     my %lineType;
@@ -586,7 +593,7 @@ sub Plot_Datasets {
     foreach my $phase ( 'keyLower', 'keyUpper' ) {
 	print $gnuPlot ${$plot}->{$phase}->{'command'}."\n";
 	print $gnuPlot ${$plot}->{$phase}->{'data'   };
-	# Switch off borders and tics after the first plot.
+	# Switch off borders and tics after the first plot.	
 	print $gnuPlot "unset label; unset border; unset xtics; unset ytics; unset x2tics; unset y2tics; set xlabel ''; set ylabel ''\n" if ( $phase eq "keyLower" );
     }
     print $gnuPlot ${$plot}->{'data'}->{'data'};

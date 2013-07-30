@@ -289,10 +289,7 @@ perl -MCPAN -e 'install PDL::LinearAlgebra'
 \begin{verbatim}
 yum install gnuplot
 \end{verbatim}
-Alternatively, {\sc Gnuplot} can be installed from source, following the online instructions. Note that some scripts require {\sc Gnuplot} v4.4 or later. Some plotting scripts also make use of the {\tt Graphics::GnuplotIF} Perl module. This can be installed from CPAN using
-\begin{verbatim}
-perl -MCPAN -e 'install Graphics::GnuplotIF'
-\end{verbatim}
+Alternatively, {\sc Gnuplot} can be installed from source, following the online instructions. Note that some scripts require {\sc Gnuplot} v4.4 or later.
 
 \item[GraphViz] The \href{http://www.graphviz.org/}{GraphViz} package is used to create plots of merger tree structures. While not required to run \glc\ it is recommended to allow simple graphing of such structures (useful to get a visual impression of what's going on in the code). On Fedora the following (as root) will install GraphViz and a module that allows Perl to interact with it:
 \begin{verbatim}
@@ -463,7 +460,6 @@ perl -MCPAN -e "install LaTeX::Encode"
 perl -MCPAN -e "install XML::Simple"
 perl -MCPAN -e "install Math::SigFigs"
 perl -MCPAN -e "install GraphViz"
-perl -MCPAN -e 'install Graphics::GnuplotIF'
 perl -MCPAN -e 'force("install","Astro::Cosmology")'
 perl -MCPAN -e "install File::Find"
 perl -MCPAN -e "install File::Copy"
