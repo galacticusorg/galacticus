@@ -46,6 +46,7 @@ module Node_Component_Merging_Statistics_Recent
   integer                                     :: nodeRecentMajorMergerIntervalType
   integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
   integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
+  logical                                     :: nodeRecentMajorMergerFromInfall
 
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized        =.false.
@@ -80,8 +81,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('nodeMajorMergerFraction',nodeMajorMergerFraction,defaultValue=0.25d0)
-
-
        !@ <inputParameter>
        !@   <name>nodeRecentMajorMergerInterval</name>
        !@   <defaultValue>2.0</defaultValue>
@@ -112,6 +111,17 @@ contains
        case default
           call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Initialize','[nodeRecentMajorMergerIntervalType] has unrecognized value')
        end select
+       !@ <inputParameter>
+       !@   <name>nodeRecentMajorMergerFromInfall</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('nodeRecentMajorMergerFromInfall',nodeRecentMajorMergerFromInfall,defaultValue=.false.)
        ! Determine the number of output times.
        outputCount=Galacticus_Output_Time_Count()
        call Alloc_Array(zeroCount,[outputCount])
@@ -157,11 +167,13 @@ contains
     use Galacticus_Output_Times
     implicit none
     type            (treeNode                      ), intent(inout), pointer                :: thisNode
+    type            (treeNode                      )               , pointer                :: descendentNode
     class           (nodeComponentMergingStatistics)               , pointer                :: parentMergingStatistics
-    class           (nodeComponentBasic            )               , pointer                :: parentBasic            , thisBasic
+    class           (nodeComponentBasic            )               , pointer                :: parentBasic            , thisBasic     , &
+         &                                                                                     descendentParentBasic
     integer                                                        , dimension(outputCount) :: mergerIncrement
     integer                                                                                 :: i
-    double precision                                                                        :: recentTimeInterval
+    double precision                                                                        :: recentTimeInterval     , timeBase
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -182,10 +194,31 @@ contains
           case default
              call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Node_Merger','unrecognized time interval type')
           end select
-          if     (                                                                             &
-               &   thisBasic%time() <= Galacticus_Output_Time(i)                               &
-               &  .and.                                                                        &
-               &   thisBasic%time() >  Galacticus_Output_Time(i)-nodeRecentMajorMergerInterval &
+          if (nodeRecentMajorMergerFromInfall) then
+             if (thisNode%isSatellite()) then
+                timeBase=thisBasic%timeLastIsolated()
+             else
+                timeBase=Galacticus_Output_Time(i)
+                descendentNode => thisNode
+                do while (associated(descendentNode))
+                   if (descendentNode%isPrimaryProgenitor()) then
+                      descendentNode => thisNode%parent
+                   else
+                      if (associated(descendentNode%parent)) then
+                         descendentParentBasic => descendentNode%parent%basic()
+                         timeBase=min(timeBase,descendentParentBasic%time())
+                      end if
+                      exit
+                   end if
+                end do
+             end if
+          else
+             timeBase=Galacticus_Output_Time(i)
+          end if
+          if     (                                                            &
+               &   thisBasic%time() <= timeBase                               &
+               &  .and.                                                       &
+               &   thisBasic%time() >  timeBase-nodeRecentMajorMergerInterval &
                & ) mergerIncrement(i)=1
        end do
        call parentMergingStatistics%recentMajorMergerCountSet(parentMergingStatistics%recentMajorMergerCount()+mergerIncrement)
