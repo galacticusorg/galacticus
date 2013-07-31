@@ -39,7 +39,6 @@ contains
   !# <galacticusTask>
   !#  <unitName>Galacticus_Task_Evolve_Tree</unitName>
   !#  <after>Galacticus_Task_Start</after>
-  !#  <after>Galacticus_Task_Test</after>
   !#  <before>Galacticus_Task_End</before>
   !# </galacticusTask>
   logical function Galacticus_Task_Evolve_Tree()
