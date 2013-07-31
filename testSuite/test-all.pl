@@ -292,6 +292,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.black_hole_fundamentals.exe",                                  # Black hole fundamentals.
+	valgrind => 0
+    },
+    {
 	name     => "tests.bug745815.exe",                                                # Regresssions.
 	valgrind => 0
     },

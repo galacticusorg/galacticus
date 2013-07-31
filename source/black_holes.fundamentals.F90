@@ -25,7 +25,7 @@ module Black_Hole_Fundamentals
   public :: Black_Hole_ISCO_Radius, Black_Hole_ISCO_Specific_Energy, Black_Hole_Gravitational_Radius,&
        & Black_Hole_Frame_Dragging_Frequency, Black_Hole_Metric_A_Factor, Black_Hole_Metric_D_Factor, Black_Hole_Horizon_Radius,&
        & Black_Hole_Static_Radius, Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_Rotational_Energy_Spin_Down,&
-       & Black_Hole_Eddington_Accretion_Rate, Black_Hole_Fundamentals_Unit_Test
+       & Black_Hole_Eddington_Accretion_Rate
 
   ! Identifiers for unit system options.
   integer, parameter, public :: unitsGravitational=0
@@ -573,33 +573,5 @@ contains
     end if
     return
   end function Black_Hole_Rotational_Energy_Spin_Down_Spin
-
-  !# <galacticusSelfTest>
-  !#   <unitName>Black_Hole_Fundamentals_Unit_Test</unitName>
-  !# </galacticusSelfTest>
-  subroutine Black_Hole_Fundamentals_Unit_Test
-    !% Unit tests for the black holes fundamentals module.
-    use Unit_Tests
-    implicit none
-
-    ! Begin a unit testing group.
-    call Unit_Tests_Begin_Group("black hole fundamentals")
-
-    ! ISCO radius for a Schwarzchild black hole should be 6 for prograde orbits.
-    call Assert("Schwarzchild metric ISCO radius",Black_Hole_ISCO_Radius_Spin(0.0d0,orbitPrograde),6.0d0,compareEquals,1.0d-6)
-
-    ! ISCO radius for an extreme Kerr black hole should be 1 for prograde orbits.
-    call Assert("Extreme Kerr metric ISCO radius",Black_Hole_ISCO_Radius_Spin(1.0d0,orbitPrograde),1.0d0,compareEquals,1.0d-6)
-
-    ! Horizon radius for a Schwarzchild black hole should be 2.
-    call Assert("Schwarzchild metric horizon radius",Black_Hole_Horizon_Radius_Spin(0.0d0),2.0d0,compareEquals,1.0d-6)
-
-    ! Horizon radius for an extreme Kerr black hole should be 1.
-    call Assert("Extreme Kerr metric horizon radius",Black_Hole_Horizon_Radius_Spin(1.0d0),1.0d0,compareEquals,1.0d-6)
-
-    ! End the unit testing group.
-    call Unit_Tests_End_Group
-    return
-  end subroutine Black_Hole_Fundamentals_Unit_Test
 
 end module Black_Hole_Fundamentals
