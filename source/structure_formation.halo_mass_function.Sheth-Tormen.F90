@@ -25,7 +25,6 @@ module Halo_Mass_Function_Sheth_Tormen
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
   integer         , parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMaximum  =log(1.0d15), logMassMinimum=log(1.0d9)
 
 contains
 
