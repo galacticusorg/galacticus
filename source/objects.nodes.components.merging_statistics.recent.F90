@@ -195,14 +195,14 @@ contains
              call Galacticus_Error_Report('Node_Component_Merging_Statistics_Recent_Node_Merger','unrecognized time interval type')
           end select
           if (nodeRecentMajorMergerFromInfall) then
-             if (thisNode%isSatellite()) then
-                timeBase=thisBasic%timeLastIsolated()
+             if (thisNode%parent%isSatellite()) then
+                timeBase=parentBasic%timeLastIsolated()
              else
                 timeBase=Galacticus_Output_Time(i)
-                descendentNode => thisNode
+                descendentNode => thisNode%parent
                 do while (associated(descendentNode))
                    if (descendentNode%isPrimaryProgenitor()) then
-                      descendentNode => thisNode%parent
+                      descendentNode => descendentNode%parent
                    else
                       if (associated(descendentNode%parent)) then
                          descendentParentBasic => descendentNode%parent%basic()
