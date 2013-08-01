@@ -367,7 +367,7 @@ contains
           ! Remove the accreted mass from the hot halo component.
           call thisHotHaloComponent %   massSinkSet (-accretionRateHotHalo )
           ! Set spin-up rate due to accretion.
-          if (massAccretionRate > 0.0d0) call thisBlackHoleComponent%spinRate(Black_Hole_Spin_Up_Rate(thisBlackHoleComponent,massAccretionRate))
+          if (restMassAccretionRate > 0.0d0) call thisBlackHoleComponent%spinRate(Black_Hole_Spin_Up_Rate(thisBlackHoleComponent,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
