@@ -120,6 +120,7 @@ The {\tt runFile} is an XML file with the following structure:
    <ompThreads>8</ompThreads>
    <queue>standard</queue>
    <maxJobsInQueue>10</maxJobsInQueue>
+   <mpiLaunch>yes</mpiLaunch>
    <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
    <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
  </pbs>                                                                                                             
@@ -188,6 +189,7 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node;
 \item[{\tt queue}] The name of the queue to submit the jobs to (optional);
 \item[{\tt maxJobsInQueue}] The maximum number of jobs to place in the queue. Additional jobs will be held and submitted once the number of jobs in the queue drops below this value (optional);
+\item[{\tt mpiLaunch}] If set to ``{\tt yes}'' then the {\tt mpirun} command will be used to launch a single copy of \glc\ (which may then spawn multiple OpenMP threads). If instead set to ``{\tt no}'' then \glc\ is launch without the use of the {\tt mpirun} command. Some systems will limit a code launched with {\tt mpirun} to using just a single CPU (even if multiple OpenMP threads are spawned). In such cases, setting this option to ``{\tt no}'' should permit multiple CPUs to be utilized.
 \item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
 \item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \end{description}
