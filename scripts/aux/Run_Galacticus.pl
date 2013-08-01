@@ -479,12 +479,19 @@ sub Launch_Models {
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
 			print oHndl "mkdir -p ".$scratchPath."\n"
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
-			if ( exists($modelsToRun->{'pbs'}->{'mpiRun'}) ) {
-			    print oHndl $modelsToRun->{'pbs'}->{'mpiRun'};
+			my $mpiLaunch = "yes";
+			$mpiLaunch = $modelsToRun->{'pbs'}->{'mpiLaunch'}
+			   if ( exists($modelsToRun->{'pbs'}->{'mpiLaunch'}) );
+			if ( $mpiLaunch eq "yes" ) {
+			    if ( exists($modelsToRun->{'pbs'}->{'mpiRun'}) ) {
+				print oHndl $modelsToRun->{'pbs'}->{'mpiRun'};
+			    } else {
+				print oHndl "mpirun";
+			    }
+			    print oHndl " --bynode -np 1 Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
 			} else {
-			    print oHndl "mpirun";
+			    print oHndl "./Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
 			}
-			print oHndl " --bynode -np 1 Galacticus.exe ".$galacticusOutputDirectory."/newParameters.xml\n";
 			print oHndl "mv ";
 			print oHndl $scratchPath
 			    if ( exists($modelsToRun->{'pbs'}->{'scratchPath'}) );
