@@ -63,7 +63,7 @@ contains
        massElement    => item(massList,0)
        massDataList   => getElementsByTagname(massElement,"data")
        energyList     => getElementsByTagname(doc,"supernovaEnergy")
-       energyElement  => item(massList,0)
+       energyElement  => item(energyList,0)
        energyDataList => getElementsByTagname(energyElement,"data")
 
        ! Count how many elements are present and allocate arrays.
