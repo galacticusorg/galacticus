@@ -535,7 +535,7 @@ contains
           message="unable to count open objects in file object '"//thisObject%objectName//"'"
           call Galacticus_Error_Report('IO_HDF5_Close',message)
        end if
-       if (openObjectCount > 1) then
+       if (openObjectCount > 2) then
           message=""
           message=message//openObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
           call Galacticus_Display_Indent('Problem closing HDF5 file')
