@@ -165,7 +165,7 @@ vpath %.cpp source
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe : ./work/build/%.o ./work/build/%.d `cat ./work/build/$*.d` $(MAKE_DEPS)
-	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/Library_Dependencies.pl $*.exe`
+	 $(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe $(FCFLAGS) `scripts/build/Library_Dependencies.pl $*.exe $(findstring -static,$(FCFLAGS))`
 	 ./scripts/build/Find_Executable_Size.pl $*.exe $*.size
 	 ./scripts/build/Find_Parameter_Dependencies.pl $*.exe
 
