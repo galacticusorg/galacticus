@@ -8,8 +8,9 @@ use Sort::Topological qw(toposort);
 
 # Get the name of the executable being built.
 die("Usage: Library_Dependencies.pl <executable>")
-    unless ( scalar(@ARGV) == 1 );
-my $executable = $ARGV[0];
+    unless ( scalar(@ARGV) >= 1 );
+my $executable = shift(@ARGV);
+my @compilerOptions = @ARGV;
 
 # Specify library dependencies.
 my %dependencies = 
@@ -25,7 +26,7 @@ my %dependencies =
 # Library order dependencies for static linking.
 my %staticLinkDependencies =
     (
-     hdf5          => [ "z"                                ],
+     hdf5          => [ "z", "dl"                          ],
      hdf5_fortran  => [ "hdf5"                             ],
      fgsl_gfortran => [ "gsl"                              ],
      gsl           => [ "gslcblas"                         ],
@@ -33,6 +34,14 @@ my %staticLinkDependencies =
      FoX_sax       => [ "FoX_common"                       ],
      FoX_common    => [ "FoX_fsys"                         ]
     );
+
+# Detect static linking.
+my $isStatic = 0;
+$isStatic = 1
+    if ( grep {$_ eq "-static"} @compilerOptions);
+
+push(@{$dependencies{'hdf5'}},"dl")
+    if ( $isStatic == 1 );
 
 # Initialize a hash of required libraries.
 my %libraries;
@@ -74,7 +83,12 @@ my @unsortedLibraries = keys(%libraries);
 sub staticLinkDependency { @{$staticLinkDependencies{$_[0]} || []}; }
 my @sortedLibraries = toposort(\&staticLinkDependency, \@unsortedLibraries);
 
+# Add static link options.
+my $staticOptions = "";
+$staticOptions = "-Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
+    if ( $isStatic == 1 );
+
 # Write the linker options to standard output.
-print join(" ",map {"-l".$_} @sortedLibraries)."\n";
+print join(" ",map {"-l".$_} @sortedLibraries)." ".$staticOptions."\n";
 
 exit;
