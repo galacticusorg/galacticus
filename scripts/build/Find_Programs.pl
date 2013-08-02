@@ -77,7 +77,7 @@ foreach my $srcdir ( @sourcedirs ) {
 			$root =~ s/\.[fF](90)?t?$//;
 			my $eleaf = $root.".exe";
 			print $outfile "$root.exe: .$workDir$base$ofile .$workDir$base$dfile \$(MAKE_DEPS)\n";
-			print $outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe`\n";
+			print $outfile "\t\$(FCCOMPILER) `cat .$workDir$base$dfile` -o $root.exe \$(FCFLAGS) `scripts/build/Library_Dependencies.pl $root.exe \$(findstring -static,\$(FCFLAGS))`\n";
 			print $outfile "\t./scripts/build/Find_Executable_Size.pl $root.exe .$workDir$root.size\n";
 			print $outfile "\t./scripts/build/Find_Parameter_Dependencies.pl $root.exe\n\n";
 		    }
