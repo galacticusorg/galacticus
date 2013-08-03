@@ -39,9 +39,13 @@ my %staticLinkDependencies =
 my $isStatic = 0;
 $isStatic = 1
     if ( grep {$_ eq "-static"} @compilerOptions);
-
 push(@{$dependencies{'hdf5'}},"dl")
     if ( $isStatic == 1 );
+
+# Detect if pthread is already included.
+my $pthreadIncluded = 0;
+$pthreadIncluded = 1
+    if ( grep {$_ eq "-lpthread"} @compilerOptions);
 
 # Initialize a hash of required libraries.
 my %libraries;
@@ -86,7 +90,7 @@ my @sortedLibraries = toposort(\&staticLinkDependency, \@unsortedLibraries);
 # Add static link options.
 my $staticOptions = "";
 $staticOptions = "-Wl,--whole-archive -lpthread -Wl,--no-whole-archive"
-    if ( $isStatic == 1 );
+    if ( $isStatic == 1 && $pthreadIncluded == 0 );
 
 # Write the linker options to standard output.
 print join(" ",map {"-l".$_} @sortedLibraries)." ".$staticOptions."\n";
