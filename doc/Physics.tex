@@ -299,6 +299,18 @@ where $\alpha = {\rm d}\ln\sigma/{\rm d}\ln M$ and $f[S]$ is the excursion set b
 
 Selected with {\tt haloMassFunctionMethod}$=${\tt Tinker2008} this method uses the functional form proposed by \cite{tinker_towardhalo_2008} to compute the halo mass function. The mass function is computed at the appropriate virial overdensity (see \S\ref{sec:VirialDensityConstrast}).
 
+\subsection{Halo Mass Function Modifiers}\index{halo mass function!modifier}\index{dark matter halos!mass function!modifier}
+
+Dark matter halo mass function modifiers are automatically applied to the halo mass function (unless a particular modifier chooses to deactivate itself).
+
+\subsubsection{Simple Systematic}
+
+This modifier applies a simple systematic (intend to model systematic uncertainties in the halo mass function) of the form:
+\begin{equation}
+ n \rightarrow n [ 1 + \alpha + \beta \log_{10} (M/M_0) ],
+\end{equation}
+where $n$ is the halo mass function, $\alpha=${\tt [haloMassFunctionSimpleSystematicAlpha]}, $\beta=${\tt [haloMassFunctionSimpleSystematicBeta]}, and $M_0=10^{12}M_\odot$.
+
 \section{Cooling of Gas Inside Halos}\index{cooling}
 
 The cooling of gas within dark matter halos is controlled by a number of different algorithms which will be decribed below.

@@ -2866,6 +2866,33 @@ Currently defined halo mass function methods are:
  \item [\hyperlink{structure_formation.halo_mass_function.Tinker2008.F90:halo_mass_function_tinker2008:halo_mass_function_differential_tinker2008}{{\tt Tinker2008}}] Implements the mass function described by \cite{tinker_towardhalo_2008}.
 \end{description}
 
+\subsubsection{Halo Mass Function Modifiers}
+
+Additional methods for halo mass function modifiers can be added using the {\tt haloMassFunctionModifierMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to modify the mass function. For example, the {\tt simpleSystematic} method is described by a directive:
+\begin{verbatim}
+ !# <haloMassFunctionModifierMethod>
+ !#  <unitName>Halo_Mass_Function_Modifier_Simple_Systematic</unitName>
+ !# </haloMassFunctionModifierMethod>
+\end{verbatim}
+Here, {\tt Halo\_Mass\_Function\_Modifier\_Simple\_Systematic} is the name of a subroutine which will be called to modify the mass function. The modification subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Modify(haloTime,haloMass,haloMassFunction)
+    implicit none
+    double precision, intent(in   ) :: haloTime,haloMass
+    double precision, intent(inout) :: haloMassFunction
+    .
+    .
+    .
+    return
+  end subroutine Method_Modify
+\end{verbatim}
+The function should should apply any modifications to the {\tt haloMassFunction} appropriate for the given {\tt haloTime} and {\tt haloMass}.
+
+Currently defined halo mass function modifier methods are:
+\begin{description}
+ \item [\hyperlink{structure_formation.halo_mass_function.modifier.simple_systematic.F90:halo_mass_function_modifiers_simple_systematic:halo_mass_function_modifier_simple_systematic}{{\tt simpleSystematic}}] Applies simple systematic shifts to the mass function.
+\end{description}
+
 \subsubsection{Halo Mass Sampling Density Functions}
 
 Additional methods for halo mass sampling density functions can be added using the {\tt haloMassFunctionSamplingMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt powerLaw} method is described by a directive:
