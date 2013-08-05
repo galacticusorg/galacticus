@@ -147,8 +147,6 @@ sub Construct {
     }
 
     # Apply any shifts due to model discrepancy.
-    my $modelDiscrepancyCovarianceMultiplicative = pdl zeroes(nelem($yGalacticus),nelem($yGalacticus));
-    my $modelDiscrepancyCovarianceAdditive       = pdl zeroes(nelem($yGalacticus),nelem($yGalacticus));
     if ( exists($arguments{'modelDiscrepancies'}) ) {
 	# Locate the path which contains discrepancies.
 	my $discrepancyPath = $arguments{'modelDiscrepancies'};
@@ -164,9 +162,15 @@ sub Construct {
 			# Read the multiplicative discrepancy
 			my $multiplier = $discrepancyFile->dataset('multiplicative')->get();
 			# Adjust the model accordingly.
-			$yGalacticus          *= $multiplier;
-			$errorGalacticus      *= $multiplier;
-			$covarianceGalacticus *= $multiplier**2;
+			my $covarianceMultiplier = pdl zeroes(nelem($multiplier),nelem($multiplier));
+			$covarianceMultiplier .= $discrepancyFile->dataset('multiplicativeCovariance')->get()
+			    if ( grep {$_ eq "multiplicativeCovariance"} @datasets );
+			$covarianceGalacticus .=
+			     $covarianceGalacticus                      *outer($multiplier  ,$multiplier)
+			    +                      $covarianceMultiplier*outer($yGalacticus,$yGalacticus)
+			    +$covarianceGalacticus*$covarianceMultiplier;
+			$yGalacticus          *=                               $multiplier;
+			$errorGalacticus      *=                               $multiplier;
 		    }
 		    if ( $dataset eq "additive" ) {
 			# Read the additive discrepancy
@@ -174,17 +178,11 @@ sub Construct {
 			# Adjust the model accordingly.
 			$yGalacticus     += $addition;
 		    }
-		    if ( $dataset eq "multiplicativeCovariance" ) {
-			# Read the covariance of the discrepancy.
-			my $covariance = $discrepancyFile->dataset('multiplicativeCovariance')->get();
-			# Adjust the model discrepancy covariance accordingly.
-			$modelDiscrepancyCovarianceMultiplicative += $covariance;
-		    }
 		    if ( $dataset eq "additiveCovariance" ) {
 			# Read the covariance of the discrepancy.
 			my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 			# Adjust the model discrepancy covariance accordingly.
-			$modelDiscrepancyCovarianceAdditive += $covariance;
+			$covarianceGalacticus += $covariance;
 		    }
 		}
 	    }
@@ -224,10 +222,9 @@ sub Construct {
 
     # Compute the likelihood:
     if ( exists($arguments{'outputFile'}) ) {
-	# First find the logarithmic difference between model and data points. For any bins in which
-	# the model mass function is zero, we extrapolate from adjacent bins. This is necessary in
-	# order to permit a finite likelihood to be computed. Such models will always have a very
-	# low likelihood, so the details of the extrapolation should not matter.
+	# For any bins in whichthe model mass function is zero, we extrapolate from adjacent bins. This is necessary in order to
+	# permit a finite likelihood to be computed. Such models will always have a very low likelihood, so the details of the
+	# extrapolation should not matter.
 	my $yDefined                 = pdl zeroes(nelem($yGalacticus));
 	my $nonZero                  = which($yGalacticus > 0.0);
 	$yDefined->($nonZero)       .= 1.0;
@@ -245,20 +242,15 @@ sub Construct {
 		$yDefined      ->(($i)) .= 1.0;
 	    }
 	}
-	# Apply any additive model discrepancy covariance.
-	$covarianceGalacticus += $modelDiscrepancyCovarianceAdditive;
-	# Now compute the covariance in the logarithm of the mass function (using the conversion from
-	# http://en.wikipedia.org/wiki/Log-normal_distribution#Multivariate_log-normal)
-	my $covarianceLog           = &Covariances::LogNormalCovariance(    $config->{'y'}  ,$config->{'covariance'});
-	my $covarianceGalacticusLog = &Covariances::LogNormalCovariance(exp($logYGalacticus),$covarianceGalacticus  );
-	# Apply any multiplicative model discrepancy covariance.
-	$covarianceGalacticusLog   += $modelDiscrepancyCovarianceMultiplicative;
+	$yGalacticus .= exp($logYGalacticus);
+
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
-	my $fullCovarianceLog       = $covarianceLog+$covarianceGalacticusLog;
+	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
 	# Compute the likelihood.
 	my $constraint;
-	$constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($logYGalacticus,log($config->{'y'}),$fullCovarianceLog);
+	$constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance);
+
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});
