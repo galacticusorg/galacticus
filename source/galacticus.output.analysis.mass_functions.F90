@@ -216,7 +216,6 @@ contains
   !# </mergerTreeAnalysisTask>
   subroutine Galacticus_Output_Analysis_Mass_Functions(thisTree,thisNode,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
-    use Merger_Trees
     use Galacticus_Nodes
     use Galacticus_Input_Paths
     use IO_HDF5

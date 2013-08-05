@@ -58,7 +58,7 @@ contains
 
   double precision function Merger_Tree_Build_Mass_Resolution_Fixed(thisTree)
     !% Returns a fixed mass resolution to use when building merger trees.
-    use Merger_Trees
+    use Galacticus_Nodes
     implicit none
     type(mergerTree), intent(in   ) :: thisTree
 
