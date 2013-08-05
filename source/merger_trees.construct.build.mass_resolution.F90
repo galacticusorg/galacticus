@@ -74,7 +74,7 @@ contains
 
   double precision function Merger_Tree_Build_Mass_Resolution(thisTree)
     !% Return the mass resolution to use when building {\tt thisTree}.
-    use Merger_Trees
+    use Galacticus_Nodes
     implicit none
     type(mergerTree), intent(in   ) :: thisTree
 
