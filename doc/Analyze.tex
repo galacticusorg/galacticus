@@ -176,6 +176,8 @@ The {\tt Outputs} group contains one or more sub-groups corresponding to the out
  \item[{\tt mergerTree} subgroups \emph{(optional)}] A set of {\tt mergerTree} groups as described below.
 \end{description}
 
+It is possible to prevent the output of data to these groups by setting {\tt [mergerTreeOutput]} to {\tt false}. This can save on both file size and I/O time if you do not intend to perform any analysis on the raw data output by \glc. (For example, if you're only interested in volume averaged quantities output to the {\tt globalHistory} group.)
+
 \subsubsection{nodeData group}\label{sec:nodeDataGroup}
 
 The {\tt nodeData} group contains all data from nodes in all merger trees. The group consists of a collection of datasets each of which lists a property of all nodes in the trees which exist at the output time. Where relevant, each dataset contains an attribute, {\tt unitsInSI}, which gives the units\index{units} of the dataset in the SI system.
