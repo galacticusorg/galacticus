@@ -47,7 +47,8 @@ contains
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision               , intent(in   ) :: redshift                               , wavelength
+    double precision               , intent(in   ) :: redshift                               , wavelength         , &
+         &                                            age
     double precision               , intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
     double precision, parameter                    :: N0                              =0.25d0
