@@ -1972,6 +1972,14 @@ Selected with {\tt starFormationFeedback[Disks|Spheroids]Method}$=${\tt powerLaw
 \end{equation}
 where $V_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} (in km/s) and $\alpha_{\rm outflow}=${\tt [disk|spheroid]OutflowVelocity} are input parameters, $V$ is the characteristic velocity of the component, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
 
+\subsection{Halo Scaling}
+
+Selected with {\tt starFormationFeedbackDisksMethod}$=${\tt haloScaling}, this method assumes an outflow rate of:
+\begin{equation}
+ \dot{M}_{\rm outflow} = f_{\rm out} \left({V_{\rm vir} \over 200\hbox{km/s}}\right)^\alpha (1+z)^\beta {\dot{E} \over E_{\rm canonical}},
+\end{equation}
+where $V_{\rm vir}$ is the virial velocity of the halo, $f_{\rm out}=${\tt [diskOutflowFraction]}, $\alpha=${\tt [diskOutflowVirialVelocityExponent]}, $\beta=${\tt [diskOutflowRedshiftExponent]}, $\dot{E}$ is the rate of energy input from stellar populations and $E_{\rm canonical}$ is the total energy input by a canonical stellar population normalized to $1 M_\odot$ after infinite time.
+
 \subsection{Creasey et al. (2012)}
 
 Selected with {\tt starFormationFeedbackDisksMethod}$=${\tt Creasey2012}, this method computes the outflow rate using the model of \cite{creasey_how_2012}. Specifically,
