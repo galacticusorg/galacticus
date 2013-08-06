@@ -40,10 +40,15 @@ sub Get_Magnitude {
 	my $frame         = $3;
 	my $redshift      = $4;
 	my $dustExtension = $5;
-	if ( $6 eq ":vega" ) {
-	    $vegaMagnitude = 1;
-	} else {
-	    $vegaMagnitude = 0;
+	$dustExtension = ""
+	    unless ( defined($dustExtension) );
+	$vegaMagnitude = 0;
+	if ( defined($6) ) {
+	    if ( $6 eq ":vega" ) {
+		$vegaMagnitude = 1;
+	    } else {
+		$vegaMagnitude = 0;
+	    }
 	}
 	# Construct the name of the corresponding luminosity property.
 	my $luminosityDataset = lc($component)."LuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;
