@@ -66,6 +66,7 @@ contains
     use Input_Parameters
     use Atomic_Data
     use Galacticus_Input_Paths
+    use IO_XML
     implicit none
     type            (varying_string            ), intent(in   )          :: stellarAstrophysicsMethod
     procedure       (Star_Ejected_Mass_File    ), intent(inout), pointer :: Star_Ejected_Mass_Get
@@ -116,8 +117,7 @@ contains
        if (ioErr /= 0) call Galacticus_Error_Report('Stellar_Astrophysics_Initialize','Unable to parse stellar properties file')
 
        ! Check the file format version of the file.
-       propertyList => getElementsByTagname(doc,"fileFormat")
-       thisDatum => item(propertyList,0)
+       thisDatum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisDatum,fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Stellar_Astrophysics_File_Initialize','file format version is out of date')
 

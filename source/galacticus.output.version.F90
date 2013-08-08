@@ -58,6 +58,7 @@ contains
     use File_Utilities
     use FoX_dom
     use FoX_utils
+    use IO_XML
     implicit none
     type     (Node          ), pointer :: doc            , emailNode, nameNode, thisNode
     type     (NodeList      ), pointer :: nodesList
@@ -66,7 +67,7 @@ contains
     type     (hdf5Object    )          :: versionGroup
     type     (varying_string)          :: runTime
 
-	! Write a UUID for this model.
+    ! Write a UUID for this model.
     call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
 
     ! Create a group for version information.
@@ -83,18 +84,15 @@ contains
        !$omp critical (FoX_DOM_Access)
        doc => parseFile("galacticusConfig.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Version_Output','Unable to parse config file')
-       nodesList => getElementsByTagname(doc,"contact")
-       if (getLength(nodesList) >= 0) then
-          thisNode => item(nodesList,0)
-          nodesList => getElementsByTagname(thisNode,"name")
-          if (getLength(nodesList) >= 0) then
-             nameNode => item(nodesList,0)
+       if (XML_Path_Exists(doc,"contact")) then
+          if (XML_Path_Exists(doc,"contact/name")) then
+             nameNode => XML_Get_First_Element_By_Tag_Name(doc,"contact/name")
              call extractDataContent(nameNode,textBufferFixed)
              call versionGroup%writeAttribute(trim(textBufferFixed),'runByName')
           end if
           nodesList => getElementsByTagname(thisNode,"email")
-          if (getLength(nodesList) >= 0) then
-             emailNode => item(nodesList,0)
+          if (XML_Path_Exists(doc,"contact/email")) then
+             nameNode => XML_Get_First_Element_By_Tag_Name(doc,"contact/email")
              call extractDataContent(emailNode,textBufferFixed)
              call versionGroup%writeAttribute(trim(textBufferFixed),'runByEmail')
           end if

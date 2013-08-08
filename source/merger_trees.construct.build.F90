@@ -70,14 +70,14 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use FoX_dom
+    use IO_XML
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
     !# </include>
     implicit none
     type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
     procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
-    type            (Node                      )                            , pointer :: doc                                 , thisTree
-    type            (NodeList                  )                            , pointer :: rootMassList
+    type            (Node                      )                            , pointer :: doc
     integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
     double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3
     double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , &
@@ -264,18 +264,11 @@ contains
           !$omp critical (FoX_DOM_Access)
           doc => parseFile(char(mergerTreeBuildTreeMassesFile),iostat=ioErr)
           if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unable to read or parse merger tree root mass file')
-          ! Get a list of all defined tree root masses.
-          rootMassList => getElementsByTagname(doc,"treeRootMass")
-          ! Get a count of the number of trees.
-          treeCount=getLength(rootMassList)
-          ! Allocate arrays for tree masses.
-          call Alloc_Array(treeHaloMass,[treeCount])
+          ! Read all tree masses.
+          call XML_Array_Read(doc,"treeRootMass",treeHaloMass)
+          ! Allocate array for tree weights.
+          treeCount=size(treeHaloMass)
           call Alloc_Array(treeWeight  ,[treeCount])
-          ! Extract the tree masses from the XML data.
-          do iTree=1,treeCount
-             thisTree => item(rootMassList,iTree-1)
-             call extractDataContent(thisTree,treeHaloMass(iTree))
-          end do
           ! Finished - destroy the XML document.
           call destroy(doc)
           !$omp end critical (FoX_DOM_Access)

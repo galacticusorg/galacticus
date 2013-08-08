@@ -405,21 +405,19 @@ contains
     use Galacticus_Display
     use IO_XML
     implicit none
-    type            (varying_string)         , intent(in   )           :: coolingFunctionFileToRead
-    double precision                         , intent(  out), optional :: metallicityMaximumTabulated
-    type            (Node          ), pointer                          :: datum                          , doc                 , &
-         &                                                                extrapolation                  , extrapolationElement, &
-         &                                                                metallicityElement             , thisCoolingFunction , &
-         &                                                                thisCoolingRate                , thisTemperature     , &
-         &                                                                version
-    type            (NodeList      ), pointer                          :: coolingDatumList               , coolingFunctionList , &
-         &                                                                metallicityExtrapolationList   , temperatureDatumList, &
-         &                                                                temperatureExtrapolationList   , versionList
-    integer                                                            :: extrapolationMethod            , fileFormatVersion   , &
-         &                                                                iCoolingFunction               , iDatum              , &
-         &                                                                iExtrapolation                 , ioErr
-    double precision                                                   :: datumValues                 (1)
-    character       (len=32        )                                   :: limitType
+    type            (varying_string)             , intent(in   )           :: coolingFunctionFileToRead
+    double precision                             , intent(  out), optional :: metallicityMaximumTabulated
+    double precision                , allocatable, dimension(:)            :: coolingFunctionTemperaturesReference
+    type            (Node          ), pointer                              :: version                        , doc                 , &
+         &                                                                    extrapolation                  , extrapolationElement, &
+         &                                                                    metallicityElement             , thisCoolingFunction , &
+         &                                                                    thisCoolingRate                , thisTemperature
+    type            (NodeList      ), pointer                              :: coolingFunctionList            , metallicityExtrapolationList, &
+         &                                                                    temperatureExtrapolationList
+    integer                                                                :: extrapolationMethod            , fileFormatVersion   , &
+         &                                                                    iCoolingFunction               , ioErr               , &
+         &                                                                    iExtrapolation
+    character       (len=32        )                                       :: limitType
 
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
@@ -428,8 +426,7 @@ contains
     doc => parseFile(char(coolingFunctionFileToRead),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','Unable to find cooling function file')
     ! Check the file format version of the file.
-    versionList => getElementsByTagname(doc,"fileFormat")
-    version     => item(versionList,0)
+    version => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(version,fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Cooling_Function_CIE_File_Read','file format version is out of date')
     call Galacticus_Display_Counter(50,.false.,verbosityWorking)
@@ -438,68 +435,56 @@ contains
     coolingFunctionMetallicityNumberPoints=getLength(coolingFunctionList)
     ! Extract data from first cooling function and count number of temperatures present.
     thisCoolingFunction  => item(coolingFunctionList,0)
-    thisTemperature      => item(getElementsByTagname(thisCoolingFunction,"temperature"),0)
-    temperatureDatumList => getElementsByTagname(thisTemperature,"datum")
-    coolingFunctionTemperatureNumberPoints=getLength(temperatureDatumList)
+    thisTemperature      => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"temperature")
+    coolingFunctionTemperatureNumberPoints=XML_Array_Length(thisTemperature,"datum")
     ! Allocate space for the table.
     if (allocated(coolingFunctionMetallicities)) call Dealloc_Array(coolingFunctionMetallicities)
     if (allocated(coolingFunctionTemperatures )) call Dealloc_Array(coolingFunctionTemperatures )
     if (allocated(coolingFunctionTable        )) call Dealloc_Array(coolingFunctionTable        )
-    call Alloc_Array(coolingFunctionMetallicities                                       ,[coolingFunctionMetallicityNumberPoints])
+    call Alloc_Array(coolingFunctionMetallicities,[                                       coolingFunctionMetallicityNumberPoints])
     call Alloc_Array(coolingFunctionTemperatures ,[coolingFunctionTemperatureNumberPoints                                       ])
     call Alloc_Array(coolingFunctionTable        ,[coolingFunctionTemperatureNumberPoints,coolingFunctionMetallicityNumberPoints])
 
     ! Extract data from the cooling functions and populate metallicity and temperature arrays.
-    do iCoolingFunction=0,getLength(coolingFunctionList)-1
+    do iCoolingFunction=0,coolingFunctionMetallicityNumberPoints-1
        ! Get required cooling function.
        thisCoolingFunction => item(coolingFunctionList,iCoolingFunction)
        ! Extract the metallicity from the <metallicity> element.
-       metallicityElement  => item(getElementsByTagname(thisCoolingFunction,"metallicity"),0)
+       metallicityElement  => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"metallicity")
        call extractDataContent(metallicityElement,coolingFunctionMetallicities(iCoolingFunction+1))
        ! Extract the data.
-       thisTemperature      => item(getElementsByTagname(thisCoolingFunction,"temperature"),0)
-       temperatureDatumList =>      getElementsByTagname(thisTemperature    ,"datum"      )
-       thisCoolingRate      => item(getElementsByTagname(thisCoolingFunction,"coolingRate"),0)
-       coolingDatumList     =>      getElementsByTagname(thisCoolingRate    ,"datum"      )
+       thisTemperature => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"temperature")
+       thisCoolingRate => XML_Get_First_Element_By_Tag_Name(thisCoolingFunction,"coolingRate")
        ! Check that number of temperatures is consistent.
-       if (getLength(temperatureDatumList) /= coolingFunctionTemperatureNumberPoints) call&
-            & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperatures grids must be the same for all&
+       if (XML_Array_Length(thisTemperature,"datum") /= coolingFunctionTemperatureNumberPoints) call&
+            & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperature grids must be the same for all&
             & metallicities')
        ! Check that number of cooling rates matches number of temperatures.
-       if (getLength(temperatureDatumList) /= getLength(coolingDatumList)) call&
+       if (XML_Array_Length(thisTemperature,"datum") /= XML_Array_Length(thisCoolingRate,"datum")) call&
             & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','sizes of temperature and cooling rate arrays must match')
        ! Extract data.
-       do iDatum=0,getLength(temperatureDatumList)-1
-          ! Report progress.
-          call Galacticus_Display_Counter(                                                                           &
-               &                           int(                                                                      &
-               &                                50.0d0                                                               &
-               &                               +50.0d0                                                               &
-               &                               *dble(                                                                &
-               &                                      iDatum                                                         &
-               &                                     +iCoolingFunction*getLength(temperatureDatumList)               &
-               &                                    )                                                                &
-               &                               /dble(getLength(temperatureDatumList)*getLength(coolingFunctionList)) &
-               &                              )                                                                      &
-               &                          ,.false.                                                                   &
-               &                          ,verbosityWorking                                                          &
-               &                         )
-          datum => item(temperatureDatumList,iDatum)
-          call extractDataContent(datum,datumValues)
-          if (iCoolingFunction == 0) then
-             ! Store the temperature.
-             coolingFunctionTemperatures(iDatum+1)=datumValues(1)
-          else
-             ! Check that temperature grids are aligned.
-             if (Values_Differ(coolingFunctionTemperatures(iDatum+1),datumValues(1),relTol=1.0d-6)) call&
-                  & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','temperature grids mismatch')
-          end if
-          ! Store the cooling function.
-          datum => item(coolingDatumList,iDatum)
-          call extractDataContent(datum,datumValues)
-          coolingFunctionTable(iDatum+1,iCoolingFunction+1)=datumValues(1)
-       end do
+       call XML_Array_Read_Static(thisTemperature,"datum",coolingFunctionTemperatures                      )
+       call XML_Array_Read_Static(thisCoolingRate,"datum",coolingFunctionTable       (:,iCoolingFunction+1))
+       call Galacticus_Display_Counter(                                                   &
+            &                           int(                                              &
+            &                                50.0d0                                       &
+            &                               +50.0d0                                       &
+            &                               *dble(iCoolingFunction)                       &
+            &                               /dble(coolingFunctionMetallicityNumberPoints) &
+            &                              )                                              &
+            &                          ,.false.                                           &
+            &                          ,verbosityWorking                                  &
+            &                         )       
+       if (iCoolingFunction == 0) then
+          ! Make a copy of the temperatures to use as a reference for future temperature reads.
+          coolingFunctionTemperaturesReference=coolingFunctionTemperatures
+       else
+          ! Check that temperature grids are aligned.
+          if (any(Values_Differ(coolingFunctionTemperatures,coolingFunctionTemperaturesReference,relTol=1.0d-6))) call&
+               & Galacticus_Error_Report('Cooling_Function_CIE_File_Read','temperature grids mismatch')
+       end if
     end do
+    deallocate(coolingFunctionTemperaturesReference)
     where (coolingFunctionMetallicities>-999.0d0)
        coolingFunctionMetallicities=10.0d0**coolingFunctionMetallicities
     elsewhere
@@ -507,7 +492,7 @@ contains
     end where
 
     ! Extract extrapolation methods from the file.
-    extrapolationElement => item(getElementsByTagname(doc,"extrapolation"),0)
+    extrapolationElement         => XML_Get_First_Element_By_Tag_Name(doc,"extrapolation")
     metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
     do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
        extrapolation => item(metallicityExtrapolationList,iExtrapolation)

@@ -21,6 +21,7 @@ module Input_Parameters
   !% Implements reading of parameters from an XML data file.
   use, intrinsic :: ISO_C_Binding
   use FoX_dom
+  use IO_XML
   use HDF5
   use IO_HDF5
   use ISO_Varying_String
@@ -131,7 +132,7 @@ contains
        unknownParametersPresent=.false.
        do iParameter=0,parameterCount-1
           thisParameter => item(parameterList,iParameter)
-          nameElement   => item(getElementsByTagname(thisParameter,"name"),0)
+          nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
           jParameter    =  0
           parameterMatched=.false.
           do while (.not.parameterMatched .and. jParameter < allowedParameterCount)
@@ -207,7 +208,7 @@ contains
     Input_Parameter_Is_Present=.false.
     do while (.not.Input_Parameter_Is_Present.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) Input_Parameter_Is_Present=.true.
        iParameter=iParameter+1
     end do
@@ -236,9 +237,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterText=getTextContent(valueElement)
           Get_Input_Parameter_Array_Size=String_Count_Words(char(parameterText))
           foundMatch=.true.
@@ -281,9 +282,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterValue=getTextContent(valueElement)
           foundMatch=.true.
        end if
@@ -343,9 +344,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterText=getTextContent(valueElement)
           nEntries=String_Count_Words(char(parameterText))
           if (nEntries > size(parameterValue)) then
@@ -409,9 +410,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterValue=getTextContent(valueElement)
           foundMatch=.true.
        end if
@@ -471,9 +472,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterText=getTextContent(valueElement)
           nEntries=String_Count_Words(char(parameterText))
           if (nEntries > size(parameterValue)) then
@@ -537,9 +538,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -597,9 +598,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -657,9 +658,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -717,9 +718,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -778,9 +779,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -846,9 +847,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           foundMatch=.true.
        end if
@@ -913,9 +914,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterText=getTextContent(valueElement)
           read (parameterText,*) parameterValue
           foundMatch=.true.
@@ -974,9 +975,9 @@ contains
     foundMatch=.false.
     do while (.not.foundMatch.and.iParameter<parameterCount)
        thisParameter => item(parameterList, iParameter)
-       nameElement => item(getElementsByTagname(thisParameter,"name"),0)
+       nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           parameterText=getTextContent(valueElement)
           read (parameterText,*) parameterValue
           foundMatch=.true.

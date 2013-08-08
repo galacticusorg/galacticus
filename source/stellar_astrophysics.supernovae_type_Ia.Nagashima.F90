@@ -44,6 +44,7 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     use FoX_dom
+    use IO_XML
     use Atomic_Data
     use Memory_Management
     use Galacticus_Input_Paths
@@ -53,7 +54,7 @@ contains
     procedure       (SNeIa_Cumulative_Yield_Nagashima ), intent(inout), pointer :: SNeIa_Cumulative_Yield_Get
     type            (Node                             )               , pointer :: doc                        , thisAtom    , &
          &                                                                         thisIsotope                , thisYield
-    type            (NodeList                         )               , pointer :: isotopesList               , propertyList
+    type            (NodeList                         )               , pointer :: isotopesList
     integer                                                                     :: atomicIndex                , atomicNumber, &
          &                                                                         iIsotope                   , ioErr
     double precision                                                            :: isotopeYield
@@ -79,16 +80,14 @@ contains
        ! Loop through isotopes and compute the net metal yield.
        do iIsotope=0,getLength(isotopesList)-1
           thisIsotope  => item(isotopesList,iIsotope)
-          propertyList => getElementsByTagname(thisIsotope,"yield")
-          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
+          if (XML_Array_Length(thisIsotope,"yield") /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
                & ,'isotope must have precisely one yield')
-          thisYield => item(propertyList,0)
+          thisYield => XML_Get_First_Element_By_Tag_Name(thisIsotope,"yield")
           call extractDataContent(thisYield,isotopeYield)
           totalYield=totalYield+isotopeYield
-          propertyList => getElementsByTagname(thisIsotope,"atomicNumber")
-          if (getLength(propertyList) /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
+          if (XML_Array_Length(thisIsotope,"atomicNumber") /= 1) call Galacticus_Error_Report('Supernovae_Type_Ia_Nagashima_Initialize' &
                & ,'isotope must have precisely one atomic number')
-          thisAtom => item(propertyList,0)
+          thisAtom => XML_Get_First_Element_By_Tag_Name(thisIsotope,"atomicNumber")
           call extractDataContent(thisAtom,atomicNumber)
           atomicIndex=Atom_Lookup(atomicNumber=atomicNumber)
           elementYield(atomicIndex)=elementYield(atomicIndex)+isotopeYield

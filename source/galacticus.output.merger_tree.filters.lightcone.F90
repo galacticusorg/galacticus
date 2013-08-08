@@ -58,6 +58,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use FoX_dom
+    use IO_XML
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
@@ -116,48 +117,29 @@ contains
           ! Get the unit vectors of the lightcone.
           do iAxis=1,3
              write (tagName,'(a,i1)') "unitVector",iAxis
-             itemList => getElementsByTagname(doc,tagName)
-             thisItem => item(itemList,0)
+             thisItem => XML_Get_First_Element_By_Tag_Name(doc,tagName)
              lightconeUnitVector(:,iAxis)=Filter_Lightcone_Get_Coordinates(thisItem)
           end do
           ! Get units information.
-          itemList => getElementsByTagname(doc     ,"units"         )
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"length"        )
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"unitsInSI"     )
-          thisItem => item(itemList,0)
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"units/length/unitsInSI"     )
           call extractDataContent(thisItem,lengthUnitsInSI          )
-          itemList => getElementsByTagname(doc     ,"units"         )
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"length"        )
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"hubbleExponent")
-          thisItem => item(itemList,0)
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"units/length/hubbleExponent")
           call extractDataContent(thisItem,lengthUnitsHubbleExponent)
           unitConversionLength=lengthUnitsInSI*(Little_H_0()**lengthUnitsHubbleExponent)/megaParsec
           ! Get the origin of the lightcone.
-          itemList => getElementsByTagname(doc,"origin")
-          thisItem => item(itemList,0)
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"origin")
           lightconeOrigin=Filter_Lightcone_Get_Coordinates(thisItem)*unitConversionLength
           ! Get the replication period.
-          itemList => getElementsByTagname(doc,"boxLength")
-          thisItem => item(itemList,0)
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"boxLength")
           call extractDataContent(thisItem,lightconeReplicationPeriod)
           lightconeReplicationPeriod=lightconeReplicationPeriod*unitConversionLength
           ! Get the geometry.
-          itemList => getElementsByTagname(doc,"fieldOfView")
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"geometry")
-          thisItem => item(itemList,0)
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"fieldOfView/geometry")
           call extractDataContent(thisItem,geometryLabel)
           select case (trim(geometryLabel))
           case ("square")
              lightconeGeometry=lightconeGeometrySquare
-             itemList => getElementsByTagname(doc,"fieldOfView")
-             thisItem => item(itemList,0)
-             itemList => getElementsByTagname(thisItem,"length")
-             thisItem => item(itemList,0)
+             thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"fieldOfView/length")
              call extractDataContent(thisItem,lightconeFieldOfViewLength)
              lightconeFieldOfViewTanHalfAngle=tan(0.5d0*lightconeFieldOfViewLength)
              angularWeight=1.0d0/(lightconeFieldOfViewLength*(180.0d0/Pi))**2
@@ -165,38 +147,21 @@ contains
              call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','unknown field of view geometry')
           end select
           ! Get lightcone radial intervals.
-          itemList => getElementsByTagname(doc,"outputs")
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"redshift")
-          call Alloc_Array(lightconeTime,[getLength(itemList)])
-          do iOutput=1,getLength(itemList)
-             thisItem => item(itemList,iOutput-1)
-             call extractDataContent(thisItem,lightconeTime(iOutput))
+          thisItem => XML_Get_First_Element_By_Tag_Name(doc,"outputs")
+          call XML_Array_Read(thisItem,"redshift"       ,lightconeTime           )
+          call XML_Array_Read(thisItem,"minimumDistance",lightconeMinimumDistance)
+          call XML_Array_Read(thisItem,"maximumDistance",lightconeMaximumDistance)
+          call destroy(doc)
+          if     (                                                       &
+               &   size(lightconeMinimumDistance) /= size(lightconeTime) &
+               &  .or.                                                   &
+               &   size(lightconeMaximumDistance) /= size(lightconeTime) &
+               & ) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','size mismatch in outputs arrays')
+          do iOutput=1,size(lightconeTime)
              lightconeTime(iOutput)=Cosmology_Age(Expansion_Factor_From_Redshift(lightconeTime(iOutput)))
           end do
-          itemList => getElementsByTagname(doc,"outputs")
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"minimumDistance")
-          if (getLength(itemList) /= size(lightconeTime)) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone' &
-               & ,'size mismatch in outputs arrays')
-          call Alloc_Array(lightconeMinimumDistance,[getLength(itemList)])
-          do iOutput=1,getLength(itemList)
-             thisItem => item(itemList,iOutput-1)
-             call extractDataContent(thisItem,lightconeMinimumDistance(iOutput))
-          end do
           lightconeMinimumDistance=lightconeMinimumDistance*unitConversionLength
-          itemList => getElementsByTagname(doc,"outputs")
-          thisItem => item(itemList,0)
-          itemList => getElementsByTagname(thisItem,"maximumDistance")
-          if (getLength(itemList) /= size(lightconeTime)) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone' &
-               & ,'size mismatch in outputs arrays')
-          call Alloc_Array(lightconeMaximumDistance,[getLength(itemList)])
-          do iOutput=1,getLength(itemList)
-             thisItem => item(itemList,iOutput-1)
-             call extractDataContent(thisItem,lightconeMaximumDistance(iOutput))
-          end do
           lightconeMaximumDistance=lightconeMaximumDistance*unitConversionLength
-          call destroy(doc)
           ! If requested, reduce the list of lightcone output times to the final time, and have
           ! it incorporate the full radial length of the lightcone. This allows the construction
           ! of lightcones with no evolution along the cone.
@@ -318,19 +283,14 @@ contains
     !% Extract a vector of coordinates from an XML DOM element.
     use Galacticus_Error
     use FoX_DOM
+    use IO_XML
     implicit none
     double precision          , dimension(3)           :: Filter_Lightcone_Get_Coordinates
     type            (Node    ), intent(in   ), pointer :: enclosingItem
-    type            (Node    )               , pointer :: thisItem
-    type            (NodeList)               , pointer :: coordinates
-    integer                                            :: iAxis
 
-    coordinates => getElementsByTagname(enclosingItem,"coordinate")
-    if (getLength(coordinates) /= 3) call Galacticus_Error_Report('Filter_Lightcone_Get_Coordinates','three axes must be specified')
-    do iAxis=1,3
-       thisItem => item(coordinates,iAxis-1)
-       call extractDataContent(thisItem,Filter_Lightcone_Get_Coordinates(iAxis))
-    end do
+    if (XML_Array_Length(enclosingItem,"coordinates") /= 3) call Galacticus_Error_Report('Filter_Lightcone_Get_Coordinates'&
+         &,'three axes must be specified')
+    call XML_Array_Read_Static(enclosingItem,"coordinate",Filter_Lightcone_Get_Coordinates)
     return
   end function Filter_Lightcone_Get_Coordinates
 

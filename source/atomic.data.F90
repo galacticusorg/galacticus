@@ -157,6 +157,7 @@ contains
     use String_Handling
     use Galacticus_Input_Paths
     use ISO_Varying_String
+    use IO_XML
     implicit none
     type            (Node    )              , pointer :: abundanceTypeElement, doc              , thisAtom, &
          &                                               thisElement
@@ -182,49 +183,31 @@ contains
        ! Allocate storage space.
        allocate(atoms(getLength(elementList)))
        call Memory_Usage_Record(sizeof(atoms))
-
-       ! Extract the data into our array.
-       atomicNumberMaximum=0
+       ! Allocate abundance pattern array for elements.
        do iAtom=1,getLength(elementList)
-          ! Allocate abundance pattern array for this element.
           call Alloc_Array(atoms(iAtom)%abundanceByMass,[abundancePatternCount])
           atoms(iAtom)%abundanceByMass=0.0d0
-          ! Get atom.
-          thisAtom => item(elementList,iAtom-1)
-          ! Get atomic number.
-          thisElement => item(getElementsByTagname(thisAtom,"atomicNumber"),0)
-          call extractDataContent(thisElement,elementValueInteger    )
-          atoms(iAtom)%atomicNumber=elementValueInteger(1)
-          ! Get atomic mass.
-          thisElement => item(getElementsByTagname(thisAtom,"atomicMass"  ),0)
-          call extractDataContent(thisElement,elementValueDouble     )
-          atoms(iAtom)%atomicMass  =elementValueDouble(1)
-          ! Get short label.
-          thisElement => item(getElementsByTagname(thisAtom,"shortLabel"  ),0)
-          call extractDataContent(thisElement,atoms(iAtom)%shortLabel)
-          ! Get name.
-          thisElement => item(getElementsByTagname(thisAtom,"name"        ),0)
-          call extractDataContent(thisElement,atoms(iAtom)%name      )
-          ! Convert name to lower case.
-          atoms(iAtom)%name=String_Lower_Case(atoms(iAtom)%name)
-          ! Record the maximum atomic number found.
-          atomicNumberMaximum=max(atomicNumberMaximum,atoms(iAtom)%atomicNumber)
        end do
+       ! Get atom properties.
+       call XML_Array_Read_Static(elementList,"atomicNumber",atoms(:)%atomicNumber)
+       call XML_Array_Read_Static(elementList,"atomicMass"  ,atoms(:)%atomicMass  )
+       call XML_Array_Read_Static(elementList,"shortLabel"  ,atoms(:)%shortLabel  )
+       call XML_Array_Read_Static(elementList,"name"        ,atoms(:)%name        )
+       ! Destroy the document.
+       call destroy(doc)
+       ! Convert name to lower case.
+       atoms%name=String_Lower_Case(atoms%name)
+       ! Record the maximum atomic number found.
+       atomicNumberMaximum=maxval(atoms%atomicNumber)
 
        ! Allocate space for atomic number lookup array.
        call Alloc_Array(atomicNumberIndex,[atomicNumberMaximum])
-
        ! Create lookup array by atomic number.
        forall(iAtom=1:size(atoms))
           atomicNumberIndex(atoms(iAtom)%atomicNumber)=iAtom
        end forall
-
-       ! Destroy the document.
-       call destroy(doc)
-
        ! Allocate metal mass normalizations array.
        call Alloc_Array(metalMassNormalization,[abundancePatternCount])
-
        ! Load tables of abundance patterns.
        do iAbundancePattern=1,abundancePatternCount
 
@@ -240,19 +223,20 @@ contains
              ! Get atom.
              thisAtom => item(elementList,iAtom-1)
              ! Get atomic number.
-             thisElement => item(getElementsByTagname(thisAtom,"atomicNumber"),0)
+             thisElement => XML_Get_First_Element_By_Tag_Name(thisAtom,"atomicNumber")
              call extractDataContent(thisElement,elementValueInteger)
              atomicNumber=elementValueInteger(1)
              ! Get the abundance.
-             thisElement => item(getElementsByTagname(thisAtom,"abundance"),0)
+             thisElement => XML_Get_First_Element_By_Tag_Name(thisAtom,"abundance"   )
              call extractDataContent(thisElement,elementValueDouble )
-             abundance=elementValueDouble(1)
+             abundance=elementValueDouble    (1)
              ! Store in the atoms array.
              atoms(atomicNumberIndex(atomicNumber))%abundanceByMass(iAbundancePattern)=abundance
           end do
 
           ! Determine the type of abundance just loaded.
           abundanceTypeElement => item(getElementsByTagname(doc,"abundanceType"),0)
+          abundanceTypeElement => XML_Get_First_Element_By_Tag_Name(doc,"abundanceType")
           call extractDataContent(abundanceTypeElement,abundanceType)
           if (trim(abundanceType) == "number relative to hydrogen") then
              ! Convert to abundances by mass.
