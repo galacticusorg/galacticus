@@ -33,8 +33,6 @@ sub Get_Luminosity {
 	my $frame         = $2;
 	my $redshift      = $3;
 	my $dustExtension = $4;
-	$dustExtension = ""
-	    unless ( defined($dustExtension) );
 	# Construct the name of the corresponding luminosity properties.
 	my @luminosityDataset;
 	$luminosityDataset[0] = "diskLuminositiesStellar:".$filter.":".$frame.":z".$redshift.$dustExtension;

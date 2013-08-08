@@ -269,10 +269,6 @@ where {\tt model1} etc. are the names of the various output files and {\tt model
 
 If {\tt [treeEvolveLimitLoadAverage]}$=${\tt true} then \glc\ will attempt to keep the load average of the system under {\tt [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\tt [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\tt processorCount} in which case the number of processor cores present on the system will be used for {\tt [treeEvolveLoadAverageMaximum]}.
 
-\subsubsection{Thread Locking via Semaphores}\index{semaphores}
-
-An alternative is to use Linux's semaphoring system to share processors between multiple instances of \glc\ running on a single machine. To activiate this mode, set {\tt [treeEvolveThreadLock]} to the total number of threads that should be active at any one time across all instances of \glc\ running on a machine. You can also set this parameter to {\tt processorCount} to set a a value equal to the total number of processors on the machine. With this parameter set, each instance of \glc\ running on a machine will request a semaphore for each thread that it attempts to run, with the maximum number of semaphores set to the value of {\tt [treeEvolveThreadLock]}. This means that, if one instance of \glc\ has claimed 6 semaphores when {\tt [treeEvolveThreadLock]}$=${\tt 8}, then a second instance of \glc\ will only run 2 threads. Once the first instance releases its semaphores, the second instance will claim them and begin running more threads. Note that, if \glc\ is interrupted it can sometimes be impossible to release all claimed semaphores. To manually remove all semaphores on a machine, simply {\tt rm /dev/shm/sem.galacticus}.
-
 \section{Additional Codes}
 
 The \glc\ code base can be used for other calculations. Some examples of such usage (and which are sufficiently useful in their own right) are included and are detailed in this section.
