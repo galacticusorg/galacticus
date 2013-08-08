@@ -88,6 +88,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.IO.XML.exe",                                                   # Tests of XML IO routines.
+	valgrind => 0
+    },
+    {
 	name     => "tests.ODE_solver.exe",                                               # Tests of ODE solver routines.
 	valgrind => 0
     },

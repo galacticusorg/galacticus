@@ -698,15 +698,15 @@
     <atomicMass>292</atomicMass>
   </element>
   <element>
-    <atomicNumber>118</atomicNumber>
-    <shortLabel>Uuo</shortLabel>
-    <name>Ununoctium</name>
-    <atomicMass>294</atomicMass>
-  </element>
-  <element>
     <atomicNumber>117</atomicNumber>
     <shortLabel>Uus</shortLabel>
     <name>Ununseptium</name>
     <atomicMass>295</atomicMass>
+  </element>
+  <element>
+    <atomicNumber>118</atomicNumber>
+    <shortLabel>Uuo</shortLabel>
+    <name>Ununoctium</name>
+    <atomicMass>294</atomicMass>
   </element>
 </atomicData>

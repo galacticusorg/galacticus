@@ -89,14 +89,12 @@ contains
     use FoX_dom
     use Galacticus_Input_Paths
     use ISO_Varying_String
+    use IO_XML
     implicit none
     type            (varying_string), intent(in   )               :: filterName
-    type            (Node          ), pointer                     :: datum                      , doc
-    type            (NodeList      ), pointer                     :: datumList
+    type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
-    integer                                                       :: filterIndex                , iDatum, &
-         &                                                           ioErr
-    double precision                                              :: datumValues             (2)
+    integer                                                       :: filterIndex                , ioErr
     type            (varying_string)                              :: filterFileName
 
     ! Allocate space for this filter.
@@ -124,23 +122,9 @@ contains
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(filterFileName),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Filter_Response_Load','unable to parse filter response file: '//char(filterFileName))
-
-    ! Get a list of all <datum> elements.
-    datumList => getElementsByTagname(doc,"datum")
-    filterResponses(filterIndex)%nPoints=getLength(datumList)
-
-    ! Allocate space for the response curve.
-    call Alloc_Array(filterResponses(filterIndex)%wavelength,[filterResponses(filterIndex)%nPoints])
-    call Alloc_Array(filterResponses(filterIndex)%response  ,[filterResponses(filterIndex)%nPoints])
-
-    ! Extract the data from the file.
-    do iDatum=0,filterResponses(filterIndex)%nPoints-1
-       datum => item(datumList,iDatum)
-       call extractDataContent(datum,datumValues)
-       filterResponses(filterIndex)%wavelength(iDatum+1)=datumValues(1)
-       filterResponses(filterIndex)%response  (iDatum+1)=datumValues(2)
-    end do
-
+    ! Extract wavelengths and filter response.
+    call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+    filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)

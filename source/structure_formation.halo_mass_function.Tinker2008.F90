@@ -38,61 +38,35 @@ contains
     !% Initializes the ``Tinker2008 mass functon'' module.
     use ISO_Varying_String
     use FoX_dom
+    use IO_XML
     use Galacticus_Error
     use Galacticus_Input_Paths
     use Memory_Management
     implicit none
     type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod
     procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
-    type            (Node            )               , pointer :: columnElement                      , columnsElement   , &
-         &                                                        datum                              , doc
-    type            (NodeList        )               , pointer :: deltaList                          , normalizationList, &
-         &                                                        parameterAList                     , parameterBList   , &
-         &                                                        parameterCList
-    integer                                                    :: iDatum                             , ioErr
-    double precision                                           :: datumValue
+    type            (Node            )               , pointer :: columnElement                      , columnsElement, &
+         &                                                        doc
+    integer                                                    :: ioErr
 
     if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Tinker2008
-
        ! Read the data file which gives fitting parameters as a function of halo overdensity.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/Halo_Mass_Function_Parameters_Tinker_2008.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Halo_Mass_Function_Tinker2008_Initialize','Unable to find data file')
-       columnsElement    => item(getElementsByTagname(doc           ,"columns"      ),0)
-       columnElement     => item(getElementsByTagname(columnsElement,"overdensity"  ),0)
-       deltaList         =>      getElementsByTagname(columnElement ,"data"         )
-       columnElement     => item(getElementsByTagname(columnsElement,"normalization"),0)
-       normalizationList =>      getElementsByTagname(columnElement ,"data"         )
-       columnElement     => item(getElementsByTagname(columnsElement,"parameterA"   ),0)
-       parameterAList    =>      getElementsByTagname(columnElement ,"data"         )
-       columnElement     => item(getElementsByTagname(columnsElement,"parameterB"   ),0)
-       parameterBList    =>      getElementsByTagname(columnElement ,"data"         )
-       columnElement     => item(getElementsByTagname(columnsElement,"parameterC"   ),0)
-       parameterCList    =>      getElementsByTagname(columnElement ,"data"         )
-       deltaTableNumberPoints=getLength(deltaList)
-       call Alloc_Array(deltaTableDelta        ,[deltaTableNumberPoints])
-       call Alloc_Array(deltaTableNormalization,[deltaTableNumberPoints])
-       call Alloc_Array(deltaTableA            ,[deltaTableNumberPoints])
-       call Alloc_Array(deltaTableB            ,[deltaTableNumberPoints])
-       call Alloc_Array(deltaTableC            ,[deltaTableNumberPoints])
-       do iDatum=0,getLength(deltaList)-1
-          datum => item(deltaList,iDatum)
-          call extractDataContent(datum,datumValue)
-          deltaTableDelta(iDatum+1)=datumValue
-          datum => item(normalizationList,iDatum)
-          call extractDataContent(datum,datumValue)
-          deltaTableNormalization(iDatum+1)=datumValue
-          datum => item(parameterAList,iDatum)
-          call extractDataContent(datum,datumValue)
-          deltaTableA(iDatum+1)=datumValue
-          datum => item(parameterBList,iDatum)
-          call extractDataContent(datum,datumValue)
-          deltaTableB(iDatum+1)=datumValue
-          datum => item(parameterCList,iDatum)
-          call extractDataContent(datum,datumValue)
-          deltaTableC(iDatum+1)=datumValue
-       end do
+       columnsElement => XML_Get_First_Element_By_Tag_Name(doc           ,"columns"      )
+       columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"overdensity"  )
+       call XML_Array_Read(columnElement,"data",deltaTableDelta        )
+       columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"normalization")
+       call XML_Array_Read(columnElement,"data",deltaTableNormalization)
+       columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"parameterA"   )
+       call XML_Array_Read(columnElement,"data",deltaTableA            )
+       columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"parameterB"   )
+       call XML_Array_Read(columnElement,"data",deltaTableB            )
+       columnElement  => XML_Get_First_Element_By_Tag_Name(columnsElement,"parameterC"   )
+       call XML_Array_Read(columnElement,"data",deltaTableC            )
+       deltaTableNumberPoints=size(deltaTableDelta)
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)

@@ -102,14 +102,12 @@ contains
     !% Read in data describing the state of the intergalactic medium.
     use Galacticus_Error
     use FoX_dom
+    use IO_XML
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    type            (Node    ), pointer :: doc                 , thisItem
-    type            (NodeList), pointer :: electronFractionList, itemList , redshiftList, &
-         &                                 temperatureList
-    integer                             :: fileFormatVersion   , iRedshift, ioErr
-    double precision                    :: redshift
+    type            (Node    ), pointer :: doc              , thisItem
+    integer                             :: fileFormatVersion, iRedshift, ioErr
 
     ! Check if data has yet to be read.
     if (.not.intergalaticMediumStateDataRead) then
@@ -118,36 +116,20 @@ contains
        doc => parseFile(char(intergalaticMediumStateFileName),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Intergalactic_Medium_State_File_Read_Data','Unable to parse intergalactic medium state file')
        ! Check the file format version of the file.
-       itemList             => getElementsByTagname(doc,"fileFormat")
-       thisItem             => item(itemList,0)
+       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisItem,fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Intergalactic_Medium_State_File_Read_Data','file format version is out of date')
-
-       ! Get the redshift element.
-       itemList             => getElementsByTagname(doc     ,"redshift"         )
-       thisItem             => item(itemList,0)
-       redshiftList         => getElementsByTagname(thisItem,"datum"            )
-       itemList             => getElementsByTagname(doc     ,"electronFraction" )
-       thisItem             => item(itemList,0)
-       electronFractionList => getElementsByTagname(thisItem,"datum"            )
-       itemList             => getElementsByTagname(doc     ,"matterTemperature")
-       thisItem             => item(itemList,0)
-       temperatureList      => getElementsByTagname(thisItem,"datum"            )
-       ! Count the number of tabulated redshifts.
-       redshiftCount=getLength(redshiftList)
-       ! Allocate arrays for table storage.
-       call Alloc_Array(timeTable            ,[redshiftCount])
-       call Alloc_Array(electronFractionTable,[redshiftCount])
-       call Alloc_Array(temperatureTable     ,[redshiftCount])
-       ! Extract data.
+       ! Read the data.
+       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"redshift"         )
+       call XML_Array_Read(thisItem,"datum",timeTable            )
+       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"electronFraction" )
+       call XML_Array_Read(thisItem,"datum",electronFractionTable)
+       thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"matterTemperature")
+       call XML_Array_Read(thisItem,"datum",temperatureTable     )
+       redshiftCount=size(timeTable)
+       ! Convert redshifts to times.
        do iRedshift=1,redshiftCount
-          thisItem => item(redshiftList         ,iRedshift-1)
-          call extractDataContent(thisItem,redshift                        )
-          timeTable(iRedshift)=Cosmology_Age(Expansion_Factor_from_Redshift(redshift))
-          thisItem => item(electronFractionList,iRedshift-1)
-          call extractDataContent(thisItem,electronFractionTable(iRedshift))
-          thisItem => item(temperatureList     ,iRedshift-1)
-          call extractDataContent(thisItem,temperatureTable     (iRedshift))
+          timeTable(iRedshift)=Cosmology_Age(Expansion_Factor_from_Redshift(timeTable(iRedshift)))
        end do
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)

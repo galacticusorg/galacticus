@@ -390,23 +390,20 @@ contains
     use Galacticus_Display
     use IO_XML
     implicit none
-    type            (varying_string)         , intent(in   )           :: chemicalStateFileToRead
-    double precision                         , intent(  out), optional :: metallicityMaximumTabulated
-    type            (Node          ), pointer                          :: datum                          , doc                      , &
-         &                                                                extrapolation                  , extrapolationElement     , &
-         &                                                                metallicityElement             , thisChemicalState        , &
-         &                                                                thisElectronDensity            , thisHydrogenAtomicDensity, &
-         &                                                                thisHydrogenCationDensity      , thisTemperature          , &
-         &                                                                version
-    type            (NodeList      ), pointer                          :: chemicalStateList              , electronDatumList        , &
-         &                                                                hydrogenAtomicDatumList        , hydrogenCationDatumList  , &
-         &                                                                metallicityExtrapolationList   , temperatureDatumList     , &
-         &                                                                temperatureExtrapolationList   , versionList
-    integer                                                            :: extrapolationMethod            , fileFormatVersion        , &
-         &                                                                iChemicalState                 , iDatum                   , &
-         &                                                                iExtrapolation                 , ioErr
-    double precision                                                   :: datumValues                 (1)
-    character       (len=32        )                                   :: limitType
+    type            (varying_string)             , intent(in   )           :: chemicalStateFileToRead
+    double precision                             , intent(  out), optional :: metallicityMaximumTabulated
+    double precision                , allocatable, dimension(:)            :: chemicalStateTemperaturesReference
+    type            (Node          ), pointer                              :: version                        , doc                         , &
+         &                                                                    extrapolation                  , extrapolationElement        , &
+         &                                                                    metallicityElement             , thisChemicalState           , &
+         &                                                                    thisElectronDensity            , thisHydrogenAtomicDensity   , &
+         &                                                                    thisHydrogenCationDensity      , thisTemperature
+    type            (NodeList      ), pointer                              :: chemicalStateList              , metallicityExtrapolationList, &
+         &                                                                    temperatureExtrapolationList
+    integer                                                                :: extrapolationMethod            , fileFormatVersion           , &
+         &                                                                    iChemicalState                 , ioErr                       , &
+         &                                                                    iExtrapolation
+    character       (len=32        )                                       :: limitType
 
     !$omp critical (FoX_DOM_Access)
     ! Parse the XML file.
@@ -415,8 +412,7 @@ contains
     if (ioErr /= 0) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','Unable to find chemical state file')
 
     ! Check the file format version of the file.
-    versionList => getElementsByTagname(doc,"fileFormat")
-    version     => item(versionList,0)
+    version => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
     call extractDataContent(version,fileFormatVersion)
     if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Chemical_State_CIE_File_Read','file format version is out of date')
 
@@ -425,10 +421,9 @@ contains
     chemicalStateMetallicityNumberPoints=getLength(chemicalStateList)
 
     ! Extract data from first chemical state and count number of temperatures present.
-    thisChemicalState  => item(chemicalStateList,0)
-    thisTemperature      => item(getElementsByTagname(thisChemicalState,"temperature"),0)
-    temperatureDatumList => getElementsByTagname(thisTemperature,"datum")
-    chemicalStateTemperatureNumberPoints=getLength(temperatureDatumList)
+    thisChemicalState                    => item(chemicalStateList,0)
+    thisTemperature                      => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"temperature")
+    chemicalStateTemperatureNumberPoints =  XML_Array_Length(thisTemperature,"datum")
 
     ! Allocate space for the table.
     if (allocated(chemicalStateMetallicities)) call Dealloc_Array(chemicalStateMetallicities)
@@ -441,77 +436,46 @@ contains
     call Alloc_Array(electronDensityTable      ,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
 
     ! Allocate space for atomic hydrogen density, if such data is included.
-    hydrogenAtomicDatumList => getElementsByTagname(doc,"hiDensity")
-    if (getLength(hydrogenAtomicDatumList) > 0) then
-       call Alloc_Array(hydrogenAtomicDensityTable,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
-       gotHydrogenAtomic=.true.
-    else
-       gotHydrogenAtomic=.false.
-    end if
+    gotHydrogenAtomic=(XML_Array_Length(doc,"hiDensity" ) > 0)
+    if (gotHydrogenAtomic) call Alloc_Array(hydrogenAtomicDensityTable,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
     ! Allocate space for ionized hydrogen density, if such data is included.
-    hydrogenCationDatumList => getElementsByTagname(doc,"hiiDensity")
-    if (getLength(hydrogenCationDatumList) > 0) then
-       call Alloc_Array(hydrogenCationDensityTable ,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
-       gotHydrogenCation=.true.
-    else
-       gotHydrogenCation=.false.
-    end if
+    gotHydrogenCation=(XML_Array_Length(doc,"hiiDensity") > 0)
+    if (gotHydrogenCation) call Alloc_Array(hydrogenCationDensityTable,[chemicalStateTemperatureNumberPoints,chemicalStateMetallicityNumberPoints])
 
     ! Extract data from the chemical states and populate metallicity and temperature arrays.
-    do iChemicalState=0,getLength(chemicalStateList)-1
+    do iChemicalState=0,chemicalStateMetallicityNumberPoints-1
        ! Get required chemical state.
-       thisChemicalState => item(chemicalStateList,iChemicalState)
+       thisChemicalState  => item(chemicalStateList,iChemicalState)
        ! Extract the metallicity from the <metallicity> element.
-       metallicityElement  => item(getElementsByTagname(thisChemicalState,"metallicity"),0)
+       metallicityElement => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"metallicity")
        call extractDataContent(metallicityElement,chemicalStateMetallicities(iChemicalState+1))
        ! Extract the data.
-       thisTemperature           => item(getElementsByTagname(thisChemicalState           ,"temperature"    ),0)
-       temperatureDatumList      =>      getElementsByTagname(thisTemperature             ,"datum"          )
-       thisElectronDensity       => item(getElementsByTagname(thisChemicalState           ,"electronDensity"),0)
-       electronDatumList         =>      getElementsByTagname(thisElectronDensity         ,"datum"          )
-       if (gotHydrogenAtomic) then
-          thisHydrogenAtomicDensity => item(getElementsByTagname(thisChemicalState        ,"hiDensity" ),0)
-          hydrogenAtomicDatumList   =>      getElementsByTagname(thisHydrogenAtomicDensity,"datum"     )
-       end if
-       if (gotHydrogenCation) then
-          thisHydrogenCationDensity => item(getElementsByTagname(thisChemicalState        ,"hiiDensity"),0)
-          hydrogenCationDatumList   =>      getElementsByTagname(thisHydrogenCationDensity,"datum"     )
-       end if
+       thisTemperature                                  => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"temperature"    )
+       thisElectronDensity                              => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"electronDensity")
+       if (gotHydrogenAtomic) thisHydrogenAtomicDensity => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"hiDensity"      )
+       if (gotHydrogenCation) thisHydrogenCationDensity => XML_Get_First_Element_By_Tag_Name(thisChemicalState,"hiiDensity"     )
        ! Check that number of temperatures is consistent.
-       if (getLength(temperatureDatumList) /= chemicalStateTemperatureNumberPoints) call&
-            & Galacticus_Error_Report('Chemical_State_CIE_File_Read','sizes of temperatures grids must be the same for all&
+       if (XML_Array_Length(thisTemperature,"datum") /= chemicalStateTemperatureNumberPoints) call&
+            & Galacticus_Error_Report('Chemical_State_CIE_File_Read','sizes of temperature grids must be the same for all&
             & metallicities')
        ! Check that number of cooling rates matches number of temperatures.
-       if (getLength(temperatureDatumList) /= getLength(electronDatumList)) call&
+       if (XML_Array_Length(thisTemperature,"datum") /= XML_Array_Length(thisElectronDensity,"datum")) call&
             & Galacticus_Error_Report('Chemical_State_CIE_File_Read','sizes of temperature and electron density arrays must match')
-       ! Extract data.
-       do iDatum=0,getLength(temperatureDatumList)-1
-          datum => item(temperatureDatumList,iDatum)
-          call extractDataContent(datum,datumValues)
-          if (iChemicalState == 0) then
-             ! Store the temperature.
-             chemicalStateTemperatures(iDatum+1)=datumValues(1)
-          else
-             ! Check that temperature grids are aligned.
-             if (Values_Differ(chemicalStateTemperatures(iDatum+1),datumValues(1),relTol=1.0d-6)) call&
-                  & Galacticus_Error_Report('Chemical_State_CIE_File_Read','temperature grids mismatch')
-          end if
-          ! Store the chemical state.
-          datum => item(electronDatumList,iDatum)
-          call extractDataContent(datum,datumValues)
-          electronDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
-          if (gotHydrogenAtomic) then
-             datum => item(hydrogenAtomicDatumList,iDatum)
-             call extractDataContent(datum,datumValues)
-             hydrogenAtomicDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
-          end if
-          if (gotHydrogenCation) then
-             datum => item(hydrogenCationDatumList,iDatum)
-             call extractDataContent(datum,datumValues)
-             hydrogenCationDensityTable(iDatum+1,iChemicalState+1)=datumValues(1)
-          end if
-       end do
+       ! Store the chemical state.
+       call                        XML_Array_Read_Static(thisTemperature          ,"datum",chemicalStateTemperatures (:                 ))
+       call                        XML_Array_Read_Static(thisElectronDensity      ,"datum",electronDensityTable      (:,iChemicalState+1))
+       if (gotHydrogenAtomic) call XML_Array_Read_Static(thisHydrogenAtomicDensity,"datum",hydrogenAtomicDensityTable(:,iChemicalState+1))
+       if (gotHydrogenCation) call XML_Array_Read_Static(thisHydrogenCationDensity,"datum",hydrogenCationDensityTable(:,iChemicalState+1))
+       if (iChemicalState == 0) then
+          ! Copy the temperatures so we can check subsequent temperature reads for consistency.
+          chemicalStateTemperaturesReference=chemicalStateTemperatures
+       else
+          ! Check that temperature grids are aligned.
+          if (any(Values_Differ(chemicalStateTemperatures,chemicalStateTemperaturesReference,relTol=1.0d-6))) call&
+               & Galacticus_Error_Report('Chemical_State_CIE_File_Read','temperature grids mismatch')
+       end if
     end do
+    deallocate(chemicalStateTemperaturesReference)
     where (chemicalStateMetallicities>-999.0d0)
        chemicalStateMetallicities=10.0d0**chemicalStateMetallicities
     elsewhere
@@ -519,7 +483,7 @@ contains
     end where
 
     ! Extract extrapolation methods from the file.
-    extrapolationElement => item(getElementsByTagname(doc,"extrapolation"),0)
+    extrapolationElement => XML_Get_First_Element_By_Tag_Name(doc,"extrapolation")
     metallicityExtrapolationList => getElementsByTagname(extrapolationElement,"metallicity")
     do iExtrapolation=0,getLength(metallicityExtrapolationList)-1
        extrapolation => item(metallicityExtrapolationList,iExtrapolation)

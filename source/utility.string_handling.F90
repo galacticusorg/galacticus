@@ -225,7 +225,7 @@ contains
     return
   end function String_Upper_Case
 
-  function String_Lower_Case(stringInput) result (stringOutput)
+  elemental function String_Lower_Case(stringInput) result (stringOutput)
     !% Converts an input string to lower case.
     character(len=*               ), intent(in   ) :: stringInput
     character(len=len(stringInput))                :: stringOutput

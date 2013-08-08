@@ -38,15 +38,13 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     use FoX_dom
-    use Memory_Management
+    use IO_XML
     implicit none
     type     (varying_string  ), intent(in   )          :: supernovaePopIIIMethod
     procedure(double precision), intent(inout), pointer :: SNePopIII_Cumulative_Energy_Get
     type     (Node            )               , pointer :: doc                            , energyElement, &
-         &                                                 massElement                    , thisDatum
-    type     (NodeList        )               , pointer :: energyDataList                 , energyList   , &
-         &                                                 massDataList                   , massList
-    integer                                             :: iSupernovae                    , ioErr
+         &                                                 massElement
+    integer                                             :: ioErr
 
     if (supernovaePopIIIMethod == 'Heger-Woosley2002') then
        ! Set up pointers to our procedures.
@@ -59,25 +57,13 @@ contains
        if (ioErr /= 0) call Galacticus_Error_Report('Supernovae_Population_III_HegerWoosley_Initialize','Unable to parse supernovae file')
 
        ! Get the mass and energy elements.
-       massList       => getElementsByTagname(doc,"heliumCoreMass")
-       massElement    => item(massList,0)
-       massDataList   => getElementsByTagname(massElement,"data")
-       energyList     => getElementsByTagname(doc,"supernovaEnergy")
-       energyElement  => item(energyList,0)
-       energyDataList => getElementsByTagname(energyElement,"data")
+       massElement    => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )
+       energyElement  => XML_Get_First_Element_By_Tag_Name(doc,"supernoveEnergy")
 
-       ! Count how many elements are present and allocate arrays.
-       supernovaeTableCount=getLength(massDataList)
-       call Alloc_Array(supernovaeTableHeliumCoreMass,[supernovaeTableCount])
-       call Alloc_Array(supernovaeTableEnergy        ,[supernovaeTableCount])
-
-       ! Loop through isotopes and compute the net metal yield.
-       do iSupernovae=0,getLength(massDataList)-1
-          thisDatum => item(massDataList  ,iSupernovae)
-          call extractDataContent(thisDatum,supernovaeTableHeliumCoreMass(iSupernovae+1))
-          thisDatum => item(energyDataList,iSupernovae)
-          call extractDataContent(thisDatum,supernovaeTableEnergy        (iSupernovae+1))
-       end do
+       ! Read the arrays.
+       call XML_Array_Read(massElement  ,"data",supernovaeTableHeliumCoreMass)
+       call XML_Array_Read(energyElement,"data",supernovaeTableEnergy        )
+       supernovaeTableCount=XML_Array_Length(massElement,"data")
 
        ! Convert energies to MSolar (km/s)^2.
        supernovaeTableEnergy=supernovaeTableEnergy*(1.0d51*ergs/massSolar/kilo**2)

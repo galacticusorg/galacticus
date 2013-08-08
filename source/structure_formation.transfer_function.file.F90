@@ -111,22 +111,19 @@ contains
     double precision                                              , intent(in   ) :: logWavenumber
     double precision                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
     integer                                                       , intent(  out) :: transferFunctionNumberPoints
-    type            (Node    ), pointer                                           :: datum                       , doc                             , &
-         &                                                                           extrapolation               , extrapolationElement            , &
+    type            (Node    ), pointer                                           :: extrapolation               , extrapolationElement            , &
          &                                                                           formatElement               , nameElement                     , &
-         &                                                                           thisParameter               , valueElement
-    type            (NodeList), pointer                                           :: datumList                   , parameterList                   , &
-         &                                                                           wavenumberExtrapolationList
+         &                                                                           thisParameter               , valueElement                    , &
+         &                                                                           doc
+    type            (NodeList), pointer                                           :: parameterList               , wavenumberExtrapolationList
     double precision                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
 
     integer                                                                       :: addCount                    , extrapolationMethod             , &
-         &                                                                           iDatum                      , iExtrapolation                  , &
-         &                                                                           iParameter                  , ioErr                           , &
-         &                                                                           versionNumber
-    double precision                                                              :: cmbTemperatureValue         , datumValues                  (2), &
+         &                                                                           versionNumber               , iExtrapolation                  , &
+         &                                                                           iParameter                  , ioErr
+    double precision                                                              :: cmbTemperatureValue         , parameterValue                  , &
          &                                                                           hubbleParameterValue        , omegaBaryonValue                , &
-         &                                                                           omegaDarkEnergyValue        , omegaMatterValue                , &
-         &                                                                           parameterValue
+         &                                                                           omegaDarkEnergyValue        , omegaMatterValue
     character       (len=32  )                                                    :: limitType
 
     ! Read the file if this module has not been initialized.
@@ -144,15 +141,15 @@ contains
        doc => parseFile(char(transferFunctionFile),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Transfer_Function_File_Read','Unable to find transfer function file')
        ! Check that the file has the correct format version number.
-       formatElement => item(getElementsByTagname(doc,"fileFormat"),0)
+       formatElement => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(formatElement,versionNumber)
        if (versionNumber /= fileFormatVersionCurrent) call Galacticus_Error_Report('Transfer_Function_File_Read','file has the incorrect version number')
        ! Check that parameters match if any are present.
        parameterList => getElementsByTagname(doc,"parameter")
        do iParameter=0,getLength(parameterList)-1
           thisParameter => item(parameterList,iParameter)
-          nameElement => item(getElementsByTagname(thisParameter,"name"),0)
-          valueElement => item(getElementsByTagname(thisParameter,"value"),0)
+          nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name" )
+          valueElement  => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
           call extractDataContent(valueElement,parameterValue)
           select case (getTextContent(nameElement))
           case ("Omega_b")
@@ -173,8 +170,8 @@ contains
           end select
        end do
        ! Get extrapolation methods.
-       extrapolationElement        => item(getElementsByTagname(doc                 ,"extrapolation"),0)
-       wavenumberExtrapolationList =>      getElementsByTagname(extrapolationElement,"wavenumber"   )
+       extrapolationElement        => XML_Get_First_Element_By_Tag_Name(doc                 ,"extrapolation")
+       wavenumberExtrapolationList => getElementsByTagname             (extrapolationElement,"wavenumber"   )
        do iExtrapolation=0,getLength(wavenumberExtrapolationList)-1
           extrapolation => item(wavenumberExtrapolationList,iExtrapolation)
           call XML_Extrapolation_Element_Decode(extrapolation,limitType,extrapolationMethod,allowedMethods=[extrapolateFixed,extrapolatePowerLaw])
@@ -187,23 +184,14 @@ contains
              call Galacticus_Error_Report('Transfer_Function_File_Read','unrecognized extrapolation limit')
           end select
        end do
-       ! Get list of datum elements.
-       datumList => getElementsByTagname(doc,"datum")
-       ! Allocate transfer function arrays.
-       transferFunctionNumberPoints=getLength(datumList)
        ! Deallocate arrays if currently allocated.
        if (allocated(transferFunctionLogWavenumber)) call Dealloc_Array(transferFunctionLogWavenumber)
        if (allocated(transferFunctionLogT))          call Dealloc_Array(transferFunctionLogT         )
-       ! Allocate the arrays to current required size.
-       call Alloc_Array(transferFunctionLogWavenumber,[transferFunctionNumberPoints])
-       call Alloc_Array(transferFunctionLogT         ,[transferFunctionNumberPoints])
-       ! Extract data from elements.
-       do iDatum=0,getLength(datumList)-1
-          datum => item(datumList,iDatum)
-          call extractDataContent(datum,datumValues)
-          transferFunctionLogWavenumber(iDatum+1)=log(datumValues(1))
-          transferFunctionLogT         (iDatum+1)=log(datumValues(2))
-       end do
+       ! Read the transfer function from file.
+       call XML_Array_Read(doc,"datum",transferFunctionLogWavenumber,transferFunctionLogT)
+       transferFunctionLogWavenumber= log(transferFunctionLogWavenumber)
+       transferFunctionLogT         = log(transferFunctionLogT         )
+       transferFunctionNumberPoints =size(transferFunctionLogWavenumber)
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)

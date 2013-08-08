@@ -64,13 +64,12 @@ contains
     use Galacticus_Input_Paths
     use Galacticus_Error
     use Memory_Management
+    use IO_XML
     implicit none
     type            (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod
     procedure       (double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get
     type            (Node            )               , pointer :: doc                                  , thisNode
-    type            (NodeList        )               , pointer :: deltaDatumList                       , massDatumList                                 , &
-         &                                                        thisList
-    integer                                                    :: iDatum                               , ioErr
+    integer                                                    :: ioErr
     double precision                                           :: matterRadiationEqualityRedshift      , warmDarkMatterCriticalOverdensityGX           , &
          &                                                        warmDarkMatterCriticalOverdensityMX
 
@@ -123,21 +122,11 @@ contains
        doc => parseFile(char(Galacticus_Input_Path())//"data/darkMatter/criticalOverdensityWarmDarkMatterBarkana.xml",iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Critical_Overdensity_Mass_Scaling_WDM_Initialize','unable to find or parse the tabulated data')
        ! Extract the datum lists.
-       thisList       => getElementsByTagname(doc     ,"mass" )
-       thisNode       => item(thisList,0)
-       massDatumList  => getElementsByTagname(thisNode,"datum")
-       thisList       => getElementsByTagname(doc     ,"delta")
-       thisNode       => item(thisList,0)
-       deltaDatumList => getElementsByTagname(thisNode,"datum")
-       deltaTableCount=getLength(massDatumList)
-       call Alloc_Array(deltaTableMass ,[deltaTableCount])
-       call Alloc_Array(deltaTableDelta,[deltaTableCount])
-       do iDatum=0,deltaTableCount-1
-          thisNode => item(massDatumList ,iDatum)
-          call extractDataContent(thisNode,deltaTableMass (iDatum+1))
-          thisNode => item(deltaDatumList,iDatum)
-          call extractDataContent(thisNode,deltaTableDelta(iDatum+1))
-       end do
+       thisNode       => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
+       call XML_Array_Read(thisNode,"datum",deltaTableMass)
+       thisNode       => XML_Get_First_Element_By_Tag_Name(doc,"delta")
+       call XML_Array_Read(thisNode,"datum",deltaTableDelta)
+       deltaTableCount=size(deltaTableMass)
        ! Destroy the document.
        call destroy(doc)
        ! Convert tabulations to logarithmic versions.

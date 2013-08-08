@@ -35,15 +35,13 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use FoX_DOM
+    use IO_XML
     use Galacticus_Error
     implicit none
     type            (varying_string  ), intent(in   )          :: timePerTreeMethod
     procedure       (double precision), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get
-    type            (Node            )               , pointer :: doc                            , thisCoefficient, &
-         &                                                        thisFit
-    type            (NodeList        )               , pointer :: coefficientList                , fitList
-    integer                                                    :: iTerm                          , ioErr
-    double precision                                           :: coefficient                 (1)
+    type            (Node            )               , pointer :: doc                         , thisFit
+    integer                                                    :: ioErr
     type            (varying_string  )                         :: timePerTreeFitFileName
 
     if (timePerTreeMethod == 'file') then
@@ -65,14 +63,8 @@ contains
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(timePerTreeFitFileName),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Time_Per_Tree_File_Initialize','Unable to find or parse tree timing file')
-       fitList         => getElementsByTagname(doc,"fit")
-       thisFit         => item(fitList,0)
-       coefficientList => getElementsByTagname(thisFit,"coefficient")
-       do iTerm=0,2
-          thisCoefficient => item(coefficientList,iTerm)
-          call extractDataContent(thisCoefficient,coefficient)
-          fitCoefficient(iTerm)=coefficient(1)
-       end do
+       thisFit => XML_Get_First_Element_By_Tag_Name(doc,"fit")
+       call XML_Array_Read_Static(thisFit,"coefficient",fitCoefficient)
        !$omp end critical (FoX_DOM_Access)
     end if
     return

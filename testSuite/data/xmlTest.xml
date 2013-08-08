@@ -1,0 +1,124 @@
+<!-- Simple XML file used to test XML I/O functions in Galacticus -->
+<test>
+  <array1>
+    <datum>0.0</datum>
+    <datum>1.0</datum>
+    <datum>2.0</datum>
+    <datum>3.0</datum>
+    <datum>4.0</datum>
+    <datum>5.0</datum>
+    <datum>6.0</datum>
+    <datum>7.0</datum>
+    <datum>8.0</datum>
+    <datum>9.0</datum>
+  </array1>
+  <array2>
+    <datum>0.0 9.0</datum>
+    <datum>1.0 8.0</datum>
+    <datum>2.0 7.0</datum>
+    <datum>3.0 6.0</datum>
+    <datum>4.0 5.0</datum>
+    <datum>5.0 4.0</datum>
+    <datum>6.0 3.0</datum>
+    <datum>7.0 2.0</datum>
+    <datum>8.0 1.0</datum>
+    <datum>9.0 0.0</datum>
+  </array2>
+  <array>
+    <value>0.0</value>
+  </array>
+  <array>
+    <value>1.0</value>
+  </array>
+  <array>
+    <value>2.0</value>
+  </array>
+  <array>
+    <value>3.0</value>
+  </array>
+  <array>
+    <value>4.0</value>
+  </array>
+  <array>
+    <value>5.0</value>
+  </array>
+  <array>
+    <value>6.0</value>
+  </array>
+  <array>
+    <value>7.0</value>
+  </array>
+  <array>
+    <value>8.0</value>
+  </array>
+  <array>
+    <value>9.0</value>
+  </array>
+  <iarray>
+    <value>0</value>
+  </iarray>
+  <iarray>
+    <value>1</value>
+  </iarray>
+  <iarray>
+    <value>2</value>
+  </iarray>
+  <iarray>
+    <value>3</value>
+  </iarray>
+  <iarray>
+    <value>4</value>
+  </iarray>
+  <iarray>
+    <value>5</value>
+  </iarray>
+  <iarray>
+    <value>6</value>
+  </iarray>
+  <iarray>
+    <value>7</value>
+  </iarray>
+  <iarray>
+    <value>8</value>
+  </iarray>
+  <iarray>
+    <value>9</value>
+  </iarray>
+  <carray>
+    <value>0</value>
+  </carray>
+  <carray>
+    <value>1</value>
+  </carray>
+  <carray>
+    <value>2</value>
+  </carray>
+  <carray>
+    <value>3</value>
+  </carray>
+  <carray>
+    <value>4</value>
+  </carray>
+  <carray>
+    <value>5</value>
+  </carray>
+  <carray>
+    <value>6</value>
+  </carray>
+  <carray>
+    <value>7</value>
+  </carray>
+  <carray>
+    <value>8</value>
+  </carray>
+  <carray>
+    <value>9</value>
+  </carray>
+  <level1>
+    <level2>
+      <level3>
+	1234
+      </level3>
+    </level2>
+  </level1>
+</test>

@@ -35,7 +35,6 @@ module Radiation_IGB_File
   ! Interpolation structures.
   logical                                                          :: interpolationReset      =.true. , interpolationResetTimes      =.true.
   type            (fgsl_interp_accel)                              :: interpolationAccelerator        , interpolationAcceleratorTimes
-  type            (fgsl_interp      )                              :: interpolationObject
 
   ! Current file format version for intergalactic background radiation files.
   integer                            , parameter                   :: fileFormatVersionCurrent=1
@@ -63,17 +62,16 @@ contains
     use Cosmology_Functions
     use Array_Utilities
     use Galacticus_Input_Paths
+    use IO_XML
     implicit none
     type     (varying_string         ), intent(in   )          :: radiationIntergalacticBackgroundMethod
     procedure(Radiation_IGB_File_Set ), intent(inout), pointer :: Radiation_Set_Intergalactic_Background_Do
     procedure(Radiation_IGB_File_Flux), intent(inout), pointer :: Radiation_Flux_Intergalactic_Background_Do
     type     (Node                   )               , pointer :: doc                                       , thisDatum      , &
          &                                                        thisSpectrum                              , thisWavelength
-    type     (NodeList               )               , pointer :: datumList                                 , spectraList    , &
-         &                                                        wavelengthList
+    type     (NodeList               )               , pointer :: spectraList
     integer                                                    :: fileFormatVersion                         , iSpectrum      , &
-         &                                                        iWavelength                               , ioErr          , &
-         &                                                        jSpectrum
+         &                                                        jSpectrum                                 , ioErr
     logical                                                    :: timesIncreasing
     type     (varying_string         )                         :: radiationIGBFileName
 
@@ -97,21 +95,15 @@ contains
        doc => parseFile(char(radiationIGBFileName),iostat=ioErr)
        if (ioErr /= 0) call Galacticus_Error_Report('Radiation_Initialize_File','Unable to find or parse data file')
        ! Check the file format version of the file.
-       datumList => getElementsByTagname(doc,"fileFormat")
-       thisDatum => item(datumList,0)
+       thisDatum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
        call extractDataContent(thisDatum,fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('Radiation_IGB_File_Initialize','file format version is out of date')
        ! Get a list of all spectra.
        spectraList => getElementsByTagname(doc,"spectra")
        ! Get the times from the file.
-       spectraTimesCount=getLength(spectraList)
-       call Alloc_Array(spectraTimes,[spectraTimesCount])
+       call XML_Array_Read(spectraList,"redshift",spectraTimes)
+       ! Convert redshift to a time.
        do iSpectrum=1,spectraTimesCount
-          thisSpectrum => item(spectraList,iSpectrum-1)
-          datumList    => getElementsByTagname(thisSpectrum,"redshift")
-          thisDatum    => item(datumList,0)
-          call extractDataContent(thisDatum,spectraTimes(iSpectrum))
-          ! Convert redshift to a time.
           spectraTimes(iSpectrum)=Cosmology_Age(Expansion_Factor_from_Redshift(spectraTimes(iSpectrum)))
        end do
        ! Check if the times are monotonically ordered.
@@ -120,18 +112,11 @@ contains
        ! Reverse times if necessary.
        if (.not.timesIncreasing) spectraTimes=Array_Reverse(spectraTimes)
        ! Get the wavelengths.
-       wavelengthList => getElementsByTagname(doc,"wavelengths")
-       thisWavelength => item(wavelengthList,0)
-       datumList => getElementsByTagname(thisWavelength,"datum")
-       spectraWavelengthsCount=getLength(datumList)
-       ! Allocate arrays for wavelengths and spectra.
-       call Alloc_Array(spectraWavelengths,[spectraWavelengthsCount                  ])
-       call Alloc_Array(spectra           ,[spectraWavelengthsCount,spectraTimesCount])
-       ! Extract the wavelengths.
-       do iWavelength=1,spectraWavelengthsCount
-          thisDatum => item(datumList,iWavelength-1)
-         call extractDataContent(thisDatum,spectraWavelengths(iWavelength))
-       end do
+       thisWavelength => XML_Get_First_Element_By_Tag_Name(doc,"wavelengths")
+       call XML_Array_Read(thisWavelength,"datum",spectraWavelengths)
+       spectraWavelengthsCount=size(spectraWavelengths)
+       ! Allocate array for spectra.
+       call Alloc_Array(spectra,[spectraWavelengthsCount,spectraTimesCount])
        ! Read spectra into arrays.
        do iSpectrum=1,spectraTimesCount
           ! Determine where to store this spectrum, depending on whether the times were stored in increasing or decreasing order.
@@ -142,14 +127,10 @@ contains
           end if
           ! Get the data.
           thisSpectrum => item(spectraList,iSpectrum-1)
-          datumList    => getElementsByTagname(thisSpectrum,"datum")
           ! Check that we have the correct number of data.
-          if (getLength(datumList) /= spectraWavelengthsCount) call Galacticus_Error_Report('Radiation_Initialize_File','all spectra must contain the same number of wavelengths')
+          if (XML_Array_Length(thisSpectrum,"datum") /= spectraWavelengthsCount) call Galacticus_Error_Report('Radiation_Initialize_File','all spectra must contain the same number of wavelengths')
           ! Extract the data.
-          do iWavelength=1,spectraWavelengthsCount
-             thisDatum => item(datumList,iWavelength-1)
-             call extractDataContent(thisDatum,spectra(iWavelength,jSpectrum))
-          end do
+          call XML_Array_Read_Static(thisSpectrum,"datum",spectra(:,jSpectrum))
        end do
        ! Destroy the document.
        call destroy(doc)

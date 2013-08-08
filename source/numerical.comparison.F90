@@ -35,7 +35,7 @@ module Numerical_Comparison
 
 contains
 
-  logical function Values_Differ_Real(value1,value2,absTol,relTol)
+  elemental logical function Values_Differ_Real(value1,value2,absTol,relTol)
     !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
@@ -49,7 +49,7 @@ contains
     return
   end function Values_Differ_Real
 
-  logical function Values_Differ_Double(value1,value2,absTol,relTol)
+  elemental logical function Values_Differ_Double(value1,value2,absTol,relTol)
     !% Returns true if {\tt value1} and {\tt value2} differ by more than {\tt absTol} in absolute terms, or {\tt relTol} in
     !% relative terms.
     implicit none
