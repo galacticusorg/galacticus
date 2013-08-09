@@ -414,8 +414,8 @@ contains
     ! Ensure module is initialized.
     call Abundances_Initialize
     ! Dump the content.
-    write (fileHandle) self%metallicityValue
-    if (elementsCount > 0) write (fileHandle) self%elementalValue
+    write (fileHandle) self%metallicityValue,allocated(self%elementalValue)
+    if (allocated(self%elementalValue)) write (fileHandle) self%elementalValue
     return
   end subroutine Abundances_Dump_Raw
 
@@ -423,16 +423,20 @@ contains
     !% Read an abundances object from binary.
     use Galacticus_Display
     use ISO_Varying_String
+    use Memory_Management
     implicit none
     class  (abundances    ), intent(inout) :: self
     integer                , intent(in   ) :: fileHandle
-    integer                                :: i
+    logical                                :: elementsAllocated
 
     ! Ensure module is initialized.
     call Abundances_Initialize
     ! Read the content.
-    read (fileHandle) self%metallicityValue
-    if (elementsCount > 0) read (fileHandle) self%elementalValue
+    read (fileHandle) self%metallicityValue,elementsAllocated
+    if (elementsAllocated) then
+       call Alloc_Array(self%elementalValue,[elementsCount])
+       read (fileHandle) self%elementalValue
+    end if
     return
   end subroutine Abundances_Read_Raw
 

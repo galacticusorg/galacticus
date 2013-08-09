@@ -98,10 +98,9 @@ contains
     nodeCount=0
     do while (associated(thisNode))
        nodeCount=nodeCount+1
-       nodeIndices(nodeCount)=thisNode%index()
+       nodeIndices(nodeCount)=thisNode%uniqueID()
        call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
      end do
-
     ! Open an output file. (Append to the old file if the file name has not changed.)
     if (trim(storeFile) == storeFilePrevious) then
        open(newunit=fileUnit,file=trim(storeFile),status='old'    ,form='unformatted',access='append')
@@ -110,7 +109,7 @@ contains
        open(newunit=fileUnit,file=trim(storeFile),status='unknown',form='unformatted'                )
     end if
     ! Write basic tree information.
-    write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,Node_Array_Position(thisTree%baseNode%index(),nodeIndices)
+    write (fileUnit) thisTree%index,thisTree%volumeWeight,thisTree%initialized,nodeCount,Node_Array_Position(thisTree%baseNode%uniqueID(),nodeIndices)
     ! Start at the base of the tree.
     thisNode          => thisTree%baseNode
     currentNodeInTree => null()
@@ -120,18 +119,18 @@ contains
        ! Indices.
        write (fileUnit) thisNode%index(),thisNode%uniqueID()
        ! Pointers to other nodes.
-       write (fileUnit)                                                         &
-            & Node_Array_Position(thisNode%parent        %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstChild    %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%sibling       %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstSatellite%index(),nodeIndices), &
-            & Node_Array_Position(thisNode%mergeTarget   %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%firstMergee   %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%siblingMergee %index(),nodeIndices), &
-            & Node_Array_Position(thisNode%formationNode %index(),nodeIndices)
+       write (fileUnit)                                                            &
+            & Node_Array_Position(thisNode%parent        %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstChild    %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%sibling       %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstSatellite%uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%mergeTarget   %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%firstMergee   %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%siblingMergee %uniqueID(),nodeIndices), &
+            & Node_Array_Position(thisNode%formationNode %uniqueID(),nodeIndices)
        ! Store the node.
        call thisNode%dumpRaw(fileUnit)
-      ! Move to the next node in the tree.
+       ! Move to the next node in the tree.
        call Merger_Tree_State_Walk_Tree(thisNode,currentNodeInTree)
     end do
     close(fileUnit)
@@ -162,6 +161,8 @@ contains
     use Galacticus_Nodes
     use Galacticus_State
     use Galacticus_Error
+    use String_Handling
+    use ISO_Varying_String
     implicit none
     type   (mergerTree    ), intent(inout)              , target :: thisTree
     logical                , intent(in   )                       :: skipTree
@@ -170,7 +171,8 @@ contains
          &                                                          firstSatelliteIndex, formationNodeIndex, iNode              , &
          &                                                          mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
          &                                                          parentIndex        , siblingIndex      , siblingMergeeIndex
-    integer(kind=kind_int8)                                      :: nodeIndex          , nodeUniqueID
+    integer(kind=kind_int8)                                      :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
+    type   (varying_string)                                      :: message
 
     ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve
@@ -190,6 +192,7 @@ contains
     ! Assign the tree base node.
     if (.not.skipTree) thisTree%baseNode => nodes(nodeArrayIndex)%node
     ! Loop over all nodes.
+    nodeUniqueIDMaximum=-1
     do iNode=1,nodeCount
        ! Read all node information.
        ! Indices.
@@ -209,6 +212,22 @@ contains
        nodes(iNode)%node%formationNode  => Pointed_At_Node(formationNodeIndex ,nodes)
        ! Read the node.
        call nodes(iNode)%node%readRaw(treeDataUnit)
+       ! Find the highest uniqueID.
+       nodeUniqueIDMaximum=max(nodeUniqueIDMaximum,nodeUniqueID)
+    end do
+    ! Set the global maximum unique ID to the maximum found.
+    call Galacticus_Nodes_Unique_ID_Set(nodeUniqueIDMaximum)
+    ! Perform sanity checks.
+    do iNode=1,nodeCount
+       if (associated(nodes(iNode)%node%firstChild)) then
+          if (.not.associated(nodes(iNode)%node,nodes(iNode)%node%firstChild%parent)) then
+             message="child's parent is not self"
+             message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID() 
+             message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID() 
+             message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID() 
+             call Galacticus_Error_Report('Merger_Tree_State_Restore',message)
+          end if
+       end if
     end do
     ! If the tree is to be skipped, destroy it.
     if (skipTree) then

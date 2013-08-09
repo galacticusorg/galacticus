@@ -35,7 +35,7 @@ module Galacticus_Nodes
   use IO_HDF5
   use FODEIV2
   private
-  public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Interrupt_Procedure_Template
+  public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
   !! <gfortran4.8> workaround
   public :: assignment(=)
 
@@ -138,6 +138,17 @@ module Galacticus_Nodes
   !# </include>
 
   !
+  ! Nodes functions.
+  subroutine Galacticus_Nodes_Unique_ID_Set(uniqueID)
+    !% Resets the global unique ID number.
+    implicit none
+    integer(kind=kind_int8), intent(in   ) :: uniqueID
+
+    uniqueIdCount=uniqueID
+    return
+  end subroutine Galacticus_Nodes_Unique_ID_Set
+  
+  !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
     !% Return a pointer to a newly created and initialized {\tt treeNode}.
@@ -204,10 +215,19 @@ module Galacticus_Nodes
   function Tree_Node_Unique_ID(self)
     !% Returns the unique ID of a {\tt treeNode}.
     implicit none
-    class  (treeNode      ), intent(in   ) :: self
-    integer(kind=kind_int8)                :: Tree_Node_Unique_ID
+    class  (treeNode      ), intent(in   ), target :: self
+    type   (treeNode      ), pointer               :: workNode
+    integer(kind=kind_int8)                        :: Tree_Node_Unique_ID
 
-    Tree_Node_Unique_ID=self%uniqueIdValue
+    select type (self)
+    type is (treeNode)
+       workNode => self
+    end select
+    if (associated(workNode)) then
+       Tree_Node_Unique_ID=workNode%uniqueIdValue
+    else
+       Tree_Node_Unique_ID=-1
+    end if
     return
   end function Tree_Node_Unique_ID
 
