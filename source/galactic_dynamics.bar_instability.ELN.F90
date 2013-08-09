@@ -130,7 +130,7 @@ contains
        ! Disk is unstable, compute a timescale for depletion.
 
        ! Begin by finding the disk dynamical time.
-       dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/thisDiskComponent%velocity()
+       dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/min(thisDiskComponent%velocity(),speedLight/kilo)
 
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.
