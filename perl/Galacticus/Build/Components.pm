@@ -3101,6 +3101,13 @@ sub Generate_Implementation_Dump_Functions {
 			    }
 			    else {
 				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
+				# For evolvable properties, copy the value object to the rate and scale objects to ensure that
+				# they are allocated to the correct size.
+				if ( $linkedData->{'isEvolvable'} eq "true" ) {
+				    foreach ( "rate", "scale" ) {
+					$functionCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".$_."=self%".padLinkedData($linkedDataName,[0,0])."%value\n";
+				    }
+				}
 			    }
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
@@ -3116,6 +3123,13 @@ sub Generate_Implementation_Dump_Functions {
 				$functionCode .= "       allocate(self%".$linkedDataName."%value(arraySize))\n";
 				$functionCode .= "       do i=1,arraySize)\n";
 				$functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
+				# For evolvable properties, copy the value object to the rate and scale objects to ensure that
+				# they are allocated to the correct size.
+				if ( $linkedData->{'isEvolvable'} eq "true" ) {
+				    foreach ( "rate", "scale" ) {
+					$functionCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".$_."(i)=self%".padLinkedData($linkedDataName,[0,0])."%value(i)\n";
+				    }
+				}
 				$functionCode .= "       end do\n";
 			    }
 			}			
