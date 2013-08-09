@@ -470,6 +470,7 @@ contains
        outputsGroup=galacticusOutputFile%openGroup('Outputs','Contains all outputs from Galacticus.')
        outputsGroupOpened=.true.
     end if
+    !$omp end critical(HDF5_Access)
 
     ! Create the group if it has not been created.
     if (.not.outputGroups(iOutput)%opened) then
@@ -482,6 +483,7 @@ contains
        commentText=commentText//iOutput
 
        ! Create a group for the tree.
+       !$omp critical(HDF5_Access)
        !@ <outputType>
        !@   <name>nodeData</name>
        !@   <description>A representation of the state of all nodes in the simulation at a given time. It consists of numerous datasets which gives the properties of nodes in all merger trees at that time.</description>
@@ -496,6 +498,7 @@ contains
        call outputGroups(iOutput)%hdf5Group%writeAttribute(time                  ,'outputTime'           )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(gigaYear              ,'timeUnitInSI'         )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(Expansion_Factor(time),'outputExpansionFactor')
+       !$omp end critical(HDF5_Access)
 
        ! Establish all other properties.
        !# <include directive="outputGroupOutputTask" type="functionCall" functionType="void">
@@ -504,7 +507,6 @@ contains
        !# </include>
 
     end if
-    !$omp end critical(HDF5_Access)
     return
   end subroutine Make_Output_Group
 
