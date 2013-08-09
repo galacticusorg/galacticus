@@ -58,7 +58,7 @@ contains
 
        ! Get the mass and energy elements.
        massElement    => XML_Get_First_Element_By_Tag_Name(doc,"heliumCoreMass" )
-       energyElement  => XML_Get_First_Element_By_Tag_Name(doc,"supernoveEnergy")
+       energyElement  => XML_Get_First_Element_By_Tag_Name(doc,"supernovaEnergy")
 
        ! Read the arrays.
        call XML_Array_Read(massElement  ,"data",supernovaeTableHeliumCoreMass)
