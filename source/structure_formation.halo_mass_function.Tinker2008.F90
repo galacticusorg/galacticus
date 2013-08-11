@@ -42,11 +42,11 @@ contains
     use Galacticus_Error
     use Galacticus_Input_Paths
     implicit none
-    type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
-    type            (Node            )               , pointer :: columnElement                      , columnsElement, &
-         &                                                        doc
-    integer                                                    :: ioErr
+    type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
+    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    type     (Node            )               , pointer :: columnElement                      , columnsElement, &
+         &                                                 doc
+    integer                                             :: ioErr
 
     if (haloMassFunctionMethod == 'Tinker2008') then
        Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Differential_Tinker2008

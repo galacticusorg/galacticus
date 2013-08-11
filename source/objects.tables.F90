@@ -22,7 +22,7 @@ module Tables
   use FGSL
   private
   public :: table,table1D,table1DLinearLinear,table1DLogarithmicLinear,table1DLinearCSpline,table1DLogarithmicCSpline
- 
+
   !@ <enumeration>
   !@  <name>extrapolationType</name>
   !@  <description>Used to specify the type of extrapolation to use when interpolating in tables.</description>
@@ -60,7 +60,7 @@ module Tables
 
   type, abstract, extends(table) :: table1D
      !% Basic table type.
-     integer                                       :: xCount,extrapolationType
+     integer                                       :: extrapolationType, xCount
      double precision, allocatable, dimension(:  ) :: xv
      double precision, allocatable, dimension(:,:) :: yv
    contains
@@ -129,15 +129,15 @@ module Tables
      !@ </objectMethods>
      procedure(Table1D_Interpolate ), deferred :: interpolate
      procedure(Table1D_Interpolate ), deferred :: interpolateGradient
-     procedure                                 :: destroy             => Table_1D_Destroy
-     procedure                                 :: reverse             => Table_1D_Reverse
-     procedure                                 :: isMonotonic         => Table1D_Is_Monotonic
-     procedure                                 :: size                => Table1D_Size
-     procedure                                 :: x                   => Table1D_X
-     procedure                                 :: y                   => Table1D_Y
-     procedure                                 :: xs                  => Table1D_Xs
-     procedure                                 :: ys                  => Table1D_Ys
-     procedure                                 :: xEffective          => Table1D_Find_Effective_X
+     procedure                                 :: destroy            =>Table_1D_Destroy
+     procedure                                 :: reverse            =>Table_1D_Reverse
+     procedure                                 :: isMonotonic        =>Table1D_Is_Monotonic
+     procedure                                 :: size               =>Table1D_Size
+     procedure                                 :: x                  =>Table1D_X
+     procedure                                 :: y                  =>Table1D_Y
+     procedure                                 :: xs                 =>Table1D_Xs
+     procedure                                 :: ys                 =>Table1D_Ys
+     procedure                                 :: xEffective         =>Table1D_Find_Effective_X
   end type table1D
 
   interface
@@ -172,14 +172,14 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                           => Table_Generic_1D_Create
-     procedure :: destroy                          => Table_Generic_1D_Destroy
+     procedure :: create                          =>Table_Generic_1D_Create
+     procedure :: destroy                         =>Table_Generic_1D_Destroy
      procedure :: Table_Generic_1D_Populate
      procedure :: Table_Generic_1D_Populate_Single
      generic   :: populate                         => Table_Generic_1D_Populate            , &
           &                                           Table_Generic_1D_Populate_Single
-     procedure :: interpolate                      => Table_Generic_1D_Interpolate
-     procedure :: interpolateGradient              => Table_Generic_1D_Interpolate_Gradient
+     procedure :: interpolate        =>Table_Generic_1D_Interpolate
+     procedure :: interpolateGradient=>Table_Generic_1D_Interpolate_Gradient
   end type table1DGeneric
 
   type, extends(table1D) :: table1DLinearLinear
@@ -203,22 +203,22 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                          => Table_Linear_1D_Create
+     procedure :: create                         =>Table_Linear_1D_Create
      procedure :: Table_Linear_1D_Populate
      procedure :: Table_Linear_1D_Populate_Single
      generic   :: populate                        => Table_Linear_1D_Populate, Table_Linear_1D_Populate_Single
-     procedure :: interpolate                     => Table_Linear_1D_Interpolate
-     procedure :: interpolateGradient             => Table_Linear_1D_Interpolate_Gradient
+     procedure :: interpolate        =>Table_Linear_1D_Interpolate
+     procedure :: interpolateGradient=>Table_Linear_1D_Interpolate_Gradient
   end type table1DLinearLinear
 
   type, extends(table1DLinearLinear) :: table1DLogarithmicLinear
      !% Table type supporting one dimensional table with logarithmic spacing in $x$.
    contains
-     procedure :: create              => Table_Logarithmic_1D_Create
-     procedure :: interpolate         => Table_Logarithmic_1D_Interpolate
-     procedure :: interpolateGradient => Table_Logarithmic_1D_Interpolate_Gradient
-     procedure :: x                   => Table_Logarithmic_1D_X
-     procedure :: xs                  => Table_Logarithmic_1D_Xs
+     procedure :: create             =>Table_Logarithmic_1D_Create
+     procedure :: interpolate        =>Table_Logarithmic_1D_Interpolate
+     procedure :: interpolateGradient=>Table_Logarithmic_1D_Interpolate_Gradient
+     procedure :: x                  =>Table_Logarithmic_1D_X
+     procedure :: xs                 =>Table_Logarithmic_1D_Xs
   end type table1DLogarithmicLinear
 
   type, extends(table1D) :: table1DLinearCSpline
@@ -244,24 +244,24 @@ module Tables
      !@     <description>Populate the {\tt table}$^{\rm th}$ table with elements {\tt y}. If {\tt y} is a scalar, then the index, {\tt i}, of the element to set must also be specified.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: create                                  => Table_Linear_CSpline_1D_Create
-     procedure :: destroy                                 => Table_Linear_CSpline_1D_Destroy
+     procedure :: create                                 =>Table_Linear_CSpline_1D_Create
+     procedure :: destroy                                =>Table_Linear_CSpline_1D_Destroy
      procedure :: Table_Linear_CSpline_1D_Populate
      procedure :: Table_Linear_CSpline_1D_Populate_Single
      generic   :: populate                                => Table_Linear_CSpline_1D_Populate            , &
           &                                                  Table_Linear_CSpline_1D_Populate_Single
-     procedure :: interpolate                             => Table_Linear_CSpline_1D_Interpolate
-     procedure :: interpolateGradient                     => Table_Linear_CSpline_1D_Interpolate_Gradient
+     procedure :: interpolate        =>Table_Linear_CSpline_1D_Interpolate
+     procedure :: interpolateGradient=>Table_Linear_CSpline_1D_Interpolate_Gradient
   end type table1DLinearCSpline
 
   type, extends(table1DLinearCSpline) :: table1DLogarithmicCSpline
      !% Table type supporting one dimensional table with logarithmic spacing in $x$ and cubic spline interpolation.
    contains
-     procedure :: create              => Table_Logarithmic_CSpline_1D_Create
-     procedure :: interpolate         => Table_Logarithmic_CSpline_1D_Interpolate
-     procedure :: interpolateGradient => Table_Logarithmic_CSpline_1D_Interpolate_Gradient
-     procedure :: x                   => Table_Logarithmic_CSpline_1D_X
-     procedure :: xs                  => Table_Logarithmic_CSpline_1D_Xs
+     procedure :: create             =>Table_Logarithmic_CSpline_1D_Create
+     procedure :: interpolate        =>Table_Logarithmic_CSpline_1D_Interpolate
+     procedure :: interpolateGradient=>Table_Logarithmic_CSpline_1D_Interpolate_Gradient
+     procedure :: x                  =>Table_Logarithmic_CSpline_1D_X
+     procedure :: xs                 =>Table_Logarithmic_CSpline_1D_Xs
   end type table1DLogarithmicCSpline
 
 contains
@@ -319,7 +319,7 @@ contains
   function Table1D_Ys(self)
     !% Return the $y$-values for a 1D table.
     implicit none
-    class           (table1D), intent(in   )                                      :: self
+    class(table1D), intent(in   ) :: self
     double precision         , dimension(size(self%yv,dim=1),size(self%yv,dim=2)) :: Table1D_Ys
 
     Table1D_Ys=self%yv
@@ -393,7 +393,7 @@ contains
     implicit none
     class           (table1DGeneric)              , intent(inout)           :: self
     double precision                , dimension(:), intent(in   )           :: x
-    integer                                       , intent(in   ), optional :: tableCount      ,extrapolationType
+    integer                                       , intent(in   ), optional :: extrapolationType, tableCount
     integer                                                                 :: tableCountActual
 
     ! Determine number of tables.
@@ -506,9 +506,9 @@ contains
     use Numerical_Ranges
     implicit none
     class           (table1DLinearLinear), intent(inout)           :: self
-    double precision                     , intent(in   )           :: xMaximum        , xMinimum
+    double precision                     , intent(in   )           :: xMaximum         , xMinimum
     integer                              , intent(in   )           :: xCount
-    integer                              , intent(in   ), optional :: tableCount      , extrapolationType
+    integer                              , intent(in   ), optional :: extrapolationType, tableCount
     integer                                                        :: tableCountActual
 
     ! Determine number of tables.
@@ -622,7 +622,7 @@ contains
     class           (table1DLinearLinear), intent(inout)           :: self
     double precision                     , intent(in   )           :: x
     integer                              , intent(in   ), optional :: table
-    integer                                                        :: i    , tableActual
+    integer                                                        :: i         , tableActual
     double precision                                               :: xEffective
 
     ! Determine which table to use.
@@ -651,9 +651,9 @@ contains
     !% Create a 1-D logarithmic table.
     implicit none
     class           (table1DLogarithmicLinear), intent(inout)           :: self
-    double precision                          , intent(in   )           :: xMaximum  , xMinimum
+    double precision                          , intent(in   )           :: xMaximum         , xMinimum
     integer                                   , intent(in   )           :: xCount
-    integer                                   , intent(in   ), optional :: tableCount, extrapolationType
+    integer                                   , intent(in   ), optional :: extrapolationType, tableCount
 
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearLinear%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
@@ -708,9 +708,9 @@ contains
     use Numerical_Ranges
     implicit none
     class           (table1DLinearCSpline), intent(inout)           :: self
-    double precision                      , intent(in   )           :: xMaximum        , xMinimum
+    double precision                      , intent(in   )           :: xMaximum         , xMinimum
     integer                               , intent(in   )           :: xCount
-    integer                               , intent(in   ), optional :: tableCount      , extrapolationType
+    integer                               , intent(in   ), optional :: extrapolationType, tableCount
     integer                                                         :: tableCountActual
 
     ! Determine number of tables.
@@ -875,8 +875,9 @@ contains
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
-    integer                                                         :: i    , tableActual
-    double precision                                                :: a    , b          , c, d, dx, xEffective
+    integer                                                         :: i         , tableActual
+    double precision                                                :: a         , b          , c, d, dx, &
+         &                                                             xEffective
 
     ! Determine which table to use.
     tableActual=1
@@ -908,8 +909,9 @@ contains
     class           (table1DLinearCSpline), intent(inout)           :: self
     double precision                      , intent(in   )           :: x
     integer                               , intent(in   ), optional :: table
-    integer                                                         :: i    , tableActual
-    double precision                                                :: a    , b          , c, d, dx, xEffective
+    integer                                                         :: i         , tableActual
+    double precision                                                :: a         , b          , c, d, dx, &
+         &                                                             xEffective
 
     ! Determine which table to use.
     tableActual=1
@@ -939,9 +941,9 @@ contains
     !% Create a 1-D logarithmic table.
     implicit none
     class           (table1DLogarithmicCSpline), intent(inout)           :: self
-    double precision                           , intent(in   )           :: xMaximum  , xMinimum
+    double precision                           , intent(in   )           :: xMaximum         , xMinimum
     integer                                    , intent(in   )           :: xCount
-    integer                                    , intent(in   ), optional :: tableCount, extrapolationType
+    integer                                    , intent(in   ), optional :: extrapolationType, tableCount
 
     ! Call the creator for linear tables with the logarithms of the input x range.
     call self%table1DLinearCSpline%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)

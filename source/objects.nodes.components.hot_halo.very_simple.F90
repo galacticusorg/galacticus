@@ -271,9 +271,9 @@ contains
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    type            (treeNode            )               , pointer :: parentNode
-    class           (nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    type (treeNode            )               , pointer :: parentNode
+    class(nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()

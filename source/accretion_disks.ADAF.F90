@@ -45,24 +45,24 @@ module Accretion_Disks_ADAF
 
   ! Options for the viscosity prescription.
   type            (varying_string          )            :: adafViscosityOption
-  integer                                   , parameter :: adafViscosityFit                   =1      , adafViscosityFixed            =0
+  integer                                   , parameter :: adafViscosityFit                   =1      , adafViscosityFixed         =0
   integer                                               :: adafViscosity
   double precision                                      :: adafViscosityFixedAlpha
 
   ! Options for the field-enhancing shear.
   type            (varying_string          )            :: adafFieldEnhanceType
-  integer                                   , parameter :: adafFieldEnhanceExponential        =0      , adafFieldEnhanceLinear        =1
+  integer                                   , parameter :: adafFieldEnhanceExponential        =0      , adafFieldEnhanceLinear     =1
   integer                                               :: adafFieldEnhance
 
   ! Variable determining whether ADAF energy is 1 or E_IS
   type            (varying_string          )            :: adafEnergyOption
-  integer                                   , parameter :: adafEnergy1                        =1      , adafEnergyIsco                =0
+  integer                                   , parameter :: adafEnergy1                        =1      , adafEnergyIsco             =0
   integer                                               :: adafEnergy
 
   ! Tables to store spin-up and jet power functions.
   logical                                               :: adafTableTabulated                 =.false.
   integer                                   , parameter :: adafTableCount                     =10000
-  integer                                   , parameter :: jetPowerTable                      =    1  , spinUpTable                   =    2
+  integer                                   , parameter :: jetPowerTable                      =1      , spinUpTable                =2
   type            (table1DLogarithmicLinear)            :: adafTable
 
 contains
@@ -264,9 +264,9 @@ contains
     implicit none
     double precision, parameter :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
     integer                     :: iSpin
-    double precision            :: adafViscosityAlpha                 , blackHoleSpin                       , &
-         &                         radiusIsco                         , radiusStatic                        , &
-         &                         adafEnergyValue
+    double precision            :: adafEnergyValue                    , adafViscosityAlpha                  , &
+         &                         blackHoleSpin                      , radiusIsco                          , &
+         &                         radiusStatic
 
     if (.not.adafTableTabulated) then
        !$omp critical(ADAF_Interpolate)

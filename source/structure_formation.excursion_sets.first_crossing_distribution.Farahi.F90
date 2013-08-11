@@ -621,8 +621,8 @@ contains
     real            (kind=kind_quad)                :: Excursion_Sets_Barrier_Effective
     real            (kind=kind_quad), intent(in   ) :: variance                                       , variance0
     double precision                , intent(in   ) :: time                                           , time0
-    real            (kind=kind_quad), save          :: variance0Previous               =-1.0_kind_quad, time0Previous=-1.0_kind_quad, &
-         &                                             barrier0Previous
+    real            (kind=kind_quad), save          :: barrier0Previous                               , time0Previous=-1.0_kind_quad, &
+         &                                             variance0Previous               =-1.0_kind_quad
     !$omp threadprivate(variance0Previous,time0Previous,barrier0Previous)
 
     if (variance0 /= variance0Previous .or. time0 /= time0Previous) then

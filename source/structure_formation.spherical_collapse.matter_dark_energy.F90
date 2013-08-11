@@ -33,8 +33,8 @@ module Spherical_Collapse_Matter_Dark_Energy
   integer                         , parameter :: deltaTableNPointsPerDecade                               =100
 
   ! Variables used in root finding.
-  double precision                            :: OmegaDE                                                         , OmegaM                       , &
-       &                                         epsilonPerturbationShared                                       , hubbleParameterInvGyr        , &
+  double precision                            :: OmegaDE                                                         , OmegaM                      , &
+       &                                         epsilonPerturbationShared                                       , hubbleParameterInvGyr       , &
        &                                         perturbationRadiusInitial                                       , tNow
 
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
@@ -133,13 +133,13 @@ contains
     type            (rootFinder    ), save                       :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
     integer                                                      :: deltaTableNumberPoints               , iTime
-    double precision                                             :: aExpansionNow                        , epsilonPerturbation                    , &
-         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , &
-         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor        , &
-         &                                                          maximumExpansionRadius               , maximumExpansionTime                   , &
-         &                                                          y                                    , normalization                          , &
-         &                                                          q                                    , timeEnergyFixed                        , &
-         &                                                          timeInitial
+    double precision                                             :: aExpansionNow                        , epsilonPerturbation                   , &
+         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
+         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
+         &                                                          maximumExpansionRadius               , maximumExpansionTime                  , &
+         &                                                          normalization                        , q                                     , &
+         &                                                          timeEnergyFixed                      , timeInitial                           , &
+         &                                                          y
     double complex :: a,b,x
     type     (varying_string) :: message
     character(len=7         ) :: label
@@ -297,7 +297,7 @@ contains
     type            (fodeiv2_driver    )                                                  :: ode2Driver
     type            (c_ptr             )                                                  :: parameterPointer
     logical                                                                               :: odeReset
-    double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial         , &
+    double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial        , &
          &                                                                                   perturbationOverdensityInitial      , timeInitial
     integer                                                                               :: odeStatus
 

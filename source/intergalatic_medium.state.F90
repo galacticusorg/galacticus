@@ -44,7 +44,7 @@ module Intergalactic_Medium_State
   integer                                                 :: electronScatteringTableNumberPoints
   double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum
   type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized
-  class           (table1D                 ), allocatable :: electronScatteringInverse                     , electronScatteringFullyIonizedInverse
+  class           (table1D                 ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse
 
   ! Option controlling whether electron scattering optical depth calculations should assume a fully ionized universe.
   logical                                                 :: fullyIonized

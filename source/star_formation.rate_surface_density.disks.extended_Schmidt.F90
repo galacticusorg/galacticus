@@ -136,7 +136,7 @@ contains
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
     type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                                            :: surfaceDensityStar, gasMass, surfaceDensityGas
+    double precision                                            :: gasMass          , surfaceDensityGas, surfaceDensityStar
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_ExSchmidt_Reset(thisNode)

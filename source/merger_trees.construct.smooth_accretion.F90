@@ -27,11 +27,11 @@ module Merger_Tree_Smooth_Accretion
   public :: Merger_Tree_Smooth_Accretion_Initialize
 
   ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeBaseRedshift              , mergerTreeHaloMassResolution   , &
-       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor
+  double precision :: mergerTreeBaseRedshift                 , mergerTreeHaloMass          , &
+       &              mergerTreeHaloMassDeclineFactor        , mergerTreeHaloMassResolution
 
   ! Flag indicating whether or not we've already built the tree.
-  logical          :: treeWasBuilt                =.false.
+  logical          :: treeWasBuilt                   =.false.
 
 contains
 

@@ -26,21 +26,21 @@ module Stellar_Population_Properties_Luminosities
        & Stellar_Population_Luminosities_Output_Count, Stellar_Population_Luminosities_Output, Stellar_Population_Luminosities_Index
 
   ! Flag specifying if module has been initialized.
-  logical                                                     :: luminositiesInitialized      =.false.
+  logical                                                     :: luminositiesInitialized           =.false.
 
   ! Arrays which hold the luminosity specifications.
   integer                                                     :: luminosityCount
-  integer                         , allocatable, dimension(:) :: luminosityFilterIndex                , luminosityIndex               , &
+  integer                         , allocatable, dimension(:) :: luminosityFilterIndex                     , luminosityIndex               , &
        &                                                         luminosityPostprocessingChainIndex
-  double precision                , allocatable, dimension(:) :: luminosityCosmicTime                 , luminosityRedshift            , &
-       &                                                         luminosityBandRedshift
-  type            (varying_string), allocatable, dimension(:) :: luminosityFilter                     , luminosityName                , &
-       &                                                         luminosityType                       , luminosityPostprocessSet
+  double precision                , allocatable, dimension(:) :: luminosityBandRedshift                    , luminosityCosmicTime          , &
+       &                                                         luminosityRedshift
+  type            (varying_string), allocatable, dimension(:) :: luminosityFilter                          , luminosityName                , &
+       &                                                         luminosityPostprocessSet                  , luminosityType
 
   ! Luminosity output options.
   integer                                                     :: luminosityOutputOption
-  integer                         , parameter                 :: luminosityOutputOptionAll    =0      , luminosityOutputOptionFuture=1, &
-       &                                                         luminosityOutputOptionPresent=2
+  integer                         , parameter                 :: luminosityOutputOptionAll         =0      , luminosityOutputOptionFuture=1, &
+       &                                                         luminosityOutputOptionPresent     =2
 
 contains
 
@@ -265,7 +265,7 @@ contains
              !@   <cardinality>0..*</cardinality>
              !@ </inputParameter>
              call Get_Input_Parameter('luminosityType'    ,luminosityType    )
-             ! Read postprocessing set information.          
+             ! Read postprocessing set information.
              if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') > 0) then
                 if (Get_Input_Parameter_Array_Size('luminosityPostprocessSet') /= luminosityCount) call&
                      & Galacticus_Error_Report('Stellar_Population_Properties_Luminosities_Initialize','luminosityPostprocessSet and luminosityFilter&

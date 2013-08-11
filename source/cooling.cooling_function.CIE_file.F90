@@ -407,15 +407,15 @@ contains
     type            (varying_string)             , intent(in   )           :: coolingFunctionFileToRead
     double precision                             , intent(  out), optional :: metallicityMaximumTabulated
     double precision                , allocatable, dimension(:)            :: coolingFunctionTemperaturesReference
-    type            (Node          ), pointer                              :: version                        , doc                 , &
-         &                                                                    extrapolation                  , extrapolationElement, &
-         &                                                                    metallicityElement             , thisCoolingFunction , &
-         &                                                                    thisCoolingRate                , thisTemperature
-    type            (NodeList      ), pointer                              :: coolingFunctionList            , metallicityExtrapolationList, &
+    type            (Node          ), pointer                              :: doc                                 , extrapolation               , &
+         &                                                                    extrapolationElement                , metallicityElement          , &
+         &                                                                    thisCoolingFunction                 , thisCoolingRate             , &
+         &                                                                    thisTemperature                     , version
+    type            (NodeList      ), pointer                              :: coolingFunctionList                 , metallicityExtrapolationList, &
          &                                                                    temperatureExtrapolationList
-    integer                                                                :: extrapolationMethod            , fileFormatVersion   , &
-         &                                                                    iCoolingFunction               , ioErr               , &
-         &                                                                    iExtrapolation
+    integer                                                                :: extrapolationMethod                 , fileFormatVersion           , &
+         &                                                                    iCoolingFunction                    , iExtrapolation              , &
+         &                                                                    ioErr
     character       (len=32        )                                       :: limitType
 
     !$omp critical (FoX_DOM_Access)
@@ -473,7 +473,7 @@ contains
             &                              )                                              &
             &                          ,.false.                                           &
             &                          ,verbosityWorking                                  &
-            &                         )       
+            &                         )
        if (iCoolingFunction == 0) then
           ! Make a copy of the temperatures to use as a reference for future temperature reads.
           coolingFunctionTemperaturesReference=coolingFunctionTemperatures

@@ -66,9 +66,9 @@ contains
     class           (nodeComponentDisk           )               , pointer :: thisDisk
     class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
     class           (nodeComponentBasic          )               , pointer :: thisBasic
-    double precision                                                       :: timeCurrent              , timeOutputPrevious   , &
-         &                                                                    timeOutputNext           , diskStarFormationRate, &
-         &                                                                    spheroidStarFormationRate
+    double precision                                                       :: diskStarFormationRate, spheroidStarFormationRate, &
+         &                                                                    timeCurrent          , timeOutputNext           , &
+         &                                                                    timeOutputPrevious
 
     ! Return immediately if the standard inter-output component is not active.
     if (.not.defaultInteroutputComponent%standardIsActive()) return
@@ -128,7 +128,7 @@ contains
     implicit none
     type (treeNode                ), intent(inout), pointer :: thisNode
     type (treeNode                )               , pointer :: hostNode
-    class(nodeComponentInterOutput)               , pointer :: thisInterOutput, hostInterOutput
+    class(nodeComponentInterOutput)               , pointer :: hostInterOutput, thisInterOutput
 
     ! Get the inter-output component.
     thisInterOutput => thisNode%interOutput()
@@ -182,7 +182,7 @@ contains
           ! Do nothing.
        case default
           call Galacticus_Error_Report('Node_Component_Inter_Output_Standard_Satellite_Merger','unrecognized movesTo descriptor')
-       end select       
+       end select
     end select
     return
   end subroutine Node_Component_Inter_Output_Standard_Satellite_Merger

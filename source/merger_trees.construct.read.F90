@@ -179,8 +179,8 @@ contains
          &                                                           treesAreSelfContained             , treesHaveSubhalos          , &
          &                                                           velocitiesIncludeHubbleFlowInteger
     double precision                                              :: cosmologicalParameter
-    character       (len=14        )                              :: valueString
-    type            (varying_string)                              :: message
+    character       (len=14             )                         :: valueString
+    type            (varying_string     )                         :: message
     double precision                                              :: localLittleH0                     , localOmegaBaryon           , &
          &                                                           localOmegaDE                      , localOmegaMatter           , &
          &                                                           localSigma8
@@ -717,7 +717,7 @@ contains
     logical                                                                      , intent(in   )         :: skipTree
     double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime
     double precision                                , allocatable, dimension(:,:)                        :: position           , velocity
-    type            (nodeData                      ), allocatable, dimension(:  ), target                :: nodes
+    type            (nodeData                      ), allocatable, dimension(:  )               , target :: nodes
     type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList
     logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo
     integer         (kind=HSIZE_T                  )             , dimension(1  )                        :: firstNodeIndex     , nodeCount
@@ -1469,17 +1469,17 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target :: thisTree
-    type     (nodeData          )         , dimension(:), intent(inout)          :: nodes
-    type     (treeNodeList      )         , dimension(:), intent(inout)          :: nodeList
-    class    (nodeComponentBasic), pointer                                       :: nodeBasicComponent
-    type     (mergerTree        ), pointer                                       :: currentTree
-    type     (nodeData          ), pointer                                       :: parentNode
-    integer                                                                      :: iNode
-    integer  (kind=kind_int8    )                                                :: iIsolatedNode
-    type     (varying_string    )                                                :: message
-    character(len=12            )                                                :: label
-    logical                                                                      :: assignLastIsolatedTime
+    type     (mergerTree        )                       , intent(inout) , target::                    thisTree
+    type     (nodeData          )         , dimension(:), intent(inout) ::      nodes
+    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList
+    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent
+    type     (mergerTree        ), pointer                              ::      currentTree
+    type     (nodeData          ), pointer                              ::      parentNode
+    integer                                                             ::      iNode
+    integer  (kind=kind_int8    )                                       ::      iIsolatedNode
+    type     (varying_string    )                                       ::      message
+    character(len=12            )                                       ::      label
+    logical                                                             ::      assignLastIsolatedTime
 
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).

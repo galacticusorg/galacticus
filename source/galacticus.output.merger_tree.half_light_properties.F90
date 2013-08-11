@@ -173,26 +173,26 @@ contains
 
        ! Loop over luminosities.
        do iLuminosity=1,luminositiesCount
-          
+
           ! Find luminosities which are to be output at this output time.
           if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
-             
+
              ! Get the half-light radius.
              halfLightRadius=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeStellar&
                   &,weightBy=weightByLuminosity,weightIndex=iLuminosity)
-             
+
              ! Find the total mass enclosed.
              massEnclosed   =Galactic_Structure_Enclosed_Mass(thisNode,halfLightRadius,componentType=componentTypeAll,massType&
                   &=massTypeAll)
-             
+
              ! Store the resulting radius.
              doubleProperty=doubleProperty+1
              doubleBuffer(doubleBufferCount,doubleProperty)=halfLightRadius
              doubleProperty=doubleProperty+1
              doubleBuffer(doubleBufferCount,doubleProperty)=massEnclosed
-             
+
           end if
-          
+
        end do
 
     end if

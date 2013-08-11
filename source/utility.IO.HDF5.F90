@@ -4758,7 +4758,7 @@ contains
     integer  (kind=kind_int8   )             , dimension(:)        , intent(  out)           :: datasetValue
     class    (hdf5Object       )                                   , intent(inout)           :: thisObject
     character(len=*            )                                   , intent(in   ), optional :: datasetName
-    integer  (kind=HSIZE_T     )             , dimension(1)        , intent(in   ), optional :: readBegin             , readCount                    !  &&
+    integer  (kind=HSIZE_T     )             , dimension(1)        , intent(in   ), optional :: readBegin             , readCount                    !   &&
     integer  (kind=HSIZE_T     )             , dimension(1)                                  :: datasetDimensions     , datasetMaximumDimensions, &
          &                                                                                      referenceEnd          , referenceStart
     integer  (kind=kind_int8   ), allocatable, dimension(:), target                          :: datasetValueContiguous
@@ -6824,14 +6824,14 @@ contains
     character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
-    integer                                           , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                         appendDimension
+    integer                                           , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                         compressionLevel
     type            (hdf5Object    )                  , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions           , hyperslabCount             , &
          &                                                                         hyperslabStart              , newDatasetDimensions       , &
          &                                                                         newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                     :: datasetRank                 , errorCode                  , &
-         &                                                                         appendDimensionActual
+    integer                                                                     :: appendDimensionActual       , datasetRank                , &
+         &                                                                         errorCode
     integer         (kind=HID_T    )                                            :: dataspaceID                 , newDataspaceID
     logical                                                                     :: appendToActual              , preExisted
     type            (hdf5Object    )                                            :: datasetObject
@@ -7573,14 +7573,14 @@ contains
     character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
-    integer                                             , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                           appendDimension
+    integer                                             , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                           compressionLevel
     type            (hdf5Object    )                    , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions           , hyperslabCount             , &
          &                                                                           hyperslabStart              , newDatasetDimensions       , &
          &                                                                           newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                       :: datasetRank                 , errorCode                  , &
-         &                                                                           appendDimensionActual
+    integer                                                                       :: appendDimensionActual       , datasetRank                , &
+         &                                                                           errorCode
     integer         (kind=HID_T    )                                              :: dataspaceID                 , newDataspaceID
     logical                                                                       :: appendToActual              , preExisted
     type            (hdf5Object    )                                              :: datasetObject
@@ -8322,14 +8322,14 @@ contains
     character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
-    integer                                               , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                             appendDimension
+    integer                                               , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                             compressionLevel
     type            (hdf5Object    )                      , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions           , hyperslabCount             , &
          &                                                                             hyperslabStart              , newDatasetDimensions       , &
          &                                                                             newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                         :: datasetRank                 , errorCode                  , &
-         &                                                                             appendDimensionActual
+    integer                                                                         :: appendDimensionActual       , datasetRank                , &
+         &                                                                             errorCode
     integer         (kind=HID_T    )                                                :: dataspaceID                 , newDataspaceID
     logical                                                                         :: appendToActual              , preExisted
     type            (hdf5Object    )                                                :: datasetObject
@@ -8499,7 +8499,7 @@ contains
     double precision                   , dimension(:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                      , intent(inout)           :: thisObject
     character       (len=*            )                      , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !  &&
+    integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !   &&
     integer         (kind=HSIZE_T     ), dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                referenceEnd      , referenceStart
     ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results

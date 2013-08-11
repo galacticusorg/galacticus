@@ -24,7 +24,7 @@ module Halo_Mass_Function_Press_Schechter
   public :: Halo_Mass_Function_Press_Schechter_Initialize
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer         , parameter :: nPointsPerDecade=1000
+  integer, parameter :: nPointsPerDecade=1000
 
 contains
 

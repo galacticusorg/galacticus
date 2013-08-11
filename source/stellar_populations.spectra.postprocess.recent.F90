@@ -23,7 +23,7 @@ module Stellar_Population_Spectra_Postprocessing_Recent
   public :: Stellar_Population_Spectra_Postprocess_Recent_Init
 
   ! Record of whether the module is initialized.
-  logical          :: moduleInitialized=.false.
+  logical          :: moduleInitialized         =.false.
 
   ! Parameters of the model.
   double precision :: recentPopulationsTimeLimit
@@ -37,12 +37,12 @@ contains
     !% Initializes the ``recent'' stellar spectrum postprocessing module.
     use Input_Parameters
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
     if (stellarPopulationSpectraPostprocessMethod == 'recent') then
        postprocessingFunction => Stellar_Population_Spectra_Postprocess_Recent
-       
+
        if (.not.moduleInitialized) then
           ! Get parameters of the model.
           !@ <inputParameter>
@@ -61,11 +61,11 @@ contains
     end if
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Recent_Init
-  
+
   subroutine Stellar_Population_Spectra_Postprocess_Recent(wavelength,age,redshift,modifier)
     !% Apply dust attenuation to galaxy spectra
     implicit none
-    double precision, intent(in   ) :: wavelength,age,redshift
+    double precision, intent(in   ) :: age     , redshift, wavelength
     double precision, intent(inout) :: modifier
 
     if (age > recentPopulationsTimeLimit) modifier=0.0d0

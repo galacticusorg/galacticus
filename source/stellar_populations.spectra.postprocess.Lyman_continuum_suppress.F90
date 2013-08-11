@@ -26,15 +26,15 @@ module Stellar_Population_Spectra_Postprocessing_Lyc_Suppress
   logical :: methodIsActive
 
 contains
-  
+
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
   subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``Lyman-continuum suppression'' stellar spectrum postprocessing module.
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
     if (stellarPopulationSpectraPostprocessMethod == 'lymanContinuumSuppress') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Lyc_Suppress
     return
@@ -44,7 +44,7 @@ contains
     !% Suppresses all starlight in the Lyman continuum.
     use Numerical_Constants_Atomic
     implicit none
-    double precision, intent(in)    :: wavelength,age,redshift
+    double precision, intent(in   ) :: age     , redshift, wavelength
     double precision, intent(inout) :: modifier
 
     ! Suppress all emission in the Lyman continuum.

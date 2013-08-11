@@ -108,7 +108,7 @@ contains
     use Numerical_Interpolation
     use FGSL
     implicit none
-    double precision                                              , intent(  out)          :: energyInputRate          , fuelMassRate             , &
+    double precision                                              , intent(  out)          :: energyInputRate          , fuelMassRate          , &
          &                                                                                    stellarMassRate
     type            (abundances        )                          , intent(inout)          :: fuelAbundancesRates      , stellarAbundancesRates
     double precision                    , dimension(:)            , intent(  out)          :: stellarLuminositiesRates
@@ -118,12 +118,12 @@ contains
     type            (treeNode          )                          , intent(inout), pointer :: thisNode
     type            (history           )                          , intent(inout)          :: thisHistory
     class           (nodeComponentBasic)                                         , pointer :: thisBasicComponent
-    double precision                    , dimension(elementsCount)                         :: fuelMetallicity          , fuelMetalsRateOfChange   , &
-         &                                                                                    metalReturnRate          , metalYieldRate           , &
+    double precision                    , dimension(elementsCount)                         :: fuelMetallicity          , fuelMetalsRateOfChange, &
+         &                                                                                    metalReturnRate          , metalYieldRate        , &
          &                                                                                    stellarMetalsRateOfChange
-    integer                                                                                :: iElement                 , iHistory                 , &
+    integer                                                                                :: iElement                 , iHistory              , &
          &                                                                                    imfSelected
-    double precision                                                                       :: ageMaximum               , ageMinimum               , &
+    double precision                                                                       :: ageMaximum               , ageMinimum            , &
          &                                                                                    currentTime              , recyclingRate
     type            (fgsl_interp_accel )                                                   :: interpolationAccelerator
     logical                                                                                :: interpolationReset
