@@ -20,7 +20,6 @@
 module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
-  use Galacticus_Nodes
   use Tables
   implicit none
   private
@@ -32,8 +31,8 @@ module Halo_Spin_Distributions_Bett2007
 
   ! Tabulation of the spin distribution.
   integer                                   , parameter   :: spinDistributionTableNumberPoints=1000
-  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.
-  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_.
+  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !    Maximum spin to tabulate.
+  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !    Minimum spin in units of lambda_.
   double precision                                        :: spinDistributionTableMaximum
   type            (table1DLogarithmicLinear)              :: spinDistributionTable
   class           (table1D                 ), allocatable :: spinDistributionTableInverse
@@ -52,14 +51,12 @@ contains
     !% Initializes the ``Bett2007'' halo spin distribution module.
     use ISO_Varying_String
     use Input_Parameters
-    use Memory_Management
-    use Numerical_Ranges
     use Gamma_Functions
     implicit none
-    type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
-    procedure(Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
-    integer                                                            :: iSpin
-    double precision                                                   :: spinDimensionless
+    type            (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
+    procedure       (Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
+    integer                                                                   :: iSpin
+    double precision                                                          :: spinDimensionless
 
     if (haloSpinDistributionMethod == 'Bett2007') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Bett2007
@@ -148,7 +145,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Halo_Spin_Distribution_Bett2007_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -164,7 +160,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile

@@ -21,33 +21,32 @@ module Virial_Orbits_Wetzel2010
   !% Implements the \cite{wetzel_orbits_2010} orbital parameter distribution for merging subhalos.
   use Tables
   use FGSL
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Virial_Orbital_Parameters_Wetzel2010_Initialize, Virial_Orbital_Parameters_Wetzel2010_Snapshot,&
        & Virial_Orbital_Parameters_Wetzel2010_State_Store, Virial_Orbital_Parameters_Wetzel2010_State_Retrieve
 
-  type            (fgsl_rng                )              :: clonedPseudoSequenceObject                            , pseudoSequenceObject
-  logical                                                 :: resetSequence                              =.true.    , resetSequenceSnapshot
+  type            (fgsl_rng                )              :: clonedPseudoSequenceObject                 , pseudoSequenceObject
+  logical                                                 :: resetSequence                   =.true.    , resetSequenceSnapshot
   !$omp threadprivate(pseudoSequenceObject,resetSequence,clonedPseudoSequenceObject,resetSequenceSnapshot)
   ! Table of the cumulative distribution for the pericentric radius.
-  integer                                   , parameter   :: pericentricRadiusPointsPerDecade           =10
+  integer                                   , parameter   :: pericentricRadiusPointsPerDecade=10
   integer                                                 :: pericentricRadiusCount
-  double precision                          , parameter   :: pericentricRadiusMaximum                   =1.0d2     , pericentricRadiusMinimum    =1.0d-6
+  double precision                          , parameter   :: pericentricRadiusMaximum        =1.0d2     , pericentricRadiusMinimum=1.0d-6
   type            (table1DLogarithmicLinear)              :: pericentricRadiusTable
   class           (table1D                 ), allocatable :: pericentricRadiusTableInverse
 
   ! Parameters of the fitting functions.
-  double precision                          , parameter   :: circularityAlpha1                          =0.242d0   , circularityBeta1            =2.360d0 , &
-       &                                                     circularityGamma1                          =0.108d0   , circularityGamma2           =1.05d0  , &
-       &                                                     circularityP1                              =0.0d0
-  double precision                          , parameter   :: pericenterAlpha1                           =0.450d0   , pericenterBeta1             =-0.395d0, &
-       &                                                     pericenterGamma1                           =0.109d0   , pericenterGamma2            =0.85d0  , &
-       &                                                     pericenterP1                               =-4.0d0
-  double precision                          , parameter   :: c1Maximum                                  =9.999999d0, r1Minimum                   =0.05d0
+  double precision                          , parameter   :: circularityAlpha1               =0.242d0   , circularityBeta1        =2.360d0 , &
+       &                                                     circularityGamma1               =0.108d0   , circularityGamma2       =1.05d0  , &
+       &                                                     circularityP1                   =0.0d0
+  double precision                          , parameter   :: pericenterAlpha1                =0.450d0   , pericenterBeta1         =-0.395d0, &
+       &                                                     pericenterGamma1                =0.109d0   , pericenterGamma2        =0.85d0  , &
+       &                                                     pericenterP1                    =-4.0d0
+  double precision                          , parameter   :: c1Maximum                       =9.999999d0, r1Minimum               =0.05d0
 
   ! Global variables used in root finding.
-  double precision                                        :: C0                                                    , C1                                   , &
+  double precision                                        :: C0                                         , C1                               , &
        &                                                     uniformDeviate
   !$omp threadprivate(uniformDeviate,C0,C1)
 
@@ -60,13 +59,12 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Hypergeometric_Functions
-    use Kepler_Orbits
     implicit none
     type            (varying_string                      ), intent(in   )          :: virialOrbitsMethod
     procedure       (Virial_Orbital_Parameters_Wetzel2010), intent(inout), pointer :: Virial_Orbital_Parameters_Get
     integer                                                                        :: iRadius
-    double precision                                                               :: x                            , xGamma2                           , &
-         &                                                                            probabilityCumulative        , probabilityCumulativeNormalization
+    double precision                                                               :: probabilityCumulative        , probabilityCumulativeNormalization, &
+         &                                                                            x                            , xGamma2
 
     if (virialOrbitsMethod == 'Wetzel2010') then
        ! Set procedure pointer to our orbital parameter function.
@@ -113,22 +111,22 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type            (keplerOrbit       )                                          :: thisOrbit
-    type            (treeNode          )                 , intent(inout), pointer :: hostNode                       , thisNode
-    logical                                              , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic)                                , pointer :: hostBasicComponent             , thisBasicComponent
-    double precision                          , parameter                         :: toleranceAbsolute       =0.0d0 , toleranceRelative     =1.0d-2
-    double precision                          , parameter                         :: circularityMaximum      =1.0d0 , circularityMinimum    =0.0d0
-    double precision                          , parameter                         :: redshiftMaximum         =5.0d0 , expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type            (rootFinder        ), save                                    :: finder
+    type            (keplerOrbit       )                                    :: thisOrbit
+    type            (treeNode          )           , intent(inout), pointer :: hostNode                                            , thisNode
+    logical                                        , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                  , thisBasicComponent
+    double precision                    , parameter                         :: toleranceAbsolute     =0.0d0, toleranceRelative   =1.0d-2
+    double precision                    , parameter                         :: circularityMaximum    =1.0d0, circularityMinimum  =0.0d0
+    double precision                    , parameter                         :: redshiftMaximum       =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    type            (rootFinder        ), save                              :: finder
     !$omp threadprivate(finder)
-    double precision                                                              :: R1                                                    , apocentricRadius           , &
-         &                                                                           circularity                                           , eccentricityInternal       , &
-         &                                                                           expansionFactor                                       , g1                         , &
-         &                                                                           massCharacteristic                                    , pericentricRadius          , &
-         &                                                                           probabilityTotal                                      , radialScale                , &
-         &                                                                           timeNode
-    logical                                                                       :: foundOrbit
+    double precision                                                        :: R1                                                  , apocentricRadius           , &
+         &                                                                     circularity                                         , eccentricityInternal       , &
+         &                                                                     expansionFactor                                     , g1                         , &
+         &                                                                     massCharacteristic                                  , pericentricRadius          , &
+         &                                                                     probabilityTotal                                    , radialScale                , &
+         &                                                                     timeNode
+    logical                                                                 :: foundOrbit
 
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then

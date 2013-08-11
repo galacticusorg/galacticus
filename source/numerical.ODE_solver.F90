@@ -20,8 +20,6 @@
 module ODE_Solver
   !% Contains an interface to the GNU Scientific Library ODEIV differential equation solvers.
   use ODE_Solver_Error_Codes
-  use FGSL
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: ODE_Solve, ODE_Solver_Free

@@ -33,8 +33,8 @@ module Spherical_Collapse_Matter_Dark_Energy
   integer                         , parameter :: deltaTableNPointsPerDecade                               =100
 
   ! Variables used in root finding.
-  double precision                            :: OmegaDE                                                         , OmegaM                       , &
-       &                                         epsilonPerturbationShared                                       , hubbleParameterInvGyr        , &
+  double precision                            :: OmegaDE                                                         , OmegaM                      , &
+       &                                         epsilonPerturbationShared                                       , hubbleParameterInvGyr       , &
        &                                         perturbationRadiusInitial                                       , tNow
 
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
@@ -53,7 +53,6 @@ contains
   !# </criticalOverdensityMethod>
   subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
     implicit none
     type     (varying_string                                     ), intent(in   )          :: criticalOverdensityMethod
     procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
@@ -68,7 +67,6 @@ contains
   subroutine Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
     use Input_Parameters
-    use ISO_Varying_String
     type     (varying_string                                        ), intent(in   )          :: virialDensityContrastMethod
     procedure(Spherical_Collapse_Dark_Energy_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
 
@@ -124,14 +122,9 @@ contains
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder
-    use Numerical_Ranges
-    use Memory_Management
     use Tables
-    use Kind_Numbers
     use Galacticus_Error
     use Galacticus_Display
-    use ISO_Varying_String
-    use Numerical_Constants_Math
     implicit none
     double precision                             , intent(in   ) :: time
     integer                                      , intent(in   ) :: calculationType
@@ -140,14 +133,13 @@ contains
     type            (rootFinder    ), save                       :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
     integer                                                      :: deltaTableNumberPoints               , iTime
-    double precision                                             :: aExpansionNow                        , epsilonPerturbation                    , &
-         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , &
-         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor        , &
-         &                                                          maximumExpansionRadius               , maximumExpansionTime                   , &
-         &                                                          n                                    , normalization                          , &
-         &                                                          phi                                  , q                                      , &
-         &                                                          theta                                , timeEnergyFixed                        , &
-         &                                                          timeInitial                          , y
+    double precision                                             :: aExpansionNow                        , epsilonPerturbation                   , &
+         &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum            , &
+         &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor       , &
+         &                                                          maximumExpansionRadius               , maximumExpansionTime                  , &
+         &                                                          normalization                        , q                                     , &
+         &                                                          timeEnergyFixed                      , timeInitial                           , &
+         &                                                          y
     double complex :: a,b,x
     type     (varying_string) :: message
     character(len=7         ) :: label
@@ -305,7 +297,7 @@ contains
     type            (fodeiv2_driver    )                                                  :: ode2Driver
     type            (c_ptr             )                                                  :: parameterPointer
     logical                                                                               :: odeReset
-    double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial         , &
+    double precision                                                                      :: expansionFactorInitial              , perturbationExpansionRateInitial        , &
          &                                                                                   perturbationOverdensityInitial      , timeInitial
     integer                                                                               :: odeStatus
 
@@ -350,7 +342,6 @@ contains
   end subroutine Perturbation_Dynamics_Solver
 
   function perturbationODEs(time,y,dydt,parameterPointer) bind(c)
-    use FGSL
     use Cosmology_Functions
     implicit none
     integer         (kind=c_int   )                       :: perturbationODEs

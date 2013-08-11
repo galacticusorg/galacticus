@@ -235,7 +235,6 @@ contains
 
   double precision function H_0_invGyr()
     !% Returns the value of $H_0$, in units of inverse Gyr.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
 

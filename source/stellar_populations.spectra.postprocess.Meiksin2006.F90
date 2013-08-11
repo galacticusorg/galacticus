@@ -33,8 +33,8 @@ contains
   subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
     if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Meiksin2006
     return
@@ -47,8 +47,8 @@ contains
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision               , intent(in   ) :: redshift                               , wavelength         , &
-         &                                            age
+    double precision               , intent(in   ) :: age                                    , redshift           , &
+         &                                            wavelength
     double precision               , intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
     double precision, parameter                    :: N0                              =0.25d0

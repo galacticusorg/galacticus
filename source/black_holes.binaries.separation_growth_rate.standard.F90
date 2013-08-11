@@ -83,15 +83,12 @@ contains
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
     use Galacticus_Nodes
-    use Bessel_Functions
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Rotation_Curve_Gradients
-    use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
     use Galacticus_Display

@@ -88,7 +88,6 @@ contains
     use Galacticus_Error
     use FoX_dom
     use Galacticus_Input_Paths
-    use ISO_Varying_String
     use IO_XML
     implicit none
     type            (varying_string), intent(in   )               :: filterName

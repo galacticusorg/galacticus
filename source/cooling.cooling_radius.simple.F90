@@ -21,7 +21,6 @@
 module Cooling_Radii_Simple
   !% Implements a simple cooling radius calculation (finds the radius at which the time available for cooling equals the cooling
   !% time).
-  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   use Kind_Numbers
   use Radiation_Structure
@@ -95,7 +94,6 @@ contains
   !# </calculationResetTask>
   subroutine Cooling_Radius_Simple_Reset(thisNode)
     !% Reset the cooling radius calculation.
-    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -110,7 +108,6 @@ contains
 
   double precision function Cooling_Radius_Growth_Rate_Simple(thisNode)
     !% Return the growth rate of the cooling radius in the ``simple'' model in Mpc/Gyr.
-    use Galacticus_Nodes
     use Hot_Halo_Temperature_Profile
     use Hot_Halo_Density_Profile
     use Cooling_Times
@@ -183,7 +180,6 @@ contains
 
   double precision function Cooling_Radius_Simple(thisNode)
     !% Return the cooling radius in the simple model.
-    use Galacticus_Nodes
     use Cooling_Times_Available
     use Root_Finder
     implicit none

@@ -30,7 +30,6 @@ contains
   !# </treeBranchingModifierMethod>
   subroutine Merger_Tree_Branching_Modifiers_Null_Initialize(treeBranchingModifierMethod,Merger_Tree_Branching_Modifier_Get)
     !% Initialize the null modifier method for merger tree branching rates.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod

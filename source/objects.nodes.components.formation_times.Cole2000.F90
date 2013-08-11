@@ -54,7 +54,6 @@ contains
 
   subroutine Node_Component_Formation_Times_Cole2000_Initialize()
     !% Initializes the tree node formation time tracking module.
-    use ISO_Varying_String
     use Input_Parameters
     implicit none
 
@@ -149,7 +148,6 @@ contains
   subroutine Node_Component_Formation_Time_Cole2000_Create(thisNode)
     !% Creates a halo formation time component for {\tt thisNode}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
-    use ISO_Varying_String
     use Events_Halo_Formation
     implicit none
     type (treeNode                  ), intent(inout), pointer :: thisNode
@@ -184,7 +182,6 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(thisNode)
     !% Initialize the formation node pointer for any childless node.
-    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

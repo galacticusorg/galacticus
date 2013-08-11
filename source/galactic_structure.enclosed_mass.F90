@@ -19,8 +19,6 @@
 
 module Galactic_Structure_Enclosed_Masses
   !% Implements calculations of the mass enclosed within a specified radius.
-  use, intrinsic :: ISO_C_Binding
-  use ISO_Varying_String
   use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
@@ -39,8 +37,6 @@ contains
   double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
-    use Galacticus_Error
-    use Input_Parameters
     !# <include directive="enclosedMassTask" type="moduleUse">
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>

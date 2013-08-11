@@ -385,7 +385,6 @@ contains
     !% Returns the differential comoving volume element ${\rm d}V/{\rm d}z = r_{\rm c}^2(t) {\rm c} H^{-1}(t)$ (where $r_{\rm c}$
     !% is the comoving distance to time $t$ and $H(t)$ is the Hubble parameter at that time) for unit solid angle at the
     !% specified {\tt time}.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     implicit none
     double precision, intent(in   ) :: time

@@ -29,9 +29,6 @@ module Cosmology_Functions_Matter_Lambda
   public :: Cosmology_Functions_Matter_Lambda_Initialize, Cosmology_Matter_Lambda_State_Store,&
        & Cosmology_Matter_Lambda_State_Retrieve
 
-  ! Flag indicating if the module has been initialized.
-  logical                                                                    :: moduleInitialized                         =.false.
-
   ! Variables used to track critical times in collapsing Universes.
   logical                                                                    :: collapsingUniverse                        =.false.
   integer                                                                    :: iTableTurnaround
@@ -91,7 +88,6 @@ contains
     use Numerical_Comparison
     use ISO_Varying_String
     use ODE_Solver
-    use Galacticus_Error
     implicit none
     type            (varying_string                                       )           , intent(in   )          :: cosmologyMethod
     procedure       (Early_Time_Density_Scaling_Matter_Lambda             )           , intent(inout), pointer :: Early_Time_Density_Scaling_Get
@@ -345,7 +341,6 @@ contains
     use Numerical_Ranges
     use ODE_Solver
     use Memory_Management
-    use Array_Utilities
     implicit none
     double precision       , intent(in   ), optional     :: tCosmological
     double precision       , parameter                   :: odeToleranceAbsolute               =1.0d-9, odeToleranceRelative =1.0d-9
@@ -506,7 +501,6 @@ contains
   end function Hubble_Parameter_Matter_Lambda
 
   subroutine Early_Time_Density_Scaling_Matter_Lambda(dominateFactor,densityPower,aDominant,Omega_Dominant)
-    use Cosmological_Parameters
     implicit none
     double precision, intent(in   )           :: dominateFactor
     double precision, intent(  out)           :: aDominant     , densityPower
@@ -524,7 +518,6 @@ contains
   end subroutine Early_Time_Density_Scaling_Matter_Lambda
 
   double precision function Epoch_of_Matter_Domination_Matter_Lambda(dominateFactor)
-    use Cosmological_Parameters
     use Cosmology_Functions_Parameters
     implicit none
     double precision, intent(in   ) :: dominateFactor
@@ -750,7 +743,7 @@ contains
     implicit none
     integer         , intent(in   )           :: output
     double precision, intent(in   ), optional :: distanceModulus    , redshift
-    logical                                   :: gotComovingDistance, remakeTable
+    logical                                   :: gotComovingDistance
     double precision                          :: comovingDistance   , luminosityDistance
 
     !$omp critical(Cosmology_Functions_Matter_Lambda_Distance_Initialize)
@@ -796,7 +789,6 @@ contains
     use Numerical_Ranges
     use Numerical_Integration
     use Memory_Management
-    use Array_Utilities
     implicit none
     double precision                            , intent(in   ) :: tCosmological
     double precision                            , parameter     :: toleranceAbsolute   =1.0d-5, toleranceRelative=1.0d-5

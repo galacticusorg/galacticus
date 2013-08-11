@@ -123,7 +123,6 @@ contains
     !% {\tt probability}. Typically, {\tt probabilityFraction} is found by multiplying {\tt
     !% Modified\_Press\_Schechter\_Branching\_Probability()} by a random variable drawn in the interval 0--1 if a halo
     !% branches. This routine then finds the progenitor mass corresponding to this value.
-    use, intrinsic :: ISO_C_Binding
     use Root_Finder
     implicit none
     double precision            , intent(in   ) :: deltaCritical          , haloMass                , &

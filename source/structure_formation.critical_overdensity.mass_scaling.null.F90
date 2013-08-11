@@ -19,7 +19,6 @@
 
 module Critical_Overdensity_Mass_Scalings_Null
   !% Implements a null scaling of critical overdensities for collapse.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Critical_Overdensity_Mass_Scaling_Null_Initialize
@@ -33,7 +32,6 @@ contains
        &,Critical_Overdensity_Mass_Scaling_Get,Critical_Overdensity_Mass_Scaling_Gradient_Get)
     !% Initializes the ``null'' critical overdensity mass scaling method.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod
     procedure(double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get

@@ -28,7 +28,6 @@ module Power_Spectra
 
   ! Flag to indicate if the power spectrum has been normalized.
   logical                                                                     :: sigmaInitialized                   =.false.
-  logical                                                                     :: sigmaNormalized                    =.false.
   double precision                                              , parameter   :: radiusNormalization                =8.0d0   !   Radius for sigma(M) normalization in Mpc/h.
   double precision                                                            :: massNormalization                           !   Mass for sigma(M) normalization in M_Solar.
   double precision                                                            :: sigmaNormalization                 =1.0d0   !   Normalization for sigma(M).
@@ -82,7 +81,6 @@ contains
     use Numerical_Constants_Math
     use Cosmological_Parameters
     use Galacticus_Error
-    use ISO_Varying_String
     implicit none
     double precision                , intent(in   ) :: wavenumber
     double precision                                :: mass
@@ -147,7 +145,6 @@ contains
 
   double precision function Cosmological_Mass_Root_Variance(mass)
     !% Computes the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass}.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: mass
 
@@ -174,7 +171,6 @@ contains
 
   subroutine Cosmological_Mass_Root_Variance_Plus_Logarithmic_Derivative(mass,sigma,sigmaLogarithmicDerivative)
     !% Returns both the fractional mass fluctuation in real-space spherical top hats enclosing mass {\tt mass} and its logarithmic derivative.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: mass
     double precision, intent(  out) :: sigma, sigmaLogarithmicDerivative
@@ -209,11 +205,8 @@ contains
     !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.807$,
     !% is taken from \cite{komatsu_seven-year_2010}.
     use Input_Parameters
-    use Memory_Management
     use Cosmological_Parameters
-    use Numerical_Ranges
     use Numerical_Constants_Math
-    use Numerical_Interpolation
     use Galacticus_Error
     !# <include directive="cosmologicalMassVarianceMethod" type="moduleUse">
     include 'structure_formation.cosmological_mass_variance.modules.inc'

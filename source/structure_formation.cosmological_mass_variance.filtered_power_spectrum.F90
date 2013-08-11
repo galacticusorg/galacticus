@@ -92,7 +92,6 @@ contains
   double precision function Variance_Integral(mass,useTopHat)
     !% Compute the root-variance of mass in spheres enclosing the given {\tt mass} from the power spectrum.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
     use Numerical_Constants_Math
     use Numerical_Integration
     use Cosmological_Parameters

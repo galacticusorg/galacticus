@@ -153,7 +153,6 @@ contains
   double precision function Hot_Halo_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
-    use Cosmological_Parameters
     implicit none
     type            (treeNode), intent(inout), pointer  :: thisNode
     integer                   , intent(in   )           :: componentType, massType, weightBy, weightIndex
@@ -232,7 +231,6 @@ contains
   double precision function Hot_Halo_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
-    use Numerical_Constants_Math
     implicit none
     type            (treeNode), intent(inout), pointer  :: thisNode
     integer                   , intent(in   )           :: componentType       , massType, weightBy, &

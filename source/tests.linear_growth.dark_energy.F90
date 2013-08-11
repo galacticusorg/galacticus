@@ -23,7 +23,6 @@ program Tests_Linear_Growth_Dark_Energy
   use ISO_Varying_String
   use Linear_Growth
   use Cosmology_Functions
-  use Cosmological_Parameters
   use Memory_Management
   implicit none
   double precision                , dimension(13), parameter :: redshift              =[0.000000d0,0.052632d0,0.149425d0,0.265823d0,0.449275d0,0.666667d0,1.000000d0,1.325580d0,1.857140d0,2.846150d0,4.555560d0,8.090910d0,17.867900d0]

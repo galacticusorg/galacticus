@@ -32,9 +32,6 @@ module Merger_Tree_Output_Structure
   ! Flag indicating if virial quantities should be included in output.
   logical :: mergerTreeStructureOutputVirialQuantities
 
-  ! HDF5 group index.
-  integer :: structureGroupID
-
 contains
 
   !# <mergerTreePreEvolveTask>

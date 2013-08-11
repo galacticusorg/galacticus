@@ -124,8 +124,6 @@ contains
 
   function Stellar_Mass_Function_Integrand(mass,parameterPointer) bind(c)
     !% The integrand (as a function of halo mass) giving the stellar mass function.
-    use, intrinsic :: ISO_C_Binding
-    use Halo_Mass_Function
     use Conditional_Stellar_Mass_Functions
     implicit none
     real            (kind=c_double)            :: Stellar_Mass_Function_Integrand

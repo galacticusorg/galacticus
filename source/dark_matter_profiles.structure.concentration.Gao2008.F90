@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Concentrations_Gao2008
   !% Implements the \cite{gao_redshift_2008} NFW halo concentration algorithm.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_Gao2008_Initialize

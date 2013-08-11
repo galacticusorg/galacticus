@@ -32,7 +32,6 @@ contains
   subroutine Galactic_Structure_Initial_Radii_Static_Initialize(galacticStructureRadiusSolverInitialRadiusMethod&
        &,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
     !% Initializes the ``static'' initial radii module.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                                     ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod

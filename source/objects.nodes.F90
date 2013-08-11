@@ -23,17 +23,12 @@ module Galacticus_Nodes
   use Galacticus_Error
   use Memory_Management
   use ISO_Varying_String
-  use Kind_Numbers
   use Kepler_Orbits
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Histories
-  use Numerical_Constants_Units
-  use Numerical_Constants_Prefixes
   use Numerical_Constants_Astronomical
-  use Numerical_Constants_Physical
   use IO_HDF5
-  use FODEIV2
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
   !! <gfortran4.8> workaround
@@ -114,18 +109,18 @@ module Galacticus_Nodes
   include "objects.merger_trees.type.inc"
 
   ! Zero dimension arrays to be returned as defaults.
-  integer                         , dimension(0)         :: nullInteger1d
-  double precision                , dimension(0)         :: nullDouble1d
+  integer                                            , dimension(0) :: nullInteger1d
+  double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
-  integer                         , parameter   , public :: reductionSummation=1
-  integer                         , parameter   , public :: reductionProduct  =2
+  integer                         , parameter, public               :: reductionSummation=1
+  integer                         , parameter, public               :: reductionProduct  =2
 
   ! Unique ID counter.
-  integer         (kind=kind_int8)                       :: uniqueIdCount     =0
+  integer         (kind=kind_int8)                                  :: uniqueIdCount     =0
 
   ! Event ID counter.
-  integer         (kind=kind_int8)                       :: eventID           =0
+  integer         (kind=kind_int8)                                  :: eventID           =0
 
   ! Define a constructor for treeNodes.
   interface treeNode
@@ -147,32 +142,30 @@ module Galacticus_Nodes
     uniqueIdCount=uniqueID
     return
   end subroutine Galacticus_Nodes_Unique_ID_Set
-  
+
   !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
     !% Return a pointer to a newly created and initialized {\tt treeNode}.
-    use Galacticus_Error
-    use Memory_Management
     implicit none
     type   (treeNode      ), pointer                         :: Tree_Node_Constructor
     integer(kind=kind_int8), intent(in   ), optional         :: index
     type   (mergerTree    ), intent(in   ), optional, target :: hostTree
     integer                                                  :: allocErr
-    
+
     ! Initialize tree node methods if necessary.
     call Tree_Node_Create_Initialize
-    
+
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Constructor','unable to allocate node')
     call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
-    
+
     ! Initialize the node.
     call Tree_Node_Constructor%initialize(index,hostTree)
     return
   end function Tree_Node_Constructor
-  
+
   function Tree_Node_Type(self)
     !% Returns the name of a {\tt treeNode} object.
     implicit none
@@ -233,7 +226,6 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
     !% Sets the index of a {\tt treeNode}.
-    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -467,7 +459,6 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_From_Host(self)
     !% Remove {\tt self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -506,7 +497,6 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_from_Mergee(self)
     !% Remove {\tt self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self

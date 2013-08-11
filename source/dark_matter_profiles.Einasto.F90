@@ -152,7 +152,6 @@ contains
   double precision function Dark_Matter_Profile_Density_Einasto(thisNode,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -178,7 +177,6 @@ contains
   double precision function Dark_Matter_Profile_Enclosed_Mass_Einasto(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -204,7 +202,6 @@ contains
   double precision function Dark_Matter_Profile_Circular_Velocity_Einasto(thisNode,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
@@ -222,7 +219,6 @@ contains
   double precision function Dark_Matter_Profile_Potential_Einasto(thisNode,radius)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
@@ -253,7 +249,6 @@ contains
   double precision function Radius_from_Specific_Angular_Momentum_Einasto(thisNode,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\tt thisNode} at which a circular orbit has the given {\tt specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
-    use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -407,7 +402,6 @@ contains
 
   double precision function Dark_Matter_Profile_Rotation_Normalization_Einasto(thisNode)
     !% Return the rotation normalization of an Einasto halo density profile.
-    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Gamma_Functions
     use Dark_Matter_Halo_Scales
@@ -439,7 +433,6 @@ contains
 
   double precision function Dark_Matter_Profile_Energy_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -489,7 +482,6 @@ contains
 
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_Einasto(thisNode)
     !% Return the energy of an Einasto halo density profile.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -733,7 +725,6 @@ contains
   double precision function Potential_Einasto_Scale_Free(radius,concentration,alpha)
     !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
     !% profile with given {\tt concentration} and {\tt alpha} at the given {\tt radius} (given in units of the scale radius).
-    use Numerical_Constants_Math
     use Gamma_Functions
     implicit none
     double precision, intent(in   ) :: alpha, concentration, radius
@@ -761,7 +752,6 @@ contains
 
   double precision function Dark_Matter_Profile_kSpace_Einasto(thisNode,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$)).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Numerical_Interpolation
     implicit none
@@ -823,7 +813,6 @@ contains
     use Numerical_Integration
     use Numerical_Ranges
     use Memory_Management
-    use Numerical_Constants_Math
     use Galacticus_Display
     implicit none
     double precision                            , intent(in   ) :: alphaRequired       , concentrationRequired, wavenumberRequired
@@ -950,9 +939,7 @@ contains
 
   double precision function Dark_Matter_Profile_Freefall_Radius_Einasto(thisNode,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\tt time} (given in Gyr).
-    use Galacticus_Nodes
     use Numerical_Interpolation
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
@@ -1018,9 +1005,7 @@ contains
   double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto(thisNode,time)
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\tt time} (given in
     !% Gyr).
-    use Galacticus_Nodes
     use Numerical_Interpolation
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none

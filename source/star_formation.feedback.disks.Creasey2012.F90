@@ -97,10 +97,8 @@ contains
     !% $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate, $\beta_0=${\tt
     !% [starFormationFeedbackDisksCreasy2012Beta0]}, $\mu=${\tt [starFormationFeedbackDisksCreasy2012Mu]}, and $\nu=${\tt
     !% [starFormationFeedbackDisksCreasy2012Nu]}.
-    use               Galacticus_Nodes
     use               Numerical_Constants_Math
     use               Stellar_Feedback
-    use               FGSL
     use               Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none

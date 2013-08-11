@@ -37,9 +37,6 @@ module Merger_Tree_Build_Cole2000
   logical          :: reset=.true.,ompThreadOffset=.true.,resetSnapshot
   integer          :: incrementSeed=0
   !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot,incrementSeed)
-  ! Variables used in integrands.
-  double precision           :: currentTime
-  !$omp threadprivate(currentTime)
 
 contains
 
@@ -115,7 +112,6 @@ contains
   subroutine Merger_Tree_Build_Do_Cole2000(thisTree)
     !% Build a merger tree.
     use Galacticus_Nodes
-    use Halo_Mass_Function
     use Critical_Overdensity
     use Merger_Tree_Branching
     use Pseudo_Random
@@ -304,7 +300,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Merger_Tree_Build_Cole2000_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -320,7 +315,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Merger_Tree_Build_Cole2000_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile

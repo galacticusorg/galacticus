@@ -85,7 +85,6 @@ contains
     !% that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005}, except that they specifically used the
     !% circular velocity at half-mass radius.
     use Galacticus_Nodes
-    use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode

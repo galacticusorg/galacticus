@@ -34,7 +34,6 @@ contains
   double precision function Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
-    use Numerical_Constants_Physical
     use Cosmological_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
@@ -114,8 +113,6 @@ contains
   double precision function Dark_Matter_Profile_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
-    use Numerical_Constants_Math
-    use Galacticus_Error
     use Galactic_Structure_Initial_Radii
     use Cosmological_Parameters
     implicit none
@@ -161,12 +158,9 @@ contains
   !# </rotationCurveGradientTask>
   double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient for the dark matter.
-    use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Math
-    use Galacticus_Error
     implicit none
     type            (treeNode), intent(inout), pointer  :: thisNode
     integer                   , intent(in   )           :: componentType   , massType

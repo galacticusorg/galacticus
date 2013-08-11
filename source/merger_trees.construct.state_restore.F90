@@ -162,17 +162,16 @@ contains
     use Galacticus_State
     use Galacticus_Error
     use String_Handling
-    use ISO_Varying_String
     implicit none
-    type   (mergerTree    ), intent(inout)              , target :: thisTree
-    logical                , intent(in   )                       :: skipTree
-    type   (treeNodeList  ), allocatable  , dimension(:)         :: nodes
-    integer                                                      :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
-         &                                                          firstSatelliteIndex, formationNodeIndex, iNode              , &
-         &                                                          mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
-         &                                                          parentIndex        , siblingIndex      , siblingMergeeIndex
-    integer(kind=kind_int8)                                      :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
-    type   (varying_string)                                      :: message
+    type   (mergerTree    ), intent(inout), target       :: thisTree
+    logical                , intent(in   )               :: skipTree
+    type   (treeNodeList  ), allocatable  , dimension(:) :: nodes
+    integer                                              :: fileStatus         , firstChildIndex   , firstMergeeIndex   , &
+         &                                                  firstSatelliteIndex, formationNodeIndex, iNode              , &
+         &                                                  mergeTargetIndex   , nodeArrayIndex    , nodeCount          , &
+         &                                                  parentIndex        , siblingIndex      , siblingMergeeIndex
+    integer(kind=kind_int8)                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
+    type   (varying_string)                              :: message
 
     ! Retrieve stored internal state if possible.
     call Galacticus_State_Retrieve
@@ -222,9 +221,9 @@ contains
        if (associated(nodes(iNode)%node%firstChild)) then
           if (.not.associated(nodes(iNode)%node,nodes(iNode)%node%firstChild%parent)) then
              message="child's parent is not self"
-             message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID() 
-             message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID() 
-             message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID() 
+             message=message//char(10)//" -> self                : "//nodes(iNode)%node                  %uniqueID()
+             message=message//char(10)//" -> self->child         : "//nodes(iNode)%node%firstChild       %uniqueID()
+             message=message//char(10)//" -> self->child->parent : "//nodes(iNode)%node%firstChild%parent%uniqueID()
              call Galacticus_Error_Report('Merger_Tree_State_Restore',message)
           end if
        end if

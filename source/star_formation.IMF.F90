@@ -21,7 +21,6 @@ module Star_Formation_IMF
   !% Implements functionality related to the stellar initial mass function.
   use ISO_Varying_String
   use Abundances_Structure
-  use FGSL
   !# <include directive="imfRegister" type="moduleUse">
   include 'star_formation.IMF.register.modules.inc'
   !# </include>
@@ -275,7 +274,6 @@ contains
 
   double precision function IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a recycled fraction for the IMF suitable for use in the instantaneous recycling approximation.
-    use Abundances_Structure
     implicit none
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
@@ -301,7 +299,6 @@ contains
 
   double precision function IMF_Yield_Instantaneous(starFormationRate,fuelAbundances,component)
     !% Returns a yield for the IMF suitable for use in the instantaneous recycling approximation.
-    use Abundances_Structure
     implicit none
     double precision            , intent(in   ) :: starFormationRate
     type            (abundances), intent(in   ) :: fuelAbundances
@@ -329,8 +326,8 @@ contains
     !% Returns a tabulation of the IMF with sufficient resolution to resolve all features.
     use Tables
     implicit none
-    class  (table1D), intent(inout), allocatable :: imf
-    integer         , intent(in   )              :: imfIndex
+    class  (table1D), allocatable, intent(inout) :: imf
+    integer                      , intent(in   ) :: imfIndex
     logical                                      :: imfMatched
 
     ! Initialize the IMF subsystem.
@@ -401,19 +398,16 @@ contains
     !% computed for the given {\tt age} (in Gyr). The recycled fraction is computed on a grid of age and metallicity. This is
     !% stored to file and will be read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
-    use Abundances_Structure
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Ranges
     use Numerical_Constants_Astronomical
-    use Stellar_Astrophysics
     use Memory_Management
     use Galacticus_Display
     use File_Utilities
     use FoX_wxml
     use FoX_dom
     use IO_XML
-    use ISO_Varying_String
     use Galacticus_Error
     use Dates_and_Times
     use Galacticus_Input_Paths
@@ -440,9 +434,9 @@ contains
     integer                                                                                                   ::        fileFormat                                         , iAge                                      , &
          &                                                                                                              iMetallicity                                       , iRecycledFraction                         , &
          &                                                                                                              imfCount                                           , imfSelected                               , &
-         &                                                                                                              ioErr                                              , metallicityIndex                          , &
-         &                                                                                                              tableIndex                                         , loopCount                                 , &
-         &                                                                                                              loopCountTotal
+         &                                                                                                              ioErr                                              , loopCount                                 , &
+         &                                                                                                              loopCountTotal                                     , metallicityIndex                          , &
+         &                                                                                                              tableIndex
     double precision                                                                                          ::        maximumMass                                        , minimumMass                               , &
          &                                                                                                              recycledFractionMaximum                            , recycledFractionMinimum
     character       (len=20                    )                                                              ::        parameterValue                                     , progressMessage
@@ -529,7 +523,7 @@ contains
        end if
 
        if (.not.makeFile) then
-          
+
           ! Find the ages element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"ages")
           if (XML_Array_Length(thisItem,"data") /= recycledFractionTableAgeCount) call&
@@ -558,7 +552,7 @@ contains
                   & Galacticus_Error_Report('IMF_Recycling_Rate_NonInstantaneous' ,'mismatch in metallicities array in XML file')
           end if
           deallocate(tableTemporary)
-          
+
           ! Find the recycledFraction element and extract data.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"recycledFraction")
           dataList => getElementsByTagname(thisItem,"data"            )
@@ -792,19 +786,16 @@ contains
     !% given {\tt age} (in Gyr). The metal yield is computed on a grid of age and metallicity. This is stored to file and will be
     !% read back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
-    use Abundances_Structure
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Ranges
     use Numerical_Constants_Astronomical
-    use Stellar_Astrophysics
     use Memory_Management
     use Galacticus_Display
     use File_Utilities
     use FoX_wxml
     use FoX_dom
     use IO_XML
-    use ISO_Varying_String
     use Galacticus_Error
     use Dates_and_Times
     use Galacticus_Input_Paths
@@ -816,7 +807,7 @@ contains
      integer                                                                                     , intent(in   )           :: component
      logical                                                    , allocatable, dimension(:      )                          :: metalYieldTabulatedTemporary
      integer                                                    , allocatable, dimension(:      )                          :: metalYieldIndexTemporary
-     double precision                                           , allocatable, dimension(:    )                            ::        tableTemporary
+     double precision                                           , allocatable, dimension(:    )                            :: tableTemporary
      double precision                                           , allocatable, dimension(:,:,:,:)                          :: metalYieldTableTemporary
      double precision                                                        , dimension(2      )                          :: metalYieldRate                     , metallicityFactors
      type            (fgsl_interp               )         , save                                                           :: interpolationAgeObject
@@ -833,9 +824,9 @@ contains
           &                                                                                                                   iAge                               , iElement                                  , &
           &                                                                                                                   iMetalYield                        , iMetallicity                              , &
           &                                                                                                                   imfCount                           , imfSelected                               , &
-          &                                                                                                                   ioErr                              , metallicityIndex                          , &
-          &                                                                                                                   tableIndex                         , loopCount                                 , &
-          &                                                                                                                   loopCountTotal
+          &                                                                                                                   ioErr                              , loopCount                                 , &
+          &                                                                                                                   loopCountTotal                     , metallicityIndex                          , &
+          &                                                                                                                   tableIndex
      double precision                                                                                                      :: maximumMass                        , minimumMass                               , &
           &                                                                                                                   yieldMaximum                       , yieldMinimum
      character       (len=20                    )                                                                          :: parameterValue                     , progressMessage
@@ -946,7 +937,7 @@ contains
                      & Galacticus_Error_Report('IMF_Metal_Yield_Rate_NonInstantaneous' ,'mismatch in ages array in XML file')
              end if
              deallocate(tableTemporary)
-             
+
              ! Find the metallicities element and extract data.
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"metallicities")
              if (XML_Array_Length(thisItem,"data") /= metalYieldTableMetallicityCount) call&
@@ -1249,19 +1240,16 @@ contains
     !% Gyr). The cumulative energy input is computed on a grid of age and metallicity. This is stored to file and will be read
     !% back in on subsequent runs. This is useful as computation of the table is relatively slow.
     use, intrinsic :: ISO_C_Binding
-    use Abundances_Structure
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Ranges
     use Numerical_Constants_Astronomical
-    use Stellar_Astrophysics
     use Memory_Management
     use Galacticus_Display
     use File_Utilities
     use FoX_wxml
     use FoX_dom
     use IO_XML
-    use ISO_Varying_String
     use Galacticus_Error
     use Dates_and_Times
     use Galacticus_Input_Paths
@@ -1288,9 +1276,9 @@ contains
     integer                                                                                                   ::        fileFormat                                    , iAge                                      , &
          &                                                                                                              iEnergyInput                                  , iMetallicity                              , &
          &                                                                                                              imfCount                                      , imfSelected                               , &
-         &                                                                                                              ioErr                                         , metallicityIndex                          , &
-         &                                                                                                              tableIndex                                    , loopCount                                 , &
-         &                                                                                                              loopCountTotal
+         &                                                                                                              ioErr                                         , loopCount                                 , &
+         &                                                                                                              loopCountTotal                                , metallicityIndex                          , &
+         &                                                                                                              tableIndex
     double precision                                                                                          ::        energyInputMaximum                            , energyInputMinimum                        , &
          &                                                                                                              maximumMass                                   , minimumMass
     character       (len=20                    )                                                              ::        parameterValue                                , progressMessage

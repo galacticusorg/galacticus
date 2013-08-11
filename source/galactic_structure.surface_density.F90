@@ -19,7 +19,6 @@
 
 module Galactic_Structure_Surface_Densities
   !% Implements calculations of the surface density at a specific position.
-  use ISO_Varying_String
   use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
@@ -37,7 +36,6 @@ contains
     !% Compute the density (of given {\tt massType}) at the specified {\tt position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
-    use Input_Parameters
     use Coordinate_Systems
     !# <include directive="surfaceDensityTask" type="moduleUse">
     include 'galactic_structure.surface_density.tasks.modules.inc'
@@ -99,7 +97,6 @@ contains
 
   double precision function Component_Surface_Density(component)
     !% Unary function returning the surface density in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
     implicit none
     class(nodeComponent), intent(inout) :: component
 

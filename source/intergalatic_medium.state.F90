@@ -44,7 +44,7 @@ module Intergalactic_Medium_State
   integer                                                 :: electronScatteringTableNumberPoints
   double precision                                        :: electronScatteringTableTimeMaximum            , electronScatteringTableTimeMinimum
   type            (table1DLogarithmicLinear)              :: electronScattering                            , electronScatteringFullyIonized
-  class           (table1D                 ), allocatable :: electronScatteringInverse                     , electronScatteringFullyIonizedInverse
+  class           (table1D                 ), allocatable :: electronScatteringFullyIonizedInverse         , electronScatteringInverse
 
   ! Option controlling whether electron scattering optical depth calculations should assume a fully ionized universe.
   logical                                                 :: fullyIonized
@@ -119,7 +119,6 @@ contains
 
   double precision function Intergalactic_Medium_Electron_Scattering_Optical_Depth(time,assumeFullyIonized)
     !% Return the electron scattering optical depth from the present day back to the given {\tt time} in the intergalactic medium.
-    use Numerical_Interpolation
     use Galacticus_Error
     implicit none
     double precision, intent(in   )           :: time
@@ -147,7 +146,6 @@ contains
   double precision function Intergalactic_Medium_Electron_Scattering_Time(opticalDepth,assumeFullyIonized)
     !% Return the cosmological time at which the given electron scattering {\tt opticalDepth} is reached (integrating from the
     !% present day) in the intergalactic medium.
-    use Numerical_Interpolation
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
@@ -189,10 +187,7 @@ contains
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
-    use Numerical_Interpolation
     use Cosmology_Functions
-    use Memory_Management
-    use Numerical_Ranges
     use FGSL
     implicit none
     double precision                            , intent(in   ) :: time

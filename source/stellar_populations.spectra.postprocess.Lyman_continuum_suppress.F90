@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,7 +15,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
 !% Contains a module which implements suppression of the Lyman continuum in galaxy spectra.
 
 module Stellar_Population_Spectra_Postprocessing_Lyc_Suppress
@@ -27,15 +26,15 @@ module Stellar_Population_Spectra_Postprocessing_Lyc_Suppress
   logical :: methodIsActive
 
 contains
-  
+
   !# <stellarPopulationSpectraPostprocessInitialize>
   !#  <unitName>Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize</unitName>
   !# </stellarPopulationSpectraPostprocessInitialize>
   subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``Lyman-continuum suppression'' stellar spectrum postprocessing module.
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
     if (stellarPopulationSpectraPostprocessMethod == 'lymanContinuumSuppress') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Lyc_Suppress
     return
@@ -45,7 +44,7 @@ contains
     !% Suppresses all starlight in the Lyman continuum.
     use Numerical_Constants_Atomic
     implicit none
-    double precision, intent(in)    :: wavelength,age,redshift
+    double precision, intent(in   ) :: age     , redshift, wavelength
     double precision, intent(inout) :: modifier
 
     ! Suppress all emission in the Lyman continuum.

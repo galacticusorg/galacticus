@@ -30,7 +30,6 @@ contains
   subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
     !% Initializes the ``haloMassFunction'' halo mass function sampling method.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
     procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get

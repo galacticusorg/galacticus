@@ -38,7 +38,6 @@ contains
   subroutine Black_Hole_Binary_Initial_Radii_Tidal_Radius_Initialize(blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                               ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod
     procedure(Black_Hole_Binary_Initial_Radius_Tidal_Radius), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get
@@ -49,15 +48,9 @@ contains
 
   double precision function Black_Hole_Binary_Initial_Radius_Tidal_Radius(thisNode,hostNode)
     !% Returns an initial separation for a binary black holes through tidal disruption.
-    use ISO_Varying_String
     use Galactic_Structure_Options
-    use Galacticus_Error
     use Root_Finder
     use Galactic_Structure_Enclosed_Masses
-    use Numerical_Constants_Math
-    use Dark_Matter_Halo_Scales
-    use Galacticus_Display
-    use String_Handling
     implicit none
     type (treeNode              ), intent(inout), pointer :: hostNode              , thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent

@@ -19,7 +19,6 @@
 
 module Power_Spectrum_Window_Functions
   !% Implements window functions for computing the variance of the power spectrum.
-  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   implicit none
   private

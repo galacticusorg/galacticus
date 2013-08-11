@@ -74,7 +74,6 @@ contains
 
   subroutine Node_Component_Merging_Statistics_Standard_Initialize()
     !% Initializes the standard merging statistics component.
-    use ISO_Varying_String
     use Input_Parameters
     implicit none
 

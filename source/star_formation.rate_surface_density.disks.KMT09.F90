@@ -71,8 +71,6 @@ contains
     !% Initializes the ``KMT09'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
-    use Abundances_Structure
-    use Numerical_Constants_Prefixes
     implicit none
     type     (varying_string                                ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
     procedure(Star_Formation_Rate_Surface_Density_Disk_KMT09), intent(inout), pointer :: Star_Formation_Rate_Surface_Density_Disk_Get
@@ -132,9 +130,6 @@ contains
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
     !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
     !% \cite{krumholz_star_2009} star formation rule.
-    use Galacticus_Nodes
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options

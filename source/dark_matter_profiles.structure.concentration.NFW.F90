@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Concentrations_NFW1996
   !% Implements the \cite{navarro_structure_1996} NFW halo concentration algorithm.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_NFW1996_Initialize
@@ -75,13 +74,11 @@ contains
 
   double precision function Dark_Matter_Profile_Concentration_NFW1996(thisNode)
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{navarro_structure_1996}.
-    use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Power_Spectra
     use Cosmology_Functions
     use Critical_Overdensity
     use Root_Finder
-    use FGSL
     use Virial_Density_Contrast
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode

@@ -89,10 +89,8 @@ contains
   subroutine Galactic_Structure_Radii_Initial_Adiabatic_Compute_Factors(thisNode,radius,computeGradientFactors)
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
-    use Dark_Matter_Profiles
     use Dark_Matter_Halo_Scales
     use Cosmological_Parameters
-    use Galactic_Structure_Options
     use Numerical_Constants_Physical
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
@@ -197,9 +195,6 @@ contains
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
     use Root_Finder
-    use FGSL
-    use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
     double precision            , intent(in   )          :: radius
@@ -237,9 +232,6 @@ contains
     !% Compute the derivative of the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
     use Root_Finder
-    use FGSL
-    use Galacticus_Error
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
     double precision            , intent(in   )          :: radius
@@ -382,7 +374,6 @@ contains
 
   double precision function Component_Rotation_Curve(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -397,7 +388,6 @@ contains
 
   double precision function Component_Rotation_Curve_Gradient(component)
     !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
     implicit none
     class(nodeComponent), intent(inout) :: component
 

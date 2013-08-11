@@ -19,7 +19,6 @@
 
 module Dark_Matter_Profiles_Concentrations_Zhao2009
   !% Implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Dark_Matter_Concentrations_Zhao2009_Initialize

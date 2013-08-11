@@ -32,8 +32,6 @@ contains
   subroutine Satellite_Merging_Mass_Movements_Very_Simple_Initialize(satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
     implicit none
     type     (varying_string                             ), intent(in   )          :: satelliteMergingMassMovementsMethod
     procedure(Satellite_Merging_Mass_Movement_Very_Simple), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get
@@ -45,8 +43,6 @@ contains
   subroutine Satellite_Merging_Mass_Movement_Very_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
     !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
     use Galacticus_Nodes
-    use Galactic_Structure_Enclosed_Masses
-    use Galactic_Structure_Options
     implicit none
     type   (treeNode), intent(inout), pointer :: thisNode
     integer          , intent(  out)          :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo

@@ -45,8 +45,6 @@ contains
 
   double precision function Dark_Matter_Halo_Bias_Node_Press_Schechter(thisNode)
     !% Computes the bias for a dark matter halo using the method of \cite{mo_analytic_1996}.
-    use Critical_Overdensity
-    use Power_Spectra
     use Galacticus_Nodes
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode

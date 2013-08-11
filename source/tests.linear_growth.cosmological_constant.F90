@@ -23,7 +23,6 @@ program Tests_Linear_Growth_Cosmological_Constant
   use ISO_Varying_String
   use Linear_Growth
   use Cosmology_Functions
-  use Cosmological_Parameters
   use Memory_Management
   implicit none
   double precision                , dimension(8), parameter :: redshift              =[0.000d0,1.0000d0,3.0000d0,9.0d0,30.000000d0,100.0000d0,300.000000d0,1000.000d0]

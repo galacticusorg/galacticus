@@ -44,9 +44,7 @@ contains
     !% Output build information to the main output file.
     use Galacticus_HDF5
     use Galacticus_Input_Paths
-    use IO_HDF5
     use FoX_Common
-    use HDF5
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Error

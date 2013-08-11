@@ -35,7 +35,6 @@ contains
   subroutine Stellar_Winds_Leitherer1992_Initialize(stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get)
     !% Initialize the ``Leitherer1992'' stellar winds module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarWindsMethod
     procedure(double precision), intent(inout), pointer :: Stellar_Winds_Mass_Loss_Rate_Get, Stellar_Winds_Terminal_Velocity_Get

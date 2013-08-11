@@ -47,7 +47,6 @@ module Stellar_Population_Spectra_File
   type   (spectralTable), allocatable, dimension(:) :: spectra
 
   ! IMF data.
-  integer                                           :: imfCount                =0 !   Number of IMFs currently held.
   integer               , allocatable, dimension(:) :: imfLookup                  !   Look-up array to cross-reference IMF indices to our internal data structure.
 
   ! The current file format version.
@@ -177,7 +176,7 @@ contains
        message=message//trim(adjustl(metallicityLabel))//']'
        call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
     end if
-    
+
     ! Assume zero flux outside of the tabulated wavelength range.
     if     (                                                                                                                                                   &
          &   wavelength < spectra(imfLookupIndex)%stellarPopulationSpectraWavelengths(                                                                      1) &
@@ -187,7 +186,7 @@ contains
        Stellar_Population_Spectra_File_Interpolate=0.0d0
        return
     end if
-    
+
     ! Get the interpolations.
     iAge=Interpolate_Locate(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints&
          &,spectra(imfLookupIndex)%stellarPopulationSpectraAges,spectra(imfLookupIndex)%interpolationAcceleratorAge,age&

@@ -21,7 +21,6 @@
 module Hot_Halo_Ram_Pressure_Stripping_Virial_Radii
   !% Implements a null hot halo ram pressure stripping calculation, by simply returning the virial radius as the ram pressure
   !% stripping radius.
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize
@@ -34,7 +33,6 @@ contains
   subroutine Hot_Halo_Ram_Pressure_Stripping_Virial_Radii_Initialize(hotHaloRamPressureStrippingMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
     !% Initializes the ``virial radius'' hot halo ram pressure stripping module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                               ), intent(in   )          :: hotHaloRamPressureStrippingMethod
     procedure(Hot_Halo_Ram_Pressure_Stripping_Virial_Radius), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Stripping_Get

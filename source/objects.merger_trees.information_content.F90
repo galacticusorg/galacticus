@@ -41,21 +41,21 @@ contains
     thisNode => thisTree%baseNode
     do while (associated(thisNode))
        ! Check for leaf nodes.
-       if (.not.associated(thisNode%childNode)) then
+       if (.not.associated(thisNode%firstChild)) then
           ! Increment leaf node counter.
           leafCount=leafCount+1
        else
           ! Count child nodes.
           childCount=0
-          childNode => thisNode%childNode
+          childNode => thisNode%firstChild
           do while (associated(childNode))
              childCount=childCount+1
-             childNode => childNode%siblingNode
+             childNode => childNode%sibling
           end do
           ! Increment the number of permitted bifurcations based on this number of children.
           logPermittedBifurcations=logPermittedBifurcations+Logarithmic_Double_Factorial(2*childCount-3)
        end if
-       call thisNode%walkTree()
+       call thisNode%walkTree(thisNode)
     end do
 
     ! Compute logarithm of the possible bifurcations.

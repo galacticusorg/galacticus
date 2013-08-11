@@ -75,7 +75,6 @@ contains
 
   double precision function Halo_Mass_Function_Differential(time,mass)
     !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
-    use Numerical_Interpolation
     !# <include directive="haloMassFunctionModifierMethod" type="moduleUse">
     include 'structure_formation.halo_mass_function.modifier.modules.inc'
     !# </include>

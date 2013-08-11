@@ -31,16 +31,15 @@ module Linear_Growth_Simple
        & Linear_Growth_Simple_State_Retrieve
 
   ! Variables to hold table of growth factor vs. cosmic time.
-  double precision                                :: growthTableTimeMaximum           =20.0d0, growthTableTimeMinimum                                                     =1.0d0
-  double precision                                :: growthTableExpansionFactorMinimum
-  integer                             , parameter :: growthTableNPointsPerDecade      =1000
+  double precision                                :: growthTableTimeMaximum     =20.0d0, growthTableTimeMinimum                                                      =1.0d0
+  integer                             , parameter :: growthTableNPointsPerDecade=1000
 
   ! Variables used in the ODE solver.
   type            (fgsl_odeiv_step   )            :: odeStepper
   type            (fgsl_odeiv_control)            :: odeController
   type            (fgsl_odeiv_evolve )            :: odeEvolver
   type            (fgsl_odeiv_system )            :: odeSystem
-  logical                                         :: odeReset                         =.true.                         !  Ensure ODE variables will be reset on first call.
+  logical                                         :: odeReset                   =.true.                         !   Ensure ODE variables will be reset on first call.
 
 contains
 
@@ -49,7 +48,6 @@ contains
   !# </linearGrowthMethod>
   subroutine Growth_Factor_Simple_Initialize(linearGrowthMethod,Linear_Growth_Tabulate)
     !% Initializes the simple growth factor module.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                      ), intent(in   )          :: linearGrowthMethod
@@ -64,11 +62,9 @@ contains
     !% Returns the linear growth factor $D(a)$ for expansion factor {\tt aExpansion}, normalized such that $D(1)=1$ for a simple
     !% matter plus cosmological constant cosmology.
     use Numerical_Interpolation
-    use Galacticus_Error
     use Memory_Management
     use Numerical_Ranges
     use ODE_Solver
-    use Cosmology_Functions_Parameters
     implicit none
     double precision                                                             , intent(in   ) :: time
     integer                                                                      , intent(  out) :: growthTableNumberPoints
@@ -78,9 +74,9 @@ contains
     double precision                   , parameter                                               :: dominateFactor                 =1.0d4
     double precision                   , parameter                                               :: odeToleranceAbsolute           =1.0d-10, odeToleranceRelative     =1.0d-10
     integer                                                                                      :: iComponent                             , iTime
-    double precision                                                                             :: aMatterDominant                        , growthFactorDerivative            , &
-         &                                                                                          growthFactorODEVariables    (2)        , linearGrowthFactorPresent         , &
-         &                                                                                          tMatterDominant                        , tPresent                          , &
+    double precision                                                                             :: aMatterDominant                        , growthFactorDerivative           , &
+         &                                                                                          growthFactorODEVariables    (2)        , linearGrowthFactorPresent        , &
+         &                                                                                          tMatterDominant                        , tPresent                         , &
          &                                                                                          timeNow
     type            (c_ptr            )                                                          :: parameterPointer
     type            (fgsl_interp      )                                                          :: interpolationObject

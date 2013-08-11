@@ -747,7 +747,6 @@ contains
     !% Open an HDF5 group and return an appropriate HDF5 object. The group name can be provided as an input parameter or, if
     !% not provided, will be taken from the stored object name in {\tt groupObject}. The location at which to open the group is
     !% taken from either {\tt inObject} or {\tt inPath}.
-    use String_Handling
     use Galacticus_Error
     implicit none
     type     (hdf5Object    )                          :: groupObject
@@ -1690,7 +1689,6 @@ contains
 
   subroutine IO_HDF5_Write_Attribute_VarString_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write a varying string scalar attribute in {\tt thisObject}.
-    use Galacticus_Error
     implicit none
     class    (hdf5Object    ), intent(inout), target   :: thisObject
     character(len=*         ), intent(in   ), optional :: attributeName
@@ -1927,7 +1925,6 @@ contains
   subroutine IO_HDF5_Read_Attribute_Integer_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an integer scalar attribute in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     integer                  , dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout), target   :: thisObject
@@ -2548,7 +2545,6 @@ contains
   subroutine IO_HDF5_Read_Attribute_Double_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an double scalar attribute in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                , dimension(:), intent(  out)           :: attributeValue
     class           (hdf5Object    )              , intent(inout), target   :: thisObject
@@ -2885,7 +2881,6 @@ contains
   subroutine IO_HDF5_Read_Attribute_Character_1D_Array_Static(thisObject,attributeName,attributeValue)
     !% Open and read an character scalar attribute in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     character(len=*         ), dimension(:), intent(  out)           :: attributeValue
     class    (hdf5Object    )              , intent(inout), target   :: thisObject
@@ -3299,7 +3294,6 @@ contains
   subroutine IO_HDF5_Read_Attribute_VarString_1D_Array_Static_Do_Read(thisObject,attributeName,attributeValue,dataTypeSize)
     !% Open and read an varying string 1-D array attribute in {\tt thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
-    use Memory_Management
     implicit none
     type     (varying_string  ), dimension(:)                   , intent(  out)           :: attributeValue
     class    (hdf5Object      )                                 , intent(inout), target   :: thisObject
@@ -4015,7 +4009,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Integer_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read an integer scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     integer                     , dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )              , intent(inout)           :: thisObject
@@ -4765,7 +4758,7 @@ contains
     integer  (kind=kind_int8   )             , dimension(:)        , intent(  out)           :: datasetValue
     class    (hdf5Object       )                                   , intent(inout)           :: thisObject
     character(len=*            )                                   , intent(in   ), optional :: datasetName
-    integer  (kind=HSIZE_T     )             , dimension(1)        , intent(in   ), optional :: readBegin             , readCount                    !  &&
+    integer  (kind=HSIZE_T     )             , dimension(1)        , intent(in   ), optional :: readBegin             , readCount                    !   &&
     integer  (kind=HSIZE_T     )             , dimension(1)                                  :: datasetDimensions     , datasetMaximumDimensions, &
          &                                                                                      referenceEnd          , referenceStart
     integer  (kind=kind_int8   ), allocatable, dimension(:), target                          :: datasetValueContiguous
@@ -5501,7 +5494,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Double_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                   , dimension(:), intent(  out)           :: datasetValue
     class           (hdf5Object       )              , intent(inout)           :: thisObject
@@ -6256,7 +6248,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Double_2D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                   , dimension(:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                , intent(inout)           :: thisObject
@@ -6833,14 +6824,14 @@ contains
     character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
-    integer                                           , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                         appendDimension
+    integer                                           , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                         compressionLevel
     type            (hdf5Object    )                  , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions           , hyperslabCount             , &
          &                                                                         hyperslabStart              , newDatasetDimensions       , &
          &                                                                         newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                     :: datasetRank                 , errorCode                  , &
-         &                                                                         appendDimensionActual
+    integer                                                                     :: appendDimensionActual       , datasetRank                , &
+         &                                                                         errorCode
     integer         (kind=HID_T    )                                            :: dataspaceID                 , newDataspaceID
     logical                                                                     :: appendToActual              , preExisted
     type            (hdf5Object    )                                            :: datasetObject
@@ -7006,7 +6997,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Double_3D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                   , dimension(:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                  , intent(inout)           :: thisObject
@@ -7583,14 +7573,14 @@ contains
     character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
-    integer                                             , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                           appendDimension
+    integer                                             , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                           compressionLevel
     type            (hdf5Object    )                    , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions           , hyperslabCount             , &
          &                                                                           hyperslabStart              , newDatasetDimensions       , &
          &                                                                           newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                       :: datasetRank                 , errorCode                  , &
-         &                                                                           appendDimensionActual
+    integer                                                                       :: appendDimensionActual       , datasetRank                , &
+         &                                                                           errorCode
     integer         (kind=HID_T    )                                              :: dataspaceID                 , newDataspaceID
     logical                                                                       :: appendToActual              , preExisted
     type            (hdf5Object    )                                              :: datasetObject
@@ -7756,7 +7746,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Double_4D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                   , dimension(:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                    , intent(inout)           :: thisObject
@@ -8333,14 +8322,14 @@ contains
     character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
-    integer                                               , intent(in   ), optional :: chunkSize                   , compressionLevel           , &
-         &                                                                             appendDimension
+    integer                                               , intent(in   ), optional :: appendDimension             , chunkSize                  , &
+         &                                                                             compressionLevel
     type            (hdf5Object    )                      , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions           , hyperslabCount             , &
          &                                                                             hyperslabStart              , newDatasetDimensions       , &
          &                                                                             newDatasetDimensionsFiltered, newDatasetDimensionsMaximum
-    integer                                                                         :: datasetRank                 , errorCode                  , &
-         &                                                                             appendDimensionActual
+    integer                                                                         :: appendDimensionActual       , datasetRank                , &
+         &                                                                             errorCode
     integer         (kind=HID_T    )                                                :: dataspaceID                 , newDataspaceID
     logical                                                                         :: appendToActual              , preExisted
     type            (hdf5Object    )                                                :: datasetObject
@@ -8506,12 +8495,11 @@ contains
   subroutine IO_HDF5_Read_Dataset_Double_5D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a double scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     double precision                   , dimension(:,:,:,:,:), intent(  out)           :: datasetValue
     class           (hdf5Object       )                      , intent(inout)           :: thisObject
     character       (len=*            )                      , intent(in   ), optional :: datasetName
-    integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !  &&
+    integer         (kind=HSIZE_T     ), dimension(5)        , intent(in   ), optional :: readBegin         , readCount                    !   &&
     integer         (kind=HSIZE_T     ), dimension(5)                                  :: datasetDimensions , datasetMaximumDimensions, &
          &                                                                                referenceEnd      , referenceStart
     ! <HDF5> Why is "referencedRegion" saved? Because if it isn't then it gets dynamically allocated on the stack, which results
@@ -9279,7 +9267,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static(thisObject,datasetName,datasetValue,readBegin,readCount)
     !% Open and read a character scalar dataset in {\tt thisObject}.
     use Galacticus_Error
-    use Memory_Management
     implicit none
     character(len=*            ), dimension(:), intent(  out)           :: datasetValue
     class    (hdf5Object       )              , intent(inout)           :: thisObject
@@ -10076,7 +10063,6 @@ contains
   subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static_Do_Read(thisObject,datasetName,datasetValue,dataTypeSize)
     !% Open and read an varying string 1-D array dataset in {\tt thisObject} by creating a suitably-sized character variable into
     !% which it can be read.
-    use Memory_Management
     implicit none
     type     (varying_string  ), dimension(:)                 , intent(  out)           :: datasetValue
     class    (hdf5Object      )                               , intent(inout), target   :: thisObject

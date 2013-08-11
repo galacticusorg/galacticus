@@ -19,7 +19,6 @@
 
 module Node_Component_Black_Hole_Simple_Structure
   !% Implements the structure tasks for the simple black hole node component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Black_Hole_Simple_Rotation_Curve, Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient, &
@@ -36,7 +35,6 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode
@@ -77,7 +75,6 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode

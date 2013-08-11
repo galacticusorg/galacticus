@@ -23,16 +23,11 @@ module Bondi_Hoyle_Lyttleton_Accretion
   private
   public :: Bondi_Hoyle_Lyttleton_Accretion_Rate, Bondi_Hoyle_Lyttleton_Accretion_Radius
 
-  ! Flag indicating if module is initialized.
-  logical :: bondiHoyleAccretionInitialized=.false.
-
 contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
     !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
-    use Numerical_Constants_Math
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Ideal_Gases_Thermodynamics
     implicit none

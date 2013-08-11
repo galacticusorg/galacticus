@@ -31,7 +31,6 @@ contains
   subroutine Power_Spectrum_Nonlinear_Linear_Initialize(powerSpectrumNonlinearMethod,Power_Spectrum_Nonlinear_Get)
     !% Initializes the ``lienar'' nonlinear power spectrum module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
     procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get

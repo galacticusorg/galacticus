@@ -40,8 +40,8 @@ module Conditional_Stellar_Mass_Functions_Behroozi2010
   ! Tablulation of stellar-halo mass relation.
   integer                                   , parameter   :: fMassStellarTablePointsPerDecade                    =10
   integer                                                 :: fMassStellarTableCount
-  double precision                                        :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8
-  double precision                                        :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum
+  double precision                                        :: fMassStellarTableMaximum                            =1.0d13, fMassStellarTableMinimum=1.0d8
+  double precision                                        :: fMassHaloTableMaximum                                      , fMassHaloTableMinimum
   type            (table1DLogarithmicLinear)              :: fMassStellarTable
   class           (table1D                 ), allocatable :: fMassHaloTable
 
@@ -254,9 +254,6 @@ contains
   subroutine Cumulative_Conditional_Stellar_Mass_Function_Compute(massHalo,massStellar,numberCentrals,numberSatellites)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
-    use Memory_Management
-    use Numerical_Ranges
-    use Numerical_Interpolation
     implicit none
     double precision                    , intent(in   ) :: massHalo                  , massStellar
     double precision                    , intent(  out) :: numberCentrals            , numberSatellites

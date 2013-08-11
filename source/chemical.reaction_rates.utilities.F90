@@ -29,9 +29,6 @@ contains
     !% Returns the conversion factor from mass of chemicals in ($M_\odot/M_{\rm atomic}$) to number density in cm$^{-3}$ assuming
     !% that the mass is distributed uniformly in a sphere of the given {\tt radius} (in Mpc).
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Math
     implicit none
     double precision, intent(in   ) :: radius
 

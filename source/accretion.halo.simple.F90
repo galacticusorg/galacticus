@@ -336,11 +336,7 @@ contains
     use Galacticus_Nodes
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Physical
     use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities

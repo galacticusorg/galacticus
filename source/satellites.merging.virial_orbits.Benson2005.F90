@@ -36,7 +36,6 @@ contains
   subroutine Virial_Orbital_Parameters_Benson2005_Initialize(virialOrbitsMethod,Virial_Orbital_Parameters_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Kepler_Orbits
     implicit none
     type     (varying_string                      ), intent(in   )          :: virialOrbitsMethod
     procedure(Virial_Orbital_Parameters_Benson2005), intent(inout), pointer :: Virial_Orbital_Parameters_Get
@@ -121,7 +120,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Virial_Orbital_Parameters_Benson2005_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -137,7 +135,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Virial_Orbital_Parameters_Benson2005_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile

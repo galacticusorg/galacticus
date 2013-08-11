@@ -19,8 +19,8 @@
 
 module Stellar_Population_Spectra_Postprocess_Null
   !% Implements a null post-processing of stellar spectra.
-  use ISO_Varying_String
-
+  implicit none
+  private
   public :: Stellar_Population_Spectra_Postprocess_Null_Initialize
 
 contains
@@ -30,6 +30,7 @@ contains
   !# </stellarPopulationSpectraPostprocessMethod>
   subroutine Stellar_Population_Spectra_Postprocess_Null_Initialize(stellarPopulationSpectraPostprocessMethod,Stellar_Population_Spectra_Postprocess_Get)
     !% Initializes the ``Null'' stellar spectrum postprocessing module.
+    use ISO_Varying_string
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
     procedure(double precision), intent(inout), pointer :: Stellar_Population_Spectra_Postprocess_Get
@@ -41,9 +42,6 @@ contains
 
   double precision function Stellar_Population_Spectra_Postprocess_Null_Get(wavelength,redshift)
     !% Null post-processing of stellar spectra: always returns unity.
-    use Numerical_Constants_Atomic
-    use Factorials
-    use Gamma_Functions
     implicit none
     double precision, intent(in   ) :: redshift, wavelength
 

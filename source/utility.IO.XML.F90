@@ -46,9 +46,9 @@ contains
     !% Return the length of an array of XML elements.
     use FoX_dom
     implicit none
-    type            (node    ), intent(in   ), pointer                   :: xmlElement
-    character       (len=*   ), intent(in   )                            :: arrayElementName
-    type            (nodeList)               , pointer                   :: arrayElements
+    type     (node    ), intent(in   ), pointer :: xmlElement
+    character(len=*   ), intent(in   )          :: arrayElementName
+    type     (nodeList)               , pointer :: arrayElements
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
     XML_Array_Length=getLength(arrayElements)
@@ -59,13 +59,13 @@ contains
     !% Read one column of data from an array of XML elements.
     use FoX_dom
     implicit none
-    type            (node    ), intent(in   ), pointer                   :: xmlElement
-    character       (len=*   ), intent(in   )                            :: arrayElementName
-    double precision          , intent(inout)             , dimension(:) :: column1
-    type            (node    )               , pointer                   :: arrayElement
-    type            (nodeList)               , pointer                   :: arrayElements
-    double precision                                      , dimension(1) :: dataValues
-    integer                                                              :: i
+    type            (node    )              , intent(in   ), pointer :: xmlElement
+    character       (len=*   )              , intent(in   )          :: arrayElementName
+    double precision          , dimension(:), intent(inout)          :: column1
+    type            (node    )                             , pointer :: arrayElement
+    type            (nodeList)                             , pointer :: arrayElements
+    double precision          , dimension(1)                         :: dataValues
+    integer                                                          :: i
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
     do i=1,getLength(arrayElements)
@@ -81,13 +81,13 @@ contains
     use FoX_dom
     use Memory_Management
     implicit none
-    type            (node    ), intent(in   ), pointer                   :: xmlElement
-    character       (len=*   ), intent(in   )                            :: arrayElementName
-    double precision          , intent(inout), allocatable, dimension(:) :: column1
-    type            (node    )               , pointer                   :: arrayElement
-    type            (nodeList)               , pointer                   :: arrayElements
-    double precision                                      , dimension(1) :: dataValues
-    integer                                                              :: i
+    type            (node    )                           , intent(in   ), pointer :: xmlElement
+    character       (len=*   )                           , intent(in   )          :: arrayElementName
+    double precision          , allocatable, dimension(:), intent(inout)          :: column1
+    type            (node    )                                          , pointer :: arrayElement
+    type            (nodeList)                                          , pointer :: arrayElements
+    double precision                       , dimension(1)                         :: dataValues
+    integer                                                                       :: i
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
     call Alloc_Array(column1,[getLength(arrayElements)])
@@ -104,13 +104,13 @@ contains
     use FoX_dom
     use Memory_Management
     implicit none
-    type            (node    ), intent(in   ), pointer                   :: xmlElement
-    character       (len=*   ), intent(in   )                            :: arrayElementName
-    double precision          , intent(inout), allocatable, dimension(:) :: column1,column2
-    type            (node    )               , pointer                   :: arrayElement
-    type            (nodeList)               , pointer                   :: arrayElements
-    double precision                                      , dimension(2) :: dataValues
-    integer                                                              :: i
+    type            (node    )                           , intent(in   ), pointer :: xmlElement
+    character       (len=*   )                           , intent(in   )          :: arrayElementName
+    double precision          , allocatable, dimension(:), intent(inout)          :: column1         , column2
+    type            (node    )                                          , pointer :: arrayElement
+    type            (nodeList)                                          , pointer :: arrayElements
+    double precision                       , dimension(2)                         :: dataValues
+    integer                                                                       :: i
 
     arrayElements => getElementsByTagName(xmlElement,arrayElementName)
     call Alloc_Array(column1,[getLength(arrayElements)])
@@ -129,12 +129,12 @@ contains
     use FoX_dom
     use Memory_Management
     implicit none
-    type            (nodeList), intent(in   ), pointer                   :: xmlElements
-    character       (len=*   ), intent(in   )                            :: arrayElementName
-    double precision          , intent(inout), allocatable, dimension(:) :: column1
-    type            (node    )               , pointer                   :: xmlElement,arrayElement
-    double precision                                      , dimension(1) :: dataValues
-    integer                                                              :: i
+    type            (nodeList)                           , intent(in   ), pointer :: xmlElements
+    character       (len=*   )                           , intent(in   )          :: arrayElementName
+    double precision          , allocatable, dimension(:), intent(inout)          :: column1
+    type            (node    )                                          , pointer :: arrayElement    , xmlElement
+    double precision                       , dimension(1)                         :: dataValues
+    integer                                                                       :: i
 
     call Alloc_Array(column1,[getLength(xmlElements)])
     do i=1,getLength(xmlElements)
@@ -149,13 +149,12 @@ contains
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
-    type            (nodeList), intent(in   ), pointer               :: xmlElements
-    character       (len=*   ), intent(in   )                        :: arrayElementName
-    double precision          , intent(inout)         , dimension(:) :: column1
-    type            (node    )               , pointer               :: xmlElement,arrayElement
-    double precision                                  , dimension(1) :: dataValues
+    type            (nodeList)              , intent(in   ), pointer :: xmlElements
+    character       (len=*   )              , intent(in   )          :: arrayElementName
+    double precision          , dimension(:), intent(inout)          :: column1
+    type            (node    )                             , pointer :: arrayElement    , xmlElement
+    double precision          , dimension(1)                         :: dataValues
     integer                                                          :: i
 
     do i=1,getLength(xmlElements)
@@ -170,14 +169,13 @@ contains
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
-    type            (nodeList), intent(in   ), pointer               :: xmlElements
-    character       (len=*   ), intent(in   )                        :: arrayElementName
-    integer                   , intent(inout)         , dimension(:) :: column1
-    type            (node    )               , pointer               :: xmlElement,arrayElement
-    integer                                           , dimension(1) :: dataValues
-    integer                                                          :: i
+    type     (nodeList)              , intent(in   ), pointer :: xmlElements
+    character(len=*   )              , intent(in   )          :: arrayElementName
+    integer            , dimension(:), intent(inout)          :: column1
+    type     (node    )                             , pointer :: arrayElement    , xmlElement
+    integer            , dimension(1)                         :: dataValues
+    integer                                                   :: i
 
     do i=1,getLength(xmlElements)
        xmlElement   => item                             (xmlElements,i-1             )
@@ -191,14 +189,13 @@ contains
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of character data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
-    type            (nodeList        ), intent(in   ), pointer               :: xmlElements
-    character       (len=*           ), intent(in   )                        :: arrayElementName
-    character       (len=*           ), intent(inout)         , dimension(:) :: column1
-    type            (node            )               , pointer               :: xmlElement,arrayElement
-    character       (len=len(column1))                        , dimension(1) :: dataValues
-    integer                                                                  :: i
+    type     (nodeList        )              , intent(in   ), pointer :: xmlElements
+    character(len=*           )              , intent(in   )          :: arrayElementName
+    character(len=*           ), dimension(:), intent(inout)          :: column1
+    type     (node            )                             , pointer :: arrayElement    , xmlElement
+    character(len=len(column1)), dimension(1)                         :: dataValues
+    integer                                                           :: i
 
     do i=1,getLength(xmlElements)
        xmlElement   => item                             (xmlElements,i-1             )
@@ -218,7 +215,7 @@ contains
     type     (node            ), intent(in   ), pointer :: xmlElement
     character(len=*           ), intent(in   )          :: tagName
     type     (nodeList        )               , pointer :: elementList
-    character(len=len(tagName))                         :: path,currentTagName
+    character(len=len(tagName))                         :: currentTagName                   , path
     integer                                             :: pathPosition
 
     XML_Get_First_Element_By_Tag_Name => xmlElement
@@ -241,31 +238,16 @@ contains
     end do
     return
   end function XML_Get_First_Element_By_Tag_Name
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   logical function XML_Path_Exists(xmlElement,path)
     !% Return true if the supplied {\tt path} exists in the supplied {\tt xmlElement}.
     use FoX_dom
-    use Galacticus_Error
     implicit none
     type     (node         ), intent(in   ), pointer :: xmlElement
     character(len=*        ), intent(in   )          :: path
     type     (nodeList     )               , pointer :: elementList
     type     (node         )               , pointer :: element
-    character(len=len(path))                         :: currentPath,currentTagName
+    character(len=len(path))                         :: currentPath , currentTagName
     integer                                          :: pathPosition
 
     XML_Path_Exists =  .true.
@@ -290,20 +272,6 @@ contains
     end do
     return
   end function XML_Path_Exists
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\tt extrapolationElement}. Optionally a set of {\tt allowedMethods} can be
