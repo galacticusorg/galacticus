@@ -70,9 +70,9 @@ contains
     type            (NodeList      ), pointer                     :: itemList
     integer                                                       :: iAxis                          , iOutput                     , &
          &                                                           ioErr                          , lengthUnitsHubbleExponent
-    double precision                                              :: lengthUnitsInSI                , unitConversionLength        , &
-         &                                                           lightconeTimeTemp              , lightconeMinimumDistanceTemp, &
-         &                                                           lightconeMaximumDistanceTemp
+    double precision                                              :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
+         &                                                           lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
+         &                                                           unitConversionLength
     type            (varying_string)                              :: filterLightconeGeometryFileName
     logical                                                       :: filterLightconeFixedTime
     character       (len=11        )                              :: tagName
@@ -102,7 +102,7 @@ contains
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    Specifies if lightcone output should occur at a fixed time (as opposed to the usual case where time evolves along the lightcone). Intended for the construction of lightcones with no evolution. 
+          !@    Specifies if lightcone output should occur at a fixed time (as opposed to the usual case where time evolves along the lightcone). Intended for the construction of lightcones with no evolution.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>

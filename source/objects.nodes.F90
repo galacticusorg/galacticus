@@ -109,18 +109,18 @@ module Galacticus_Nodes
   include "objects.merger_trees.type.inc"
 
   ! Zero dimension arrays to be returned as defaults.
-  integer                         , dimension(0)         :: nullInteger1d
-  double precision                , dimension(0)         :: nullDouble1d
+  integer                                            , dimension(0) :: nullInteger1d
+  double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
-  integer                         , parameter   , public :: reductionSummation=1
-  integer                         , parameter   , public :: reductionProduct  =2
+  integer                         , parameter, public               :: reductionSummation=1
+  integer                         , parameter, public               :: reductionProduct  =2
 
   ! Unique ID counter.
-  integer         (kind=kind_int8)                       :: uniqueIdCount     =0
+  integer         (kind=kind_int8)                                  :: uniqueIdCount     =0
 
   ! Event ID counter.
-  integer         (kind=kind_int8)                       :: eventID           =0
+  integer         (kind=kind_int8)                                  :: eventID           =0
 
   ! Define a constructor for treeNodes.
   interface treeNode
@@ -142,7 +142,7 @@ module Galacticus_Nodes
     uniqueIdCount=uniqueID
     return
   end subroutine Galacticus_Nodes_Unique_ID_Set
-  
+
   !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
@@ -152,20 +152,20 @@ module Galacticus_Nodes
     integer(kind=kind_int8), intent(in   ), optional         :: index
     type   (mergerTree    ), intent(in   ), optional, target :: hostTree
     integer                                                  :: allocErr
-    
+
     ! Initialize tree node methods if necessary.
     call Tree_Node_Create_Initialize
-    
+
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('Tree_Node_Constructor','unable to allocate node')
     call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
-    
+
     ! Initialize the node.
     call Tree_Node_Constructor%initialize(index,hostTree)
     return
   end function Tree_Node_Constructor
-  
+
   function Tree_Node_Type(self)
     !% Returns the name of a {\tt treeNode} object.
     implicit none

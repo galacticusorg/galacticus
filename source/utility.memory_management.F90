@@ -239,11 +239,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     implicit none
     integer  (kind=C_SIZE_T ), intent(in   )           :: elementsUsed
-    integer                  , intent(in   ), optional :: addRemove      , blockCount      , memoryType      , &
-         &                                                line
+    integer                  , intent(in   ), optional :: addRemove      , blockCount      , line            , memoryType
     character(len=*         ), intent(in   ), optional :: file
-    integer                                           :: addRemoveActual, blockCountActual, memoryTypeActual
-    type     (varying_string)                         :: message
+    integer                                            :: addRemoveActual, blockCountActual, memoryTypeActual
+    type     (varying_string)                          :: message
 
     if (present(memoryType)) then
        memoryTypeActual=memoryType

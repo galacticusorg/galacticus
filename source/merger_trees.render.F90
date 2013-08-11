@@ -40,15 +40,15 @@ contains
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type            (mergerTree        ), intent(inout)                 :: thisTree
-    type            (treeNode          ), pointer                       :: thisNode
-    class           (nodeComponentBasic), pointer                       :: thisBasic
-    integer         (kind=kind_int8    ), allocatable  , dimension(:  ) :: childIndex     , nodeIndex   , parentIndex
-    double precision                    , allocatable  , dimension(:  ) :: expansionFactor, radiusVirial, time
-    double precision                    , allocatable  , dimension(:,:) :: position
-    integer                                                             :: iNode          , nodesInTree
-    character       (len=39            )                                :: fileName
-    type            (hdf5Object        )                                :: fileObject     , treeDataset
+    type            (mergerTree        ), intent(inout)                          :: thisTree
+    type            (treeNode          )                               , pointer :: thisNode
+    class           (nodeComponentBasic)                               , pointer :: thisBasic
+    integer         (kind=kind_int8    ), allocatable  , dimension(:  )          :: childIndex     , nodeIndex   , parentIndex
+    double precision                    , allocatable  , dimension(:  )          :: expansionFactor, radiusVirial, time
+    double precision                    , allocatable  , dimension(:,:)          :: position
+    integer                                                                      :: iNode          , nodesInTree
+    character       (len=39            )                                         :: fileName
+    type            (hdf5Object        )                                         :: fileObject     , treeDataset
 
     ! Reset output incremental counter if this tree is not the same as the previous one.
     if (thisTree%index /= treeIndexPrevious) then

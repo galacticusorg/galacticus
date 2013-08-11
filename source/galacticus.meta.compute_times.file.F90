@@ -38,11 +38,11 @@ contains
     use IO_XML
     use Galacticus_Error
     implicit none
-    type            (varying_string  ), intent(in   )          :: timePerTreeMethod
-    procedure       (double precision), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get
-    type            (Node            )               , pointer :: doc                         , thisFit
-    integer                                                    :: ioErr
-    type            (varying_string  )                         :: timePerTreeFitFileName
+    type     (varying_string  ), intent(in   )          :: timePerTreeMethod
+    procedure(double precision), intent(inout), pointer :: Galacticus_Time_Per_Tree_Get
+    type     (Node            )               , pointer :: doc                         , thisFit
+    integer                                             :: ioErr
+    type     (varying_string  )                         :: timePerTreeFitFileName
 
     if (timePerTreeMethod == 'file') then
        Galacticus_Time_Per_Tree_Get => Galacticus_Time_Per_Tree_File

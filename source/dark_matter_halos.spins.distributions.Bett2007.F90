@@ -31,8 +31,8 @@ module Halo_Spin_Distributions_Bett2007
 
   ! Tabulation of the spin distribution.
   integer                                   , parameter   :: spinDistributionTableNumberPoints=1000
-  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !   Maximum spin to tabulate.
-  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !   Minimum spin in units of lambda_.
+  double precision                          , parameter   :: spinDistributionTableSpinMaximum =0.2d0                                   !    Maximum spin to tabulate.
+  double precision                          , parameter   :: spinDistributionTableMinimum     =1.0d-6                                  !    Minimum spin in units of lambda_.
   double precision                                        :: spinDistributionTableMaximum
   type            (table1DLogarithmicLinear)              :: spinDistributionTable
   class           (table1D                 ), allocatable :: spinDistributionTableInverse
@@ -53,10 +53,10 @@ contains
     use Input_Parameters
     use Gamma_Functions
     implicit none
-    type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
-    procedure(Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
-    integer                                                            :: iSpin
-    double precision                                                   :: spinDimensionless
+    type            (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
+    procedure       (Halo_Spin_Distribution_Bett2007), intent(inout), pointer :: Halo_Spin_Sample_Get
+    integer                                                                   :: iSpin
+    double precision                                                          :: spinDimensionless
 
     if (haloSpinDistributionMethod == 'Bett2007') then
        Halo_Spin_Sample_Get => Halo_Spin_Distribution_Bett2007

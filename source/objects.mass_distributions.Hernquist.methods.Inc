@@ -135,9 +135,9 @@ double precision function Mass_Distribution_Hernquist_Potential(self,coordinates
   use Numerical_Constants_Physical
   use Coordinates
   implicit none
-  class           (massDistributionHernquist), intent(in   ) :: self
-  class           (coordinate               ), intent(in   ) :: coordinates
-  type            (coordinateSpherical      )                :: position
+  class(massDistributionHernquist), intent(in   ) :: self
+  class(coordinate               ), intent(in   ) :: coordinates
+  type (coordinateSpherical      )                :: position
 
   ! Get position in spherical coordinate system.
   position=coordinates

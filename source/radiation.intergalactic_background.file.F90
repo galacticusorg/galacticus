@@ -67,11 +67,11 @@ contains
     type     (varying_string         ), intent(in   )          :: radiationIntergalacticBackgroundMethod
     procedure(Radiation_IGB_File_Set ), intent(inout), pointer :: Radiation_Set_Intergalactic_Background_Do
     procedure(Radiation_IGB_File_Flux), intent(inout), pointer :: Radiation_Flux_Intergalactic_Background_Do
-    type     (Node                   )               , pointer :: doc                                       , thisDatum      , &
+    type     (Node                   )               , pointer :: doc                                       , thisDatum     , &
          &                                                        thisSpectrum                              , thisWavelength
     type     (NodeList               )               , pointer :: spectraList
-    integer                                                    :: fileFormatVersion                         , iSpectrum      , &
-         &                                                        jSpectrum                                 , ioErr
+    integer                                                    :: fileFormatVersion                         , iSpectrum     , &
+         &                                                        ioErr                                     , jSpectrum
     logical                                                    :: timesIncreasing
     type     (varying_string         )                         :: radiationIGBFileName
 

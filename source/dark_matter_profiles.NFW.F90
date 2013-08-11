@@ -42,15 +42,15 @@ module Dark_Matter_Profiles_NFW
   integer                                   , parameter   :: nfwFreefallTablePointsPerDecade        =100
   ! Tables of NFW properties.
   logical                                                 :: nfwFreefallTableInitialized            =.false., nfwInverseTableInitialized               =.false., &
-       &                                                                   nfwTableInitialized                    =.false.
+       &                                                     nfwTableInitialized                    =.false.
   integer                                                 :: nfwFreefallTableNumberPoints                   , nfwInverseTableNumberPoints                      , &
-       &                                                                   nfwTableNumberPoints
+       &                                                     nfwTableNumberPoints
   integer                                   , parameter   :: nfwConcentrationEnergyIndex            =1      , nfwConcetrationRotationNormalizationIndex=2
   type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
 
   ! Tables.
-  type            (table1DLogarithmicLinear)              :: nfwSpecificAngularMomentum                    , nfwFreeFall
-  class           (table1D                 ), allocatable :: nfwSpecificAngularMomentumInverse             , nfwFreefallInverse
+  type            (table1DLogarithmicLinear)              :: nfwFreeFall                                    , nfwSpecificAngularMomentum
+  class           (table1D                 ), allocatable :: nfwFreefallInverse                             , nfwSpecificAngularMomentumInverse
 
   ! Module variables used in integrations.
   double precision                                        :: concentrationParameter                         , radiusStart
@@ -207,7 +207,7 @@ contains
           call nfwSpecificAngularMomentum%populate(                                                                                 &
                &                                   Specific_Angular_Momentum_NFW_Scale_Free(nfwSpecificAngularMomentum%x(iRadius)), &
                &                                   iRadius                                                                          &
-               &                                  )          
+               &                                  )
        end do
        call nfwSpecificAngularMomentum%reverse(nfwSpecificAngularMomentumInverse)
        ! Specify that tabulation has been made.
@@ -768,9 +768,9 @@ contains
        ! Loop over radii and populate tables.
        do iRadius=1,nfwFreefallTableNumberPoints
           call nfwFreefall%populate(                                                  &
-               &                    Freefall_Time_Scale_Free(nfwFreefall%x(iRadius)), & 
+               &                    Freefall_Time_Scale_Free(nfwFreefall%x(iRadius)), &
                &                                                           iRadius    &
-               &                   )          
+               &                   )
        end do
        call nfwFreefall%reverse(nfwFreefallInverse)
        ! Specify that tabulation has been made.

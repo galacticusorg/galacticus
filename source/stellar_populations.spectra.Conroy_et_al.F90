@@ -59,15 +59,15 @@ contains
     use String_Handling
     use Tables
     implicit none
-    integer                         , intent(in   )               :: imfIndex
-    logical                         , allocatable  , dimension(:) :: imfReadTemporary
-    class           (table1D       ), allocatable                 :: imf
-    integer                                                       :: iIMF                            , imfUnit, &
-         &                                                           fileFormatVersion
-    logical                                                       :: remakeFile
-    type            (varying_string)                              :: command                         , imfName, &
-         &                                                           stellarPopulationSpectraFileName
-    type            (hdf5Object    )                              :: stellarPopulationSpectraFile
+    integer                , intent(in   )               :: imfIndex
+    logical                , allocatable  , dimension(:) :: imfReadTemporary
+    class  (table1D       ), allocatable                 :: imf
+    integer                                              :: fileFormatVersion               , iIMF   , &
+         &                                                  imfUnit
+    logical                                              :: remakeFile
+    type   (varying_string)                              :: command                         , imfName, &
+         &                                                  stellarPopulationSpectraFileName
+    type   (hdf5Object    )                              :: stellarPopulationSpectraFile
 
     ! Ensure that array for IMF index mappings is sufficiently large.
     if (allocated(imfRead)) then

@@ -458,9 +458,9 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
-    real            (kind=c_double             ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
+    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
+    real(kind=c_double             ), value :: radius
+    type(c_ptr                     ), value :: parameterPointer
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd=0.0d0
@@ -494,9 +494,9 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
     implicit none
-    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
-    real            (kind=c_double             ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
+    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
+    real(kind=c_double             ), value :: radius
+    type(c_ptr                     ), value :: parameterPointer
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd=0.0d0

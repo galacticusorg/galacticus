@@ -40,8 +40,8 @@ module Conditional_Stellar_Mass_Functions_Behroozi2010
   ! Tablulation of stellar-halo mass relation.
   integer                                   , parameter   :: fMassStellarTablePointsPerDecade                    =10
   integer                                                 :: fMassStellarTableCount
-  double precision                                        :: fMassStellarTableMaximum                            =1.0d13 , fMassStellarTableMinimum=1.0d8
-  double precision                                        :: fMassHaloTableMaximum                                       , fMassHaloTableMinimum
+  double precision                                        :: fMassStellarTableMaximum                            =1.0d13, fMassStellarTableMinimum=1.0d8
+  double precision                                        :: fMassHaloTableMaximum                                      , fMassHaloTableMinimum
   type            (table1DLogarithmicLinear)              :: fMassStellarTable
   class           (table1D                 ), allocatable :: fMassHaloTable
 

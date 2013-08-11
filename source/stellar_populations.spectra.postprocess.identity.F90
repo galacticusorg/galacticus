@@ -30,17 +30,17 @@ contains
   subroutine Stellar_Population_Spectra_Postprocess_Identity_Init(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
     !% Initializes the ``identity'' stellar spectrum postprocessing module.
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
-    if (stellarPopulationSpectraPostprocessMethod == 'identity') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Identity       
+    if (stellarPopulationSpectraPostprocessMethod == 'identity') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Identity
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Identity_Init
-  
+
   subroutine Stellar_Population_Spectra_Postprocess_Identity(wavelength,age,redshift,modifier)
     !% An identity operator for postprocessing of stellar spectra (i.e. does nothing).
     implicit none
-    double precision, intent(in   ) :: wavelength,age,redshift
+    double precision, intent(in   ) :: age     , redshift, wavelength
     double precision, intent(inout) :: modifier
 
     return

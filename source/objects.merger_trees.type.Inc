@@ -16,15 +16,15 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Defines an object class for merger trees.
-  
+
   type, public :: mergerTree
      !% The merger tree object type.
      integer         (kind=kind_int8)          :: index
      type            (hdf5Object    )          :: hdf5Group
      double precision                          :: volumeWeight
      logical                                   :: initialized
-     type            (treeNode      ), pointer :: baseNode     => null()
-     type            (mergerTree    ), pointer :: nextTree     => null()
+     type            (treeNode      ), pointer :: baseNode    =>null()
+     type            (mergerTree    ), pointer :: nextTree    =>null()
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>
@@ -50,9 +50,9 @@
      !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)\textgreater} nodeIndex\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: destroy      => Merger_Tree_Destroy
-     procedure :: destroyBranch=> Merger_Tree_Destroy_Branch
-     procedure :: getNode      => Merger_Tree_Node_Get
+     procedure :: destroy      =>Merger_Tree_Destroy
+     procedure :: destroyBranch=>Merger_Tree_Destroy_Branch
+     procedure :: getNode      =>Merger_Tree_Node_Get
   end type mergerTree
 
   ! Flag to indicate if the tree node create routines have been initialized.

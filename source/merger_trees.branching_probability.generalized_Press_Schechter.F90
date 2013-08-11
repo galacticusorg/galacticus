@@ -334,7 +334,7 @@ contains
              Generalized_Press_Schechter_Subresolution_Fraction=Generalized_Press_Schechter_Subresolution_Fraction &
                   &+Integrate(massMinimum,massMaximum,Subresolution_Fraction_Integrand_Generalized ,parameterPointer&
                   &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2 ,integrationRule&
-                  &=FGSL_Integ_Gauss15)  
+                  &=FGSL_Integ_Gauss15)
           end if
        end if
     else

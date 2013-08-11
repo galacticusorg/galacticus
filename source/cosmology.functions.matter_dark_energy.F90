@@ -33,7 +33,7 @@ module Cosmology_Functions_Matter_Dark_Energy
   ! Variables used to track critical times in collapsing Universes.
   logical                                                         :: collapsingUniverse         =.false.
   integer                                                         :: iTableTurnaround
-  double precision                                                :: aExpansionMax                                                                                                  , tCosmologicalMax                                                                            , &
+  double precision                                                :: aExpansionMax                                                                                                  , tCosmologicalMax                                                                             , &
        &                                                             tCosmologicalTurnaround
   !$omp threadprivate(collapsingUniverse,iTableTurnaround,aExpansionMax,tCosmologicalMax,tCosmologicalTurnaround)
   ! Dark energy equation of state.
@@ -45,7 +45,7 @@ module Cosmology_Functions_Matter_Dark_Energy
   ! Variables to hold table of expansion factor vs. cosmic time.
   logical                                                         :: ageTableInitialized        =.false.
   integer                                                         :: ageTableNumberPoints
-  double precision                                                :: ageTableTimeMaximum        =20.0d0                                                                             , ageTableTimeMinimum                                                                  =1.0d-4
+  double precision                                                :: ageTableTimeMaximum        =20.0d0                                                                             , ageTableTimeMinimum                                                                   =1.0d-4
   integer                             , parameter                 :: ageTableNPointsPerDecade   =300
   double precision                    , parameter                 :: ageTableNPointsPerOctave   =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
   double precision                    , parameter                 :: ageTableIncrementFactor    =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
@@ -62,7 +62,7 @@ module Cosmology_Functions_Matter_Dark_Energy
   type            (fgsl_odeiv_control)                            :: odeController
   type            (fgsl_odeiv_evolve )                            :: odeEvolver
   type            (fgsl_odeiv_system )                            :: odeSystem
-  logical                                                         :: odeReset                   =.true.                                                                                                               !   Ensure ODE variables will be reset on first call.
+  logical                                                         :: odeReset                   =.true.                                                                                                               !    Ensure ODE variables will be reset on first call.
   !$omp threadprivate (odeStepper,odeController,odeEvolver,odeSystem,odeReset)
 contains
 
@@ -269,14 +269,14 @@ contains
     use Memory_Management
     implicit none
     double precision, intent(in   ), optional     :: tCosmological
-    double precision, allocatable  , dimension(:) :: ageTableExpansionFactorTemporary           , ageTableTimeTemporary
-    double precision, parameter                   :: turnaroundTimeTolerance            =1.0d-12
-    double precision, parameter                   :: dominateFactor                     =100.0d0
-    integer                                       :: iTime                                      , prefixPointCount
-    double precision                              :: Omega_Dominant                             , aDominant            , &
-         &                                           time                                       , deltaTime            , &
-         &                                           densityPower                               , tDominant
-    logical                                       :: solutionFound                              , timeExceeded
+    double precision, allocatable  , dimension(:) :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
+    double precision, parameter                   :: turnaroundTimeTolerance         =1.0d-12
+    double precision, parameter                   :: dominateFactor                  =100.0d0
+    integer                                       :: iTime                                   , prefixPointCount
+    double precision                              :: Omega_Dominant                          , aDominant            , &
+         &                                           deltaTime                               , densityPower         , &
+         &                                           tDominant                               , time
+    logical                                       :: solutionFound                           , timeExceeded
 
     ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
     call Early_Time_Density_Scaling_Matter_Dark_Energy(dominateFactor,densityPower,aDominant,Omega_Dominant)

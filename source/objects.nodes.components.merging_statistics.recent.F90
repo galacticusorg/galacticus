@@ -42,14 +42,14 @@ module Node_Component_Merging_Statistics_Recent
   !# </component>
 
   ! Parameters controlling the statistics gathered.
-  double precision                            :: nodeMajorMergerFraction          , nodeRecentMajorMergerInterval
+  double precision                            :: nodeMajorMergerFraction                           , nodeRecentMajorMergerInterval
   integer                                     :: nodeRecentMajorMergerIntervalType
   integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
   integer         , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
   logical                                     :: nodeRecentMajorMergerFromInfall
 
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized        =.false.
+  logical                                     :: moduleInitialized                         =.false.
 
   ! Initialization array for count of recent mergers.
   integer                                     :: outputCount
@@ -139,8 +139,8 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Merger_Tree_Init(thisNode)
     !% Initialize the merging statistics component by creating components in nodes.
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: thisNode
-    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
+    type (treeNode                      ), intent(inout), pointer :: thisNode
+    class(nodeComponentMergingStatistics)               , pointer :: thisMergingStatistics
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -151,7 +151,7 @@ contains
     ! Create a merger statistics component and initialize it.
     thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
     select type (thisMergingStatistics)
-    class is (nodeComponentMergingStatisticsRecent)       
+    class is (nodeComponentMergingStatisticsRecent)
        call thisMergingStatistics%recentMajorMergerCountSet(zeroCount)
     end select
     return
@@ -166,14 +166,14 @@ contains
     use Dark_Matter_Halo_Scales
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode                      ), intent(inout), pointer                :: thisNode
-    type            (treeNode                      )               , pointer                :: descendentNode
-    class           (nodeComponentMergingStatistics)               , pointer                :: parentMergingStatistics
-    class           (nodeComponentBasic            )               , pointer                :: parentBasic            , thisBasic     , &
-         &                                                                                     descendentParentBasic
-    integer                                                        , dimension(outputCount) :: mergerIncrement
-    integer                                                                                 :: i
-    double precision                                                                        :: recentTimeInterval     , timeBase
+    type            (treeNode                      ), intent(inout)         , pointer :: thisNode
+    type            (treeNode                      )                        , pointer :: descendentNode
+    class           (nodeComponentMergingStatistics)                        , pointer :: parentMergingStatistics
+    class           (nodeComponentBasic            )                        , pointer :: descendentParentBasic  , parentBasic, &
+         &                                                                               thisBasic
+    integer                                         , dimension(outputCount)          :: mergerIncrement
+    integer                                                                           :: i
+    double precision                                                                  :: recentTimeInterval     , timeBase
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%recentIsActive()) return
@@ -301,7 +301,7 @@ contains
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
-    integer                   , intent(inout)          :: doublePropertyCount  , integerPropertyCount
+    integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
 
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) integerPropertyCount=integerPropertyCount+1
     return
@@ -317,14 +317,14 @@ contains
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none
-    double precision                                , intent(in   )                         :: time
-    type            (treeNode                      ), intent(inout), pointer                :: thisNode
-    integer                                         , intent(inout)                         :: doubleBufferCount          , doubleProperty       , integerBufferCount   , &
-         &                                                                                     integerProperty
-    integer         (kind=kind_int8                ), intent(inout)                         :: integerBuffer         (:,:)
-    double precision                                , intent(inout)                         :: doubleBuffer          (:,:)
-    class           (nodeComponentMergingStatistics)               , pointer                :: thisMergingStatistics
-    integer                                                        , dimension(outputCount) :: mergerIncrement
+    double precision                                , intent(in   )                   :: time
+    type            (treeNode                      ), intent(inout)         , pointer :: thisNode
+    integer                                         , intent(inout)                   :: doubleBufferCount         , doubleProperty, integerBufferCount, &
+         &                                                                               integerProperty
+    integer         (kind=kind_int8                ), intent(inout)                   :: integerBuffer        (:,:)
+    double precision                                , intent(inout)                   :: doubleBuffer         (:,:)
+    class           (nodeComponentMergingStatistics)                        , pointer :: thisMergingStatistics
+    integer                                         , dimension(outputCount)          :: mergerIncrement
 
 
     if (Node_Component_Merging_Statistics_Recent_Matches(thisNode)) then

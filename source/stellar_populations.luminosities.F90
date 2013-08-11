@@ -42,7 +42,7 @@ module Stellar_Population_Luminosities
 
   ! Module global variables used in integrations.
   double precision                                             :: ageTabulate                                                    , redshiftTabulate
-  integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate      , &
+  integer                                                      :: filterIndexTabulate                                            , imfIndexTabulate, &
        &                                                          postprocessingChainIndexTabulate
   type            (abundances     )                            :: abundancesTabulate
   !$omp threadprivate(ageTabulate,redshiftTabulate,abundancesTabulate,filterIndexTabulate,imfIndexTabulate,postprocessingChainIndexTabulate)
