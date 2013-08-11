@@ -20,8 +20,6 @@
 module Accretion_Disks_ADAF
   !% Implements calculations of properties of ADAFs based on the implementation of \cite{benson_maximum_2009}.
   use ISO_Varying_String
-  use Black_Hole_Fundamentals
-  use FGSL
   use Tables
   implicit none
   private
@@ -75,7 +73,6 @@ contains
   subroutine Accretion_Disks_ADAF_Initialize(accretionDisksMethod,Accretion_Disk_Radiative_Efficiency_Get&
        &,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
     implicit none
     type     (varying_string                          ), intent(in   )          :: accretionDisksMethod
     procedure(Accretion_Disk_Radiative_Efficiency_ADAF), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
@@ -93,7 +90,6 @@ contains
 
   subroutine Accretion_Disks_ADAF_Get_Parameters
     !% Initialize the module by reading in parameter values.
-    use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
     implicit none
@@ -244,7 +240,6 @@ contains
   double precision function Accretion_Disk_Radiative_Efficiency_ADAF(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an ADAF.
     use Accretion_Disks_Shakura_Sunyaev
-    use Black_Hole_Fundamentals
     use Galacticus_Nodes
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
@@ -264,11 +259,8 @@ contains
 
   subroutine Accretion_Disk_ADAF_Tabulate()
     !% Tabulate jet power and spin-up efficiency for an ADAF.
-    use Memory_Management
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
-    use Numerical_Ranges
     implicit none
     double precision, parameter :: blackHoleSpinParameterMaximum=1.0d0, blackHoleSpinParameterMinimum=1.0d-6
     integer                     :: iSpin
@@ -402,7 +394,6 @@ contains
 
   double precision function ADAF_Disk_Jet_Power_From_Black_Hole(radius,blackHoleSpin,adafViscosityAlpha)
     !% Returns the power extracted from the black hole by the disk-launched jet from an ADAF.
-    use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
          &                             radius
@@ -591,7 +582,6 @@ contains
   double precision function ADAF_gamma(radius,blackHoleSpin,adafViscosityAlpha)
     !% Returns the net relativistic boost factor from the fluid frame of an ADAF to an observer at rest at infinity.
     !% The input quantities are in natural units.
-    use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in   ) :: adafViscosityAlpha        , blackHoleSpin              , &
          &                             radius
@@ -656,7 +646,6 @@ contains
 
   double precision function ADAF_Angular_Momentum(radius,blackHoleSpin,adafViscosityAlpha)
     !% Returns the specific angular momentum of accreted material in the ADAF.
-    use Black_Hole_Fundamentals
     implicit none
     double precision, intent(in   ) :: adafViscosityAlpha              , blackHoleSpin          , &
          &                             radius

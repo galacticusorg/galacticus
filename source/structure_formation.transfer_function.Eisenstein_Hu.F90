@@ -25,9 +25,6 @@ module Transfer_Function_Eisenstein_Hu
   public :: Transfer_Function_Eisenstein_Hu_Initialize, Transfer_Function_Eisenstein_Hu_State_Store,&
        & Transfer_Function_Eisenstein_Hu_State_Retrieve
 
-  ! Flag to indicate if this module has been initialized.
-  logical                     :: transferFunctionInitialized   =.false.
-
   ! Wavenumber range and fineness of gridding.
   double precision            :: logWavenumberMaximum          =log(10.0d0)
   double precision            :: logWavenumberMinimum          =log(1.0d-5)

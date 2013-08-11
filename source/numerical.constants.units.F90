@@ -19,7 +19,6 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use FGSL
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none

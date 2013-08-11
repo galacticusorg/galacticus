@@ -357,7 +357,6 @@ contains
 
   subroutine History_Reset(thisHistory)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
-    use Memory_Management
     implicit none
     class(history), intent(inout) :: thisHistory
 
@@ -367,7 +366,6 @@ contains
 
   subroutine History_Set_To_Unity(thisHistory)
     !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
-    use Memory_Management
     implicit none
     class(history), intent(inout) :: thisHistory
 

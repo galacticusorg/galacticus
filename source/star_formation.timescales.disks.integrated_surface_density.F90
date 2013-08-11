@@ -39,7 +39,6 @@ contains
        &,Star_Formation_Timescale_Disk_Get)
     !% Initializes the ``integrated surface density'' disk star formation timescale module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                             ), intent(in   )          :: starFormationTimescaleDisksMethod
     procedure(Star_Formation_Timescale_Disk_Integrated_SD), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
@@ -52,9 +51,7 @@ contains
     !% Returns the timescale (in Gyr) for star formation in the
     !% galactic disk of {\tt thisNode}, by integrating over the surface
     !% density of star formation rate.
-    use Galacticus_Nodes
     use Numerical_Constants_Math
-    use FGSL
     use Numerical_Integration
     use, intrinsic :: ISO_C_Binding
     implicit none

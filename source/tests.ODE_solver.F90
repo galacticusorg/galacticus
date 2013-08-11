@@ -20,7 +20,6 @@
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use Unit_Tests
-  use ISO_Varying_String
   use FGSL
     use ODE_Solver
   use Test_ODE_Solver_Functions

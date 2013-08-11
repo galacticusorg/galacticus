@@ -36,9 +36,7 @@ contains
     !% been computed.
     use Galacticus_Nodes
     use Galactic_Structure_Options
-    use ISO_Varying_String
     use Galacticus_Error
-    use Input_Parameters
     use Coordinate_Systems
     !# <include directive="densityTask" type="moduleUse">
     include 'galactic_structure.density.tasks.modules.inc'

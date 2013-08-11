@@ -87,11 +87,7 @@ contains
   !# </mergerTreePreTreeConstructionTask>
    subroutine Node_Component_Satellite_Standard_Initialize()
      !% Initializes the standard satellite orbit component module.
-     use ISO_Varying_String
      use Input_Parameters
-     use Galacticus_Error
-     use Galacticus_Display
-     use String_Handling
      implicit none
      type(nodeComponentSatelliteStandard) :: satelliteComponent
 
@@ -176,7 +172,6 @@ contains
   function Node_Component_Satellite_Standard_Virial_Orbit(self)
     !% Return the orbit of the satellite at the virial radius.
     use Virial_Orbits
-    use Kepler_Orbits
     implicit none
     type (keplerOrbit                   )                :: Node_Component_Satellite_Standard_Virial_Orbit
     class(nodeComponentSatelliteStandard), intent(inout) :: self
@@ -198,7 +193,6 @@ contains
 
   subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set(self,thisOrbit)
     !% Set the orbit of the satellite at the virial radius.
-    use Kepler_Orbits
     use Satellite_Merging_Timescales
     implicit none
     class           (nodeComponentSatellite        ), intent(inout) :: self
@@ -283,8 +277,6 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Standard_Create(thisNode)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use Numerical_Constants_Math
-    use Dark_Matter_Halo_Scales
     use Virial_Orbits
     use Satellite_Merging_Timescales
     implicit none

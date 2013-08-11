@@ -75,7 +75,6 @@ contains
 
   double precision function Halo_Mass_Function_Differential(time,mass)
     !% Return the differential halo mass function for {\tt mass} [$M_\odot$] at {\tt time}.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: mass, time
 

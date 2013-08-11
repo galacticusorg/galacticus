@@ -76,7 +76,6 @@ contains
 
   double precision function Accretion_Disk_Radiative_Efficiency_Eddington(thisBlackHole,massAccretionRate)
     !% Computes the radiative efficiency for an Eddington-limited accretion disk.
-    use Black_Hole_Fundamentals
     use Galacticus_Nodes
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
@@ -91,7 +90,6 @@ contains
     use Galacticus_Nodes
     use Black_Hole_Fundamentals
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: thisBlackHole
     double precision                        , intent(in   ) :: massAccretionRate

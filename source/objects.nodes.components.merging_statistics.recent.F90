@@ -261,8 +261,6 @@ contains
        &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
        &,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
-    use Numerical_Constants_Astronomical
-    use ISO_Varying_String
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
     double precision                        , intent(in   )          :: time
@@ -316,7 +314,6 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Output(thisNode,integerProperty,integerBufferCount,integerBuffer&
        &,doubleProperty ,doubleBufferCount,doubleBuffer,time)
     !% Store black hole properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none

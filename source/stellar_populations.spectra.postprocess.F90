@@ -19,7 +19,6 @@
 
 module Stellar_Population_Spectra_Postprocess
   !% Implements postprocessing of stellar population spectra.
-  use Abundances_Structure
   use ISO_Varying_String
   implicit none
   private
@@ -27,9 +26,6 @@ module Stellar_Population_Spectra_Postprocess
 
   ! Flag to indicate if this module has been initialized.
   logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.
-
-  ! Name of stellar population postprocessing methods to apply.
-  type   (varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessDefaultMethods
 
   ! Postprocessing chains:
   ! A single postprocessing algorithm.
@@ -48,7 +44,6 @@ contains
 
   integer function Stellar_Population_Spectrum_Postprocess_Index(postprocessingChain)
     !% Return the index to the specified postprocessing chain.
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
     use Input_Parameters

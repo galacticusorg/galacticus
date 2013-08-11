@@ -316,8 +316,10 @@ contains
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
+       !$omp critical (HDF5_Access)
        call outputGroup%writeAttribute(Linear_Growth_Factor                       (time),'linearGrowthFactor'             )
        call outputGroup%writeAttribute(Linear_Growth_Factor_Logarithmic_Derivative(time),'linearGrowthFactorLogDerivative')
+       !$omp end critical (HDF5_Access)
     end if
 
     return

@@ -63,11 +63,8 @@ contains
   double precision function Cooling_Time_Simple(temperature,density,gasAbundances,chemicalDensities,radiation)
     !% Compute the cooling time (in Gyr) for gas at the given {\tt temperature} (in Kelvin), {\tt density} (in $M_\odot$
     !% Mpc$^{-3}$), composition specified by {\tt gasAbundances} and experiencing a radiation field as described by {\tt radiation}.
-    use Numerical_Constants_Atomic
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Units
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure

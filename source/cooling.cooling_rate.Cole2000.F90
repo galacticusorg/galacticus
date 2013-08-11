@@ -19,8 +19,6 @@
 
 module Cooling_Rates_Cole2000
   !% Implements a \cite{cole_hierarchical_2000} cooling rate calculation.
-  use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
   implicit none
   private
   public :: Cooling_Rate_Cole2000_Initialize

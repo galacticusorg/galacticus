@@ -138,7 +138,6 @@ double precision function Mass_Distribution_Hernquist_Potential(self,coordinates
   class           (massDistributionHernquist), intent(in   ) :: self
   class           (coordinate               ), intent(in   ) :: coordinates
   type            (coordinateSpherical      )                :: position
-  double precision                                           :: r
 
   ! Get position in spherical coordinate system.
   position=coordinates

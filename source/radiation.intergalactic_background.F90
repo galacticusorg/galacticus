@@ -19,7 +19,6 @@
 
 module Radiation_Intergalactic_Background
   !% Implements an intergalatic background (excluding the CMB) radiation component.
-  use FGSL
   use Galacticus_Nodes
   implicit none
   private
@@ -99,7 +98,6 @@ contains
   !# </radiationSet>
   subroutine Radiation_Set_Intergalactic_Background(componentMatched,thisNode,radiationProperties)
     !% Property setting routine for the radiation component from file method.
-    use Memory_Management
     implicit none
     logical                                              , intent(in   )          :: componentMatched
     type            (treeNode)                           , intent(inout), pointer :: thisNode

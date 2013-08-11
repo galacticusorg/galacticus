@@ -49,7 +49,6 @@ contains
     !% Initializes the ``halo scaling'' disk star formation timescale module.
     use ISO_Varying_String
     use Input_Parameters
-    use Galacticus_Error
     implicit none
     type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod
     procedure(Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
@@ -140,7 +139,6 @@ contains
   !# </calculationResetTask>
   subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Reset(thisNode)
     !% Reset the halo scaling disk star formation timescale calculation.
-    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 

@@ -42,7 +42,6 @@ contains
   !# </chemicalRatesCompute>
   subroutine Chemical_Reaction_Rates_Null_Compute(temperature,chemicalDensity,radiation,chemicalRates)
     !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
-    use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
     implicit none

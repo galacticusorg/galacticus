@@ -49,9 +49,6 @@ contains
 
   subroutine Stellar_Population_Spectra_Conroy_Initialize_IMF(imfIndex)
     !% Ensure that the requested IMF has been generated and loaded.
-    use Abundances_Structure
-    use ISO_Varying_String
-    use Input_Parameters
     use IO_HDF5
     use Star_Formation_IMF
     use Memory_Management
@@ -151,7 +148,6 @@ contains
 
   subroutine Stellar_Population_Spectrum_Tabulation_Conroy(imfIndex,agesCount,metallicitiesCount,age,metallicity)
     !% Return a tabulation of ages and metallicities at which stellar spectra for the specified IMF should be tabulated.
-    use Memory_Management
     use Stellar_Population_Spectra_File
     implicit none
     integer                                    , intent(in   ) :: imfIndex

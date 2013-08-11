@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,6 @@
 
 module Hot_Halo_Ram_Pressure_Force_Null
   !% Implements a null ram pressure force for hot halos.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Hot_Halo_Ram_Pressure_Force_Null_Initialize
@@ -32,7 +31,6 @@ contains
   subroutine Hot_Halo_Ram_Pressure_Force_Null_Initialize(hotHaloRamPressureForceMethod,Hot_Halo_Ram_Pressure_Force_Get)
     !% Initializes the ``Null'' hot halo ram pressure stripping module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                      ), intent(in   )          :: hotHaloRamPressureForceMethod
     procedure(Hot_Halo_Ram_Pressure_Force_Null_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get

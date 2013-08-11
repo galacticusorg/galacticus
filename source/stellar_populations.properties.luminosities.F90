@@ -81,7 +81,6 @@ contains
 
   function Stellar_Population_Luminosities_Name(index)
     !% Return a name for the specified entry in the luminosity list.
-    use ISO_Varying_String
     implicit none
     type   (varying_string)                :: Stellar_Population_Luminosities_Name
     integer                , intent(in   ) :: index
@@ -93,7 +92,6 @@ contains
   integer function Stellar_Population_Luminosities_Index(name)
     !% Return the index of and specified entry in the luminosity list given its name.
     use Galacticus_Error
-    use ISO_Varying_String
     implicit none
     type   (varying_string), intent(in   ) :: name
     integer                                :: i
@@ -150,7 +148,6 @@ contains
     use Memory_Management
     use Instruments_Filters
     use Cosmology_Functions
-    use String_Handling
     use Stellar_Population_Spectra_Postprocess
     implicit none
     integer                          :: iLuminosity               , jLuminosity

@@ -2884,22 +2884,42 @@ sub Generate_Implementation_Dump_Functions {
 		 type       => "nodeComponent".ucfirst($componentID),
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "message" ]
-	     },
-	     {
-		 intrinsic  => "character",
-		 type       => "len=12",
-		 variables  => [ "label" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
+	unless ( $component->{'name'} eq "null" ) {
+	    push(
+		@dataContent,
+		{
+		    intrinsic  => "type",
+		    type       => "varying_string",
+		    variables  => [ "message" ]
+		},
+		{
+		    intrinsic  => "character",
+		    type       => "len=12",
+		    variables  => [ "label" ]
+		}
+		);
+	    my $counterAdded = 0;
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		# Check if this property has any linked data in this component.
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    if ( $linkedData->{'rank'} == 1 && $counterAdded == 0 ) {
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "i" ]
+			    }
+			    );
+			$counterAdded = 1;
+		    }
+		}
+	    }
+	}
 	# Format labels for different data types.
 	my %formatLabel = 
 	    (
@@ -2993,12 +3013,34 @@ sub Generate_Implementation_Dump_Functions {
 		 intrinsic  => "integer",
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "fileHandle" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
+	my $counterAdded = 0;
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'rank'} == 1 && $counterAdded == 0) {
+		    switch ( $linkedData->{'type'} ) {
+			case ( [ "real", "integer", "longInteger", "logical" ] ) {
+			    # Nothing to do in these cases.
+			}
+			else {
+			    push(
+				@dataContent,
+				{
+				    intrinsic  => "integer",
+				    variables  => [ "i" ]
+				}
+				);
+			    $counterAdded = 1;
+			}
+		    }
+		}
+	    }
+	}
 	# Generate raw dump function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Dump_Raw(self,fileHandle)\n";
 	$functionCode .= "    !% Dump the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
@@ -3068,16 +3110,50 @@ sub Generate_Implementation_Dump_Functions {
 		 intrinsic  => "integer",
 		 attributes => [ "intent(in   )" ],
 		 variables  => [ "fileHandle" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i", "arraySize" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "isAllocated" ]
 	     }
 	    );
+	my $readCounterAdded = 0;
+	my $readArraysAdded  = 0;
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    # Check if this property has any linked data in this component.
+	    if ( exists($property->{'linkedData'}) ) {
+		my $linkedDataName = $property->{'linkedData'};
+		my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		if ( $linkedData->{'rank'} == 1 ) {
+		    if ( $readArraysAdded == 0 ) {
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "arraySize" ]
+			    },
+			    {
+				intrinsic  => "logical",
+				variables  => [ "isAllocated" ]
+			    }
+			    );
+			$readArraysAdded = 1;
+		    }
+		    if ( $readCounterAdded == 0 ) {
+			switch ( $linkedData->{'type'} ) {
+			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
+			    }
+			    else {
+				push(
+				    @dataContent,
+				    {
+					intrinsic  => "integer",
+					variables  => [ "i" ]
+				    }
+				    );
+				$readCounterAdded = 1;
+			    }
+			}
+		    }
+		}
+	    }
+	}
 	# Generate raw read function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Read_Raw(self,fileHandle)\n";
 	$functionCode .= "    !% Read the contents of a ".$component->{'name'}." implementation of the ".$component->{'class'}." component in binary.\n";
@@ -3101,13 +3177,6 @@ sub Generate_Implementation_Dump_Functions {
 			    }
 			    else {
 				$functionCode .= "    call self%".padLinkedData($linkedDataName,[0,0])."%value%readRaw(fileHandle)\n";
-				# For evolvable properties, copy the value object to the rate and scale objects to ensure that
-				# they are allocated to the correct size.
-				if ( $linkedData->{'isEvolvable'} eq "true" ) {
-				    foreach ( "rate", "scale" ) {
-					$functionCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".$_."=self%".padLinkedData($linkedDataName,[0,0])."%value\n";
-				    }
-				}
 			    }
 			}
 		    } elsif ( $linkedData->{'rank'} == 1 ) {
@@ -3123,13 +3192,6 @@ sub Generate_Implementation_Dump_Functions {
 				$functionCode .= "       allocate(self%".$linkedDataName."%value(arraySize))\n";
 				$functionCode .= "       do i=1,arraySize)\n";
 				$functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
-				# For evolvable properties, copy the value object to the rate and scale objects to ensure that
-				# they are allocated to the correct size.
-				if ( $linkedData->{'isEvolvable'} eq "true" ) {
-				    foreach ( "rate", "scale" ) {
-					$functionCode .= "    self%".padLinkedData($linkedDataName,[0,0])."%".$_."(i)=self%".padLinkedData($linkedDataName,[0,0])."%value(i)\n";
-				    }
-				}
 				$functionCode .= "       end do\n";
 			    }
 			}			
@@ -3305,24 +3367,44 @@ sub Generate_Implementation_Builder_Functions {
 		 type       => "node",
 		 attributes => [ "intent(in   )", "pointer" ],
 		 variables  => [ "componentDefinition" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "node",
-		 attributes => [ "pointer" ],
-		 variables  => [ "property" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "nodeList",
-		 attributes => [ "pointer" ],
-		 variables  => [ "propertyList" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
+	unless ( $component->{'name'} eq "null" ) {
+	    push(
+		@dataContent,
+		{
+		    intrinsic  => "type",
+		    type       => "node",
+		    attributes => [ "pointer" ],
+		    variables  => [ "property" ]
+		},
+		{
+		    intrinsic  => "type",
+		    type       => "nodeList",
+		    attributes => [ "pointer" ],
+		    variables  => [ "propertyList" ]
+		}
+		);
+	    my $counterAdded = 0;
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		# Check if this property has any linked data in this component.
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    if ( $linkedData->{'rank'} == 1 && $counterAdded == 0 ) {
+			push(
+			    @dataContent,
+			    {
+				intrinsic  => "integer",
+				variables  => [ "i" ]
+			    }
+			    );
+			$counterAdded = 1;
+		    }
+		}
+	    }
+	}
 	# Generate builder function.
 	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_Builder(self,componentDefinition)\n";
 	$functionCode .= "    !% Build a ".$component->{'name'}." implementation of the ".$component->{'class'}." component.\n";
@@ -3457,12 +3539,46 @@ sub Generate_Implementation_Output_Functions {
 		 intrinsic  => "integer",
 		 attributes => ["intent(in   )" ],
 		 variables  => [ "instance" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
+	# Check for rank-1 outputs.
+	my $counterAdded = 0;
+	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+	    my $property = $component->{'properties'}->{'property'}->{$propertyName};
+	    # Check if this property is to be output.
+	    if ( exists($property->{'output'}) ) {
+		# Define rank, type and value.
+		my $rank;
+		my $type;
+		# Check if this property has any linked data in this component.
+		if ( exists($property->{'linkedData'}) ) {
+		    my $linkedDataName = $property->{'linkedData'};
+		    my $linkedData     = $component->{'content'}->{'data'}->{$linkedDataName};
+		    $rank   = $linkedData->{'rank'};
+		    $type   = $linkedData->{'type'};
+		} elsif ( $property->{'isVirtual'} eq "true" && $property->{'attributes'}->{'isGettable'} eq "true" ) {
+		    $rank = $property->{'rank'};
+		    $type = $property->{'type'};
+		} else {
+		    die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
+		}
+		# Increment the counters.
+		switch ( $type ) {
+		    case ( [ "real", "integer", "longInteger" ] ) {
+			if ( $rank == 1 && exists($property->{'output'}->{'condition'}) && $counterAdded == 0 ) {
+			    push(
+				@dataContent,
+				{
+				    intrinsic  => "integer",
+				    variables  => [ "i" ]
+				}
+				);
+			    $counterAdded = 1;
+			}
+		    }
+		}
+	    }
+	}
 	# Find all derived types to be output.
 	my %outputTypes;
 	foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
@@ -3665,10 +3781,6 @@ sub Generate_Implementation_Output_Functions {
 		 intrinsic  => "integer",
 		 attributes => ["intent(in   )" ],
 		 variables  => [ "instance" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
 	push(@dataContent,@outputTypes);
@@ -3678,10 +3790,11 @@ sub Generate_Implementation_Output_Functions {
 	$functionCode .= "    use ".$_."\n"
 	    foreach ( keys(%modulesRequired) );
 	$functionCode .= "    implicit none\n";
-	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	my $functionBody;
+	my $nameCounterAdded = 0;
 	unless ( $component->{'name'} eq "null" ) {
 	    # Act on the parent type if necessary.
-	    $functionCode .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n"
+	    $functionBody .= "    call self%nodeComponent".ucfirst($component->{'extends'}->{'class'}).ucfirst($component->{'extends'}->{'name'})."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)\n"
 		if ( exists($component->{'extends'}) );
 	    # Check that this instance is to be output.
 	    my $checkAdded = 0;
@@ -3690,7 +3803,7 @@ sub Generate_Implementation_Output_Functions {
 		exists($component->{'output'}->{'instances'})           &&
 		$component->{'output'}->{'instances'} eq "first"
 		) {
-		$functionCode .= "    if (instance == 1) then\n";
+		$functionBody .= "    if (instance == 1) then\n";
 		$checkAdded = 1;
 	    }
 	    my %typeMap =
@@ -3724,30 +3837,30 @@ sub Generate_Implementation_Output_Functions {
 		    switch ( $type ) {
 			case ( [ "real", "integer", "longInteger" ] ) {
 			    # Insert metadata for SimDB.
-			    $functionCode .= "       !@ <outputProperty>\n";
-			    $functionCode .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
-			    $functionCode .= "       !@   <datatype>".$type."</datatype>\n";
+			    $functionBody .= "       !@ <outputProperty>\n";
+			    $functionBody .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
+			    $functionBody .= "       !@   <datatype>".$type."</datatype>\n";
 			    if ( $rank == 0 ) {
-				$functionCode .= "       !@   <cardinality>0..1</cardinality>\n";
+				$functionBody .= "       !@   <cardinality>0..1</cardinality>\n";
 			    } else {
-				$functionCode .= "       !@   <cardinality>0..*</cardinality>\n";
+				$functionBody .= "       !@   <cardinality>0..*</cardinality>\n";
 			    }
-			    $functionCode .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
-			    $functionCode .= "       !@   <label>???</label>\n";
-			    $functionCode .= "       !@   <outputType>nodeData</outputType>\n";
-			    $functionCode .= "       !@   <group>".$component->{'class'}."</group>\n";
-			    $functionCode .= "       !@ </outputProperty>\n";
+			    $functionBody .= "       !@   <description>".$property->{'output'}->{'comment'}."</description>\n";
+			    $functionBody .= "       !@   <label>???</label>\n";
+			    $functionBody .= "       !@   <outputType>nodeData</outputType>\n";
+			    $functionBody .= "       !@   <group>".$component->{'class'}."</group>\n";
+			    $functionBody .= "       !@ </outputProperty>\n";
 			    if ( $rank == 0 ) {
 				if ( exists($property->{'output'}->{'condition'}) ) {
 				    my $condition = $property->{'output'}->{'condition'};
 				    $condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				    $functionCode .= "    if (".$condition.") then\n";
+				    $functionBody .= "    if (".$condition.") then\n";
 				}
-				$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }."'\n";
-				$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";
-				$functionCode .= "    end if\n"
+				$functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				$functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'\n";
+				$functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }."'\n";
+				$functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";
+				$functionBody .= "    end if\n"
 				    if ( exists($property->{'output'}->{'condition'}) );
 			    } elsif ( $rank == 1 ) {
 				die("Generate_Implementation_Output_Functions(): output of rank>0 objects requires a labels attribute")
@@ -3757,38 +3870,48 @@ sub Generate_Implementation_Output_Functions {
 				    if ( exists($property->{'output'}->{'condition'}) ) {
 					my $condition = $property->{'output'}->{'condition'};
 					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-					$functionCode .= "    if (".$condition.") then\n";
+					$functionBody .= "    if (".$condition.") then\n";
 				    }
 				    my $labelText = $1;
 				    $labelText =~ s/^\s*//;
 				    $labelText =~ s/\s*$//;
 				    my @labels    = split(/\s*,\s*/,$labelText);
 				    foreach my $label ( @labels ) {
-					$functionCode .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName).$label."'\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." [".$label."]'\n";
-					$functionCode .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
+					$functionBody .= "       ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+					$functionBody .= "       ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName).$label."'\n";
+					$functionBody .= "       ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." [".$label."]'\n";
+					$functionBody .= "       ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
 				    }
-				    $functionCode .= "    end if\n"
+				    $functionBody .= "    end if\n"
 					if ( exists($property->{'output'}->{'condition'}) );
 				} elsif ( exists($property->{'output'}->{'count'}) ) {
 				    my $count = $property->{'output'}->{'count' };
 				    my $label = $property->{'output'}->{'labels'};
 				    $label =~ s/\{i\}/i/g;
-				    $functionCode .= "       do i=1,".$count."\n";
+				    if ( $nameCounterAdded == 0 ) {
+					push(
+					    @dataContent,
+					    {
+						intrinsic  => "integer",
+						variables  => [ "i" ]
+					    }
+					    );
+					$nameCounterAdded = 1;
+				    }
+				    $functionBody .= "       do i=1,".$count."\n";
 				    if ( exists($property->{'output'}->{'condition'}) ) {
 					my $condition = $property->{'output'}->{'condition'};
 					$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
 					$condition =~ s/\{i\}/i/g;
-					$functionCode .= "    if (".$condition.") then\n";
+					$functionBody .= "    if (".$condition.") then\n";
 				    }
-				    $functionCode .= "         ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'//".$label."\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." ['//".$label."//']'\n";
-				    $functionCode .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
-				    $functionCode .= "    end if\n"
+				    $functionBody .= "         ".$typeMap{$type}."Property=".$typeMap{$type}."Property+1\n";
+				    $functionBody .= "         ".$typeMap{$type}."PropertyNames   (".$typeMap{$type}."Property)='".$component->{'class'}.ucfirst($propertyName)."'//".$label."\n";
+				    $functionBody .= "         ".$typeMap{$type}."PropertyComments(".$typeMap{$type}."Property)='".$property->{'output'}->{'comment'  }." ['//".$label."//']'\n";
+				    $functionBody .= "         ".$typeMap{$type}."PropertyUnitsSI (".$typeMap{$type}."Property)=".$property->{'output'}->{'unitsInSI'}."\n";	
+				    $functionBody .= "    end if\n"
 					if ( exists($property->{'output'}->{'condition'}) );
-				    $functionCode .= "end do\n";
+				    $functionBody .= "end do\n";
 				} else {
 				    die('Generate_Implementation_Output_Functions(): no method to determine output count of property');
 				}
@@ -3803,21 +3926,23 @@ sub Generate_Implementation_Output_Functions {
 			    if ( exists($property->{'output'}->{'condition'}) ) {
 				my $condition = $property->{'output'}->{'condition'};
 				$condition =~ s/\[\[([^\]]+)\]\]/$1/g;
-				$functionCode .= "    if (".$condition.") then\n";
+				$functionBody .= "    if (".$condition.") then\n";
 			    }
-			    $functionCode .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
-			    $functionCode .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
-			    $functionCode .= "    end if\n"
+			    $functionBody .= "    output".ucfirst($type)."=self%".$propertyName."()\n";			   
+			    $functionBody .= "    call output".ucfirst($type)."%outputNames(integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,'".$component->{'class'}.ucfirst($propertyName)."','".$property->{'output'}->{'comment'}."',".$unitsInSI.")\n";
+			    $functionBody .= "    end if\n"
 				if ( exists($property->{'output'}->{'condition'}) );
 			}
 		    }
 		}
 	    }
-	    $functionCode .= "    end if\n"
+	    $functionBody .= "    end if\n"
 		if ( $checkAdded == 1 );
 	}
-	$functionCode .= "    return\n";
-	$functionCode .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Names\n";
+	$functionBody .= "    return\n";
+	$functionBody .= "  end subroutine Node_Component_".ucfirst($componentID)."_Output_Names\n";
+	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
+	$functionCode .= $functionBody;
 	# Insert into the function list.
 	push(
 	    @{$buildData->{'code'}->{'functions'}},
@@ -6275,6 +6400,12 @@ sub Generate_Component_Class_Output_Functions {
 	    {type => "procedure", name => "outputNames", function => "Node_Component_".ucfirst($componentClassName)."_Output_Names"},
 	    );
 	# Create output function.
+	my %typeMap =
+	    (
+	     real        => "double" ,
+	     integer     => "integer",
+	     longInteger => "integer"
+	    );
 	@dataContent =
 	    (
 	     {
@@ -6306,27 +6437,13 @@ sub Generate_Component_Class_Output_Functions {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 type       => "kind=kind_int8",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "outputRank1Integer" ]
-	     },
-	     {
-		 intrinsic  => "double precision",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "outputRank1Double" ]
-	     },
-	     {
-		 intrinsic  => "integer",
 		 attributes => ["intent(in   )" ],
 		 variables  => [ "instance" ]
-	     },
-	     {
-		 intrinsic  => "integer",
-		 variables  => [ "i" ]
 	     }
 	    );
 	# Find all derived types to be output.
 	my %outputTypes;
+	my %rank1OutputTypes;
 	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);
@@ -6346,9 +6463,36 @@ sub Generate_Component_Class_Output_Functions {
 		    }
 		    $outputTypes{$type} = 1
 			unless ( $type eq "real" || $type eq "integer" || $type eq "longInteger" );
+		    if ( ( $type eq "real" || $type eq "integer" || $type eq "longInteger" ) && $property->{'rank'} == 1 && exists($property->{'output'}->{'condition'}) ) {
+			$rank1OutputTypes{$type} = 1;
+		    }
 		}
 	    }
 	}
+	my %intrinsicMap = 
+	    (
+	     integer     => "integer(kind=kind_int8)",
+	     longInteger => "integer(kind=kind_int8)",
+	     real        => "double precision"
+	    );
+	foreach ( keys(%rank1OutputTypes) ) {
+	    push(
+		@dataContent,
+		{
+		    intrinsic  => $intrinsicMap{$_},
+		    attributes => [ "allocatable", "dimension(:)" ],
+		    variables  => [ "outputRank1".ucfirst($typeMap{$_}) ]
+		}
+		);
+	}
+	push(
+	    @dataContent,
+	    {
+		intrinsic  => "integer",
+		variables  => [ "i" ]
+	    }
+	    )
+	    if ( scalar(keys(%rank1OutputTypes)) > 0 );
 	my @outputTypes;
 	foreach ( keys(%outputTypes) ){
 	    push(
@@ -6390,12 +6534,6 @@ sub Generate_Component_Class_Output_Functions {
 	    foreach ( keys(%modulesRequired) );
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	my %typeMap =
-	    (
-	     real        => "double" ,
-	     integer     => "integer",
-	     longInteger => "integer"
-	    );
 	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
 	    # Get the component.
 	    my $componentID  = ucfirst($componentClassName).ucfirst($componentName);

@@ -41,7 +41,6 @@ contains
     use IO_XML
     use Galacticus_Error
     use Galacticus_Input_Paths
-    use Memory_Management
     implicit none
     type            (varying_string  ), intent(in   )          :: haloMassFunctionMethod
     procedure       (double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
@@ -76,7 +75,6 @@ contains
 
   double precision function Halo_Mass_Function_Differential_Tinker2008(time,mass)
     !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
-    use Numerical_Constants_Math
     use Power_Spectra
     use Virial_Density_Contrast
     use Cosmological_Parameters

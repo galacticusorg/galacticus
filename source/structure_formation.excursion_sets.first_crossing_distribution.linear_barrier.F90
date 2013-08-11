@@ -66,7 +66,6 @@ contains
     !% crossing is computed by solving for the first crossing distribution at a slightly earlier time and then dividing through by
     !% that time interval.
     use Numerical_Constants_Math
-    use Excursion_Sets_Barriers
     implicit none
     double precision, intent(in   ) :: time                       , variance, &
          &                             varianceProgenitor
@@ -89,8 +88,6 @@ contains
     !% Return the rate for excursion set non-crossing assuming a linear barrier. For a linear barrier the integral over the
     !% crossing probability (from zero to infinite variance) equals unity, so all trajectories cross. The non-crossing rate is
     !% therefore zero.
-    use Numerical_Constants_Math
-    use Excursion_Sets_Barriers
     implicit none
     double precision, intent(in   ) :: time, variance
 

@@ -41,7 +41,6 @@ contains
     !% Computes the recoil velocity of a black hole binary.
     use Galacticus_Error
     use Input_Parameters
-    use Galacticus_Nodes
     !# <include directive="blackHoleBinaryRecoilVelocityMethod" type="moduleUse">
     include 'black_holes.binary.recoil_velocity.modules.inc'
     !# </include>

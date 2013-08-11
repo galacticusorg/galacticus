@@ -163,7 +163,6 @@ contains
 
   subroutine Set_Memory_Prefix(thisMemoryUsage)
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
-    use ISO_Varying_String
     implicit none
     type            (memoryUsage   ), intent(inout) :: thisMemoryUsage
     integer         (kind=kind_int8), parameter     :: kilo           =1024

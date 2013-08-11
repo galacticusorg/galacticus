@@ -206,7 +206,6 @@ contains
 
   function Key_Integer_Scalar_I(thisHash,indexValue) result (key)
     !% Returns the key of entry number {\tt index} in {\tt thisHash}.
-    use ISO_Varying_String
     implicit none
     type   (varying_string   )                :: key
     integer                   , intent(in   ) :: indexValue
@@ -297,7 +296,6 @@ contains
 
   subroutine Set_Integer_Scalar_CH(thisHash,keyCH,value)
     !% Sets the value of {\tt key} in {\tt thisHash} to {\tt value}.
-    use Arrays_Search
     implicit none
     integer                     , intent(in   ) :: value
     character(len=*            ), intent(in   ) :: keyCH

@@ -64,7 +64,6 @@ contains
     !% Initializes the ``Kennicutt-Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
-    use Abundances_Structure
     use Numerical_Constants_Prefixes
     implicit none
     type     (varying_string                             ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
@@ -167,13 +166,11 @@ contains
     !% $q_{\rm crit}=${\tt [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
     !% density occurs. $\sigma_{\rm gas}$ is assumed to be a constant equal to {\tt [velocityDispersionDiskGas]} and the disk is
     !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
-    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
-    use Numerical_Constants_Prefixes
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: radius

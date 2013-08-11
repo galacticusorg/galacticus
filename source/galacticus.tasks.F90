@@ -26,8 +26,6 @@ module Galacticus_Tasks
   integer, parameter :: taskBegin   =0         !  Initial value to indicate the start.
   integer, parameter :: taskFinished=-1        !  Task that indicates all tasks are done.
 
-  integer            :: currentTask =taskBegin !  Variable that tracks the current task.
-
 contains
 
   subroutine Galacticus_Task_Do()

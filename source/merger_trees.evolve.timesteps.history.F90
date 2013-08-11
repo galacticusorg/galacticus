@@ -253,8 +253,6 @@ contains
   !# </hdfPreCloseTask>
   subroutine Merger_Tree_History_Write
     !% Store the global history data to the \glc\ output file.
-    use ISO_Varying_String
-    use IO_HDF5
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none

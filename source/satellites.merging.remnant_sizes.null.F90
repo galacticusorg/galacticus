@@ -31,7 +31,6 @@ contains
   subroutine Satellite_Merging_Remnant_Sizes_Null_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                     ), intent(in   )          :: satelliteMergingRemnantSizeMethod
     procedure(Satellite_Merging_Remnant_Size_Null), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do

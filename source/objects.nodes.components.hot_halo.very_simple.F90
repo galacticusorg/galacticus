@@ -165,7 +165,6 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}.
-    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , parameter              :: scaleMassRelative   =1.0d-2
@@ -198,8 +197,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: thisNode
     type            (treeNode            )               , pointer :: childNode
     class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent, &
-         &                                                            thisBasicComponent
+    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
     double precision                                               :: hotHaloMass
 
     ! If the very simple hot halo is not active, then return immediately.
@@ -239,7 +237,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merger(thisNode)
     !% Remove any hot halo associated with {\tt thisNode} before it merges with its host halo.
-    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: hostNode
@@ -273,13 +270,10 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Promote(thisNode)
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
-    use Galacticus_Error
-    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     type            (treeNode            )               , pointer :: parentNode
     class           (nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
-    double precision                                               :: hotHaloMass
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -307,7 +301,6 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve(thisNode)
     !% Do processing of the node required after evolution.
-    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -337,7 +330,6 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(thisNode)
     !% Starve {\tt thisNode} by transferring its hot halo to its parent.
-    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     type (treeNode            )               , pointer :: parentNode
@@ -382,14 +374,9 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Create(thisNode)
     !% Creates a very simple hot halo component for {\tt thisNode}.
-    use ISO_Varying_String
-    use Galacticus_Display
-    use String_Handling
-    use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     class(nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    type (varying_string      )                         :: message
 
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()

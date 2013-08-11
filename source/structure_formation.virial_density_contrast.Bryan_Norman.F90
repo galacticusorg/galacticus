@@ -62,10 +62,8 @@ contains
 
   subroutine Virial_Density_Bryan_Norman(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the \cite{bryan_statistical_1998} fitting function module.
-    use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
-    use Numerical_Ranges
     use Tables
     implicit none
     double precision                      , intent(in   ) :: time

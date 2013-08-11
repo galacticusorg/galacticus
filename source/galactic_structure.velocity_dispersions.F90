@@ -82,7 +82,6 @@ contains
   function Velocity_Dispersion_Integrand(radius,parameterPointer) bind(c)
     !% Integrand function used for finding velocity dispersions using Jeans equation.
     use, intrinsic :: ISO_C_Binding
-    use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Galactic_Structure_Densities
     use Galactic_Structure_Enclosed_Masses

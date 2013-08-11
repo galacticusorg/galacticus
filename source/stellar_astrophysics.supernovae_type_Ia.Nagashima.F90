@@ -38,9 +38,6 @@ contains
   !# </supernovaeIaMethod>
   subroutine Supernovae_Type_Ia_Nagashima_Initialize(supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get)
     !% Initialize the ``Nagashima'' Type Ia supernovae module.
-    use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Astronomical
     use ISO_Varying_String
     use Galacticus_Error
     use FoX_dom
@@ -137,7 +134,6 @@ contains
     !% initialMass} and {\tt metallicity} after a time {\tt age}. The calculation is based on the Type Ia rate calculation of
     !% \cite{nagashima_metal_2005} and the Type Ia yields from \cite{nomoto_nucleosynthesis_1997}. The number returned here
     !% assumes a distribution of binary mass ratios and so only makes sense once it is integrated over an initial mass function.
-    use Stellar_Astrophysics
     implicit none
     double precision, intent(in   )           :: age      , initialMass, metallicity
     integer         , intent(in   ), optional :: atomIndex

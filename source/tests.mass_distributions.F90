@@ -20,7 +20,6 @@
 program Test_Mass_Distributions
   !% Tests mass distributions.
   use Unit_Tests
-  use ISO_Varying_String
   use Memory_Management
   use Mass_Distributions
   use Coordinates

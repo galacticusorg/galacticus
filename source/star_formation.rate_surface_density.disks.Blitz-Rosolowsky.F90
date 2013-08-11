@@ -66,8 +66,6 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
-    use Abundances_Structure
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
@@ -174,13 +172,11 @@ contains
     !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
     !% in the galactic disk of {\tt thisNode}. The disk is assumed to obey the
     !% \cite{blitz_role_2006} star formation rule.
-    use Galacticus_Nodes
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
-    use Numerical_Constants_Prefixes
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: radius

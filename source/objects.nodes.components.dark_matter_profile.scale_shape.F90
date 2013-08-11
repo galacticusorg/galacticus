@@ -91,7 +91,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the rate of change of the scale radius.
-    use Dark_Matter_Halo_Scales
     implicit none
     type     (treeNode                      ), intent(inout), pointer :: thisNode
     logical                                  , intent(inout)          :: interrupt
@@ -226,7 +225,6 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output(baseNode,nodeProperty,treeGroup)
     !% Write the scale radius property to a full merger tree output.
     use IO_HDF5
-    use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty
@@ -234,7 +232,6 @@ contains
     type            (treeNode                      )                             , pointer :: thisNode
     integer                                                                                :: nodeCount
     class           (nodeComponentDarkMatterProfile)                             , pointer :: baseDarkMatterProfileComponent, thisDarkMatterProfileComponent
-    type            (hdf5Object                    )                                       :: nodeDataset
 
     ! Check if scale radius is to be included in merger tree outputs.
     if (mergerTreeStructureOutputDarkMatterProfileShape) then

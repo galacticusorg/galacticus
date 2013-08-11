@@ -51,15 +51,12 @@ contains
     use Dates_and_Times
     use Power_Spectra
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
     use Galacticus_Nodes
     use Input_Parameters
     use Memory_Management
-    use Kind_Numbers
     use Sort
-    use FGSL
     implicit none
     type            (mergerTree           ), intent(in   ), target                                 :: thisTree
     integer                                                                            , parameter :: hdfChunkSize                   =1024, hdfCompressionLevel=9

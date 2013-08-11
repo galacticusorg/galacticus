@@ -21,7 +21,6 @@
 module Chemical_Hydrogen_Rates
   !% Implements calculations of chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and
   !% \cite{tegmark_small_1997}.
-  use Chemical_Structures
   use Chemical_Abundances_Structure
   implicit none
   private
@@ -114,7 +113,6 @@ contains
   !# </chemicalRatesCompute>
   subroutine Chemical_Hydrogen_Rates_Compute(temperature,chemicalDensity,radiation,chemicalRates)
     !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
-    use Abundances_Structure
     use Radiation_Structure
     use Galacticus_Error
     implicit none
@@ -1351,7 +1349,6 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     double precision                                     , intent(in   ) :: temperature
     type            (radiationStructure)                 , intent(in   ) :: radiation
@@ -1403,7 +1400,6 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     double precision                                     , intent(in   ) :: temperature
     type            (radiationStructure)                 , intent(in   ) :: radiation
@@ -1492,7 +1488,6 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     double precision                                     , intent(in   ) :: temperature
     type            (radiationStructure)                 , intent(in   ) :: radiation
@@ -1581,7 +1576,6 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     double precision                                     , intent(in   ) :: temperature
     type            (radiationStructure)                 , intent(in   ) :: radiation
@@ -1687,7 +1681,6 @@ contains
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     double precision                                     , intent(in   ) :: temperature
     type            (radiationStructure)                 , intent(in   ) :: radiation

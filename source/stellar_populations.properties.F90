@@ -31,9 +31,6 @@ module Stellar_Population_Properties
   ! Flag indicating whether this module has been initialized.
   logical                                                          :: stellarPopulationPropertiesInitialized =.false.
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                          :: starFormationTimescaleDisksInitialized =.false.
-
   ! Name of cooling rate available method used.
   type     (varying_string                              )          :: stellarPopulationPropertiesMethod
 
@@ -176,7 +173,6 @@ contains
 
   subroutine Stellar_Population_Properties_History_Create(thisNode,thisHistory)
     !% Create any history required for storing stellar population properties.
-    use Histories
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(history ), intent(inout)          :: thisHistory

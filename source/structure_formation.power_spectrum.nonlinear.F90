@@ -20,7 +20,6 @@
 module Power_Spectra_Nonlinear
   !% Implements the nonlinear power spectrum.
   use ISO_Varying_String
-  use Galacticus_Nodes
   implicit none
   private
   public :: Power_Spectrum_Nonlinear

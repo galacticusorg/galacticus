@@ -21,8 +21,6 @@
 
 module Galactic_Structure_Potentials
   !% Implements calculations of the gravitational potential.
-  use, intrinsic :: ISO_C_Binding
-  use ISO_Varying_String
   use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
@@ -38,11 +36,6 @@ contains
 
   double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded)
     !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
-    use Galacticus_Error
-    use Input_Parameters
-    use Dark_Matter_Profiles
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     !# <include directive="potentialTask" type="moduleUse">
     include 'galactic_structure.potential.tasks.modules.inc'
     !# </include>
@@ -89,7 +82,6 @@ contains
 
   double precision function Component_Potential(component)
     !% Unary function returning the potential in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
     implicit none
     class(nodeComponent), intent(inout) :: component
 

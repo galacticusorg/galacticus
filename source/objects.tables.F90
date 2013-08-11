@@ -269,7 +269,6 @@ contains
   subroutine Table_1D_Destroy(self)
     !% Destroy a 1-D table.
     use Memory_Management
-    use Numerical_Ranges
     implicit none
     class(table1D), intent(inout) :: self
 
@@ -280,7 +279,6 @@ contains
 
   double precision function Table1D_X(self,i)
     !% Return the {\tt i}$^{\rm th}$ $x$-value for a 1D table.
-    use Galacticus_Error
     implicit none
     class  (table1D), intent(inout) :: self
     integer         , intent(in   ) :: i
@@ -294,7 +292,6 @@ contains
 
   function Table1D_Xs(self)
     !% Return the $x$-values for a 1D table.
-    use Galacticus_Error
     implicit none
     class(table1D), intent(in   ) :: self
     double precision         , dimension(size(self%xv))  :: Table1D_Xs
@@ -305,7 +302,6 @@ contains
 
   double precision function Table1D_Y(self,i,table)
     !% Return the {\tt i}$^{\rm th}$ $y$-value for a 1D table.
-    use Galacticus_Error
     implicit none
     class  (table1D), intent(in   )           :: self
     integer         , intent(in   )           :: i
@@ -322,7 +318,6 @@ contains
 
   function Table1D_Ys(self)
     !% Return the $y$-values for a 1D table.
-    use Galacticus_Error
     implicit none
     class           (table1D), intent(in   )                                      :: self
     double precision         , dimension(size(self%yv,dim=1),size(self%yv,dim=2)) :: Table1D_Ys
@@ -385,7 +380,6 @@ contains
 
   integer function Table1D_Size(self)
     !% Return the size of a 1D table.
-    use Array_Utilities
     implicit none
     class(table1D), intent(in   ) :: self
 
@@ -396,7 +390,6 @@ contains
   subroutine Table_Generic_1D_Create(self,x,tableCount,extrapolationType)
     !% Create a 1-D generic table.
     use Memory_Management
-    use Numerical_Ranges
     implicit none
     class           (table1DGeneric)              , intent(inout)           :: self
     double precision                , dimension(:), intent(in   )           :: x
@@ -656,8 +649,6 @@ contains
 
   subroutine Table_Logarithmic_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
-    use Memory_Management
-    use Numerical_Ranges
     implicit none
     class           (table1DLogarithmicLinear), intent(inout)           :: self
     double precision                          , intent(in   )           :: xMaximum  , xMinimum
@@ -671,7 +662,6 @@ contains
 
   double precision function Table_Logarithmic_1D_X(self,i)
     !% Return the {\tt i}$^{\rm th}$ $x$-value for a logarithmic 1D table.
-    use Galacticus_Error
     implicit none
     class  (table1DLogarithmicLinear), intent(inout) :: self
     integer                          , intent(in   ) :: i
@@ -682,7 +672,6 @@ contains
 
   function Table_Logarithmic_1D_Xs(self)
     !% Return the $x$-values for a 1D table.
-    use Galacticus_Error
     implicit none
     class(table1DLogarithmicLinear), intent(in   ) :: self
     double precision                          , dimension(size(self%xv))  :: Table_Logarithmic_1D_Xs
@@ -948,8 +937,6 @@ contains
 
   subroutine Table_Logarithmic_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !% Create a 1-D logarithmic table.
-    use Memory_Management
-    use Numerical_Ranges
     implicit none
     class           (table1DLogarithmicCSpline), intent(inout)           :: self
     double precision                           , intent(in   )           :: xMaximum  , xMinimum
@@ -963,7 +950,6 @@ contains
 
   double precision function Table_Logarithmic_CSpline_1D_X(self,i)
     !% Return the {\tt i}$^{\rm th}$ $x$-value for a logarithmic 1D table.
-    use Galacticus_Error
     implicit none
     class  (table1DLogarithmicCSpline), intent(inout) :: self
     integer                           , intent(in   ) :: i
@@ -974,7 +960,6 @@ contains
 
   function Table_Logarithmic_CSpline_1D_Xs(self)
     !% Return the $x$-values for a 1D table.
-    use Galacticus_Error
     implicit none
     class(table1DLogarithmicCSpline), intent(in   ) :: self
     double precision                           , dimension(size(self%xv))  :: Table_Logarithmic_CSpline_1D_Xs

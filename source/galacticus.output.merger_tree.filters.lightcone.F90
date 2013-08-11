@@ -194,7 +194,6 @@ contains
     !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output.
     use Galacticus_Nodes
     use Arrays_Search
-    use Numerical_Constants_Astronomical
     use Cosmology_Functions
     implicit none
     type            (treeNode             )                , intent(inout), pointer :: thisNode
@@ -302,7 +301,6 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode

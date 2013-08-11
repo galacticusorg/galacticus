@@ -121,7 +121,6 @@ contains
   !# </calculationResetTask>
   subroutine Dark_Matter_Profile_NFW_Reset(thisNode)
     !% Reset the cooling radius calculation.
-    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -132,8 +131,6 @@ contains
 
   subroutine Dark_Matter_Profile_NFW_Tabulate(concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
-    use Memory_Management
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ), optional :: concentration
     integer                                   :: iConcentration
@@ -174,9 +171,6 @@ contains
 
   subroutine Dark_Matter_Profile_NFW_Inverse_Angular_Momentum(specificAngularMomentum)
     !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
-    use Numerical_Ranges
-    use Memory_Management
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ), optional :: specificAngularMomentum
     integer                                   :: iRadius
@@ -226,7 +220,6 @@ contains
   double precision function Dark_Matter_Profile_Density_NFW(thisNode,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -249,7 +242,6 @@ contains
   double precision function Dark_Matter_Profile_Enclosed_Mass_NFW(thisNode,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -272,7 +264,6 @@ contains
   double precision function Dark_Matter_Profile_Potential_NFW(thisNode,radius)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
@@ -301,8 +292,6 @@ contains
   double precision function Dark_Matter_Profile_Circular_Velocity_NFW(thisNode,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc). For an NFW halo this is independent of radius and therefore equal to the virial velocity.
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
@@ -322,9 +311,6 @@ contains
     !% in units of km s$^{-1}$ Mpc). For an NFW halo, the circular velocity is constant (and therefore equal to the virial
     !% velocity). Therefore, $r = j/V_{\rm virial}$ where $j$(={\tt specificAngularMomentum}) is the specific angular momentum and
     !% $r$ the required radius.
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     double precision                                , intent(in   )          :: specificAngularMomentum
@@ -375,9 +361,7 @@ contains
 
   double precision function Dark_Matter_Profile_Rotation_Normalization_NFW(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
@@ -402,9 +386,7 @@ contains
 
   double precision function Dark_Matter_Profile_Energy_NFW(thisNode)
     !% Return the energy of an NFW halo density profile.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
@@ -431,9 +413,7 @@ contains
 
   double precision function Dark_Matter_Profile_Energy_Growth_Rate_NFW(thisNode)
     !% Return the rate of change of the energy of an NFW halo density profile.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
@@ -476,7 +456,6 @@ contains
     !% \begin{equation}
     !% J = \left. \left[ 1 + c - 2 \ln (1+c) - {1 \over 1+c} \right] \right/ \left[ \ln(1+c)-{c\over 1+c} \right].
     !% \end{equation}
-    use Numerical_Constants_Math
     implicit none
     double precision, intent(in   ) :: concentration
 
@@ -629,7 +608,6 @@ contains
   double precision function Dark_Matter_Profile_kSpace_NFW(thisNode,waveNumber)
     !% Returns the Fourier transform of the NFW density profile at the specified {\tt waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
     use Exponential_Integrals
     implicit none
@@ -663,8 +641,6 @@ contains
 
   double precision function Dark_Matter_Profile_Freefall_Radius_NFW(thisNode,time)
     !% Returns the freefall radius in the NFW density profile at the specified {\tt time} (given in Gyr).
-    use Galacticus_Nodes
-    use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
@@ -713,8 +689,6 @@ contains
   double precision function Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW(thisNode,time)
     !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\tt time} (given in
     !% Gyr).
-    use Galacticus_Nodes
-    use Numerical_Interpolation
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     implicit none
@@ -762,9 +736,6 @@ contains
 
   subroutine Dark_Matter_Profile_NFW_Freefall_Tabulate(freefallTimeScaleFree)
     !% Tabulates the freefall time vs. freefall radius for NFW halos.
-    use Numerical_Ranges
-    use Memory_Management
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: freefallTimeScaleFree
     logical                         :: retabulate

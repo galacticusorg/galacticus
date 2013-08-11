@@ -149,7 +149,6 @@ contains
   subroutine XML_List_Double_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
     type            (nodeList), intent(in   ), pointer               :: xmlElements
     character       (len=*   ), intent(in   )                        :: arrayElementName
@@ -170,7 +169,6 @@ contains
   subroutine XML_List_Integer_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of integer data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
     type            (nodeList), intent(in   ), pointer               :: xmlElements
     character       (len=*   ), intent(in   )                        :: arrayElementName
@@ -191,7 +189,6 @@ contains
   subroutine XML_List_Character_Array_Read_Static_One_Column(xmlElements,arrayElementName,column1)
     !% Read one column of character data from an array of XML elements.
     use FoX_dom
-    use Memory_Management
     implicit none
     type            (nodeList        ), intent(in   ), pointer               :: xmlElements
     character       (len=*           ), intent(in   )                        :: arrayElementName
@@ -242,24 +239,9 @@ contains
     return
   end function XML_Get_First_Element_By_Tag_Name
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   logical function XML_Path_Exists(xmlElement,path)
     !% Return true if the supplied {\tt path} exists in the supplied {\tt xmlElement}.
     use FoX_dom
-    use Galacticus_Error
     implicit none
     type     (node         ), intent(in   ), pointer :: xmlElement
     character(len=*        ), intent(in   )          :: path
@@ -290,20 +272,6 @@ contains
     end do
     return
   end function XML_Path_Exists
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   subroutine XML_Extrapolation_Element_Decode(extrapolationElement,limitType,extrapolationMethod,allowedMethods)
     !% Extracts information from a standard XML {\tt extrapolationElement}. Optionally a set of {\tt allowedMethods} can be

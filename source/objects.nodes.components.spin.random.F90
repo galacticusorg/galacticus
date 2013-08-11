@@ -59,10 +59,7 @@ contains
 
   subroutine Node_Component_Spin_Random_Initialize()
     !% Initializes the random spin component module.
-    use ISO_Varying_String
     use Input_Parameters
-    use String_Handling
-    use Galacticus_Display
     implicit none
 
     ! Test whether module is already initialize.
@@ -93,7 +90,6 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Random_Initialize_Spins(thisNode)
     !% Initialize the spin of {\tt thisNode}.
-    use Cosmological_Parameters
     use Halo_Spin_Distributions
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode

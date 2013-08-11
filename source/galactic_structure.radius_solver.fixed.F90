@@ -61,8 +61,6 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Fixed(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``fixed'' method.
-    use Galacticus_Error
-    use Galacticus_Nodes
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

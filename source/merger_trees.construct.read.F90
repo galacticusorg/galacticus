@@ -24,7 +24,6 @@ module Merger_Tree_Read
   use IO_HDF5
   use HDF5
   use Kind_Numbers
-  use FGSL
   implicit none
   private
   public :: Merger_Tree_Read_Initialize
@@ -713,10 +712,6 @@ contains
     use Galacticus_Error
     use String_Handling
     use Memory_Management
-    use Kind_Numbers
-    use Histories
-    use ISO_Varying_String
-    use Merger_Tree_Read_State
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree
     logical                                                                      , intent(in   )         :: skipTree
@@ -1121,7 +1116,6 @@ contains
 
   subroutine Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
     !% Read data on particle positions/velocities.
-    use Galacticus_Error
     use Cosmology_Functions
     implicit none
     type            (nodeData    )             , dimension(:)  , intent(inout) :: nodes
@@ -1304,8 +1298,6 @@ contains
 
   subroutine Scan_for_Subhalo_Promotions(nodes,nodeList)
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
-    use Galacticus_Error
-    use String_Handling
     use Node_Subhalo_Promotions
     implicit none
     type   (nodeData      )         , dimension(:), intent(inout), target :: nodes
@@ -1409,7 +1401,6 @@ contains
   subroutine Create_Node_Array(thisTree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
     !% Create an array of standard nodes and associated structures.
     use Memory_Management
-    use Galacticus_Error
     implicit none
     type   (mergerTree    )                           , intent(inout) :: thisTree
     type   (nodeData      )             , dimension(:), intent(inout) :: nodes
@@ -1475,7 +1466,6 @@ contains
 
   subroutine Build_Isolated_Parent_Pointers(thisTree,nodes,nodeList)
     !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
     implicit none
@@ -1742,7 +1732,6 @@ contains
 
   double precision function Half_Mass_Radius_Root(radius)
     !% Function used to find scale radius of dark matter halos given their half-mass radius.
-    use, intrinsic :: ISO_C_Binding
     use Dark_Matter_Profiles
     implicit none
     double precision, intent(in   ) :: radius
@@ -1803,13 +1792,10 @@ contains
     use Vectors
     use Virial_Orbits
     use Kepler_Orbits
-    use Galacticus_Nodes
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
-    use Numerical_Comparison
     implicit none
     type            (nodeData              )                    , dimension(:), intent(inout) , target::                         nodes
     type            (treeNodeList          )                    , dimension(:), intent(inout) ::      nodeList
@@ -2140,8 +2126,6 @@ contains
 
   subroutine Scan_for_Branch_Jumps(nodes,nodeList)
     !% Search for subhalos which move between branches/trees.
-    use Galacticus_Error
-    use String_Handling
     implicit none
     type            (nodeData      ), dimension(:), intent(inout), target :: nodes
     type            (treeNodeList  ), dimension(:), intent(inout)         :: nodeList

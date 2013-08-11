@@ -66,8 +66,6 @@ contains
   subroutine Node_Component_Satellite_Very_Simple_Initialize()
     !% Initializes the tree node satellite orbit methods module.
     use Input_Parameters
-    use Galacticus_Error
-    use String_Handling
     implicit none
 
     ! Test whether module is already initialize.
@@ -137,8 +135,6 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Very_Simple_Create(thisNode)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use Numerical_Constants_Math
-    use Dark_Matter_Halo_Scales
     use Virial_Orbits
     use Satellite_Merging_Timescales
     use Kepler_Orbits

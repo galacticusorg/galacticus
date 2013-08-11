@@ -162,7 +162,6 @@ contains
     use Galacticus_State
     use Galacticus_Error
     use String_Handling
-    use ISO_Varying_String
     implicit none
     type   (mergerTree    ), intent(inout)              , target :: thisTree
     logical                , intent(in   )                       :: skipTree

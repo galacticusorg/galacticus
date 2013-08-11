@@ -20,10 +20,8 @@
 program Test_Hashes
   !% Tests features of the hashes (i.e. associative arrays) module.
   use Unit_Tests
-  use ISO_Varying_String
   use Memory_Management
   use Hashes
-  use ISO_Varying_String
   implicit none
   type(integerScalarHash) :: myHash
 

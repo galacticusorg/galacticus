@@ -22,7 +22,6 @@ module Input_Parameters
   use, intrinsic :: ISO_C_Binding
   use FoX_dom
   use IO_XML
-  use HDF5
   use IO_HDF5
   use ISO_Varying_String
   use Galacticus_Error
@@ -1049,7 +1048,6 @@ contains
 
   subroutine Get_Input_Parameter_Double_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Double")
     !% C-bound wrapper function for getting {\tt double precision} parameter values.
-    use ISO_Varying_String
     use String_Handling
     implicit none
     integer  (kind=c_int    ), value :: parameterNameLength
@@ -1065,7 +1063,6 @@ contains
 
   subroutine Get_Input_Parameter_Integer_C(parameterNameLength,parameterName,parameterValue,defaultValue) bind(c,name="Get_Input_Parameter_Integer")
     !% C-bound wrapper function for getting {\tt integer} parameter values.
-    use ISO_Varying_String
     use String_Handling
     implicit none
     integer  (kind=c_int    ), value :: parameterNameLength

@@ -80,7 +80,6 @@ contains
 
   double precision function Component_Rotation_Curve(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
     implicit none
     class(nodeComponent), intent(inout) :: component
 

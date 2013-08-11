@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -40,7 +40,6 @@ contains
   subroutine Hot_Halo_Ram_Pressure_Force_Font2008_Initialize(hotHaloRamPressureForceMethod,Hot_Halo_Ram_Pressure_Force_Get)
     !% Initializes the ``Font2008'' hot halo ram pressure stripping module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                          ), intent(in   )          :: hotHaloRamPressureForceMethod
     procedure(Hot_Halo_Ram_Pressure_Force_Font2008_Get), intent(inout), pointer :: Hot_Halo_Ram_Pressure_Force_Get
@@ -54,13 +53,9 @@ contains
   double precision function Hot_Halo_Ram_Pressure_Force_Font2008_Get(thisNode)
     !% Computes the hot halo ram pressure force
 
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Kepler_Orbits
     use Satellite_Orbits
     use Hot_Halo_Density_Profile
-    use FGSL
-    use, intrinsic :: ISO_C_Binding
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent

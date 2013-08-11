@@ -22,7 +22,6 @@ module Node_Component_Spheroid_Standard
   use Galacticus_Nodes
   use Histories
   use Stellar_Population_Properties
-  use Mass_Distributions
   use Node_Component_Spheroid_Standard_Data
   implicit none
   private
@@ -350,7 +349,6 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Abundances_Structure
-    use Histories
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
@@ -516,8 +514,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spheroid_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the standard spheroid node mass rate of change.
-    use Cosmological_Parameters
-    use Cooling_Rates
     use Star_Formation_Feedback_Spheroids
     use Star_Formation_Feedback_Expulsion_Spheroids
     use Abundances_Structure
@@ -540,7 +536,7 @@ contains
          &                                                             outflowToHotHaloFraction  , spheroidDynamicalTime   , &
          &                                                             spheroidMass              , starFormationRate       , &
          &                                                             stellarMassRate
-    type            (history              )                         :: historyTransferRate       , stellarHistoryRate
+    type            (history              )                         :: stellarHistoryRate
 
     ! Get the disk and check that it is of our class.
     thisSpheroidComponent => thisNode%spheroid()
@@ -624,9 +620,6 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Rate(self,rate,interrupt,interruptProcedure)
     !% Adjust the rates for the star formation history.
-    use Histories
-    use Galacticus_Error
-    use Memory_Management
     implicit none
     class    (nodeComponentSpheroidStandard), intent(inout)                    :: self
     type     (history                      ), intent(in   )                    :: rate
@@ -667,8 +660,6 @@ contains
   subroutine Node_Component_Spheroid_Standard_Scale_Set(thisNode)
     !% Set scales for properties of {\tt thisNode}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
-    use Histories
-    use Stellar_Population_Properties
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
     implicit none
@@ -757,8 +748,6 @@ contains
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
-    use Histories
-use kind_numbers
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     type            (treeNode             )               , pointer :: hostNode
@@ -1204,8 +1193,6 @@ use kind_numbers
 
   subroutine Node_Component_Spheroid_Standard_Initializor(self)
     !% Initializes a standard spheroid component.
-    use Histories
-    use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type   (nodeComponentSpheroidStandard )          :: self
@@ -1267,7 +1254,6 @@ use kind_numbers
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(thisNode)
     !% Extend the range of a star formation history in a standard spheroid component for {\tt thisNode}.
-    use Histories
     implicit none
     type (treeNode             ), intent(inout), pointer :: thisNode
     class(nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
@@ -1289,7 +1275,6 @@ use kind_numbers
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use Kind_Numbers
-    use Galacticus_Nodes
     use Galacticus_Output_Star_Formation_Histories
     implicit none
     type   (treeNode             ), intent(inout), pointer :: thisNode

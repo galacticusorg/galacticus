@@ -53,7 +53,6 @@ contains
   !# </criticalOverdensityMethod>
   subroutine Spherical_Collapse_Dark_Energy_Delta_Critical_Initialize(criticalOverdensityMethod,Critical_Overdensity_Tabulate)
     !% Initializes the $\delta_{\rm crit}$ calculation for the spherical collapse module.
-    use ISO_Varying_String
     implicit none
     type     (varying_string                                     ), intent(in   )          :: criticalOverdensityMethod
     procedure(Spherical_Collapse_Dark_Energy_Critical_Overdensity), intent(inout), pointer :: Critical_Overdensity_Tabulate
@@ -68,7 +67,6 @@ contains
   subroutine Spherical_Collapse_Dark_Energy_Delta_Virial_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
     !% Initializes the $\Delta_{\rm vir}$ calculation for the spherical collapse module.
     use Input_Parameters
-    use ISO_Varying_String
     type     (varying_string                                        ), intent(in   )          :: virialDensityContrastMethod
     procedure(Spherical_Collapse_Dark_Energy_Virial_Density_Contrast), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
 
@@ -124,14 +122,9 @@ contains
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder
-    use Numerical_Ranges
-    use Memory_Management
     use Tables
-    use Kind_Numbers
     use Galacticus_Error
     use Galacticus_Display
-    use ISO_Varying_String
-    use Numerical_Constants_Math
     implicit none
     double precision                             , intent(in   ) :: time
     integer                                      , intent(in   ) :: calculationType
@@ -144,10 +137,9 @@ contains
          &                                                          epsilonPerturbationMaximum           , epsilonPerturbationMinimum             , &
          &                                                          maximumExpansionDensityContrast      , maximumExpansionExpansionFactor        , &
          &                                                          maximumExpansionRadius               , maximumExpansionTime                   , &
-         &                                                          n                                    , normalization                          , &
-         &                                                          phi                                  , q                                      , &
-         &                                                          theta                                , timeEnergyFixed                        , &
-         &                                                          timeInitial                          , y
+         &                                                          y                                    , normalization                          , &
+         &                                                          q                                    , timeEnergyFixed                        , &
+         &                                                          timeInitial
     double complex :: a,b,x
     type     (varying_string) :: message
     character(len=7         ) :: label
@@ -350,7 +342,6 @@ contains
   end subroutine Perturbation_Dynamics_Solver
 
   function perturbationODEs(time,y,dydt,parameterPointer) bind(c)
-    use FGSL
     use Cosmology_Functions
     implicit none
     integer         (kind=c_int   )                       :: perturbationODEs
