@@ -74,7 +74,6 @@ contains
   subroutine Star_Formation_IMF_Initialize_Chabrier
     !% Initialize the Chabrier IMF module.
     use Input_Parameters
-    use Star_Formation_IMF_PPL
     implicit none
 
     if (.not.imfChabrierInitialized) then
@@ -152,7 +151,6 @@ contains
   !# </imfPhi>
   subroutine Star_Formation_IMF_Phi_Chabrier(imfSelected,imfMatched,initialMass,imfPhi)
     !% Register the name of this IMF.
-    use Star_Formation_IMF_PPL
     implicit none
     integer         , intent(in   ) :: imfSelected
     logical         , intent(inout) :: imfMatched
@@ -209,7 +207,6 @@ contains
   subroutine Star_Formation_IMF_Tabulate_Chabrier(imfSelected,imfMatched,imf)
     !% Register the name of this IMF.
     use Tables
-    use Star_Formation_IMF_PPL
     implicit none
     integer                      , intent(in   ) :: imfSelected
     logical                      , intent(inout) :: imfMatched

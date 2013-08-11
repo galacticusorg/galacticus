@@ -33,7 +33,6 @@ contains
        &,Black_Hole_Spin_Up_Rate_Get,Accretion_Disk_Jet_Power_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                                     ), intent(in   )          :: accretionDisksMethod
     procedure(Accretion_Disk_Radiative_Efficiency_Shakura_Sunyaev), intent(inout), pointer :: Accretion_Disk_Radiative_Efficiency_Get
@@ -65,10 +64,7 @@ contains
     !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
     use Galacticus_Nodes
     use Black_Hole_Fundamentals
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
     implicit none
     class           (nodeComponentBlackHole)           , intent(inout) :: thisBlackHole
     double precision                                   , intent(in   ) :: massAccretionRate

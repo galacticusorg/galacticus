@@ -111,7 +111,6 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Descendents_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of descendent properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     double precision                        , intent(in   )          :: time
@@ -132,7 +131,6 @@ contains
   subroutine Galacticus_Output_Tree_Descendents(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store descendent properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
     use Kind_Numbers
     use Galacticus_Output_Times
     implicit none

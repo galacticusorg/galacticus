@@ -35,7 +35,6 @@ contains
        &,Freefall_Time_Available_Increase_Rate_Get)
     !% Initialize the \cite{cole_hierarchical_2000} freefall time available module.
     use ISO_Varying_String
-    use Input_Parameters
     use Galacticus_Error
     implicit none
     type     (varying_string                                      ), intent(in   )          :: freefallTimeAvailableMethod

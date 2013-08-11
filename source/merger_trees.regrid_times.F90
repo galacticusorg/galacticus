@@ -61,9 +61,6 @@ contains
     use Numerical_Interpolation
     use Kind_Numbers
     use Merger_Trees_Dump
-    use Galacticus_Output_Times
-    use Numerical_Comparison
-    use Arrays_Search
     implicit none
     type            (mergerTree        ), intent(inout), target                :: thisTree
     type            (treeNode          )                             , pointer :: childNode               , nextNode            , &

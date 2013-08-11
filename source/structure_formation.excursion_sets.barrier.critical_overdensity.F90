@@ -19,7 +19,6 @@
 !% critical overdensity for collapse.
 
 module Excursion_Sets_Barriers_Critical_Overdensity
-  use FGSL
   !% Implements a barrier for excursion set calculations of dark matter halo formation which equals the critical overdensity for
   !% collapse.
   private

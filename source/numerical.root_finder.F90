@@ -405,7 +405,6 @@ contains
 
   function Root_Finder_Wrapper_Function(x,parameterPointer) bind(c)
     !% Wrapper function callable by {\tt FGSL} used in root finding.
-    use, intrinsic :: ISO_C_Binding
     implicit none
     real(kind=c_double), value :: x
     type(c_ptr        ), value :: parameterPointer

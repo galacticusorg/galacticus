@@ -118,7 +118,6 @@ contains
   subroutine Galacticus_Meta_Evolver_Profiler_Output
     !% Outputs collected meta-data on tree evolution.
     use ISO_Varying_String
-    use IO_HDF5
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none

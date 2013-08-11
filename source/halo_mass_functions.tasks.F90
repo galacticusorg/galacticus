@@ -252,7 +252,6 @@ contains
   subroutine Halo_Mass_Function_Output
     !% Outputs halo mass function data.
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     implicit none
     type(hdf5Object) :: massFunctionGroup, outputsGroup, thisDataset
 

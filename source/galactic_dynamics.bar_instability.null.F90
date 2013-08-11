@@ -32,7 +32,6 @@ contains
   subroutine Galactic_Dynamics_Bar_Instabilities_Null_Initialize(barInstabilityMethod,Bar_Instability_Timescale_Get)
     !% Initializes the ``Null'' bar instability module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                ), intent(in   )          :: barInstabilityMethod
     procedure(Bar_Instability_Timescale_Null), intent(inout), pointer :: Bar_Instability_Timescale_Get

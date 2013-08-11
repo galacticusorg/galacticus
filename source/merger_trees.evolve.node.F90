@@ -26,9 +26,6 @@ module Merger_Trees_Evolve_Node
   private
   public :: Tree_Node_Evolve, Tree_Node_Promote, Events_Node_Merger, Tree_Node_Is_Accurate
 
-  ! Count of number of different possible component types.
-  integer                                     :: componentTypesCount      =0
-
   ! Flag to indicate if the node evolver method has been initialized.
   logical                                     :: evolverInitialized       =.false.
 
@@ -308,7 +305,6 @@ contains
   function Tree_Node_ODEs(time,y,dydt,parameterPointer) bind(c)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
-    use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
     integer  (kind=c_int                  )                       :: Tree_Node_ODEs
@@ -414,8 +410,6 @@ contains
 #ifdef PROFILE
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
-    use FGSL
-    use Galacticus_Meta_Evolver_Profiler
     !# <include directive="decodePropertyIdentifiersTask" type="moduleUse">
     include 'objects.merger_trees.decode_property_identifiers.modules.inc'
     !# </include>

@@ -40,7 +40,7 @@ program XRay_Absorption_ISM_Wilms2000
   implicit none
   integer                                                                , parameter :: energyCount       =1000
   integer                                                                , parameter :: metallicityCount  =100
-  double precision                                                       , parameter :: energyMaximum     =20.0d0       , energyMinimum     =0.01d0      !  keV
+  double precision                                                       , parameter :: energyMaximum     =20.0d0       , energyMinimum     =0.01d0     !   keV
   double precision                                                       , parameter :: metallicityMaximum=0.1d0        , metallicityMinimum=1.0d-4
   ! The metallicity of the ISM computed consistently from Wilms et al. abundances and element weights.
   double precision                                                       , parameter :: metallicityIsm    =0.012000314d0
@@ -49,14 +49,12 @@ program XRay_Absorption_ISM_Wilms2000
   double precision                                                       , parameter :: electronsMetals   =0.008383587d0
   double precision            , dimension(0:energyCount                 )            :: energy
   double precision            , dimension(              metallicityCount)            :: metallicity
-  real                        , dimension(  energyCount                 )            :: photar                          , photer                    , &
-       &                                                                                sigavg                          , siggas                    , &
+  real                        , dimension(  energyCount                 )            :: photar                          , photer                   , &
+       &                                                                                sigavg                          , siggas                   , &
        &                                                                                siggrains                       , sigmol
   double precision            , dimension(  energyCount,metallicityCount)            :: crossSection
   double precision            , dimension(                            42)            :: parameters
   type            (hdf5Object)                                                       :: myDataset                       , outputFile
-  integer                                                                            :: iMetallicity
-  double precision                                                                   :: electronNumber
 
   ! Create array of energies.
   energy(0            )=energyMinimum

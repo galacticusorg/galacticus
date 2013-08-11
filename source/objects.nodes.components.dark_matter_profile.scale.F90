@@ -196,7 +196,6 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(thisNode,galaxyIsPhysicallyPlausible)
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
-    use Dark_Matter_Halo_Scales
     implicit none
     type   (treeNode                      ), intent(inout), pointer :: thisNode
     logical                                , intent(inout)          :: galaxyIsPhysicallyPlausible

@@ -50,7 +50,7 @@ contains
     double precision                            , parameter                          :: toleranceAbsoluteDefault=1.0d-10, toleranceRelativeDefault=1.0d-10
     integer                                                                          :: integrationRuleActual           , status
     integer         (kind=c_size_t             )                                     :: maxIntervalsActual
-    double precision                                                                 :: integrationError                , integrationValue                 , &
+    double precision                                                                 :: integrationError                , integrationValue                , &
          &                                                                              toleranceAbsoluteActual         , toleranceRelativeActual
     logical                                                                          :: hasSingularitiesActual          , resetActual
 
@@ -133,8 +133,8 @@ contains
   subroutine Integration_GSL_Error_Handler(reason,file,line,errorNumber) bind(c)
     !% Handle errors from the GSL library during integration.
     use, intrinsic :: ISO_C_Binding
-    type     (c_ptr     ), value :: file       , reason
-    integer  (kind=c_int), value :: errorNumber, line
+    type   (c_ptr     ), value :: file       , reason
+    integer(kind=c_int), value :: errorNumber, line
 
     errorStatusGlobal=errorNumber
     return

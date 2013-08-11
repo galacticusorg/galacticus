@@ -64,7 +64,6 @@ contains
     !% Initializes the ``extended Schmidt'' disk star formation rate surface density.
     use ISO_Varying_String
     use Input_Parameters
-    use Abundances_Structure
     use Numerical_Constants_Prefixes
     implicit none
     type     (varying_string                                    ), intent(in   )          :: starFormationRateSurfaceDensityDisksMethod
@@ -128,21 +127,16 @@ contains
     !% \end{equation}
     !% where $A=${\tt [starFormationExtendedSchmidtNormalization]} and $N_1=${\tt
     !% [starFormationExtendedSchmidtGasExponent]}. $N_2=${\tt [starFormationExtendedSchmidtStarExponent]}.
-    use Galacticus_Nodes
-    use Numerical_Constants_Math
-    use Numerical_Constants_Physical
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
-    use Numerical_Constants_Prefixes
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
     double precision                   , intent(in   )          :: radius
     class           (nodeComponentDisk)               , pointer :: thisDiskComponent
     type            (abundances       ), save                   :: fuelAbundances
     !$omp threadprivate(fuelAbundances)
-    double precision                                            :: diskScaleRadius   , gasMass, surfaceDensityGas, &
-         &                                                         surfaceDensityStar
+    double precision                                            :: gasMass          , surfaceDensityGas, surfaceDensityStar
 
     ! Check if node differs from previous one for which we performed calculations.
     if (thisNode%uniqueID() /= lastUniqueID) call Star_Formation_Rate_Surface_Density_Disks_ExSchmidt_Reset(thisNode)

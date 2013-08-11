@@ -22,22 +22,22 @@ program Test_Black_Hole_Fundamentals
   use Black_Hole_Fundamentals
   use Unit_Tests
   implicit none
-  
+
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Black hole functions")
-  
+
   ! ISCO radius for a Schwarzchild black hole should be 6 for prograde orbits.
   call Assert("Schwarzchild metric ISCO radius"   ,Black_Hole_ISCO_Radius   (0.0d0,orbitPrograde),6.0d0,compareEquals,1.0d-6)
-  
+
   ! ISCO radius for an extreme Kerr black hole should be 1 for prograde orbits.
   call Assert("Extreme Kerr metric ISCO radius"   ,Black_Hole_ISCO_Radius   (1.0d0,orbitPrograde),1.0d0,compareEquals,1.0d-6)
-  
+
   ! Horizon radius for a Schwarzchild black hole should be 2.
   call Assert("Schwarzchild metric horizon radius",Black_Hole_Horizon_Radius(0.0d0              ),2.0d0,compareEquals,1.0d-6)
-  
+
   ! Horizon radius for an extreme Kerr black hole should be 1.
   call Assert("Extreme Kerr metric horizon radius",Black_Hole_Horizon_Radius(1.0d0              ),1.0d0,compareEquals,1.0d-6)
-  
+
   ! End the unit testing.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

@@ -61,10 +61,8 @@ contains
 
   double precision function Excursion_Sets_First_Crossing_Probability_Zhang_Hui(variance,time)
     !% Return the probability for excursion set first crossing using the methodology of \cite{zhang_random_2006}.
-    use Numerical_Constants_Math
     use Numerical_Interpolation
     use Numerical_Ranges
-    use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display
     use Excursion_Sets_First_Crossing_Zhang_Hui_Utilities

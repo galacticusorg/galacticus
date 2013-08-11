@@ -48,7 +48,6 @@ contains
   subroutine Dark_Matter_Mass_Accretion_Zhao2009_Initialize(darkMatterAccretionHistoryMethod,Dark_Matter_Halo_Mass_Accretion_Time_Get)
     !% Initializes the ``Zhao2009'' mass accretion history module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                               ), intent(in   )          :: darkMatterAccretionHistoryMethod
     procedure(Dark_Matter_Halo_Mass_Accretion_Time_Zhao2009), intent(inout), pointer :: Dark_Matter_Halo_Mass_Accretion_Time_Get

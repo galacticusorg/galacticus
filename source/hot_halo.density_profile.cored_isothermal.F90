@@ -35,7 +35,6 @@ contains
        &,Hot_Halo_Enclosed_Mass_Get,Hot_Halo_Profile_Rotation_Normalization_Get,Hot_Halo_Profile_Radial_Moment_Get)
     !% Initialize the cored isothermal hot halo density profile module.
     use ISO_Varying_String
-    use Input_Parameters
     use Galacticus_Nodes
     implicit none
     type     (varying_string                                              ), intent(in   )          :: hotHaloDensityMethod
@@ -124,7 +123,6 @@ contains
     !% Compute the mass enclosed within radius {\tt radius} in a cored isothermal hot halo density profile for {\tt thisNode}.
     use Galacticus_Nodes
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
-    use Galactic_Structure_Options
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     double precision                      , intent(in   )          :: radius
@@ -159,8 +157,6 @@ contains
   double precision function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get(thisNode)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
@@ -198,7 +194,6 @@ contains
   double precision function Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get(thisNode,moment,radius)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
     use Hot_Halo_Density_Cored_Isothermal_Core_Radii
     use Galacticus_Error

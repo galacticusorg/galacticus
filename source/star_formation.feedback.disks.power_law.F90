@@ -19,7 +19,6 @@
 
 module Star_Formation_Feedback_Disks_Power_Law
   !% Implements a power-law outflow rate due to star formation feedback in galactic disks.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Star_Formation_Feedback_Disks_Power_Law_Initialize
@@ -82,7 +81,6 @@ contains
     !% $V_{\rm disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to that
     !% adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Galacticus_Nodes
-    use Numerical_Constants_Units
     use Stellar_Feedback
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode

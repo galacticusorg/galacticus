@@ -111,19 +111,19 @@ contains
     double precision                                              , intent(in   ) :: logWavenumber
     double precision                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
     integer                                                       , intent(  out) :: transferFunctionNumberPoints
-    type            (Node    ), pointer                                           :: extrapolation               , extrapolationElement            , &
-         &                                                                           formatElement               , nameElement                     , &
-         &                                                                           thisParameter               , valueElement                    , &
-         &                                                                           doc
+    type            (Node    ), pointer                                           :: doc                         , extrapolation                , &
+         &                                                                           extrapolationElement        , formatElement                , &
+         &                                                                           nameElement                 , thisParameter                , &
+         &                                                                           valueElement
     type            (NodeList), pointer                                           :: parameterList               , wavenumberExtrapolationList
     double precision                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
 
-    integer                                                                       :: addCount                    , extrapolationMethod             , &
-         &                                                                           versionNumber               , iExtrapolation                  , &
-         &                                                                           iParameter                  , ioErr
-    double precision                                                              :: cmbTemperatureValue         , parameterValue                  , &
-         &                                                                           hubbleParameterValue        , omegaBaryonValue                , &
-         &                                                                           omegaDarkEnergyValue        , omegaMatterValue
+    integer                                                                       :: addCount                    , extrapolationMethod          , &
+         &                                                                           iExtrapolation              , iParameter                   , &
+         &                                                                           ioErr                       , versionNumber
+    double precision                                                              :: cmbTemperatureValue         , hubbleParameterValue         , &
+         &                                                                           omegaBaryonValue            , omegaDarkEnergyValue         , &
+         &                                                                           omegaMatterValue            , parameterValue
     character       (len=32  )                                                    :: limitType
 
     ! Read the file if this module has not been initialized.

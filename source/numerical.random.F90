@@ -20,7 +20,6 @@
 module Pseudo_Random
   !% Implements pseudo-random numbers.
   use FGSL
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Pseudo_Random_Get, Pseudo_Random_Free, Pseudo_Random_Store, Pseudo_Random_Retrieve

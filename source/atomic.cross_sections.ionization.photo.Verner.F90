@@ -1962,7 +1962,6 @@ contains
     !% of neutral atoms.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     implicit none
     integer         , intent(in   ) :: atomicNumber  , ionizationState , shellNumber
     double precision, intent(in   ) :: wavelength

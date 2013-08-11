@@ -432,8 +432,6 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Double(mergerTrees,metadataType,label,doubleValue)
     !% Add a double metadatum.
-    use Memory_Management
-    use Galacticus_Error
     implicit none
     class           (mergerTreeData), intent(inout) :: mergerTrees
     integer                         , intent(in   ) :: metadataType
@@ -446,8 +444,6 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Integer(mergerTrees,metadataType,label,integerValue)
     !% Add an integer metadatum.
-    use Memory_Management
-    use Galacticus_Error
     implicit none
     class    (mergerTreeData), intent(inout) :: mergerTrees
     integer                  , intent(in   ) :: metadataType
@@ -460,8 +456,6 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Add_Metadata_Text(mergerTrees,metadataType,label,textValue)
     !% Add a double metadatum.
-    use Memory_Management
-    use Galacticus_Error
     implicit none
     class    (mergerTreeData), intent(inout) :: mergerTrees
     integer                  , intent(in   ) :: metadataType
@@ -1143,7 +1137,6 @@ contains
     use String_Handling
     use Memory_Management
     use Galacticus_Error
-    use Galacticus_Display
     use File_Utilities
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
@@ -1306,7 +1299,6 @@ contains
     !% Output a set of merger trees to a Galacticus-format HDF5 file.
     use HDF5
     use IO_HDF5
-    use Galacticus_Error
     use String_Handling
     use Memory_Management
     implicit none
@@ -1555,10 +1547,8 @@ contains
 
   subroutine Merger_Tree_Data_Structure_Export_IRATE(mergerTrees,outputFileName,hdfChunkSize,hdfCompressionLevel,append)
     !% Output a set of merger trees to an IRATE-format HDF5 file.
-    use HDF5
     use IO_HDF5
     use Galacticus_Error
-    use String_Handling
     use Memory_Management
     use Array_Utilities
     implicit none

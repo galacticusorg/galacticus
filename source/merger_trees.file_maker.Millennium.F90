@@ -30,7 +30,6 @@ contains
     use ISO_Varying_String
     use Merger_Tree_Data_Structure
     use Dates_and_Times
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use File_Utilities
     use Galacticus_Error

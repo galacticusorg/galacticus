@@ -27,9 +27,7 @@ contains
 
   logical function Node_Subhalo_Promotion(thisEvent,thisNode,deadlockStatus)
     !% Promotes a subhalo to be an isolated node.
-    use Input_Parameters
     use Galacticus_Nodes
-    use Galacticus_Error
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling

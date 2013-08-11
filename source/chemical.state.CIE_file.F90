@@ -393,16 +393,16 @@ contains
     type            (varying_string)             , intent(in   )           :: chemicalStateFileToRead
     double precision                             , intent(  out), optional :: metallicityMaximumTabulated
     double precision                , allocatable, dimension(:)            :: chemicalStateTemperaturesReference
-    type            (Node          ), pointer                              :: version                        , doc                         , &
-         &                                                                    extrapolation                  , extrapolationElement        , &
-         &                                                                    metallicityElement             , thisChemicalState           , &
-         &                                                                    thisElectronDensity            , thisHydrogenAtomicDensity   , &
-         &                                                                    thisHydrogenCationDensity      , thisTemperature
-    type            (NodeList      ), pointer                              :: chemicalStateList              , metallicityExtrapolationList, &
+    type            (Node          ), pointer                              :: doc                               , extrapolation               , &
+         &                                                                    extrapolationElement              , metallicityElement          , &
+         &                                                                    thisChemicalState                 , thisElectronDensity         , &
+         &                                                                    thisHydrogenAtomicDensity         , thisHydrogenCationDensity   , &
+         &                                                                    thisTemperature                   , version
+    type            (NodeList      ), pointer                              :: chemicalStateList                 , metallicityExtrapolationList, &
          &                                                                    temperatureExtrapolationList
-    integer                                                                :: extrapolationMethod            , fileFormatVersion           , &
-         &                                                                    iChemicalState                 , ioErr                       , &
-         &                                                                    iExtrapolation
+    integer                                                                :: extrapolationMethod               , fileFormatVersion           , &
+         &                                                                    iChemicalState                    , iExtrapolation              , &
+         &                                                                    ioErr
     character       (len=32        )                                       :: limitType
 
     !$omp critical (FoX_DOM_Access)

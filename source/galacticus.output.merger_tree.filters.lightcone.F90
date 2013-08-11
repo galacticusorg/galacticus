@@ -70,9 +70,9 @@ contains
     type            (NodeList      ), pointer                     :: itemList
     integer                                                       :: iAxis                          , iOutput                     , &
          &                                                           ioErr                          , lengthUnitsHubbleExponent
-    double precision                                              :: lengthUnitsInSI                , unitConversionLength        , &
-         &                                                           lightconeTimeTemp              , lightconeMinimumDistanceTemp, &
-         &                                                           lightconeMaximumDistanceTemp
+    double precision                                              :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
+         &                                                           lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
+         &                                                           unitConversionLength
     type            (varying_string)                              :: filterLightconeGeometryFileName
     logical                                                       :: filterLightconeFixedTime
     character       (len=11        )                              :: tagName
@@ -102,7 +102,7 @@ contains
           !@   <defaultValue>false</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
-          !@    Specifies if lightcone output should occur at a fixed time (as opposed to the usual case where time evolves along the lightcone). Intended for the construction of lightcones with no evolution. 
+          !@    Specifies if lightcone output should occur at a fixed time (as opposed to the usual case where time evolves along the lightcone). Intended for the construction of lightcones with no evolution.
           !@   </description>
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
@@ -194,7 +194,6 @@ contains
     !% Determines whether {\tt thisNode} lies within a lightcone and, therefore, should be output.
     use Galacticus_Nodes
     use Arrays_Search
-    use Numerical_Constants_Astronomical
     use Cosmology_Functions
     implicit none
     type            (treeNode             )                , intent(inout), pointer :: thisNode
@@ -302,7 +301,6 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
     use Galacticus_Nodes
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode

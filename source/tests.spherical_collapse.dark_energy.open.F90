@@ -26,7 +26,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Open
   use ISO_Varying_String
   use Cosmology_Functions
   use Memory_Management
-  use Virial_Density_Contrast
   use Numerical_Constants_Math
   use Critical_Overdensity
   use Linear_Growth

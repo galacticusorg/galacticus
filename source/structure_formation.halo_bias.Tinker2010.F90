@@ -61,7 +61,6 @@ contains
     use Critical_Overdensity
     use Power_Spectra
     use Virial_Density_Contrast
-    use Galacticus_Nodes
     implicit none
     double precision, intent(in   ) :: mass               , time
     double precision, parameter     :: lowerB       =1.5d0, lowerC             =2.4d0 , upperB=0.183d0

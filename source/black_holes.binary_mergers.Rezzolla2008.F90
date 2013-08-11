@@ -33,7 +33,6 @@ contains
   subroutine Black_Hole_Binary_Merger_Rezzolla_Initialize(blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string), intent(in   )          :: blackHoleBinaryMergersMethod
     procedure(              ), intent(inout), pointer :: Black_Hole_Binary_Merger_Do

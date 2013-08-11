@@ -47,8 +47,8 @@ contains
   subroutine Node_Component_Indices_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the indices component by creating components in nodes and storing indices.
     implicit none
-    type   (treeNode            ), intent(inout), pointer :: thisNode
-    class  (nodeComponentIndices)               , pointer :: thisIndices
+    type (treeNode            ), intent(inout), pointer :: thisNode
+    class(nodeComponentIndices)               , pointer :: thisIndices
 
     ! Return immediately if this class is not active.
     if (.not.defaultIndicesComponent%standardIsActive()) return

@@ -59,7 +59,6 @@ contains
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
     !% Returns the number of lines in the file {\tt in\_file} (version for varying string argument).
-    use Galacticus_Error
     implicit none
     type     (varying_string), intent(in   )           :: in_file
     character(len=1         ), intent(in   ), optional :: comment_char

@@ -94,12 +94,9 @@ contains
     !% refers to the local thermodynamic equilibrium cooling function of \cite{hollenbach_molecule_1979}). Cooling functions
     !% involving H$_2^+$ are computed using polynomial fits to the results of \cite{suchkov_cooling_1978} found by Andrew
     !% Benson by measuring curves from the original paper.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
-    use Numerical_Constants_Physical
-    use Numerical_Constants_Units
     implicit none
     double precision                    , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances        ), intent(in   ) :: gasAbundances
@@ -136,7 +133,6 @@ contains
        &,gasAbundances,chemicalDensities ,radiation)
     !% Return the gradient with respect to density of the cooling function due to molecular hydrogen using the cooling function
     !% of \cite{galli_chemistry_1998}.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure
@@ -189,7 +185,6 @@ contains
        &,numberDensityHydrogen,gasAbundances,chemicalDensities,radiation)
     !% Return the gradient with respect to temperature of the cooling function due to molecular hydrogen using the cooling
     !% function of \cite{galli_chemistry_1998}.
-    use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Radiation_Structure

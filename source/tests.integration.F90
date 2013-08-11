@@ -22,7 +22,6 @@ program Test_Integration
   use, intrinsic :: ISO_C_Binding
   use Unit_Tests
   use Numerical_Integration
-  use FGSL
   use Test_Integration_Functions
   use Numerical_Constants_Math
   implicit none

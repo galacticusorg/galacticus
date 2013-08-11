@@ -20,7 +20,6 @@
 
 module Cooling_Specific_Angular_Momenta_Constant_Rotation
   !% Calculates the specific angular momentum of cooling gas assuming a constant rotation velocity as a function of radius.
-  use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   implicit none
   private
@@ -129,7 +128,6 @@ contains
   double precision function Cooling_Specific_Angular_Momentum_Constant_Rotation(thisNode,radius)
     !% Return the specific angular momentum of cooling gas in the constant rotation model.
     use Galacticus_Nodes
-    use Cooling_Infall_Radii
     use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Numerical_Constants_Physical

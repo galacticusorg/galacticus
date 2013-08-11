@@ -21,15 +21,11 @@
 module Galactic_Structure_Radii_Linear
   !% Implements a ``linear'' galactic radii solver (no adiabatic contraction and no self-gravity
   !% of baryons, and size simply scales in proportion to specific angular momentum).
-  use Galacticus_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
   public :: Galactic_Structure_Radii_Linear_Initialize
 
-  ! Module variables used to communicate current state of radius solver.
-  type(treeNode), pointer :: haloNode
-  !$omp threadprivate(haloNode)
 contains
 
   !# <galacticStructureRadiusSolverMethod>
@@ -48,7 +44,6 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Linear(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``linear'' method.
-    use Galacticus_Error
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

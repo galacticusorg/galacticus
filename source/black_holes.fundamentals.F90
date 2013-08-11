@@ -116,7 +116,6 @@ contains
 
   double precision function Black_Hole_Eddington_Accretion_Rate(thisBlackHole)
     !% Return the Eddington accretion rate (in $M_\odot$ Gyr$^{-1}$) for the black hole in {\tt thisBlackHole}.
-    use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
@@ -130,7 +129,6 @@ contains
   double precision function Black_Hole_ISCO_Radius_Node(thisBlackHole,units,orbit)
     !% Returns the radius (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost stable
     !% circular orbit for the black hole in {\tt thisBlackHole}.
-    use Galacticus_Error
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
     integer                                 , intent(in   ), optional :: orbit        , units
@@ -165,7 +163,6 @@ contains
   double precision function Black_Hole_ISCO_Specific_Energy_Node(thisBlackHole,units,orbit)
     !% Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
     !% stable circular orbit for the black hole in {\tt thisNode}.
-    use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
     class           (nodeComponentBlackHole), intent(inout)           :: thisBlackHole
@@ -222,7 +219,6 @@ contains
   double precision function Black_Hole_ISCO_Specific_Angular_Momentum(thisBlackHole,units,orbit)
     !% Returns the specific angular momentum (in physical or gravitational units and for a prograde or retorgrade orbit) of the
     !% innermost stable circular orbit for the black hole in {\tt thisBlackHole}.
-    use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
     class           (nodeComponentBlackHole)           , intent(inout)           :: thisBlackHole
@@ -269,7 +265,6 @@ contains
 
   double precision function Black_Hole_Gravitational_Radius(thisBlackHole)
     !% Computes the gravitational radius (in Mpc) for the {\tt thisBlackHole}.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     implicit none
     class(nodeComponentBlackHole), intent(inout) :: thisBlackHole
@@ -314,7 +309,6 @@ contains
 
   double precision function Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radius)
     !% Returns the frame-dragging angular velocity in the Kerr metric.
-    use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -358,7 +352,6 @@ contains
 
   double precision function Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radius)
     !% Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin {\tt blackHoleSpin}.
-    use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -402,7 +395,6 @@ contains
 
   double precision function Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radius)
     !% Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin {\tt blackHoleSpin}.
-    use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: blackHoleSpin, radius
 
@@ -445,7 +437,6 @@ contains
   double precision function Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
     !% Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\tt j}.
     !% The radius is in units of the gravitational radius.
-    use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: blackHoleSpin
 

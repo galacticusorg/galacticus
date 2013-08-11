@@ -43,7 +43,6 @@ contains
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
     use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Math
     use Dynamical_Friction_Timescale_Utilities
     use Kepler_Orbits
     implicit none

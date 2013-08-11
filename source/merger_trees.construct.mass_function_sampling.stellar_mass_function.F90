@@ -136,10 +136,8 @@ contains
     !% Computes the halo mass function sampling rate using a power-law distribution.
     use, intrinsic :: ISO_C_Binding
     use FGSL
-    use Cosmology_Functions
     use Halo_Mass_Function
     use Galacticus_Meta_Compute_Times
-    use Galacticus_Display
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: mass                        , massMaximum                 , &

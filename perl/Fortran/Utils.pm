@@ -468,6 +468,8 @@ sub Format_Variable_Defintions {
 sub Extract_Variables {
     # Given the post-"::" section of a variable declaration line, return an array of all variable names.
     my $variableList = shift;
+    return
+	unless ( defined($variableList) );
     my %options;
     if ( $#_ >= 1 ) {(%options) = @_};
     $options{'lowerCase'} = 1

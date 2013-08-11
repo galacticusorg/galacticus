@@ -24,8 +24,7 @@ module Halo_Mass_Function_Press_Schechter
   public :: Halo_Mass_Function_Press_Schechter_Initialize
 
   ! Parameters controlling the gridding of the power spectrum and default wavenumber range.
-  integer         , parameter :: nPointsPerDecade=1000
-  double precision            :: logMassMaximum  =log(1.0d15), logMassMinimum=log(1.0d9)
+  integer, parameter :: nPointsPerDecade=1000
 
 contains
 
@@ -45,9 +44,7 @@ contains
 
  double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
     !% Compute the Press-Schechter halo mass function.
-    use Numerical_Constants_Math
     use Power_Spectra
-    use Critical_Overdensity
     use Cosmological_Parameters
     use Excursion_Sets_First_Crossings
     implicit none

@@ -73,7 +73,6 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use String_Handling
-    use Memory_Management
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
@@ -256,7 +255,6 @@ contains
        &,integerPropertyComments,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments&
        &,doublePropertyUnitsSI,time)
     !% Set the names of velocity dispersion properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
@@ -458,16 +456,11 @@ contains
     !% Integrand function used for integrating line-of-sight velocity dispersion over surface density.
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
-    use FGSL
-    use Numerical_Integration
     use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
-    real            (kind=c_double             ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunction
-    type            (fgsl_integration_workspace)        :: integrationWorkspace
-    double precision                                    :: velocityDensityIntegrand
+    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd
+    real(kind=c_double             ), value :: radius
+    type(c_ptr                     ), value :: parameterPointer
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Vlcty_Dnsty_Srfc_Intgrnd=0.0d0
@@ -500,16 +493,10 @@ contains
     !% Integrand function used for integrating line-of-sight surface density dispersion over area.
     use, intrinsic :: ISO_C_Binding
     use Galactic_Structure_Densities
-    use FGSL
-    use Numerical_Integration
-    use Galactic_Structure_Velocity_Dispersions
     implicit none
-    real            (kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
-    real            (kind=c_double             ), value :: radius
-    type            (c_ptr                     ), value :: parameterPointer
-    type            (fgsl_function             )        :: integrandFunction
-    type            (fgsl_integration_workspace)        :: integrationWorkspace
-    double precision                                    :: densityIntegrand
+    real(kind=c_double             )        :: Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd
+    real(kind=c_double             ), value :: radius
+    type(c_ptr                     ), value :: parameterPointer
 
     if (radius <= 0.0d0) then
        Galacticus_Output_Trees_Vlcty_Dsprsn_Dnsty_Srfc_Intgrnd=0.0d0

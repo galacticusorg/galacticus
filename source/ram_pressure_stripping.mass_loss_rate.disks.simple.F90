@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,6 @@
 
 module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple
   !% Implements simple mass loss rates from disks due to ram pressure stripping.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init
@@ -76,7 +75,6 @@ contains
     use Hot_Halo_Ram_Pressure_Forces
     use Galactic_Structure_Options
     use Galactic_Structure_Surface_Densities
-    use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none

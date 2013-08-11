@@ -230,10 +230,8 @@ contains
     !% where $j_{\nu}$ is the flux of energy per unit area per unit solid angle and per unit frequency.
     use, intrinsic :: ISO_C_Binding
     use Numerical_Integration
-    use FGSL
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
-    use Numerical_Constants_Math
     implicit none
     class           (radiationStructure        )              , intent(in   ) :: radiation
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange

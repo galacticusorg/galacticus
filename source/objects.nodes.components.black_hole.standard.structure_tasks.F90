@@ -21,7 +21,6 @@
 
 module Node_Component_Black_Hole_Standard_Structure_Tasks
   !% Implements galactic structure tasks for the standard black hole tree node component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rotation_Curve         , &
@@ -38,7 +37,6 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode
@@ -113,7 +111,6 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Black_Hole_Fundamentals
     implicit none
     type            (treeNode              ), intent(inout), pointer  :: thisNode

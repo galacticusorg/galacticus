@@ -22,17 +22,16 @@ program Tests_IO_XML
   use FoX_dom
   use IO_XML
   use Unit_Tests
-  use ISO_Varying_String
   use Memory_Management
   implicit none
-  type            (node    ), pointer                   :: doc,xmlElement
-  type            (nodeList), pointer                   :: xmlElements
-  double precision          , allocatable, dimension(:) :: array1,array2
-  integer                   , allocatable, dimension(:) :: iarray1 
-  character       (len=1   ), allocatable, dimension(:) :: carray1 
-  integer                                , dimension(1) :: iValue
-  integer                                               :: ioErr
-  
+  type            (node    )                           , pointer :: doc        , xmlElement
+  type            (nodeList)                           , pointer :: xmlElements
+  double precision          , allocatable, dimension(:)          :: array1     , array2
+  integer                   , allocatable, dimension(:)          :: iarray1
+  character       (len=1   ), allocatable, dimension(:)          :: carray1
+  integer                                , dimension(1)          :: iValue
+  integer                                                        :: ioErr
+
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.IO.XML.size')
 
@@ -42,7 +41,7 @@ program Tests_IO_XML
   !$omp critical (FoX_DOM_Access)
   ! Parse the XML file.
   doc => parseFile("testSuite/data/xmlTest.xml",iostat=ioErr)
-  
+
   ! Test array reading.
   xmlElement => XML_Get_First_Element_By_Tag_Name(doc,"array1")
   call XML_Array_Read       (xmlElement,"datum",array1       )

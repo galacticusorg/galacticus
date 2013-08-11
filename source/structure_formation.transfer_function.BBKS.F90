@@ -24,9 +24,6 @@ module Transfer_Function_BBKS
   private
   public :: Transfer_Function_BBKS_Initialize, Transfer_Function_BBKS_State_Store, Transfer_Function_BBKS_State_Retrieve
 
-  ! Flag to indicate if this module has been initialized.
-  logical                     :: transferFunctionInitialized           =.false.
-
   ! Wavenumber range and fineness of gridding.
   double precision            :: logWavenumberMaximum                  =log(10.0d0)
   double precision            :: logWavenumberMinimum                  =log(1.0d-5)

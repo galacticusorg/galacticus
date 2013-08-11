@@ -143,10 +143,7 @@ contains
   subroutine Cooling_Rate_Hot_Halo_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of hot halo properties to be written to the \glc\ output file.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Abundances_Structure
-    use ISO_Varying_String
     implicit none
     type            (treeNode            )              , intent(inout), pointer :: thisNode
     double precision                                    , intent(in   )          :: time
@@ -202,7 +199,6 @@ contains
   subroutine Cooling_Rate_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store hot halo properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
     double precision                , intent(in   )          :: time

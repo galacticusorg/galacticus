@@ -75,14 +75,14 @@ contains
     double precision                , parameter              :: bindingEnergyFormFactor   =0.5d+0
     double precision                , parameter              :: absoluteMassTolerance     =1.0d-6
     double precision                , parameter              :: relativeMassTolerance     =1.0d-9
-    double precision                                         :: angularMomentumFactor            , satelliteMass            , &
+    double precision                                         :: angularMomentumFactor            , hostDarkMatterMass       , &
          &                                                      hostMass                         , hostRadius               , &
          &                                                      hostSpheroidMass                 , hostSpheroidMassPreMerger, &
          &                                                      hostSpheroidMassTotal            , progenitorsEnergy        , &
          &                                                      remnantSpheroidGasMass           , remnantSpheroidMass      , &
+         &                                                      satelliteDarkMatterMass          , satelliteMass            , &
          &                                                      satelliteRadius                  , satelliteSpheroidMass    , &
-         &                                                      satelliteSpheroidMassTotal       , satelliteDarkMatterMass  , &
-         &                                                      hostDarkMatterMass
+         &                                                      satelliteSpheroidMassTotal
     character       (len= 2        )                         :: joinString
     character       (len=40        )                         :: dataString
     type            (varying_string)                         :: message

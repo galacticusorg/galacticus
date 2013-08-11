@@ -90,10 +90,7 @@ contains
 
   subroutine Virial_Density_Fixed(time,deltaVirialTable)
     !% Tabulate the virial density contrast assuming a fixed value.
-    use Memory_Management
     use Cosmology_Functions
-    use Numerical_Constants_Math
-    use Numerical_Ranges
     use Tables
     implicit none
     double precision                      , intent(in   ) :: time

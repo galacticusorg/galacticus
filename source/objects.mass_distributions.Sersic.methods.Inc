@@ -223,8 +223,7 @@ subroutine Sersic_Profile_Tabulate(radius)
   integer                                                               :: iRadius
   double precision                                                      :: deltaRadius                        , integrand                , &
        &                                                                   massPrevious                       , previousIntegrand        , &
-       &                                                                   radiusActual                       , radiusInfinity           , &
-       &                                                                   sersicCoefficientMaximum           , sersicCoefficientMinimum
+       &                                                                   radiusActual                       , radiusInfinity
   type            (c_ptr                     )                          :: parameterPointer
   type            (fgsl_function             )                          :: integrandFunction
   type            (fgsl_integration_workspace)                          :: integrationWorkspace

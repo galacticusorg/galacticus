@@ -43,7 +43,6 @@ contains
   !# </galacticusTask>
   logical function Galacticus_Task_Evolve_Tree()
     !% Evolves the complete set of merger trees as specified.
-    use Galacticus_Nodes
     use ISO_Varying_String
     use String_Handling
     use Merger_Trees_Evolve

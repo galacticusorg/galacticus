@@ -163,7 +163,6 @@ contains
 
   subroutine Set_Memory_Prefix(thisMemoryUsage)
     !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
-    use ISO_Varying_String
     implicit none
     type            (memoryUsage   ), intent(inout) :: thisMemoryUsage
     integer         (kind=kind_int8), parameter     :: kilo           =1024
@@ -240,11 +239,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     implicit none
     integer  (kind=C_SIZE_T ), intent(in   )           :: elementsUsed
-    integer                  , intent(in   ), optional :: addRemove      , blockCount      , memoryType      , &
-         &                                                line
+    integer                  , intent(in   ), optional :: addRemove      , blockCount      , line            , memoryType
     character(len=*         ), intent(in   ), optional :: file
-    integer                                           :: addRemoveActual, blockCountActual, memoryTypeActual
-    type     (varying_string)                         :: message
+    integer                                            :: addRemoveActual, blockCountActual, memoryTypeActual
+    type     (varying_string)                          :: message
 
     if (present(memoryType)) then
        memoryTypeActual=memoryType

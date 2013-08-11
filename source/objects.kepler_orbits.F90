@@ -352,7 +352,6 @@ contains
   subroutine Kepler_Orbits_Output_Names(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI&
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,prefix,comment,unitsInSI)
     !% Assign names to output buffers for a {\tt keplerOrbit} object.
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     class           (keplerOrbit)              , intent(in   ) :: self
@@ -363,7 +362,6 @@ contains
     double precision             , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
     character       (len=*      )              , intent(in   ) :: comment                , prefix
     double precision                           , intent(in   ) :: unitsInSI
-    integer                                                    :: iElement
 
     doubleProperty=doubleProperty+1
     doublePropertyNames   (doubleProperty)=trim(prefix)//'SpecificEnergy'
@@ -725,7 +723,6 @@ contains
 
   double precision function Kepler_Orbits_Pericenter_Radius(thisOrbit)
     !% Return the pericenter radius for this orbit.
-    use Galacticus_Error
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
@@ -745,7 +742,6 @@ contains
 
   double precision function Kepler_Orbits_Apocenter_Radius(thisOrbit)
     !% Return the apocenter radius for this orbit.
-    use Galacticus_Error
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
@@ -827,7 +823,6 @@ contains
 
   double precision function Kepler_Orbits_Energy(thisOrbit)
     !% Return the energy for this orbit.
-    use Galacticus_Error
     use Numerical_Constants_Physical
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
@@ -851,7 +846,6 @@ contains
 
   double precision function Kepler_Orbits_Angular_Momentum(thisOrbit)
     !% Return the angular momentum for this orbit.
-    use Galacticus_Error
     implicit none
     class(keplerOrbit), intent(inout) :: thisOrbit
 
@@ -869,7 +863,6 @@ contains
 
   double precision function Kepler_Orbits_Eccentricity(thisOrbit)
     !% Return the eccentricity for this orbit.
-    use Galacticus_Error
     implicit none
     class           (keplerOrbit), intent(inout) :: thisOrbit
     double precision                             :: velocityRadial, velocityTangential

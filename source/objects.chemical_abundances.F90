@@ -273,7 +273,6 @@ contains
 
   function Chemicals_Names(index)
     !% Return a name for the specified entry in the chemicals structure.
-    use ISO_Varying_String
     use Galacticus_Error
     implicit none
     type   (varying_string)                :: Chemicals_Names
@@ -472,7 +471,6 @@ contains
   subroutine Chemicals_Dump(chemicals)
     !% Dump all chemical values.
     use Galacticus_Display
-    use ISO_Varying_String
     implicit none
     class    (chemicalAbundances), intent(in   ) :: chemicals
     integer                                      :: i

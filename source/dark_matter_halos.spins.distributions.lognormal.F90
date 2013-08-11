@@ -20,7 +20,6 @@
 module Halo_Spin_Distributions_Lognormal
   !% Implements a lognormal halo spin distribution.
   use FGSL
-  use Galacticus_Nodes
   implicit none
   private
   public :: Halo_Spin_Distribution_Lognormal_Initialize, Halo_Spin_Distribution_Lognormal_Snapshot,&
@@ -106,7 +105,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Halo_Spin_Distribution_Lognormal_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -122,7 +120,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Halo_Spin_Distribution_Lognormal_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile

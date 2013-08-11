@@ -19,36 +19,31 @@
 
 module Stellar_Population_Spectra_Postprocess
   !% Implements postprocessing of stellar population spectra.
-  use Abundances_Structure
   use ISO_Varying_String
   implicit none
   private
   public :: Stellar_Population_Spectrum_Postprocess, Stellar_Population_Spectrum_Postprocess_Index
 
   ! Flag to indicate if this module has been initialized.
-  logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.
-
-  ! Name of stellar population postprocessing methods to apply.
-  type   (varying_string), allocatable, dimension(:) :: stellarPopulationSpectraPostprocessDefaultMethods
+  logical :: stellarPopulationSpectraPostprocessInitialized=.false.
 
   ! Postprocessing chains:
   ! A single postprocessing algorithm.
   type postprocessor
-     procedure(), pointer, nopass :: apply
+     procedure(), nopass, pointer :: apply
   end type postprocessor
   ! A chain of postprocessing algorithms.
   type postprocessors
-     type(postprocessor), dimension(:), allocatable :: postprocess
+     type(postprocessor), allocatable, dimension(:) :: postprocess
   end type postprocessors
   ! Array of postprocessing chains.
-  type(postprocessors), dimension(:), allocatable :: postprocessingChains
-  type(varying_string), dimension(:), allocatable :: postprocessingChainNames
-  
+  type(postprocessors), allocatable, dimension(:) :: postprocessingChains
+  type(varying_string), allocatable, dimension(:) :: postprocessingChainNames
+
 contains
 
   integer function Stellar_Population_Spectrum_Postprocess_Index(postprocessingChain)
     !% Return the index to the specified postprocessing chain.
-    use ISO_Varying_String
     use String_Handling
     use Galacticus_Error
     use Input_Parameters
@@ -56,12 +51,12 @@ contains
     include 'stellar_populations.spectra.postprocess.initialize.modules.inc'
     !# </include>
     implicit none
-    type   (varying_string), intent(in)                :: postprocessingChain
-    type   (varying_string), dimension(:), allocatable :: postprocessingChainNamesTemporary
-    type   (postprocessors), dimension(:), allocatable :: postprocessingChainsTemporary
-    integer                                            :: i,methodCount
-    type   (varying_string)                            :: parameterName
-    
+    type   (varying_string), intent(in   )               :: postprocessingChain
+    type   (varying_string), allocatable  , dimension(:) :: postprocessingChainNamesTemporary
+    type   (postprocessors), allocatable  , dimension(:) :: postprocessingChainsTemporary
+    integer                                              :: i                                , methodCount
+    type   (varying_string)                              :: parameterName
+
     ! Check whether we already have this chain loaded.
     if (allocated(postprocessingChainNames)) then
        if (.not.any(postprocessingChainNames == postprocessingChain)) then
@@ -133,9 +128,9 @@ contains
   subroutine Stellar_Population_Spectrum_Postprocess_Initialize
     !% Initialize the stellar population spectra postprocessing module
     implicit none
-    integer              :: defaultIndex
-    type(varying_string) :: postprocessingChain
-     
+    integer                 :: defaultIndex
+    type   (varying_string) :: postprocessingChain
+
     ! Initialize if necessary.
     if (.not.stellarPopulationSpectraPostprocessInitialized) then
        !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization)
@@ -154,9 +149,10 @@ contains
     !% Return a multiplicative factor by which a stellar population spectrum should be modified by any postprocessing.
     implicit none
     integer         , intent(in   ) :: postprocessingChainIndex
-    double precision, intent(in   ) :: wavelength              , age, redshift
+    double precision, intent(in   ) :: age                     , redshift, &
+         &                             wavelength
     integer                         :: i
-     
+
     ! Initialize the module.
     call Stellar_Population_Spectrum_Postprocess_Initialize()
 

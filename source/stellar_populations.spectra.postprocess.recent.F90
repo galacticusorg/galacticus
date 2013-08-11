@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -15,7 +15,6 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-
 !% Contains a module which implements postprocessing of stellar spectra to keep only recent populations.
 
 module Stellar_Population_Spectra_Postprocessing_Recent
@@ -24,7 +23,7 @@ module Stellar_Population_Spectra_Postprocessing_Recent
   public :: Stellar_Population_Spectra_Postprocess_Recent_Init
 
   ! Record of whether the module is initialized.
-  logical          :: moduleInitialized=.false.
+  logical          :: moduleInitialized         =.false.
 
   ! Parameters of the model.
   double precision :: recentPopulationsTimeLimit
@@ -38,12 +37,12 @@ contains
     !% Initializes the ``recent'' stellar spectrum postprocessing module.
     use Input_Parameters
     implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
+    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
+    procedure(              ), intent(inout), pointer :: postprocessingFunction
 
     if (stellarPopulationSpectraPostprocessMethod == 'recent') then
        postprocessingFunction => Stellar_Population_Spectra_Postprocess_Recent
-       
+
        if (.not.moduleInitialized) then
           ! Get parameters of the model.
           !@ <inputParameter>
@@ -62,12 +61,11 @@ contains
     end if
     return
   end subroutine Stellar_Population_Spectra_Postprocess_Recent_Init
-  
+
   subroutine Stellar_Population_Spectra_Postprocess_Recent(wavelength,age,redshift,modifier)
     !% Apply dust attenuation to galaxy spectra
-    use Numerical_Constants_Atomic
     implicit none
-    double precision, intent(in   ) :: wavelength,age,redshift
+    double precision, intent(in   ) :: age     , redshift, wavelength
     double precision, intent(inout) :: modifier
 
     if (age > recentPopulationsTimeLimit) modifier=0.0d0

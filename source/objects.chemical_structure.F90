@@ -178,8 +178,6 @@ contains
   subroutine Chemical_Structure_Export(thisChemical,outputFile)
     !% Export a chemical structure to a chemical markup language (CML) file.
     use FoX_wxml
-    use FoX_dom
-    use String_Handling
     implicit none
     class    (chemicalStructure), intent(in   ) :: thisChemical
     character(len=*            ), intent(in   ) :: outputFile
@@ -272,7 +270,6 @@ contains
 
   subroutine Chemical_Database_Get(thisChemical,chemicalName)
     !% Find a chemical in the database and return it.
-    use Galacticus_Error
     implicit none
     class    (chemicalStructure), intent(inout) :: thisChemical
     character(len=*            ), intent(in   ) :: chemicalName
@@ -286,7 +283,6 @@ contains
 
   integer function Chemical_Structure_Charge(thisChemical)
     !% Return the charge on a chemical.
-    use Galacticus_Error
     implicit none
     class(chemicalStructure), intent(in   ) :: thisChemical
 
@@ -296,7 +292,6 @@ contains
 
   double precision function Chemical_Structure_Mass(thisChemical)
     !% Return the mass of a chemical.
-    use Galacticus_Error
     implicit none
     class(chemicalStructure), intent(in   ) :: thisChemical
 

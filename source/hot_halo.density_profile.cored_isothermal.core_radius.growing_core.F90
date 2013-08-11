@@ -97,11 +97,7 @@ contains
     !% a fraction of the dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial
     !% radius constant (similar to the algorithm of \citep{cole_hierarchical_2000}).
     use Cosmological_Parameters
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
-    use Memory_Management
-    use Numerical_Ranges
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent

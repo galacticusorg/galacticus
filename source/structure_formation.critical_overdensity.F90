@@ -19,7 +19,6 @@
 
 module Critical_Overdensity
   !% Implements the critical linear theory overdensity for halo collapse.
-  use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
   use Tables, only : table1D
   implicit none
@@ -67,7 +66,6 @@ contains
     use Galacticus_Error
     use Input_Parameters
     use Array_Utilities
-    use Memory_Management
     !# <include directive="criticalOverdensityMethod" type="moduleUse">
     include 'structure_formation.critical_overdensity.modules.inc'
     !# </include>
@@ -154,7 +152,6 @@ contains
 
   double precision function Critical_Overdensity_for_Collapse(time,aExpansion,collapsing,mass)
     !% Return the linear theory critical overdensity for collapse at the given cosmic time.
-    use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
@@ -201,7 +198,6 @@ contains
 
   double precision function Critical_Overdensity_for_Collapse_Time_Gradient(time,aExpansion,collapsing,mass)
     !% Return the derivative with respect to time of the linear theory critical overdensity for collapse at the given cosmic time.
-    use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
@@ -248,7 +244,6 @@ contains
 
   double precision function Time_of_Collapse(criticalOverdensity,mass)
     !% Returns the time of collapse for a perturbation of linear theory overdensity {\tt criticalOverdensity}.
-    use Numerical_Interpolation
     use Cosmology_Functions
     implicit none
     double precision, intent(in   )           :: criticalOverdensity
@@ -349,7 +344,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Critical_Overdensity_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
-    use Memory_Management
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile

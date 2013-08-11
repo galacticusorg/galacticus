@@ -34,7 +34,6 @@ contains
   subroutine Black_Hole_Binary_Recoil_Velocity_Null_Initialize(blackHoleBinaryRecoilVelocityMethod,Black_Hole_Binary_Recoil_Velocity_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod
     procedure(double precision), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get
