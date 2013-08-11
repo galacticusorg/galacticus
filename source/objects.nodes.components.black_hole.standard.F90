@@ -123,7 +123,6 @@ contains
     !% Initializes the standard black hole component module.
     use Input_Parameters
     implicit none
-    type(nodeComponentBlackHoleStandard) :: blackHoleStandard
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Black_Hole_Standard_Initialize)
@@ -290,8 +289,6 @@ contains
     !% Compute the black hole node mass rate of change.
     use Accretion_Disks
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Math
     use Numerical_Constants_Astronomical
     use Cosmological_Parameters
     use Dark_Matter_Halo_Scales
@@ -698,9 +695,6 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Triple_Interaction(thisNode)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
-    use Black_Hole_Binary_Mergers
-    use Galacticus_Nodes
-    use Memory_Management
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
@@ -803,18 +797,14 @@ contains
   subroutine Node_Component_Black_Hole_Standard_Mass_Accretion_Rate(thisBlackHoleComponent,accretionRateSpheroid&
        &,accretionRateHotHalo)
     !% Returns the rate of mass accretion onto the black hole in {\tt thisNode}.
-    use Cosmological_Parameters
     use Bondi_Hoyle_Lyttleton_Accretion
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
     use Ideal_Gases_Thermodynamics
     use Black_Hole_Fundamentals
-    use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     use Accretion_Disks
     use Hot_Halo_Temperature_Profile
-    use Memory_Management
     use Black_Hole_Binary_Separations
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer :: thisBlackHoleComponent
@@ -928,9 +918,6 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Create(thisNode)
     !% Creates a black hole component for {\tt thisNode}.
-    use ISO_Varying_String
-    use Galacticus_Display
-    use String_Handling
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -953,7 +940,6 @@ contains
        &,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
-    use ISO_Varying_String
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
     double precision                        , intent(in   )          :: time
@@ -1052,7 +1038,6 @@ contains
   subroutine Node_Component_Black_Hole_Standard_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store black hole properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
     use Kind_Numbers
     use Accretion_Disks
     implicit none
@@ -1109,13 +1094,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Standard_Output_Merger(thisNode,massBlackHole1,massBlackHole2)
     !% Outputs properties of merging black holes.
-    use Galacticus_Nodes
-    use IO_HDF5
     use Galacticus_HDF5
-    use Memory_Management
-    use Kind_Numbers
-    use ISO_Varying_String
-    use String_Handling
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     double precision                    , intent(in   )          :: massBlackHole1    , massBlackHole2
@@ -1150,20 +1129,13 @@ contains
   !# </mergerTreeExtraOutputTask>
   subroutine Node_Component_Black_Hole_Standard_Output_Properties(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\tt thisNode}.
-    use Galacticus_Nodes
-    use IO_HDF5
     use Galacticus_HDF5
     use Memory_Management
     use Kind_Numbers
     use ISO_Varying_String
     use String_Handling
-    use Dark_Matter_Profiles
-    use Cosmology_Functions
     use Black_Hole_Binary_Separations
-    use Black_Hole_Binary_Separations_Standard
     use Accretion_Disks
-    use Cooling_Radii
-    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode              )                           , intent(inout), pointer :: thisNode
     integer         (kind=kind_int8        )                           , intent(in   )          :: treeIndex

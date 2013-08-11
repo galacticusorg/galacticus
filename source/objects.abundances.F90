@@ -379,7 +379,6 @@ contains
   subroutine Abundances_Dump(self)
     !% Reset an abundances object.
     use Galacticus_Display
-    use ISO_Varying_String
     implicit none
     class    (abundances    ), intent(in   ) :: self
     integer                                  :: i
@@ -404,39 +403,29 @@ contains
 
   subroutine Abundances_Dump_Raw(self,fileHandle)
     !% Dump an abundances object to binary.
-    use Galacticus_Display
-    use ISO_Varying_String
     implicit none
     class  (abundances    ), intent(in   ) :: self
     integer                , intent(in   ) :: fileHandle
-    integer                                :: i
 
     ! Ensure module is initialized.
     call Abundances_Initialize
     ! Dump the content.
-    write (fileHandle) self%metallicityValue,allocated(self%elementalValue)
-    if (allocated(self%elementalValue)) write (fileHandle) self%elementalValue
+    write (fileHandle) self%metallicityValue
+    if (elementsCount > 0) write (fileHandle) self%elementalValue
     return
   end subroutine Abundances_Dump_Raw
 
   subroutine Abundances_Read_Raw(self,fileHandle)
     !% Read an abundances object from binary.
-    use Galacticus_Display
-    use ISO_Varying_String
-    use Memory_Management
     implicit none
     class  (abundances    ), intent(inout) :: self
     integer                , intent(in   ) :: fileHandle
-    logical                                :: elementsAllocated
 
     ! Ensure module is initialized.
     call Abundances_Initialize
     ! Read the content.
-    read (fileHandle) self%metallicityValue,elementsAllocated
-    if (elementsAllocated) then
-       call Alloc_Array(self%elementalValue,[elementsCount])
-       read (fileHandle) self%elementalValue
-    end if
+    read (fileHandle) self%metallicityValue
+    if (elementsCount > 0) read (fileHandle) self%elementalValue
     return
   end subroutine Abundances_Read_Raw
 
@@ -701,7 +690,6 @@ contains
 
   double precision function Abundances_Get_Metallicity(self,metallicityType)
     !% Return the metallicity of the {\tt self} structure.
-    use Numerical_Constants_Astronomical
     use Galacticus_Error
     implicit none
     class  (abundances), intent(in   )           :: self

@@ -59,9 +59,7 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Input_Parameters
-    use ISO_Varying_String
     use String_Handling
-    use Kind_Numbers
     use Merger_Trees_Evolve_Deadlock_Status
     !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
     include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
@@ -380,10 +378,8 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     use Evolve_To_Time_Reports
-    use Kind_Numbers
     implicit none
     type            (treeNode                     ), intent(inout)          , pointer :: thisNode
     double precision                               , intent(in   )                    :: endTime

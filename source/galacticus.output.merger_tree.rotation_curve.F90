@@ -61,7 +61,6 @@ contains
     use Galacticus_Error
     use String_Handling
     use Galacticus_Nodes
-    use Memory_Management
     use Galactic_Structure_Options
     use Stellar_Population_Properties_Luminosities
     implicit none
@@ -221,7 +220,6 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of rotation curve properties to be written to the \glc\ output file.
     use Galacticus_Nodes
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode

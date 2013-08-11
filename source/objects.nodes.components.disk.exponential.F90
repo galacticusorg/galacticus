@@ -20,7 +20,6 @@
 module Node_Component_Disk_Exponential
   !% Implements the exponential disk node component.
   use Galacticus_Nodes
-  use Tables
   implicit none
   private
   public :: Node_Component_Disk_Exponential_Scale_Set                    , Node_Component_Disk_Exponential_Pre_Evolve       , &
@@ -297,9 +296,6 @@ contains
   !# </calculationResetTask>
   subroutine Node_Component_Disk_Exponential_Calculation_Reset(thisNode)
     !% Reset exponential disk structure calculations.
-    use Galacticus_Nodes
-    use Kind_Numbers
-    use Tables, only : table1d
     use Node_Component_Disk_Exponential_Data
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
@@ -505,9 +501,7 @@ contains
   subroutine Node_Component_Disk_Exponential_Rate_Compute(thisNode,interrupt,interruptProcedureReturn)
     !% Compute the exponential disk node mass rate of change.
     use Abundances_Structure
-    use Cosmological_Parameters
     use Histories
-    use Cooling_Rates
     use Star_Formation_Feedback_Disks
     use Star_Formation_Feedback_Expulsion_Disks
     use Galactic_Structure_Options

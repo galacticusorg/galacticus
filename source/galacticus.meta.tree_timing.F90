@@ -19,7 +19,6 @@
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
-  use Kind_Numbers
   implicit none
   private
   public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
@@ -31,11 +30,10 @@ module Galacticus_Meta_Tree_Timing
   logical                                                     :: metaCollectTimingData
 
   ! Record of processing times.
-  integer         (kind=kind_int8)                            :: treeIndex
   real                                                        :: timePostEvolution                , timePreConstruction, &
        &                                                         timePreEvolution
   double precision                                            :: treeMass
-  !$omp threadprivate(treeIndex,timePreConstruction,timePreEvolution,timePostEvolution,treeMass)
+  !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass)
   ! Arrays for storing timing.
   integer                         , parameter                 :: treeArrayIncreaseSize    =100
   integer                                                     :: treesRecordedCount       =0

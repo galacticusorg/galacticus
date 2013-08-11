@@ -22,7 +22,6 @@ program Tests_IO_XML
   use FoX_dom
   use IO_XML
   use Unit_Tests
-  use ISO_Varying_String
   use Memory_Management
   implicit none
   type            (node    ), pointer                   :: doc,xmlElement

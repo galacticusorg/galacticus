@@ -53,7 +53,6 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_Record_Evolution(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
-    use Galacticus_Nodes
     use Input_Parameters
     use Cosmology_Functions
     use Memory_Management
@@ -209,12 +208,10 @@ contains
   subroutine Merger_Tree_Record_Evolution_Output(thisNode,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use Galacticus_Nodes
-    use IO_HDF5
     use Galacticus_HDF5
     use Galacticus_Output_Times
     use ISO_Varying_String
     use String_Handling
-    use Kind_Numbers
     use Numerical_Constants_Astronomical
     implicit none
     type   (treeNode      ), intent(inout), pointer :: thisNode

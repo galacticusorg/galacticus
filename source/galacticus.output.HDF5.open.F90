@@ -21,9 +21,6 @@ module Galacticus_Output_Open
   !% Handles opening of the \glc\ output file.
   use ISO_Varying_String
   use Galacticus_HDF5
-  use IO_HDF5
-  use Galacticus_Error
-  use HDF5
   implicit none
   private
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File

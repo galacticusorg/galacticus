@@ -19,7 +19,6 @@
 
 module Test_Root_Finding_Functions
   !% Contains functions for root finding unit tests.
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Root_Function_1, Root_Function_2, Root_Function_3

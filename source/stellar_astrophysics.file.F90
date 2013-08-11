@@ -314,7 +314,6 @@ contains
 
   double precision function Star_Metal_Yield_Mass_File(initialMass,metallicity,atomIndex)
     !% Return the mass of metals yielded by a star of given {\tt initialMass} and {\tt metallicity}.
-    use Memory_Management
     implicit none
     double precision                         , intent(in   )           :: initialMass                  , metallicity
     integer                                  , intent(in   ), optional :: atomIndex

@@ -153,7 +153,6 @@ contains
     !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
     use FoX_Dom
     use Galacticus_Error
-    use Galacticus_Nodes
     use Kind_Numbers
     implicit none
     integer  (kind=kind_int8)                         :: Node_Definition_Index

@@ -57,7 +57,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: thisNode

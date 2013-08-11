@@ -71,7 +71,6 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of virial properties to be written to the \glc\ output file.
     use Galacticus_Nodes
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode

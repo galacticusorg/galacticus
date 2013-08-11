@@ -127,8 +127,6 @@ contains
 
   subroutine Star_Formation_History_Create(thisNode,thisHistory)
     !% Create any history required for storing the star formation history.
-    use Histories
-    use Galacticus_Nodes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(history ), intent(inout)          :: thisHistory
@@ -144,8 +142,6 @@ contains
 
   subroutine Star_Formation_History_Record(thisNode,thisHistory,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\tt thisNode}.
-    use Histories
-    use Galacticus_Nodes
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
     type            (history   ), intent(inout)          :: thisHistory
@@ -163,8 +159,6 @@ contains
 
   subroutine Star_Formation_History_Output(thisNode,nodePassesFilter,thisHistory,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\tt thisNode}.
-    use Histories
-    use Galacticus_Nodes
     implicit none
     type     (treeNode      ), intent(inout), pointer :: thisNode
     logical                  , intent(in   )          :: nodePassesFilter

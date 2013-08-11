@@ -102,8 +102,6 @@ contains
     use Linear_Growth
     use Cosmology_Functions
     use Root_Finder
-    use Numerical_Ranges
-    use Memory_Management
     use Tables
     use Kind_Numbers
     use Galacticus_Error

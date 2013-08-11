@@ -34,7 +34,6 @@ contains
   !# </virialDensityContrastMethod>
   subroutine Virial_Density_Kitayama_Suto1996_Initialize(virialDensityContrastMethod,Virial_Density_Contrast_Tabulate)
     !% Initializes the $\Delta_{\rm vir}$ calculation for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use Input_Parameters
     use ISO_Varying_String
     use Numerical_Comparison
     use Galacticus_Error
@@ -53,10 +52,8 @@ contains
 
   subroutine Virial_Density_Kitayama_Suto1996(time,deltaVirialTable)
     !% Tabulate the virial density contrast for the \cite{kitayama_semianalytic_1996} fitting function module.
-    use Memory_Management
     use Cosmology_Functions
     use Numerical_Constants_Math
-    use Numerical_Ranges
     use Tables
     implicit none
     double precision                      , intent(in   ) :: time

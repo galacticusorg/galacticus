@@ -1333,7 +1333,6 @@ use omp_lib
   integer ( kind = 4 ) ic1
   integer ( kind = 4 ) ic2
   integer ( kind = 4 ) ic2mn
-  integer ( kind = 4 ) idp
   integer ( kind = 4 ) ip0
   integer ( kind = 4 ) ipc(ncp*ndp)
   integer ( kind = 4 ) ipi

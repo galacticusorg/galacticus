@@ -21,7 +21,6 @@
 module Galactic_Structure_Radii_Adiabatic
   !% Implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using an adiabatic
   !% contraction algorithm.
-  use Galacticus_Nodes
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
@@ -93,10 +92,8 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
-    use Galacticus_Nodes
     use Cosmological_Parameters
     use Galacticus_Error
-    use Galactic_Structure_Options
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

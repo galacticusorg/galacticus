@@ -47,7 +47,6 @@ module Stellar_Population_Spectra_File
   type   (spectralTable), allocatable, dimension(:) :: spectra
 
   ! IMF data.
-  integer                                           :: imfCount                =0 !   Number of IMFs currently held.
   integer               , allocatable, dimension(:) :: imfLookup                  !   Look-up array to cross-reference IMF indices to our internal data structure.
 
   ! The current file format version.

@@ -32,7 +32,6 @@ module Linear_Growth_Simple
 
   ! Variables to hold table of growth factor vs. cosmic time.
   double precision                                :: growthTableTimeMaximum           =20.0d0, growthTableTimeMinimum                                                     =1.0d0
-  double precision                                :: growthTableExpansionFactorMinimum
   integer                             , parameter :: growthTableNPointsPerDecade      =1000
 
   ! Variables used in the ODE solver.
@@ -49,7 +48,6 @@ contains
   !# </linearGrowthMethod>
   subroutine Growth_Factor_Simple_Initialize(linearGrowthMethod,Linear_Growth_Tabulate)
     !% Initializes the simple growth factor module.
-    use Input_Parameters
     use ISO_Varying_String
     implicit none
     type     (varying_string                      ), intent(in   )          :: linearGrowthMethod
@@ -64,11 +62,9 @@ contains
     !% Returns the linear growth factor $D(a)$ for expansion factor {\tt aExpansion}, normalized such that $D(1)=1$ for a simple
     !% matter plus cosmological constant cosmology.
     use Numerical_Interpolation
-    use Galacticus_Error
     use Memory_Management
     use Numerical_Ranges
     use ODE_Solver
-    use Cosmology_Functions_Parameters
     implicit none
     double precision                                                             , intent(in   ) :: time
     integer                                                                      , intent(  out) :: growthTableNumberPoints

@@ -19,7 +19,6 @@
 
 module Cooling_Rates_White_Frenk
   !% Implements a \cite{white_galaxy_1991} cooling rate calculation.
-  use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
   implicit none
   private
@@ -75,9 +74,7 @@ contains
 
   double precision function Cooling_Rate_White_Frenk(thisNode)
     !% Computes the mass cooling rate in a hot gas halo utilizing the \cite{white_galaxy_1991} method.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Cooling_Times_Available
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
     use Hot_Halo_Density_Profile

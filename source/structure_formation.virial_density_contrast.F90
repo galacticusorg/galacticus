@@ -90,7 +90,6 @@ contains
 
   subroutine Virial_Density_Contrast_Retabulate(time)
     !% Recompute the look-up tables for virial density contrast.
-    use Numerical_Interpolation
     implicit none
     double precision, intent(in   ) :: time
     logical                         :: remakeTable
@@ -113,7 +112,6 @@ contains
 
   double precision function Halo_Virial_Density_Contrast(time,aExpansion,collapsing)
     !% Return the halo virial overdensity.
-    use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
@@ -152,7 +150,6 @@ contains
 
   double precision function Halo_Virial_Density_Contrast_Rate_of_Change(time,aExpansion,collapsing)
     !% Return the halo virial overdensity.
-    use Numerical_Interpolation
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
@@ -194,7 +191,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Virial_Density_Contrast_State_Retrieve(stateFile,fgslStateFile)
     !% Reset the tabulation if state is to be retrieved. This will force tables to be rebuilt.
-    use Memory_Management
     use FGSL
     implicit none
     integer           , intent(in   ) :: stateFile

@@ -95,7 +95,6 @@ contains
     !% Flux method for the CMB radiation component.
     use Thermodynamics_Radiation
     use Numerical_Constants_Units
-    use Numerical_Constants_Prefixes
     implicit none
     integer                                    , intent(in   )           :: ourType            , requestedType
     double precision                           , intent(in   )           :: wavelength

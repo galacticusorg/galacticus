@@ -124,8 +124,7 @@ contains
     integer                                                                                :: iElement                 , iHistory                 , &
          &                                                                                    imfSelected
     double precision                                                                       :: ageMaximum               , ageMinimum               , &
-         &                                                                                    currentTime              , historyFactors        (2), &
-         &                                                                                    recyclingRate
+         &                                                                                    currentTime              , recyclingRate
     type            (fgsl_interp_accel )                                                   :: interpolationAccelerator
     logical                                                                                :: interpolationReset
 

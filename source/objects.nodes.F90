@@ -23,17 +23,12 @@ module Galacticus_Nodes
   use Galacticus_Error
   use Memory_Management
   use ISO_Varying_String
-  use Kind_Numbers
   use Kepler_Orbits
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Histories
-  use Numerical_Constants_Units
-  use Numerical_Constants_Prefixes
   use Numerical_Constants_Astronomical
-  use Numerical_Constants_Physical
   use IO_HDF5
-  use FODEIV2
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
   !! <gfortran4.8> workaround
@@ -152,8 +147,6 @@ module Galacticus_Nodes
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
     !% Return a pointer to a newly created and initialized {\tt treeNode}.
-    use Galacticus_Error
-    use Memory_Management
     implicit none
     type   (treeNode      ), pointer                         :: Tree_Node_Constructor
     integer(kind=kind_int8), intent(in   ), optional         :: index
@@ -233,7 +226,6 @@ module Galacticus_Nodes
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
     !% Sets the index of a {\tt treeNode}.
-    use Galacticus_Error
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -467,7 +459,6 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_From_Host(self)
     !% Remove {\tt self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self
@@ -506,7 +497,6 @@ module Galacticus_Nodes
   subroutine Tree_Node_Remove_from_Mergee(self)
     !% Remove {\tt self} from the linked list of its host node's satellites.
     use Galacticus_Display
-    use ISO_Varying_String
     use String_Handling
     implicit none
     class(treeNode      ), intent(in   ), target :: self

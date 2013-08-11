@@ -120,16 +120,11 @@ contains
 
   double precision function Excursion_Sets_First_Crossing_Probability_Farahi(variance,time)
     !% Return the probability for excursion set first crossing using the methodology of Farahi.
-    use ISO_Varying_String
-    use Numerical_Constants_Math
     use Numerical_Ranges
     use Numerical_Interpolation
-    use Input_Parameters
-    use Power_Spectra
     use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display
-    use Galacticus_Input_Paths
     use Kind_Numbers
     !$ use OMP_Lib
     implicit none
@@ -285,8 +280,6 @@ contains
     !% Tabulate the excursion set crossing rate.
     use Numerical_Ranges
     use Numerical_Interpolation
-    use Power_Spectra
-    use Excursion_Sets_Barriers
     use Memory_Management
     use Galacticus_Display
     use Cosmology_Functions
@@ -509,7 +502,6 @@ contains
   double precision function Excursion_Sets_First_Crossing_Rate_Farahi(variance,varianceProgenitor,time)
     !% Return the rate for excursion set first crossing.
     use Numerical_Interpolation
-    use Galacticus_Error
     implicit none
     double precision, intent(in   )  :: time               , variance, varianceProgenitor
     double precision, dimension(0:1) :: hVarianceProgenitor
@@ -647,7 +639,6 @@ contains
  function erfApproximation(x)
     !% An \href{http://sites.google.com/site/winitzki/sergei-winitzkis-files/erf-approx.pdf}{approximation to the error function}
     !% that is designed to be very accurate in the vicinity of zero and infinity.
-    use Kind_Numbers
     use Numerical_Constants_Math
     implicit none
     real(kind=kind_quad)                :: erfApproximation
@@ -784,7 +775,6 @@ contains
   function Make_Variance_Range(rangeMinimum,rangeMaximum,rangeNumber,ratioAtMaximum) result (rangeValues)
     !% Builds a numerical range between {\tt rangeMinimum} and {\tt rangeMaximum} using {\tt rangeNumber} points with spacing that
     !% varies from logarithmic to linear spacing with the transition point controlled by {\tt ratioAtMaximum}.
-    use Galacticus_Error
     implicit none
     double precision, intent(in   )          :: rangeMaximum               , rangeMinimum    , &
          &                                      ratioAtMaximum

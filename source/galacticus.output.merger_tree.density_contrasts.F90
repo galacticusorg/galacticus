@@ -20,7 +20,6 @@
 module Galacticus_Output_Trees_Density_Contrasts
   !% Handles outputting of node density contrast properties (radii and masses).
   use Galacticus_Nodes
-  use, intrinsic :: ISO_C_Binding
   implicit none
   private
   public :: Galacticus_Output_Tree_Density_Contrast, Galacticus_Output_Tree_Density_Contrast_Property_Count, Galacticus_Output_Tree_Density_Contrast_Names
@@ -58,7 +57,6 @@ contains
     use Memory_Management
     use Galactic_Structure_Options
     use Cosmological_Parameters
-    use Cosmology_Functions
     implicit none
 
     if (.not.outputDensityContrastDataInitialized) then
@@ -202,7 +200,6 @@ contains
     use Dark_Matter_Halo_Scales
     use Kind_Numbers
     use Root_Finder
-    use FGSL
     implicit none
     double precision                , intent(in   )          :: time
     type            (treeNode      ), intent(inout), pointer :: thisNode
@@ -214,8 +211,7 @@ contains
     type            (rootFinder    ), save                   :: finder
     !$omp threadprivate(finder)
     integer                                                  :: iDensity
-    double precision                                         :: enclosedMass                 , radius                  , &
-         &                                                      radiusMaximum                , radiusMinimum
+    double precision                                         :: enclosedMass                 , radius
 
     ! Initialize the module.
     call Galacticus_Output_Tree_Density_Contrast_Initialize

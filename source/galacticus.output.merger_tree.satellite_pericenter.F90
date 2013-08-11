@@ -72,7 +72,6 @@ contains
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of satellite orbital pericenter properties to be written to the \glc\ output file.
     use Galacticus_Nodes
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
@@ -143,7 +142,6 @@ contains
        &,doubleBufferCount,doubleBuffer,time)
     !% Store satellite orbital pericenter properties in the \glc\ output file buffers.
     use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
     use Kind_Numbers
     use Kepler_Orbits
     use Satellite_Orbits

@@ -103,7 +103,6 @@ contains
     use Galacticus_Error
     use FoX_dom
     use IO_XML
-    use Memory_Management
     use Cosmology_Functions
     implicit none
     type            (Node    ), pointer :: doc              , thisItem

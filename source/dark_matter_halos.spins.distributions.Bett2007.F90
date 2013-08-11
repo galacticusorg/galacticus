@@ -20,7 +20,6 @@
 module Halo_Spin_Distributions_Bett2007
   !% Implements the \cite{bett_spin_2007} halo spin distribution.
   use FGSL
-  use Galacticus_Nodes
   use Tables
   implicit none
   private
@@ -52,8 +51,6 @@ contains
     !% Initializes the ``Bett2007'' halo spin distribution module.
     use ISO_Varying_String
     use Input_Parameters
-    use Memory_Management
-    use Numerical_Ranges
     use Gamma_Functions
     implicit none
     type     (varying_string                 ), intent(in   )          :: haloSpinDistributionMethod
@@ -148,7 +145,6 @@ contains
   !# </galacticusStateStoreTask>
   subroutine Halo_Spin_Distribution_Bett2007_State_Store(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile
@@ -164,7 +160,6 @@ contains
   !# </galacticusStateRetrieveTask>
   subroutine Halo_Spin_Distribution_Bett2007_State_Retrieve(stateFile,fgslStateFile)
     !% Write the stored snapshot of the random number state to file.
-    use FGSL
     use Pseudo_Random
     implicit none
     integer           , intent(in   ) :: stateFile

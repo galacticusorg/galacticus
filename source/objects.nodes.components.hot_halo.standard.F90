@@ -207,7 +207,6 @@ contains
     use Input_Parameters
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Memory_Management
     use Galacticus_Error
     implicit none
     type(varying_string              ) :: hotHaloCoolingFromText
@@ -401,7 +400,6 @@ contains
   !# </mergerTreeEvolveThreadInitialize>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
     !% Initializes the tree node hot halo methods module.
-    use Memory_Management
     implicit none
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
@@ -424,7 +422,6 @@ contains
 
   double precision function Node_Component_Hot_Halo_Standard_Outer_Radius(self)
     !% Return the outer radius in the standard hot halo.
-    use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
     class(nodeComponentHotHaloStandard), intent(inout) :: self
@@ -605,8 +602,6 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes(thisNode,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
-    use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     use Cooling_Infall_Radii
     use Cooling_Specific_Angular_Momenta
     use Abundances_Structure
@@ -834,9 +829,6 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates
     use Chemical_Reaction_Rates_Utilities
-    use Numerical_Constants_Math
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
     use Hot_Halo_Density_Profile
@@ -851,10 +843,9 @@ contains
          &                                                                               outflowedAbundances
     type            (chemicalAbundances          ), save                              :: accretionRateChemicals                   , chemicalDensities        , &
          &                                                                               chemicalDensitiesRates                   , chemicalMasses           , &
-         &                                                                               chemicalMassesRates                      , chemicalsChemicalRates   , &
-         &                                                                               chemicalsCoolingRate
+         &                                                                               chemicalMassesRates                      , chemicalsCoolingRate
     !$omp threadprivate(accretionRateAbundances,outflowedAbundances,abundancesReturnRate,accretionRateChemicals,chemicalMasses)
-    !$omp threadprivate(chemicalDensities,chemicalsChemicalRates,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
+    !$omp threadprivate(chemicalDensities,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
     double precision                                                                  :: angularMomentumAccretionRate             , angularMomentumReturnRate, &
          &                                                                               densityAtOuterRadius                     , failedMassAccretionRate  , &
          &                                                                               hydrogenByMass                           , massAccretionRate        , &
@@ -1321,7 +1312,6 @@ contains
   subroutine Node_Component_Hot_Halo_Standard_Promote(thisNode)
     !% Ensure that {\tt thisNode} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\tt
     !% thisNode} to account for any hot halo already in the parent.
-    use Galacticus_Error
     use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
@@ -1410,8 +1400,6 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Create(thisNode)
     !% Creates a hot halo component for {\tt thisNode}.
-    use Galacticus_Display
-    use String_Handling
     use Dark_Matter_Halo_Scales
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
@@ -1433,10 +1421,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
-    use Numerical_Constants_Math
     use Dark_Matter_Halo_Scales
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Atomic
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode

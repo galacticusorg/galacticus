@@ -19,7 +19,6 @@
 
 module Accretion_Halos_Null
   !% Implements calculations of null baryonic accretion.
-  use Radiation_Structure
   use Abundances_Structure
   implicit none
   private
@@ -36,7 +35,6 @@ contains
        &,Halo_Baryonic_Accretion_Rate_Chemicals_Get,Halo_Baryonic_Accreted_Chemicals_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Chemical_Abundances_Structure
     implicit none
     type     (varying_string                                  ), intent(in   )          :: accretionHalosMethod
     procedure(Halo_Baryonic_Accretion_Rate_Null_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get

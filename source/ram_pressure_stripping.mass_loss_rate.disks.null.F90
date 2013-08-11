@@ -1,4 +1,4 @@
-!! Copyright 2009, 2010, 2011, 2012 Andrew Benson <abenson@obs.carnegiescience.edu>
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
 !!
@@ -19,7 +19,6 @@
 
 module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null
   !% Implements a null mass loss rates from disks due to ram pressure stripping.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init
@@ -32,7 +31,6 @@ contains
   subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Null_Init(ramPressureStrippingMassLossRateDisksMethod,Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get)
     !% Initializes the ``null'' ram pressure stripping mass loss rate from disks module.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                                 ), intent(in   )          :: ramPressureStrippingMassLossRateDisksMethod
     procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Null), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get

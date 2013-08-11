@@ -26,9 +26,9 @@ module Hot_Halo_Ram_Pressure_Stripping_Font2008
   private
   public :: Hot_Halo_Ram_Pressure_Stripping_Font2008_Initialize
 
-  ! Pointers to the host and satellite nodes.
-  type            (treeNode), pointer :: hostNode                      , satelliteNode
-  !$omp threadprivate(hostNode,satelliteNode)
+  ! Pointers to the satellite node.
+  type            (treeNode), pointer :: satelliteNode
+  !$omp threadprivate(satelliteNode)
   ! The ram pressure force (per unit area) used in root finding.
   double precision                    :: ramPressureForce
   !$omp threadprivate(ramPressureForce)
@@ -69,12 +69,8 @@ contains
   double precision function Hot_Halo_Ram_Pressure_Stripping_Font2008_Get(thisNode)
     !% Computes the hot halo ram pressure stripping radius, assuming a null calculation in which that radius always equals the
     !% virial radius.
-    use Galacticus_Nodes
     use Dark_Matter_Halo_Scales
-    use Kepler_Orbits
-    use Satellite_Orbits
     use Hot_Halo_Ram_Pressure_Forces
-    use Hot_Halo_Density_Profile
     use Root_Finder
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
@@ -135,7 +131,6 @@ contains
 
   double precision function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radius)
     !% Root function used in finding the ram pressure stripping radius.
-    use Dark_Matter_Profiles
     use Hot_Halo_Density_Profile
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options

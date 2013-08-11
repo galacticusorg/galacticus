@@ -185,7 +185,6 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
-    use Galacticus_Nodes
     use Galacticus_Output_Times
     use Galacticus_Error
     implicit none
@@ -327,11 +326,9 @@ contains
   subroutine Star_Formation_History_Record_Metallicity_Split(thisNode,thisHistory,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\tt thisNode}.
     use Histories
-    use Numerical_Ranges
     use Galacticus_Nodes
     use Abundances_Structure
     use Arrays_Search
-    use Galacticus_Output_Times
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     type            (history           ), intent(inout)          :: thisHistory
@@ -370,7 +367,6 @@ contains
     use Histories
     use ISO_Varying_String
     use Galacticus_HDF5
-    use IO_HDF5
     use Galacticus_Nodes
     use String_Handling
     use Kind_Numbers
@@ -455,7 +451,6 @@ contains
   subroutine Star_Formation_History_Scales_Metallicity_Split(thisHistory,stellarMass,stellarAbundances)
     !% Set the scalings for error control on the absolute values of star formation histories.
     use Histories
-    use Stellar_Feedback
     use Abundances_Structure
     use Memory_Management
     implicit none

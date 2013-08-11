@@ -73,10 +73,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Simple_Initialize()
     !% Initializes the simple black hole node component module.
-    use ISO_Varying_String
     use Input_Parameters
-    use String_Handling
-    use Galacticus_Display
     implicit none
     type(nodeComponentBlackHoleSimple) :: blackHoleSimple
 
@@ -219,15 +216,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,interrupt,interruptProcedure)
     !% Compute the black hole mass rate of change.
-    use Accretion_Disks
-    use Black_Hole_Fundamentals
     use Cooling_Radii
-    use Cooling_Rates
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
-    use Numerical_Constants_Math
-    use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(inout)          :: interrupt
@@ -358,7 +349,6 @@ contains
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
-    use ISO_Varying_String
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
     double precision                        , intent(in   )          :: time
@@ -418,9 +408,7 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time)
     !% Store black hole properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
     use Kind_Numbers
-    use Accretion_Disks
     implicit none
     double precision                        , intent(in   )          :: time
     type            (treeNode              ), intent(inout), pointer :: thisNode

@@ -35,7 +35,6 @@ contains
 
   subroutine Chemical_Reaction_Rates_Initialize
     !% Initialize the chemical reaction rates module.
-    use Galacticus_Error
     use Input_Parameters
     use Memory_Management
     !# <include directive="chemicalReactionRates" type="moduleUse">
@@ -79,7 +78,6 @@ contains
   subroutine Chemical_Reaction_Rate(chemicalRates,temperature,chemicalDensity,radiation)
     !% Return chemical reaction rates at the given temperature for the specified set of chemical densities (in cm$^{-3}$) and radiation
     !% field. Units of the returned rates are cm$^-3$ s$^{-1}$.
-    use Abundances_Structure
     use Radiation_Structure
     !# <include directive="chemicalRatesCompute" type="moduleUse">
     include 'chemical.reaction_rates.compute.modules.inc'

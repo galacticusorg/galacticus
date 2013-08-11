@@ -48,7 +48,6 @@ contains
 
   double precision function Gamma_Function(argument)
     !% Computes the gamma function.
-    use FGSL
     implicit none
     double precision, intent(in   ) :: argument
 

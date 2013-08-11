@@ -254,9 +254,6 @@ contains
   subroutine Cumulative_Conditional_Stellar_Mass_Function_Compute(massHalo,massStellar,numberCentrals,numberSatellites)
     !% Computes the cumulative conditional mass function, $\langle N(M_\star|M_{\rm halo}) \rangle \equiv \phi(M_\star|M_{\rm
     !% halo})$ using the fitting formula of \cite{behroozi_comprehensive_2010}.
-    use Memory_Management
-    use Numerical_Ranges
-    use Numerical_Interpolation
     implicit none
     double precision                    , intent(in   ) :: massHalo                  , massStellar
     double precision                    , intent(  out) :: numberCentrals            , numberSatellites

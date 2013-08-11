@@ -20,9 +20,7 @@
 module ODEIV2_Solver
   !% Contains an interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
   use ODE_Solver_Error_Codes
-  use FGSL
   use FODEIV2
-  use, intrinsic :: ISO_C_Binding
   private
   public :: ODEIV2_Solve, ODEIV2_Solver_Free
 

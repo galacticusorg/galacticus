@@ -20,11 +20,8 @@
 program Test_Root_Finding
   !% Tests that routine finding routines work.
   use Unit_Tests
-  use ISO_Varying_String
-  use FGSL
   use Root_Finder
   use Test_Root_Finding_Functions
-  use, intrinsic :: ISO_C_Binding
   implicit none
   type            (rootFinder)               :: finder
   double precision                           :: xGuess, xRoot

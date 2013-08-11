@@ -33,7 +33,6 @@ contains
   subroutine Black_Hole_Binary_Initial_Radii_Volonteri_2003_Initialize(blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get)
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
-    use Input_Parameters
     implicit none
     type     (varying_string                                 ), intent(in   )          :: blackHoleBinaryInitialRadiiMethod
     procedure(Black_Hole_Binary_Initial_Radius_Volonteri_2003), intent(inout), pointer :: Black_Hole_Binary_Initial_Radius_Get

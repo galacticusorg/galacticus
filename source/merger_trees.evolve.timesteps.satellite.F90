@@ -39,12 +39,9 @@ contains
   !# </timeStepsTask>
   subroutine Merger_Tree_Timestep_Satellite(thisNode,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
     !% Determines the timestep to go to the time at which the node merges.
-    use Galacticus_Nodes
     use Evolve_To_Time_Reports
     use Merger_Trees_Evolve_Timesteps_Template
     use Input_Parameters
-    use ISO_Varying_String
-    use String_Handling
     use ISO_Varying_String
     implicit none
     type            (treeNode                     ), intent(inout)          , pointer :: thisNode

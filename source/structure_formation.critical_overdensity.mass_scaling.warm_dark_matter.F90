@@ -19,7 +19,6 @@
 
 module Critical_Overdensity_Mass_Scalings_WDM
   !% Implements a warm dark matter scaling of critical overdensities for collapse based on the work of \cite{barkana_constraints_2001}.
-  use Galacticus_Nodes
   use FGSL
   implicit none
   private
@@ -63,7 +62,6 @@ contains
     use FoX_dom
     use Galacticus_Input_Paths
     use Galacticus_Error
-    use Memory_Management
     use IO_XML
     implicit none
     type            (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod

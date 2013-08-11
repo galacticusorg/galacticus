@@ -19,7 +19,6 @@
 
 module Generalized_Press_Schechter_Branching
   !% Implements calculations of branching probabilties in generalized Press-Schechter theory.
-  use FGSL
   use Power_Spectra
   use Numerical_Constants_Math
   implicit none
@@ -230,7 +229,6 @@ contains
   double precision function Generalized_Press_Schechter_Branching_Maximum_Step(haloMass,deltaCritical,massResolution)
     !% Return the maximum allowed step in $\delta_{\rm crit}$ that a halo of mass {\tt haloMass} at time {\tt
     !% deltaCritical} should be allowed to take.
-    use Numerical_Integration
     implicit none
     double precision, intent(in   ) :: deltaCritical, haloMass, massResolution
 
@@ -273,7 +271,6 @@ contains
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\tt massResolution}, per unit change in
     !% $\delta_{\rm crit}$ for a halo of mass {\tt haloMass} at time {\tt deltaCritical}. The integral is computed numerically.
     use, intrinsic :: ISO_C_Binding
-    use Critical_Overdensity
     use Numerical_Integration
     use Excursion_Sets_First_Crossings
     use Merger_Tree_Branching_Modifiers
@@ -293,7 +290,6 @@ contains
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     integer                                                     :: errorStatus
     type            (varying_string            )                :: message
-    character       (len=9                     )                :: label
 
     call Excursion_Sets_Maximum_Sigma_Test()
     ! Get sigma and delta_critical for the parent halo.

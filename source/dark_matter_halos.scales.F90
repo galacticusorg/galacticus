@@ -69,7 +69,6 @@ contains
   double precision function Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     !% Returns the dynamical timescale for {\tt thisNode}.
     use Numerical_Constants_Astronomical
-    use Numerical_Constants_Prefixes
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -131,7 +130,6 @@ contains
   double precision function Dark_Matter_Halo_Virial_Temperature(thisNode)
     !% Returns the virial temperature (in Kelvin) for {\tt thisNode}.
     use Numerical_Constants_Physical
-    use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
@@ -178,7 +176,6 @@ contains
 
   double precision function Dark_Matter_Halo_Virial_Radius_Growth_Rate(thisNode)
     !% Returns the growth rate of the virial radius scale for {\tt thisNode}.
-    use Numerical_Constants_Math
     implicit none
     type (treeNode          ), intent(inout), pointer :: thisNode
     class(nodeComponentBasic)               , pointer :: thisBasicComponent
@@ -231,7 +228,6 @@ contains
 
   double precision function Dark_Matter_Halo_Mean_Density_Growth_Rate(thisNode)
     !% Returns the growth rate of the mean density for {\tt thisNode}.
-    use Cosmological_Parameters
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none

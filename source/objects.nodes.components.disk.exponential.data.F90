@@ -69,7 +69,6 @@ contains
 
   subroutine Node_Component_Disk_Exponential_Reset(uniqueID)
     !% Reset calculations for the exponential disk component.
-    use Kind_Numbers
     implicit none
     integer(kind=kind_int8), intent(in   ) :: uniqueID
 
@@ -92,9 +91,7 @@ contains
 
    double precision function Node_Component_Disk_Exponential_Rotation_Curve_Bessel_Factors(halfRadius)
      !% Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
-     use Memory_Management
      use Numerical_Constants_Math
-     use Numerical_Interpolation
      use Bessel_Functions
      implicit none
      double precision, intent(in   ) :: halfRadius
@@ -151,9 +148,7 @@ contains
 
   double precision function Node_Component_Disk_Exponential_Rttn_Crv_Grdnt_Bssl_Fctrs(halfRadius)
     !% Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
-    use Memory_Management
     use Numerical_Constants_Math
-    use Numerical_Interpolation
     use Bessel_Functions
     implicit none
     double precision, intent(in   ) :: halfRadius

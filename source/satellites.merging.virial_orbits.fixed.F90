@@ -35,7 +35,6 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Input_Parameters
-    use Kepler_Orbits
     implicit none
     type     (varying_string                 ), intent(in   )          :: virialOrbitsMethod
     procedure(Virial_Orbital_Parameters_Fixed), intent(inout), pointer :: Virial_Orbital_Parameters_Get

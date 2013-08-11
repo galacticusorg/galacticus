@@ -193,7 +193,6 @@ contains
 
   double precision function Mass_Distribution_Density_Radial_Moment_Null(self,moment,isInfinite)
     !% Aborts on attempts to get radial density moment of mass distributions with no density defined.
-    use Coordinates
     use Galacticus_Error
     implicit none
     class           (massDistribution), intent(in   )           :: self
@@ -219,11 +218,8 @@ contains
     !% Computes the mass enclosed within a sphere of given {\tt radius} for spherically-symmetric mass distributions using
     !% numerical integration.
     use, intrinsic :: ISO_C_Binding
-    use Coordinates
-    use Galacticus_Error
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
     implicit none
     class           (massDistributionSpherical ), intent(in   ), target :: self
     double precision                            , intent(in   )         :: radius

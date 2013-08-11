@@ -131,7 +131,6 @@ contains
 
   double precision function Delta(i,j,iVariance,jVariance,deltaVariance,time)
     !% Returns the factor $Delta_{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use Excursion_Sets_Barriers
     implicit none
     integer               , intent(in   ) :: i               , j
     double precision      , intent(in   ) :: deltaVariance   , iVariance          , jVariance, &

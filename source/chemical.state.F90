@@ -62,7 +62,6 @@ contains
     !% Initialize the chemical state module.
     use Galacticus_Error
     use Input_Parameters
-    use Memory_Management
     !# <include directive="chemicalStateMethod" type="moduleUse">
     include 'chemical.state.modules.inc'
     !# </include>

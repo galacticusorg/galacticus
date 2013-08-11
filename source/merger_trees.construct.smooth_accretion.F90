@@ -27,9 +27,8 @@ module Merger_Tree_Smooth_Accretion
   public :: Merger_Tree_Smooth_Accretion_Initialize
 
   ! Variables giving properties of the merger tree.
-  double precision :: mergerTreeBaseRedshift              , mergerTreeBuildTreesBaseTime   , &
-       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor, &
-       &              mergerTreeHaloMassResolution
+  double precision :: mergerTreeBaseRedshift              , mergerTreeHaloMassResolution   , &
+       &              mergerTreeHaloMass                  , mergerTreeHaloMassDeclineFactor
 
   ! Flag indicating whether or not we've already built the tree.
   logical          :: treeWasBuilt                =.false.
@@ -42,7 +41,6 @@ contains
   subroutine Merger_Tree_Smooth_Accretion_Initialize(mergerTreeConstructMethod,Merger_Tree_Construct)
     !% Initializes the smooth accretion merger tree module.
     use Input_Parameters
-    use Cosmology_Functions
     implicit none
     type     (varying_string                 ), intent(in   )          :: mergerTreeConstructMethod
     procedure(Merger_Tree_Smooth_Accretion_Do), intent(inout), pointer :: Merger_Tree_Construct
