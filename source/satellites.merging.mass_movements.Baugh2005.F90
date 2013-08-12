@@ -50,7 +50,7 @@ contains
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Baugh2005
        !@ <inputParameter>
        !@   <name>majorMergerMassRatio</name>
-       !@   <defaultValue>0.3</defaultValue>
+       !@   <defaultValue>0.25</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The mass ratio above which mergers are considered to be ``major'' in the \cite{baugh_can_2005} merger mass movements method.
@@ -58,7 +58,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("majorMergerMassRatio"    ,majorMergerMassRatio    ,defaultValue=0.30d0    )
+       call Get_Input_Parameter("majorMergerMassRatio"    ,majorMergerMassRatio    ,defaultValue=0.25d0    )
        !@ <inputParameter>
        !@   <name>burstMassRatio</name>
        !@   <defaultValue>0.05</defaultValue>

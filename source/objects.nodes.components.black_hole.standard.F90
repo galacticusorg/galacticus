@@ -130,7 +130,7 @@ contains
        ! Get accretion rate enhancement factors.
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementSpheroid</name>
-       !@   <defaultValue>420</defaultValue>
+       !@   <defaultValue>5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of spheroid gas onto black holes in enhanced.
@@ -140,10 +140,10 @@ contains
        !@   <group>blackHoles</group>
        !@ </inputParameter>
        call Get_Input_Parameter("bondiHoyleAccretionEnhancementSpheroid",bondiHoyleAccretionEnhancementSpheroid,defaultValue&
-            &=420.0d0)
+            &=5.0d0)
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionEnhancementHotHalo</name>
-       !@   <defaultValue>1.5</defaultValue>
+       !@   <defaultValue>6.0</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The factor by which the Bondi-Hoyle accretion rate of hot halo gas onto black holes in enhanced.
@@ -152,7 +152,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>blackHoles</group>
        !@ </inputParameter>
-       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=1.5d0)
+       call Get_Input_Parameter("bondiHoyleAccretionEnhancementHotHalo",bondiHoyleAccretionEnhancementHotHalo,defaultValue=6.0d0)
        !@ <inputParameter>
        !@   <name>bondiHoyleAccretionHotModeOnly</name>
        !@   <defaultValue>true</defaultValue>

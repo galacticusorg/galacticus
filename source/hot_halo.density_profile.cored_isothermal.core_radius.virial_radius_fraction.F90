@@ -46,7 +46,7 @@ contains
        Hot_Halo_Density_Cored_Isothermal_Core_Radius_Get => Hot_Halo_Density_Cored_Isothermal_Core_Radius_Virial_Fraction
        !@ <inputParameter>
        !@   <name>isothermalCoreRadiusOverVirialRadius</name>
-       !@   <defaultValue>0.4123</defaultValue>
+       !@   <defaultValue>0.3</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
@@ -54,7 +54,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadius',isothermalCoreRadiusOverVirialRadius,defaultValue=0.4123d0)
+       call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadius',isothermalCoreRadiusOverVirialRadius,defaultValue=0.3d0)
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radii_VF_Initialize

@@ -270,7 +270,7 @@ contains
        call Get_Input_Parameter('spheroidAngularMomentumAtScaleRadius',spheroidAngularMomentumAtScaleRadius,defaultValue=spheroidAngularMomentumAtScaleRadiusDefault)
        !@ <inputParameter>
        !@   <name>spheroidEnergeticOutflowMassRate</name>
-       !@   <defaultValue>1.0</defaultValue>
+       !@   <defaultValue>0.01</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@    The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_{\rm spheroid}^2$.
@@ -278,7 +278,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d0)
+       call Get_Input_Parameter('spheroidEnergeticOutflowMassRate',spheroidEnergeticOutflowMassRate,defaultValue=1.0d-2)
        !@ <inputParameter>
        !@   <name>spheroidMassToleranceAbsolute</name>
        !@   <defaultValue>$10^{-6} M_\odot$</defaultValue>

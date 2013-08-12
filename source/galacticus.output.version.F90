@@ -60,8 +60,7 @@ contains
     use FoX_utils
     use IO_XML
     implicit none
-    type     (Node          ), pointer :: doc            , emailNode, nameNode, thisNode
-    type     (NodeList      ), pointer :: nodesList
+    type     (Node          ), pointer :: doc            , emailNode, nameNode
     integer                            :: ioErr
     character(len=128       )          :: textBufferFixed
     type     (hdf5Object    )          :: versionGroup
@@ -90,9 +89,8 @@ contains
              call extractDataContent(nameNode,textBufferFixed)
              call versionGroup%writeAttribute(trim(textBufferFixed),'runByName')
           end if
-          nodesList => getElementsByTagname(thisNode,"email")
           if (XML_Path_Exists(doc,"contact/email")) then
-             nameNode => XML_Get_First_Element_By_Tag_Name(doc,"contact/email")
+             emailNode => XML_Get_First_Element_By_Tag_Name(doc,"contact/email")
              call extractDataContent(emailNode,textBufferFixed)
              call versionGroup%writeAttribute(trim(textBufferFixed),'runByEmail')
           end if
