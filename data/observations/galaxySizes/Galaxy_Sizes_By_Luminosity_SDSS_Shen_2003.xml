@@ -1,0 +1,2508 @@
+<dataSets>
+  <label>Shen et al. (2003)</label>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.6413</data>
+      <data>0.4455</data>
+      <data>0.1437</data>
+      <data>0.2706</data>
+      <data>1.589</data>
+      <data>1.469</data>
+      <data>2.66</data>
+      <data>1.537</data>
+      <data>3.297</data>
+      <data>1.506</data>
+      <data>2.971</data>
+      <data>2.358</data>
+      <data>3.074</data>
+      <data>1.643</data>
+      <data>0.3164</data>
+      <data>0</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.4534</data>
+      <data>0.315</data>
+      <data>0.1437</data>
+      <data>0.1914</data>
+      <data>0.4588</data>
+      <data>0.4428</data>
+      <data>0.6103</data>
+      <data>0.4438</data>
+      <data>0.6465</data>
+      <data>0.4349</data>
+      <data>0.6195</data>
+      <data>0.5409</data>
+      <data>0.6276</data>
+      <data>0.4392</data>
+      <data>0.1827</data>
+      <data>0</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.4482</data>
+      <data>-0.4064</data>
+      <data>-0.3646</data>
+      <data>-0.3228</data>
+      <data>-0.2809</data>
+      <data>-0.2391</data>
+      <data>-0.1973</data>
+      <data>-0.1555</data>
+      <data>-0.1137</data>
+      <data>-0.07194</data>
+      <data>-0.03014</data>
+      <data>0.01166</data>
+      <data>0.05347</data>
+      <data>0.09527</data>
+      <data>0.1371</data>
+      <data>0.1789</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -16.5 &lt; M &lt; -16 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-16.0</maximum>
+      <minimum>-16.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.205</data>
+      <data>0.07941</data>
+      <data>0.2244</data>
+      <data>0.5647</data>
+      <data>0.8999</data>
+      <data>1.724</data>
+      <data>2.112</data>
+      <data>2.495</data>
+      <data>2.626</data>
+      <data>2.347</data>
+      <data>1.615</data>
+      <data>0.7816</data>
+      <data>0.2775</data>
+      <data>0.04563</data>
+      <data>0.008535</data>
+      <data>0.001045</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.145</data>
+      <data>0.0397</data>
+      <data>0.04166</data>
+      <data>0.05198</data>
+      <data>0.05038</data>
+      <data>0.05473</data>
+      <data>0.04866</data>
+      <data>0.04753</data>
+      <data>0.04804</data>
+      <data>0.04507</data>
+      <data>0.03742</data>
+      <data>0.02568</data>
+      <data>0.0153</data>
+      <data>0.006044</data>
+      <data>0.003018</data>
+      <data>0.001045</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.07784</data>
+      <data>0.1403</data>
+      <data>0.2028</data>
+      <data>0.2653</data>
+      <data>0.3277</data>
+      <data>0.3902</data>
+      <data>0.4527</data>
+      <data>0.5152</data>
+      <data>0.5776</data>
+      <data>0.6401</data>
+      <data>0.7026</data>
+      <data>0.765</data>
+      <data>0.8275</data>
+      <data>0.89</data>
+      <data>0.9525</data>
+      <data>1.015</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -21 &lt; M &lt; -20.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-20.5</maximum>
+      <minimum>-21.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.3023</data>
+      <data>0.6022</data>
+      <data>1.4</data>
+      <data>2.29</data>
+      <data>3.391</data>
+      <data>3.029</data>
+      <data>2.528</data>
+      <data>1.587</data>
+      <data>0.7107</data>
+      <data>0.3087</data>
+      <data>0.1029</data>
+      <data>0.05902</data>
+      <data>0.02066</data>
+      <data>0.006082</data>
+      <data>0.001425</data>
+      <data>0.002694</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1069</data>
+      <data>0.1018</data>
+      <data>0.1192</data>
+      <data>0.1187</data>
+      <data>0.1127</data>
+      <data>0.084</data>
+      <data>0.06207</data>
+      <data>0.04529</data>
+      <data>0.03009</data>
+      <data>0.01984</data>
+      <data>0.01151</data>
+      <data>0.009001</data>
+      <data>0.005165</data>
+      <data>0.00272</data>
+      <data>0.001008</data>
+      <data>0.002694</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.1791</data>
+      <data>0.2403</data>
+      <data>0.3015</data>
+      <data>0.3627</data>
+      <data>0.4239</data>
+      <data>0.4851</data>
+      <data>0.5463</data>
+      <data>0.6075</data>
+      <data>0.6687</data>
+      <data>0.7299</data>
+      <data>0.791</data>
+      <data>0.8522</data>
+      <data>0.9134</data>
+      <data>0.9746</data>
+      <data>1.036</data>
+      <data>1.097</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -21.5 &lt; M &lt; -21 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-21.0</maximum>
+      <minimum>-21.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.4591</data>
+      <data>0.6277</data>
+      <data>0.4623</data>
+      <data>1.093</data>
+      <data>1.008</data>
+      <data>1.621</data>
+      <data>1.491</data>
+      <data>1.406</data>
+      <data>2.467</data>
+      <data>2.483</data>
+      <data>2.591</data>
+      <data>2.548</data>
+      <data>2.709</data>
+      <data>1.645</data>
+      <data>1.066</data>
+      <data>0.1105</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.3246</data>
+      <data>0.3139</data>
+      <data>0.2311</data>
+      <data>0.3156</data>
+      <data>0.291</data>
+      <data>0.3625</data>
+      <data>0.3421</data>
+      <data>0.3409</data>
+      <data>0.4662</data>
+      <data>0.4611</data>
+      <data>0.4731</data>
+      <data>0.4732</data>
+      <data>0.4789</data>
+      <data>0.3678</data>
+      <data>0.3553</data>
+      <data>0.1105</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.3503</data>
+      <data>-0.3081</data>
+      <data>-0.2659</data>
+      <data>-0.2236</data>
+      <data>-0.1814</data>
+      <data>-0.1392</data>
+      <data>-0.09693</data>
+      <data>-0.0547</data>
+      <data>-0.01247</data>
+      <data>0.02977</data>
+      <data>0.072</data>
+      <data>0.1142</data>
+      <data>0.1565</data>
+      <data>0.1987</data>
+      <data>0.2409</data>
+      <data>0.2832</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -17 &lt; M &lt; -16.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-16.5</maximum>
+      <minimum>-17.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.043</data>
+      <data>1.664</data>
+      <data>2.33</data>
+      <data>3.019</data>
+      <data>3.028</data>
+      <data>2.196</data>
+      <data>1.497</data>
+      <data>1.112</data>
+      <data>0.6909</data>
+      <data>0.4521</data>
+      <data>0.2543</data>
+      <data>0.2863</data>
+      <data>0.05686</data>
+      <data>0.0309</data>
+      <data>0.01473</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.6022</data>
+      <data>0.5263</data>
+      <data>0.457</data>
+      <data>0.4228</data>
+      <data>0.3473</data>
+      <data>0.2328</data>
+      <data>0.1578</data>
+      <data>0.1186</data>
+      <data>0.09233</data>
+      <data>0.07433</data>
+      <data>0.05548</data>
+      <data>0.05971</data>
+      <data>0.02543</data>
+      <data>0.01784</data>
+      <data>0.01473</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.04969</data>
+      <data>0.006881</data>
+      <data>0.06345</data>
+      <data>0.12</data>
+      <data>0.1766</data>
+      <data>0.2332</data>
+      <data>0.2897</data>
+      <data>0.3463</data>
+      <data>0.4029</data>
+      <data>0.4595</data>
+      <data>0.516</data>
+      <data>0.5726</data>
+      <data>0.6292</data>
+      <data>0.6858</data>
+      <data>0.7423</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -20 &lt; M &lt; -19.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-19.5</maximum>
+      <minimum>-20.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.08285</data>
+      <data>0.08785</data>
+      <data>0.5261</data>
+      <data>1.392</data>
+      <data>2.347</data>
+      <data>3.696</data>
+      <data>4.134</data>
+      <data>3.952</data>
+      <data>3.274</data>
+      <data>2.126</data>
+      <data>0.9526</data>
+      <data>0.4518</data>
+      <data>0.1614</data>
+      <data>0.07907</data>
+      <data>0.02537</data>
+      <data>0.008721</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.04784</data>
+      <data>0.03929</data>
+      <data>0.07843</data>
+      <data>0.1181</data>
+      <data>0.1518</data>
+      <data>0.1908</data>
+      <data>0.1987</data>
+      <data>0.1919</data>
+      <data>0.1728</data>
+      <data>0.1393</data>
+      <data>0.09167</data>
+      <data>0.06326</data>
+      <data>0.03804</data>
+      <data>0.02636</data>
+      <data>0.01794</data>
+      <data>0.008721</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.6758</data>
+      <data>0.7187</data>
+      <data>0.7616</data>
+      <data>0.8045</data>
+      <data>0.8475</data>
+      <data>0.8904</data>
+      <data>0.9333</data>
+      <data>0.9762</data>
+      <data>1.019</data>
+      <data>1.062</data>
+      <data>1.105</data>
+      <data>1.148</data>
+      <data>1.191</data>
+      <data>1.234</data>
+      <data>1.277</data>
+      <data>1.32</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -23.5 &lt; M &lt; -23 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-23.0</maximum>
+      <minimum>-23.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.236</data>
+      <data>1.181</data>
+      <data>1.79</data>
+      <data>2.73</data>
+      <data>2.646</data>
+      <data>2.445</data>
+      <data>1.764</data>
+      <data>1.412</data>
+      <data>1.003</data>
+      <data>0.5607</data>
+      <data>0.3396</data>
+      <data>0.1916</data>
+      <data>0.09769</data>
+      <data>0.04222</data>
+      <data>0.05058</data>
+      <data>0.009175</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.4673</data>
+      <data>0.3275</data>
+      <data>0.3025</data>
+      <data>0.2911</data>
+      <data>0.2295</data>
+      <data>0.1756</data>
+      <data>0.1203</data>
+      <data>0.08968</data>
+      <data>0.07164</data>
+      <data>0.05298</data>
+      <data>0.04118</data>
+      <data>0.03068</data>
+      <data>0.02184</data>
+      <data>0.01407</data>
+      <data>0.016</data>
+      <data>0.009175</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.0007756</data>
+      <data>0.05792</data>
+      <data>0.1151</data>
+      <data>0.1722</data>
+      <data>0.2294</data>
+      <data>0.2865</data>
+      <data>0.3436</data>
+      <data>0.4008</data>
+      <data>0.4579</data>
+      <data>0.5151</data>
+      <data>0.5722</data>
+      <data>0.6294</data>
+      <data>0.6865</data>
+      <data>0.7437</data>
+      <data>0.8008</data>
+      <data>0.8579</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -20.5 &lt; M &lt; -20 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-20.0</maximum>
+      <minimum>-20.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>2.284</data>
+      <data>2.203</data>
+      <data>2.965</data>
+      <data>0.3928</data>
+      <data>4.113</data>
+      <data>3.394</data>
+      <data>2.008</data>
+      <data>1.688</data>
+      <data>1.892</data>
+      <data>0.6682</data>
+      <data>1.531</data>
+      <data>0.4701</data>
+      <data>0</data>
+      <data>0</data>
+      <data>0.3196</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>1.615</data>
+      <data>1.272</data>
+      <data>1.326</data>
+      <data>0.3928</data>
+      <data>1.371</data>
+      <data>1.283</data>
+      <data>0.8982</data>
+      <data>0.7549</data>
+      <data>0.846</data>
+      <data>0.4725</data>
+      <data>0.7657</data>
+      <data>0.4701</data>
+      <data>0</data>
+      <data>0</data>
+      <data>0.3196</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.1702</data>
+      <data>-0.129</data>
+      <data>-0.08778</data>
+      <data>-0.04656</data>
+      <data>-0.005342</data>
+      <data>0.03588</data>
+      <data>0.0771</data>
+      <data>0.1183</data>
+      <data>0.1595</data>
+      <data>0.2008</data>
+      <data>0.242</data>
+      <data>0.2832</data>
+      <data>0.3244</data>
+      <data>0.3656</data>
+      <data>0.4069</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -18 &lt; M &lt; -17.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-17.5</maximum>
+      <minimum>-18.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.3303</data>
+      <data>0.2559</data>
+      <data>0.4662</data>
+      <data>0.8485</data>
+      <data>1.324</data>
+      <data>1.505</data>
+      <data>1.779</data>
+      <data>1.965</data>
+      <data>2.116</data>
+      <data>2.058</data>
+      <data>1.926</data>
+      <data>1.367</data>
+      <data>0.7997</data>
+      <data>0.3909</data>
+      <data>0.04805</data>
+      <data>0.005837</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1101</data>
+      <data>0.07096</data>
+      <data>0.07563</data>
+      <data>0.08242</data>
+      <data>0.08183</data>
+      <data>0.06989</data>
+      <data>0.06474</data>
+      <data>0.06512</data>
+      <data>0.06718</data>
+      <data>0.06633</data>
+      <data>0.06381</data>
+      <data>0.05342</data>
+      <data>0.04054</data>
+      <data>0.02836</data>
+      <data>0.00961</data>
+      <data>0.005837</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.02666</data>
+      <data>0.03153</data>
+      <data>0.08971</data>
+      <data>0.1479</data>
+      <data>0.2061</data>
+      <data>0.2643</data>
+      <data>0.3224</data>
+      <data>0.3806</data>
+      <data>0.4388</data>
+      <data>0.497</data>
+      <data>0.5552</data>
+      <data>0.6134</data>
+      <data>0.6716</data>
+      <data>0.7297</data>
+      <data>0.7879</data>
+      <data>0.8461</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -20 &lt; M &lt; -19.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-19.5</maximum>
+      <minimum>-20.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.706</data>
+      <data>0.8289</data>
+      <data>1.222</data>
+      <data>2.039</data>
+      <data>2.179</data>
+      <data>2.234</data>
+      <data>1.695</data>
+      <data>1.79</data>
+      <data>1.352</data>
+      <data>1.584</data>
+      <data>0.5888</data>
+      <data>0.5628</data>
+      <data>0.2363</data>
+      <data>0.4049</data>
+      <data>0.1873</data>
+      <data>0.09189</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>1.706</data>
+      <data>0.8289</data>
+      <data>0.8641</data>
+      <data>0.8325</data>
+      <data>0.6892</data>
+      <data>0.5767</data>
+      <data>0.3995</data>
+      <data>0.3654</data>
+      <data>0.3102</data>
+      <data>0.3233</data>
+      <data>0.1963</data>
+      <data>0.1876</data>
+      <data>0.1182</data>
+      <data>0.1653</data>
+      <data>0.1081</data>
+      <data>0.09189</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.2264</data>
+      <data>-0.1729</data>
+      <data>-0.1195</data>
+      <data>-0.06599</data>
+      <data>-0.01252</data>
+      <data>0.04095</data>
+      <data>0.09442</data>
+      <data>0.1479</data>
+      <data>0.2014</data>
+      <data>0.2548</data>
+      <data>0.3083</data>
+      <data>0.3618</data>
+      <data>0.4152</data>
+      <data>0.4687</data>
+      <data>0.5222</data>
+      <data>0.5756</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -19 &lt; M &lt; -18.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-18.5</maximum>
+      <minimum>-19.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.0819</data>
+      <data>0.1791</data>
+      <data>0.4154</data>
+      <data>1.21</data>
+      <data>2.031</data>
+      <data>3.093</data>
+      <data>3.698</data>
+      <data>3.584</data>
+      <data>2.678</data>
+      <data>1.521</data>
+      <data>0.7123</data>
+      <data>0.2981</data>
+      <data>0.09339</data>
+      <data>0.1321</data>
+      <data>0.01133</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.04728</data>
+      <data>0.04786</data>
+      <data>0.05874</data>
+      <data>0.08511</data>
+      <data>0.1049</data>
+      <data>0.1283</data>
+      <data>0.1389</data>
+      <data>0.136</data>
+      <data>0.1154</data>
+      <data>0.08556</data>
+      <data>0.05778</data>
+      <data>0.03727</data>
+      <data>0.02038</data>
+      <data>0.0341</data>
+      <data>0.01133</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.5768</data>
+      <data>0.6274</data>
+      <data>0.678</data>
+      <data>0.7286</data>
+      <data>0.7792</data>
+      <data>0.8298</data>
+      <data>0.8804</data>
+      <data>0.931</data>
+      <data>0.9816</data>
+      <data>1.032</data>
+      <data>1.083</data>
+      <data>1.133</data>
+      <data>1.184</data>
+      <data>1.234</data>
+      <data>1.285</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -23 &lt; M &lt; -22.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-22.5</maximum>
+      <minimum>-23.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.07639</data>
+      <data>0.09616</data>
+      <data>0.2097</data>
+      <data>0.5573</data>
+      <data>1.06</data>
+      <data>1.803</data>
+      <data>2.66</data>
+      <data>2.99</data>
+      <data>2.944</data>
+      <data>2.417</data>
+      <data>1.41</data>
+      <data>0.5892</data>
+      <data>0.1801</data>
+      <data>0.03316</data>
+      <data>0.003146</data>
+      <data>0.0007172</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.0382</data>
+      <data>0.03041</data>
+      <data>0.03357</data>
+      <data>0.0425</data>
+      <data>0.04694</data>
+      <data>0.0485</data>
+      <data>0.04919</data>
+      <data>0.04921</data>
+      <data>0.04837</data>
+      <data>0.04352</data>
+      <data>0.03288</data>
+      <data>0.02107</data>
+      <data>0.01165</data>
+      <data>0.005057</data>
+      <data>0.001816</data>
+      <data>0.0007172</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.1989</data>
+      <data>0.2576</data>
+      <data>0.3163</data>
+      <data>0.375</data>
+      <data>0.4338</data>
+      <data>0.4925</data>
+      <data>0.5512</data>
+      <data>0.6099</data>
+      <data>0.6686</data>
+      <data>0.7273</data>
+      <data>0.7861</data>
+      <data>0.8448</data>
+      <data>0.9035</data>
+      <data>0.9622</data>
+      <data>1.021</data>
+      <data>1.08</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -21.5 &lt; M &lt; -21 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-21.0</maximum>
+      <minimum>-21.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.2572</data>
+      <data>0.2629</data>
+      <data>0.5703</data>
+      <data>0.9444</data>
+      <data>1.528</data>
+      <data>2.651</data>
+      <data>3.7</data>
+      <data>5.428</data>
+      <data>3.769</data>
+      <data>2.38</data>
+      <data>2.703</data>
+      <data>1.161</data>
+      <data>0.4997</data>
+      <data>0.3863</data>
+      <data>0.1399</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1819</data>
+      <data>0.1859</data>
+      <data>0.2852</data>
+      <data>0.3569</data>
+      <data>0.4607</data>
+      <data>0.6083</data>
+      <data>0.712</data>
+      <data>0.8582</data>
+      <data>0.7123</data>
+      <data>0.5609</data>
+      <data>0.5898</data>
+      <data>0.4106</data>
+      <data>0.2885</data>
+      <data>0.2731</data>
+      <data>0.1399</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.8673</data>
+      <data>0.9052</data>
+      <data>0.9431</data>
+      <data>0.981</data>
+      <data>1.019</data>
+      <data>1.057</data>
+      <data>1.095</data>
+      <data>1.133</data>
+      <data>1.171</data>
+      <data>1.208</data>
+      <data>1.246</data>
+      <data>1.284</data>
+      <data>1.322</data>
+      <data>1.36</data>
+      <data>1.398</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -24 &lt; M &lt; -23.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-23.5</maximum>
+      <minimum>-24.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.2633</data>
+      <data>0.2589</data>
+      <data>0.2297</data>
+      <data>0.4923</data>
+      <data>0.7348</data>
+      <data>1.291</data>
+      <data>1.265</data>
+      <data>1.711</data>
+      <data>1.515</data>
+      <data>2.281</data>
+      <data>1.937</data>
+      <data>2.188</data>
+      <data>2.092</data>
+      <data>2.068</data>
+      <data>0.6933</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1862</data>
+      <data>0.1495</data>
+      <data>0.1149</data>
+      <data>0.1316</data>
+      <data>0.1342</data>
+      <data>0.1554</data>
+      <data>0.149</data>
+      <data>0.1719</data>
+      <data>0.1597</data>
+      <data>0.1978</data>
+      <data>0.1807</data>
+      <data>0.1926</data>
+      <data>0.1871</data>
+      <data>0.1936</data>
+      <data>0.1266</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.2997</data>
+      <data>-0.2472</data>
+      <data>-0.1946</data>
+      <data>-0.142</data>
+      <data>-0.08943</data>
+      <data>-0.03686</data>
+      <data>0.01572</data>
+      <data>0.0683</data>
+      <data>0.1209</data>
+      <data>0.1735</data>
+      <data>0.226</data>
+      <data>0.2786</data>
+      <data>0.3312</data>
+      <data>0.3838</data>
+      <data>0.4363</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -18 &lt; M &lt; -17.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-17.5</maximum>
+      <minimum>-18.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.4527</data>
+      <data>0.5797</data>
+      <data>0.5283</data>
+      <data>0.7245</data>
+      <data>1.239</data>
+      <data>1.128</data>
+      <data>1.376</data>
+      <data>1.848</data>
+      <data>1.982</data>
+      <data>1.934</data>
+      <data>2.063</data>
+      <data>2.028</data>
+      <data>1.835</data>
+      <data>0.7611</data>
+      <data>0.1974</data>
+      <data>0.008578</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1509</data>
+      <data>0.1366</data>
+      <data>0.1057</data>
+      <data>0.1005</data>
+      <data>0.1087</data>
+      <data>0.08915</data>
+      <data>0.09212</data>
+      <data>0.1072</data>
+      <data>0.1129</data>
+      <data>0.1092</data>
+      <data>0.1134</data>
+      <data>0.1125</data>
+      <data>0.1068</data>
+      <data>0.06835</data>
+      <data>0.03546</data>
+      <data>0.008578</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.1268</data>
+      <data>-0.07325</data>
+      <data>-0.01973</data>
+      <data>0.03379</data>
+      <data>0.08731</data>
+      <data>0.1408</data>
+      <data>0.1944</data>
+      <data>0.2479</data>
+      <data>0.3014</data>
+      <data>0.3549</data>
+      <data>0.4084</data>
+      <data>0.462</data>
+      <data>0.5155</data>
+      <data>0.569</data>
+      <data>0.6225</data>
+      <data>0.676</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -19 &lt; M &lt; -18.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-18.5</maximum>
+      <minimum>-19.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.1336</data>
+      <data>0.08865</data>
+      <data>0.41</data>
+      <data>0.9693</data>
+      <data>2.088</data>
+      <data>3.554</data>
+      <data>4.076</data>
+      <data>3.207</data>
+      <data>1.667</data>
+      <data>0.6734</data>
+      <data>0.2528</data>
+      <data>0.08965</data>
+      <data>0.03252</data>
+      <data>0.0146</data>
+      <data>0.005397</data>
+      <data>0.001102</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.06678</data>
+      <data>0.03619</data>
+      <data>0.05528</data>
+      <data>0.0652</data>
+      <data>0.07624</data>
+      <data>0.07934</data>
+      <data>0.07435</data>
+      <data>0.06417</data>
+      <data>0.04587</data>
+      <data>0.02884</data>
+      <data>0.01766</data>
+      <data>0.01049</data>
+      <data>0.006504</data>
+      <data>0.004216</data>
+      <data>0.002699</data>
+      <data>0.001102</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.3593</data>
+      <data>0.4172</data>
+      <data>0.4751</data>
+      <data>0.5331</data>
+      <data>0.591</data>
+      <data>0.6489</data>
+      <data>0.7069</data>
+      <data>0.7648</data>
+      <data>0.8227</data>
+      <data>0.8806</data>
+      <data>0.9386</data>
+      <data>0.9965</data>
+      <data>1.054</data>
+      <data>1.112</data>
+      <data>1.17</data>
+      <data>1.228</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -22.5 &lt; M &lt; -22 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-22.0</maximum>
+      <minimum>-22.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.0544</data>
+      <data>0.2574</data>
+      <data>0.682</data>
+      <data>1.258</data>
+      <data>2.35</data>
+      <data>3.359</data>
+      <data>3.909</data>
+      <data>3.082</data>
+      <data>1.705</data>
+      <data>0.8292</data>
+      <data>0.2982</data>
+      <data>0.1201</data>
+      <data>0.05201</data>
+      <data>0.02106</data>
+      <data>0.007464</data>
+      <data>0.001852</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.0544</data>
+      <data>0.0714</data>
+      <data>0.08038</data>
+      <data>0.08443</data>
+      <data>0.09176</data>
+      <data>0.08761</data>
+      <data>0.07688</data>
+      <data>0.06044</data>
+      <data>0.04387</data>
+      <data>0.03048</data>
+      <data>0.01818</data>
+      <data>0.01161</data>
+      <data>0.007668</data>
+      <data>0.004963</data>
+      <data>0.002821</data>
+      <data>0.001852</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.2621</data>
+      <data>0.3176</data>
+      <data>0.3732</data>
+      <data>0.4288</data>
+      <data>0.4844</data>
+      <data>0.54</data>
+      <data>0.5956</data>
+      <data>0.6512</data>
+      <data>0.7068</data>
+      <data>0.7624</data>
+      <data>0.818</data>
+      <data>0.8736</data>
+      <data>0.9292</data>
+      <data>0.9848</data>
+      <data>1.04</data>
+      <data>1.096</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -22 &lt; M &lt; -21.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-21.5</maximum>
+      <minimum>-22.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.5314</data>
+      <data>0.7559</data>
+      <data>1.391</data>
+      <data>2.12</data>
+      <data>2.38</data>
+      <data>3.411</data>
+      <data>3.376</data>
+      <data>2.95</data>
+      <data>2.254</data>
+      <data>1.777</data>
+      <data>1.008</data>
+      <data>0.5587</data>
+      <data>0.3233</data>
+      <data>0.0565</data>
+      <data>0.1068</data>
+      <data>0.06246</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.142</data>
+      <data>0.1482</data>
+      <data>0.2051</data>
+      <data>0.2533</data>
+      <data>0.2695</data>
+      <data>0.3181</data>
+      <data>0.3148</data>
+      <data>0.2879</data>
+      <data>0.249</data>
+      <data>0.2222</data>
+      <data>0.1635</data>
+      <data>0.1219</data>
+      <data>0.09748</data>
+      <data>0.03995</data>
+      <data>0.1068</data>
+      <data>0.06246</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.7548</data>
+      <data>0.7982</data>
+      <data>0.8415</data>
+      <data>0.8849</data>
+      <data>0.9282</data>
+      <data>0.9716</data>
+      <data>1.015</data>
+      <data>1.058</data>
+      <data>1.102</data>
+      <data>1.145</data>
+      <data>1.188</data>
+      <data>1.232</data>
+      <data>1.275</data>
+      <data>1.318</data>
+      <data>1.362</data>
+      <data>1.405</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -23.5 &lt; M &lt; -23 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-23.0</maximum>
+      <minimum>-23.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.2988</data>
+      <data>0.08424</data>
+      <data>0.2677</data>
+      <data>1.264</data>
+      <data>1.87</data>
+      <data>2.696</data>
+      <data>4.061</data>
+      <data>4.876</data>
+      <data>5.451</data>
+      <data>4.312</data>
+      <data>2.495</data>
+      <data>1.917</data>
+      <data>0.5318</data>
+      <data>0.5115</data>
+      <data>0.08566</data>
+      <data>0</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1725</data>
+      <data>0.08424</data>
+      <data>0.1546</data>
+      <data>0.3379</data>
+      <data>0.4081</data>
+      <data>0.4922</data>
+      <data>0.5988</data>
+      <data>0.6635</data>
+      <data>0.698</data>
+      <data>0.616</data>
+      <data>0.4716</data>
+      <data>0.4087</data>
+      <data>0.2171</data>
+      <data>0.2088</data>
+      <data>0.08566</data>
+      <data>0</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.827</data>
+      <data>0.8596</data>
+      <data>0.8921</data>
+      <data>0.9247</data>
+      <data>0.9572</data>
+      <data>0.9898</data>
+      <data>1.022</data>
+      <data>1.055</data>
+      <data>1.087</data>
+      <data>1.12</data>
+      <data>1.153</data>
+      <data>1.185</data>
+      <data>1.218</data>
+      <data>1.25</data>
+      <data>1.283</data>
+      <data>1.315</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -24 &lt; M &lt; -23.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-23.5</maximum>
+      <minimum>-24.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.06502</data>
+      <data>0.4359</data>
+      <data>0.6526</data>
+      <data>0.8748</data>
+      <data>1.204</data>
+      <data>1.439</data>
+      <data>1.573</data>
+      <data>1.877</data>
+      <data>2.044</data>
+      <data>1.998</data>
+      <data>1.883</data>
+      <data>1.666</data>
+      <data>1.199</data>
+      <data>0.61</data>
+      <data>0.1276</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.06502</data>
+      <data>0.1057</data>
+      <data>0.1032</data>
+      <data>0.09603</data>
+      <data>0.09099</data>
+      <data>0.08197</data>
+      <data>0.07676</data>
+      <data>0.08277</data>
+      <data>0.08561</data>
+      <data>0.0843</data>
+      <data>0.08126</data>
+      <data>0.07654</data>
+      <data>0.06543</data>
+      <data>0.04572</data>
+      <data>0.02126</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.0836</data>
+      <data>-0.02695</data>
+      <data>0.02971</data>
+      <data>0.08637</data>
+      <data>0.143</data>
+      <data>0.1997</data>
+      <data>0.2564</data>
+      <data>0.313</data>
+      <data>0.3697</data>
+      <data>0.4263</data>
+      <data>0.483</data>
+      <data>0.5397</data>
+      <data>0.5963</data>
+      <data>0.653</data>
+      <data>0.7096</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -19.5 &lt; M &lt; -19 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-19.0</maximum>
+      <minimum>-19.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.5071</data>
+      <data>0.3548</data>
+      <data>0.2803</data>
+      <data>1.391</data>
+      <data>1.742</data>
+      <data>1.172</data>
+      <data>2.393</data>
+      <data>2.409</data>
+      <data>2.678</data>
+      <data>2.49</data>
+      <data>2.151</data>
+      <data>2.869</data>
+      <data>1.75</data>
+      <data>1.43</data>
+      <data>0.928</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.5071</data>
+      <data>0.3548</data>
+      <data>0.2803</data>
+      <data>0.5679</data>
+      <data>0.6158</data>
+      <data>0.4785</data>
+      <data>0.7216</data>
+      <data>0.7263</data>
+      <data>0.7428</data>
+      <data>0.7189</data>
+      <data>0.6802</data>
+      <data>0.7668</data>
+      <data>0.6186</data>
+      <data>0.5056</data>
+      <data>0.464</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.5163</data>
+      <data>-0.4758</data>
+      <data>-0.4354</data>
+      <data>-0.3949</data>
+      <data>-0.3544</data>
+      <data>-0.3139</data>
+      <data>-0.2735</data>
+      <data>-0.233</data>
+      <data>-0.1925</data>
+      <data>-0.152</data>
+      <data>-0.1116</data>
+      <data>-0.0711</data>
+      <data>-0.03062</data>
+      <data>0.009853</data>
+      <data>0.05033</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -16 &lt; M &lt; -15.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-15.5</maximum>
+      <minimum>-16.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.3019</data>
+      <data>0.4396</data>
+      <data>1.203</data>
+      <data>1.038</data>
+      <data>1.431</data>
+      <data>1.565</data>
+      <data>1.727</data>
+      <data>2.264</data>
+      <data>2.058</data>
+      <data>1.878</data>
+      <data>2.295</data>
+      <data>2.226</data>
+      <data>1.975</data>
+      <data>1.239</data>
+      <data>0.514</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1141</data>
+      <data>0.1135</data>
+      <data>0.1608</data>
+      <data>0.1287</data>
+      <data>0.1383</data>
+      <data>0.1447</data>
+      <data>0.1509</data>
+      <data>0.1752</data>
+      <data>0.1653</data>
+      <data>0.1544</data>
+      <data>0.1735</data>
+      <data>0.1698</data>
+      <data>0.1586</data>
+      <data>0.1252</data>
+      <data>0.07838</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.1085</data>
+      <data>-0.06339</data>
+      <data>-0.01826</data>
+      <data>0.02688</data>
+      <data>0.07201</data>
+      <data>0.1171</data>
+      <data>0.1623</data>
+      <data>0.2074</data>
+      <data>0.2526</data>
+      <data>0.2977</data>
+      <data>0.3428</data>
+      <data>0.388</data>
+      <data>0.4331</data>
+      <data>0.4782</data>
+      <data>0.5234</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -18.5 &lt; M &lt; -18 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-18.0</maximum>
+      <minimum>-18.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.668</data>
+      <data>2.654</data>
+      <data>2.875</data>
+      <data>1.114</data>
+      <data>2.884</data>
+      <data>1.556</data>
+      <data>0.6523</data>
+      <data>1.999</data>
+      <data>0.7436</data>
+      <data>0.6285</data>
+      <data>0.7012</data>
+      <data>0.974</data>
+      <data>0.6219</data>
+      <data>0.1969</data>
+      <data>0.0953</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>1.668</data>
+      <data>1.532</data>
+      <data>1.286</data>
+      <data>0.643</data>
+      <data>0.8696</data>
+      <data>0.5188</data>
+      <data>0.2917</data>
+      <data>0.4997</data>
+      <data>0.2811</data>
+      <data>0.2566</data>
+      <data>0.2863</data>
+      <data>0.3444</data>
+      <data>0.2781</data>
+      <data>0.1392</data>
+      <data>0.0953</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.2542</data>
+      <data>-0.2026</data>
+      <data>-0.1509</data>
+      <data>-0.09927</data>
+      <data>-0.04762</data>
+      <data>0.004019</data>
+      <data>0.05566</data>
+      <data>0.1073</data>
+      <data>0.1589</data>
+      <data>0.2106</data>
+      <data>0.2622</data>
+      <data>0.3139</data>
+      <data>0.3655</data>
+      <data>0.4172</data>
+      <data>0.4688</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -18.5 &lt; M &lt; -18 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-18.0</maximum>
+      <minimum>-18.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.058</data>
+      <data>0.1509</data>
+      <data>0.3357</data>
+      <data>0.8601</data>
+      <data>1.737</data>
+      <data>2.775</data>
+      <data>3.333</data>
+      <data>3.421</data>
+      <data>2.896</data>
+      <data>1.834</data>
+      <data>0.8318</data>
+      <data>0.264</data>
+      <data>0.07842</data>
+      <data>0.01856</data>
+      <data>0.01221</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.02368</data>
+      <data>0.02905</data>
+      <data>0.03374</data>
+      <data>0.04333</data>
+      <data>0.05016</data>
+      <data>0.05459</data>
+      <data>0.05757</data>
+      <data>0.05772</data>
+      <data>0.05256</data>
+      <data>0.0412</data>
+      <data>0.02741</data>
+      <data>0.01529</data>
+      <data>0.008457</data>
+      <data>0.004259</data>
+      <data>0.00546</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.3572</data>
+      <data>0.4109</data>
+      <data>0.4647</data>
+      <data>0.5184</data>
+      <data>0.5721</data>
+      <data>0.6259</data>
+      <data>0.6796</data>
+      <data>0.7334</data>
+      <data>0.7871</data>
+      <data>0.8409</data>
+      <data>0.8946</data>
+      <data>0.9484</data>
+      <data>1.002</data>
+      <data>1.056</data>
+      <data>1.11</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -22 &lt; M &lt; -21.5 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-21.5</maximum>
+      <minimum>-22.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.061</data>
+      <data>0.4857</data>
+      <data>0.5874</data>
+      <data>0.8442</data>
+      <data>1.11</data>
+      <data>1.439</data>
+      <data>1.632</data>
+      <data>1.855</data>
+      <data>2.437</data>
+      <data>1.985</data>
+      <data>2.535</data>
+      <data>2.211</data>
+      <data>2.121</data>
+      <data>1.783</data>
+      <data>0.9725</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.3537</data>
+      <data>0.1983</data>
+      <data>0.1857</data>
+      <data>0.199</data>
+      <data>0.2137</data>
+      <data>0.2399</data>
+      <data>0.2519</data>
+      <data>0.2735</data>
+      <data>0.312</data>
+      <data>0.2836</data>
+      <data>0.3168</data>
+      <data>0.2928</data>
+      <data>0.2887</data>
+      <data>0.2629</data>
+      <data>0.1907</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.2772</data>
+      <data>-0.2338</data>
+      <data>-0.1905</data>
+      <data>-0.1471</data>
+      <data>-0.1037</data>
+      <data>-0.06035</data>
+      <data>-0.01699</data>
+      <data>0.02638</data>
+      <data>0.06975</data>
+      <data>0.1131</data>
+      <data>0.1565</data>
+      <data>0.1998</data>
+      <data>0.2432</data>
+      <data>0.2866</data>
+      <data>0.33</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -17.5 &lt; M &lt; -17 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-17.0</maximum>
+      <minimum>-17.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.196</data>
+      <data>0.2776</data>
+      <data>0.4604</data>
+      <data>0.6669</data>
+      <data>1.031</data>
+      <data>1.306</data>
+      <data>1.925</data>
+      <data>2.244</data>
+      <data>2.387</data>
+      <data>2.274</data>
+      <data>1.865</data>
+      <data>1.307</data>
+      <data>0.6168</data>
+      <data>0.2242</data>
+      <data>0.04427</data>
+      <data>0.0009795</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1131</data>
+      <data>0.06542</data>
+      <data>0.06941</data>
+      <data>0.06219</data>
+      <data>0.06172</data>
+      <data>0.05499</data>
+      <data>0.05454</data>
+      <data>0.05376</data>
+      <data>0.05488</data>
+      <data>0.05346</data>
+      <data>0.04825</data>
+      <data>0.04027</data>
+      <data>0.02758</data>
+      <data>0.01648</data>
+      <data>0.007181</data>
+      <data>0.0009795</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.02361</data>
+      <data>0.08304</data>
+      <data>0.1425</data>
+      <data>0.2019</data>
+      <data>0.2613</data>
+      <data>0.3208</data>
+      <data>0.3802</data>
+      <data>0.4396</data>
+      <data>0.4991</data>
+      <data>0.5585</data>
+      <data>0.6179</data>
+      <data>0.6773</data>
+      <data>0.7368</data>
+      <data>0.7962</data>
+      <data>0.8556</data>
+      <data>0.9151</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -20.5 &lt; M &lt; -20 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-20.0</maximum>
+      <minimum>-20.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.05714</data>
+      <data>0.2581</data>
+      <data>0.575</data>
+      <data>1.427</data>
+      <data>2.695</data>
+      <data>4.032</data>
+      <data>4.258</data>
+      <data>3.216</data>
+      <data>2.105</data>
+      <data>1.119</data>
+      <data>0.4996</data>
+      <data>0.1786</data>
+      <data>0.08493</data>
+      <data>0.01878</data>
+      <data>0.01131</data>
+      <data>0.002895</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.03299</data>
+      <data>0.05161</data>
+      <data>0.06061</data>
+      <data>0.07906</data>
+      <data>0.09121</data>
+      <data>0.1061</data>
+      <data>0.107</data>
+      <data>0.09195</data>
+      <data>0.07332</data>
+      <data>0.05283</data>
+      <data>0.03533</data>
+      <data>0.0212</data>
+      <data>0.01456</data>
+      <data>0.006639</data>
+      <data>0.005057</data>
+      <data>0.002895</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.5347</data>
+      <data>0.5833</data>
+      <data>0.632</data>
+      <data>0.6807</data>
+      <data>0.7294</data>
+      <data>0.7781</data>
+      <data>0.8268</data>
+      <data>0.8755</data>
+      <data>0.9242</data>
+      <data>0.9728</data>
+      <data>1.022</data>
+      <data>1.07</data>
+      <data>1.119</data>
+      <data>1.168</data>
+      <data>1.216</data>
+      <data>1.265</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -23 &lt; M &lt; -22.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-22.5</maximum>
+      <minimum>-23.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.06509</data>
+      <data>0.09211</data>
+      <data>0.2127</data>
+      <data>0.684</data>
+      <data>1.54</data>
+      <data>2.732</data>
+      <data>3.417</data>
+      <data>3.611</data>
+      <data>2.937</data>
+      <data>1.676</data>
+      <data>0.6718</data>
+      <data>0.2114</data>
+      <data>0.0854</data>
+      <data>0.02362</data>
+      <data>0.0171</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.02911</data>
+      <data>0.02659</data>
+      <data>0.03171</data>
+      <data>0.0452</data>
+      <data>0.05505</data>
+      <data>0.06731</data>
+      <data>0.07425</data>
+      <data>0.0755</data>
+      <data>0.06712</data>
+      <data>0.04981</data>
+      <data>0.03112</data>
+      <data>0.01732</data>
+      <data>0.01121</data>
+      <data>0.006314</data>
+      <data>0.007647</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.4368</data>
+      <data>0.4925</data>
+      <data>0.5481</data>
+      <data>0.6037</data>
+      <data>0.6593</data>
+      <data>0.715</data>
+      <data>0.7706</data>
+      <data>0.8262</data>
+      <data>0.8819</data>
+      <data>0.9375</data>
+      <data>0.9931</data>
+      <data>1.049</data>
+      <data>1.104</data>
+      <data>1.16</data>
+      <data>1.216</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -22.5 &lt; M &lt; -22 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-22.0</maximum>
+      <minimum>-22.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.5919</data>
+      <data>1.303</data>
+      <data>2.28</data>
+      <data>2.767</data>
+      <data>3.152</data>
+      <data>2.6</data>
+      <data>1.882</data>
+      <data>1.104</data>
+      <data>0.6927</data>
+      <data>0.3163</data>
+      <data>0.1668</data>
+      <data>0.08708</data>
+      <data>0.0372</data>
+      <data>0.01159</data>
+      <data>0</data>
+      <data>0.001638</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.1785</data>
+      <data>0.1922</data>
+      <data>0.1955</data>
+      <data>0.1703</data>
+      <data>0.1431</data>
+      <data>0.1037</data>
+      <data>0.07191</data>
+      <data>0.04996</data>
+      <data>0.0396</data>
+      <data>0.02664</data>
+      <data>0.01952</data>
+      <data>0.01394</data>
+      <data>0.0093</data>
+      <data>0.005184</data>
+      <data>0</data>
+      <data>0.001638</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>0.1148</data>
+      <data>0.1737</data>
+      <data>0.2325</data>
+      <data>0.2914</data>
+      <data>0.3502</data>
+      <data>0.4091</data>
+      <data>0.4679</data>
+      <data>0.5268</data>
+      <data>0.5856</data>
+      <data>0.6444</data>
+      <data>0.7033</data>
+      <data>0.7621</data>
+      <data>0.821</data>
+      <data>0.8798</data>
+      <data>0.9387</data>
+      <data>0.9975</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -21 &lt; M &lt; -20.5 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-20.5</maximum>
+      <minimum>-21.0</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>1.706</data>
+      <data>1.102</data>
+      <data>2.428</data>
+      <data>2.843</data>
+      <data>1.962</data>
+      <data>1.732</data>
+      <data>1.995</data>
+      <data>1.677</data>
+      <data>1.178</data>
+      <data>0.548</data>
+      <data>0.2701</data>
+      <data>0.3475</data>
+      <data>0.1422</data>
+      <data>0.07356</data>
+      <data>0.1443</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>1.206</data>
+      <data>0.5509</data>
+      <data>0.7009</data>
+      <data>0.6203</data>
+      <data>0.4091</data>
+      <data>0.3217</data>
+      <data>0.2822</data>
+      <data>0.2372</data>
+      <data>0.1964</data>
+      <data>0.1292</data>
+      <data>0.09003</data>
+      <data>0.1099</data>
+      <data>0.06359</data>
+      <data>0.05201</data>
+      <data>0.06453</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.1189</data>
+      <data>-0.06376</data>
+      <data>-0.008664</data>
+      <data>0.04644</data>
+      <data>0.1015</data>
+      <data>0.1566</data>
+      <data>0.2117</data>
+      <data>0.2668</data>
+      <data>0.3219</data>
+      <data>0.377</data>
+      <data>0.4321</data>
+      <data>0.4872</data>
+      <data>0.5423</data>
+      <data>0.5974</data>
+      <data>0.6525</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -19.5 &lt; M &lt; -19 for early-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-19.0</maximum>
+      <minimum>-19.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>1.0</maximum>
+      <minimum>0.4</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <sizeDistribution>
+    <columns>
+      <name>distribution</name>
+      <data>0.5981</data>
+      <data>0.3594</data>
+      <data>0.6624</data>
+      <data>0</data>
+      <data>0.9949</data>
+      <data>1.136</data>
+      <data>2.216</data>
+      <data>2.322</data>
+      <data>1.9</data>
+      <data>3.934</data>
+      <data>2.373</data>
+      <data>5.246</data>
+      <data>2.214</data>
+      <data>1.617</data>
+      <data>1.119</data>
+      <data>0</data>
+      <description>half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>distributionError</name>
+      <data>0.5981</data>
+      <data>0.3594</data>
+      <data>0.4684</data>
+      <data>0</data>
+      <data>0.5744</data>
+      <data>0.6558</data>
+      <data>0.8377</data>
+      <data>0.8208</data>
+      <data>0.7182</data>
+      <data>1.091</data>
+      <data>0.8971</data>
+      <data>1.272</data>
+      <data>0.7829</data>
+      <data>0.6599</data>
+      <data>0.5005</data>
+      <data>0</data>
+      <description>Error on half light radius distribution.</description>
+      <hubble>70.0</hubble>
+      <scaling>linear</scaling>
+      <units>Number per log10(half-light radius), normalized to unit area.</units>
+    </columns>
+    <columns>
+      <name>radius</name>
+      <data>-0.5781</data>
+      <data>-0.5406</data>
+      <data>-0.5032</data>
+      <data>-0.4657</data>
+      <data>-0.4282</data>
+      <data>-0.3908</data>
+      <data>-0.3533</data>
+      <data>-0.3158</data>
+      <data>-0.2784</data>
+      <data>-0.2409</data>
+      <data>-0.2034</data>
+      <data>-0.166</data>
+      <data>-0.1285</data>
+      <data>-0.09106</data>
+      <data>-0.0536</data>
+      <data>-0.01613</data>
+      <description>Galaxy half-light radius.</description>
+      <hubble>70.0</hubble>
+      <scaling>logarithmic base 10</scaling>
+      <units>kpc</units>
+    </columns>
+    <description>Galaxy half-light radius distribution for -15.5 &lt; M &lt; -15 for late-type galaxies.</description>
+    <magnitudeRange>
+      <hubble>70.0</hubble>
+      <maximum>-15.0</maximum>
+      <minimum>-15.5</minimum>
+    </magnitudeRange>
+    <morphologyRange>
+      <maximum>0.4</maximum>
+      <minimum>0.0</minimum>
+      <type>B/T (light)</type>
+    </morphologyRange>
+  </sizeDistribution>
+  <source>Shiyin Shen</source>
+  <url>http://adsabs.harvard.edu/abs/2003MNRAS.343..978S</url>
+</dataSets>
