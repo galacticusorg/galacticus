@@ -49,7 +49,7 @@ contains
        Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Simple
        !@ <inputParameter>
        !@   <name>majorMergerMassRatio</name>
-       !@   <defaultValue>0.3983</defaultValue>
+       !@   <defaultValue>0.25</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The mass ratio above which mergers are considered to be ``major'' in the simple merger mass movements method.
@@ -57,7 +57,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.1d0)
+       call Get_Input_Parameter("majorMergerMassRatio",majorMergerMassRatio,defaultValue=0.25d0)
        !@ <inputParameter>
        !@   <name>minorMergerGasMovesTo</name>
        !@   <defaultValue>spheroid</defaultValue>

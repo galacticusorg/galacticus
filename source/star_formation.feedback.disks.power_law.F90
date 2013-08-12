@@ -56,7 +56,7 @@ contains
        call Get_Input_Parameter('diskOutflowVelocity',diskOutflowVelocity,defaultValue=250.0d0)
        !@ <inputParameter>
        !@   <name>diskOutflowExponent</name>
-       !@   <defaultValue>3</defaultValue>
+       !@   <defaultValue>3.5</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The velocity scaling of the \gls{sne}-driven outflow rate in disks.
@@ -65,7 +65,7 @@ contains
        !@   <cardinality>1</cardinality>
        !@   <group>starFormation</group>
        !@ </inputParameter>
-       call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  3.0d0)
+       call Get_Input_Parameter('diskOutflowExponent',diskOutflowExponent,defaultValue=  3.5d0)
     end if
     return
   end subroutine Star_Formation_Feedback_Disks_Power_Law_Initialize

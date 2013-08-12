@@ -218,11 +218,15 @@
   </parameter>
   <parameter>
     <name>isothermalCoreRadiusOverVirialRadius</name>
-    <value>0.4123</value>
+    <value>0.3</value>
   </parameter>
   <parameter>
     <name>hotHaloAngularMomentumLossFraction</name>
     <value>0.3</value>
+  </parameter>
+  <parameter>
+    <name>coolingSpecificAngularMomentumMethod</name>
+    <value>constantRotation</value>
   </parameter>
   <parameter>
     <name>hotHaloOutflowReturnRate</name>
@@ -294,11 +298,11 @@
   </parameter>
   <parameter>
     <name>adiabaticContractionGnedinA</name>
-    <value>0.8</value>
+    <value>0.73</value>
   </parameter>
   <parameter>
     <name>adiabaticContractionGnedinOmega</name>
-    <value>0.77</value>
+    <value>0.7</value>
   </parameter>
   <parameter>
     <name>spheroidAngularMomentumAtScaleRadius</name>
@@ -316,7 +320,7 @@
   </parameter>
   <parameter>
     <name>stabilityThresholdStellar</name>
-    <value>0.7</value>
+    <value>1.1</value>
   </parameter>
 
   <!-- Star formation rate options -->
@@ -327,6 +331,14 @@
   <parameter>
     <name>starFormationRateSurfaceDensityDisksMethod</name>
     <value>KMT09</value>
+  </parameter>
+  <parameter>
+    <name>molecularComplexClumpingFactorKMT09</name>
+    <value>5.0</value>
+  </parameter>
+  <parameter>
+    <name>starFormationFrequencyKMT09</name>
+    <value>0.385</value>
   </parameter>
   <parameter>
     <name>molecularFractionFastKMT09</name>
@@ -342,11 +354,11 @@
   </parameter>
   <parameter>
     <name>starFormationSpheroidEfficiency</name>
-    <value>0.004</value>
+    <value>0.04</value>
   </parameter>
   <parameter>
     <name>starFormationSpheroidVelocityExponent</name>
-    <value>4.0</value>
+    <value>2.0</value>
   </parameter>
   <parameter>
     <name>starFormationSpheroidMinimumTimescale</name>
@@ -404,15 +416,15 @@
   </parameter>
   <parameter>
     <name>spheroidOutflowVelocity</name>
-    <value>300.0</value>
+    <value>100.0</value>
   </parameter>
   <parameter>
     <name>diskOutflowExponent</name>
-    <value>3.0</value>
+    <value>3.5</value>
   </parameter>
   <parameter>
     <name>spheroidOutflowExponent</name>
-    <value>2.0</value>
+    <value>3.5</value>
   </parameter>
 
   <!-- Accretion disk properties -->
@@ -467,12 +479,16 @@
     <value>0.0024</value>
   </parameter>
   <parameter>
+    <name>blackHoleWindEfficiencyScalesWithRadiativeEfficiency</name>
+    <value>true</value>
+  </parameter>
+  <parameter>
     <name>bondiHoyleAccretionEnhancementHotHalo</name>
-    <value>1.5</value>
+    <value>6.0</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionEnhancementSpheroid</name>
-    <value>420.0</value>
+    <value>5.0</value>
   </parameter>
   <parameter>
     <name>bondiHoyleAccretionTemperatureSpheroid</name>
@@ -500,7 +516,7 @@
   </parameter>
   <parameter>
     <name>mergingTimescaleMultiplier</name>
-    <value>1.0</value>
+    <value>0.75</value>
   </parameter>
   <parameter>
     <name>satelliteMergingMassMovementsMethod</name>
@@ -516,7 +532,7 @@
   </parameter>
   <parameter>
     <name>majorMergerMassRatio</name>
-    <value>0.3983</value>
+    <value>0.25</value>
   </parameter>
   <parameter>
     <name>mergerRemnantSizeOrbitalEnergy</name>
@@ -526,7 +542,7 @@
   <!-- Spheroid options -->
   <parameter>
     <name>spheroidEnergeticOutflowMassRate</name>
-    <value>1.0</value>
+    <value>1.0e-2</value>
   </parameter>
 
   <!-- Numerical tolerances -->

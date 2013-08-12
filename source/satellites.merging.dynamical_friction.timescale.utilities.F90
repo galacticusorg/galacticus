@@ -41,7 +41,7 @@ contains
        if (.not.dynamicalFrictionMultiplierInitialized) then
           !@ <inputParameter>
           !@   <name>mergingTimescaleMultiplier</name>
-          !@   <defaultValue>1.0</defaultValue>
+          !@   <defaultValue>0.75</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     A multiplier for the merging timescale in dynamical friction timescale calculations.
@@ -49,7 +49,7 @@ contains
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=1.0d0)
+          call Get_Input_Parameter('mergingTimescaleMultiplier',mergingTimescaleMultiplier,defaultValue=0.75d0)
           ! Flag that the module is now initialized.
           dynamicalFrictionMultiplierInitialized=.true.
        end if
