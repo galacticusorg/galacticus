@@ -11,7 +11,7 @@ sub Parse_Options {
     # quotes in the "value" of options to allow for values that contain spaces,
     my @arguments = @{$_[0]};
     my $options   =   $_[1];
-    my $iArg = 0;
+    my $iArg = -1;
     while ( $iArg < scalar(@arguments)-1 ) {
 	++$iArg;
 	if ( $arguments[$iArg] =~ m/^\-\-(.*)/ ) {
