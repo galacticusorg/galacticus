@@ -36,6 +36,33 @@ module Semaphores
      procedure :: wait   => Semaphore_Wait
      procedure :: post   => Semaphore_Post
      procedure :: unlink => Semaphore_Unlink
+     !@ <objectMethods>
+     !@   <object>semaphore</object>
+     !@   <objectMethod>
+     !@     <method>close</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Close the semaphore.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>wait</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Wait for a semaphore to become available.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>post</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Post to (i.e. release) a semaphore.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unlink</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Unlink a semaphore.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
   end type semaphore
 
   type :: semaphoreList
