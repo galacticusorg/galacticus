@@ -70,7 +70,6 @@ contains
   double precision function Merger_Tree_Build_Mass_Resolution_Scaled(thisTree)
     !% Returns a scaled mass resolution to use when building merger trees.
     use Galacticus_Nodes
-    use Galacticus_Nodes
     implicit none
     type (mergerTree        ), intent(in   ) :: thisTree
     class(nodeComponentBasic), pointer       :: baseNodeBasic
