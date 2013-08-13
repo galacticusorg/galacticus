@@ -948,25 +948,25 @@ The datasets should contain the following information:
 \end{description}
 \end{description}
 
-\subsubsection{Conditional Stellar Mass Functions}
+\subsubsection{Conditional Mass Functions}
 
-Additional methods for empirical conditional mass functions can be added using the {\tt conditionalStellarMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Behroozi2010} method is described by a directive:
+Additional methods for empirical conditional mass functions can be added using the {\tt conditionalMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Behroozi2010} method is described by a directive:
 \begin{verbatim}
-  !# <conditionalStellarMassFunctionMethod>
-  !#  <unitName>Conditional_Stellar_Mass_Functions_Behroozi2010_Initialize</unitName>
-  !# </conditionalStellarMassFunctionMethod>
+  !# <conditionalMassFunctionMethod>
+  !#  <unitName>Conditional_Mass_Functions_Behroozi2010_Initialize</unitName>
+  !# </conditionalMassFunctionMethod>
 \end{verbatim}
-Here, {\tt Conditional\_Stellar\_Mass\_Functions\_Behroozi2010\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+Here, {\tt Conditional\_Mass\_Functions\_Behroozi2010\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(conditionalStellarMassFunctionMethod&
-       &,Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get)
+  subroutine Method_Initialize(conditionalMassFunctionMethod&
+       &,Cumulative_Conditional_Mass_Function_Get,Cumulative_Conditional_Mass_Function_Var_Get)
     implicit none
-    type(varying_string),                 intent(in)    :: conditionalStellarMassFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get
+    type(varying_string),                 intent(in)    :: conditionalMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Cumulative_Conditional_Mass_Function_Get,Cumulative_Conditional_Mass_Function_Var_Get
     
-    if (conditionalStellarMassFunctionMethod == 'myMethod') then
-       Cumulative_Conditional_Stellar_Mass_Function_Get     => My_Cumulative_Conditional_Stellar_Mass_Function
-       Cumulative_Conditional_Stellar_Mass_Function_Var_Get => My_Cumulative_Conditional_Stellar_Mass_Function_Var
+    if (conditionalMassFunctionMethod == 'myMethod') then
+       Cumulative_Conditional_Mass_Function_Get     => My_Cumulative_Conditional_Mass_Function
+       Cumulative_Conditional_Mass_Function_Var_Get => My_Cumulative_Conditional_Mass_Function_Var
        .
        .
        .
@@ -978,29 +978,29 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The functionw must have the form:
 \begin{verbatim}
-   double precision function My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellar)
+   double precision function My_Cumulative_Conditional_Mass_Function(massHalo,mass)
     implicit none
-    double precision, intent(in) :: massHalo,massStellar
+    double precision, intent(in) :: massHalo,mass
     .
     .
     .
     return
-   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var
+   end function My_Cumulative_Conditional_Mass_Function_Var
 
-   double precision My_Cumulative_Conditional_Stellar_Mass_Function_Var My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellarLow,massStellarHigh)
+   double precision My_Cumulative_Conditional_Mass_Function_Var(massHalo,massLow,massHigh)
     implicit none
-    double precision, intent(in) :: massHalo,massStellarLow,massStellarHigh
+    double precision, intent(in) :: massHalo,massLow,massHigh
     .
     .
     .
     return
-   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var 
+   end function My_Cumulative_Conditional_Mass_Function_Var 
 \end{verbatim}
-The first function must return the number of galaxies of mass greater than {\tt massStellar} in halos of mass {\tt massHalo}. The second function should return the variance in the number of galaxies in the stellar mass range {\tt massStellarLow} to {\tt massStellarHigh} in halos of mass {\tt massHalo}
+The first function must return the number of galaxies of mass greater than {\tt mass} in halos of mass {\tt massHalo}. The second function should return the variance in the number of galaxies in the mass range {\tt massLow} to {\tt massHigh} in halos of mass {\tt massHalo}
 
 Currently defined tree timing methods are:
 \begin{description}
- \item [{\tt Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional stellar mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
+ \item [{\tt Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
 \end{description}
 
 \subsubsection{Cooling Rate}
@@ -5008,6 +5008,98 @@ and should return the yield of the element identified by {\tt atomIndex} (as ret
 Currently defined type Ia supernovae methods are:
 \begin{description}
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
+\end{description}
+
+\subsubsection{Survey Geometry}
+
+Additional methods for survey geometries can be added using the {\tt surveyGeometryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Martin-2010-ALFALFA} method is described by a directive:
+\begin{verbatim}
+  !# <surveyGeometryMethod>
+  !#  <unitName>Geometry_Surveys_MARTIN_2010_ALFALFA_Initialize</unitName>
+  !# </surveyGeometryMethod>
+\end{verbatim}
+Here, {\tt Geometry\_Surveys\_MARTIN\_2010\_ALFALFA\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(surveyGeometryMethod,,Geometry_Survey_Distance_Maximum_Get&
+       &,Geometry_Survey_Solid_Angle_Get ,Geometry_Survey_Volume_Maximum_Get,Geometry_Survey_Window_Functions_Get)
+    implicit none
+    type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
+    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get &
+         &,Geometry_Survey_Volume_Maximum_Get
+    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
+
+    if (surveyGeometryMethod == 'myMethod') then
+       Geometry_Survey_Distance_Maximum_Get => My_Geometry_Survey_Distance_Maximum
+       Geometry_Survey_Solid_Angle_Get      => My_Geometry_Survey_Solid_Angle
+       Geometry_Survey_Volume_Maximum_Get   => My_Geometry_Survey_Volume_Maximum
+       Geometry_Survey_Window_Functions_Get => My_Geometry_Survey_Window_Functions
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt surveyGeometryMethod} input parameter. The procedure pointers  must be set to point to functions which return properties of the survey as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The maximum distance function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Distance_Maximum(mass)
+    implicit none
+    double precision, intent(in  ) :: mass
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Distance_Maximum 
+\end{verbatim}
+and must return the maximum distance (in Mpc) at which a galaxy of the given {\tt mass} would be included in the survey.
+
+The solid angle function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Solid_Angle()
+    implicit none
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Solid_Angle_
+\end{verbatim}
+and should return the solid angle (in steradians) of the survey angular mask.
+
+The maximum volume function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Volume_Maximum(mass)
+    implicit none
+    double precision, intent(in) :: mass
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Volume_Maximum 
+\end{verbatim}
+and should return the maximum volume (in Mpc$^3$) within which a galaxy of the given {\tt mass} could be found in the survey.
+
+The window function function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
+    implicit none
+    double precision         , intent(in   )                                           :: mass1,mass2
+    integer                  , intent(in   )                                           :: gridCount
+    double precision         , intent(  out)                                           :: boxLength
+    complex(c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Window_Functions 
+\end{verbatim}
+and should compute the Fourier space window functions corresponding to the survey volume within which galaxies of masses {\tt mass1} and {\tt mass2} could be found. The window functions should be computed on a Cartesian grid, containing {\tt gridCount} elements in each dimension. The chosen length of the box within which the survey geometry was embedded should be returned in the {\tt boxLength} variable.
+
+Currently defined type Ia supernovae methods are:
+\begin{description}
+ \item [{\tt Martin-2010-ALFALFA}] Computes the survey geometry of the survey of \cite{martin_arecibo_2010}.
+ \item [{\tt Li-White-2009-SDSS}] Computes the survey geometry of the survey of \cite{li_distribution_2009}.
 \end{description}
 
 \subsubsection{Tree Timing}

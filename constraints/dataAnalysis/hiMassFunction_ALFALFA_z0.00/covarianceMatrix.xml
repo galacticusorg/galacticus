@@ -10,7 +10,7 @@
   <!-- Options controlling survey geometry -->
   <parameter>
     <name>surveyGeometryMethod</name>
-    <value>Li-White-2009-SDSS</value>
+    <value>Martin-2010-ALFALFA</value>
   </parameter>
 
   <!-- Options controlling the mass function -->
@@ -20,23 +20,23 @@
   </parameter>
   <parameter>
     <name>massFunctionCovarianceRedshiftMaximum</name>
-    <value>0.5</value>
+    <value>0.12</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceBinCount</name>
-    <value>38</value>
+    <value>24</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceMassMinimum</name>
-    <value>2.8995178e8</value>
+    <value>2.0124728e6</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceMassMaximum</name>
-    <value>1.4532013e12</value>
+    <value>8.0118055e+10</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceHaloMassMinimum</name>
-    <value>1.0e10</value>
+    <value>1.0e8</value>
   </parameter>
   <parameter>
     <name>massFunctionCovarianceHaloMassMaximum</name>
@@ -56,19 +56,19 @@
   </parameter>
   <parameter>
     <name>conditionalMassFunctionMassCount</name>
-    <value>38</value>
+    <value>24</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionMassMinimum</name>
-    <value>2.8995178e8</value>
+    <value>2.0124728e6</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionMassMaximum</name>
-    <value>1.4532013e12</value>
+    <value>8.0118055e+10</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionHaloMassMinimum</name>
-    <value>1.0e10</value>
+    <value>1.0e8</value>
   </parameter>
   <parameter>
     <name>conditionalMassFunctionHaloMassMaximum</name>
@@ -98,19 +98,19 @@
   </parameter>
   <parameter>
     <name>H_0</name>
-    <value>70.2</value>
+    <value>69.7</value>
   </parameter>
   <parameter>
     <name>Omega_Matter</name>
-    <value>0.2725</value>
+    <value>0.2812</value>
   </parameter>
   <parameter>
     <name>Omega_DE</name>
-    <value>0.7275</value>
+    <value>0.7188</value>
   </parameter>
   <parameter>
     <name>Omega_b</name>
-    <value>0.0455</value>
+    <value>0.04611</value>
   </parameter>
   <parameter>
     <name>T_CMB</name>
@@ -120,7 +120,7 @@
   <!-- Power spectrum options -->
   <parameter>
     <name>sigma_8</name>
-    <value>0.807</value>
+    <value>0.817</value>
   </parameter>
   <parameter>
     <name>transferFunctionMethod</name>
@@ -132,7 +132,7 @@
   </parameter>
   <parameter>
     <name>powerSpectrumIndex</name>
-    <value>0.961</value>
+    <value>0.9646</value>
   </parameter>
   <parameter>
     <name>powerSpectrumReferenceWavenumber</name>

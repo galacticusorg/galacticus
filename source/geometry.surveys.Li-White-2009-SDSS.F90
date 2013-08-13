@@ -184,8 +184,8 @@ contains
     origin=([0.0d0,0.5d0,0.5d0]/dble(gridCount)+[0.5d0,0.5d0,0.5d0])*dble(boxLength)
 
     ! Populate the cube with the survey selection function.
-    selectionFunction1=cmplx(0.0d0,0.0d0)
-    selectionFunction2=cmplx(0.0d0,0.0d0)
+    selectionFunction1=cmplx(0.0d0,0.0d0,kind=c_double_complex)
+    selectionFunction2=cmplx(0.0d0,0.0d0,kind=c_double_complex)
 
     ! Loop over randoms.
     do i=1,randomsCount

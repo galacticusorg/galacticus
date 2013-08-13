@@ -18,9 +18,11 @@ use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
 use XML::Simple;
+use Scalar::Util 'reftype';
 require Galacticus::HDF5;
 require Galacticus::StellarMass;
 require Galacticus::HIGasMass;
+require Galacticus::GasMass;
 require Galacticus::Constraints::Covariances;
 require Stats::Histograms;
 require GnuPlot::PrettyPlots;
@@ -102,13 +104,13 @@ sub Construct {
     my $gotModelMassFunction = 0;
     my @rootGroups = $galacticus->{'hdf5File'}->groups();
     if ( grep {$_ eq "analysis"} @rootGroups ) {
-	my @analysisGroups = $galacticus->{'hdf5File'}->group('analysis')->groups();
-	if ( grep {$_ eq $config->{'analysisLabel'}} @analysisGroups ) {
-	    $gotModelMassFunction  = 1;
-	    $yGalacticus          = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunction'          )->get();
-	    $covarianceGalacticus = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunctionCovariance')->get();
-	    $errorGalacticus      = sqrt($covarianceGalacticus->diagonal(0,1));
-	}
+    	my @analysisGroups = $galacticus->{'hdf5File'}->group('analysis')->groups();
+    	if ( grep {$_ eq $config->{'analysisLabel'}} @analysisGroups ) {
+    	    $gotModelMassFunction  = 1;
+    	    $yGalacticus          = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunction'          )->get();
+    	    $covarianceGalacticus = $galacticus->{'hdf5File'}->group('analysis')->group($config->{'analysisLabel'})->dataset('massFunctionCovariance')->get();
+    	    $errorGalacticus      = sqrt($covarianceGalacticus->diagonal(0,1));
+    	}
     }
 
     # Read galaxy data and construct mass function if necessary.
@@ -118,9 +120,21 @@ sub Construct {
 	&HDF5::Select_Output($galacticus,$config->{'redshift'});
 	&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
 	my $dataSets        = $galacticus->{'dataSets'};
-	my $logarithmicMass = log10($dataSets->{$config->{'massType'}});
-	my $weight          =       $dataSets->{'mergerTreeWeight'};
-	delete($galacticus->{'dataSets'});
+	my $weight          = $dataSets->{'mergerTreeWeight'};
+	# Map masses.
+	my $logarithmicMass;
+	if ( exists($config->{'massMap'}) ) {
+	    $logarithmicMass = &{$config->{'massMap'}}($config,$galacticus);
+	} else {
+	    $logarithmicMass = log10($dataSets->{$config->{'massType'}});
+	}
+	# Add random Gaussian errors to the masses.
+	my $sigma = pdl ones(nelem($logarithmicMass));
+	if ( reftype($config->{'massErrorRandomDex'}) eq "CODE" ) {
+	    $sigma .= &{$config->{'massErrorRandomDex'}}($logarithmicMass,$galacticus);
+	} else {
+	    $sigma *= $config->{'massErrorRandomDex'};
+	}
 	# Add systematic shift to masses (i.e. systematic errors nuisance parameter).
 	if ( exists($config->{'systematicParameter'}) ) {
 	    my $systematicOffset = pdl zeroes(nelem($logarithmicMass));
@@ -132,8 +146,7 @@ sub Construct {
 	    }
 	    $logarithmicMass += $systematicOffset;
 	}
-	# Construct the mass function. Add random Gaussian errors to the masses.
-	my $sigma = pdl ones(nelem($logarithmicMass))*$config->{'massErrorRandomDex'};
+	# Construct the mass function. 
 	my %options = 
 	    (
 	     differential   => 1,

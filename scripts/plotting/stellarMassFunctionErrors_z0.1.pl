@@ -22,8 +22,8 @@ require GnuPlot::LaTeX;
 # Read the XML data file.
 my $xml       = new XML::Simple;
 my $data      = $xml->XMLin($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml");
-my $columns   = $data->{'stellarMassFunction'}->{'columns'};
-my $x         = pdl @{$columns->{'stellarMass' }->{'datum'}};
+my $columns   = $data->{'massFunction'}->{'columns'};
+my $x         = pdl @{$columns->{'mass'        }->{'datum'}};
 my $y         = pdl @{$columns->{'massFunction'}->{'datum'}};
 my $errorUp   = pdl @{$columns->{'upperError'  }->{'datum'}};
 my $errorDown = pdl @{$columns->{'lowerError'  }->{'datum'}};

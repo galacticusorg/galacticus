@@ -30,6 +30,13 @@ sub LogNormalCovariance {
 sub SVDInvert {
     # Invert a covariance matrix using Singular Value Decomposition.
     my $C = shift;
+    # Get any options.
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
+    # Set default options.
+    $options{'errorTolerant'} = 0
+	unless ( exists($options{'errorTolerant'}) );
     # Do the Singular Value Decomposition.
     (my $r1, my $s, my $r2)                             = svd($C);
     # Invert the matrix.
@@ -45,10 +52,16 @@ sub SVDInvert {
     (my $eigenVectors, my $eigenValues)                 = eigens_sym($CInverseSPD);
     print "SVDInvert: inverse covariance matrix is not semi-positive definite\n"
 	unless ( all(         $eigenValues >= 0.0)  ); 
-    die("SVDInvert: covariance matrix determinant failed"                   )
-	unless (     isfinite($logDeterminant    )  );
-    die("SVDInvert: covariance matrix inversion failed"                     )
-	unless ( all(isfinite($CInverseSPD       )) );
+    unless (     isfinite($logDeterminant)  ) {
+	print "SVDInvert: covariance matrix determinant failed\n";
+	die
+	    unless ( $options{'errorTolerant'} == 1 );
+    }
+    unless ( all(isfinite($CInverseSPD   )) ) {
+	print "SVDInvert: covariance matrix inversion failed\n";
+	die
+	    unless ( $options{'errorTolerant'} == 1 );
+    }
     return $CInverseSPD, $logDeterminant;
 }
 
@@ -78,8 +91,17 @@ sub ComputeLikelihood {
     my $y1                            = shift;
     my $y2                            = shift;
     my $C                             = shift;
+    # Get any options.
+    my %options;
+    (%options) = @_
+	if ( scalar(@_) > 0 );
     # Find the difference between the vectors.
     my $d                             = $y1-$y2;
+    # Where upper limits are present, truncate the difference vector.
+    if ( exists($options{'upperLimits'}) ) {
+	my $limitTruncate = which($d->($options{'upperLimits'}) > 0.0);
+	$d->($options{'upperLimits'})->($limitTruncate) .= 0.0;
+    }
     # Invert the covariance matrix.
     (my $CInverse,my $logDeterminant) = &SVDInvert($C);
     # Construct the likelihood.
