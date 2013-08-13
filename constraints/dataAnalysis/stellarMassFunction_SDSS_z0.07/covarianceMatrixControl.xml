@@ -3,10 +3,27 @@
   <!-- Andrew Benson                                                      -->
   <!-- 06-July-2012                                                       -->
 
-  <workDirectory>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/stage%STAGE/</workDirectory>
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml</observedDataFile>
 
-  <constraintFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/stage%STAGE/covarianceMatrix.hdf5</constraintFile>
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/</baseDirectory>
 
-  <parameterFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/stage%STAGE/covarianceMatrix.xml</parameterFile>
+  <bieFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.bie</bieFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfSDSS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Li &amp; White (2009)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
 
 </constrain>

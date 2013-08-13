@@ -66,7 +66,6 @@ program Mass_Function_Covariance
 
   ! Open the output file.
   call outputFile%openFile(char(massFunctionCovarianceOutputFileName),overWrite=.false.)
-
   ! Read parameters controlling the calculation.
   !@ <inputParameter>
   !@   <name>massFunctionCovarianceRedshiftMinimum</name>
@@ -80,7 +79,7 @@ program Mass_Function_Covariance
   !@   <group>output</group>
   !@ </inputParameter>
   call Get_Input_Parameter('massFunctionCovarianceRedshiftMinimum',massFunctionCovarianceRedshiftMinimum,defaultValue=0.0d0)
-   !@ <inputParameter>
+  !@ <inputParameter>
   !@   <name>massFunctionCovarianceRedshiftMaximum</name>
   !@   <defaultValue>0.0</defaultValue>
   !@   <attachedTo>module</attachedTo>
@@ -175,13 +174,13 @@ program Mass_Function_Covariance
        &,massFunction,covariance,covariancePoisson ,covarianceHalo,covarianceLSS,correlation)
 
   ! Write out the covariance matrix.
-  call outputFile %writeDataset  (mass               ,"mass"             ,"Stellar mass; M [M☉]"                            ,datasetReturned=thisDataset)
+  call outputFile %writeDataset  (mass               ,"mass"             ,"Mass; M [M☉]"                                         ,datasetReturned=thisDataset)
   call thisDataset%writeAttribute(massSolar          ,"unitsInSI"                                    )
   call thisDataset%close         (                                                                   )
-  call outputFile %writeDataset  (massFunction       ,"massFunction"     ,"Stellar mass function; dn/dln(M) [Mpc⁻^]"        ,datasetReturned=thisDataset)
+  call outputFile %writeDataset  (massFunction       ,"massFunction"     ,"Mass function; dn/dln(M) [Mpc⁻^]"                     ,datasetReturned=thisDataset)
   call thisDataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
   call thisDataset%close         (                                                                   )
-  call outputFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of stellar mass function; [Mpc⁻⁶]"    ,datasetReturned=thisDataset)
+  call outputFile %writeDataset  (covariance         ,"covariance"       ,"Covariance of mass function; [Mpc⁻⁶]"            ,datasetReturned=thisDataset)
   call thisDataset%writeAttribute(1.0d0/megaParsec**3,"unitsInSI"                                    )
   call thisDataset%close         (                                                                   )
   call outputFile %writeDataset  (covariancePoisson  ,"covariancePoisson","Covariance due to Poisson noise; [Mpc⁻⁶]"        ,datasetReturned=thisDataset)

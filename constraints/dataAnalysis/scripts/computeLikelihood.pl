@@ -1,14 +1,14 @@
 #!/usr/bin/env perl
+use strict;
+use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
 }
 unshift(@INC, $galacticusPath."perl"); 
-use strict;
-use warnings;
 use XML::Simple;
 use Data::Dumper;
 use PDL;
@@ -16,8 +16,7 @@ use PDL::NiceSlice;
 use PDL::IO::HDF5;
 require System::Redirect;
 
-# Compute the likelihood for a conditional stellar mass function model to fit the stellar mass
-# function data from Li & White (2009).
+# Compute the likelihood for a conditional mass function model to fit mass function data.
 # Andrew Benson (06-July-2012)
 
 # Parse the constraint config file for parameters.
@@ -34,17 +33,17 @@ my $mpiRank = sprintf("%4.4d",$ARGV[1]);
 
 # Define parameter names.
 my @parameters = (
-		  "conditionalStellarMassFunctionBehrooziAlphaSatellite",
-		  "conditionalStellarMassFunctionBehrooziLog10M1",
-		  "conditionalStellarMassFunctionBehrooziLog10Mstar0",
-		  "conditionalStellarMassFunctionBehrooziBeta",
-		  "conditionalStellarMassFunctionBehrooziDelta",
-		  "conditionalStellarMassFunctionBehrooziGamma",
-		  "conditionalStellarMassFunctionBehrooziSigmaLogMstar",
-		  "conditionalStellarMassFunctionBehrooziBCut",
-		  "conditionalStellarMassFunctionBehrooziBSatellite",
-		  "conditionalStellarMassFunctionBehrooziBetaCut",
-		  "conditionalStellarMassFunctionBehrooziBetaSatellite"
+		  "conditionalMassFunctionBehrooziAlphaSatellite",
+		  "conditionalMassFunctionBehrooziLog10M1",
+		  "conditionalMassFunctionBehrooziLog10Mstar0",
+		  "conditionalMassFunctionBehrooziBeta",
+		  "conditionalMassFunctionBehrooziDelta",
+		  "conditionalMassFunctionBehrooziGamma",
+		  "conditionalMassFunctionBehrooziSigmaLogMstar",
+		  "conditionalMassFunctionBehrooziBCut",
+		  "conditionalMassFunctionBehrooziBSatellite",
+		  "conditionalMassFunctionBehrooziBetaCut",
+		  "conditionalMassFunctionBehrooziBetaSatellite"
 		  );
 
 my $parameterCount = scalar(@parameters);
@@ -60,7 +59,7 @@ for(my $i=0;$i<$parameterCount;++$i) {
 }
 
 # Set the output file name.
-$newParameters->{'parameter'}->{'conditionalStellarMassFunctionOutputFileName'}->{'value'} = $config->{'workDirectory'}."massFunction_".$mpiRank.".hdf5";
+$newParameters->{'parameter'}->{'conditionalMassFunctionOutputFileName'}->{'value'} = $config->{'workDirectory'}."massFunction_".$mpiRank.".hdf5";
 
 # Clean up.
 unlink(
@@ -75,7 +74,7 @@ print oHndl $xmlOut->XMLout($newParameters);
 close(oHndl);
 
 # Generate the mass function.
-SystemRedirect::tofile("Conditional_Stellar_Mass_Function.exe ".$config->{'workDirectory'}."glcLikelihood_".$mpiRank.".xml","/dev/null");
+SystemRedirect::tofile("Conditional_Mass_Function.exe ".$config->{'workDirectory'}."glcLikelihood_".$mpiRank.".xml","/dev/null");
 system("mkdir -p ".$config->{'workDirectory'}."failures; mv -f ".$config->{'workDirectory'}."glcLikelihood_".$mpiRank.".xml ".$config->{'workDirectory'}."failures/")
     unless ( $? == 0 );
 

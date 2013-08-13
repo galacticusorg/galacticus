@@ -62,17 +62,27 @@ module Galacticus_Output_Analyses_Mass_Functions
      end function Map_Mass
   end interface
 
+  ! Interface for mass error functions.
+  abstract interface
+     double precision function Mass_Error(mass,thisNode)
+       import treeNode
+       double precision          , intent(in   )          :: mass
+       type            (treeNode), intent(inout), pointer :: thisNode
+     end function Mass_Error
+  end interface
+
   ! Type for descriptors of mass functions.
   type :: massFunctionDescriptor
-     double precision                    :: redshift
-     double precision                    :: systematicLogM0
-     double precision                    :: randomError
-     double precision                    :: massLogarithmicMinimum
-     integer                             :: systematicCoefficientCount
-     integer                             :: massType
-     character       (len= 32 )          :: label
-     character       (len=128 )          :: comment
-     procedure       (Map_Mass), pointer :: mapMass
+     double precision                      :: redshift
+     double precision                      :: systematicLogM0
+     double precision                      :: randomError
+     procedure       (Mass_Error), pointer :: randomErrorFunction
+     double precision                      :: massLogarithmicMinimum
+     integer                               :: systematicCoefficientCount
+     integer                               :: massType
+     character       (len= 32   )          :: label
+     character       (len=128   )          :: comment
+     procedure       (Map_Mass  ), pointer :: mapMass
   end type massFunctionDescriptor
 
   ! Mass function descriptors.
@@ -82,6 +92,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.07d00                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   2                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -89,10 +100,12 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   'SDSS stellar mass function at z=0.07'    ,        &
        &                                                   null()                                             &
        &                                                 )                                                  , &
+       ! ALFALFA survey. Note that HI/total gas mass fraction must be taken into account by the systematic errors model.
        &                           massFunctionDescriptor(                                                    &
        &                                                   0.000d0                                   ,        &
-       &                                                  10.000d0                                   ,        &
-       &                                                   0.080d0                                   ,        &
+       &                                                   9.000d0                                   ,        &
+       &                                                   0.000d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   4.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeGaseous                           ,        &
@@ -104,6 +117,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.100d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -115,6 +129,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.250d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -126,6 +141,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.350d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -137,6 +153,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.450d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -148,6 +165,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.575d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -159,6 +177,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.725d0                                   ,        &
        &                                                  11.300d0                                   ,        &
        &                                                   0.070d0                                   ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.500d0                                   ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -170,6 +189,7 @@ module Galacticus_Output_Analyses_Mass_Functions
        &                                                   0.90d0                                    ,        &
        &                                                  11.30d0                                    ,        &
        &                                                   0.07d0                                    ,        &
+       &                                                   null()                                    ,        &
        &                                                   6.50d0                                    ,        &
        &                                                   0                                         ,        &
        &                                                   massTypeStellar                           ,        &
@@ -190,8 +210,11 @@ module Galacticus_Output_Analyses_Mass_Functions
      ! The number of mass bins.
      integer                                                               :: massesCount
      ! Arrays for the masses and mass function.
-     double precision                        , allocatable, dimension(:  ) :: masses,massesLogarithmic,massFunction,massesLogarithmicMinimum&
-          &,massesLogarithmicMaximum
+     double precision                        , allocatable, dimension(:  ) :: masses                  , massesLogarithmic       , &
+          &                                                                   massesLogarithmicMinimum, massesLogarithmicMaximum, &
+          &                                                                   massFunction
+     ! Arrays for accumulation of of main branch galaxies
+     double precision                        , allocatable, dimension(:,:) :: mainBranchGalaxyWeights , mainBranchGalaxyWeightsSquared
      ! Array for the covariance matrix.
      double precision                        , allocatable, dimension(:,:) :: massFunctionCovariance
   end type massFunction
@@ -208,6 +231,21 @@ module Galacticus_Output_Analyses_Mass_Functions
   ! Work array.
   type(massFunctionWork), allocatable, dimension(:) :: thisGalaxy
   !$omp threadprivate(thisGalaxy)
+
+  ! Options controlling binning in halo mass.
+  integer                     :: analysisMassFunctionCovarianceModel
+  integer         , parameter :: analysisMassFunctionCovarianceModelPoisson =1
+  integer         , parameter :: analysisMassFunctionCovarianceModelBinomial=2
+  integer                     :: analysisMassFunctionsHaloMassBinsCount                 , analysisMassFunctionsHaloMassBinsPerDecade
+  double precision            :: analysisMassFunctionsHaloMassMinimum                   , analysisMassFunctionsHaloMassMaximum           , &
+       &                         analysisMassFunctionsHaloMassIntervalLogarithmicInverse, analysisMassFunctionsHaloMassMinimumLogarithmic
+
+  ! Initializations for individual mass functions.
+  logical                     :: alfalfaHiMassFunctionZ0_00Initialized=.false.
+
+  ! Parameters for individual mass functions.
+  double precision            :: alfalfaHiMassFunctionZ0_00ConversionError              , alfalfaHiMassFunctionZ0_00MolecularFractionMu  , &
+       &                         alfalfaHiMassFunctionZ0_00MolecularFractionKappa
 
 contains
 
@@ -231,24 +269,86 @@ contains
     use String_Handling
     use FoX_dom
     implicit none
-    type            (mergerTree    ), intent(in   )                       :: thisTree
-    type            (treeNode      ), intent(inout), pointer              :: thisNode
-    integer                         , intent(in   )                       :: iOutput
-    type            (varying_string), intent(in   ), dimension(:  )       :: mergerTreeAnalyses
-    type            (node          ), pointer                             :: doc,massFunctionElement,columnElement,massElement,hubbleElement,hubbleExponentElement,datum
-    type            (nodeList      ), pointer                             :: dataList
-    type            (hdf5Object    )                                      :: dataFile,massDataset,parameters
-    integer                                                               :: i,j,k,currentAnalysis,activeAnalysisCount,iDatum,ioErr
-    double precision                                                      :: massHubbleExponent,dataHubbleParameter,hubbleRatio &
-         &,mass,massLogarithmic
-    type            (varying_string)                                      :: parameterName
+    type            (mergerTree        ), intent(in   )                 :: thisTree
+    type            (treeNode          ), intent(inout), pointer        :: thisNode
+    integer                             , intent(in   )                 :: iOutput
+    type            (varying_string    ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
+    class           (nodeComponentBasic)               , pointer        :: thisBasic
+    type            (node              )               , pointer        :: doc,massFunctionElement,columnElement,massElement,hubbleElement,hubbleExponentElement,datum
+    type            (nodeList          )               , pointer        :: dataList
+    type            (hdf5Object        )                                :: dataFile,massDataset,parameters
+    integer                                                             :: i,j,k,currentAnalysis,activeAnalysisCount,iDatum,ioErr,haloMassBin
+    double precision                                                    :: massHubbleExponent,dataHubbleParameter,hubbleRatio &
+         &,mass,massLogarithmic,randomError
+    type            (varying_string    )                                :: parameterName,analysisMassFunctionCovarianceModelText
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
        !$omp critical(Galacticus_Output_Analysis_Mass_Functions_Initialize)
        if (.not.moduleInitialized) then
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionCovarianceModel</name>
+          !@   <defaultValue>binomial</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The model to use when constructing the mass function covariance matrix for main branch galaxies.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionCovarianceModel',analysisMassFunctionCovarianceModelText,defaultValue='Poisson')
+          select case (char(analysisMassFunctionCovarianceModelText))
+          case ( 'Poisson'  )
+             analysisMassFunctionCovarianceModel=analysisMassFunctionCovarianceModelPoisson
+          case ( 'binomial' )
+             analysisMassFunctionCovarianceModel=analysisMassFunctionCovarianceModelBinomial
+          case default
+             call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unrecognized value for "analysisMassFunctionCovarianceModel" - allowed values are "Poisson", and "binomial"')
+          end select
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsHaloMassBinsPerDecade</name>
+          !@   <defaultValue>10</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsHaloMassBinsPerDecade',analysisMassFunctionsHaloMassBinsPerDecade,defaultValue=10)
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsHaloMassMinimum</name>
+          !@   <defaultValue>$10^8M_\odot$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsHaloMassMinimum',analysisMassFunctionsHaloMassMinimum,defaultValue=1.0d8)
+          !@ <inputParameter>
+          !@   <name>analysisMassFunctionsHaloMassMaximum</name>
+          !@   <defaultValue>$10^{16}M_\odot$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('analysisMassFunctionsHaloMassMaximum',analysisMassFunctionsHaloMassMaximum,defaultValue=1.0d16)
+          analysisMassFunctionsHaloMassMinimumLogarithmic=log10(analysisMassFunctionsHaloMassMinimum)
+          analysisMassFunctionsHaloMassBinsCount=int(log10(analysisMassFunctionsHaloMassMaximum/analysisMassFunctionsHaloMassMinimum)*dble(analysisMassFunctionsHaloMassBinsPerDecade)+0.5d0)
+          analysisMassFunctionsHaloMassIntervalLogarithmicInverse=dble(analysisMassFunctionsHaloMassBinsCount)/log10(analysisMassFunctionsHaloMassMaximum/analysisMassFunctionsHaloMassMinimum)
           ! Establish mass mapping functions for mass function descriptors.
-          massFunctionDescriptors(2)%mapMass => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+          massFunctionDescriptors(2)%mapMass             => Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
+          ! Establish mass error functions for mass function descriptors.
+          massFunctionDescriptors(2)%randomErrorFunction => Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
           ! Determine how many supported mass functions are requested.
           activeAnalysisCount=0
           do i=1,massFunctionsSupportedCount
@@ -315,14 +415,18 @@ contains
                          massFunctions(currentAnalysis)%masses=massFunctions(currentAnalysis)%masses*hubbleRatio**massHubbleExponent
                          ! Construct mass function array.
                          massFunctions(currentAnalysis)%massesCount=size(massFunctions(currentAnalysis)%masses)
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic       ,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMinimum,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMaximum,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massFunction            ,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance  ,[massFunctions(currentAnalysis)%massesCount,massFunctions(currentAnalysis)%massesCount])
-                         massFunctions(currentAnalysis)%massesLogarithmic     =log10(massFunctions(currentAnalysis)%masses)
-                         massFunctions(currentAnalysis)%massFunction          =0.0d0
-                         massFunctions(currentAnalysis)%massFunctionCovariance=0.0d0
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic             ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMinimum      ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMaximum      ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massFunction                  ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance        ,[massFunctions(currentAnalysis)%massesCount,massFunctions(currentAnalysis)%massesCount])
+                         call Alloc_Array(massFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[massFunctions(currentAnalysis)%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[massFunctions(currentAnalysis)%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+                         massFunctions(currentAnalysis)%massesLogarithmic             =log10(massFunctions(currentAnalysis)%masses)
+                         massFunctions(currentAnalysis)%massFunction                  =0.0d0
+                         massFunctions(currentAnalysis)%massFunctionCovariance        =0.0d0
+                         massFunctions(currentAnalysis)%mainBranchGalaxyWeights       =0.0d0
+                         massFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared=0.0d0
                          do k=1,massFunctions(currentAnalysis)%massesCount
                             if (k ==                                          1) then
                                massFunctions(currentAnalysis)%massesLogarithmicMinimum(k)=massFunctions(currentAnalysis)%massesLogarithmic(k)-0.5d0*(massFunctions(currentAnalysis)%massesLogarithmic(k+1)-massFunctions(currentAnalysis)%massesLogarithmic(k  ))
@@ -336,38 +440,34 @@ contains
                             end if
                          end do
                       case ('alfalfaHiMassFunctionZ0.00')
-                         !$omp critical (FoX_DOM_Access)
-                         doc => parseFile(char(Galacticus_Input_Path())//"data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.xml",iostat=ioErr)
-                         if (ioErr /= 0) call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','Unable to find data file')
-                         massFunctionElement   => item(getElementsByTagname(doc                ,"massFunctions" ),0)
-                         columnElement         => item(getElementsByTagname(massFunctionElement,"columns"       ),0)
-                         massElement           => item(getElementsByTagname(      columnElement,"mass"          ),0)
-                         hubbleElement         => item(getElementsByTagname(      columnElement,"hubble"        ),0)
-                         hubbleExponentElement => item(getElementsByTagname(      columnElement,"hubbleExponent"),0)
-                         dataList              =>      getElementsByTagname(        massElement,"data"          ) 
-                         call extractDataContent(hubbleExponentElement,massHubbleExponent )
-                         call extractDataContent(hubbleElement        ,dataHubbleParameter)
-                         ! Construct mass function array.
-                         massFunctions(currentAnalysis)%massesCount=getLength(dataList)
-                         call Alloc_Array(massFunctions(currentAnalysis)%masses                  ,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic       ,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMinimum,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMaximum,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massFunction            ,[massFunctions(currentAnalysis)%massesCount                                           ])
-                         call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance  ,[massFunctions(currentAnalysis)%massesCount,massFunctions(currentAnalysis)%massesCount])
-                         do iDatum=0,getLength(dataList)-1
-                            datum => item(dataList,iDatum)
-                            call extractDataContent(datum,massFunctions(currentAnalysis)%masses(iDatum+1))
-                         end do
-                         ! Destroy the document.
-                         call destroy(doc)
-                         !$omp end critical (FoX_DOM_Access)
+                         !$omp critical(HDF5_Access)
+                         call dataFile%openFile(char(Galacticus_Input_Path())//'/data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5',readOnly=.true.)
+                         call dataFile   %readDataset  ('mass'          ,massFunctions(currentAnalysis)%masses             )
+                         massDataset=dataFile%openDataset('mass'      )
+                         call massDataset%readAttribute('hubbleExponent',massHubbleExponent                                )
+                         call massDataset%close()
+                         parameters =dataFile%openGroup  ('Parameters')
+                         call parameters %readAttribute('H_0'           ,dataHubbleParameter                               )
+                         call parameters %close()
+                         call dataFile   %close()
+                         !$omp end critical(HDF5_Access)
                          ! Adjust masses to current Hubble parameter.
-                         hubbleRatio                          =H_0()/dataHubbleParameter
+                         hubbleRatio=H_0()/dataHubbleParameter
                          massFunctions(currentAnalysis)%masses=massFunctions(currentAnalysis)%masses*hubbleRatio**massHubbleExponent
-                         massFunctions(currentAnalysis)%massesLogarithmic     =log10(massFunctions(currentAnalysis)%masses)
-                         massFunctions(currentAnalysis)%massFunction          =0.0d0
-                         massFunctions(currentAnalysis)%massFunctionCovariance=0.0d0
+                         ! Construct mass function array.
+                         massFunctions(currentAnalysis)%massesCount=size(massFunctions(currentAnalysis)%masses)
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic             ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMinimum      ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmicMaximum      ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massFunction                  ,[massFunctions(currentAnalysis)%massesCount                                           ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%massFunctionCovariance        ,[massFunctions(currentAnalysis)%massesCount,massFunctions(currentAnalysis)%massesCount])
+                         call Alloc_Array(massFunctions(currentAnalysis)%mainBranchGalaxyWeights       ,[massFunctions(currentAnalysis)%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+                         call Alloc_Array(massFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared,[massFunctions(currentAnalysis)%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+                         massFunctions(currentAnalysis)%massesLogarithmic             =log10(massFunctions(currentAnalysis)%masses)
+                         massFunctions(currentAnalysis)%massFunction                  =0.0d0
+                         massFunctions(currentAnalysis)%massFunctionCovariance        =0.0d0
+                         massFunctions(currentAnalysis)%mainBranchGalaxyWeights       =0.0d0
+                         massFunctions(currentAnalysis)%mainBranchGalaxyWeightsSquared=0.0d0
                          do k=1,massFunctions(currentAnalysis)%massesCount
                             if (k ==                                          1) then
                                massFunctions(currentAnalysis)%massesLogarithmicMinimum(k)=massFunctions(currentAnalysis)%massesLogarithmic(k)-0.5d0*(massFunctions(currentAnalysis)%massesLogarithmic(k+1)-massFunctions(currentAnalysis)%massesLogarithmic(k  ))
@@ -416,8 +516,8 @@ contains
        ! Return if this analysis is not active, or if this is not the correct output.
        if (iOutput /= massFunctions(i)%outputNumber) cycle
        ! Allocate workspace.
-       if (.not.allocated(thisGalaxy(i)%massFunction)) call Alloc_Array(thisGalaxy(i)%massFunction,[massFunctions(i)%massesCount                             ])
-       if (.not.allocated(thisGalaxy(i)%covariance  )) call Alloc_Array(thisGalaxy(i)%covariance  ,[massFunctions(i)%massesCount,massFunctions(i)%massesCount])
+       if (.not.allocated(thisGalaxy(i)%massFunction)) call Alloc_Array(thisGalaxy(i)%massFunction         ,[massFunctions(i)%massesCount                             ])
+       if (.not.allocated(thisGalaxy(i)%covariance  )) call Alloc_Array(thisGalaxy(i)%covariance           ,[massFunctions(i)%massesCount,massFunctions(i)%massesCount])
        ! Get the galactic stellar mass.
        mass=                                                                                                                &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
@@ -430,23 +530,46 @@ contains
        end do
        if (massLogarithmic <  massFunctions(i)%descriptor%massLogarithmicMinimum) return
        ! Compute contributions to each bin.
-       thisGalaxy(i)%massFunction=(                                                                                                                      &
-            &                      +erf((massFunctions(i)%massesLogarithmicMaximum-massLogarithmic)/massFunctions(i)%descriptor%randomError/sqrt(2.0d0)) &
-            &                      -erf((massFunctions(i)%massesLogarithmicMinimum-massLogarithmic)/massFunctions(i)%descriptor%randomError/sqrt(2.0d0)) &
-            &                     )                                                                                                                      &
-            &                     /2.0d0                                                                                                                 &
+       randomError=massFunctions(i)%descriptor%randomError
+       if (associated(massFunctions(i)%descriptor%randomErrorFunction)) randomError=massFunctions(i)%descriptor%randomErrorFunction(mass,thisNode)
+       thisGalaxy(i)%massFunction=(                                                                                          &
+            &                      +erf((massFunctions(i)%massesLogarithmicMaximum-massLogarithmic)/randomError/sqrt(2.0d0)) &
+            &                      -erf((massFunctions(i)%massesLogarithmicMinimum-massLogarithmic)/randomError/sqrt(2.0d0)) &
+            &                     )                                                                                          &
+            &                     /2.0d0                                                                                     &
             &                     *thisTree%volumeWeight
-       forall(j=1:massFunctions(i)%massesCount)
-          forall(k=j:massFunctions(i)%massesCount)
-             thisGalaxy(i)%covariance(j,k)=thisGalaxy(i)%massFunction(j)*thisGalaxy(i)%massFunction(k)
-             thisGalaxy(i)%covariance(k,j)=thisGalaxy(i)%covariance(j,k)
-          end forall
-       end forall
-       ! Accumulate mass function and covariance.
+       ! Accumulate mass function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        massFunctions(i)%massFunction          =massFunctions(i)%massFunction          +thisGalaxy(i)%massFunction
-       massFunctions(i)%massFunctionCovariance=massFunctions(i)%massFunctionCovariance+thisGalaxy(i)%covariance
        !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+       ! Treat main branch and other galaxies differently.
+       if (thisNode%isOnMainBranch().and.analysisMassFunctionCovarianceModel == analysisMassFunctionCovarianceModelBinomial) then
+          ! Find the bin to which this halo mass belongs.
+          thisBasic => thisNode%basic()
+          haloMassBin=floor((log10(thisBasic%mass())-analysisMassFunctionsHaloMassMinimumLogarithmic)*analysisMassFunctionsHaloMassIntervalLogarithmicInverse)+1
+          ! Accumulate weights to halo mass arrays.
+          if (haloMassBin >= 1 .and. haloMassBin <= analysisMassFunctionsHaloMassBinsCount) then
+            !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+             massFunctions        (i)%mainBranchGalaxyWeights       (:,haloMassBin)= &
+                  &  massFunctions(i)%mainBranchGalaxyWeights       (:,haloMassBin)  &
+                  &  +thisGalaxy  (i)%massFunction
+             massFunctions        (i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)= &
+                  &  massFunctions(i)%mainBranchGalaxyWeightsSquared(:,haloMassBin)  &
+                  &  +thisGalaxy  (i)%massFunction**2
+             !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+          end if
+       else
+          forall(j=1:massFunctions(i)%massesCount)
+             forall(k=j:massFunctions(i)%massesCount)
+                thisGalaxy(i)%covariance(j,k)=thisGalaxy(i)%massFunction(j)*thisGalaxy(i)%massFunction(k)
+                thisGalaxy(i)%covariance(k,j)=thisGalaxy(i)%covariance(j,k)
+             end forall
+          end forall
+          ! Accumulate covariance.
+          !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+          massFunctions(i)%massFunctionCovariance=massFunctions(i)%massFunctionCovariance+thisGalaxy(i)%covariance
+          !$omp end critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
+       end if
     end do
     return
   end subroutine Galacticus_Output_Analysis_Mass_Functions
@@ -459,13 +582,35 @@ contains
     use Galacticus_HDF5
     use Numerical_Constants_Astronomical
     implicit none
-    integer             :: i,j,k
-    type   (hdf5Object) :: analysisGroup,massFunctionGroup,thisDataset
+    integer                      :: i,j,k,m
+    type            (hdf5Object) :: analysisGroup,massFunctionGroup,thisDataset
+    double precision             :: haloWeightBinTotal
 
     ! Return immediately if this analysis is not active.
     if (.not.analysisActive) return
     ! Iterate over mass functions.
     do k=1,size(massFunctions)
+       ! Add the contribution from main branch galaxies to the covariance matrix.
+       if (analysisMassFunctionCovarianceModel == analysisMassFunctionCovarianceModelBinomial) then
+          do m=1,analysisMassFunctionsHaloMassBinsCount
+             haloWeightBinTotal=sum(massFunctions(k)%mainBranchGalaxyWeights(:,m))
+             if ( haloWeightBinTotal > 0.0 ) then
+                do i=1,massFunctions(k)%massesCount
+                   massFunctions               (k)%massFunctionCovariance        (i,i)=                    &
+                        &         massFunctions(k)%massFunctionCovariance        (i,i)                     &
+                        & +(1.0d0-massFunctions(k)%mainBranchGalaxyWeights       (i,m)/haloWeightBinTotal) &
+                        & *       massFunctions(k)%mainBranchGalaxyWeightsSquared(i,m)
+                   do j=1,massFunctions(k)%massesCount
+                      if (i == j) cycle
+                      massFunctions         (k)%massFunctionCovariance        (i,j)=                    &
+                           &   massFunctions(k)%massFunctionCovariance        (i,j)                     &
+                           & -(massFunctions(k)%mainBranchGalaxyWeights       (j,m)/haloWeightBinTotal) &
+                           & * massFunctions(k)%mainBranchGalaxyWeightsSquared(i,m)
+                   end do
+                end do
+             end if
+          end do
+       end if
        ! Convert model mass function to differential per log(M).
        forall(i=1:massFunctions(k)%massesCount)
           massFunctions(k)%massFunction             (i  )=  massFunctions(k)%massFunction          (i  )                              &
@@ -498,15 +643,99 @@ contains
     return
   end subroutine Galacticus_Output_Analysis_Mass_Functions_Output
 
-  double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
-    !% Maps gas masses into HI masses for the ALFALFA survey analysis. Assumes a constant gas to HI mass conversion factor of
-    !% $0.54$ \citep{power_redshift_2010}.
+  subroutine ALFALFA_HI_Mass_Function_Z0_00_Initialize()
+    !% Initializes the ALFALFA HI mass function calculation by reading in required parameters.
+    use Input_Parameters
+    implicit none
+
+    ! Initialize the mass function if necessary.
+    if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
+       !$omp critical(alfalfaHiMassFunctionZ0_00Initialized)
+       if (.not.alfalfaHiMassFunctionZ0_00Initialized) then
+          ! Read the error controlling random errors.
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00ConversionError</name>
+          !@   <defaultValue>0.4</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The random error (in dex) to be added to galaxy HI masses when constructing the ALFALFA HI mass function. This error accounts for
+          !@    scatter in the H$_2$/HI mass ratio at fixed total gas mass.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00ConversionError',alfalfaHiMassFunctionZ0_00ConversionError,defaultValue=0.4d0)
+          ! Read parameters controlling H2/HI mass ratio calculation.
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionMu</name>
+          !@   <defaultValue>0.9</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\mu$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionMu',alfalfaHiMassFunctionZ0_00MolecularFractionMu,defaultValue=0.9d0)
+          !@ <inputParameter>
+          !@   <name>alfalfaHiMassFunctionZ0.00MolecularFractionKappa</name>
+          !@   <defaultValue>1.3</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@    The parameter, $\kappa$, appearing in the model for the H$_2$/HI mass ratio used when constructing the ALFALFA HI mass function. Specifically, $\log_{10}R_{\rm mol} = \mu + \kappa \log_{10}(M_{\rm gas}/10^9M_\odot)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>0..1</cardinality>
+          !@   <group>output</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('alfalfaHiMassFunctionZ0.00MolecularFractionKappa',alfalfaHiMassFunctionZ0_00MolecularFractionKappa,defaultValue=1.3d0)
+          ! Record that the function is now initialized.
+          alfalfaHiMassFunctionZ0_00Initialized=.true.
+       end if
+       !$omp end critical(alfalfaHiMassFunctionZ0_00Initialized)
+    end if
+    return
+  end subroutine ALFALFA_HI_Mass_Function_Z0_00_Initialize
+
+  double precision function Mass_Error_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See {\tt
+    !% constraints/dataAnalysis/hiMassFunction\_ALFALFA\_z0.00/alfalfaHIMassErrorModel.pl} for details.
     double precision          , intent(in   )          :: mass
     type            (treeNode), intent(inout), pointer :: thisNode
-    ! Constant gas to HI mass conversion factor.
-    double precision          , parameter              :: hiFractionByMass=0.54d0
+    double precision          , parameter              :: a=0.100d0, b=5.885d0, &
+         &                                                c=0.505d0
+    double precision                                   :: logarithmicMass
 
-    Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hiFractionByMass*mass
+    ! Initialize the mass function.
+    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
+    ! Get the logarithmic mass.
+    logarithmicMass                          =log10(mass)
+    ! Compute the random error on the mass.
+    Mass_Error_ALFALFA_HI_Mass_Function_Z0_00=                 &
+         & sqrt(                                               &
+         &       (a+exp(-(max(logarithmicMass,6.0d0)-b)/c))**2 &
+         &      +alfalfaHiMassFunctionZ0_00ConversionError **2 &
+         &     )
+    return
+  end function Mass_Error_ALFALFA_HI_Mass_Function_Z0_00
+
+  double precision function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00(mass,thisNode)
+    !% Maps gas masses into HI masses for the ALFALFA survey analysis. Assumes a constant gas to HI mass conversion factor of        
+    !% $0.54$ \citep{power_redshift_2010}.      
+    use Numerical_Constants_Astronomical
+    implicit none                                                                                 
+    double precision          , intent(in   )          :: mass
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision                                   :: molecularRatio
+
+    ! Initialize the mass function.
+    call ALFALFA_HI_Mass_Function_Z0_00_Initialize()
+    ! Get the molecular to atomic mass ratio (H2/HI).
+    molecularRatio=max(alfalfaHiMassFunctionZ0_00MolecularFractionMu+alfalfaHiMassFunctionZ0_00MolecularFractionKappa*log10(mass/1.0d9),0.0d0)
+    ! Compute the HI mass.
+    Map_Mass_ALFALFA_HI_Mass_Function_Z0_00=hydrogenByMassPrimordial*mass/(1.0d0+molecularRatio)
     return
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
 
@@ -539,12 +768,14 @@ contains
     call extractDataContent(hubbleElement        ,dataHubbleParameter)
     ! Construct mass function array.
     thisMassFunction%massesCount=getLength(dataList)
-    call Alloc_Array(thisMassFunction%masses                  ,[thisMassFunction%massesCount                             ])
-    call Alloc_Array(thisMassFunction%massesLogarithmic       ,[thisMassFunction%massesCount                             ])
-    call Alloc_Array(thisMassFunction%massesLogarithmicMinimum,[thisMassFunction%massesCount                             ])
-    call Alloc_Array(thisMassFunction%massesLogarithmicMaximum,[thisMassFunction%massesCount                             ])
-    call Alloc_Array(thisMassFunction%massFunction            ,[thisMassFunction%massesCount                             ])
-    call Alloc_Array(thisMassFunction%massFunctionCovariance  ,[thisMassFunction%massesCount,thisMassFunction%massesCount])
+    call Alloc_Array(thisMassFunction%masses                        ,[thisMassFunction%massesCount                                          ])
+    call Alloc_Array(thisMassFunction%massesLogarithmic             ,[thisMassFunction%massesCount                                          ])
+    call Alloc_Array(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                          ])
+    call Alloc_Array(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                          ])
+    call Alloc_Array(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                          ])
+    call Alloc_Array(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount              ])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
     do iDatum=0,getLength(dataList)-1
        datum => item(dataList,iDatum)
        call extractDataContent(datum,thisMassFunction%masses(iDatum+1))
@@ -553,11 +784,13 @@ contains
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
     ! Adjust masses to current Hubble parameter.
-    hubbleRatio                        =H_0()/dataHubbleParameter
-    thisMassFunction%masses                =(10.0d0**thisMassFunction%masses)*(hubbleRatio**massHubbleExponent)
-    thisMassFunction%massesLogarithmic     =log10(thisMassFunction%masses)
-    thisMassFunction%massFunction          =0.0d0
-    thisMassFunction%massFunctionCovariance=0.0d0
+    hubbleRatio                                    =H_0()/dataHubbleParameter
+    thisMassFunction%masses                        =(10.0d0**thisMassFunction%masses)*(hubbleRatio**massHubbleExponent)
+    thisMassFunction%massesLogarithmic             =log10(thisMassFunction%masses)
+    thisMassFunction%massFunction                  =0.0d0
+    thisMassFunction%massFunctionCovariance        =0.0d0
+    thisMassFunction%mainBranchGalaxyWeights       =0.0d0
+    thisMassFunction%mainBranchGalaxyWeightsSquared=0.0d0
     do k=1,thisMassFunction%massesCount
        if (k ==                            1) then
           thisMassFunction%massesLogarithmicMinimum(k)=thisMassFunction%massesLogarithmic(k)-0.5d0*(thisMassFunction%massesLogarithmic(k+1)-thisMassFunction%massesLogarithmic(k  ))
