@@ -28,15 +28,17 @@ sub Get_Peak_SFR {
     &HDF5::Get_Dataset($model,[
 			       "nodeIndex"          ,
 			       "mergerTreeIndex"    ,
-			       "diskStellarMass"    ,
-			       "spheroidStellarMass"
+			       "diskMassStellar"    ,
+			       "spheroidMassStellar"
 			       ]
 		       );
     my $dataSets = $model->{'dataSets'};
 
     # Find the total stellar mass.
-    my $stellarMass = $dataSets->{'diskStellarMass'    }
-    +$dataSets->{'spheroidStellarMass'};
+    my $stellarMass =
+	$dataSets->{'diskMassStellar'    }
+       +
+	$dataSets->{'spheroidMassStellar'};
 
     # The the output index.
     my $outputIndex = $model->{'output'};
