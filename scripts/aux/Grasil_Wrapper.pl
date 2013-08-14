@@ -3,12 +3,12 @@ use strict;
 use warnings;
 use Cwd;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
- $ENV{"GALACTICUS_ROOT_V092"} = getcwd()."/";
+ $ENV{"GALACTICUS_ROOT_V093"} = getcwd()."/";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use threads;
