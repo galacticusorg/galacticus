@@ -619,7 +619,7 @@ where ${\bf C}_{\rm obs}$ is the covariance matrix of the observational data, ${
 
 To construct ${\bf C}_{\rm model,random}$ we make use of the fact that \glc\ works by sampling a set of tree ``root masses'' from the $z=0$ dark matter halo mass function. From each root, a tree is grown, within which the physics of galaxy formation is then solved. Root masses are sampled uniformly from the halo mass function. That is, the cumulative halo mass function, $N(M)$, is constructed between the maximum and minimum halo masses to be simulated. The number of root masses, $N_{\rm r}$, to be used in a model evaluation is then determined. Root masses are then chosen such that
 \begin{equation}
- N(M_i) = N_(M_{\rm min}) {i-1 \over N_{\rm r}-1}
+ N(M_i) = N(M_{\rm min}) {i-1 \over N_{\rm r}-1}
 \end{equation}
 for $i=1\ldots N_{\rm r}$ (noting that $N(M_{\rm max})=0$ by construction). 
 
@@ -711,3 +711,194 @@ The model likelihood is then computed using:
 where $\Delta_i = \Phi_{{\rm model}, i} - \Phi_{{\rm observed}, i}$ is the difference between the model and observed mass functions, and $n$ is the number of points in the mass function histogram.
 
 \section{Constraint Compilations}
+
+To specify which constraints will be applied to a particular model, a compilation file is used. These must be stored in {\tt constraints/compilations}. An example of such a file follows:
+\begin{verbatim}
+<constraintCompilation>
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+  <constraint>
+    <definition>constraints/constraints/hiMassFunction_ALFALFA_z0.00.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+</constraintCompilation>
+\end{verbatim}
+Each {\tt constraint} element specifies one constraint that will be included in this compilation, and must contain a {\tt definition} element, giving the path of the configuration file for this constraint, and a {\tt weight} element which allows the relative weight given to each constraint to be varied\footnote{Note that, if your constraints are computing correct likelihoods, re-weighting them may not be a good idea. \emph{Caveat constrainor.}}.
+
+\section{Constraint File}
+
+\glc's constraints infrastructure is currently designed to work with a modified version of the \gls{bie} to analyze the posterior probability distribution of the model given some compilation of constraints. Note that the standard version of \gls{bie} \emph{will not work}\footnote{The modified version adds new likelihood methods that launch and analyze \protect\glc\ models.}. To obtain the modified version please \href{mailto:abenson@obs.carnegiescience.edu}{contact us}. Additionally, the infrastructure currently assumes that you will be performing the analysis on a PBS queue system.
+
+To perform a constraint calculation simply execute the launch script:
+\begin{verbatim}
+ constraints/bieGalacticus.pl <constraintFile>
+\end{verbatim}
+where {\tt constraintFile} is a file which describes the details of the calculation to be performed. An example of such a script follows:
+
+\begin{verbatim}
+ <constrain>
+  <name>verySimplisticToStellarMassFunction</name>
+  <workDirectory>my/work/patn</workDirectory>
+  <scratchDirectory>/scratch/my/scratch/path</scratchDirectory>
+  <report>no</report>
+  <cpulimit>1200</cpulimit>
+  <memoryLimit>32gb</memoryLimit>
+  <environment>LD_LIBRARY_PATH=/my/lib:$LD_LIBRARY_PATH</environment>
+  <environment>PATH=/my/path:$PATH</environment>
+  <baseParameters>parameters.xml</baseParameters>
+  <randomize>no</randomize>
+
+  <!-- Compilation of constraints to use -->
+  <compilation>stellarMassFunction_SDSS_z0.07.xml</compilation>
+  <storeResults>no</storeResults>
+
+  <!-- MCMC method -->
+  <threadsPerNode>12</threadsPerNode>
+  <threads>300</threads>
+  <galacticusThreads>12</galacticusThreads>
+  <galacticusSaveState>no</galacticusSaveState>
+  <method>differentialEvolution</method>
+
+  <!-- MCMC definition -->
+  <monteCarlo>
+    <steps>1000000</steps>
+    <stepsSkip>10</stepsSkip>
+    <goodSteps>1000</goodSteps>
+    <temperingFrequency>100</temperingFrequency>
+    <maxTemperature>64.0</maxTemperature>
+    <proposalWidth>0.01</proposalWidth>
+    <epsWidth>0.001</epsWidth>
+    <gamma>0.085875</gamma>
+  </monteCarlo>
+
+  <!-- Use checkpointing -->
+  <checkpoint>
+    <interval>10</interval>
+    <autoRestart>false</autoRestart>
+  </checkpoint>
+
+  <!-- Define parameters to vary -->
+  <parameters>
+
+    <!-- Disk SNe feedback -->
+    <parameter>
+      <name>diskOutflowTimescaleMinimum</name>
+      <prior>
+        <distribution>uniform</distribution>
+        <mapping>logarithmic</mapping>
+        <lowerLimit>1.0e-3</lowerLimit>
+        <upperLimit>1.0e-2</upperLimit>
+      </prior>
+    </parameter>
+    <parameter>
+      <name>diskOutflowFraction</name>
+      <prior>
+        <distribution>uniform</distribution>
+        <mapping>logarithmic</mapping>
+        <lowerLimit>1.0e-1</lowerLimit>
+        <upperLimit>1.0e+1</upperLimit>
+      </prior>
+    </parameter>
+ 
+  </parameters>
+
+  <!-- Include the standard WMAP-9 cosmological parameters and priors -->
+  <xi:include href="../../constraints/parameters/wmap9Cosmology.xml" 
+     xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+  <!-- Include a simple model for systematic errors in the halo mass function -->
+  <xi:include href="../../constraints/parameters/haloMassFunctionSystematics.xml" 
+     xmlns:xi="http://www.w3.org/2001/XInclude" />
+
+</constrain>
+\end{verbatim}
+
+The following subsections describe each entry in this file.
+
+\subsection{Computing Environment}
+
+\begin{description}
+\item[{\tt name}] A name to use for this calculation. It will be used as the name for jobs submitted to the PBS queue for example.
+\item[{\tt workDirectory}] The full path to a directory in which the results (e.g. \gls{mcmc} chains) will be stored.
+\item[{\tt scratchDirectory}] \emph{(Optional)} The full path to a scratch directory where \glc\ model outputs and other temporary data will be written.
+\item[{\tt report}] If set to {\tt yes}, reports additional debugging information during the run.
+\item[{\tt cpulimit}] A CPU time limit for each model evalulation. This can be useful if certain obscure regions of the surveyed parameter space result in unacceptably long run times. Models will be killed after this time and a very low likelihood returned.
+\item[{\tt memoryLimit}] A memory limit to be passed to PBS.
+\item[{\tt environment}] One of more such element can appear. Each specifies the value of an environment variable to be set prior to launching the \gls{bie}.
+\item[{\tt storeResults}] If {\tt yes} then the full results (e.g. the quantities computed to compare with observational data) from each model evalulation will be stored. Otherwise, they are discarded after each evalulation. Use {\tt yes} with caution---a typical run might include millions of model evaluations which can quickly lead to huge amounts of data being written to disk.
+\item[{\tt threadsPerNode}] The number of threads to use per node. Typically this would be set to the number of available cores on each node.
+\item[{\tt threads}] The total number of threads (i.e. parallel chains) to use.
+\item[{\tt galacticusThreads}] The number of parallel OpenMP threads to use for each \glc\ model. It is recommended that this be set to the number of available cores on each node, and semaphoring (see \S{sec:Semaphores}) be used. In this way, each copy of \glc\ on a node will share resources, but as one instance finishes, the others will be able to make use of the freed resources.
+\item[{\tt galacticusSaveState}] If {\tt yes} then \glc\ will save its internal state prior to beginning evolution of each merger tree. This is intended for debugging purposes and so should normally be set to {\tt no}.
+\item[{\tt checkpoint}] If present, \gls{bie} will be instructed to checkpoint its calculations. The interval (in number of steps) between checkpoints is specified by the {\tt interval} sub-element. If the {\tt autoRestart} sub-element is set to {\tt true} then a second PBS script will be submitted which will restart the calculation once the original job finishes. This second script will submit a further script to take over once it finishes and so on. This can be useful if your PBS queue has a time limit and you want to keep restarting the calculation until it is done. Use with caution however, some systems forbid automated restarts.
+\end{description}
+
+\subsection{Model Specification}
+
+\begin{description}
+\item[{\tt baseParameters}] Specifies the path to a \glc\ parameter file which will be used as the base set of parameter on top of which any parameter variations will be applied.
+\item[{\tt randomize}] If {\tt yes} then each model evaluation will be performed with a different random number seed. Otherwise, the same seed is used in all cases. Experiment shows that changing the random number seed between evaluations can seriously limit the ability of \gls{mcmc} algorithms to converge.
+\end{description}
+
+\subsection{Constraints}
+
+\begin{description}
+\item[{\tt compilation}] Specifies the path to a compilation file to be used for this analysis.
+\end{description}
+
+\subsection{MCMC Method}
+
+\begin{description}
+\item[{\tt method}] Specifies the \gls{mcmc} algorithm to be used. Currently accepted values are {\tt differentialEvolution} and {\tt metropolisHastings}. See the \gls{bie} documentation for full details of these two algorithms.
+\item[{\tt monteCarlo}] Specifies the behavior of the \gls{mcmc} algorithm:
+\begin{description}
+\item[{\tt steps}] The maximum number of steps to take.
+\item[{\tt stepsSkip}] The number of initial steps to skip before beginning to measure convergence.
+\item[{\tt goodSteps}] The number of steps to perform after convergence is attained.
+\item[{\tt temperingFrequency}] The number of steps between successive temperings (in which the likelihood function is ``heated up'' to help get chains out of local minima).
+\item[{\tt maxTemperature}] The maximum temperature to use when tempering.
+\item[{\tt proposalWidth}] Used for the {\tt metroplosHastings} algorithm, specfies the width of proposals.
+\item[{\tt gamma}] Used for the {\tt differentialEvolution} algorithm, specifies the fraction of the vector connecting to chain state to be used as the proposal for another chain.
+\item[{\tt epsWidth}] Used for the {\tt differentialEvolution} algorithm, specifies the width of the Cauchy distribution added to each proposal to ensure that the chains are positively recurrent.
+\end{description}
+\end{description}
+
+\subsection{Parameters and Priors}
+
+The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, and a {\tt prior} element 
+\begin{itemize}
+\item[{\tt distribution}] The type of distribution to be used for the prior. Currently accepted values are {\tt uniform} and {\tt normal}.
+\item[{\tt mapping}] The mapping of the parameter to which the prior should be applied. Currently allowed values are {\tt linear} (the prior is on the parameter itself), and {\tt logarithmic} (the prior is on the logarithm of the parameter).
+\item[{\tt lowerLimit}] The lower limit for the prior.
+\item[{\tt upperLimit}] The upper limit for the prior.
+\item[{\tt mean}] For {\tt normal} priors, the mean of the normal distribution.
+\item[{\tt variance}] For {\tt normal} priors, the variance (\emph{not} the standard deviation) of the normal distribution.
+\end{itemize}
+
+\subsubsection{Loading External Parameters/Priors}
+
+It is also possible to load parameters and their priors from external files. This is useful to add common sets of parameters, such as cosmological parameter. To do so, add an element of the form:
+\begin{verbatim}
+<xi:include href="../../constraints/parameters/wmap9Cosmology.xml" 
+   xmlns:xi="http://www.w3.org/2001/XInclude" />
+\end{verbatim}
+\emph{after} the {\tt parameters} section of the constraint file. The {\tt href} attribute must give the path (relative to the constraint file, or absolute) to the external parameter file. This file should contain its own {\tt parameters} block, describing all parameters to be varied along with their priors. 
+
+\subsubsection{Derived Parameter Values}
+
+It is possible to define parameters in terms of other parameters. Common uses for this include:
+\begin{itemize}
+ \item Setting $\Omega_\Lambda$ from the value of $\Omega_{\rm M}$ to enforce a flat Universe;
+ \item Setting the values of parameters with correlated priors as linear combinations of dummy parameters for which the priors are independent.
+\end{itemize}
+To define a parameter in this way include a {\tt parameter} element of the form:
+\begin{verbatim}
+<parameter>
+ <name>sigma_8</name>
+ <define>0.8178+%cosmology0*0.003817+%cosmology1*0.007931+%cosmology2*0.01002
+    +%cosmology3*0.001584+%cosmology4*0.002931+%cosmology5*0.001727</define>
+</parameter>
+\end{verbatim}
+Here the {\tt define} element gives an equation for the parameter in terms of other parameters. All standard mathematical operators and functions (as recognized by Perl) can be used, and other parameters referenced by using their name prefixed with a ``\%''.
