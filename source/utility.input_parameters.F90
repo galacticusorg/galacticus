@@ -88,6 +88,8 @@ contains
     !% \end{verbatim}
     use Galacticus_Input_Paths
     use String_Handling
+    use Galacticus_Display
+    use File_Utilities
     !$ use OMP_Lib
     implicit none
     type     (varying_string)         , intent(in   )                   :: parameterFile
@@ -120,63 +122,68 @@ contains
 
     ! Open and parse the allowed parameters file if present.
     if (present(allowedParametersFile)) then
-       !$omp critical (FoX_DOM_Access)
-       ! Parse the file.
-       allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse allowed parameters file')
-       ! Extract the list of parameters.
-       allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
-       allowedParameterCount=getLength(allowedParameterList)
-       ! Loop over all parameters in the input file.
-       unknownParametersPresent=.false.
-       do iParameter=0,parameterCount-1
-          thisParameter => item(parameterList,iParameter)
-          nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
-          jParameter    =  0
-          parameterMatched=.false.
-          do while (.not.parameterMatched .and. jParameter < allowedParameterCount)
-             thisParameter   => item(allowedParameterList,jParameter)
-             parameterMatched=(getTextContent(nameElement) == getTextContent(thisParameter))
-             jParameter=jParameter+1
-          end do
-          if (.not.parameterMatched) then
-             if (.not.unknownParametersPresent) then
+       ! Check if the file exists.
+       if (File_Exists(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile)) then
+          !$omp critical (FoX_DOM_Access)
+          ! Parse the file.
+          allowedParameterDoc => parseFile(char(Galacticus_Input_Path())//'work/build/'//allowedParametersFile,iostat=ioErr)
+          if (ioErr /= 0) call Galacticus_Error_Report('Input_Parameters_File_Open','Unable to find or parse allowed parameters file')
+          ! Extract the list of parameters.
+          allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
+          allowedParameterCount=getLength(allowedParameterList)
+          ! Loop over all parameters in the input file.
+          unknownParametersPresent=.false.
+          do iParameter=0,parameterCount-1
+             thisParameter => item(parameterList,iParameter)
+             nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
+             jParameter    =  0
+             parameterMatched=.false.
+             do while (.not.parameterMatched .and. jParameter < allowedParameterCount)
+                thisParameter   => item(allowedParameterList,jParameter)
+                parameterMatched=(getTextContent(nameElement) == getTextContent(thisParameter))
+                jParameter=jParameter+1
+             end do
+             if (.not.parameterMatched) then
+                if (.not.unknownParametersPresent) then
+                   !$ if (omp_in_parallel()) then
+                   !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
+                   !$ else
+                   !$    write (0,'(a2,a2,$)') "MM",": "
+                   !$ end if
+                   write (0,'(a)') '-> WARNING: unknown parameters present:'
+                end if
+                unknownParametersPresent=.true.
                 !$ if (omp_in_parallel()) then
                 !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
                 !$ else
                 !$    write (0,'(a2,a2,$)') "MM",": "
                 !$ end if
-                write (0,'(a)') '-> WARNING: unknown parameters present:'
+                unknownParameter=getTextContent(nameElement)
+                minimumDistance=10000
+                do jParameter=0,allowedParameterCount-1
+                   thisParameter => item(allowedParameterList,jParameter)
+                   distance=String_Levenshtein_Distance(char(unknownParameter),getTextContent(thisParameter))
+                   if (distance < minimumDistance) then
+                      minimumDistance=distance
+                      possibleMatch=getTextContent(thisParameter)
+                   end if
+                end do
+                write (0,'(5a)') '    ',char(unknownParameter),' [did you mean "',char(possibleMatch),'"?]'
              end if
-             unknownParametersPresent=.true.
+          end do
+          ! Destroy the document.
+          call destroy(allowedParameterDoc)
+          !$omp end critical (FoX_DOM_Access)
+          if (unknownParametersPresent) then
              !$ if (omp_in_parallel()) then
              !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
              !$ else
              !$    write (0,'(a2,a2,$)') "MM",": "
              !$ end if
-            unknownParameter=getTextContent(nameElement)
-            minimumDistance=10000
-            do jParameter=0,allowedParameterCount-1
-               thisParameter => item(allowedParameterList,jParameter)
-               distance=String_Levenshtein_Distance(char(unknownParameter),getTextContent(thisParameter))
-               if (distance < minimumDistance) then
-                  minimumDistance=distance
-                  possibleMatch=getTextContent(thisParameter)
-               end if
-            end do
-            write (0,'(5a)') '    ',char(unknownParameter),' [did you mean "',char(possibleMatch),'"?]'
+             write (0,'(a)') '<-'
           end if
-       end do
-       ! Destroy the document.
-       call destroy(allowedParameterDoc)
-       !$omp end critical (FoX_DOM_Access)
-       if (unknownParametersPresent) then
-          !$ if (omp_in_parallel()) then
-          !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-          !$ else
-          !$    write (0,'(a2,a2,$)') "MM",": "
-          !$ end if
-          write (0,'(a)') '<-'
+       else
+          call Galacticus_Display_Message("Allowed parameter file '"//allowedParametersFile//"' is missing - incorrect parameters will not be detected",verbosityWarn)
        end if
     end if
 

@@ -43,7 +43,7 @@ contains
        !$omp critical (Galacticus_Path_Initialize)
        if (.not.pathRetrieved) then
           ! Get the status and path length.
-          call Get_Environment_Variable("GALACTICUS_ROOT_V092",length=pathLength,status=pathStatus)
+          call Get_Environment_Variable("GALACTICUS_ROOT_V093",length=pathLength,status=pathStatus)
           if (pathStatus == 0) then
              ! Path is defined, retrieve it.
              call Get_Path(pathLength)
@@ -69,7 +69,7 @@ contains
     character(len=pathLength+1)                :: pathName
 
     ! Get the path.
-    call Get_Environment_Variable("GALACTICUS_ROOT_V092",value=pathName)
+    call Get_Environment_Variable("GALACTICUS_ROOT_V093",value=pathName)
     ! Append a final "/" if necessary.
     if (pathName(pathLength:pathLength) /= "/") pathName=trim(pathName)//"/"
     ! Store the path.
