@@ -9,8 +9,8 @@ use PDL;
 use PDL::NiceSlice;
 use PDL::IO::HDF5;
 my $galacticusPath;
-if ( exists($ENV{'GALACTICUS_ROOT_V092'}) ) {
-    $galacticusPath = $ENV{'GALACTICUS_ROOT_V092'};
+if ( exists($ENV{'GALACTICUS_ROOT_V093'}) ) {
+    $galacticusPath = $ENV{'GALACTICUS_ROOT_V093'};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
