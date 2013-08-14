@@ -1,0 +1,117 @@
+# BIE script for constraining the Behroozi et al. (2010) conditional
+# mass function model to the ALFALFA HI mass function of Martin et
+# al (2011).
+# Andrew Benson (16-July-2013)
+#
+# Initialize persistence store.
+pnewsession covarianceMatrixStage%STAGE
+cktoggle
+ckinterval 10000
+# Set name for this model.
+set nametag = "constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/stage%STAGE/bie"
+set outfile = "constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/stage%STAGE/bie.statelog"
+# Specify number of parameters.
+set ndim = 11
+# Create a Galacticus likelihood function (which calls an external code
+# to compute likelihood and reads the result back in)
+set fct = new GalacticusLikelihoodFunction(ndim,"constraints/dataAnalysis/scripts/computeLikelihood.pl","constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/stage%STAGE/covarianceMatrixControl.xml","constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/stage%STAGE/glcLikelihood.dat")
+# Create a StateInfo object.
+set si = new StateInfo(ndim)
+# Define labels for the parameters of the model.
+set l  = new clivectors(ndim)
+l->setval(0,"conditionalMassFunctionBehrooziAlphaSatellite")
+l->setval(1,"conditionalMassFunctionBehrooziLog10M1")
+l->setval(2,"conditionalMassFunctionBehrooziLog10Mstar0")
+l->setval(3,"conditionalMassFunctionBehrooziBeta")
+l->setval(4,"conditionalMassFunctionBehrooziDelta")
+l->setval(5,"conditionalMassFunctionBehrooziGamma")
+l->setval(6,"conditionalMassFunctionBehrooziSigmaLogMstar")
+l->setval(7,"conditionalMassFunctionBehrooziBCut")
+l->setval(8,"conditionalMassFunctionBehrooziBSatellite")
+l->setval(9,"conditionalMassFunctionBehrooziBetaCut")
+l->setval(10,"conditionalMassFunctionBehrooziBetaSatellite")
+si->labelAll(l)
+# Create priors for the parameters. For
+# "conditionalMassFunctionBehrooziAlphaSatellite" we use a
+# Gaussian centered on 1.0 with a width determined from the simulations
+# of Kravtsov et al. (2004). For the others relatively uninformative
+# uniform priors are used.
+set dis0  = new NormalDist(0.98, 0.000755)
+set dis1  = new UniformDist(11.2, 11.8)
+set dis2  = new UniformDist(9.1, 9.7)
+set dis3  = new UniformDist(0.3, 0.7)
+set dis4  = new UniformDist(0.35,0.75)
+set dis5  = new UniformDist(0.1, 1.5)
+set dis6  = new UniformDist(0.02, 0.3)
+set dis7  = new UniformDist(1.0, 200.0)
+set dis8  = new UniformDist(0.1, 20.0)
+set dis9  = new UniformDist(-4.00, 0.00)
+set dis10 = new UniformDist(0.0, 2.0)
+set pvec  = new clivectordist(ndim)
+pvec->setval(0, dis0)
+pvec->setval(1, dis1)
+pvec->setval(2, dis2)
+pvec->setval(3, dis3)
+pvec->setval(4, dis4)
+pvec->setval(5, dis5)
+pvec->setval(6, dis6)
+pvec->setval(7, dis7)
+pvec->setval(8, dis8)
+pvec->setval(9, dis9)
+pvec->setval(10, dis10)
+set prior = new Prior(si, pvec)
+# Create the convergence criterion (standard Gelman-Rubin with 100 steps
+# skipped and 1000000 steps post-convergence).
+set sstat = new EnsembleStat(si)
+set convrg = new GelmanRubinConverge(0, sstat, "convergence")
+convrg->setNskip(100)
+convrg->setNgood(1000000)
+# Initialize the "eps" distributions which are used to add random
+# perturbations to the proposed steps in the MCMC algorithm. Cauchy
+# distributions are used to permit large steps on occasion, with a width
+# chosen to be around 1% of the typical dispersion in converged chains.
+set eps = new clivectordist(ndim)
+set cdf0 = new CauchyDist(0.0002929)
+set cdf1 = new CauchyDist(0.0005773)
+set cdf2 = new CauchyDist(0.0003486)
+set cdf3 = new CauchyDist(0.0002719)
+set cdf4 = new CauchyDist(0.0003668)
+set cdf5 = new CauchyDist(0.001382)
+set cdf6 = new CauchyDist(0.0001321)
+set cdf7 = new CauchyDist(0.008308)
+set cdf8 = new CauchyDist(0.01833)
+set cdf9 = new CauchyDist(0.003111)
+set cdf10 = new CauchyDist(0.02055)
+eps->setval(0, cdf0)
+eps->setval(1, cdf1)
+eps->setval(2, cdf2)
+eps->setval(3, cdf3)
+eps->setval(4, cdf4)
+eps->setval(5, cdf5)
+eps->setval(6, cdf6)
+eps->setval(7, cdf7)
+eps->setval(8, cdf8)
+eps->setval(9, cdf9)
+eps->setval(10, cdf10)
+# Create the likelihood computation object.
+set mvec = new clivectord(ndim, 0.01)
+set mhwidth = new MHWidthOne(si, mvec)
+set nsteps = 100000
+set mca = new MetropolisHastings()
+set like = new LikelihoodComputationSerial()
+# Create the simulation. Set the gamma parameter (the fraction of the
+# vector separating the states of two randomly chosen chains that will
+# be used for the proposal step) to 10% of gamma0 (the optimal value for
+# a Gaussian posterior).
+set sim = new DifferentialEvolution(si, 48, eps, convrg, prior, like, mca)
+sim->SetLinearMapping(1)
+sim->SetJumpFreq(10)
+set gamma = 0.0507
+sim->NewGamma(gamma)
+sim->SetControl(1)
+sim->EnableLogging()
+sim->SetUserLikelihood(fct)
+# Run the simulation and dumpy summary statistics.
+set run = new RunOneSimulation(nsteps, 0, sstat,  prior, sim)
+run->Run()
+sstat->ComputeDistribution()
