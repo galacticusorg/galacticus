@@ -478,6 +478,36 @@ Currently defined accretion disk methods are:
  \item [{\tt null}] Assumes no accretion onto halos.
 \end{description}
 
+\subsubsection{Analysis}
+
+Additional methods foron-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
+\begin{verbatim}
+ !# <mergerTreeAnalysisTask>
+ !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
+ !# </mergerTreeAnalysisTask>
+\end{verbatim}
+Here, {\tt Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dstrbtins} is the name of a subroutine which will be called to perform the analysis. The analysis subroutine must have the following form:
+\begin{verbatim}
+  subroutine Tree_Analyze(thisTree,thisNode,iOutput,mergerTreeAnalyses)
+    implicit none
+    type            (mergerTree    ), intent(in   )                 :: thisTree
+    type            (treeNode      ), intent(inout), pointer        :: thisNode
+    integer                         , intent(in   )                 :: iOutput
+    type            (varying_string), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
+    .
+    .
+    .
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\tt thisTree}, along with a pointer to the node to be analyzed as {\tt thisNode}. Additionally, the current output number is passed as {\tt iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\tt mergerTreeAnalyses} array. The function should check if one or more of the entries in {\tt mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\tt mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\tt hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
+
+Currently defined merger tree analysis methods are:
+\begin{description}
+ \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\tt sdssStellarMassFunctionZ0.07}, {\tt alfalfaHiMassFunctionZ0.00}, {\tt primusStellarMassFunctionZ0.100}, {\tt primusStellarMassFunctionZ0.250}, {\tt primusStellarMassFunctionZ0.350}, {\tt primusStellarMassFunctionZ0.450}, {\tt primusStellarMassFunctionZ0.575}, {\tt primusStellarMassFunctionZ0.725}, and {\tt primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed (see \S\ref{sec:AnalysisALFALFAHIMassFunction} for details).
+ \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\tt sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed (see \S\ref{sec:SDSSLateTypeGalaxySizeDistribution} for details).
+\end{description}
+
 \subsubsection{Atomic Collisional Ionization Rates}
 
 Additional methods for atomic collisional ionization rate calculations can be added using the {\tt atomicCollisionalIonizationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Verner} method is described by a directive:
@@ -5594,7 +5624,7 @@ Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can
 \end{verbatim}
 The contents of {\tt <unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, {\tt thisNode}, which is the node that has (re)formed.
 
-\subsubsection{HDF5 File Close}
+\subsubsection{HDF5 File Close}\label{sec:HDFFileClose}
 
 Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the {\tt hdfPreCloseTask} directive. For example, the {\tt Merger\_Tree\_Timesteps\_History} module registers a task using
 \begin{verbatim}
