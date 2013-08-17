@@ -1,0 +1,53 @@
+<!-- A standard set of constraints for Galacticus which uses the PRIMUS z<1 -->
+<!-- stellar mass functions and the ALFALFA z=0.00 HI mass function         -->
+<constraintCompilation>
+
+  <!-- z=0.100 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.100.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.250 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.250.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.350 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.350.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.450 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.450.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.575 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.575.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.725 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.725.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.900 PRIMUS stellar mass function -->
+  <constraint>
+    <definition>constraints/constraints/stellarMassFunction_PRIMUS_2013_z0.900.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+  <!-- z=0.00 HI mass function -->
+  <constraint>
+    <definition>constraints/constraints/hiMassFunction_ALFALFA_z0.00.xml</definition>
+    <weight>1.0</weight>
+  </constraint>
+
+</constraintCompilation>
