@@ -3834,12 +3834,18 @@ sub Generate_Implementation_Output_Functions {
 			die("Generate_Implementation_Output_Functions(): can not output [".$propertyName."]");
 		    }		   
 		    # Increment the counters.
+		    my %simDbTypeMap = 
+			(
+			 real        => "real"   ,
+			 integer     => "integer",
+			 longInteger => "integer"
+			);
 		    switch ( $type ) {
 			case ( [ "real", "integer", "longInteger" ] ) {
 			    # Insert metadata for SimDB.
 			    $functionBody .= "       !@ <outputProperty>\n";
 			    $functionBody .= "       !@   <name>".$component->{'class'}.ucfirst($propertyName)."</name>\n";
-			    $functionBody .= "       !@   <datatype>".$type."</datatype>\n";
+			    $functionBody .= "       !@   <datatype>".$simDbTypeMap{$type}."</datatype>\n";
 			    if ( $rank == 0 ) {
 				$functionBody .= "       !@   <cardinality>0..1</cardinality>\n";
 			    } else {

@@ -276,6 +276,7 @@ contains
        !@   <cardinality>0..1</cardinality>
        !@   <description>Velocity dispersion at a given radius.</description>
        !@   <label>???</label>
+       !@   <outputType>nodeData</outputType>
        !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
