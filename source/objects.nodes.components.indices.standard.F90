@@ -31,7 +31,7 @@ module Node_Component_Indices_Standard
   !#  <properties>
   !#   <property>
   !#     <name>branchTip</name>
-  !#     <type>integer</type>
+  !#     <type>longInteger</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
   !#     <output unitsInSI="0.0d0" comment="Index of the node at the tip of the branch in which this galaxy formed."/>
