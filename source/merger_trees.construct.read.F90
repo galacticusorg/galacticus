@@ -534,6 +534,7 @@ contains
           simulationGroup=mergerTreeFile%openGroup("simulation")
           if (simulationGroup%hasAttribute("boxSize")) then
              call simulationGroup%readAttribute("boxSize",lengthSimulationBox,allowPseudoScalar=.true.)
+             if (lengthSimulationBox <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','simulation box length must be positive')
              lengthSimulationBox=lengthSimulationBox*unitConversionLength
              treeVolumeWeightUniform=1.0d0/lengthSimulationBox**3
           else
