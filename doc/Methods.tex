@@ -478,6 +478,36 @@ Currently defined accretion disk methods are:
  \item [{\tt null}] Assumes no accretion onto halos.
 \end{description}
 
+\subsubsection{Analysis}
+
+Additional methods foron-the-fly analysis of merger trees can be added using the {\tt mergerTreeAnalysisTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the mass distributions method is described by a directive:
+\begin{verbatim}
+ !# <mergerTreeAnalysisTask>
+ !#  <unitName>Galacticus_Output_Analysis_Mass_Dpndnt_Sz_Dstrbtins</unitName>
+ !# </mergerTreeAnalysisTask>
+\end{verbatim}
+Here, {\tt Galacticus\_Output\_Analysis\_Mass\_Dpndnt\_Sz\_Dstrbtins} is the name of a subroutine which will be called to perform the analysis. The analysis subroutine must have the following form:
+\begin{verbatim}
+  subroutine Tree_Analyze(thisTree,thisNode,iOutput,mergerTreeAnalyses)
+    implicit none
+    type            (mergerTree    ), intent(in   )                 :: thisTree
+    type            (treeNode      ), intent(inout), pointer        :: thisNode
+    integer                         , intent(in   )                 :: iOutput
+    type            (varying_string), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
+    .
+    .
+    .
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+This function will be called once for each node in each tree being output. The function is passed the merger tree object as {\tt thisTree}, along with a pointer to the node to be analyzed as {\tt thisNode}. Additionally, the current output number is passed as {\tt iOutput}. Finally, a list of analyses that were requested (by user input) to be performed is given in the {\tt mergerTreeAnalyses} array. The function should check if one or more of the entries in {\tt mergerTreeanalyses} correspond to analyses that it performs. (Note that this need only be done on the first call to this function---the values of {\tt mergerTreeAnalyses} will not change between calls.) If an analysis is matched in this way it should be performed. Typically, an analysis function might accumulate the results of analysis and then finalize and output them prior to completion of the \glc\ model through the use of a {\tt hdfPreCloseTask} (see \S\ref{sec:HDFFileClose}).
+
+Currently defined merger tree analysis methods are:
+\begin{description}
+ \item [mass functions] Constructs mass functions for a variety of different surveys. Currently supported analysis names are: {\tt sdssStellarMassFunctionZ0.07}, {\tt alfalfaHiMassFunctionZ0.00}, {\tt primusStellarMassFunctionZ0.100}, {\tt primusStellarMassFunctionZ0.250}, {\tt primusStellarMassFunctionZ0.350}, {\tt primusStellarMassFunctionZ0.450}, {\tt primusStellarMassFunctionZ0.575}, {\tt primusStellarMassFunctionZ0.725}, and {\tt primusStellarMassFunctionZ0.900}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses into observed masses. The covariance matrix of the mass function is also computed (see \S\ref{sec:AnalysisALFALFAHIMassFunction} for details).
+ \item [mass-dependent size distributions] Constructs a two-dimensional histogram of galaxy sizes in bins of stellar mass. Currently supported analyses are {\tt sdssSizeFunctionZ0.07}. Each such analysis is defined internally to this module through the appropriate redshift, binning, random and systematic errors, and arbitrary mapping of component masses/radii into observed masses/radii. The covariance matrix of the size function is also computed (see \S\ref{sec:SDSSLateTypeGalaxySizeDistribution} for details).
+\end{description}
+
 \subsubsection{Atomic Collisional Ionization Rates}
 
 Additional methods for atomic collisional ionization rate calculations can be added using the {\tt atomicCollisionalIonizationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Verner} method is described by a directive:
@@ -948,25 +978,25 @@ The datasets should contain the following information:
 \end{description}
 \end{description}
 
-\subsubsection{Conditional Stellar Mass Functions}
+\subsubsection{Conditional Mass Functions}
 
-Additional methods for empirical conditional mass functions can be added using the {\tt conditionalStellarMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Behroozi2010} method is described by a directive:
+Additional methods for empirical conditional mass functions can be added using the {\tt conditionalMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Behroozi2010} method is described by a directive:
 \begin{verbatim}
-  !# <conditionalStellarMassFunctionMethod>
-  !#  <unitName>Conditional_Stellar_Mass_Functions_Behroozi2010_Initialize</unitName>
-  !# </conditionalStellarMassFunctionMethod>
+  !# <conditionalMassFunctionMethod>
+  !#  <unitName>Conditional_Mass_Functions_Behroozi2010_Initialize</unitName>
+  !# </conditionalMassFunctionMethod>
 \end{verbatim}
-Here, {\tt Conditional\_Stellar\_Mass\_Functions\_Behroozi2010\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+Here, {\tt Conditional\_Mass\_Functions\_Behroozi2010\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
 \begin{verbatim}
-  subroutine Method_Initialize(conditionalStellarMassFunctionMethod&
-       &,Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get)
+  subroutine Method_Initialize(conditionalMassFunctionMethod&
+       &,Cumulative_Conditional_Mass_Function_Get,Cumulative_Conditional_Mass_Function_Var_Get)
     implicit none
-    type(varying_string),                 intent(in)    :: conditionalStellarMassFunctionMethod
-    procedure(double precision), pointer, intent(inout) :: Cumulative_Conditional_Stellar_Mass_Function_Get,Cumulative_Conditional_Stellar_Mass_Function_Var_Get
+    type(varying_string),                 intent(in)    :: conditionalMassFunctionMethod
+    procedure(double precision), pointer, intent(inout) :: Cumulative_Conditional_Mass_Function_Get,Cumulative_Conditional_Mass_Function_Var_Get
     
-    if (conditionalStellarMassFunctionMethod == 'myMethod') then
-       Cumulative_Conditional_Stellar_Mass_Function_Get     => My_Cumulative_Conditional_Stellar_Mass_Function
-       Cumulative_Conditional_Stellar_Mass_Function_Var_Get => My_Cumulative_Conditional_Stellar_Mass_Function_Var
+    if (conditionalMassFunctionMethod == 'myMethod') then
+       Cumulative_Conditional_Mass_Function_Get     => My_Cumulative_Conditional_Mass_Function
+       Cumulative_Conditional_Mass_Function_Var_Get => My_Cumulative_Conditional_Mass_Function_Var
        .
        .
        .
@@ -978,29 +1008,29 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The functionw must have the form:
 \begin{verbatim}
-   double precision function My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellar)
+   double precision function My_Cumulative_Conditional_Mass_Function(massHalo,mass)
     implicit none
-    double precision, intent(in) :: massHalo,massStellar
+    double precision, intent(in) :: massHalo,mass
     .
     .
     .
     return
-   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var
+   end function My_Cumulative_Conditional_Mass_Function_Var
 
-   double precision My_Cumulative_Conditional_Stellar_Mass_Function_Var My_Cumulative_Conditional_Stellar_Mass_Function(massHalo,massStellarLow,massStellarHigh)
+   double precision My_Cumulative_Conditional_Mass_Function_Var(massHalo,massLow,massHigh)
     implicit none
-    double precision, intent(in) :: massHalo,massStellarLow,massStellarHigh
+    double precision, intent(in) :: massHalo,massLow,massHigh
     .
     .
     .
     return
-   end function My_Cumulative_Conditional_Stellar_Mass_Function_Var 
+   end function My_Cumulative_Conditional_Mass_Function_Var 
 \end{verbatim}
-The first function must return the number of galaxies of mass greater than {\tt massStellar} in halos of mass {\tt massHalo}. The second function should return the variance in the number of galaxies in the stellar mass range {\tt massStellarLow} to {\tt massStellarHigh} in halos of mass {\tt massHalo}
+The first function must return the number of galaxies of mass greater than {\tt mass} in halos of mass {\tt massHalo}. The second function should return the variance in the number of galaxies in the mass range {\tt massLow} to {\tt massHigh} in halos of mass {\tt massHalo}
 
 Currently defined tree timing methods are:
 \begin{description}
- \item [{\tt Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional stellar mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
+ \item [{\tt Behroozi2010}] This method uses the fitting function of \cite{behroozi_comprehensive_2010} to compute the conditional mass function. To compute the variance in the mass function, this method assumes that the number of satellite galaxies follows a Poisson distribution, while central galaxies follow a \gls{Bernoulli distribution}.
 \end{description}
 
 \subsubsection{Cooling Rate}
@@ -3558,6 +3588,49 @@ Currently defined merger tree building methods are:
  \item [{\tt Cole2000}] Uses the \cite{cole_hierarchical_2000} merger tree building algorithm.
 \end{description}
 
+\subsubsection{Merger Tree Building Mass Resolution}\label{sec:MergerTreeBuildMethodMassResolution}
+
+Additional methods for the mass resolution to use when building merger trees can be added using the {\tt mergerTreesBuildMassResolution} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt fixed} method is described by a directive:
+\begin{verbatim}
+ !# <mergerTreesBuildMassResolution>
+ !#  <unitName>Merger_Trees_Build_Mass_Resolution_Fixed_Initialize</unitName>
+ !# </mergerTreesBuildMassResolution>
+\end{verbatim}
+Here, {\tt Merger\_Trees\_Build\_Mass\_Resolution\_Fixed\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+ subroutine Method_Initialize(mergerTreesBuildMassResolutionMetod,Merger_Tree_Build_Mass_Resolution_Get)
+    type(varying_string),          intent(in)    :: mergerTreesBuildMassResolutionMetod
+    procedure(),          pointer, intent(inout) :: Merger_Tree_Build_Mass_Resolution_Get
+    
+    if (mergerTreesBuildMassResolutionMetod == 'myMethod') then
+       Merger_Tree_Build_Mass_Resolution_Get => My_Merger_Tree_Build_Mass_Resolution
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt mergerTreesBuildMassResolutionMetod} input parameter. The procedure pointer {\tt Merger\_Tree\_Build\_Mass\_Resolution\_Get} must be set to point to a function which returns the mass resolution to use for a given tree as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The mass resolution function should have the form:
+\begin{verbatim}
+  double precision function Merger_Tree_Build_Mass_Resolution(thisTree)
+    type(mergerTree), intent(in   ) :: thisTree
+    .
+    .
+    .
+    return
+  end function Merger_Tree_Build_Mass_Resolution
+\end{verbatim}
+and should return the mass resolution to use when building {\tt thisTree}. Note that the base node in {\tt thisTree} will already be set.
+
+Currently defined merger tree building mass resolution methods are:
+\begin{description}
+ \item [{\tt fixed}] Uses a fixed mass resolution for all trees.
+ \item [{\tt scaled}] The resolution is set to a fraction of the tree base node mass (or a defined minimum, whichever is larger).
+\end{description}
+
 \subsubsection{Merger Tree Construction}\label{sec:MergerTreeConstruction}
 
 Additional methods for merger tree construction can be added using the {\tt mergerTreeConstructMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt build} method is described by a directive:
@@ -4967,6 +5040,98 @@ Currently defined type Ia supernovae methods are:
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
 \end{description}
 
+\subsubsection{Survey Geometry}
+
+Additional methods for survey geometries can be added using the {\tt surveyGeometryMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Martin-2010-ALFALFA} method is described by a directive:
+\begin{verbatim}
+  !# <surveyGeometryMethod>
+  !#  <unitName>Geometry_Surveys_MARTIN_2010_ALFALFA_Initialize</unitName>
+  !# </surveyGeometryMethod>
+\end{verbatim}
+Here, {\tt Geometry\_Surveys\_MARTIN\_2010\_ALFALFA\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(surveyGeometryMethod,,Geometry_Survey_Distance_Maximum_Get&
+       &,Geometry_Survey_Solid_Angle_Get ,Geometry_Survey_Volume_Maximum_Get,Geometry_Survey_Window_Functions_Get)
+    implicit none
+    type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
+    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get &
+         &,Geometry_Survey_Volume_Maximum_Get
+    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
+
+    if (surveyGeometryMethod == 'myMethod') then
+       Geometry_Survey_Distance_Maximum_Get => My_Geometry_Survey_Distance_Maximum
+       Geometry_Survey_Solid_Angle_Get      => My_Geometry_Survey_Solid_Angle
+       Geometry_Survey_Volume_Maximum_Get   => My_Geometry_Survey_Volume_Maximum
+       Geometry_Survey_Window_Functions_Get => My_Geometry_Survey_Window_Functions
+       .
+       .
+       .
+    end if
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt surveyGeometryMethod} input parameter. The procedure pointers  must be set to point to functions which return properties of the survey as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The maximum distance function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Distance_Maximum(mass)
+    implicit none
+    double precision, intent(in  ) :: mass
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Distance_Maximum 
+\end{verbatim}
+and must return the maximum distance (in Mpc) at which a galaxy of the given {\tt mass} would be included in the survey.
+
+The solid angle function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Solid_Angle()
+    implicit none
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Solid_Angle_
+\end{verbatim}
+and should return the solid angle (in steradians) of the survey angular mask.
+
+The maximum volume function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Volume_Maximum(mass)
+    implicit none
+    double precision, intent(in) :: mass
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Volume_Maximum 
+\end{verbatim}
+and should return the maximum volume (in Mpc$^3$) within which a galaxy of the given {\tt mass} could be found in the survey.
+
+The window function function must have the form:
+\begin{verbatim}
+   double precision function Geometry_Survey_Window_Functions(mass1,mass2,boxLength,gridCount,windowFunction1,windowFunction2)
+    implicit none
+    double precision         , intent(in   )                                           :: mass1,mass2
+    integer                  , intent(in   )                                           :: gridCount
+    double precision         , intent(  out)                                           :: boxLength
+    complex(c_double_complex), intent(  out), dimension(gridCount,gridCount,gridCount) :: windowFunction1,windowFunction2
+    .
+    .
+    .
+    return
+   end function Geometry_Survey_Window_Functions 
+\end{verbatim}
+and should compute the Fourier space window functions corresponding to the survey volume within which galaxies of masses {\tt mass1} and {\tt mass2} could be found. The window functions should be computed on a Cartesian grid, containing {\tt gridCount} elements in each dimension. The chosen length of the box within which the survey geometry was embedded should be returned in the {\tt boxLength} variable.
+
+Currently defined type Ia supernovae methods are:
+\begin{description}
+ \item [{\tt Martin-2010-ALFALFA}] Computes the survey geometry of the survey of \cite{martin_arecibo_2010}.
+ \item [{\tt Li-White-2009-SDSS}] Computes the survey geometry of the survey of \cite{li_distribution_2009}.
+\end{description}
+
 \subsubsection{Tree Timing}
 
 Additional methods for tree timing (i.e. the time taken to process a given merger tree) can be added using the {\tt timePerTreeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt file} method is described by a directive:
@@ -5459,7 +5624,7 @@ Tasks to be performed when a halo is deemed to have ``formed'' (or reformed) can
 \end{verbatim}
 The contents of {\tt <unitName>} should give the name of the subroutine to be called on halo formation. The subroutine should have a single argument, {\tt thisNode}, which is the node that has (re)formed.
 
-\subsubsection{HDF5 File Close}
+\subsubsection{HDF5 File Close}\label{sec:HDFFileClose}
 
 Tasks to be performed just prior to closing the \glc\ output HDF5 file (typically involving writing accumulated data to that file) can be registered using the {\tt hdfPreCloseTask} directive. For example, the {\tt Merger\_Tree\_Timesteps\_History} module registers a task using
 \begin{verbatim}
