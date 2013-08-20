@@ -2436,6 +2436,8 @@ contains
           else
              call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Double_Scalar","attribute must be a double scalar or pseudo-scalar")
           end if
+       else
+          call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Double_Scalar","attribute must be a double scalar or pseudo-scalar")
        end if
     else
        call Galacticus_Error_Report("IO_HDF5_Read_Attribute_Double_Scalar","attribute must be a double scalar")
