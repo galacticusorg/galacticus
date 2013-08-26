@@ -71,7 +71,7 @@ contains
     ! Get the orbit for this node.
     thisOrbit=thisSatelliteComponent%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
-    call Satellite_Orbit_Pericenter_Phase_Space_Coordinates(hostNode,thisOrbit,orbitalRadius,orbitalVelocity)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
     ! Find the density of the host node hot halo at the pericentric radius.
     densityHotHaloHost=Hot_Halo_Density(hostNode,orbitalRadius)
     ! Find the ram pressure force at pericenter.
