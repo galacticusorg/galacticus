@@ -73,7 +73,7 @@ contains
     type            (treeNode      ), intent(inout), pointer :: satelliteNode
     type            (treeNode      )               , pointer :: hostNode
     double precision                , parameter              :: bindingEnergyFormFactor   =0.5d+0
-    double precision                , parameter              :: absoluteMassTolerance     =1.0d-6
+    double precision                , parameter              :: absoluteMassTolerance     =1.0d-3
     double precision                , parameter              :: relativeMassTolerance     =1.0d-9
     double precision                                         :: angularMomentumFactor            , hostDarkMatterMass       , &
          &                                                      hostMass                         , hostRadius               , &
