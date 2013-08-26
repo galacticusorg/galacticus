@@ -43,7 +43,7 @@ my $treeId;
 if ( exists($arguments{"treeId"}) ) {
     $treeId = $arguments{"treeId"};
 } else {
-    $treeId = "treeId";
+    $treeId = "treeRootId";
 }
 
 # Specify the haloId property.
@@ -121,6 +121,11 @@ if ( exists($arguments{"mass"}) ) {
     $mass = "m_tophat";
 }
 
+# Determine half-mass radius to use.
+$halfMassRadius = "halfmassRadius";
+$halfMassRadius = $arguments{"halfMassRadius"}
+    if ( exists($arguments{"halfMassRadius"}) );
+
 # Specify the database URL.
 my $databaseURL = "http://gavo.mpa-garching.mpg.de/MyMillennium?action=doQuery&SQL=";
 
@@ -131,7 +136,7 @@ $getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" 
 $getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
 # Build the SQL query to retrieve basic node data.
-my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.halfmassRadius, node.mostBoundID from ".$table." node";
+my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.".$halfmassRadius.", node.mostBoundID from ".$table." node";
 # Add the root node if it is used in the selection.
 $sqlQuery .= ", ".$table." root"
     if ( $selection =~ m/root\./ );
