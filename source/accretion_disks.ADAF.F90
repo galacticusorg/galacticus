@@ -185,7 +185,7 @@ contains
           !@   <type>real</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=1.444d0)
+          call Get_Input_Parameter("adafAdiabaticIndex",adafAdiabaticIndex,defaultValue=adafAdiabaticIndexDefault)
           adafThermalPressureFraction=(8.0d0-6.0d0*adafAdiabaticIndex)/3.0d0/(1.0d0-adafAdiabaticIndex)
           !@ <inputParameter>
           !@   <name>adafViscosityOption</name>
