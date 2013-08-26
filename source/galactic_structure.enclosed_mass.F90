@@ -125,8 +125,10 @@ contains
        message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
        write (massLabel,'(e10.4)') massRoot
        message=message//') at zero radius (was seeking '//trim(massLabel)
-       message=message//') - expect a crash.'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       message=message//') - returning zero radius.'
+       call Galacticus_Display_Message(message,verbosityWarn)
+       Galactic_Structure_Radius_Enclosing_Mass=0.0d0
+       return
     end if
     Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootRange=[0.0d0,Dark_Matter_Halo_Virial_Radius(thisNode)])
     return
