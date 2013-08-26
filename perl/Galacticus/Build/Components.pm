@@ -2968,7 +2968,7 @@ sub Generate_Implementation_Dump_Functions {
 				$functionCode .= "       write (label,'(i3)') i\n";
 				$functionCode .= "       message='".$propertyName.": ".(" " x ($implementationPropertyNameLengthMax-length($propertyName)))." '//trim(label)\n";
 				$functionCode .= "       write (label,".$formatLabel{$linkedData->{'type'}}.") self%".$linkedDataName."%value(i)\n";
-				$functionCode .= "       message=message//label\n";
+				$functionCode .= "       message=message//': '//label\n";
 				$functionCode .= "       call Galacticus_Display_Message(message)\n";
 				$functionCode .= "    end do\n";
 			    }
@@ -5732,6 +5732,11 @@ sub Generate_Tree_Node_Builder_Function {
 	 {
 	     intrinsic  => "integer",
 	     variables  => [ "i", "j", "componentCount" ]
+	 },
+	 {
+	     intrinsic  => "type",
+	     type       => "integerScalarHash",
+	     variables  => [ "componentIndex" ]
 	 }
 	);
     # Create the function code.
@@ -5739,10 +5744,12 @@ sub Generate_Tree_Node_Builder_Function {
     $functionCode .= "  subroutine Tree_Node_Component_Builder(self,nodeDefinition)\n";
     $functionCode .= "    !% Build components in a {\\tt treeNode} object given an XML definition.\n";
     $functionCode .= "    use FoX_Dom\n";
+    $functionCode .= "    use Hashes\n";
     $functionCode .= "    implicit none\n";
     $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
     $functionCode .= "    select type (self)\n";
     $functionCode .= "    type is (treeNode)\n";
+    $functionCode .= "       call componentIndex%initialize()\n";
     foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
 	$functionCode .= "    componentList => getChildNodes(nodeDefinition)\n";
 	$functionCode .= "    componentCount=0\n";
@@ -5753,17 +5760,22 @@ sub Generate_Tree_Node_Builder_Function {
 	$functionCode .= "    if (componentCount > 0) then\n";
 	$functionCode .= "      if (allocated(self%component".ucfirst($componentClass).")) deallocate(self%component".ucfirst($componentClass).")\n";
 	$functionCode .= "      allocate(self%component".ucfirst($componentClass)."(componentCount),source=default".ucfirst($componentClass)."Component)\n";
-	$functionCode .= "      j=0\n";
-	$functionCode .= "      do i=0,getLength(componentList)-1\n";
-	$functionCode .= "        componentDefinition => item(componentList,i)\n";
-	$functionCode .= "        if (getNodeName(componentDefinition) == '".$componentClass."') then\n";
-	$functionCode .= "          j=j+1\n";
-	$functionCode .= "          call self%component".ucfirst($componentClass)."(j)%builder(componentDefinition)\n";
-	$functionCode .= "          self%component".ucfirst($componentClass)."(j)%hostNode => self\n";
-	$functionCode .= "        end if\n";
-	$functionCode .= "      end do\n";
+	$functionCode .= "      call componentIndex%set('".$componentClass."',0)\n";
 	$functionCode .= "    end if\n";
     }
+    $functionCode .= "    do i=0,getLength(componentList)-1\n";
+    foreach my $componentClass ( @{$buildData->{'componentClassList'}} ) {
+	$functionCode .= "     componentDefinition => item(componentList,i)\n";
+	$functionCode .= "     if (getNodeName(componentDefinition) == '".$componentClass."') then\n";
+	$functionCode .= "       j=componentIndex%value('".$componentClass."')\n";
+	$functionCode .= "       j=j+1\n";
+	$functionCode .= "       self%component".ucfirst($componentClass)."(j)%hostNode => self\n";
+	$functionCode .= "       call self%component".ucfirst($componentClass)."(j)%builder(componentDefinition)\n";
+	$functionCode .= "       call componentIndex%set('".$componentClass."',j)\n";
+	$functionCode .= "     end if\n";
+    }
+    $functionCode .= "      end do\n";
+    $functionCode .= "      call componentIndex%destroy()\n";
     $functionCode .= "    end select\n";
     $functionCode .= "    return\n";
     $functionCode .= "  end subroutine Tree_Node_Component_Builder\n";	
