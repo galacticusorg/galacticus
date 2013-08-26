@@ -17,7 +17,7 @@ To utilize merger trees from the file that you created in a \glc\ run it's neces
   </parameter>
   <parameter>
     <name>mergerTreeReadFileName</name>
-    <value>myNBodyTrees.hdf5
+    <value>myNBodyTrees.hdf5</value>
   </parameter>
 \end{verbatim}
 The first of these {\tt [mergerTreeConstructMethod]}$=${\tt read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\tt [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
@@ -134,7 +134,7 @@ Typically, a merging halo is not seen at precisely the time at which it crosses 
 The times at which subhalos merge with their host halo can be determined directly from the merger tree file if subhalo information is included in that file. Merging is assumed to occur when the subhalo no longer has a distinct descendent (i.e. it descends into a non-subhalo). If merging times are to be computed in this way set
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>    
   </parameter>
   <parameter>
@@ -145,7 +145,7 @@ The times at which subhalos merge with their host halo can be determined directl
 which select a satellite orbit method that allows merger times to be present and tell the merger tree construction method to preset those merger times respectively. If merger times are not to be computed in this way then instead set, for example,
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>standard</value>    
   </parameter>
   <parameter>
@@ -173,7 +173,7 @@ will cause the target node with which each merger should occur to be determined 
 The masses of subhalos (specifically their time evolution after they become subhalos) can be set using the values stored in the merger tree file (if available). To set subhalo masses in this way use
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>    
   </parameter>
   <parameter>
