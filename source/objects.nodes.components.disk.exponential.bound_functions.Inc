@@ -301,6 +301,7 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   !% Computes the surface density at a given position for an exponential disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
+  use Tables
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
