@@ -83,13 +83,16 @@ contains
     type            (fgsl_interp_accel)                                                          :: interpolationAccelerator
     logical                                                                                      :: resetInterpolation             =.true.
 
+    ! Find the present-day epoch.
+    tPresent=Cosmology_Age(1.0d0)
+
     ! Find epoch of matter-dark energy equality.
     aMatterDominant=min(Expansion_Factor(growthTableTimeMinimum),Epoch_of_Matter_Domination(dominateFactor))
     tMatterDominant=Cosmology_Age(aMatterDominant)
 
     ! Find minimum and maximum times to tabulate.
-    growthTableTimeMinimum=min(growthTableTimeMinimum,min(time/2.0,tMatterDominant))
-    growthTableTimeMaximum=max(growthTableTimeMaximum,max(time,tMatterDominant)*2.0d0)
+    growthTableTimeMinimum=min(growthTableTimeMinimum,min(tPresent,min(time/2.0,tMatterDominant)      ))
+    growthTableTimeMaximum=max(growthTableTimeMaximum,max(tPresent,max(time    ,tMatterDominant)*2.0d0))
 
     ! Determine number of points to tabulate.
     growthTableNumberPoints=int(log10(growthTableTimeMaximum/growthTableTimeMinimum)*dble(growthTableNPointsPerDecade))
@@ -128,7 +131,6 @@ contains
     resetInterpolation=.true.
 
     ! Normalize to growth factor of unity at present day.
-    tPresent=Cosmology_Age(1.0d0)
     do iComponent=1,3
        linearGrowthFactorPresent=Interpolate(growthTableNumberPoints,growthTableTime,growthTableGrowthFactor(:,1,iComponent)&
             &,interpolationObject,interpolationAccelerator,tPresent,reset=resetInterpolation)
