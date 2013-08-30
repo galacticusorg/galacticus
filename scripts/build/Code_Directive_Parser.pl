@@ -159,5 +159,9 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	system("mv $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml");
     }
 }
+# Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
+# objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
+print makefileHndl "-include ./work/build/Makefile_Component_Includes\n";
+print makefileHndl "./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc\n\n";
 close(makefileHndl);
 exit;
