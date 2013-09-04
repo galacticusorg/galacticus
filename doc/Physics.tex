@@ -1601,6 +1601,22 @@ where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot hal
 
 Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt null} this method assumes zero mass loss rate always.
 
+\section{Satellite Tidal Fields}\index{satellites!tidal fields}\index{tidal fields!satellites}
+
+The method for computing the tidal field experienced by satellite galaxies is selected via {\tt satellitesTidalFieldMethod}.
+
+\subsection{Null}
+
+Selected with {\tt satellitesTidalFieldMethod}$=${\tt null} this method assumes a zero tidal field always.
+
+\subsection{Spherical Symmetry}
+
+Selected with {\tt satellitesTidalFieldMethod}$=${\tt sphericalSymmetry} this method assumes a spherically-symmetric host halo, and computes the tidal field accordingly using:
+\begin{equation}
+ \mathcal{F} = {{\rm G} M_{\rm host}(<r_{\rm p}) \over r_{\rm p}^3} - 4 \pi {\rm G} \rho_{\rm host}(r_{\rm p}) + \omega_{\rm p}^2,
+\end{equation}
+where $r_{\rm p}$ is the pericentric radius. $M_{\rm host}(<r)$ is the mass of the host halo enclosed within a sphere of radius $r$, $\rho_{\rm host}(r)$ is the host density at radius $r$, and $\omega_{\rm p}$ is the orbital angular velocity at pericenter.
+
 \section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}
 
 The method for computing surface densities of star formation rate in disks is selected via {\tt starFormationRateSurfaceDensityDisksMethod}.
