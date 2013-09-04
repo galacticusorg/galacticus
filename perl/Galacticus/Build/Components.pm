@@ -1682,6 +1682,22 @@ sub Generate_Tree_Node_Object {
 	 },
 	 {
 	     type        => "procedure"                                                                                                       ,
+	     function    => "Tree_Node_Is_Progenitor_Of_Index"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
+	     function    => "Tree_Node_Is_Progenitor_Of_Node" 
+	 },
+	 {
+	     type        => "generic"                                                                                                         ,
+	     name        => "isProgenitorOf"                                                                                           ,
+	     function    => ["Tree_Node_Is_Progenitor_Of_Index","Tree_Node_Is_Progenitor_Of_Node"]                            ,
+	     description => "Return true is this node is a progenitor of the specified (by index or pointer) node, false otherwise.",
+	     returnType  => "\\logicalzero"                                                                                                   ,
+	     arguments   => "\\textcolor{red}{\\textless integer(kind\\_int8)\\textgreater} targetNodeIndex\\argin|\\textcolor{red}{\\textless *type(treeNode)\\textgreater} targetNode\\argin"
+	 },
+	 {
+	     type        => "procedure"                                                                                                       ,
 	     name        => "isOnMainBranch"                                                                                                  ,
 	     function    => "Tree_Node_Is_On_Main_Branch"                                                                                     ,
 	     description => "Return true if this node is on the main branch of its tree, false otherwise."                                    ,
@@ -3183,13 +3199,18 @@ sub Generate_Implementation_Dump_Functions {
 			$functionCode .= "    read (fileHandle) isAllocated\n";
 			$functionCode .= "    if (isAllocated) then\n";
 			$functionCode .= "       read (fileHandle) arraySize\n";
+			my @toAllocate = ( "value" );
+			push(@toAllocate,"rate ", "scale" )
+			    if ( $property->{'attributes'}->{'isEvolvable'} eq "true" );
 			switch ( $linkedData->{'type'} ) {
 			    case ( [ "real", "integer", "longInteger", "logical" ] ) {
-				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%value,[arraySize])\n";
+				$functionCode .= "      call Alloc_Array(self%".$linkedDataName."%".$_.",[arraySize])\n"
+				    foreach ( @toAllocate );
 				$functionCode .= "      read (fileHandle) self%".$linkedDataName."%value\n";
 			    }
 			    else {
-				$functionCode .= "       allocate(self%".$linkedDataName."%value(arraySize))\n";
+				$functionCode .= "       allocate(self%".$linkedDataName."%".$_."(arraySize))\n"
+				    foreach ( @toAllocate );
 				$functionCode .= "       do i=1,arraySize)\n";
 				$functionCode .= "          call self%".$linkedDataName."%value(i)%readRaw(fileHandle)\n";
 				$functionCode .= "       end do\n";
