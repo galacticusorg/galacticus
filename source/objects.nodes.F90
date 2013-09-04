@@ -362,6 +362,50 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Is_Primary_Progenitor_Of_Node
 
+  logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
+    !% Return true if {\tt self} is a progenitor of the node with index {\tt targetNodeIndex}.
+    implicit none
+    class  (treeNode      ), intent(in   ), target :: self
+    integer(kind=kind_int8), intent(in   )         :: targetNodeIndex
+    type   (treeNode      ), pointer               :: workNode
+
+    Tree_Node_Is_Progenitor_Of_Index=.false.
+    select type (self)
+    type is (treeNode)
+       workNode => self
+    end select
+    do while (associated(workNode))
+       if (workNode%index() == targetNodeIndex) then
+          Tree_Node_Is_Progenitor_Of_Index=.true.
+          return
+       end if
+       workNode => workNode%parent
+    end do
+    return
+  end function Tree_Node_Is_Progenitor_Of_Index
+
+  logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
+    !% Return true if {\tt self} is a progenitor of {\tt targetNode}.
+    implicit none
+    class(treeNode), intent(in   ), target  :: self
+    type (treeNode), intent(in   ), pointer :: targetNode
+    type (treeNode)               , pointer :: workNode
+
+    Tree_Node_Is_Progenitor_Of_Node=.false.
+    select type (self)
+    type is (treeNode)
+       workNode => self
+    end select
+    do while (associated(workNode))
+       if (associated(workNode,targetNode)) then
+          Tree_Node_Is_Progenitor_Of_Node=.true.
+          return
+       end if
+       workNode => workNode%parent
+    end do
+    return
+  end function Tree_Node_Is_Progenitor_Of_Node
+
   logical function Tree_Node_Is_On_Main_Branch(self)
     !% Returns true if {\tt self} is on the main branch.
     implicit none
