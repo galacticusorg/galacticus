@@ -1,0 +1,12 @@
+<!-- Defines a constraint to match to the z=0 K-band luminosity function. -->
+<constraint>
+  <outputRedshift>0.0</outputRedshift>
+  <luminosity>
+    <filter>UKIRT_K</filter>
+    <redshift>0.0</redshift>
+    <frame>rest</frame>
+  </luminosity>
+  <haloMassMinimum>1.0e10</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/luminosityFunction_K_z0.pl</analysis>
+</constraint>
