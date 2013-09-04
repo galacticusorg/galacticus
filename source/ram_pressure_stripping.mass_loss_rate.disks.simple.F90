@@ -114,7 +114,11 @@ contains
     ! Return zero rate if the gravitational force is zero.
     if (forceGravitational <= 0.0d0) return
     ! Compute the mass loss fraction per dynamical time.
-    massLossRateFractional=min(forceRamPressure/forceGravitational,ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum)
+    if (forceRamPressure < ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum*forceGravitational) then
+       massLossRateFractional=forceRamPressure/forceGravitational
+    else
+       massLossRateFractional=ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum
+    end if
     ! Compute the dynamical time.
     timeDynamical         =(megaParsec/kilo/gigaYear)*thisDisk%radius()/thisDisk%velocity()
     ! Compute the mass loss rate.
