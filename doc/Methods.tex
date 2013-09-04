@@ -4257,6 +4257,46 @@ Currently defined satellite virial orbit methods are:
  \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Wetzel-White.F90:dynamical_friction_wetzel_white:satellite_time_until_merging_wetzel_white}{{\tt Wetzel-White}}] Computes the merging timescale using the method of \cite{wetzel_what_2010}.
 \end{description}
 
+\subsubsection{Satellite Tidal Fields}
+
+Additional methods for the satellite tidal fields can be added using the {\tt satellitesTidalFieldMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt sphericalSymmetry} method is described by a directive:
+\begin{verbatim}
+  !# <satellitesTidalFieldMethod>
+  !#  <unitName></unitName>
+  !# </satellitesTidalFieldMethod>
+\end{verbatim}
+Here, {\tt Satellites\_Tidal\_Fields\_Spherical\_Symmetry\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(satellitesTidalFieldMethod,Satellites_Tidal_Field_Get)
+    implicit none
+    type     (varying_string     )         , intent(in   ) :: satellitesTidalFieldMethod
+    procedure(My_Method_Procedure), pointer, intent(inout) :: Satellites_Tidal_Field_Get
+    
+    if (satellitesTidalFieldMethod == 'myMethod') Satellites_Tidal_Field_Get => My_Method_Procedure
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt satellitesTidalFieldMethod} input parameter. The procedure pointer {\tt Satellites\_Tidal\_Field\_Get} must be set to point to a function which returns the time until merging as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The satellite tidal field function must have the form:
+\begin{verbatim}
+ double precision function Satellites_Tidal_Fields(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    .
+    .
+    .
+    return
+ end function Satellites_Tidal_Fields
+\end{verbatim}
+The function must return the magnitude of the tidal field for {\tt thisNode} in units of (km/s)$^2$ Mpc$^{-2}$.
+
+Currently defined satellite tidal field methods are:
+\begin{description}
+ \item [\hyperlink{satellites.tidal_fields.null.F90:satellites_tidal_fields_null}{{\tt null}}] Assumes a zero tidal field.
+ \item [\hyperlink{satellites.tidal_fields.spherical_symmetry.F90:satellites_tidal_fields_spherical_symmetry}{{\tt sphericalSymmetry}}] Computes the tidal field assuming a spherically-symmetric host halo.
+\end{description}
+
 \subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
 
 Additional methods for the satellite virial orbits (i.e. orbital parameters at virial radius crossing) can be added using the {\tt virialOrbitsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Benson2005} method is described by a directive:
