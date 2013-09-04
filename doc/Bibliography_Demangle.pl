@@ -28,6 +28,9 @@ while ( my $line = <iHndl> ) {
     # Tildes.
     $line =~ s/{\\textasciitilde}/\$\\sim\$/g;
 
+    # Astronomical symbols.
+    $line =~ s/⊙/\$\\odot\$/g;
+
     # Less than symbol.
     $line =~ s/{\\textless}/\$<\$/g;
 
