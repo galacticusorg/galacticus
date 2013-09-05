@@ -4036,9 +4036,9 @@ Currently defined intergalactic background radiation methods are:
 \end{description}
 The optional {\tt URL}, {\tt description}, {\tt reference} and {\tt source} elements can be used to give the provenance of the data. The {\tt wavelengths} element should contain a set of {\tt datum} elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\tt spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\tt redshift} element. Each {\tt spectra} element must contain an array of {\tt datum} elements that gives the spectrum at each wavelength listed in the {\tt wavelength} element. Spectra must be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
 
-\subsubsection{Ram Pressure Mass Loss Rates in Disks}
+\subsubsection{Ram Pressure Mass Loss Rates in Disks/Spheroids}
 
-Additional methods for computing ram pressure induced mass loss rates in disks can be added using the {\tt ramPressureStrippingMassLossRateDisksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method is described by a directive:
+Additional methods for computing ram pressure induced mass loss rates in disks can be added using the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
 \begin{verbatim}
  !# <ramPressureStrippingMassLossRateDisksMethod>
  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
@@ -4055,7 +4055,7 @@ Here, {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_Disks\_Simple\_Init} is t
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt ramPressureStrippingMassLossRateDisksMethod} input parameter. The procedure pointer {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_Disk\_Get} must be set to point to a function which returns mass loss rate due to ram pressure as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} input parameter. The procedure pointer {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_(Disk|Spheroid)\_Get} must be set to point to a function which returns mass loss rate due to ram pressure as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The mass loss rate function must have the form:
 \begin{verbatim}
@@ -4068,7 +4068,7 @@ The mass loss rate function must have the form:
     return
  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
 \end{verbatim}
-The function must return the mass loss rate induced by ram pressure forces (in units of $M_\odot$/Gyr) for the disk in {\tt thisNode}.
+The function must return the mass loss rate induced by ram pressure forces (in units of $M_\odot$/Gyr) for the disk/spheroid in {\tt thisNode}.
 
 Currently defined ram pressure mass loss rate methods are:
 \begin{description}

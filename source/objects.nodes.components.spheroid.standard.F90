@@ -521,6 +521,9 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Dark_Matter_Halo_Scales
+    use Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
+    use Tidal_Stripping_Mass_Loss_Rate_Spheroids
+    use Satellites_Tidal_Fields
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     logical                                , intent(inout)          :: interrupt
@@ -536,7 +539,7 @@ contains
          &                                                             outflowToHotHaloFraction  , stellarMassRate         , &
          &                                                             gasMass                   , massOutflowRate         , &
          &                                                             spheroidDynamicalTime     , spheroidMass            , &
-         &                                                             starFormationRate
+         &                                                             starFormationRate         , massLossRate
     type            (history              )                         :: stellarHistoryRate
 
     ! Get the disk and check that it is of our class.
@@ -614,6 +617,20 @@ contains
           fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
           call thisHotHalo %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
           call thisSpheroid%       abundancesGasRate(-fuelAbundancesRates                         )
+       end if
+
+       ! Apply mass loss rate due to ram pressure stripping.
+       if (thisSpheroid%massGas() > 0.0d0) then
+          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo => thisNode%hotHalo()
+             call thisSpheroid%                  massGasRate(-massLossRate                                                                                   )
+             call thisSpheroid%          angularMomentumRate(-massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call thisSpheroid%            abundancesGasRate(-massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
+             call thisHotHalo %           outflowingMassRate(+massLossRate                                                                                   )
+             call thisHotHalo %outflowingAngularMomentumRate(+massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call thisHotHalo %outflowingAbundancesRate     (+massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
+          end if
        end if
 
     end select
