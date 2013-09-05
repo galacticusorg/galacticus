@@ -322,6 +322,11 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
      radiusScaleDisk        =self%radius()
      radiusScaleDiskComputed=.true.
   end if
+  ! Return zero if the disk has unphysical size.
+  if (radiusScaleDisk <= 0.0d0) then
+     Node_Component_Disk_Exponential_Surface_Density=0.0d0
+     return
+  end if
   ! Determine mass type.
   select case (massType)
   case (massTypeAll,massTypeBaryonic,massTypeGalactic)
