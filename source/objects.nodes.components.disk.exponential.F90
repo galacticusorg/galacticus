@@ -682,13 +682,15 @@ contains
        ! Apply mass loss rate due to ram pressure stripping.
        if (thisDisk%massGas() > 0.0d0) then
           massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(thisNode)
-          thisHotHalo => thisNode%hotHalo()
-          call    thisDisk%                  massGasRate(-massLossRate                                                                       )
-          call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-          call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
-          call thisHotHalo%           outflowingMassRate(-massLossRate                                                                       )
-          call thisHotHalo%outflowingAngularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-          call thisHotHalo%outflowingAbundancesRate     (-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+          if (massLossRate > 0.0d0) then
+             thisHotHalo => thisNode%hotHalo()
+             call    thisDisk%                  massGasRate(-massLossRate                                                                       )
+             call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+             call thisHotHalo%           outflowingMassRate(-massLossRate                                                                       )
+             call thisHotHalo%outflowingAngularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call thisHotHalo%outflowingAbundancesRate     (-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+          end if
        end if
     end select
 
