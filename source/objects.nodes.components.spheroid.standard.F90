@@ -26,9 +26,9 @@ module Node_Component_Spheroid_Standard
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Rate_Compute     , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
        &    Node_Component_Spheroid_Standard_Radius_Solver    , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
        &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
        &    Node_Component_Spheroid_Standard_Satellite_Merging
 
   !# <component>
@@ -145,9 +145,9 @@ module Node_Component_Spheroid_Standard
   !#  </properties>
   !#  <bindings>
   !#   <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
   !#   <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
   !#   <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
-  !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
   !#   <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
@@ -520,64 +520,70 @@ contains
     use Galactic_Structure_Options
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
+    use Dark_Matter_Halo_Scales
+    use Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
+    use Tidal_Stripping_Mass_Loss_Rate_Spheroids
+    use Satellites_Tidal_Fields
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
-    class           (nodeComponentHotHalo )               , pointer :: thisHotHaloComponent
+    class           (nodeComponentSpheroid), pointer                :: thisSpheroid
+    class           (nodeComponentHotHalo ), pointer                :: thisHotHalo
     type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
          &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     double precision                                                :: angularMomentumOutflowRate, energyInputRate         , &
          &                                                             fuelMass                  , fuelMassRate            , &
+         &                                                             massOutflowRateToHotHalo  , massOutflowRateFromHalo , &
+         &                                                             outflowToHotHaloFraction  , stellarMassRate         , &
          &                                                             gasMass                   , massOutflowRate         , &
-         &                                                             massOutflowRateFromHalo   , massOutflowRateToHotHalo, &
-         &                                                             outflowToHotHaloFraction  , spheroidDynamicalTime   , &
-         &                                                             spheroidMass              , starFormationRate       , &
-         &                                                             stellarMassRate
+         &                                                             spheroidDynamicalTime     , spheroidMass            , &
+         &                                                             starFormationRate         , massLossRate            , &
+         &                                                             fractionGas               , fractionStellar         , &
+         &                                                             tidalTorque               , tidalField
     type            (history              )                         :: stellarHistoryRate
 
     ! Get the disk and check that it is of our class.
-    thisSpheroidComponent => thisNode%spheroid()
-    select type (thisSpheroidComponent)
+    thisSpheroid => thisNode%spheroid()
+    select type (thisSpheroid)
     class is (nodeComponentSpheroidStandard)
 
        ! Check for a realistic spheroid, return immediately if spheroid is unphysical.
-       if     (    thisSpheroidComponent%angularMomentum() <  0.0d0 &
-            & .or. thisSpheroidComponent%radius         () <= 0.0d0 &
-            & .or. thisSpheroidComponent%massGas        () <  0.0d0 &
+       if     (    thisSpheroid%angularMomentum() <  0.0d0 &
+            & .or. thisSpheroid%radius         () <= 0.0d0 &
+            & .or. thisSpheroid%massGas        () <  0.0d0 &
             & ) return
 
        ! Find the star formation timescale.
-       starFormationRate=thisSpheroidComponent%starFormationRate()
+       starFormationRate=thisSpheroid%starFormationRate()
 
        ! Get the available fuel mass.
-       fuelMass         =thisSpheroidComponent%massGas          ()
+       fuelMass         =thisSpheroid%massGas          ()
 
        ! Find the metallicity of the fuel supply.
-       fuelAbundances   =thisSpheroidComponent%abundancesGas    ()
+       fuelAbundances   =thisSpheroid%abundancesGas    ()
        call fuelAbundances%massToMassFraction(fuelMass)
 
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=thisSpheroidComponent%stellarPropertiesHistory()
+       stellarHistoryRate=thisSpheroid%stellarPropertiesHistory()
        call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,thisNode &
             &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate&
             &,fuelAbundancesRates,energyInputRate)
-       if (stellarHistoryRate%exists()) call thisSpheroidComponent%stellarPropertiesHistoryRate(stellarHistoryRate)
+       if (stellarHistoryRate%exists()) call thisSpheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
 
        ! Adjust rates.
-       call thisSpheroidComponent%        massStellarRate(         stellarMassRate)
-       call thisSpheroidComponent%            massGasRate(            fuelMassRate)
-       call thisSpheroidComponent%  abundancesStellarRate(  stellarAbundancesRates)
-       call thisSpheroidComponent%      abundancesGasRate(     fuelAbundancesRates)
-       call thisSpheroidComponent%luminositiesStellarRate(luminositiesStellarRates)
+       call thisSpheroid%        massStellarRate(         stellarMassRate)
+       call thisSpheroid%            massGasRate(            fuelMassRate)
+       call thisSpheroid%  abundancesStellarRate(  stellarAbundancesRates)
+       call thisSpheroid%      abundancesGasRate(     fuelAbundancesRates)
+       call thisSpheroid%luminositiesStellarRate(luminositiesStellarRates)
 
        ! Record the star formation history.
-       stellarHistoryRate=thisSpheroidComponent%starFormationHistory()
+       stellarHistoryRate=thisSpheroid%starFormationHistory()
        call stellarHistoryRate%reset()
        call Star_Formation_History_Record(thisNode,stellarHistoryRate,fuelAbundances,starFormationRate)
-       if (stellarHistoryRate%exists()) call thisSpheroidComponent%starFormationHistoryRate(stellarHistoryRate)
+       if (stellarHistoryRate%exists()) call thisSpheroid%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
        massOutflowRateToHotHalo=Star_Formation_Feedback_Spheroid_Outflow_Rate          (thisNode,starFormationRate,energyInputRate)
@@ -588,32 +594,76 @@ contains
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
 
           ! Get the masses of the spheroid.
-          gasMass     =        thisSpheroidComponent%massGas    ()
-          spheroidMass=gasMass+thisSpheroidComponent%massStellar()
+          gasMass     =        thisSpheroid%massGas    ()
+          spheroidMass=gasMass+thisSpheroid%massStellar()
 
           ! Limit the outflow rate timescale to a multiple of the dynamical time.
-          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroidComponent%radius()/thisSpheroidComponent%velocity()
+          spheroidDynamicalTime=Mpc_per_km_per_s_To_Gyr*thisSpheroid%radius()/thisSpheroid%velocity()
 
           ! Limit the mass outflow rate.
           massOutflowRate=min(massOutflowRate,gasMass/spheroidOutflowTimescaleMinimum/spheroidDynamicalTime)
-          thisHotHaloComponent => thisNode%hotHalo()
-          call thisHotHaloComponent %outflowingMassRate(+massOutflowRate*outflowToHotHaloFraction)
-          call thisSpheroidComponent%       massGasRate(-massOutflowRate                         )
+          thisHotHalo => thisNode%hotHalo()
+          call thisHotHalo %outflowingMassRate(+massOutflowRate*outflowToHotHaloFraction)
+          call thisSpheroid%       massGasRate(-massOutflowRate                         )
 
           ! Compute the angular momentum outflow rate.
           if (spheroidMass > 0.0d0) then
-             angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*thisSpheroidComponent%angularMomentum()
-             call thisHotHaloComponent %outflowingAngularMomentumRate(+angularMomentumOutflowRate*outflowToHotHaloFraction)
-             call thisSpheroidComponent%          angularMomentumRate(-angularMomentumOutflowRate                         )
+             angularMomentumOutflowRate=(massOutflowRate/spheroidMass)*thisSpheroid%angularMomentum()
+             call thisHotHalo %outflowingAngularMomentumRate(+angularMomentumOutflowRate*outflowToHotHaloFraction)
+             call thisSpheroid%          angularMomentumRate(-angularMomentumOutflowRate                         )
           end if
 
           ! Compute the abundances outflow rate.
-          fuelAbundancesRates=thisSpheroidComponent%abundancesGas()
+          fuelAbundancesRates=thisSpheroid%abundancesGas()
           call fuelAbundancesRates%massToMassFraction(gasMass)
           fuelAbundancesRates=fuelAbundancesRates*massOutflowRate
-          call thisHotHaloComponent %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
-          call thisSpheroidComponent%       abundancesGasRate(-fuelAbundancesRates                         )
+          call thisHotHalo %outflowingAbundancesRate(+fuelAbundancesRates*outflowToHotHaloFraction)
+          call thisSpheroid%       abundancesGasRate(-fuelAbundancesRates                         )
        end if
+
+       ! Apply mass loss rate due to ram pressure stripping.
+       if (thisSpheroid%massGas() > 0.0d0) then
+          massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo => thisNode%hotHalo()
+             call thisSpheroid%                  massGasRate(-massLossRate                                                                                   )
+             call thisSpheroid%          angularMomentumRate(-massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call thisSpheroid%            abundancesGasRate(-massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
+             call thisHotHalo %           outflowingMassRate(+massLossRate                                                                                   )
+             call thisHotHalo %outflowingAngularMomentumRate(+massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             call thisHotHalo %outflowingAbundancesRate     (+massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
+          end if
+       end if
+
+       ! Apply mass loss rate due to tidal stripping.
+       if (thisSpheroid%massGas()+thisSpheroid%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo    => thisNode%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,thisSpheroid%massGas()/(thisSpheroid%massGas()+thisSpheroid%massStellar())))
+             fractionStellar=  1.0d0-fractionGas
+             if (fractionGas    > 0.0d0 .and. thisSpheroid%massGas    () > 0.0d0) then
+                call thisSpheroid%                  massGasRate(-fractionGas    *massLossRate                                                                                     )
+                call thisSpheroid%            abundancesGasRate(-fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call thisHotHalo %           outflowingMassRate(+fractionGas    *massLossRate                                                                                     )
+                call thisHotHalo %outflowingAbundancesRate     (+fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call thisHotHalo %outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             end if
+             if (fractionStellar > 0.0d0 .and. thisSpheroid%massStellar() > 0.0d0) then
+                call thisSpheroid%              massStellarRate(-fractionStellar*massLossRate                                                                                     )
+                call thisSpheroid%        abundancesStellarRate(-fractionStellar*massLossRate*thisSpheroid%abundancesStellar()/                        thisSpheroid%massStellar() )
+             end if
+             call    thisSpheroid%          angularMomentumRate(-                massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+          end if
+       end if
+
+       ! Apply tidal heating.
+       if (thisNode%isSatellite() .and. thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+          tidalField =Satellite_Tidal_Field(thisNode)
+          tidalTorque=abs(tidalField)*(thisSpheroid%massGas()+thisSpheroid%massStellar())*thisSpheroid%radius()**2
+          call thisSpheroid%angularMomentumRate(+tidalTorque)
+       end if
+
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Rate_Compute
