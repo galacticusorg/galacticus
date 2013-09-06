@@ -36,10 +36,12 @@ sub Get_Magnitude {
     if ( $dataSetName =~ m/^magnitude([^:]+):([^:]+):([^:]+):z([\d\.]+)(:dust[^:]+)?(:vega|:AB)?/ ) {
 	# Extract the dataset name information.
 	my $component     = $1;
-	$filter        = $2;
+	$filter           = $2;
 	my $frame         = $3;
 	my $redshift      = $4;
 	my $dustExtension = $5;
+	$dustExtension = ""
+	    unless ( defined($dustExtension) );
 	if ( $6 eq ":vega" ) {
 	    $vegaMagnitude = 1;
 	} else {
