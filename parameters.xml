@@ -277,7 +277,7 @@
     <value>10000</value>
   </parameter>
 
-  <!-- Ram pressure stripping options -->
+  <!-- Hot halo ram pressure stripping options -->
   <parameter>
     <name>hotHaloRamPressureStrippingMethod</name>
     <value>Font2008</value>
@@ -289,6 +289,26 @@
   <parameter>
     <name>hotHaloTrackStrippedGas</name>
     <value>true</value>
+  </parameter>
+
+  <!-- Galaxy ram pressure stripping options -->
+  <parameter>
+    <name>ramPressureStrippingMassLossRateDisksMethod</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+    <value>null</value>
+  </parameter>
+
+  <!-- Galaxy tidal stripping options -->
+  <parameter>
+    <name>tidalStrippingMassLossRateDisksMethod</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>tidalStrippingMassLossRateSpheroidsMethod</name>
+    <value>null</value>
   </parameter>
 
   <!-- Galactic structure solver options -->
