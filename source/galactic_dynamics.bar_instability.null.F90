@@ -41,15 +41,17 @@ contains
     return
   end subroutine Galactic_Dynamics_Bar_Instabilities_Null_Initialize
 
-  double precision function Bar_Instability_Timescale_Null(thisNode)
+  subroutine Bar_Instability_Timescale_Null(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     !% Assumes that disks are never bar unstable and so returns an infinite timescale for bar instability.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: thisNode  
+    double precision          , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
 
     ! Assume infinite timescale (i.e. no instability).
-    Bar_Instability_Timescale_Null=-1.0d0
-
+    barInstabilityTimeScale                    =-1.0d0
+    ! Also assume no torque.
+    barInstabilityExternalDrivingSpecificTorque= 0.0d0
     return
-  end function Bar_Instability_Timescale_Null
+  end subroutine Bar_Instability_Timescale_Null
 
 end module Galactic_Dynamics_Bar_Instabilities_Null

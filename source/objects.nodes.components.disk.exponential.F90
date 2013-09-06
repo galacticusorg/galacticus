@@ -142,8 +142,8 @@ module Node_Component_Disk_Exponential
 
   ! Internal count of luminosities and work arrays.
   integer                                     :: luminositiesCount
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                          , luminositiesStellarRates      , &
-       &                                         luminositiesTransferRate                     , zeroLuminosities
+  double precision, allocatable, dimension(:) :: luminositiesMinimum                      , luminositiesStellarRates   , &
+       &                                         luminositiesTransferRate                 , zeroLuminosities
   !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates,luminositiesTransferRate)
   ! Parameters controlling the physical implementation.
   double precision                            :: diskMassToleranceAbsolute                    , diskOutflowTimescaleMinimum   , &
@@ -152,15 +152,15 @@ module Node_Component_Disk_Exponential
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
-  double precision                            :: radiusHistory                     (2)
+  double precision                            :: radiusHistory                 (2)
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk.
-  double precision, parameter                 :: angularMomentumMaximum               =1.0d1
-  double precision, parameter                 :: angularMomentumMinimum               =1.0d-6
+  double precision, parameter                 :: angularMomentumMaximum           =1.0d1
+  double precision, parameter                 :: angularMomentumMinimum           =1.0d-6
 
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                    =.false.
-  logical                                     :: threadAllocationDone                 =.false.
+  logical                                     :: moduleInitialized                =.false.
+  logical                                     :: threadAllocationDone             =.false.
   !$omp threadprivate(threadAllocationDone)
 
 contains
@@ -343,7 +343,7 @@ contains
     class           (nodeComponentSpin )               , pointer :: thisSpin
     double precision                    , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                             :: diskMass                       , fractionalError, &
+    double precision                                             :: diskMass                      , fractionalError, &
          &                                                          specificAngularMomentum
     character       (len=20            )                         :: valueString
     type            (varying_string    )                         :: message
@@ -628,7 +628,7 @@ contains
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
        if (thisNode%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.
-          barInstabilityTimescale=Bar_Instability_Timescale(thisNode)
+          call Bar_Instability_Timescale(thisNode,barInstabilityTimescale,barInstabilitySpecificTorque)
        else
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
           ! case as the disk radius may be unphysical also.
@@ -678,7 +678,10 @@ contains
              call thisDisk    %starFormationHistoryRate(-historyTransferRate                             )
              call thisSpheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
-
+          ! Additional external torque.
+          if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+             call thisSpheroid%angularMomentumRate(+barInstabilitySpecificTorque*(thisSpheroid%massGas()+thisSpheroid%massStellar()),interrupt,interruptProcedure)
+          end if
        end if
 
        ! Apply mass loss rate due to ram pressure stripping.
@@ -689,9 +692,9 @@ contains
              call    thisDisk%                  massGasRate(-massLossRate                                                                       )
              call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
              call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
-             call thisHotHalo%           outflowingMassRate(-massLossRate                                                                       )
-             call thisHotHalo%outflowingAngularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-             call thisHotHalo%outflowingAbundancesRate     (-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+             call thisHotHalo%           outflowingMassRate(+massLossRate                                                                       )
+             call thisHotHalo%outflowingAngularMomentumRate(+massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call thisHotHalo%outflowingAbundancesRate     (+massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
           end if
        end if
 
