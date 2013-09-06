@@ -144,11 +144,11 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#  </properties>
   !#  <bindings>
-  !#   <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           description="Compute the mass enclosed within a radius in the standard spheroid component." bindsTo="component" />
-  !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 description="Compute the density in the standard spheroid component."                       bindsTo="component" />
-  !#   <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          description="Compute the rotation curve in the standard spheroid component."                bindsTo="component" />
-  !#   <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" description="Compute the rotation curve gradient in the standard spheroid component."       bindsTo="component" />
-  !#   <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               description="Compute the gravitational potential in the standard spheroid component."       bindsTo="component" />
+  !#   <binding method="enclosedMass"          function="Node_Component_Spheroid_Standard_Enclosed_Mass"           bindsTo="component" />
+  !#   <binding method="density"               function="Node_Component_Spheroid_Standard_Density"                 bindsTo="component" />
+  !#   <binding method="rotationCurve"         function="Node_Component_Spheroid_Standard_Rotation_Curve"          bindsTo="component" />
+  !#   <binding method="rotationCurveGradient" function="Node_Component_Spheroid_Standard_Rotation_Curve_Gradient" bindsTo="component" />
+  !#   <binding method="potential"             function="Node_Component_Spheroid_Standard_Potential"               bindsTo="component" />
   !#  </bindings>
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>
