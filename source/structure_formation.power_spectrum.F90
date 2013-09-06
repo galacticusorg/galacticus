@@ -202,8 +202,8 @@ contains
   end function sigma_8
 
   subroutine Initialize_Cosmological_Mass_Variance(mass)
-    !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.807$,
-    !% is taken from \cite{komatsu_seven-year_2010}.
+    !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.817$,
+    !% is taken from \citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO).
     use Input_Parameters
     use Cosmological_Parameters
     use Numerical_Constants_Math
