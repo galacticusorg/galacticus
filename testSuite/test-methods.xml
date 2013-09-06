@@ -20,6 +20,7 @@
       <name>barInstabilityMethod</name>
       <value>ELN</value>
       <value>null</value>
+      <value>ELN+tidal</value>
     </parameter>
   </parameters>
   <parameters>
@@ -742,7 +743,7 @@
     </parameter> 
   </parameters>
 
-  <!-- Disk ram pressure mass loss rates -->
+  <!-- Disk and spheroid ram pressure mass loss rates -->
   <parameters>
     <parameter>
       <name>ramPressureStrippingMassLossRateDisksMethod</name>
@@ -750,7 +751,30 @@
       <value>null</value>
     </parameter> 
   </parameters>
+  <parameters>
+    <parameter>
+      <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
 
+  <!-- Disk and spheroid tidal mass loss rates -->
+  <parameters>
+    <parameter>
+      <name>tidalStrippingMassLossRateDisksMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>tidalStrippingMassLossRateSpheroidsMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+  
   <!-- Dark energy cosmology -->
   <parameters>
     <parameter>
