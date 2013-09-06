@@ -1585,7 +1585,7 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null met
 
 Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
-\section{Ram Pressure Induced Mass Loss Rates in Disks/Spheroids}
+\section{Ram Pressure Induced Mass Loss Rates in Disks/Spheroids}\label{sec:RamPressureMassLossRates}\index{ram pressure!mass loss rate}\index{mass loss!ram pressure induced}
 
 The methods for computing ram pressure induced rates of mass loss in disks/spheroids are selected via the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} parameter.
 
@@ -2105,4 +2105,28 @@ The method to be used for computing the effects of binary mergers of supermassiv
 \subsection{Rezzolla et al. (2008)}
 
 Selected with {\tt blackHoleBinaryMergersMethod}$=${\tt Rezzolla2008}, this method uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+
+\section{Tidal Induced Mass Loss Rates in Disks/Spheroids}\label{sec:TidalMassLossRates}\index{tidal forces!mass loss rate}\index{mass loss!tidal force induced}
+
+The methods for computing tidal induced rates of mass loss in disks/spheroids are selected via the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} parameter.
+
+\subsection{Simple}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt simple} this method computes the mass loss rate to be:
+\begin{equation}
+\dot{M} = -\alpha M/\tau_{\rm (disk|spheroid},
+\end{equation}
+where
+\begin{equation}
+\alpha = \hbox{min}(F_{\rm tidal}/F_{\rm gravity},R_{\rm maximum}),
+\end{equation}
+$F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:HostHaloTidalField}),
+\begin{equation}
+F_{\rm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+\end{equation}
+is the gravitational restoring force in the disk/spheroid at the half-mass radius, $r_{\rm 1/2}$, and $R_{\rm maximum}=${\tt [tidalStrippingMassLossRate(Disk|Spheroid)SimpleFractionalRateMaximum]}.
+
+\subsection{Null}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 

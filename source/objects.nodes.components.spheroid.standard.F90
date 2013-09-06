@@ -539,7 +539,9 @@ contains
          &                                                             outflowToHotHaloFraction  , stellarMassRate         , &
          &                                                             gasMass                   , massOutflowRate         , &
          &                                                             spheroidDynamicalTime     , spheroidMass            , &
-         &                                                             starFormationRate         , massLossRate
+         &                                                             starFormationRate         , massLossRate            , &
+         &                                                             fractionGas               , fractionStellar         , &
+         &                                                             tidalTorque               , tidalField
     type            (history              )                         :: stellarHistoryRate
 
     ! Get the disk and check that it is of our class.
@@ -631,6 +633,35 @@ contains
              call thisHotHalo %outflowingAngularMomentumRate(+massLossRate*thisSpheroid%angularMomentum()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
              call thisHotHalo %outflowingAbundancesRate     (+massLossRate*thisSpheroid%abundancesGas  ()/ thisSpheroid%massGas()                            )
           end if
+       end if
+
+       ! Apply mass loss rate due to tidal stripping.
+       if (thisSpheroid%massGas()+thisSpheroid%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Spheroid(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo    => thisNode%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,thisSpheroid%massGas()/(thisSpheroid%massGas()+thisSpheroid%massStellar())))
+             fractionStellar=  1.0d0-fractionGas
+             if (fractionGas    > 0.0d0 .and. thisSpheroid%massGas    () > 0.0d0) then
+                call thisSpheroid%                  massGasRate(-fractionGas    *massLossRate                                                                                     )
+                call thisSpheroid%            abundancesGasRate(-fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call thisHotHalo %           outflowingMassRate(+fractionGas    *massLossRate                                                                                     )
+                call thisHotHalo %outflowingAbundancesRate     (+fractionGas    *massLossRate*thisSpheroid%abundancesGas    ()/ thisSpheroid%massGas()                            )
+                call thisHotHalo %outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+             end if
+             if (fractionStellar > 0.0d0 .and. thisSpheroid%massStellar() > 0.0d0) then
+                call thisSpheroid%              massStellarRate(-fractionStellar*massLossRate                                                                                     )
+                call thisSpheroid%        abundancesStellarRate(-fractionStellar*massLossRate*thisSpheroid%abundancesStellar()/                        thisSpheroid%massStellar() )
+             end if
+             call    thisSpheroid%          angularMomentumRate(-                massLossRate*thisSpheroid%angularMomentum  ()/(thisSpheroid%massGas()+thisSpheroid%massStellar()))
+          end if
+       end if
+
+       ! Apply tidal heating.
+       if (thisNode%isSatellite() .and. thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+          tidalField =Satellite_Tidal_Field(thisNode)
+          tidalTorque=abs(tidalField)*(thisSpheroid%massGas()+thisSpheroid%massStellar())*thisSpheroid%radius()**2
+          call thisSpheroid%angularMomentumRate(+tidalTorque)
        end if
 
     end select
