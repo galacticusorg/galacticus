@@ -726,6 +726,10 @@ Selected with {\tt haloSpinDistributionMethod}$=${\tt deltaFunction}, under this
 
 The method uses to compute the bar instability timescale for galactic disks is selected via the {\tt barInstabilityMethod} parameter.
 
+\subsection{Null}
+
+Selected with {\tt barInstabilityMethod}$=${\tt null}, this method assumes no instability and so returns an infinite timescale, and no external driving torque.
+
 \subsection{Efstathiou, Lake \& Negroponte}
 
 Selected with {\tt barInstabilityMethod}$=${\tt ELN}, this method uses the stability criterion of \cite{efstathiou_stability_1982} to estimate when disks are unstable to bar formation:
@@ -733,6 +737,18 @@ Selected with {\tt barInstabilityMethod}$=${\tt ELN}, this method uses the stabi
  \epsilon \left( \equiv {V_{\rm peak} \over \sqrt{\G M_{\rm disk}/r_{\rm disk}}} \right) < \epsilon_{\rm c},
 \end{equation}
 for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), $M_{\rm disk}$ is the mass of the disk and $r_{\rm disk}$ is its scale length (assuming an exponential disk). The value of $\epsilon_{\rm c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by {\tt stabilityThresholdStellar} and {\tt stabilityThresholdGaseous} respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+\begin{equation}
+ t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
+\end{equation}
+where $\epsilon_{\rm iso}$ is the value of $\epsilon$ for an isolated disk and $t_{\rm disk}$ is the disk dynamical time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to a dynamical time for highly unstable disks. This method returns zero external driving torque.
+
+\subsection{Efstathiou, Lake \& Negroponte + Tidal Forces}
+
+Selected with {\tt barInstabilityMethod}$=${\tt ELN+tidal}, this method uses the stability criterion of \cite{efstathiou_stability_1982} to estimate when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
+\begin{equation}
+ \epsilon \left( \equiv {V_{\rm peak} \over \sqrt{\G M_{\rm disk}/r_{\rm disk}} + \hbox{max}(\mathcal{T},0) } \right) < \epsilon_{\rm c},
+\end{equation}
+for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), $M_{\rm disk}$ is the mass of the disk, $r_{\rm disk}$ is its scale length (assuming an exponential disk), $\mathcal{T} = \mathcal{F} r_{\rm disk}^2$ is the external driving specific torque, and $\mathcal{F}$ is the external tidal field (evaluated using the selected method; see \S\ref{sec:SatelliteTidalFields}). The value of $\epsilon_{\rm c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by {\tt stabilityThresholdStellar} and {\tt stabilityThresholdGaseous} respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
 \begin{equation}
  t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
 \end{equation}
@@ -1614,7 +1630,7 @@ is the gravitational restoring force in the spheroid at the half-mass radius, $r
 
 Selected with {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
-\section{Satellite Tidal Fields}\index{satellites!tidal fields}\index{tidal fields!satellites}
+\section{Satellite Tidal Fields}\label{sec:SatelliteTidalFields}\index{satellites!tidal fields}\index{tidal fields!satellites}
 
 The method for computing the tidal field experienced by satellite galaxies is selected via {\tt satellitesTidalFieldMethod}.
 

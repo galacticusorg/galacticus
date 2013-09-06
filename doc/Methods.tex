@@ -626,21 +626,23 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The bar instability timesacale function must have the form:
 \begin{verbatim}
-  double precision function My_Bar_Instability_Timescale(thisNode)
+  subroutine My_Bar_Instability_Timescale(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
     .
     .
     .
     return
-  end function My_Bar_Instability_Timescale
+  end subroutine My_Bar_Instability_Timescale
 \end{verbatim}
-The function should compute and return the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned.
+The function should compute and return, in {\tt barInstabilityTimeScale} the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned. Additionally, any specific torque external to the galaxy driving the instability should be returned in {\tt barInstabilityExternalDrivingSpecificTorque}.
 
 Currently defined bar instability methods are:
 \begin{description}
  \item [{\tt null}] A null method in which disks are never bar unstable;
  \item [{\tt ELN}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982}.
+ \item [{\tt ELN+tidal}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982} with an additional term to account for an external tidal field.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Initial Separation}
