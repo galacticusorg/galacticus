@@ -509,7 +509,8 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Population_Properties
     use Numerical_Constants_Astronomical
-     use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+    use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+    use Tidal_Stripping_Mass_Loss_Rate_Disks
     implicit none
     type            (treeNode                                         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk                                )               , pointer :: thisDisk
@@ -529,7 +530,8 @@ contains
          &                                                                                         massOutflowRate         , massOutflowRateFromHalo   , &
          &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction  , &
          &                                                                                         starFormationRate       , stellarMassRate           , &
-         &                                                                                         transferRate
+         &                                                                                         transferRate            , fractionGas               , &
+         &                                                                                         fractionStellar
     type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate
 
     ! Get a local copy of the interrupt procedure.
@@ -690,6 +692,28 @@ contains
              call thisHotHalo%           outflowingMassRate(-massLossRate                                                                       )
              call thisHotHalo%outflowingAngularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
              call thisHotHalo%outflowingAbundancesRate     (-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+          end if
+       end if
+
+       ! Apply mass loss rate due to tidal stripping.
+       if (thisDisk%massGas()+thisDisk%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Disk(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo    => thisNode%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,thisDisk%massGas()/(thisDisk%massGas()+thisDisk%massStellar())))
+             fractionStellar=  1.0d0-fractionGas
+             if (fractionGas     > 0.0d0 .and. thisDisk%massGas    () > 0.0d0) then
+                call    thisDisk%                  massGasRate(-fractionGas    *massLossRate                                                                         )
+                call    thisDisk%            abundancesGasRate(-fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
+                call thisHotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
+                call thisHotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
+                call thisHotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
+             end if
+             if (fractionStellar > 0.0d0 .and. thisDisk%massStellar() > 0.0d0) then
+                call    thisDisk%              massStellarRate(-fractionStellar*massLossRate                                                                       )
+                call    thisDisk%        abundancesStellarRate(-fractionStellar*massLossRate*thisDisk%abundancesStellar()/                  thisDisk%massStellar() )
+             end if
+             call       thisDisk%          angularMomentumRate(-                massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
           end if
        end if
     end select

@@ -4038,7 +4038,7 @@ The optional {\tt URL}, {\tt description}, {\tt reference} and {\tt source} elem
 
 \subsubsection{Ram Pressure Mass Loss Rates in Disks/Spheroids}
 
-Additional methods for computing ram pressure induced mass loss rates in disks can be added using the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
+Additional methods for computing ram pressure induced mass loss rates in disks/spheroids can be added using the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
 \begin{verbatim}
  !# <ramPressureStrippingMassLossRateDisksMethod>
  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
@@ -5006,6 +5006,47 @@ Currently defined type Ia supernovae methods are:
 \begin{description}
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
 \end{description}
+
+\subsubsection{Tidal Mass Loss Rates in Disks/Spheroids}
+
+Additional methods for computing tidal induced mass loss rates in disks/spheroids can be added using the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
+\begin{verbatim}
+ !# <tidalStrippingMassLossRateDisksMethod>
+ !#  <unitName>Tidal_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
+ !# </tidalStrippingMassLossRateDisksMethod>
+\end{verbatim}
+Here, {\tt Tidal\_Stripping\_Mass\_Loss\_Rate\_Disks\_Simple\_Init} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationTimescaleDisksMethod
+    procedure(),          pointer, intent(inout) :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+    
+    if (tidalStrippingMassLossRateDisksMethod == 'myMethod') Tidal_Stripping_Mass_Loss_Rate_Disk_Get => My_Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} input parameter. The procedure pointer {\tt Tidal\_Stripping\_Mass\_Loss\_Rate\_(Disk|Spheroid)\_Get} must be set to point to a function which returns mass loss rate due to tidal forces as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The mass loss rate function must have the form:
+\begin{verbatim}
+ double precision function Tidal_Stripping_Mass_Loss_Rate_Disk_Get(thisNode)
+    implicit none
+    type(treeNode), intent(in) :: thisNode
+    .
+    .
+    .
+    return
+ end function Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+\end{verbatim}
+The function must return the mass loss rate induced by tidal forces (in units of $M_\odot$/Gyr) for the disk/spheroid in {\tt thisNode}.
+
+Currently defined ram pressure mass loss rate methods are:
+\begin{description}
+ \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.simple.F90:tidal_stripping_mass_loss_rate_disks_simple:tidal_stripping_mass_loss_rate_disk_simple}{{\tt simple}}] The mass loss rate scales in proportion to the ratio of tidal and gravitational restoring forces;
+ \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.null.F90:tidal_stripping_mass_loss_rate_disks_null:tidal_stripping_mass_loss_rate_disk_null}{{\tt null}}] The mass loss rate is assumed to be always zero.
+\end{description}
+
 
 \subsubsection{Tree Timing}
 
