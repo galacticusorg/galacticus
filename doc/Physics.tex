@@ -1650,21 +1650,34 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null met
 
 Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
-\section{Ram Pressure Induced Mass Loss Rates in Disks}
+\section{Ram Pressure Induced Mass Loss Rates in Disks/Spheroids}\label{sec:RamPressureMassLossRates}\index{ram pressure!mass loss rate}\index{mass loss!ram pressure induced}
 
-The methods for computing ram pressure induced rates of mass loss in disks are selected via the {\tt ramPressureStrippingMassLossRateDisksMethod} parameter.
+The methods for computing ram pressure induced rates of mass loss in disks/spheroids are selected via the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} parameter.
 
 \subsection{Simple}
 
-Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt simple} this method computes the mass loss rate to be:
+Selected with {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt simple} this method computes the mass loss rate to be, for disks:
 \begin{equation}
  \dot{M}_{\rm gas, disk} = \hbox{min}\left({\mathcal{F}_{\rm hot, host} \over 2 \pi {\rm G} \Sigma_{\rm gas}(r_{\rm half}) \Sigma_{\rm total}(r_{\rm half})}, R_{\rm maximum}\right) {M_{\rm gas, disk} \over \tau_{\rm dyn, disk}},
 \end{equation}
-where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_{\rm gas}(r)$ is the gas surface density in the disk, $\Sigma_{\rm total}(r)$ is the total surface density in the disk, $r_{\rm half}$ is the disk half-mass radius, $M_{\rm gas, disk}$ is the total gas mass in the disk, $\tau_{\rm dyn, disk} = r_{\rm disk}/v_{\rm disk}$ is the dynamical time in the disk, and $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum]} controls the maximum allowed rate of mass loss.
+where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_{\rm gas}(r)$ is the gas surface density in the disk, $\Sigma_{\rm total}(r)$ is the total surface density in the disk, $r_{\rm half}$ is the disk half-mass radius, $M_{\rm gas, disk}$ is the total gas mass in the disk, $\tau_{\rm dyn, disk} = r_{\rm disk}/v_{\rm disk}$ is the dynamical time in the disk, and $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum]} controls the maximum allowed rate of mass loss. For spheroids the mass loss rate is:
+\begin{equation}
+\dot{M}_{\rm gas} = -\hbox{max}(\alpha,R_{\rm maximum}) M_{\rm gas}/\tau_{\rm spheroid},
+\end{equation}
+where $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
+\begin{equation}
+\alpha = \mathcal{F}_{\rm hot,host}/F_{\rm gravity},
+\end{equation}
+and,
+\begin{equation}
+F_{\rm gravity} = {4\over 3} \rho_{\rm gas}(r_{1/2}) {{\rm G} M_{\rm total}(r_{1/2})\over r_{1/2}}
+\end{equation}
+is the gravitational restoring force in the spheroid at the half-mass radius, $r_{\rm 1/2}$ \citep{takeda_ram_1984}.
+
 
 \subsection{Null}
 
-Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt null} this method assumes zero mass loss rate always.
+Selected with {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
 \section{Satellite Tidal Fields}\index{satellites!tidal fields}\index{tidal fields!satellites}
 
@@ -2157,6 +2170,30 @@ The method to be used for computing the effects of binary mergers of supermassiv
 \subsection{Rezzolla et al. (2008)}
 
 Selected with {\tt blackHoleBinaryMergersMethod}$=${\tt Rezzolla2008}, this method uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+
+\section{Tidal Induced Mass Loss Rates in Disks/Spheroids}\label{sec:TidalMassLossRates}\index{tidal forces!mass loss rate}\index{mass loss!tidal force induced}
+
+The methods for computing tidal induced rates of mass loss in disks/spheroids are selected via the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} parameter.
+
+\subsection{Simple}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt simple} this method computes the mass loss rate to be:
+\begin{equation}
+\dot{M} = -\alpha M/\tau_{\rm (disk|spheroid},
+\end{equation}
+where
+\begin{equation}
+\alpha = \hbox{min}(F_{\rm tidal}/F_{\rm gravity},R_{\rm maximum}),
+\end{equation}
+$F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:HostHaloTidalField}),
+\begin{equation}
+F_{\rm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+\end{equation}
+is the gravitational restoring force in the disk/spheroid at the half-mass radius, $r_{\rm 1/2}$, and $R_{\rm maximum}=${\tt [tidalStrippingMassLossRate(Disk|Spheroid)SimpleFractionalRateMaximum]}.
+
+\subsection{Null}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
 \section{Survey Geometry}\index{surveys!geometry}
 

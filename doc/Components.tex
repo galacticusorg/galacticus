@@ -349,7 +349,7 @@ This implementation assumes a disk with no structural properties---it consists o
 
 The very simple galactic disk implementation defines the following properties:
 \begin{description}
- \item [{\tt mssGas}] The mass of gas in the disk: $M_{\rm disk, gas}$ [{\tt diskMassGas}];
+ \item [{\tt massGas}] The mass of gas in the disk: $M_{\rm disk, gas}$ [{\tt diskMassGas}];
  \item [{\tt massStellar}] The mass of stars in the disk: $M_{\rm disk, stars}$ [{\tt diskMassStellar}].
 \end{description}
 
@@ -407,11 +407,11 @@ No initialization is performed---disks are created as needed.
 
 In the exponential galactic disk implementation the gas mass evolves as:
 \begin{equation}
- \dot{M}_{\rm disk, gas} = \dot{M}_{\rm cooling} - \dot{M}_{\rm outflow, disk} - \dot{M}_{\rm stars, disk} - M_{\rm disk, gas}/\tau_{\rm bar},
+ \dot{M}_{\rm disk, gas} = \dot{M}_{\rm cooling} - \dot{M}_{\rm outflow, disk} - \dot{M}_{\rm stars, disk} - {M_{\rm disk, gas}\over \tau_{\rm bar}} - \dot{M}_{\rm ram pressure} - {M_{\rm disk, gas} \over M_{\rm disk, gas} + M_{\rm disk, stars}} \dot{M}_{\rm tidal},
 \end{equation}
 where the rate of change of stellar mass is
 \begin{equation}
- \dot{M}_{\rm stars, disk} = \Psi - \dot{R} - M_{\rm stars,disk}/\tau_{\rm bar},
+ \dot{M}_{\rm stars, disk} = \Psi - \dot{R} - {M_{\rm stars,disk} \over \tau_{\rm bar}} - {M_{\rm disk, stars} \over M_{\rm disk, gas} + M_{\rm disk, stars}} \dot{M}_{\rm tidal},
 \end{equation}
 with
 \begin{equation}
@@ -420,17 +420,17 @@ with
 with $\tau_{\rm disk, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars and $\tau_{\rm bar}$ is a bar instability timescale (see \S\ref{sec:DiskStability}). The mass removed from the disk by the bar instability mechanism is added to the active spheroid component.
 Element abundances (including total metals) evolve according to:
 \begin{equation}
-  \dot{M}_{Z, {\rm disk, gas}} = \dot{M}_{Z {\rm cooling}} - \dot{M}_{Z, {\rm outflow, disk}} - \dot{M}_{Z, {\rm stars, disk}} + \dot{y},
+  \dot{M}_{Z, {\rm disk, gas}} = \dot{M}_{Z {\rm cooling}} - \dot{M}_{Z, {\rm outflow, disk}} - \dot{M}_{Z, {\rm stars, disk}} + \dot{y} - {M_{Z, {\rm disk, gas}} \over M_{\rm disk, gas}} \dot{M}_{\rm ram pressure} - {M_{Z, {\rm disk, gas}} \over M_{\rm disk, gas} + M_{\rm disk, stars}} \dot{M}_{\rm tidal},
 \end{equation}
 and
 \begin{equation}
- \dot{M}_{Z, {\rm stars, disk}} = \Psi {M_{Z, {\rm disk, gas}} \over M_{\rm disk, gas}} - \dot{R}_Z
+ \dot{M}_{Z, {\rm stars, disk}} = \Psi {M_{Z, {\rm disk, gas}} \over M_{\rm disk, gas}} - \dot{R}_Z - {M_{Z, {\rm disk, stars}} \over M_{\rm disk, gas} + M_{\rm disk, stars}} \dot{M}_{\rm tidal}
 \end{equation}
 where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the rate of element recycling. The angular momentum evolves as:
 \begin{equation}
- \dot{J}_{\rm disk} = \dot{J}_{\rm cooling} - \left[ \dot{M}_{\rm outflow, disk} + {M_{\rm disk, gas}  + M_{\rm disk, stars} \over \tau_{\rm bar}}\right] {J_{\rm disk} \over M_{\rm disk, gas} + M_{\rm disk, stars}}.
+ \dot{J}_{\rm disk} = \dot{J}_{\rm cooling} - \left[ \dot{M}_{\rm outflow, disk} + {M_{\rm disk, gas}  + M_{\rm disk, stars} \over \tau_{\rm bar}} + \dot{M}_{\rm ram pressure} + \dot{M}_{\rm tidal}\right] {J_{\rm disk} \over M_{\rm disk, gas}}.
 \end{equation}
-The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), but is not allowed to exceed $M_{\rm gas, disk}/ \alpha_{\rm outflow minimum, disk} \tau_{\rm disk, dynamical}$, where $\tau_{\rm disk, dynamical}=R_{\rm disk}/V_{\rm disk}$ is the dynamical time of the disk and $\alpha_{\rm outflow minimum, disk}=${\tt [diskOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the disk. This limit prevents the disk being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component.
+The outflow rate, $\dot{M}_{\rm outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), but is not allowed to exceed $M_{\rm gas, disk}/ \alpha_{\rm outflow minimum, disk} \tau_{\rm disk, dynamical}$, where $\tau_{\rm disk, dynamical}=R_{\rm disk}/V_{\rm disk}$ is the dynamical time of the disk and $\alpha_{\rm outflow minimum, disk}=${\tt [diskOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the disk. This limit prevents the disk being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component.  The ram pressure and tidal mass loss rates, $\dot{M}_{\rm ram pressure}$ and $\dot{M}_{\rm tidal}$, are computed using the selected methods (see \S\ref{sec:RamPressureMassLossRates} and \S\ref{sec:TidalMassLossRates} respectively).
 
 \subsubsection{Event Evolution}
 
@@ -502,11 +502,11 @@ No initialization is performed---spheroids are created as needed.
 
 In the standard galactic spheroid implementation the gas mass evolves as\footnote{There may be an additional contribution to the mass and angular momentum rates of change in the spheroid due to material transferred from the disk \gls{component} via the bar instability mechanism (see \S\protect\ref{sec:DiskExponential}). This is not included here as it is not intrinsic to this specific spheroid implementation---it is handled explicitly by the disk \gls{component} and so applies equally to any spheroid \gls{component} implementation.}:
 \begin{equation}
- \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid},
+ \dot{M}_{\rm spheroid, gas} = - \dot{M}_{\rm outflow, spheroid} - \dot{M}_{\rm stars, spheroid} - \dot{M}_{\rm ram pressure} - {M_{\rm spheroid, gas} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}} \dot{M}_{\rm tidal},
 \end{equation}
 where the rate of change of stellar mass is
 \begin{equation}
- \dot{M}_{\rm stars, spheroid} = \Psi - \dot{R}
+ \dot{M}_{\rm stars, spheroid} = \Psi - \dot{R} - {M_{\rm spheroid, stars} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}} \dot{M}_{\rm tidal},
 \end{equation}
 with
 \begin{equation}
@@ -514,22 +514,24 @@ with
 \end{equation}
 with $\tau_{\rm spheroid, star~formation}$ being the star formation timescale and $\dot{R}$ is the rate of mass recycling from stars.
 Element abundances (including total metals) evolve according to:
-\begin{equation}
-  \dot{M}_{Z, {\rm spheroid, gas}} = - \dot{M}_{Z, {\rm outflow, spheroid}} - \dot{M}_{Z, {\rm stars, spheroid}} + \dot{y},
-\end{equation}
+\begin{eqnarray}
+  \dot{M}_{Z, {\rm spheroid, gas}} &=& - \dot{M}_{Z, {\rm outflow, spheroid}} - \dot{M}_{Z, {\rm stars, spheroid}} + \dot{y} - {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas}} \dot{M}_{\rm ram pressure} \nonumber \\ 
+ & & - {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}} \dot{M}_{\rm tidal},
+\end{eqnarray}
 and
 \begin{equation}
- \dot{M}_{Z, {\rm stars, spheroid}} = \Psi {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas}} - \dot{R}_Z
+ \dot{M}_{Z, {\rm stars, spheroid}} = \Psi {M_{Z, {\rm spheroid, gas}} \over M_{\rm spheroid, gas}} - \dot{R}_Z - {M_{Z, {\rm spheroid, stars}} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}} \dot{M}_{\rm tidal}
 \end{equation}
 where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the rate of element recycling. The angular momentum evolves as:
 \begin{equation}
- \dot{J}_{\rm spheroid} = \dot{M}_{\rm outflow, spheroid} {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}}.
+ \dot{J}_{\rm spheroid} = - (\dot{M}_{\rm outflow, spheroid} + \dot{M}_{\rm ram pressure}+\dot{M}_{\rm tidal}) {J_{\rm spheroid} \over M_{\rm spheroid, gas} + M_{\rm spheroid, stars}} + |\mathcal{T}| ( M_{\rm spheroid, gas} + M_{\rm spheroid, stars} ) R_{\rm spheroid}^2.
+ \label{eq:SpheroidStandardAngularMomentumEvolution}
 \end{equation}
 The outflow rate, $\dot{M}_{\rm outflow, spheroid}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), with an additional contribution given by
 \begin{equation}
  \dot{M}_{\rm outflow, spheroid} = \beta_{\rm spheroid, energy} {\dot{E}_{\rm gas, spheroid} \over V_{\rm spheroid}^2}
 \end{equation}
-where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_{\rm gas,spheroid}$ is any input energy sent through the {\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe, but is not allowed to exceed $M_{\rm gas, spheroid}/ \alpha_{\rm outflow minimum, spheroid} \tau_{\rm spheroid, dynamical}$, where $\tau_{\rm spheroid, dynamical}=R_{\rm spheroid}/V_{\rm spheroid}$ is the dynamical time of the spheroid and $\alpha_{\rm outflow minimum, spheroid}=${\tt [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid. This limit prevents the spheroid being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component.
+where $\beta_{\rm spheroid, energy}=${\tt [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_{\rm gas,spheroid}$ is any input energy sent through the {\tt Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe, but is not allowed to exceed $M_{\rm gas, spheroid}/ \alpha_{\rm outflow minimum, spheroid} \tau_{\rm spheroid, dynamical}$, where $\tau_{\rm spheroid, dynamical}=R_{\rm spheroid}/V_{\rm spheroid}$ is the dynamical time of the spheroid and $\alpha_{\rm outflow minimum, spheroid}=${\tt [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid. This limit prevents the spheroid being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component. The ram pressure and tidal mass loss rates, $\dot{M}_{\rm ram pressure}$ and $\dot{M}_{\rm tidal}$, are computed using the selected methods (see \S\ref{sec:RamPressureMassLossRates} and \S\ref{sec:TidalMassLossRates} respectively). The final term in \ref{eq:SpheroidStandardAngularMomentumEvolution} accounts for tidal heating of the spheroid due to the tidal field, $\mathcal{T}$.
 
 \subsubsection{Event Evolution}
 
