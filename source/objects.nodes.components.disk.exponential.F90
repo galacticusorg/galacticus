@@ -511,6 +511,7 @@ contains
     use Numerical_Constants_Astronomical
     use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
     use Tidal_Stripping_Mass_Loss_Rate_Disks
+    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                                         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk                                )               , pointer :: thisDisk
@@ -522,16 +523,16 @@ contains
     type            (abundances                                       ), save                   :: fuelAbundances          , fuelAbundancesRates       , &
          &                                                                                         stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate, &
-         &                                                                                         barInstabilityTimescale , diskDynamicalTime         , &
-         &                                                                                         diskMass                , energyInputRate           , &
-         &                                                                                         fuelMass                , fuelMassRate              , &
-         &                                                                                         gasMass                 , massLossRate              , &
-         &                                                                                         massOutflowRate         , massOutflowRateFromHalo   , &
-         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction  , &
-         &                                                                                         starFormationRate       , stellarMassRate           , &
-         &                                                                                         transferRate            , fractionGas               , &
-         &                                                                                         fractionStellar
+    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate  , &
+         &                                                                                         barInstabilityTimescale , diskDynamicalTime           , &
+         &                                                                                         diskMass                , energyInputRate             , &
+         &                                                                                         fuelMass                , fuelMassRate                , &
+         &                                                                                         gasMass                 , massLossRate                , &
+         &                                                                                         massOutflowRate         , massOutflowRateFromHalo     , &
+         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction    , &
+         &                                                                                         starFormationRate       , stellarMassRate             , &
+         &                                                                                         transferRate            , fractionGas                 , &
+         &                                                                                         fractionStellar         , barInstabilitySpecificTorque
     type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate
 
     ! Get a local copy of the interrupt procedure.
