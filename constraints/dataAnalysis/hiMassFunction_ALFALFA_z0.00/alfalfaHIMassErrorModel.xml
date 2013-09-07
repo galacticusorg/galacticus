@@ -1,0 +1,65 @@
+<massErrorModel>
+  <description>1-sigma error on HI gas mass for galaxies in the ALFALFA 40% sample as a function of mass</description>
+  <source>Read from Fig. 19 of Haynes et al. (2011) using Datathief by Andrew Benson on 10 July, 2013</source>
+  <source>Haynes et al. (2011; AJ, 142, 170)</source>
+  <url>http://adsabs.harvard.edu/abs/2011AJ....142..170H</url>
+  <mass>
+    <scaling>log10</scaling>
+    <units>Solar masses</units>
+    <unitsInSI>1.9891e30</unitsInSI>
+    <datum>6.1</datum>
+    <datum>6.3</datum>
+    <datum>6.5</datum>
+    <datum>6.7</datum>
+    <datum>6.9</datum>
+    <datum>7.1</datum>
+    <datum>7.3</datum>
+    <datum>7.5</datum>
+    <datum>7.7</datum>
+    <datum>7.9</datum>
+    <datum>8.1</datum>
+    <datum>8.3</datum>
+    <datum>8.5</datum>
+    <datum>8.7</datum>
+    <datum>8.9</datum>
+    <datum>9.1</datum>
+    <datum>9.3</datum>
+    <datum>9.5</datum>
+    <datum>9.7</datum>
+    <datum>9.9</datum>
+    <datum>10.1</datum>
+    <datum>10.3</datum>
+    <datum>10.5</datum>
+    <datum>10.7</datum>
+    <datum>10.9</datum>
+  </mass>
+  <massError>
+    <units>Solar masses</units>
+    <unitsInSI>1.9891e30</unitsInSI>
+    <datum>0.71</datum>
+    <datum>0.665</datum>
+    <datum>0.325</datum>
+    <datum>0.25</datum>
+    <datum>0.215</datum>
+    <datum>0.2</datum>
+    <datum>0.18</datum>
+    <datum>0.18</datum>
+    <datum>0.125</datum>
+    <datum>0.13</datum>
+    <datum>0.115</datum>
+    <datum>0.11</datum>
+    <datum>0.095</datum>
+    <datum>0.085</datum>
+    <datum>0.085</datum>
+    <datum>0.095</datum>
+    <datum>0.1</datum>
+    <datum>0.095</datum>
+    <datum>0.105</datum>
+    <datum>0.105</datum>
+    <datum>0.095</datum>
+    <datum>0.105</datum>
+    <datum>0.1</datum>
+    <datum>0.1</datum>
+    <datum>0.09</datum>
+  </massError>
+</massErrorModel>
