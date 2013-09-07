@@ -67,7 +67,7 @@ contains
     !% \begin{equation}
     !% \alpha = F_{\rm tidal}/F_{\rm gravity},
     !% \end{equation}
-    !% $F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:HostHaloTidalField}), and
+    !% $F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:SatelliteTidalFields}), and
     !% \begin{equation}
     !% F_{\rm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
