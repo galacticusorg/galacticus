@@ -174,6 +174,7 @@ contains
     use Abundances_Structure
     use Stellar_Population_Properties_Luminosities
     use Memory_Management
+    use Tables
     use Node_Component_Disk_Exponential_Data
     implicit none
     type(nodeComponentDiskExponential) :: diskExponentialComponent
