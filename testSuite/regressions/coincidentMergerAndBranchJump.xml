@@ -325,6 +325,10 @@
     <name>hotHaloRamPressureStrippingMethod</name>
     <value>virialRadius</value>
   </parameter>
+  <parameter>
+    <name>satellitesTidalFieldMethod</name>
+    <value>null</value>
+  </parameter>
 
   <!-- Galactic structure solver options -->
   <parameter>
