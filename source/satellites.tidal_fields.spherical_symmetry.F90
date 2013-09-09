@@ -74,31 +74,36 @@ contains
     type (keplerOrbit           )                         :: thisOrbit
     double precision                                      :: orbitalRadius,orbitalVelocity,densityHost,enclosedMassHost
 
-    ! Find the host node.
-    hostNode      => thisNode     %parent
-    ! Get the satellite component.
-    thisSatellite => thisNode     %satellite  ()
-    ! Get the orbit for this node.
-    thisOrbit     =  thisSatellite%virialOrbit()
-    ! Get the orbital radius and velocity at pericenter.
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
-    ! Find the mass and density of the host halo at pericenter.
-    densityHost     =Galactic_Structure_Density      (                                              &
-         &                                            hostNode                                    , &
-         &                                            [orbitalRadius,0.0d0,0.0d0]                 , &
-         &                                            coordinateSystem=coordinateSystemCylindrical  &
-         &                                           )
-    enclosedMassHost=Galactic_Structure_Enclosed_Mass(                                              &
-         &                                            hostNode                                    , &
-         &                                            orbitalRadius                                 &
-         &                                           )
-    ! Compute the tidal field.
-    Satellites_Tidal_Fields_Spherical_Symmetry_Get=                                                        &
-         &             gravitationalConstantGalacticus*enclosedMassHost/                 orbitalRadius **3 &
-         &   -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
-         &   +                                                          (orbitalVelocity/orbitalRadius)**2
-    ! Boost the tidal field.
-    Satellites_Tidal_Fields_Spherical_Symmetry_Get=satelliteTidalFieldBoostFactor*Satellites_Tidal_Fields_Spherical_Symmetry_Get
+    ! For isolated halos, always return zero tidal field.
+    if (thisNode%isSatellite()) then
+       ! Find the host node.
+       hostNode      => thisNode     %parent
+       ! Get the satellite component.
+       thisSatellite => thisNode     %satellite  ()
+       ! Get the orbit for this node.
+       thisOrbit     =  thisSatellite%virialOrbit()
+       ! Get the orbital radius and velocity at pericenter.
+       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
+       ! Find the mass and density of the host halo at pericenter.
+       densityHost     =Galactic_Structure_Density      (                                              &
+            &                                            hostNode                                    , &
+            &                                            [orbitalRadius,0.0d0,0.0d0]                 , &
+            &                                            coordinateSystem=coordinateSystemCylindrical  &
+            &                                           )
+       enclosedMassHost=Galactic_Structure_Enclosed_Mass(                                              &
+            &                                            hostNode                                    , &
+            &                                            orbitalRadius                                 &
+            &                                           )
+       ! Compute the tidal field.
+       Satellites_Tidal_Fields_Spherical_Symmetry_Get=                                                        &
+            &             gravitationalConstantGalacticus*enclosedMassHost/                 orbitalRadius **3 &
+            &   -4.0d0*Pi*gravitationalConstantGalacticus*densityHost                                         &
+            &   +                                                          (orbitalVelocity/orbitalRadius)**2
+       ! Boost the tidal field.
+       Satellites_Tidal_Fields_Spherical_Symmetry_Get=satelliteTidalFieldBoostFactor*Satellites_Tidal_Fields_Spherical_Symmetry_Get
+    else
+       Satellites_Tidal_Fields_Spherical_Symmetry_Get=0.0d0
+    end if
     return
   end function Satellites_Tidal_Fields_Spherical_Symmetry_Get
 
