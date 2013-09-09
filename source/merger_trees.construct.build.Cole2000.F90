@@ -29,11 +29,14 @@ module Merger_Tree_Build_Cole2000
   double precision           :: mergerTreeBuildCole2000AccretionLimit         , mergerTreeBuildCole2000EarliestTime  , &
        &                        mergerTreeBuildCole2000HighestRedshift        , mergerTreeBuildCole2000MassResolution, &
        &                        mergerTreeBuildCole2000MergeProbability
+  ! Option controlling random number sequences.
+  logical          :: mergerTreeBuildCole2000FixedRandomSeeds
 
   ! Random number sequence variables
   type            (fgsl_rng) :: clonedPseudoSequenceObject                    , pseudoSequenceObject
-  logical                    :: reset                                  =.true., resetSnapshot
-  !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot)
+  logical          :: reset=.true.,ompThreadOffset=.true.,resetSnapshot
+  integer          :: incrementSeed=0
+  !$omp threadprivate(pseudoSequenceObject,reset,clonedPseudoSequenceObject,resetSnapshot,incrementSeed)
 
 contains
 
@@ -78,19 +81,6 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000AccretionLimit'  ,mergerTreeBuildCole2000AccretionLimit  ,defaultValue=1.0d-1)
        !@ <inputParameter>
-       !@   <name>mergerTreeBuildCole2000MassResolution</name>
-       !@   <defaultValue>$5\times 10^9$</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The minimum mass (in units of $M_\odot$) of halos to be resolved in merger trees built using the
-       !@     \cite{cole_hierarchical_2000} method.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildCole2000MassResolution'  ,mergerTreeBuildCole2000MassResolution  ,defaultValue&
-            &=5.0d9 )
-       !@ <inputParameter>
        !@   <name>mergerTreeBuildCole2000HighestRedshift</name>
        !@   <defaultValue>$10^5$</defaultValue>
        !@   <attachedTo>module</attachedTo>
@@ -103,6 +93,18 @@ contains
        call Get_Input_Parameter('mergerTreeBuildCole2000HighestRedshift'  ,mergerTreeBuildCole2000HighestRedshift  ,defaultValue&
             &=1.0d5 )
        mergerTreeBuildCole2000EarliestTime=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeBuildCole2000HighestRedshift))
+       !@ <inputParameter>
+       !@   <name>mergerTreeBuildCole2000FixedRandomSeeds</name>
+       !@   <defaultValue>{\tt false}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     Specifies whether the random number sequence should be restarted for each tree using a deterministically derived (from the tree index) seed. This allows the exact same tree to be generated even when running multiple threads.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('mergerTreeBuildCole2000FixedRandomSeeds',mergerTreeBuildCole2000FixedRandomSeeds,defaultValue&
+            &=.false.)
     end if
     return
   end subroutine Merger_Tree_Build_Cole2000_Initialize
@@ -114,6 +116,7 @@ contains
     use Merger_Tree_Branching
     use Pseudo_Random
     use Kind_Numbers
+    use Merger_Trees_Build_Mass_Resolution
     implicit none
     type            (mergerTree        ), intent(inout), target :: thisTree
     type            (treeNode          ), pointer               :: newNode1          , newNode2          , thisNode
@@ -122,13 +125,23 @@ contains
     double precision                                            :: accretionFraction , baseNodeTime      , branchingProbability, &
          &                                                         collapseTime      , deltaCritical     , deltaCritical1      , &
          &                                                         deltaCritical2    , deltaW            , nodeMass1           , &
-         &                                                         nodeMass2         , time              , uniformRandom
+         &                                                         nodeMass2         , time              , uniformRandom       , &
+         &                                                         massResolution
     logical                                                     :: doBranch
 
     nodeIndex          =  1                 ! Initialize the node index counter to unity.
     thisNode           => thisTree%baseNode ! Point to the base node.
     thisBasicComponent => thisNode%basic()  ! Get the basic component of the node.
 
+    ! Restart the random number sequence.
+    if (mergerTreeBuildCole2000FixedRandomSeeds) then
+       if (.not.reset) call Pseudo_Random_Free(pseudoSequenceObject)
+       reset          =.true.
+       incrementSeed  =int(thisTree%index)
+       ompThreadOffset=.false.
+    end if
+    ! Get the mass resolution for this tree.
+    massResolution=Merger_Tree_Build_Mass_Resolution(thisTree)
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this module).
     baseNodeTime=thisBasicComponent%time()
     deltaCritical=Critical_Overdensity_for_Collapse(time=thisBasicComponent%time(),mass=thisBasicComponent%mass())
@@ -140,17 +153,17 @@ contains
 
        ! If halo is above the resolution limit, then evolve it.
        if     (                                                                                                                                       &
-            &   thisBasicComponent%mass() > mergerTreeBuildCole2000MassResolution                                                                     &
+            &   thisBasicComponent%mass() > massResolution                                                                                            &
             &  .and.                                                                                                                                  &
             &   Time_of_Collapse(criticalOverdensity=thisBasicComponent%time(),mass=thisBasicComponent%mass()) > mergerTreeBuildCole2000EarliestTime  &
             & ) then
 
           ! Find branching probability.
           branchingProbability=Tree_Branching_Probability (thisBasicComponent%mass(),thisBasicComponent%time()&
-               &,mergerTreeBuildCole2000MassResolution)
+               &,massResolution)
           ! Find accretion rate.
           accretionFraction   =Tree_Subresolution_Fraction(thisBasicComponent%mass(),thisBasicComponent%time()&
-               &,mergerTreeBuildCole2000MassResolution)
+               &,massResolution)
 
           ! A negative accretion fraction indicates that the node is so close to the resolution limit that
           ! an accretion rate cannot be determined (given available numerical accuracy). In such cases we
@@ -162,8 +175,8 @@ contains
 
           ! Finding maximum allowed step in w.
           deltaW=min(mergerTreeBuildCole2000AccretionLimit/accretionFraction,Tree_Maximum_Step(thisBasicComponent%mass()&
-               &,thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution))
-          deltaW=Tree_Maximum_Step(thisBasicComponent%mass(),thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution)
+               &,thisBasicComponent%time(),massResolution))
+          deltaW=Tree_Maximum_Step(thisBasicComponent%mass(),thisBasicComponent%time(),massResolution)
           if (accretionFraction    > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000AccretionLimit  /accretionFraction   )
           if (branchingProbability > 0.0d0) deltaW=min(deltaW,mergerTreeBuildCole2000MergeProbability/branchingProbability)
           ! Scale values to the determined timestep.
@@ -179,7 +192,7 @@ contains
 
           ! Decide if a branching occurs.
           if (branchingProbability > 0.0d0) then
-             uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
+             uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset=reset,ompThreadOffset=ompThreadOffset,incrementSeed=incrementSeed)
              doBranch=(uniformRandom <= branchingProbability)
           else
              doBranch=.false.
@@ -195,7 +208,7 @@ contains
              newBasicComponent1 => newNode1%basic(autoCreate=.true.)
              ! Compute mass of one of the new nodes. First convert the realized probability back to a rate.
              branchingProbability=uniformRandom/deltaW
-             nodeMass1=Tree_Branch_Mass(thisBasicComponent%mass(),thisBasicComponent%time(),mergerTreeBuildCole2000MassResolution&
+             nodeMass1=Tree_Branch_Mass(thisBasicComponent%mass(),thisBasicComponent%time(),massResolution&
                   &,branchingProbability)
 
              ! Compute the time corresponding to this branching event.
@@ -271,9 +284,13 @@ contains
   !# </galacticusStateSnapshotTask>
   subroutine Merger_Tree_Build_Cole2000_Snapshot
     !% Store a snapshot of the random number generator internal state.
+    use Pseudo_Random
     implicit none
-
-    if (.not.reset) clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
+    
+    if (.not.reset) then
+       if (FGSL_Well_Defined(clonedPseudoSequenceObject)) call Pseudo_Random_Free(clonedPseudoSequenceObject)
+       clonedPseudoSequenceObject=FGSL_Rng_Clone(pseudoSequenceObject)
+    end if
     resetSnapshot=reset
     return
   end subroutine Merger_Tree_Build_Cole2000_Snapshot
