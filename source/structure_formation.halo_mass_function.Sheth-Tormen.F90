@@ -47,19 +47,22 @@ contains
     use Numerical_Constants_Math
     use Power_Spectra
     use Critical_Overdensity
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    double precision, intent(in   ) :: mass           , time
-    double precision, parameter     :: a      =0.707d0, normalization=0.3221836349d0, &
-         &                             p      =0.3d0
-    double precision                :: alpha          , nu                          , &
-         &                             nuPrime
+    double precision                          , intent(in   ) :: mass                           , time
+    double precision                          , parameter     :: a                      =0.707d0, normalization=0.3221836349d0, &
+         &                                                       p                      =0.3d0
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: alpha                          , nu                          , &
+         &                                                       nuPrime
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Compute the mass function.
     nu=(Critical_Overdensity_for_Collapse(time=time,mass=mass)/Cosmological_Mass_Root_Variance(mass))**2
     nuPrime=a*nu
     alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Sheth_Tormen_Differential=(Omega_Matter()*Critical_Density()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
+    Halo_Mass_Function_Sheth_Tormen_Differential=(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*sqrt(2.0d0*nuPrime/Pi)*normalization&
          &*(1.0d0+1.0d0/nuPrime**p) *exp(-0.5d0*nuPrime)
     return
   end function Halo_Mass_Function_Sheth_Tormen_Differential

@@ -34,9 +34,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: tidalStrippingMassLossRateDisksMethod
-    procedure(Tidal_Stripping_Mass_Loss_Rate_Disk_Null), pointer, intent(inout) :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
-    
+    type     (varying_string                          ), intent(in   )          :: tidalStrippingMassLossRateDisksMethod
+    procedure(Tidal_Stripping_Mass_Loss_Rate_Disk_Null), intent(inout), pointer :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+
     if (tidalStrippingMassLossRateDisksMethod == 'null') Tidal_Stripping_Mass_Loss_Rate_Disk_Get => Tidal_Stripping_Mass_Loss_Rate_Disk_Null
     return
   end subroutine Tidal_Stripping_Mass_Loss_Rate_Disks_Null_Init
@@ -45,10 +45,10 @@ contains
     !% Computes the mass loss rate from disks due to tidal stripping. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type (treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: thisNode
 
     Tidal_Stripping_Mass_Loss_Rate_Disk_Null=0.0d0
     return
   end function Tidal_Stripping_Mass_Loss_Rate_Disk_Null
-  
+
 end module Tidal_Stripping_Mass_Loss_Rate_Disks_Null

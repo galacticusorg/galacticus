@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: ramPressureStrippingMassLossRateSpheroidsMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple), pointer, intent(inout) :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
-    
+    type     (varying_string                                       ), intent(in   )          :: ramPressureStrippingMassLossRateSpheroidsMethod
+    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
+
     if (ramPressureStrippingMassLossRateSpheroidsMethod == 'simple') then
        Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple
        !@ <inputParameter>
@@ -82,9 +82,10 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid),                pointer :: thisSpheroid
-    double precision                                                :: forceRamPressure,radiusHalfMass,densityGas&
-         &,massHalf,massLossRateFractional,forceGravitational,timeDynamical
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    double precision                                                :: densityGas   , forceGravitational    , forceRamPressure, &
+         &                                                             massHalf     , massLossRateFractional, radiusHalfMass  , &
+         &                                                             timeDynamical
 
     ! Assume no mass loss rate due to ram pressure by default.
     Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple=0.0d0
@@ -126,5 +127,5 @@ contains
     Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple=massLossRateFractional*thisSpheroid%massGas()/timeDynamical
     return
   end function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Simple
-  
+
 end module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Simple

@@ -25,15 +25,15 @@ module Satellite_Orbits
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
-  double precision                    :: orbitalAngularMomentumInternal, orbitalEnergyInternal
+  double precision                              :: orbitalAngularMomentumInternal   , orbitalEnergyInternal
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
   ! Node used in root finding calculations.
-  type            (treeNode), pointer :: activeNode
+  type            (treeNode), pointer           :: activeNode
   !$omp threadprivate(activeNode)
 
   ! Enumeratation used to indicate type of extremum.
-  integer, public, parameter :: extremumPericenter=-1
-  integer, public, parameter :: extremumApocenter =+1
+  integer                   , parameter, public :: extremumPericenter            =-1
+  integer                   , parameter, public :: extremumApocenter             =+1
 
 contains
 
@@ -151,7 +151,7 @@ contains
     velocity=orbitalAngularMomentumInternal/radius
     return
   end subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates
-  
+
   double precision function Extremum_Solver(radius)
     !% Root function used in finding orbital extremum radius.
     use Dark_Matter_Profiles

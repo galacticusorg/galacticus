@@ -105,8 +105,10 @@ contains
     use IO_XML
     use Cosmology_Functions
     implicit none
-    type            (Node    ), pointer :: doc              , thisItem
-    integer                             :: fileFormatVersion, iRedshift, ioErr
+    type   (Node                   ), pointer :: doc                      , thisItem
+    class  (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    integer                                   :: fileFormatVersion        , iRedshift, &
+         &                                       ioErr
 
     ! Check if data has yet to be read.
     if (.not.intergalaticMediumStateDataRead) then
@@ -126,9 +128,11 @@ contains
        thisItem             => XML_Get_First_Element_By_Tag_Name(doc,"matterTemperature")
        call XML_Array_Read(thisItem,"datum",temperatureTable     )
        redshiftCount=size(timeTable)
-       ! Convert redshifts to times.
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
+        ! Convert redshifts to times.
        do iRedshift=1,redshiftCount
-          timeTable(iRedshift)=Cosmology_Age(Expansion_Factor_from_Redshift(timeTable(iRedshift)))
+          timeTable(iRedshift)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(timeTable(iRedshift)))
        end do
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)

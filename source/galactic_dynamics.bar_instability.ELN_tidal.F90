@@ -27,7 +27,7 @@ module Galactic_Dynamics_Bar_Instabilities_ELN_Tidal
   public :: Galactic_Dynamics_Bar_Instabilities_ELN_Tidal_Initialize
 
   ! Stability parameters for stellar and gaseous disks.
-  double precision :: stabilityThresholdStellar,stabilityThresholdGaseous
+  double precision :: stabilityThresholdGaseous, stabilityThresholdStellar
 
   ! Harrassment mass threshold.
   double precision :: harrassmentMassThreshold
@@ -42,9 +42,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string),          intent(in   ) :: barInstabilityMethod
-    procedure(Bar_Instability_Timescale_ELN_Tidal              ), pointer, intent(inout) :: Bar_Instability_Timescale_Get
-    
+    type     (varying_string                                   ), intent(in   )          :: barInstabilityMethod
+    procedure(Bar_Instability_Timescale_ELN_Tidal              ), intent(inout), pointer :: Bar_Instability_Timescale_Get
+
     if (barInstabilityMethod == 'ELN+tidal') then
        Bar_Instability_Timescale_Get => Bar_Instability_Timescale_ELN_Tidal
        ! Read in stability threshold parameters.
@@ -82,7 +82,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('harrassmentMassThreshold',harrassmentMassThreshold,defaultValue=0.0d0)
     end if
-  
+
     return
   end subroutine Galactic_Dynamics_Bar_Instabilities_ELN_Tidal_Initialize
 
@@ -94,19 +94,22 @@ contains
     use Numerical_Constants_Physical
     use Satellites_Tidal_Fields
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: thisNode
-    double precision                       , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
-    class           (nodeComponentDisk    ),                pointer :: thisDisk
-    class           (nodeComponentSpheroid),                pointer :: thisSpheroid
-    class           (nodeComponentBasic   ),                pointer :: parentBasic
-    double precision                       , parameter              :: stabilityIsolatedDisk        =0.6221297315d0
+    type            (treeNode             )           , intent(inout), pointer :: thisNode
+    double precision                                  , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque               , barInstabilityTimeScale
+    class           (nodeComponentDisk    )                          , pointer :: thisDisk
+    class           (nodeComponentSpheroid)                          , pointer :: thisSpheroid
+    class           (nodeComponentBasic   )                          , pointer :: parentBasic
+    double precision                       , parameter                         :: stabilityIsolatedDisk                      =0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                       , parameter              :: velocityBoostFactor          =1.180023758d0
+    double precision                       , parameter                         :: velocityBoostFactor                        =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                       , parameter              :: timescaleDimensionlessMaximum=1.0d10
-    double precision                                                :: stabilityEstimator,stabilityThreshold,dynamicalTime&
-         &,gasFraction,diskMass ,timescaleDimensionless,stabilityIsolatedRelative,stabilityEstimatorRelative,tidalField
+    double precision                       , parameter                         :: timescaleDimensionlessMaximum              =1.0d10
+    double precision                                                           :: diskMass                                                  , dynamicalTime            , &
+         &                                                                        gasFraction                                               , stabilityEstimator       , &
+         &                                                                        stabilityEstimatorRelative                                , stabilityIsolatedRelative, &
+         &                                                                        stabilityThreshold                                        , tidalField               , &
+         &                                                                        timescaleDimensionless
 
     ! Assume infinite timescale (i.e. no instability) initially.
     barInstabilityTimeScale                    =-1.0d0
@@ -169,5 +172,5 @@ contains
     end if
     return
   end subroutine Bar_Instability_Timescale_ELN_Tidal
-  
+
 end module Galactic_Dynamics_Bar_Instabilities_ELN_Tidal

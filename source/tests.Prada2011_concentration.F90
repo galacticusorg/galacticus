@@ -24,18 +24,20 @@ program Test_Prada2011_Concentration
   use Input_Parameters
   use Dark_Matter_Profiles_Concentrations
   use Cosmology_Functions
-  use Cosmological_Parameters
+  use Cosmology_Parameters
   use Galacticus_Nodes
   use Unit_Tests
   implicit none
-  type            (treeNode          )                                 , pointer :: thisNode
-  class           (nodeComponentBasic)                                 , pointer :: thisBasicComponent
-  type            (varying_string    )                                           :: message                                                    , parameterFile
-  integer                                                   , parameter          :: massCount            =4
-  double precision                    , dimension(massCount), parameter          :: logMass              =[11.000d0,12.000d0,13.000d0,14.000d0]
-  double precision                    , dimension(massCount), parameter          :: pradaLogConcentration=[0.966d0,0.887d0,0.804d0,0.728d0]
-  double precision                    , dimension(massCount)                     :: ourLogConcentration
-  integer                                                                        :: iMass
+  type            (treeNode                )                                 , pointer :: thisNode
+  class           (nodeComponentBasic      )                                 , pointer :: thisBasicComponent
+  class           (cosmologyParametersClass)                                 , pointer :: thisCosmologyParameters
+  type            (varying_string          )                                           :: message                                                        , parameterFile
+  integer                                                         , parameter          :: massCount                =4
+  double precision                          , dimension(massCount), parameter          :: logMass                  =[11.000d0,12.000d0,13.000d0,14.000d0]
+  double precision                          , dimension(massCount), parameter          :: pradaLogConcentration    =[0.966d0,0.887d0,0.804d0,0.728d0]
+  double precision                          , dimension(massCount)                     :: ourLogConcentration
+  class           (cosmologyFunctionsClass )                                 , pointer :: cosmologyFunctionsDefault
+  integer                                                                              :: iMass
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Prada2011_concentration.size')
@@ -53,15 +55,20 @@ program Test_Prada2011_Concentration
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
 
   ! Set the time for the node.
-  call thisBasicComponent%timeSet(Cosmology_Age(1.00d0))
+  call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(1.00d0))
+
+  ! Get the default cosmology.
+  thisCosmologyParameters => cosmologyParameters()
 
   ! Loop over halo masses
   do iMass=1,massCount
 
      ! Set the mass of the original node.
-     call thisBasicComponent%massSet(10.0d0**logMass(iMass)/Little_H_0())
+     call thisBasicComponent%massSet(10.0d0**logMass(iMass)/thisCosmologyParameters%HubbleConstant(unitsLittleH))
 
      ! Compute and compare concentration at z=0.
      ourLogConcentration(iMass)=log10(Dark_Matter_Profile_Concentration(thisNode))

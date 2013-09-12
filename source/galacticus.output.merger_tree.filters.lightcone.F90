@@ -61,22 +61,24 @@ contains
     use IO_XML
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Galacticus_Error
     use Memory_Management
     implicit none
-    type            (varying_string), dimension(:), intent(in   ) :: filterNames
-    type            (Node          ), pointer                     :: doc                            , thisItem
-    type            (NodeList      ), pointer                     :: itemList
-    integer                                                       :: iAxis                          , iOutput                     , &
-         &                                                           ioErr                          , lengthUnitsHubbleExponent
-    double precision                                              :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
-         &                                                           lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
-         &                                                           unitConversionLength
-    type            (varying_string)                              :: filterLightconeGeometryFileName
-    logical                                                       :: filterLightconeFixedTime
-    character       (len=11        )                              :: tagName
-    character       (len=10        )                              :: geometryLabel
+    type            (varying_string          ), dimension(:), intent(in   ) :: filterNames
+    type            (Node                    ), pointer                     :: doc                            , thisItem
+    type            (NodeList                ), pointer                     :: itemList
+    class           (cosmologyParametersClass), pointer                     :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctionsDefault
+    integer                                                                 :: iAxis                          , iOutput                     , &
+         &                                                                     ioErr                          , lengthUnitsHubbleExponent
+    double precision                                                        :: lengthUnitsInSI                , lightconeMaximumDistanceTemp, &
+         &                                                                     lightconeMinimumDistanceTemp   , lightconeTimeTemp           , &
+         &                                                                     unitConversionLength
+    type            (varying_string          )                              :: filterLightconeGeometryFileName
+    logical                                                                 :: filterLightconeFixedTime
+    character       (len=11                  )                              :: tagName
+    character       (len=10                  )                              :: geometryLabel
 
     ! Initialize the filter if necessary.
     if (.not.lightconeFilterInitialized) then
@@ -120,12 +122,16 @@ contains
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,tagName)
              lightconeUnitVector(:,iAxis)=Filter_Lightcone_Get_Coordinates(thisItem)
           end do
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
           ! Get units information.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"units/length/unitsInSI"     )
           call extractDataContent(thisItem,lengthUnitsInSI          )
           thisItem => XML_Get_First_Element_By_Tag_Name(doc     ,"units/length/hubbleExponent")
           call extractDataContent(thisItem,lengthUnitsHubbleExponent)
-          unitConversionLength=lengthUnitsInSI*(Little_H_0()**lengthUnitsHubbleExponent)/megaParsec
+          unitConversionLength=lengthUnitsInSI*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**lengthUnitsHubbleExponent)/megaParsec
           ! Get the origin of the lightcone.
           thisItem => XML_Get_First_Element_By_Tag_Name(doc,"origin")
           lightconeOrigin=Filter_Lightcone_Get_Coordinates(thisItem)*unitConversionLength
@@ -158,7 +164,7 @@ contains
                &   size(lightconeMaximumDistance) /= size(lightconeTime) &
                & ) call Galacticus_Error_Report('Galacticus_Merger_Tree_Output_Filter_Lightcone','size mismatch in outputs arrays')
           do iOutput=1,size(lightconeTime)
-             lightconeTime(iOutput)=Cosmology_Age(Expansion_Factor_From_Redshift(lightconeTime(iOutput)))
+             lightconeTime(iOutput)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(lightconeTime(iOutput)))
           end do
           lightconeMinimumDistance=lightconeMinimumDistance*unitConversionLength
           lightconeMaximumDistance=lightconeMaximumDistance*unitConversionLength
@@ -196,19 +202,24 @@ contains
     use Arrays_Search
     use Cosmology_Functions
     implicit none
-    type            (treeNode             )                , intent(inout), pointer :: thisNode
-    logical                                                , intent(inout)          :: doOutput
-    class           (nodeComponentBasic   )                               , pointer :: thisBasicComponent
-    class           (nodeComponentPosition)                               , pointer :: thisPositionComponent
-    double precision                       , parameter                              :: timeTolerance        =1.0d-3
-    integer                                , dimension(3,2)                         :: periodicRange
-    double precision                       , dimension(3  )                         :: galaxyPosition              , galaxyVelocity
-    logical                                                                         :: galaxyIsInFieldOfView       , galaxyIsInLightcone
-    integer                                                                         :: i                           , iAxis              , iOutput, &
-         &                                                                             j                           , k
+    type            (treeNode               )                , intent(inout), pointer :: thisNode
+    logical                                                  , intent(inout)          :: doOutput
+    class           (nodeComponentBasic     )                               , pointer :: thisBasicComponent
+    class           (nodeComponentPosition  )                               , pointer :: thisPositionComponent
+    class           (cosmologyFunctionsClass)                               , pointer :: cosmologyFunctionsDefault
+    double precision                         , parameter                              :: timeTolerance            =1.0d-3
+    integer                                  , dimension(3,2)                         :: periodicRange
+    double precision                         , dimension(3  )                         :: galaxyPosition                  , galaxyVelocity
+    logical                                                                           :: galaxyIsInFieldOfView           , galaxyIsInLightcone
+    integer                                                                           :: i                               , iAxis              , &
+         &                                                                               iOutput                         , j                  , &
+         &                                                                               k
 
     ! Return immediately if this filter is not active.
     if (.not.lightconeFilterActive) return
+
+   ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
 
     ! Get components.
     thisBasicComponent => thisNode%basic()
@@ -222,7 +233,7 @@ contains
 
     ! Get position of galaxy in original coordinates.
     thisPositionComponent => thisNode             %position()
-    galaxyPosition        =  thisPositionComponent%position()/Expansion_Factor(lightconeTime(iOutput))
+    galaxyPosition        =  thisPositionComponent%position()/cosmologyFunctionsDefault%expansionFactor(lightconeTime(iOutput))
 
     ! Loop over all replicants.
     galaxyIsInLightcone=.false.
@@ -259,9 +270,9 @@ contains
                       lightconeVelocity(iAxis)=Dot_Product(galaxyVelocity,lightconeUnitVector(:,iAxis))
                    end forall
                    ! Get redshift of the galaxy.
-                   lightconeRedshift=Redshift_from_Expansion_Factor(   &
-                        &             Expansion_Factor              (  &
-                        &              Time_From_Comoving_Distance   ( &
+                   lightconeRedshift=cosmologyFunctionsDefault%redshiftFromExpansionFactor(   &
+                        &             cosmologyFunctionsDefault%expansionFactor              (  &
+                        &              cosmologyFunctionsDefault%timeAtDistanceComoving   ( &
                         &               lightconePosition(1)           &
                         &                                            ) &
                         &                                           )  &

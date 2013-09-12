@@ -20,6 +20,7 @@ require Galacticus::Build::Hooks;
 require Galacticus::Build::ModuleUse;
 require Galacticus::Build::MethodNames;
 require Galacticus::Build::Labels;
+require Galacticus::Build::Function;
 require Galacticus::Build::FunctionCall;
 require Galacticus::Build::BindingsC;
 
@@ -47,7 +48,7 @@ if ( -e "./work/build/Code_Directive_Locations.xml" ) {
 
 # Create XML object and process the XML file.
 my $xml       = new XML::Simple;
-my $buildData = $xml->XMLin($xmlFile);
+my $buildData = $xml->XMLin($xmlFile, KeyAttr => []);
 
 # Initially not inside any module.
 $buildData->{'moduleName'} = "";

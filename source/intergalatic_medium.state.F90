@@ -149,10 +149,11 @@ contains
     use Galacticus_Error
     use Cosmology_Functions
     implicit none
-    double precision, intent(in   )           :: opticalDepth
-    logical         , intent(in   ), optional :: assumeFullyIonized
-    logical                                   :: assumeFullyIonizedActual
-    double precision                          :: time
+    double precision                         , intent(in   )           :: opticalDepth
+    logical                                  , intent(in   ), optional :: assumeFullyIonized
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    logical                                                            :: assumeFullyIonizedActual
+    double precision                                                   :: time
 
     ! Check for invalid input.
     if (opticalDepth < 0.0d0) call Galacticus_Error_Report('Intergalactic_Medium_Electron_Scattering_Time','optical depth must be non-negative')
@@ -160,9 +161,10 @@ contains
     ! Determine which optical depth to use.
     assumeFullyIonizedActual=.true.!false.
     if (present(assumeFullyIonized)) assumeFullyIonizedActual=assumeFullyIonized
-
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Ensure that the table is initialized.
-    time=Cosmology_Age(1.0d0)
+    time=cosmologyFunctionsDefault%cosmicTime(1.0d0)
     call IGM_State_Electron_Scattering_Tabulate(time)
     do while (                                                                                           &
          &     (.not.assumeFullyIonizedActual .and. electronScattering            %y(1) > -opticalDepth) &
@@ -191,6 +193,7 @@ contains
     use FGSL
     implicit none
     double precision                            , intent(in   ) :: time
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctionsDefault
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
@@ -198,9 +201,11 @@ contains
 
     !$omp critical (IGM_State_Electron_Scattering_Interpolation)
     if (.not.electronScatteringTableInitialized.or.time < electronScatteringTableTimeMinimum) then
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Find minimum and maximum times to tabulate.
-       electronScatteringTableTimeMaximum=    Cosmology_Age(1.0d0)
-       electronScatteringTableTimeMinimum=min(Cosmology_Age(1.0d0),time)/2.0d0
+       electronScatteringTableTimeMaximum=    cosmologyFunctionsDefault%cosmicTime(1.0d0)
+       electronScatteringTableTimeMinimum=min(cosmologyFunctionsDefault%cosmicTime(1.0d0),time)/2.0d0
        ! Decide how many points to tabulate and allocate table arrays.
        electronScatteringTableNumberPoints=int(log10(electronScatteringTableTimeMaximum/electronScatteringTableTimeMinimum)&
             &*dble(electronScatteringTablePointsPerDecade))+1
@@ -265,22 +270,28 @@ contains
     !% Integrand for electron scattering optical depth calculations.
     use, intrinsic :: ISO_C_Binding
     use Cosmology_Functions
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    real            (kind=c_double)        :: IGM_State_Electron_Scattering_Integrand
-    real            (kind=c_double), value :: time
-    type            (c_ptr        ), value :: parameterPointer
-    double precision                       :: electronFraction                       , expansionFactor
+    real            (kind=c_double           )                 :: IGM_State_Electron_Scattering_Integrand
+    real            (kind=c_double           )         , value :: time
+    type            (c_ptr                   )         , value :: parameterPointer
+    class           (cosmologyParametersClass), pointer        :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctionsDefault
+    double precision                                           :: electronFraction                       , expansionFactor
 
-    expansionFactor=Expansion_Factor(time)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
+    expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
     if (fullyIonized) then
        electronFraction=hydrogenByMassPrimordial/atomicMassHydrogen+2.0d0*heliumByMassPrimordial/atomicMassHelium
     else
        electronFraction=hydrogenByMassPrimordial*Intergalactic_Medium_Electron_Fraction(time)/atomicMassHydrogen
     end if
-    IGM_State_Electron_Scattering_Integrand=speedLight*gigaYear*thomsonCrossSection*Omega_b()*Critical_Density()*massSolar*electronFraction/atomicMassUnit/megaParsec**3/expansionFactor**3
+    IGM_State_Electron_Scattering_Integrand=speedLight*gigaYear*thomsonCrossSection*thisCosmologyParameters%OmegaBaryon()*thisCosmologyParameters%densityCritical()*massSolar*electronFraction/atomicMassUnit/megaParsec**3/expansionFactor**3
     return
   end function IGM_State_Electron_Scattering_Integrand
 

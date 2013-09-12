@@ -1,7 +1,7 @@
 <!-- Parameter file used for testing Zhao et al. 2009 algorithms in an Einstein-de Sitter universe model. -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>

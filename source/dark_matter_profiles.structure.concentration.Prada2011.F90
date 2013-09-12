@@ -189,18 +189,24 @@ contains
     use Galacticus_Nodes
     use Power_Spectra
     use Cosmology_Functions
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Linear_Growth
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: massNode          , sigmaPrime, timeNode, &
-         &                                                          x
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass )               , pointer :: cosmologyFunctionsDefault
+    double precision                                                   :: massNode                 , sigmaPrime, &
+         &                                                                timeNode                 , x
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     thisBasicComponent => thisNode%basic()
     massNode  =thisBasicComponent%mass()
     timeNode  =thisBasicComponent%time()
-    x         =(Omega_DE()/Omega_Matter())**(1.0d0/3.0d0)*Expansion_Factor(timeNode)
+    x         =(thisCosmologyParameters%OmegaDarkEnergy()/thisCosmologyParameters%OmegaMatter())**(1.0d0/3.0d0)*cosmologyFunctionsDefault%expansionFactor(timeNode)
     sigmaPrime=B1(x)*Cosmological_Mass_Root_Variance(massNode)*Linear_Growth_Factor(timeNode)
     Dark_Matter_Profile_Concentration_Prada2011=B0(x)*C(sigmaPrime)
     return

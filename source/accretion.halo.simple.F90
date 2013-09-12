@@ -69,6 +69,7 @@ contains
     procedure       (Halo_Baryonic_Accreted_Abundances_Simple_Get      ), intent(inout), pointer :: Halo_Baryonic_Accreted_Abundances_Get
     procedure       (Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
     procedure       (Halo_Baryonic_Accreted_Chemicals_Simple_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
+    class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
     double precision                                                                             :: reionizationSuppressionOpticalDepth
 
     if (accretionHalosMethod == 'simple') then
@@ -112,7 +113,8 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("reionizationSuppressionRedshift",reionizationSuppressionRedshift,defaultValue=9.97d0)
-          reionizationSuppressionTime=Cosmology_Age(Expansion_Factor_from_Redshift(reionizationSuppressionRedshift))
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          reionizationSuppressionTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(reionizationSuppressionRedshift))
        end if
        !@ <inputParameter>
        !@   <name>reionizationSuppressionVelocity</name>
@@ -145,13 +147,14 @@ contains
   double precision function Halo_Baryonic_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Galacticus_Nodes
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    double precision                                               :: growthRate          , unaccretedMass
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                                                   :: growthRate             , unaccretedMass
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
@@ -161,8 +164,10 @@ contains
             & reionizationSuppressionVelocity) then
           Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
        else
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
           thisHotHaloComponent => thisNode%hotHalo()
-          Halo_Baryonic_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
+          Halo_Baryonic_Accretion_Rate_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%accretionRate()
           ! Test for negative accretion.
           if (.not.accretionHalosSimpleNegativeAccretionAllowed.and.thisBasicComponent%accretionRate() < 0.0d0) then
              ! Accretion rate is negative, and not allowed. Return zero accretion rate.
@@ -181,11 +186,12 @@ contains
   double precision function Halo_Baryonic_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Galacticus_Nodes
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class(cosmologyParametersClass)               , pointer :: thisCosmologyParameters
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
@@ -195,7 +201,9 @@ contains
             & reionizationSuppressionVelocity) then
           Halo_Baryonic_Accreted_Mass_Simple_Get=0.0d0
        else
-          Halo_Baryonic_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
+          Halo_Baryonic_Accreted_Mass_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%mass()
        end if
     end if
     return
@@ -204,26 +212,29 @@ contains
   double precision function Halo_Baryonic_Failed_Accretion_Rate_Simple_Get(thisNode)
     !% Computes the baryonic accretion rate onto {\tt thisNode}.
     use Galacticus_Nodes
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: growthRate          , unaccretedMass
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    double precision                                                   :: growthRate             , unaccretedMass
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
     else
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        thisBasicComponent => thisNode%basic()
        if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
             & reionizationSuppressionVelocity) then
-          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
+          Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%accretionRate()
        else
           thisHotHaloComponent => thisNode%hotHalo()
           ! Test for negative accretion.
           if (.not.accretionHalosSimpleNegativeAccretionAllowed.and.thisBasicComponent%accretionRate() < 0.0d0) then
-             Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%accretionRate()
+             Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%accretionRate()
           else
              unaccretedMass=thisHotHaloComponent%unaccretedMass()
              growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
@@ -237,11 +248,12 @@ contains
   double precision function Halo_Baryonic_Failed_Accreted_Mass_Simple_Get(thisNode)
     !% Computes the mass of baryons accreted into {\tt thisNode}.
     use Galacticus_Nodes
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
-    type (treeNode          ), intent(inout), pointer :: thisNode
-    class(nodeComponentBasic)               , pointer :: thisBasicComponent
+    type (treeNode                ), intent(inout), pointer :: thisNode
+    class(nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class(cosmologyParametersClass)               , pointer :: thisCosmologyParameters
 
     if (thisNode%isSatellite()) then
        Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
@@ -249,7 +261,9 @@ contains
        thisBasicComponent => thisNode%basic()
        if (thisBasicComponent%time() > reionizationSuppressionTime .and. Dark_Matter_Halo_Virial_Velocity(thisNode) <&
             & reionizationSuppressionVelocity) then
-          Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(Omega_b()/Omega_Matter())*thisBasicComponent%mass()
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
+         Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%mass()
        else
           Halo_Baryonic_Failed_Accreted_Mass_Simple_Get=0.0d0
        end if
@@ -334,30 +348,33 @@ contains
   subroutine Get_Chemical_Masses(thisNode,massAccreted,chemicalMasses)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\tt thisNode} from the intergalactic medium.
     use Galacticus_Nodes
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: massAccreted
-    type            (chemicalAbundances), intent(  out)          :: chemicalMasses
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    type            (chemicalAbundances), save                   :: chemicalDensities
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                          , intent(in   )          :: massAccreted
+    type            (chemicalAbundances      ), intent(  out)          :: chemicalMasses
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    type            (chemicalAbundances      ), save                   :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
-    double precision                                             :: massToDensityConversion, numberDensityHydrogen, &
-         &                                                          temperature
+    double precision                                                   :: massToDensityConversion, numberDensityHydrogen, &
+         &                                                                temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
     massToDensityConversion=Chemicals_Mass_To_Density_Conversion(Dark_Matter_Halo_Virial_Radius(thisNode))/3.0d0
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
     temperature          =Dark_Matter_Halo_Virial_Temperature(thisNode)
     thisBasicComponent   => thisNode%basic()
-    numberDensityHydrogen=hydrogenByMassPrimordial*(Omega_b()/Omega_Matter())*thisBasicComponent%mass()*massToDensityConversion/atomicMassHydrogen
+    numberDensityHydrogen=hydrogenByMassPrimordial*(thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter())*thisBasicComponent%mass()*massToDensityConversion/atomicMassHydrogen
 
     ! Set the radiation field.
     call radiation%set(thisNode)

@@ -129,28 +129,29 @@ contains
     !% matter using the fitting function of \citeauthor{bode_halo_2001}~(\citeyear{bode_halo_2001}; as re-expressed by
     !% \citealt{barkana_constraints_2001}) to impose a cut-off below a specified {\tt [transferFunctionWdmCutOffScale]}.
     use Memory_Management
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision                           , intent(in   ) :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                    , intent(  out) :: transferFunctionNumberPoints
-    integer                                                    :: iWavenumber
-    double precision                                           :: Bk                          , C                             , &
-         &                                                        Gammaeff                    , L                             , &
-         &                                                        Nv                          , Theta27                       , &
-         &                                                        Tsup                        , alphav                        , &
-         &                                                        b1                          , b2                            , &
-         &                                                        betac                       , fb                            , &
-         &                                                        fc                          , fcb                           , &
-         &                                                        fv                          , fvb                           , &
-         &                                                        pc                          , pcb                           , &
-         &                                                        qEH                         , qeff                          , &
-         &                                                        qv                          , s                             , &
-         &                                                        transferFunctionWdmFactor   , wavenumber                    , &
-         &                                                        yd                          , zd                            , &
-         &                                                        zeq
+    double precision                                                     , intent(in   ) :: logWavenumber
+    double precision                          , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                              , intent(  out) :: transferFunctionNumberPoints
+    class           (cosmologyParametersClass), pointer                                  :: thisCosmologyParameters
+    integer                                                                              :: iWavenumber
+    double precision                                                                     :: Bk                          , C                            , &
+         &                                                                                  Gammaeff                    , L                            , &
+         &                                                                                  Nv                          , Theta27                      , &
+         &                                                                                  Tsup                        , alphav                       , &
+         &                                                                                  b1                          , b2                           , &
+         &                                                                                  betac                       , fb                           , &
+         &                                                                                  fc                          , fcb                          , &
+         &                                                                                  fv                          , fvb                          , &
+         &                                                                                  pc                          , pcb                          , &
+         &                                                                                  qEH                         , qeff                         , &
+         &                                                                                  qv                          , s                            , &
+         &                                                                                  transferFunctionWdmFactor   , wavenumber                   , &
+         &                                                                                  yd                          , zd                           , &
+         &                                                                                  zeq
 
     ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
@@ -165,25 +166,27 @@ contains
     ! Create range of wavenumbers.
     transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
          &,rangeTypeLinear)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Create transfer function.
     ! Present day CMB temperature [in units of 2.7K].
-    Theta27=T_CMB()/2.7d0
+    Theta27=thisCosmologyParameters%temperatureCMB()/2.7d0
     ! Redshift of matter-radiation equality.
-    zeq=2.50d4*Omega_Matter()*(Little_H_0()**2)/(Theta27**4)
+    zeq=2.50d4*thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2)/(Theta27**4)
     ! Compute redshift at which baryons are released from Compton drag of photons (eqn. 2)
-    b1=0.313d0*((Omega_Matter()*(Little_H_0()**2))**(-0.419d0))*(1.0d0+0.607d0*((Omega_Matter()*(Little_H_0()**2))**0.674d0))
-    b2=0.238d0*((Omega_Matter()*(Little_H_0()**2))**0.223d0)
-    zd=1291.0d0*((Omega_Matter()*(Little_H_0()**2))**0.251d0)*(1.0d0+b1*((Omega_b()*(Little_H_0()**2))**b2))/(1.0d0+0.659d0*((Omega_Matter()*(Little_H_0()**2))**0.828d0))
+    b1=0.313d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2))**(-0.419d0))*(1.0d0+0.607d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%hubbleConstant(unitsLittleH)**2))**0.674d0))
+    b2=0.238d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2))**0.223d0)
+    zd=1291.0d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2))**0.251d0)*(1.0d0+b1*((thisCosmologyParameters%OmegaBaryon()*(thisCosmologyParameters%hubbleConstant(unitsLittleH)**2))**b2))/(1.0d0+0.659d0*((thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%hubbleConstant(unitsLittleH)**2))**0.828d0))
     ! Relative expansion factor between previous two computed redshifts.
     yd=(1.0d0+zeq)/(1.0d0+zd)
     ! Compute the comoving distance that a sound wave can propagate prior to zd (i.e. sound horizon; eq. 4)
-    s=44.5d0*log(9.83d0/Omega_Matter()/(Little_H_0()**2))/sqrt(1.0d0+10.0d0*((Omega_b()*(Little_H_0()**2))**0.75d0))
+    s=44.5d0*log(9.83d0/thisCosmologyParameters%OmegaMatter()/(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2))/sqrt(1.0d0+10.0d0*((thisCosmologyParameters%OmegaBaryon()*(thisCosmologyParameters%hubbleConstant(unitsLittleH)**2))**0.75d0))
     ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
-    fv=summedNeutrinoMasses/94.0d0/(Little_H_0()**2)/Omega_Matter()
+    fv=summedNeutrinoMasses/94.0d0/(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2)/thisCosmologyParameters%OmegaMatter()
     Nv=effectiveNumberNeutrinos
     ! Compute baryonic and cold dark matter fractions.
-    fb=Omega_b()/Omega_Matter()
-    fc=(Omega_Matter()-Omega_b())/Omega_Matter()
+    fb=thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter()
+    fc=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
     ! Total matter fraction.
     fcb=fb+fc
     ! Baryonic + neutrino fraction.
@@ -197,9 +200,9 @@ contains
     do iWavenumber=1,transferFunctionNumberPoints
        wavenumber=exp(transferFunctionLogWavenumber(iWavenumber))
        ! Compute effective q.
-       qEH=wavenumber*(Theta27**2)/Omega_Matter()/(Little_H_0()**2)
+       qEH=wavenumber*(Theta27**2)/thisCosmologyParameters%OmegaMatter()/(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2)
        ! Compute rescaled shape parameter (eqn. 16)
-       Gammaeff=Omega_Matter()*(Little_H_0()**2)*(sqrt(alphav)+(1.0d0-sqrt(alphav))/(1.0d0+((0.43d0*wavenumber*s)**4)))
+       Gammaeff=thisCosmologyParameters%OmegaMatter()*(thisCosmologyParameters%HubbleConstant(unitsLittleH)**2)*(sqrt(alphav)+(1.0d0-sqrt(alphav))/(1.0d0+((0.43d0*wavenumber*s)**4)))
        qeff=wavenumber*(Theta27**2)/Gammaeff
        betac=1.0d0/(1.0d0-0.949d0*fvb)                     ! Eqn. 21.
        L=log(exp(1.0d0)+1.84d0*betac*sqrt(alphav)*qeff) ! Eqn. 19.

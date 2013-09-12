@@ -528,20 +528,20 @@ contains
     type            (treeNode             ), intent(inout), pointer :: thisNode
     logical                                , intent(inout)          :: interrupt
     procedure       (                     ), intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentSpheroid), pointer                :: thisSpheroid
-    class           (nodeComponentHotHalo ), pointer                :: thisHotHalo
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    class           (nodeComponentHotHalo )               , pointer :: thisHotHalo
     type            (abundances           ), save                   :: fuelAbundances            , fuelAbundancesRates     , &
          &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
     double precision                                                :: angularMomentumOutflowRate, energyInputRate         , &
-         &                                                             fuelMass                  , fuelMassRate            , &
-         &                                                             massOutflowRateToHotHalo  , massOutflowRateFromHalo , &
-         &                                                             outflowToHotHaloFraction  , stellarMassRate         , &
-         &                                                             gasMass                   , massOutflowRate         , &
-         &                                                             spheroidDynamicalTime     , spheroidMass            , &
-         &                                                             starFormationRate         , massLossRate            , &
          &                                                             fractionGas               , fractionStellar         , &
-         &                                                             tidalTorque               , tidalField
+         &                                                             fuelMass                  , fuelMassRate            , &
+         &                                                             gasMass                   , massLossRate            , &
+         &                                                             massOutflowRate           , massOutflowRateFromHalo , &
+         &                                                             massOutflowRateToHotHalo  , outflowToHotHaloFraction, &
+         &                                                             spheroidDynamicalTime     , spheroidMass            , &
+         &                                                             starFormationRate         , stellarMassRate         , &
+         &                                                             tidalField                , tidalTorque
     type            (history              )                         :: stellarHistoryRate
 
     ! Get the disk and check that it is of our class.

@@ -150,10 +150,11 @@ contains
     use Cosmology_Functions
     use Stellar_Population_Spectra_Postprocess
     implicit none
-    integer                          :: iLuminosity               , jLuminosity
-    double precision                 :: expansionFactor
-    character       (len=10        ) :: redshiftLabel
-    type            (varying_string) :: luminosityOutputOptionText
+    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    integer                                            :: iLuminosity               , jLuminosity
+    double precision                                   :: expansionFactor
+    character       (len=10                 )          :: redshiftLabel
+    type            (varying_string         )          :: luminosityOutputOptionText
 
     ! Initialize the module if necessary.
     if (.not.luminositiesInitialized) then
@@ -283,7 +284,8 @@ contains
              else
                 luminosityPostprocessSet="default"
              end if
-
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
              ! Process the list of luminosities.
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
@@ -305,8 +307,8 @@ contains
                 ! Get the index of the specified filter.
                 luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
                 ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-                expansionFactor=Expansion_Factor_from_Redshift(luminosityRedshift(iLuminosity))
-                luminosityCosmicTime(iLuminosity)=Cosmology_Age(expansionFactor)
+                expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
+                luminosityCosmicTime(iLuminosity)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
                 ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
                 ! it is set to zero to indicate a rest-frame filter.
                 select case(char(luminosityType(iLuminosity)))

@@ -778,8 +778,8 @@
   <!-- Dark energy cosmology -->
   <parameters>
     <parameter>
-      <name>cosmologyMethod</name>
-      <value>matter-darkEnergy</value>
+      <name>cosmologyFunctionsMethod</name>
+      <value>matterDarkEnergy</value>
     </parameter>
     <parameter>
       <name>darkEnergyEquationOfStateOmega0</name>

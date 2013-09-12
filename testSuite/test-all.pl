@@ -172,27 +172,7 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
-	name     => "tests.cosmic_age.cosmological_constant.exe",                         # Tests of cosmic age calculations.
-	valgrind => 0
-    },
-    {
-	name     => "tests.cosmic_age.EdS.exe",                                           # .
-	valgrind => 0
-    },
-    {
-	name     => "tests.cosmic_age.open.exe",                                          # .
-	valgrind => 0
-    },
-    {
-	name     => "tests.cosmic_age.dark_energy.cosmological_constant.exe",             # .
-	valgrind => 0
-    },
-    {
-	name     => "tests.cosmic_age.dark_energy.omegaMinusOneThird.exe",                # .
-	valgrind => 0
-    },
-    {
-	name     => "tests.cosmic_age.dark_energy.closed.exe",                            # .
+	name     => "tests.cosmic_age.exe",                                               # Tests of cosmic age calculations.
 	valgrind => 0
     },
     {
@@ -248,16 +228,8 @@ my @executablesToRun = (
  	valgrind => 0
     },
     {
-	name     =>"tests.comoving_distance.dark_energy.exe",                             # Tests of comoving distance calculations.
+	name     =>"tests.comoving_distance.exe",                                         # Tests of comoving distance calculations.
  	valgrind => 0
-    },
-    {
-	name     =>"tests.comoving_distance.EdS.exe",                                     # .
-	valgrind => 0
-    },
-    {
-	name     => "tests.comoving_distance.open.exe",                                   # .
-	valgrind => 0
     },
     {
 	name     => "tests.Zhao2009_algorithms.dark_energy.exe",                          # Tests of Zhao et al. (2009) algorithms.

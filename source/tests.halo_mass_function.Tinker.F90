@@ -27,15 +27,19 @@ program Tests_Halo_Mass_Function_Tinker
   use Memory_Management
   use Halo_Mass_Function
   use Cosmology_Functions
-  use Cosmological_Parameters
+  use Cosmology_Parameters
   use File_Utilities
   use Critical_Overdensity
   implicit none
-  type            (varying_string)                            :: parameterFile
-  integer                                                     :: fUnit        , i           , massCount
-  double precision                                            :: time
-  double precision                , allocatable, dimension(:) :: mass         , massFunction, massFunctionTinker
-  logical                         , allocatable, dimension(:) :: success
+  type            (varying_string          )                                     :: parameterFile
+  integer                                                                        :: fUnit                    , i           , &
+       &                                                                            massCount
+  double precision                                                               :: time
+  double precision                                   , allocatable, dimension(:) :: mass                     , massFunction, &
+       &                                                                            massFunctionTinker
+  logical                                            , allocatable, dimension(:) :: success
+  class           (cosmologyParametersClass), pointer                            :: thisCosmologyParameters
+  class           (cosmologyFunctionsClass ), pointer                            :: cosmologyFunctionsDefault
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')
@@ -46,7 +50,12 @@ program Tests_Halo_Mass_Function_Tinker
   ! Test the Tinker et al. (2008) dark matter halo mass function.
   parameterFile='testSuite/parameters/haloMassFunction/tinker.xml'
   call Input_Parameters_File_Open(parameterFile)
-  time=Cosmology_Age(1.0d0)
+  ! Get the default cosmology.
+  thisCosmologyParameters => cosmologyParameters()
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
+
+  time=cosmologyFunctionsDefault%cosmicTime(1.0d0)
 
   ! Determine number of masses in reference data file and allocate arrays.
   massCount=Count_Lines_In_File('testSuite/data/haloMassFunction/tinker.txt')
@@ -57,15 +66,15 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Ensure that critical density and critical overdensity for collapse are consistent with values used in our input file to
   ! Tinker's code.
-  call Assert('critical density consistency'                 ,Critical_Density()/Little_H_0()**2     ,2.7751950000000000d11,relTol=1.0d-6)
+  call Assert('critical density consistency'                 ,thisCosmologyParameters%densityCritical()/thisCosmologyParameters%HubbleConstant(unitsLittleH)**2     ,2.7751950000000000d11,relTol=1.0d-6)
   call Assert('critical overdensity for collapse consistency',Critical_Overdensity_for_Collapse(time),1.6755779626281502d00,relTol=1.0d-6)
 
   ! Compute mass function for each reference mass.
   open(newUnit=fUnit,file='testSuite/data/haloMassFunction/tinker.txt',status='old',form='formatted')
   do i=1,massCount
      read (fUnit,*) mass(i),massFunctionTinker(i)
-     mass              (i)=mass              (i)/Little_H_0()
-     massFunctionTinker(i)=massFunctionTinker(i)*Little_H_0()**4
+     mass              (i)=mass              (i)/thisCosmologyParameters%HubbleConstant(unitsLittleH)
+     massFunctionTinker(i)=massFunctionTinker(i)*thisCosmologyParameters%HubbleConstant(unitsLittleH)**4
      massFunction      (i)=Halo_Mass_Function_Differential(time,mass(i))
   end do
 

@@ -45,15 +45,18 @@ contains
  double precision function Halo_Mass_Function_Differential_Press_Schechter(time,mass)
     !% Compute the Press-Schechter halo mass function.
     use Power_Spectra
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Excursion_Sets_First_Crossings
     implicit none
-    double precision, intent(in   ) :: mass , time
-    double precision                :: alpha, variance
+    double precision                          , intent(in   ) :: mass                   , time
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: alpha                  , variance
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     alpha   =abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
     variance=Cosmological_Mass_Root_Variance(mass)**2
-    Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(Omega_Matter()*Critical_Density()/mass**2)*alpha*variance&
+    Halo_Mass_Function_Differential_Press_Schechter=2.0d0*(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*variance&
          &*Excursion_Sets_First_Crossing_Probability(variance,time)
     return
   end function Halo_Mass_Function_Differential_Press_Schechter

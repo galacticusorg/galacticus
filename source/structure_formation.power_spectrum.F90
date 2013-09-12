@@ -28,10 +28,10 @@ module Power_Spectra
 
   ! Flag to indicate if the power spectrum has been normalized.
   logical                                                                     :: sigmaInitialized                   =.false.
-  double precision                                              , parameter   :: radiusNormalization                =8.0d0   !   Radius for sigma(M) normalization in Mpc/h.
-  double precision                                                            :: massNormalization                           !   Mass for sigma(M) normalization in M_Solar.
-  double precision                                                            :: sigmaNormalization                 =1.0d0   !   Normalization for sigma(M).
-  double precision                                                            :: sigma_8_Value                               !   Power spectrum normalization parameter.
+  double precision                                              , parameter   :: radiusNormalization                =8.0d0   !    Radius for sigma(M) normalization in Mpc/h.
+  double precision                                                            :: massNormalization                           !    Mass for sigma(M) normalization in M_Solar.
+  double precision                                                            :: sigmaNormalization                 =1.0d0   !    Normalization for sigma(M).
+  double precision                                                            :: sigma_8_Value                               !    Power spectrum normalization parameter.
 
   ! Variables to hold the tabulated sigma(M) data.
   class           (table1D                                     ), allocatable :: sigmaTable
@@ -79,24 +79,27 @@ contains
     !% Return the cosmological power spectrum for $k=${\tt wavenumber} [Mpc$^{-1}$].
     use Primordial_Power_Spectra_Transferred
     use Numerical_Constants_Math
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ) :: wavenumber
-    double precision                                :: mass
-    character       (len=15        )                :: label
-    type            (varying_string)                :: message
+    double precision                          , intent(in   ) :: wavenumber
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: mass
+    character       (len=15                  )                :: label
+    type            (varying_string          )                :: message
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Ensure that the normalization of the power spectrum has been computed.
-    mass=(4.0d0*PI/3.0d0)*Omega_Matter()*Critical_Density()/waveNumber**3
+    mass=(4.0d0*PI/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/waveNumber**3
     if (mass <= 0.0d0) then
        message="zero mass when trying to initialize power spectrum"//char(10)
        write (label,'(e12.6)') waveNumber
        message=message//"        waveNumber  : "//trim(label)//char(10)
-       write (label,'(e12.6)') Omega_Matter()
-       message=message//"      Omega_Matter(): "//trim(label)//char(10)
-       write (label,'(e12.6)') Critical_Density()
-       message=message//"  Critical_Density(): "//trim(label)
+       write (label,'(e12.6)') thisCosmologyParameters%OmegaMatter()
+       message=message//"      thisCosmologyParameters%OmegaMatter(): "//trim(label)//char(10)
+       write (label,'(e12.6)') thisCosmologyParameters%densityCritical()
+       message=message//"  thisCosmologyParameters%densityCritical(): "//trim(label)
        call Galacticus_Error_Report("Power_Spectrum",message)
     end if
     !$omp critical (Cosmological_Mass_Variance_Interpolate)
@@ -205,16 +208,17 @@ contains
     !% Ensure that $\sigma(M)$ is tabulated over a range that includes {\tt logMass}. The default normalization, $\sigma_9=0.807$,
     !% is taken from \cite{komatsu_seven-year_2010}.
     use Input_Parameters
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Math
     use Galacticus_Error
     !# <include directive="cosmologicalMassVarianceMethod" type="moduleUse">
     include 'structure_formation.cosmological_mass_variance.modules.inc'
     !# </include>
     implicit none
-    double precision, intent(in   ), optional :: mass
-    logical                                   :: remakeTable
-    double precision                          :: massActual
+    double precision                          , intent(in   ), optional :: mass
+    class           (cosmologyParametersClass), pointer                 :: thisCosmologyParameters
+    logical                                                             :: remakeTable
+    double precision                                                    :: massActual
 
     ! Compute the normalization if required.
     remakeTable=.false.
@@ -248,8 +252,10 @@ contains
        !# </include>
        if (.not.associated(Cosmological_Mass_Variance_Tabulate)) call Galacticus_Error_Report('Initialize_Cosmological_Mass_Variance','method ' &
             &//char(cosmologicalMassVarianceMethod)//' is unrecognized')
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Compute the mass at which the mass variance is normalized.
-       massNormalization=(4.0d0*Pi/3.0d0)*Omega_Matter()*Critical_Density()*(radiusNormalization/Little_H_0())**3
+       massNormalization=(4.0d0*Pi/3.0d0)*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()*(radiusNormalization/thisCosmologyParameters%HubbleConstant(unitsLittleH))**3
        ! Flag that this module is now initialized.
        sigmaInitialized=.true.
        ! Table must be rebuilt.

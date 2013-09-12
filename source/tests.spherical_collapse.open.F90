@@ -28,13 +28,14 @@ program Tests_Spherical_Collapse_Open
   use Virial_Density_Contrast
   use Numerical_Constants_Math
   implicit none
-  double precision                , dimension(7) :: redshift       =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  type            (varying_string)               :: parameterFile
-  character       (len=1024      )               :: message
-  integer                                        :: iExpansion
-  double precision                               :: age                                                           , bryanNormanFit , &
-       &                                            densityContrast                                               , expansionFactor, &
-       &                                            x
+  double precision                         , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  type            (varying_string         )               :: parameterFile
+  character       (len=1024               )               :: message
+  integer                                                 :: iExpansion
+  double precision                                        :: age                                                                     , bryanNormanFit , &
+       &                                                     densityContrast                                                         , expansionFactor, &
+       &                                                     x
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.open.size')
@@ -45,13 +46,15 @@ program Tests_Spherical_Collapse_Open
   ! Test spherical collapse in an open universe.
   parameterFile='testSuite/parameters/sphericalCollapse/open.xml'
   call Input_Parameters_File_Open(parameterFile)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   do iExpansion=1,size(redshift)
-     expansionFactor=Expansion_Factor_From_Redshift(redshift(iExpansion))
-     age            =Cosmology_Age(expansionFactor)
+     expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
+     age            =cosmologyFunctionsDefault%cosmicTime(expansionFactor)
      densityContrast=Halo_Virial_Density_Contrast(age)
-     x              =Omega_Matter_Total(age)-1.0d0
-     bryanNormanFit =(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter_Total(age)
-     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",Omega_Matter_Total(age),"]"
+     x              =cosmologyFunctionsDefault%omegaMatterEpochal(age)-1.0d0
+     bryanNormanFit =(18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(age)
+     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),densityContrast,bryanNormanFit,relTol=1.0d-2)
   end do
   call Input_Parameters_File_Close
