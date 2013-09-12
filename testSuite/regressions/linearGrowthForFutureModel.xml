@@ -56,7 +56,7 @@
 
   <!-- Cosmological parameters and options -->
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>

@@ -44,8 +44,8 @@ contains
   subroutine Bar_Instability_Timescale_Null(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     !% Assumes that disks are never bar unstable and so returns an infinite timescale for bar instability.
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode  
-    double precision          , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
 
     ! Assume infinite timescale (i.e. no instability).
     barInstabilityTimeScale                    =-1.0d0

@@ -1105,14 +1105,16 @@ contains
     use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    type            (treeNode            )               , pointer :: parentNode
-    class           (nodeComponentHotHalo)               , pointer :: parentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentSpin   )               , pointer :: parentSpinComponent
-    class           (nodeComponentBasic  )               , pointer :: parentBasic
-    double precision                                               :: baryonicMassCurrent   , baryonicMassMaximum , fractionRemove
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    type            (treeNode                )               , pointer :: parentNode
+    class           (nodeComponentHotHalo    )               , pointer :: parentHotHaloComponent , thisHotHaloComponent
+    class           (nodeComponentSpin       )               , pointer :: parentSpinComponent
+    class           (nodeComponentBasic      )               , pointer :: parentBasic
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    double precision                                                   :: baryonicMassCurrent    , baryonicMassMaximum , &
+         &                                                                fractionRemove
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -1197,8 +1199,10 @@ contains
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
+             ! Get the default cosmology.
+             thisCosmologyParameters => cosmologyParameters()
              parentBasic        => parentNode%basic()
-             baryonicMassMaximum=  parentBasic%mass()*Omega_b()/Omega_Matter()
+             baryonicMassMaximum=  parentBasic%mass()*thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter()
              baryonicMassCurrent=  Galactic_Structure_Enclosed_Mass(parentNode,radiusLarge,massType=massTypeBaryonic&
                   &,componentType =componentTypeAll)
              if (baryonicMassCurrent > baryonicMassMaximum .and. parentHotHaloComponent%mass() > 0.0d0) then

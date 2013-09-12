@@ -393,6 +393,7 @@ contains
          &                                                                               siblingBasicComponent        , thisBasicComponent
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatelliteComponent
     type            (nodeEvent                    )                         , pointer :: thisEvent
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     double precision                                                                  :: expansionFactor              , expansionTimescale     , &
          &                                                                               hostTimeLimit                , time
     character       (len=9                        )                                   :: timeFormatted
@@ -464,8 +465,9 @@ contains
           hostTimeLimit=time
        case (.false.)
           ! Find current expansion timescale.
-          expansionFactor=Expansion_Factor(time)
-          expansionTimescale=1.0d0/Expansion_Rate(expansionFactor)
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
+          expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
           ! Determine suitable timestep.
           hostTimeLimit=time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute)
        end select

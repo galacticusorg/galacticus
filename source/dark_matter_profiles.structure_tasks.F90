@@ -34,25 +34,28 @@ contains
   double precision function Dark_Matter_Profile_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
-    type            (treeNode          ), intent(inout), pointer  :: thisNode
-    integer                             , intent(in   )           :: componentType     , massType     , weightBy, &
-         &                                                           weightIndex
-    double precision                    , intent(in   )           :: radius
-    logical                             , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBasic)               , pointer  :: thisBasicComponent
-    double precision                                              :: darkMatterFraction, radiusInitial
-    logical                                                       :: haloLoadedActual
+    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    integer                                   , intent(in   )           :: componentType          , massType     , &
+         &                                                                 weightBy               , weightIndex
+    double precision                          , intent(in   )           :: radius
+    logical                                   , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBasic      )               , pointer  :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    double precision                                                    :: darkMatterFraction     , radiusInitial
+    logical                                                             :: haloLoadedActual
 
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Determine the dark matter fraction.
-    darkMatterFraction=(Omega_Matter()-Omega_b())/Omega_Matter()
+    darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
     ! Test radius.
     if (radius >= radiusLarge) then
        ! Return the total mass of the halo in this case.
@@ -114,23 +117,27 @@ contains
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     use Galactic_Structure_Initial_Radii
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    type            (treeNode), intent(inout), pointer  :: thisNode
-    integer                   , intent(in   )           :: componentType        , massType     , weightBy      , &
-         &                                                 weightIndex
-    double precision          , intent(in   )           :: positionSpherical (3)
-    logical                   , intent(in   ), optional :: haloLoaded
-    logical                                             :: haloLoadedActual
-    double precision                                    :: darkMatterFraction   , radiusInitial, radiusJacobian
+    type            (treeNode                ), intent(inout), pointer  :: thisNode
+    integer                                   , intent(in   )           :: componentType             , massType     , &
+         &                                                                 weightBy                  , weightIndex
+    double precision                          , intent(in   )           :: positionSpherical      (3)
+    logical                                   , intent(in   ), optional :: haloLoaded
+    class           (cosmologyParametersClass)               , pointer  :: thisCosmologyParameters
+    logical                                                             :: haloLoadedActual
+    double precision                                                    :: darkMatterFraction        , radiusInitial, &
+         &                                                                 radiusJacobian
 
     ! Return zero if the component and mass type is not matched.
     Dark_Matter_Profile_Density_Task=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeDarkHalo)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeDark         )) return
     if (.not.(weightBy      == weightByMass                                                )) return
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Determine the dark matter fraction.
-    darkMatterFraction=(Omega_Matter()-Omega_b())/Omega_Matter()
+    darkMatterFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()
     ! Determine if we need to account for halo loading (a.k.a. adiabatic contraction, a.k.a. baryonic pinching).
     haloLoadedActual=.true.
     if (present(haloLoaded)) haloLoadedActual=haloLoaded

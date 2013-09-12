@@ -78,6 +78,7 @@ contains
     type            (varying_string            )             , intent(in   )          :: mergerTreeConstructMethod
     procedure       (Merger_Tree_Build_Do      )             , intent(inout), pointer :: Merger_Tree_Construct
     type            (Node                      )                            , pointer :: doc
+    class           (cosmologyFunctionsClass   )                            , pointer :: cosmologyFunctionsDefault
     integer                                     , parameter                           :: massFunctionSamplePerDecade  =100
     double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3
     double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , &
@@ -191,9 +192,11 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildTreeMassesFile',mergerTreeBuildTreeMassesFile,defaultValue='null')
 
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Find the cosmic time at which the trees are based.
-       expansionFactor=Expansion_Factor_from_Redshift(mergerTreeBuildTreesBaseRedshift)
-       mergerTreeBuildTreesBaseTime=Cosmology_Age(expansionFactor)
+       expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildTreesBaseRedshift)
+       mergerTreeBuildTreesBaseTime=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
 
        ! Generate a randomly sampled set of halo masses.
        treeCount=max(2,int(log10(mergerTreeBuildHaloMassMaximum/mergerTreeBuildHaloMassMinimum)*mergerTreeBuildTreesPerDecade))

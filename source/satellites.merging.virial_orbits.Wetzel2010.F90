@@ -111,22 +111,23 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type            (keplerOrbit       )                                    :: thisOrbit
-    type            (treeNode          )           , intent(inout), pointer :: hostNode                                            , thisNode
-    logical                                        , intent(in   )          :: acceptUnboundOrbits
-    class           (nodeComponentBasic)                          , pointer :: hostBasicComponent                                  , thisBasicComponent
-    double precision                    , parameter                         :: toleranceAbsolute     =0.0d0, toleranceRelative   =1.0d-2
-    double precision                    , parameter                         :: circularityMaximum    =1.0d0, circularityMinimum  =0.0d0
-    double precision                    , parameter                         :: redshiftMaximum       =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
-    type            (rootFinder        ), save                              :: finder
+    type            (keplerOrbit            )                                    :: thisOrbit
+    type            (treeNode               )           , intent(inout), pointer :: hostNode                       , thisNode
+    logical                                             , intent(in   )          :: acceptUnboundOrbits
+    class           (nodeComponentBasic     )                          , pointer :: hostBasicComponent             , thisBasicComponent
+    class           (cosmologyFunctionsClass)                          , pointer :: cosmologyFunctionsDefault
+    double precision                         , parameter                         :: toleranceAbsolute        =0.0d0, toleranceRelative     =1.0d-2
+    double precision                         , parameter                         :: circularityMaximum       =1.0d0, circularityMinimum    =0.0d0
+    double precision                         , parameter                         :: redshiftMaximum          =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    type            (rootFinder             ), save                              :: finder
     !$omp threadprivate(finder)
-    double precision                                                        :: R1                                                  , apocentricRadius           , &
-         &                                                                     circularity                                         , eccentricityInternal       , &
-         &                                                                     expansionFactor                                     , g1                         , &
-         &                                                                     massCharacteristic                                  , pericentricRadius          , &
-         &                                                                     probabilityTotal                                    , radialScale                , &
-         &                                                                     timeNode
-    logical                                                                 :: foundOrbit
+    double precision                                                             :: R1                             , apocentricRadius                                    , &
+         &                                                                          circularity                    , eccentricityInternal                                , &
+         &                                                                          expansionFactor                , g1                                                  , &
+         &                                                                          massCharacteristic             , pericentricRadius                                   , &
+         &                                                                          probabilityTotal               , radialScale                                         , &
+         &                                                                          timeNode
+    logical                                                                      :: foundOrbit
 
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -145,13 +146,15 @@ contains
     ! Get the time at which this node exists.
     timeNode=thisBasicComponent%time()
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the expansion factor.
-    expansionFactor=Expansion_Factor(timeNode)
+    expansionFactor=cosmologyFunctionsDefault%expansionFactor(timeNode)
 
     ! Limit the expansion factor to the smallest value considered by Wetzel.
     if (expansionFactor < expansionFactorMinimum) then
        expansionFactor=              expansionFactorMinimum
-       timeNode       =Cosmology_Age(expansionFactorMinimum)
+       timeNode       =cosmologyFunctionsDefault%cosmicTime(expansionFactorMinimum)
     end if
 
     ! Get the characteristic mass, M*.

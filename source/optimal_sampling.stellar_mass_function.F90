@@ -46,6 +46,7 @@ program Optimal_Sampling_SMF
   double precision                            , allocatable, dimension(:) :: stellarMassTableMass,stellarMassTableMassFunction,haloMassTableMass,haloMassTableXi,treeTiming,haloMassFunction,samplingDensity
   integer                                                                 :: stellarMassTableCount,haloMassTableCount,iMass,iUnit
   double precision                                                        :: stellarMass,time,optimalSamplingLogarithmicBinWidth,haloMass
+  class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctionsDefault
   type            (c_ptr                     )                            :: parameterPointer
   type            (fgsl_function             )                            :: integrandFunction
   type            (fgsl_integration_workspace)                            :: integrationWorkspace
@@ -101,9 +102,10 @@ program Optimal_Sampling_SMF
   ! Create mass tabulations.
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)
   haloMassTableMass   =Make_Range(   haloMassMinimum,   haloMassMaximum,   haloMassTableCount,rangeType=rangeTypeLogarithmic)
-
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   ! Get the cosmic time at the present day.
-  time=Cosmology_Age(0.93457d0)
+  time=cosmologyFunctionsDefault%cosmicTime(0.93457d0)
 
   ! Open an HDF5 file to write the results to.
   call outputFile%openFile(char(optimalSamplingDensityOutputFileName),overWrite=.true.)

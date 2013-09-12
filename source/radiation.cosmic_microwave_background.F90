@@ -40,10 +40,11 @@ contains
     use Memory_Management
     use Cosmology_Functions
     implicit none
-    logical                                                        , intent(in   )          :: componentMatched
-    type            (treeNode          )                           , intent(inout), pointer :: thisNode
-    double precision                    , allocatable, dimension(:), intent(inout)          :: radiationProperties
-    class           (nodeComponentBasic)             , pointer                              :: thisBasicComponent
+    logical                                                             , intent(in   )          :: componentMatched
+    type            (treeNode               )                           , intent(inout), pointer :: thisNode
+    double precision                         , allocatable, dimension(:), intent(inout)          :: radiationProperties
+    class           (nodeComponentBasic     )             , pointer                              :: thisBasicComponent
+    class           (cosmologyFunctionsClass)             , pointer                              :: cosmologyFunctionsDefault
 
     ! Return immediately if this component was not matched.
     if (.not.componentMatched) return
@@ -51,9 +52,11 @@ contains
     ! Ensure that the properties array is allocated.
     if (.not.allocated(radiationProperties)) call Alloc_Array(radiationProperties,[1])
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Set the CMB temperature.
     thisBasicComponent => thisNode%basic()
-    radiationProperties(1)=CMB_Temperature(thisBasicComponent%time())
+    radiationProperties(1)=cosmologyFunctionsDefault%temperatureCMBEpochal(thisBasicComponent%time())
 
     return
   end subroutine Radiation_Set_CMB

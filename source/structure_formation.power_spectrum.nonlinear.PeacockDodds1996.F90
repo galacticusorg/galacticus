@@ -80,8 +80,8 @@ contains
        beta = 0.862d0/(1.0d0+n/3.0d0)**0.287d0
        V    =11.550d0/(1.0d0+n/3.0d0)**0.423d0
        ! Compute growth factor using same fitting function as Peacock & Dodds (from Carroll, Press & Turner 1992).
-       g=2.5d0*Omega_Matter_Total(time)/(Omega_Matter_Total(time)**(4.0d0/7.0d0)-Omega_Dark_Energy(time)+(1.0d0+0.5d0&
-            &*Omega_Matter_Total(time))*(1.0d0+Omega_Dark_Energy(time)/70.0d0))
+       g=2.5d0*cosmologyFunctionsDefault%omegaMatterEpochal(time)/(cosmologyFunctionsDefault%omegaMatterEpochal(time)**(4.0d0/7.0d0)-cosmologyFunctionsDefault%omegaDarkEnergyEpochal(time)+(1.0d0+0.5d0&
+            &*cosmologyFunctionsDefault%omegaMatterEpochal(time))*(1.0d0+cosmologyFunctionsDefault%omegaDarkEnergyEpochal(time)/70.0d0))
        ! Compute new estimate of non-linear power-spectrum.
        fNL=    x                                             &
             & *(                                             &

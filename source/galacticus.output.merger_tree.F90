@@ -472,10 +472,11 @@ contains
     include 'galacticus.output.merger_tree.outputGroup.tasks.modules.inc'
     !# </include>
     implicit none
-    integer                         , intent(in   )               :: iOutput
-    double precision                , intent(in   )               :: time
-    type            (outputGroup   ), allocatable  , dimension(:) :: outputGroupsTemporary
-    type            (varying_string)                              :: commentText          , groupName
+    integer                                  , intent(in   )               :: iOutput
+    double precision                         , intent(in   )               :: time
+    type            (outputGroup            ), allocatable  , dimension(:) :: outputGroupsTemporary
+    class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctionsDefault
+    type            (varying_string         )                              :: commentText              , groupName
 
     !$omp critical (HDF5_Access)
     ! Ensure group ID space is large enough.
@@ -531,10 +532,12 @@ contains
        outputGroups(iOutput)%integerAttributesWritten=.false.
        outputGroups(iOutput)%doubleAttributesWritten =.false.
 
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Add the time to this group.
        call outputGroups(iOutput)%hdf5Group%writeAttribute(time                  ,'outputTime'           )
        call outputGroups(iOutput)%hdf5Group%writeAttribute(gigaYear              ,'timeUnitInSI'         )
-       call outputGroups(iOutput)%hdf5Group%writeAttribute(Expansion_Factor(time),'outputExpansionFactor')
+       call outputGroups(iOutput)%hdf5Group%writeAttribute(cosmologyFunctionsDefault%expansionFactor(time),'outputExpansionFactor')
        !$omp end critical(HDF5_Access)
 
        ! Establish all other properties.

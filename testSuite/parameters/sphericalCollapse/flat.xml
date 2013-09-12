@@ -1,7 +1,7 @@
 <!-- Parameter file used for testing spherical collapse calculations in a flat universe model. -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>
