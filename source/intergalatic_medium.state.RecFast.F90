@@ -37,18 +37,19 @@ contains
     use FoX_wxml
     use System_Command
     use Intergalactic_Medium_State_File
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Astronomical
     use Input_Parameters
     use Galacticus_Input_Paths
     implicit none
-    type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
-    character(len=32          )                         :: parameterLabel
-    type     (varying_string  )                         :: command                                   , parameterFile, &
-         &                                                 recfastFile
-    type     (xmlf_t          )                         :: parameterDoc
+    type     (varying_string          ), intent(in   )          :: intergalaticMediumStateMethod
+    procedure(double precision        ), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(double precision        ), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
+    class    (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    character(len=32                  )                         :: parameterLabel
+    type     (varying_string          )                         :: command                                   , parameterFile, &
+         &                                                         recfastFile
+    type     (xmlf_t                  )                         :: parameterDoc
 
     ! Test if our method has been selected.
     if (intergalaticMediumStateMethod == 'RecFast') then
@@ -58,6 +59,8 @@ contains
 
        ! Ensure that the RecFast data file has been generated.
 
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Generate the name of the data file and an XML input parameter file.
        command='mkdir -p '//char(Galacticus_Input_Path())//'data/intergalacticMedium'
        call System_Command_Do(command)
@@ -65,19 +68,19 @@ contains
        parameterFile=char(Galacticus_Input_Path())//'data/intergalacticMedium/recfast_parameters.xml'
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
-       write (parameterLabel,'(f5.3)') Omega_Matter()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
        recfastFile=recfastFile//'_OmegaM'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
-       write (parameterLabel,'(f5.3)') Omega_DE()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy()
        recfastFile=recfastFile//'_OmegaDE'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)
-       write (parameterLabel,'(f6.4)') Omega_b()
+       write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon()
        recfastFile=recfastFile//'_Omegab'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"Omega_b",parameterLabel)
-       write (parameterLabel,'(f4.1)') H_0()
+       write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(unitsStandard)
        recfastFile=recfastFile//'_H0'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"H_0",parameterLabel)
-       write (parameterLabel,'(f5.3)') T_CMB()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB()
        recfastFile=recfastFile//'_TCMB'//trim(parameterLabel)
        call Write_Parameter(parameterDoc,"T_CMB",parameterLabel)
        write (parameterLabel,'(f4.2)') heliumByMassPrimordial

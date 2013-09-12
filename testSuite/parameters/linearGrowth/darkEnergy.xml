@@ -1,7 +1,7 @@
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-darkEnergy</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterDarkEnergy</value>
   </parameter>
   <parameter>
     <name>linearGrowthMethod</name>

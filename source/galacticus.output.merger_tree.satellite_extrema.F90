@@ -28,7 +28,7 @@ module Galacticus_Output_Trees_Satellite_Extremum
   integer :: satelliteExtremumPropertyCount
 
   ! Flag indicating whether or not satellite orbital extremum information is to be output.
-  logical :: outputSatellitePericenterData,outputSatelliteApocenterData
+  logical :: outputSatelliteApocenterData                  , outputSatellitePericenterData
 
   ! Flag indicating whether or not this module has been initialized.
   logical :: outputSatelliteExtremumDataInitialized=.false.
@@ -248,5 +248,5 @@ contains
     end if
     return
   end subroutine Galacticus_Output_Tree_Satellite_Extremum
-  
+
 end module Galacticus_Output_Trees_Satellite_Extremum

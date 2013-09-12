@@ -37,15 +37,18 @@ contains
     use ISO_Varying_String
     use Numerical_Comparison
     use Galacticus_Error
-    use Cosmological_Parameters
+    use Cosmology_Parameters
    implicit none
     type     (varying_string                  ), intent(in   )          :: virialDensityContrastMethod
     procedure(Virial_Density_Kitayama_Suto1996), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
+    class    (cosmologyParametersClass        )               , pointer :: thisCosmologyParameters
 
     if (virialDensityContrastMethod == 'Kitayama-Suto1996') then
        Virial_Density_Contrast_Tabulate => Virial_Density_Kitayama_Suto1996
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Check that fitting formula is applicable to this cosmology.
-       if (Values_Differ(Omega_Matter()+Omega_DE(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Virial_Density_Kitayama_Suto1996_Initialize','no fitting formula available for this cosmology')
+       if (Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) call Galacticus_Error_Report('Virial_Density_Kitayama_Suto1996_Initialize','no fitting formula available for this cosmology')
     end if
     return
   end subroutine Virial_Density_Kitayama_Suto1996_Initialize
@@ -56,10 +59,11 @@ contains
     use Numerical_Constants_Math
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
-    integer                                               :: deltaTableNumberPoints, iTime
-    double precision                                      :: omegaf
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
+    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+    integer                                                               :: deltaTableNumberPoints   , iTime
+    double precision                                                      :: omegaf
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -76,11 +80,13 @@ contains
     allocate(table1DLogarithmicLinear :: deltaVirialTable)
     select type (deltaVirialTable)
     type is (table1DLogarithmicLinear)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Create the table.
        call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Evaluate the fitting formulae of Kitayama & Suto at each time to get the density contrast.
        do iTime=1,deltaTableNumberPoints
-          omegaf=1.0d0/Omega_Matter_Total(deltaVirialTable%x(iTime))-1.0d0
+          omegaf=1.0d0/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))-1.0d0
           call deltaVirialTable%populate(18.0d0*Pi**2*(1.0d0+0.4093d0*omegaf**0.9052d0),iTime)
        end do
     end select

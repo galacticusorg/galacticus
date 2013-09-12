@@ -68,17 +68,20 @@ contains
     type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
     type            (varying_string               ), intent(inout), optional          :: lockType
     class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     integer                                                                           :: timeIndex
-    double precision                                                                  :: ourTimeStep         , time
+    double precision                                                                  :: ourTimeStep              , time
 
     if (.not.timestepHistoryInitialized) then
        !$omp critical (timestepHistoryInitialize)
        if (.not.timestepHistoryInitialized) then
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
           ! Determine if we have active components that can provide star formation rates.
           diskActive           =    defaultDiskComponent%starFormationRateIsGettable()
           spheroidActive       =defaultSpheroidComponent%starFormationRateIsGettable()
           ! Get time at present day.
-          time=Cosmology_Age(aExpansion=0.999d0)
+          time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
           ! Get module parameters.
           !@ <inputParameter>
           !@   <name>timestepHistoryBegin</name>
@@ -131,7 +134,7 @@ contains
           ! Initialize arrays.
           historyTime=Make_Range(timestepHistoryBegin,timestepHistoryEnd,timestepHistorySteps,rangeTypeLogarithmic)
           do timeIndex=1,timestepHistorySteps
-             historyExpansion(timeIndex)=Expansion_Factor(historyTime(timeIndex))
+             historyExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(historyTime(timeIndex))
           end do
           historyStarFormationRate        =0.0d0
           historyDiskStarFormationRate    =0.0d0

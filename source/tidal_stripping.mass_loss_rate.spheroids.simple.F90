@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: tidalStrippingMassLossRateSpheroidsMethod
-    procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple), pointer, intent(inout) :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get
-    
+    type     (varying_string                                ), intent(in   )          :: tidalStrippingMassLossRateSpheroidsMethod
+    procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple), intent(inout), pointer :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get
+
     if (tidalStrippingMassLossRateSpheroidsMethod == 'simple') then
        Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get => Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple
        !@ <inputParameter>
@@ -80,10 +80,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSpheroid),                pointer :: thisSpheroid
-    double precision                                            :: tidalField,forceTidal,radiusHalfMass,velocityRotation &
-         &,massLossRateFractional,forceGravitational,timeDynamical
+    type            (treeNode             ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSpheroid)               , pointer :: thisSpheroid
+    double precision                                                :: forceGravitational, forceTidal, massLossRateFractional, &
+         &                                                             radiusHalfMass    , tidalField, timeDynamical         , &
+         &                                                             velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
     Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple=0.0d0
@@ -120,5 +121,5 @@ contains
     Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple=massLossRateFractional*(thisSpheroid%massGas()+thisSpheroid%massStellar())/timeDynamical
     return
   end function Tidal_Stripping_Mass_Loss_Rate_Spheroid_Simple
-  
+
 end module Tidal_Stripping_Mass_Loss_Rate_Spheroids_Simple

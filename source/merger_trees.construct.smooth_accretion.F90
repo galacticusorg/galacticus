@@ -105,13 +105,14 @@ contains
     use Kind_Numbers
     use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
-    type            (mergerTree        )         , intent(inout), target :: thisTree
-    logical                                      , intent(in   )         :: skipTree
-    type            (treeNode          ), pointer                        :: currentNode        , newNode
-    class           (nodeComponentBasic), pointer                        :: baseBasicComponent , newBasicComponent
-    integer         (kind=kind_int8    )                                 :: nodeIndex
-    double precision                                                     :: expansionFactorBase, mergerTreeBaseTime, nodeMass, &
-         &                                                                  nodeTime
+    type            (mergerTree             )         , intent(inout), target :: thisTree
+    logical                                           , intent(in   )         :: skipTree
+    type            (treeNode               ), pointer                        :: currentNode              , newNode
+    class           (nodeComponentBasic     ), pointer                        :: baseBasicComponent       , newBasicComponent
+    class           (cosmologyFunctionsClass), pointer                        :: cosmologyFunctionsDefault
+    integer         (kind=kind_int8         )                                 :: nodeIndex
+    double precision                                                          :: expansionFactorBase      , mergerTreeBaseTime, &
+         &                                                                       nodeMass                 , nodeTime
 
     ! Build the merger tree.
     !$omp critical (Merger_Tree_Build_Do)
@@ -126,9 +127,11 @@ contains
        thisTree%volumeWeight=1.0
        ! Assign a mass to the base node.
        call baseBasicComponent%massSet(mergerTreeHaloMass)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Find the cosmic time at which the tree is based.
-       expansionFactorBase=Expansion_Factor_from_Redshift(mergerTreeBaseRedshift)
-       mergerTreeBaseTime =Cosmology_Age                 (expansionFactorBase   )
+       expansionFactorBase=cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBaseRedshift)
+       mergerTreeBaseTime =cosmologyFunctionsDefault%cosmicTime                 (expansionFactorBase   )
        ! Assign a time to the base node.
        call baseBasicComponent%timeSet(mergerTreeBaseTime)
        ! Get a pointer to the current node (i.e. the base node).

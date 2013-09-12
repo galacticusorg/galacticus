@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: tidalStrippingMassLossRateDisksMethod
-    procedure(Tidal_Stripping_Mass_Loss_Rate_Disk_Simple), pointer, intent(inout) :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
-    
+    type     (varying_string                            ), intent(in   )          :: tidalStrippingMassLossRateDisksMethod
+    procedure(Tidal_Stripping_Mass_Loss_Rate_Disk_Simple), intent(inout), pointer :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+
     if (tidalStrippingMassLossRateDisksMethod == 'simple') then
        Tidal_Stripping_Mass_Loss_Rate_Disk_Get => Tidal_Stripping_Mass_Loss_Rate_Disk_Simple
        !@ <inputParameter>
@@ -81,9 +81,10 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk),                pointer :: thisDisk
-    double precision                                            :: tidalField,forceTidal,radiusHalfMass,velocityRotation &
-         &,massLossRateFractional,forceGravitational,timeDynamical
+    class           (nodeComponentDisk)               , pointer :: thisDisk
+    double precision                                            :: forceGravitational, forceTidal, massLossRateFractional, &
+         &                                                         radiusHalfMass    , tidalField, timeDynamical         , &
+         &                                                         velocityRotation
 
     ! Assume no mass loss rate due to tidal by default.
     Tidal_Stripping_Mass_Loss_Rate_Disk_Simple=0.0d0
@@ -120,5 +121,5 @@ contains
     Tidal_Stripping_Mass_Loss_Rate_Disk_Simple=massLossRateFractional*(thisDisk%massGas()+thisDisk%massStellar())/timeDynamical
     return
   end function Tidal_Stripping_Mass_Loss_Rate_Disk_Simple
-  
+
 end module Tidal_Stripping_Mass_Loss_Rate_Disks_Simple

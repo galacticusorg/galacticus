@@ -48,13 +48,16 @@ contains
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    type            (keplerOrbit       ), intent(inout)          :: thisOrbit
-    type            (treeNode          )               , pointer :: hostNode
-    class           (nodeComponentBasic)               , pointer :: hostBasicComponent          , thisBasicComponent
-    double precision                    , parameter              :: timeScaleNormalization=0.2d0                     !  C_dyn from Wetzel & White (2010).
-    double precision                                             :: massRatio
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    type            (keplerOrbit            ), intent(inout)          :: thisOrbit
+    type            (treeNode               )               , pointer :: hostNode
+    class           (nodeComponentBasic     )               , pointer :: hostBasicComponent             , thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                         , parameter              :: timeScaleNormalization   =0.2d0                     !   C_dyn from Wetzel & White (2010).
+    double precision                                                  :: massRatio
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Find the host node.
     hostNode => thisNode%parent
     ! Compute mass ratio.
@@ -64,7 +67,7 @@ contains
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
     Satellite_Time_Until_Merging_Wetzel_White= Dynamical_Friction_Timescale_Multiplier()                   &
          &                                    *timeScaleNormalization                                      &
-         &                                    /Expansion_Rate(Expansion_Factor(thisBasicComponent%time())) &
+         &                                    /cosmologyFunctionsDefault%expansionRate(cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())) &
          &                                    *           massRatio                                        &
          &                                    /log(1.0d0+massRatio)
     return

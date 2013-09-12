@@ -31,8 +31,9 @@ module Galacticus_Nodes
   use IO_HDF5
   private
   public :: Galacticus_Nodes_Initialize, Galacticus_Nodes_Finalize, Galacticus_Nodes_Unique_ID_Set, Interrupt_Procedure_Template
-  !! <gfortran4.8> workaround
+  !# <workaround type="gfortran">
   public :: assignment(=)
+  !# </workaround>
 
   type, private :: nodeDataLogicalScalar
      !% Type describing a non-evolvable scalar logical property of a node component.

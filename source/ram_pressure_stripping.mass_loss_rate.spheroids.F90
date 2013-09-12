@@ -24,11 +24,11 @@ module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
   private
   public :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                            :: moduleInitialized=.false.
+  ! Flag to indicate if this module has been initialized.
+  logical                                                            :: moduleInitialized                                 =.false.
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => null()
+  procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get=>null()
 
 contains
 
@@ -47,7 +47,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then
-       !$omp critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init) 
+       !$omp critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init)
        if (.not.moduleInitialized) then
           ! Get the ram pressure stripping mass loss rate method parameter.
           !@ <inputParameter>
@@ -70,7 +70,7 @@ contains
                &//char(ramPressureStrippingMassLossRateSpheroidsMethod)//' is unrecognized')
           moduleInitialized=.true.
        end if
-       !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init) 
+       !$omp end critical(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Init)
     end if
 
     ! Get the mass loss rate using the selected method.

@@ -44,24 +44,30 @@ contains
     !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{munoz-cuartas_redshift_2011}.
     use Galacticus_Nodes
     use Cosmology_Functions
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: alpha                   =-110.001d0, beta               =2469.720d0, &
-         &                                                          gamma                   =16.885d0  , m                  =0.097d0   , &
-         &                                                          w                       =0.029d0
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: a                                  , b                             , &
-         &                                                          concentrationLogarithmic           , haloMassLogarithmic           , &
-         &                                                          redshift
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    double precision                          , parameter              :: alpha                    =-110.001d0, beta               =2469.720d0, &
+         &                                                                gamma                    =16.885d0  , m                  =0.097d0   , &
+         &                                                                w                        =0.029d0
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass )               , pointer :: cosmologyFunctionsDefault
+    double precision                                                   :: a                                   , b                             , &
+         &                                                                concentrationLogarithmic            , haloMassLogarithmic           , &
+         &                                                                redshift
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.
-    redshift                =Redshift_from_Expansion_Factor(Expansion_Factor(thisBasicComponent%time()))
+    redshift                =cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time()))
     a                       =w*redshift-m
     b                       =alpha/(redshift+gamma)+beta/(redshift+gamma)**2
-    haloMassLogarithmic     =log10(thisBasicComponent%mass()*Little_H_0())
+    haloMassLogarithmic     =log10(thisBasicComponent%mass()*thisCosmologyParameters%HubbleConstant(unitsLittleH))
     concentrationLogarithmic=a*haloMassLogarithmic+b
     Dark_Matter_Profile_Concentration_MunozCuartas2011=10.0d0**concentrationLogarithmic
     return

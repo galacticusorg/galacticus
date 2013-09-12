@@ -142,8 +142,8 @@ module Node_Component_Disk_Exponential
 
   ! Internal count of luminosities and work arrays.
   integer                                     :: luminositiesCount
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                      , luminositiesStellarRates   , &
-       &                                         luminositiesTransferRate                 , zeroLuminosities
+  double precision, allocatable, dimension(:) :: luminositiesMinimum                          , luminositiesStellarRates      , &
+       &                                         luminositiesTransferRate                     , zeroLuminosities
   !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates,luminositiesTransferRate)
   ! Parameters controlling the physical implementation.
   double precision                            :: diskMassToleranceAbsolute                    , diskOutflowTimescaleMinimum   , &
@@ -152,15 +152,15 @@ module Node_Component_Disk_Exponential
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
-  double precision                            :: radiusHistory                 (2)
+  double precision                            :: radiusHistory                     (2)
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk.
-  double precision, parameter                 :: angularMomentumMaximum           =1.0d1
-  double precision, parameter                 :: angularMomentumMinimum           =1.0d-6
+  double precision, parameter                 :: angularMomentumMaximum               =1.0d1
+  double precision, parameter                 :: angularMomentumMinimum               =1.0d-6
 
   ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                =.false.
-  logical                                     :: threadAllocationDone             =.false.
+  logical                                     :: moduleInitialized                    =.false.
+  logical                                     :: threadAllocationDone                 =.false.
   !$omp threadprivate(threadAllocationDone)
 
 contains
@@ -344,7 +344,7 @@ contains
     class           (nodeComponentSpin )               , pointer :: thisSpin
     double precision                    , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                    , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                             :: diskMass                      , fractionalError, &
+    double precision                                             :: diskMass                       , fractionalError, &
          &                                                          specificAngularMomentum
     character       (len=20            )                         :: valueString
     type            (varying_string    )                         :: message
@@ -521,20 +521,20 @@ contains
     logical                                                            , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template                     ), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template                     )               , pointer :: interruptProcedure
-    type            (abundances                                       ), save                   :: fuelAbundances          , fuelAbundancesRates       , &
+    type            (abundances                                       ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
          &                                                                                         stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate  , &
-         &                                                                                         barInstabilityTimescale , diskDynamicalTime           , &
-         &                                                                                         diskMass                , energyInputRate             , &
-         &                                                                                         fuelMass                , fuelMassRate                , &
-         &                                                                                         gasMass                 , massLossRate                , &
-         &                                                                                         massOutflowRate         , massOutflowRateFromHalo     , &
-         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction    , &
-         &                                                                                         starFormationRate       , stellarMassRate             , &
-         &                                                                                         transferRate            , fractionGas                 , &
-         &                                                                                         fractionStellar         , barInstabilitySpecificTorque
-    type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate
+    double precision                                                                            :: angularMomentum             , angularMomentumOutflowRate, &
+         &                                                                                         barInstabilitySpecificTorque, barInstabilityTimescale   , &
+         &                                                                                         diskDynamicalTime           , diskMass                  , &
+         &                                                                                         energyInputRate             , fractionGas               , &
+         &                                                                                         fractionStellar             , fuelMass                  , &
+         &                                                                                         fuelMassRate                , gasMass                   , &
+         &                                                                                         massLossRate                , massOutflowRate           , &
+         &                                                                                         massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
+         &                                                                                         outflowToHotHaloFraction    , starFormationRate         , &
+         &                                                                                         stellarMassRate             , transferRate
+    type            (history                                          )                         :: historyTransferRate         , stellarHistoryRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn

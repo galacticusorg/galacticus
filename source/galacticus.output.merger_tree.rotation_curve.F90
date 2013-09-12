@@ -241,7 +241,7 @@ contains
        !@   <cardinality>0..1</cardinality>
        !@   <description>Rotation curve at a given radius.</description>
        !@   <label>???</label>
-       !@   <outputType>nodeData</outputType> 
+       !@   <outputType>nodeData</outputType>
        !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1

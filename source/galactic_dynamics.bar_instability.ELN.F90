@@ -76,19 +76,19 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    double precision                   , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , parameter              :: stabilityIsolatedDisk        =0.6221297315d0
+    type            (treeNode         )           , intent(inout), pointer :: thisNode
+    double precision                              , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque               , barInstabilityTimeScale
+    class           (nodeComponentDisk)                          , pointer :: thisDiskComponent
+    double precision                   , parameter                         :: stabilityIsolatedDisk                      =0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                   , parameter              :: velocityBoostFactor          =1.180023758d0
+    double precision                   , parameter                         :: velocityBoostFactor                        =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                   , parameter              :: timescaleDimensionlessMaximum=1.0d10
-    double precision                                            :: diskMass                                    , dynamicalTime            , &
-         &                                                         gasFraction                                 , stabilityEstimator       , &
-         &                                                         stabilityEstimatorRelative                  , stabilityIsolatedRelative, &
-         &                                                         stabilityThreshold                          , timescaleDimensionless
+    double precision                   , parameter                         :: timescaleDimensionlessMaximum              =1.0d10
+    double precision                                                       :: diskMass                                                  , dynamicalTime            , &
+         &                                                                    gasFraction                                               , stabilityEstimator       , &
+         &                                                                    stabilityEstimatorRelative                                , stabilityIsolatedRelative, &
+         &                                                                    stabilityThreshold                                        , timescaleDimensionless
 
     ! Assume infinite timescale (i.e. no instability) initially.
     barInstabilityTimeScale                    =-1.0d0

@@ -16,7 +16,7 @@
     <value>0.045</value>
   </parameter>
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>

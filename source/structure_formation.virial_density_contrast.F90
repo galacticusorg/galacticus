@@ -115,10 +115,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , time
-    logical         , intent(in   ), optional :: collapsing
-    logical                                   :: collapsingActual
-    double precision                          :: timeActual
+    double precision                         , intent(in   ), optional :: aExpansion               , time
+    logical                                  , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    logical                                                            :: collapsingActual
+    double precision                                                   :: timeActual
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -134,7 +135,9 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Halo_Virial_Density_Contrast','at least one argument must be given')
        end if
@@ -153,10 +156,11 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , time
-    logical         , intent(in   ), optional :: collapsing
-    logical                                   :: collapsingActual
-    double precision                          :: timeActual
+    double precision                         , intent(in   ), optional :: aExpansion               , time
+    logical                                  , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    logical                                                            :: collapsingActual
+    double precision                                                   :: timeActual
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -172,7 +176,9 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+         timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Halo_Virial_Density_Contrast_Rate_of_Change','at least one argument must be given')
        end if
