@@ -124,8 +124,10 @@ sub Write {
 	system("hg summary ".$galacticusPath." > /dev/null 2>&1");
 	my $isMercurialBranch = $?;
 	if ( $isMercurialBranch == 0 ) {
-	    my $cwd = `pwd`;
-	    system("cd ".$galacticusPath."; hg bundle -t none ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus");
+	    my $cwd    = `pwd`;
+	    my $branch = `hg branch`;
+	    chomp($branch);
+	    system("cd ".$galacticusPath."; hg bundle -t none -t ".$branch." ".$cwd."/hgBundle.meta https://abensonca\@bitbucket.org/abensonca/galacticus");
 	    my $hgDiff   = `hg diff $galacticusPath`;
 	    my $hgBundle = read_file("hgBundle.meta");
 	    $metaData{'Source'} = {
