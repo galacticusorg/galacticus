@@ -55,18 +55,19 @@ contains
     use System_Command
     use Transfer_Functions_File
     use Input_Parameters
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Astronomical
     use Galacticus_Input_Paths
     use String_Handling
     implicit none
-    double precision                                           , intent(in   ) :: logWavenumber
-    double precision                , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                    , intent(  out) :: transferFunctionNumberPoints
-    logical                                                                    :: makeFile
-    character       (len=32        )                                           :: parameterLabel              , wavenumberLabel
-    type            (varying_string)                                           :: command                     , parameterFile
-    type            (xmlf_t        )                                           :: parameterDoc
+    double precision                                                     , intent(in   ) :: logWavenumber
+    double precision                          , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                              , intent(  out) :: transferFunctionNumberPoints
+    class           (cosmologyParametersClass), pointer                                  :: thisCosmologyParameters
+    logical                                                                              :: makeFile
+    character       (len=32                  )                                           :: parameterLabel              , wavenumberLabel
+    type            (varying_string          )                                           :: command                     , parameterFile
+    type            (xmlf_t                  )                                           :: parameterDoc
 
     ! Generate the name of the data file and an XML input parameter file.
     !# <uniqueLabel>
@@ -80,15 +81,17 @@ contains
     call xml_NewElement(parameterDoc,"uniqueLabel")
     call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeVersion=.true.)))
     call xml_EndElement(parameterDoc,"uniqueLabel")
-    write (parameterLabel,'(f5.3)') Omega_Matter()
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
     call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
-    write (parameterLabel,'(f5.3)') Omega_DE()
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy()
     call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)
-    write (parameterLabel,'(f6.4)') Omega_b()
+    write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon()
     call Write_Parameter(parameterDoc,"Omega_b",parameterLabel)
-    write (parameterLabel,'(f4.1)') H_0()
+    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(unitsStandard)
     call Write_Parameter(parameterDoc,"H_0",parameterLabel)
-    write (parameterLabel,'(f5.3)') T_CMB()
+    write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB()
     call Write_Parameter(parameterDoc,"T_CMB",parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     call Write_Parameter(parameterDoc,"Y_He",parameterLabel)

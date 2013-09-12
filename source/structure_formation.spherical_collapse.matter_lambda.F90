@@ -106,19 +106,22 @@ contains
     use Kind_Numbers
     use Galacticus_Error
     implicit none
-    double precision                         , intent(in   ) :: time
-    integer                                  , intent(in   ) :: calculationType
-    class           (table1D   ), allocatable, intent(inout) :: deltaTable
-    double precision            , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
-    type            (rootFinder), save                       :: finder
+    double precision                                      , intent(in   ) :: time
+    integer                                               , intent(in   ) :: calculationType
+    class           (table1D                ), allocatable, intent(inout) :: deltaTable
+    double precision                         , parameter                  :: toleranceAbsolute         =0.0d0, toleranceRelative         =1.0d-9
+    type            (rootFinder             ), save                       :: finder
     !$omp threadprivate(finder)
-    integer                                                  :: deltaTableNumberPoints          , iTime
-    double precision                                         :: aExpansionNow                   , epsilonPerturbation              , &
-         &                                                      epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
-         &                                                      eta                             , normalization                    , &
-         &                                                      radiiRatio                      , radiusMaximum
+    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+    integer                                                               :: deltaTableNumberPoints          , iTime
+    double precision                                                      :: aExpansionNow                   , epsilonPerturbation              , &
+         &                                                                   epsilonPerturbationMaximum      , epsilonPerturbationMinimum       , &
+         &                                                                   eta                             , normalization                    , &
+         &                                                                   radiiRatio                      , radiusMaximum
     double complex                                                         :: a,b,c,d,Delta
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
     deltaTableTimeMaximum=max(deltaTableTimeMaximum,time*2.0d0)
@@ -141,10 +144,10 @@ contains
        do iTime=1,deltaTableNumberPoints
 
           ! Get the current expansion factor.
-          aExpansionNow=Expansion_Factor(deltaTable%x(iTime))
+          aExpansionNow=cosmologyFunctionsDefault%expansionFactor(deltaTable%x(iTime))
           ! Determine the largest (i.e. least negative) value of epsilonPerturbation for which a perturbation can collapse.
-          if (Omega_Dark_Energy(aExpansion=aExpansionNow)>0.0d0) then
-             epsilonPerturbationMaximum=-(27.0d0*Omega_Dark_Energy(aExpansion=aExpansionNow)*(Omega_Matter_Total(aExpansion=aExpansionNow)&
+          if (cosmologyFunctionsDefault%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)>0.0d0) then
+             epsilonPerturbationMaximum=-(27.0d0*cosmologyFunctionsDefault%omegaDarkEnergyEpochal(expansionFactor=aExpansionNow)*(cosmologyFunctionsDefault%omegaMatterEpochal(expansionFactor=aExpansionNow)&
                   & **2)/4.0d0)**(1.0d0/3.0d0)
           else
              epsilonPerturbationMaximum=-1.0d-6
@@ -153,9 +156,9 @@ contains
           ! Estimate a suitably negative minimum value for epsilon.
           epsilonPerturbationMinimum=-10.0d0
 
-          OmegaM               =Omega_Matter_Total(aExpansion=aExpansionNow)
-          OmegaDE              =Omega_Dark_Energy (aExpansion=aExpansionNow)
-          hubbleParameterInvGyr=Expansion_Rate    (           aExpansionNow)
+          OmegaM               =cosmologyFunctionsDefault%omegaMatterEpochal(expansionFactor=aExpansionNow)
+          OmegaDE              =cosmologyFunctionsDefault%omegaDarkEnergyEpochal (expansionFactor=aExpansionNow)
+          hubbleParameterInvGyr=cosmologyFunctionsDefault%expansionRate    (           aExpansionNow)
           tNow                 =deltaTable%x(iTime)
 
           ! Find the value of epsilon for which the perturbation just collapses at this time.
@@ -213,6 +216,7 @@ contains
   end subroutine Make_Table
 
   double precision function collapseRoot(epsilonPerturbation)
+    implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
     ! Evaluate the root function.

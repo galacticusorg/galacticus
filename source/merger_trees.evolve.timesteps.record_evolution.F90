@@ -69,8 +69,9 @@ contains
     type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
     type            (varying_string               ), intent(inout), optional          :: lockType
     class           (nodeComponentBasic           )                         , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     integer                                                                           :: timeIndex
-    double precision                                                                  :: ourTimeStep         , time
+    double precision                                                                  :: ourTimeStep              , time
 
     if (.not.timestepRecordEvolutionInitialized) then
        !$omp critical (timestepRecordEvolutionInitialize)
@@ -89,8 +90,10 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('timestepRecordEvolution',timestepRecordEvolution,defaultValue=.false.)
           if (timestepRecordEvolution) then
-             ! Get time at present day.
-             time=Cosmology_Age(aExpansion=0.999d0)
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
+            ! Get time at present day.
+             time=cosmologyFunctionsDefault%cosmicTime(expansionFactor=0.999d0)
              ! Get module parameters.
              !@ <inputParameter>
              !@   <name>timestepRecordEvolutionBegin</name>
@@ -136,7 +139,7 @@ contains
              ! Initialize arrays.
              evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
              do timeIndex=1,timestepRecordEvolutionSteps
-                evolutionExpansion(timeIndex)=Expansion_Factor(evolutionTime(timeIndex))
+                evolutionExpansion(timeIndex)=cosmologyFunctionsDefault%expansionFactor(evolutionTime(timeIndex))
              end do
              call Reset_Records()
           end if

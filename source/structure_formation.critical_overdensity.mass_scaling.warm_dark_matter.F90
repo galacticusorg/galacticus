@@ -58,18 +58,19 @@ contains
     !% Initializes the ``warmDarkMatter'' critical overdensity mass scaling method.
     use ISO_Varying_String
     use Input_Parameters
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use FoX_dom
     use Galacticus_Input_Paths
     use Galacticus_Error
     use IO_XML
     implicit none
-    type            (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod
-    procedure       (double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get
-    type            (Node            )               , pointer :: doc                                  , thisNode
-    integer                                                    :: ioErr
-    double precision                                           :: matterRadiationEqualityRedshift      , warmDarkMatterCriticalOverdensityGX           , &
-         &                                                        warmDarkMatterCriticalOverdensityMX
+    type            (varying_string          ), intent(in   )          :: criticalOverdensityMassScalingMethod
+    procedure       (double precision        ), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get
+    type            (Node                    )               , pointer :: doc                                  , thisNode
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    integer                                                            :: ioErr
+    double precision                                                   :: matterRadiationEqualityRedshift      , warmDarkMatterCriticalOverdensityGX           , &
+         &                                                                warmDarkMatterCriticalOverdensityMX
 
     if (criticalOverdensityMassScalingMethod == 'warmDarkMatter') then
        ! Return a pointer to our implementation of the mass scaling function.
@@ -111,9 +112,11 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('warmDarkMatterCriticalOverdensityUseFittingFunction',warmDarkMatterCriticalOverdensityUseFittingFunction,defaultValue=.true.)
 
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Compute corresponding Jeans mass.
-       matterRadiationEqualityRedshift=3600.0d0*(Omega_Matter()*Little_H_0()**2/0.15d0)-1.0d0
-       jeansMass=3.06d8*((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)**1.5d0*sqrt(Omega_Matter()*Little_H_0()**2/0.15d0)&
+       matterRadiationEqualityRedshift=3600.0d0*(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%HubbleConstant(unitsLittleH)**2/0.15d0)-1.0d0
+       jeansMass=3.06d8*((1.0d0+matterRadiationEqualityRedshift)/3000.0d0)**1.5d0*sqrt(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%HubbleConstant(unitsLittleH)**2/0.15d0)&
             &/(warmDarkMatterCriticalOverdensityGX/1.5d0)/(warmDarkMatterCriticalOverdensityMX/1.0d0)**4
 
        ! Read in the tabulated critical overdensity scaling.

@@ -24,11 +24,11 @@ module Tidal_Stripping_Mass_Loss_Rate_Spheroids
   private
   public :: Tidal_Stripping_Mass_Loss_Rate_Spheroid
 
-  ! Flag to indicate if this module has been initialized.  
-  logical                                                     :: moduleInitialized=.false.
+  ! Flag to indicate if this module has been initialized.
+  logical                                                     :: moduleInitialized                          =.false.
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid), pointer :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get => null()
+  procedure(Tidal_Stripping_Mass_Loss_Rate_Spheroid), pointer :: Tidal_Stripping_Mass_Loss_Rate_Spheroid_Get=>null()
 
 contains
 
@@ -47,7 +47,7 @@ contains
 
     ! Initialize if necessary.
     if (.not.moduleInitialized) then
-       !$omp critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init) 
+       !$omp critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init)
        if (.not.moduleInitialized) then
           ! Get the tidal stripping mass loss rate method parameter.
           !@ <inputParameter>
@@ -70,7 +70,7 @@ contains
                &//char(tidalStrippingMassLossRateSpheroidsMethod)//' is unrecognized')
           moduleInitialized=.true.
        end if
-       !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init) 
+       !$omp end critical(Tidal_Stripping_Mass_Loss_Rate_Spheroid_Init)
     end if
 
     ! Get the mass loss rate using the selected method.

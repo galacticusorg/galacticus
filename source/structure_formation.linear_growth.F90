@@ -109,16 +109,21 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ), optional :: aExpansion            , time
-    logical                         , intent(in   ), optional :: collapsing
-    integer                         , intent(in   ), optional :: component             , normalize
-    double precision                , intent(in   ), optional :: wavenumber
-    double precision, dimension(:)  , pointer                 :: thisLinearGrowthFactor
-    integer         , dimension(0:1)                          :: iWavenumber
-    double precision, dimension(0:1)                          :: hWavenumber
-    integer                                                   :: componentActual       , jWavenumber, normalizeActual
-    logical                                                   :: collapsingActual      , remakeTable
-    double precision                                          :: timeActual
+    double precision                                                  , intent(in   ), optional :: aExpansion               , time
+    logical                                                           , intent(in   ), optional :: collapsing
+    integer                                                           , intent(in   ), optional :: component                , normalize
+    double precision                                                  , intent(in   ), optional :: wavenumber
+    double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
+    integer                                  , dimension(0:1)                                   :: iWavenumber
+    double precision                         , dimension(0:1)                                   :: hWavenumber
+    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
+    integer                                                                                     :: componentActual          , jWavenumber, &
+         &                                                                                         normalizeActual
+    logical                                                                                     :: collapsingActual         , remakeTable
+    double precision                                                                            :: timeActual
+
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -134,14 +139,14 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+           timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Linear_Growth_Factor','at least one argument must be given')
        end if
     end if
 
     ! Validate the input.
-    if (.not.Cosmic_Time_Is_Valid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor','cosmic time is&
+    if (.not.cosmologyFunctionsDefault%cosmicTimeIsValid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor','cosmic time is&
          & invalid')
 
     ! Determine normalization method.
@@ -214,17 +219,21 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision                , intent(in   ), optional :: aExpansion                      , time
-    logical                         , intent(in   ), optional :: collapsing
-    integer                         , intent(in   ), optional :: component
-    double precision                , intent(in   ), optional :: wavenumber
-    double precision, dimension(:)  , pointer                 :: thisLinearGrowthFactor
-    integer         , dimension(0:1)                          :: iWavenumber
-    double precision, dimension(0:1)                          :: hWavenumber
-    integer                                                   :: componentActual                 , jWavenumber
-    logical                                                   :: collapsingActual
-    double precision                                          :: expansionFactor                 , linearGrowthFactor, &
-         &                                                       linearGrowthFactorTimeDerivative, timeActual
+    double precision                                                  , intent(in   ), optional :: aExpansion                      , time
+    logical                                                           , intent(in   ), optional :: collapsing
+    integer                                                           , intent(in   ), optional :: component
+    double precision                                                  , intent(in   ), optional :: wavenumber
+    double precision                         , dimension(:)  , pointer                          :: thisLinearGrowthFactor
+    integer                                  , dimension(0:1)                                   :: iWavenumber
+    double precision                         , dimension(0:1)                                   :: hWavenumber
+    class           (cosmologyFunctionsClass)                , pointer                          :: cosmologyFunctionsDefault
+    integer                                                                                     :: componentActual                 , jWavenumber
+    logical                                                                                     :: collapsingActual
+    double precision                                                                            :: expansionFactor                 , linearGrowthFactor, &
+         &                                                                                         linearGrowthFactorTimeDerivative, timeActual
+
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
 
     ! Determine which type of input we have.
     if (present(time)) then
@@ -240,14 +249,14 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+          timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','at least one argument must be given')
        end if
     end if
 
     ! Validate the input.
-    if (.not.Cosmic_Time_Is_Valid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','cosmic time is&
+    if (.not.cosmologyFunctionsDefault%cosmicTimeIsValid(timeActual)) call Galacticus_Error_Report('Linear_Growth_Factor_Logarithmic_Derivative','cosmic time is&
          & invalid')
 
     ! Determine the component type to use.
@@ -280,11 +289,11 @@ contains
     !$omp end critical(Linear_Growth_Initialize)
 
     ! Get the expansion factor.
-    expansionFactor=Expansion_Factor(timeActual)
+    expansionFactor=cosmologyFunctionsDefault%expansionFactor(timeActual)
 
     ! Construct the logarithmic derivative with respect to expansion factor.
     Linear_Growth_Factor_Logarithmic_Derivative=linearGrowthFactorTimeDerivative/linearGrowthFactor&
-         &/Expansion_Rate(expansionFactor)
+         &/cosmologyFunctionsDefault%expansionRate(expansionFactor)
 
     return
   end function Linear_Growth_Factor_Logarithmic_Derivative

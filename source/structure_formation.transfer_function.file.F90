@@ -103,39 +103,42 @@ contains
     use Memory_Management
     use Galacticus_Error
     use Galacticus_Display
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Math
     use Numerical_Ranges
     use IO_XML
     implicit none
-    double precision                                              , intent(in   ) :: logWavenumber
-    double precision                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                                       , intent(  out) :: transferFunctionNumberPoints
-    type            (Node    ), pointer                                           :: doc                         , extrapolation                , &
-         &                                                                           extrapolationElement        , formatElement                , &
-         &                                                                           nameElement                 , thisParameter                , &
-         &                                                                           valueElement
-    type            (NodeList), pointer                                           :: parameterList               , wavenumberExtrapolationList
-    double precision                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
+    double precision                                                              , intent(in   ) :: logWavenumber
+    double precision                                   , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                                       , intent(  out) :: transferFunctionNumberPoints
+    type            (Node                    ), pointer                                           :: doc                         , extrapolation                , &
+         &                                                                                           extrapolationElement        , formatElement                , &
+         &                                                                                           nameElement                 , thisParameter                , &
+         &                                                                                           valueElement
+    type            (NodeList                ), pointer                                           :: parameterList               , wavenumberExtrapolationList
+    double precision                                   , allocatable, dimension(:)                :: transferFunctionTemporary   , wavenumberTemporary
 
-    integer                                                                       :: addCount                    , extrapolationMethod          , &
-         &                                                                           iExtrapolation              , iParameter                   , &
-         &                                                                           ioErr                       , versionNumber
-    double precision                                                              :: cmbTemperatureValue         , hubbleParameterValue         , &
-         &                                                                           omegaBaryonValue            , omegaDarkEnergyValue         , &
-         &                                                                           omegaMatterValue            , parameterValue
-    character       (len=32  )                                                    :: limitType
+    class           (cosmologyParametersClass), pointer                                           :: thisCosmologyParameters
+    integer                                                                                       :: addCount                    , extrapolationMethod          , &
+         &                                                                                           iExtrapolation              , iParameter                   , &
+         &                                                                                           ioErr                       , versionNumber
+    double precision                                                                              :: cmbTemperatureValue         , hubbleParameterValue         , &
+         &                                                                                           omegaBaryonValue            , omegaDarkEnergyValue         , &
+         &                                                                                           omegaMatterValue            , parameterValue
+    character       (len=32                  )                                                    :: limitType
 
     ! Read the file if this module has not been initialized.
     if (.not.transferFunctionInitialized) then
 
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Get values of cosmological parameters in advance (avoids trying to retrieve them while in an OpenMP "FoX_DOM_Access"
        ! critical section which can lead to deadlocks).
-       omegaBaryonValue    =Omega_b     ()
-       omegaMatterValue    =Omega_Matter()
-       omegaDarkEnergyValue=Omega_DE    ()
-       hubbleParameterValue=H_0         ()
-       cmbTemperatureValue =T_CMB       ()
+       omegaBaryonValue    =thisCosmologyParameters%OmegaBaryon    (             )
+       omegaMatterValue    =thisCosmologyParameters%OmegaMatter    (             )
+       omegaDarkEnergyValue=thisCosmologyParameters%OmegaDarkEnergy(             )
+       hubbleParameterValue=thisCosmologyParameters%HubbleConstant (unitsStandard)
+       cmbTemperatureValue =thisCosmologyParameters%temperatureCMB (             )
        ! Open and parse the data file.
        !$omp critical (FoX_DOM_Access)
        doc => parseFile(char(transferFunctionFile),iostat=ioErr)

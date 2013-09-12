@@ -146,7 +146,15 @@ close(directiveHndl);
 open(makefileHndl,">./work/build/Makefile_Directives");
 foreach my $directive ( keys(%includeDirectives) ) {
     (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
-    print makefileHndl $fileName.": ./work/build/".$directive.".xml\n";
+    my $extraDependencies = "";
+    # For "function" actions, add the file containing the directive as an additional dependency
+    # as these files are simply copied into the include file as part of the include file construction.
+    if ( $directive =~ m/^([a-zA-Z0-9_]+)\.function$/ ) {
+	my $name = $1;
+	my @fileNames = keys(%{$otherDirectives->{$name}});
+	$extraDependencies .= " ".join(" ",@fileNames);
+    }
+    print makefileHndl $fileName.": ./work/build/".$directive.".xml".$extraDependencies."\n";
     print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ./work/build/".$directive.".xml\n";
     print makefileHndl "\n";
     open(xmlHndl,">./work/build/".$directive.".xml.tmp");

@@ -47,13 +47,17 @@ contains
     !% Top hat in real space window function Fourier transformed into $k$-space used in computing the variance of the power
     !% spectrum.
     use Numerical_Constants_Math
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    double precision, intent(in   ) :: smoothingMass        , wavenumber
-    double precision, parameter     :: xSeriesMaximum=1.0d-3
-    double precision                :: topHatRadius         , x         , xSquared
+    double precision                          , intent(in   ) :: smoothingMass                 , wavenumber
+    double precision                          , parameter     :: xSeriesMaximum         =1.0d-3
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: topHatRadius                  , x         , &
+         &                                                       xSquared
 
-    topHatRadius=((3.0d0/4.0d0/Pi)*smoothingMass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+    topHatRadius=((3.0d0/4.0d0/Pi)*smoothingMass/thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
     x=wavenumber*topHatRadius
     if      (x <= 0.0d0) then
        Power_Spectrum_Window_Function_Top_Hat=0.0d0
@@ -77,7 +81,7 @@ contains
     !% variance of the power spectrum.
     implicit none
     double precision, intent(in   ) :: smoothingMass
-    double precision, parameter     :: wavenumberLarge=1.0d30 !  Effective infinity.
+    double precision, parameter     :: wavenumberLarge=1.0d30 !   Effective infinity.
 
     Power_Spectrum_Window_Function_Wavenumber_Maximum_Top_Hat=wavenumberLarge
     return

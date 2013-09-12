@@ -81,29 +81,32 @@ contains
     use Root_Finder
     use Virial_Density_Contrast
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: fitParameterNuHalf         =0.47693628d0
-    double precision                    , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    type            (rootFinder        ), save                   :: finder
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    double precision                         , parameter              :: fitParameterNuHalf         =0.47693628d0
+    double precision                         , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    type            (rootFinder             ), save                   :: finder
     !$omp threadprivate(finder)
-    double precision                                             :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
-         &                                                          collapseMass                            , collapseOverdensity           , &
-         &                                                          collapseTime                            , expansionFactor               , &
-         &                                                          nodeMass                                , nodeTime
+    double precision                                                  :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
+         &                                                               collapseMass                            , collapseOverdensity           , &
+         &                                                               collapseTime                            , expansionFactor               , &
+         &                                                               nodeMass                                , nodeTime
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the basic component.
     thisBasicComponent         => thisNode%basic()
     ! Get the properties of the node.
     nodeMass                   =thisBasicComponent%mass()
     nodeTime                   =thisBasicComponent%time()
-    expansionFactor            =Expansion_Factor(nodeTime)
+    expansionFactor            =cosmologyFunctionsDefault%expansionFactor(nodeTime)
     ! Compute the mass of a progenitor as defined by NFW.
     collapseMass               =nfw96ConcentrationF*nodeMass
     ! Find the time of collapse for this progenitor.
     collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
     collapseTime               =Time_of_Collapse(collapseCriticalOverdensity)
-    collapseExpansionFactor    =Expansion_Factor(collapseTime               )
+    collapseExpansionFactor    =cosmologyFunctionsDefault%expansionFactor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
     collapseOverdensity        =nfw96ConcentrationC*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.

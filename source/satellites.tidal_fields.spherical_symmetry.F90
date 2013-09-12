@@ -37,9 +37,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type(varying_string),                 intent(in   ) :: satellitesTidalFieldMethod
-    procedure(Satellites_Tidal_Fields_Spherical_Symmetry_Get), pointer, intent(inout) :: Satellites_Tidal_Field_Get
-    
+    type     (varying_string                                ), intent(in   )          :: satellitesTidalFieldMethod
+    procedure(Satellites_Tidal_Fields_Spherical_Symmetry_Get), intent(inout), pointer :: Satellites_Tidal_Field_Get
+
     if (satellitesTidalFieldMethod == 'sphericalSymmetry') then
        Satellites_Tidal_Field_Get => Satellites_Tidal_Fields_Spherical_Symmetry_Get
        !@ <inputParameter>
@@ -68,11 +68,11 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type (treeNode              ), intent(inout), pointer :: thisNode
-    type (treeNode              ),                pointer :: hostNode
-    class(nodeComponentSatellite),                pointer :: thisSatellite
-    type (keplerOrbit           )                         :: thisOrbit
-    double precision                                      :: orbitalRadius,orbitalVelocity,densityHost,enclosedMassHost
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    type            (treeNode              )               , pointer :: hostNode
+    class           (nodeComponentSatellite)               , pointer :: thisSatellite
+    type            (keplerOrbit           )                         :: thisOrbit
+    double precision                                                 :: densityHost  , enclosedMassHost, orbitalRadius, orbitalVelocity
 
     ! For isolated halos, always return zero tidal field.
     if (thisNode%isSatellite()) then

@@ -90,7 +90,7 @@ contains
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
     use Dark_Matter_Halo_Scales
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Constants_Physical
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
@@ -114,6 +114,7 @@ contains
     procedure       (Component_Enclosed_Mass          )               , pointer :: componentEnclosedMass
     procedure       (Component_Rotation_Curve         )               , pointer :: componentRotationCurve
     procedure       (Component_Rotation_Curve_Gradient)               , pointer :: componentRotationCurveGradient
+    class           (cosmologyParametersClass         )               , pointer :: thisCosmologyParameters
     double precision                                                            :: baryonicMassSelfTotal                 , baryonicMassTotal          , &
          &                                                                         componentMass                         , componentVelocity          , &
          &                                                                         componentVelocitySquaredGradient      , rotationCurveSquared       , &
@@ -181,11 +182,13 @@ contains
     ! Limit masses to physical values.
     baryonicMassSelfTotal=max(baryonicMassSelfTotal,0.0d0)
     baryonicMassTotal    =max(baryonicMassTotal    ,0.0d0)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Compute the dark matter fraction.
     thisBasic => thisNode%basic()
-    darkMatterFraction =min((Omega_Matter()-Omega_B())/Omega_Matter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass(),1.0d0)
+    darkMatterFraction =min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+(baryonicMassTotal-baryonicMassSelfTotal)/thisBasic%mass(),1.0d0)
     ! Compute the initial mass fraction.
-    initialMassFraction=min((Omega_Matter()-Omega_B())/Omega_Matter()+                   baryonicMassSelfTotal /thisBasic%mass(),1.0d0)
+    initialMassFraction=min((thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter()+                   baryonicMassSelfTotal /thisBasic%mass(),1.0d0)
     ! Store the current node.
     activeNode => thisNode
     return

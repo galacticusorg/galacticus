@@ -111,8 +111,8 @@ module Hashes
      procedure :: keys                    =>Keys_Integer_Scalar
      procedure :: values                  =>Values_Integer_Scalar
      generic   :: exists     => Exists_Integer_Scalar_VS,Exists_Integer_Scalar_CH
-     procedure :: size=>Size_Integer_Scalar
-     procedure :: destroy => Destroy_Integer_Scalar
+     procedure :: size   =>Size_Integer_Scalar
+     procedure :: destroy=>Destroy_Integer_Scalar
   end type integerScalarHash
 
   ! The number of new elements by which to extend hashes that need to grow.
@@ -398,5 +398,5 @@ contains
     end if
     return
   end subroutine Destroy_Integer_Scalar
-  
+
 end module Hashes

@@ -37,11 +37,12 @@ program Optimal_Sampling_SMF
   double precision                            , parameter                 :: stellarMassMaximum        =1.0d13, stellarMassMinimum          =1.0d8
   double precision                            , parameter                 :: haloMassMaximum           =1.0d15, haloMassMinimum             =1.0d10
   double precision                            , parameter                 :: toleranceAbsolute         =0.0d0 , toleranceRelative           =1.0d-3
-  double precision                            , allocatable, dimension(:) :: haloMassTableMass                , haloMassTableXi                     , &
+  double precision                            , allocatable, dimension(:) :: haloMassTableMass                , haloMassTableXi                    , &
        &                                                                     stellarMassTableMass             , stellarMassTableMassFunction
-  integer                                                                 :: haloMassTableCount               , iMass                               , &
+  class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctionsDefault
+  integer                                                                 :: haloMassTableCount               , iMass                              , &
        &                                                                     iUnit                            , stellarMassTableCount
-  double precision                                                        :: haloMass                         , samplingDensity                     , &
+  double precision                                                        :: haloMass                         , samplingDensity                    , &
        &                                                                     stellarMass                      , time
   type            (varying_string            )                            :: parameterFile
   type            (c_ptr                     )                            :: parameterPointer
@@ -69,9 +70,10 @@ program Optimal_Sampling_SMF
   ! Create mass tabulations.
   stellarMassTableMass=Make_Range(stellarMassMinimum,stellarMassMaximum,stellarMassTableCount,rangeType=rangeTypeLogarithmic)
   haloMassTableMass   =Make_Range(   haloMassMinimum,   haloMassMaximum,   haloMassTableCount,rangeType=rangeTypeLogarithmic)
-
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   ! Get the cosmic time at the present day.
-  time=Cosmology_Age(1.0d0)
+  time=cosmologyFunctionsDefault%cosmicTime(1.0d0)
 
   ! Open a file for the stellar mass function data.
   open(newunit=iUnit,file='stellarMassFunction.data',status='unknown',form='formatted')

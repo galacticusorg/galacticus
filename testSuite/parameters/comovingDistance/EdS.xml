@@ -3,7 +3,7 @@
 <!-- Hubble constant large means that the radiation term has negligible effect on the results.                                                 -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>

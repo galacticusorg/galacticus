@@ -34,9 +34,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string  ),          intent(in   ) :: ramPressureStrippingMassLossRateSpheroidsMethod
-    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null), pointer, intent(inout) :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
-    
+    type     (varying_string                                     ), intent(in   )          :: ramPressureStrippingMassLossRateSpheroidsMethod
+    procedure(Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null), intent(inout), pointer :: Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get
+
     if (ramPressureStrippingMassLossRateSpheroidsMethod == 'null') Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Get => Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null
     return
   end subroutine Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null_Init
@@ -45,10 +45,10 @@ contains
     !% Computes the mass loss rate from spheroids due to ram pressure stripping. Always returns zero.
     use Galacticus_Nodes
     implicit none
-    type (treeNode), intent(inout), pointer :: thisNode
+    type(treeNode), intent(inout), pointer :: thisNode
 
     Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null=0.0d0
     return
   end function Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroid_Null
-  
+
 end module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids_Null

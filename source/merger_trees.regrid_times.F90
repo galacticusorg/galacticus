@@ -62,21 +62,22 @@ contains
     use Kind_Numbers
     use Merger_Trees_Dump
     implicit none
-    type            (mergerTree        ), intent(inout), target                :: thisTree
-    type            (treeNode          )                             , pointer :: childNode               , nextNode            , &
-         &                                                                        siblingNode             , thisNode
-    type            (treeNodeList      ), allocatable  , dimension(:)          :: newNodes
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: highlightNodes
-    class           (nodeComponentBasic)                             , pointer :: childBasicComponent     , parentBasicComponent, &
-         &                                                                        thisBasicComponent
-    type            (mergerTree        )                             , pointer :: currentTree
-    type            (fgsl_interp_accel )                                       :: interpolationAccelerator
-    logical                                                                    :: interpolationReset
-    integer                                                                    :: allocErr                , iNow                , &
-         &                                                                        iParent                 , iTime
-    double precision                                                           :: massNow                 , massParent          , &
-         &                                                                        timeNow                 , timeParent
-    integer         (kind=kind_int8    )                                       :: firstNewNode            , nodeIndex
+    type            (mergerTree             ), intent(inout), target                :: thisTree
+    type            (treeNode               )                             , pointer :: childNode                , nextNode            , &
+         &                                                                             siblingNode              , thisNode
+    type            (treeNodeList           ), allocatable  , dimension(:)          :: newNodes
+    integer         (kind=kind_int8         ), allocatable  , dimension(:)          :: highlightNodes
+    class           (nodeComponentBasic     )                             , pointer :: childBasicComponent      , parentBasicComponent, &
+         &                                                                             thisBasicComponent
+    type            (mergerTree             )                             , pointer :: currentTree
+    class           (cosmologyFunctionsClass)                             , pointer :: cosmologyFunctionsDefault
+    type            (fgsl_interp_accel      )                                       :: interpolationAccelerator
+    logical                                                                         :: interpolationReset
+    integer                                                                         :: allocErr                 , iNow                , &
+         &                                                                             iParent                  , iTime
+    double precision                                                                :: massNow                  , massParent          , &
+         &                                                                             timeNow                  , timeParent
+    integer         (kind=kind_int8         )                                       :: firstNewNode             , nodeIndex
 
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
@@ -163,7 +164,8 @@ contains
              case default
                 call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
              end select
-
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
              ! Construct array of grid expansion factors.
              call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
              select case (mergerTreeRegridSpacing)
@@ -172,21 +174,21 @@ contains
                      &,mergerTreeRegridCount,rangeTypeLinear     )
                 ! Convert expansion factors to time.
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridTimeGrid(iTime))
                 end do
              case (mergerTreeRegridSpacingLogarithmic           )
                 mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
                      &,mergerTreeRegridCount,rangeTypeLogarithmic)
                 ! Convert expansion factors to time.
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridTimeGrid(iTime))
                 end do
              case (mergerTreeRegridSpacingLogCriticalOverdensity)
                 ! Build a logarithmic grid in critical overdensity.
                 mergerTreeRegridTimeGrid&
                      & =Make_Range(                                                                                        &
-                     &              Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridStartExpansionFactor)) &
-                     &             ,Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridEndExpansionFactor  )) &
+                     &              Critical_Overdensity_for_Collapse(cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridStartExpansionFactor)) &
+                     &             ,Critical_Overdensity_for_Collapse(cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridEndExpansionFactor  )) &
                      &             ,mergerTreeRegridCount                                                                  &
                      &             ,rangeTypeLogarithmic                                                                   &
                      &            )
@@ -214,7 +216,7 @@ contains
                      &                     0.115883d0, 0.089288d0, 0.064493d0, 0.041403d0, 0.019933d0, 0.000000d0  &
                      &                   ]
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeRegridTimeGrid(iTime)))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeRegridTimeGrid(iTime)))
                 end do
              end select
 

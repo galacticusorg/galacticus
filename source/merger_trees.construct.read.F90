@@ -167,23 +167,24 @@ contains
     use Galacticus_Display
     use Galacticus_Output_Times
     use Numerical_Comparison
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Power_Spectra
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    type            (varying_string     ), intent(in   )          :: mergerTreeConstructMethod
-    procedure       (Merger_Tree_Read_Do), intent(inout), pointer :: Merger_Tree_Construct
-    integer                                                       :: haloMassesIncludeSubhalosInteger  , hubbleExponent             , &
-         &                                                           iOutput                           , simulationIsPeriodicInteger, &
-         &                                                           treesAreSelfContained             , treesHaveSubhalos          , &
-         &                                                           velocitiesIncludeHubbleFlowInteger
-    double precision                                              :: cosmologicalParameter
-    character       (len=14             )                         :: valueString
-    type            (varying_string     )                         :: message
-    double precision                                              :: localLittleH0                     , localOmegaBaryon           , &
-         &                                                           localOmegaDE                      , localOmegaMatter           , &
-         &                                                           localSigma8
+    type            (varying_string          ), intent(in   )          :: mergerTreeConstructMethod
+    procedure       (Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    integer                                                            :: haloMassesIncludeSubhalosInteger  , hubbleExponent             , &
+         &                                                                iOutput                           , simulationIsPeriodicInteger, &
+         &                                                                treesAreSelfContained             , treesHaveSubhalos          , &
+         &                                                                velocitiesIncludeHubbleFlowInteger
+    double precision                                                   :: cosmologicalParameter
+    character       (len=14                  )                         :: valueString
+    type            (varying_string          )                         :: message
+    double precision                                                   :: localLittleH0                     , localOmegaBaryon           , &
+         &                                                                localOmegaDE                      , localOmegaMatter           , &
+         &                                                                localSigma8
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
@@ -406,11 +407,13 @@ contains
           outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
        end do
 
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-       localLittleH0   =Little_H_0()
-       localOmegaMatter=Omega_Matter()
-       localOmegaDE    =Omega_DE()
-       localOmegaBaryon=Omega_b()
+       localLittleH0   =thisCosmologyParameters%HubbleConstant(unitsLittleH)
+       localOmegaMatter=thisCosmologyParameters%OmegaMatter()
+       localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy()
+       localOmegaBaryon=thisCosmologyParameters%OmegaBaryon()
        localSigma8     =sigma_8()
 
        ! Read basic data from the merger tree file.
@@ -716,14 +719,15 @@ contains
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree
     logical                                                                      , intent(in   )         :: skipTree
-    double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime
-    double precision                                , allocatable, dimension(:,:)                        :: position           , velocity
+    double precision                                , allocatable, dimension(:  )                        :: historyMass              , historyTime
+    double precision                                , allocatable, dimension(:,:)                        :: position                 , velocity
     type            (nodeData                      ), allocatable, dimension(:  )               , target :: nodes
     type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList
     logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo
-    integer         (kind=HSIZE_T                  )             , dimension(1  )                        :: firstNodeIndex     , nodeCount
+    integer         (kind=HSIZE_T                  )             , dimension(1  )                        :: firstNodeIndex           , nodeCount
+    class           (cosmologyFunctionsClass       ), pointer                                            :: cosmologyFunctionsDefault
     integer                                                                                              :: isolatedNodeCount
-    integer         (kind=kind_int8                )                                                     :: historyCountMaximum, iNode
+    integer         (kind=kind_int8                )                                                     :: historyCountMaximum      , iNode
     logical                                                                                              :: haveTree
     type            (varying_string                )                                                     :: message
 
@@ -811,11 +815,14 @@ contains
           ! Sort node indices.
           call Create_Node_Indices(nodes,nodeCount)
 
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+
           ! Convert masses to Galacticus internal units.
           nodes%nodeMass=nodes%nodeMass*unitConversionMass
           if (scaleFactorExponentMass /= 0) then
              do iNode=1,nodeCount(1)
-                nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
+                nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
              end do
           end if
 
@@ -948,13 +955,16 @@ contains
     use Vectors
     use Memory_Management
     implicit none
-    type            (nodeData      )             , dimension(:)  , intent(inout) :: nodes
-    integer         (kind=HSIZE_T  )             , dimension(1)  , intent(in   ) :: firstNodeIndex , nodeCount
-    double precision                , allocatable, dimension(:,:)                :: angularMomentum
-    integer         (kind=kind_int8)                                             :: iNode
-    integer                                                                      :: iOutput        , scaleFactorExponentAngularMomentum
+    type            (nodeData               )             , dimension(:)  , intent(inout) :: nodes
+    integer         (kind=HSIZE_T           )             , dimension(1)  , intent(in   ) :: firstNodeIndex           , nodeCount
+    double precision                         , allocatable, dimension(:,:)                :: angularMomentum
+    class           (cosmologyFunctionsClass), pointer                                    :: cosmologyFunctionsDefault
+    integer         (kind=kind_int8         )                                             :: iNode
+    integer                                                                               :: iOutput                  , scaleFactorExponentAngularMomentum
 
     !$omp critical(HDF5_Access)
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! nodeIndex
     call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
     ! hostIndex
@@ -974,14 +984,14 @@ contains
        call haloTreesGroup%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=Cosmology_Age(nodes(iNode)%nodeTime)
+          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
        end do
     else if (haloTreesGroup%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
        call haloTreesGroup%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=Cosmology_Age(Expansion_Factor_from_Redshift(nodes(iNode)%nodeTime))
+          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
        end do
     else
        call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
@@ -994,7 +1004,7 @@ contains
           nodes%scaleRadius=nodes%scaleRadius*unitConversionLength
           if (scaleFactorExponentLength /= 0) then
              do iNode=1,nodeCount(1)
-                nodes(iNode)%scaleRadius=nodes(iNode)%scaleRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+                nodes(iNode)%scaleRadius=nodes(iNode)%scaleRadius*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
              end do
           end if
        else
@@ -1002,7 +1012,7 @@ contains
           nodes%halfMassRadius=nodes%halfMassRadius*unitConversionLength
           if (scaleFactorExponentLength /= 0) then
              do iNode=1,nodeCount(1)
-                nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+                nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
              end do
           end if
        end if
@@ -1014,7 +1024,7 @@ contains
        scaleFactorExponentAngularMomentum=scaleFactorExponentLength+scaleFactorExponentVelocity+scaleFactorExponentMass
        if (scaleFactorExponentAngularMomentum /= 0) then
           do iNode=1,nodeCount(1)
-             angularMomentum(:,iNode)=angularMomentum(:,iNode)*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentAngularMomentum
+             angularMomentum(:,iNode)=angularMomentum(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentAngularMomentum
           end do
        end if
        ! Transfer to nodes.
@@ -1119,16 +1129,19 @@ contains
     !% Read data on particle positions/velocities.
     use Cosmology_Functions
     implicit none
-    type            (nodeData    )             , dimension(:)  , intent(inout) :: nodes
-    integer         (kind=HSIZE_T)             , dimension(1)  , intent(in   ) :: firstNodeIndex, nodeCount
-    double precision              , allocatable, dimension(:,:), intent(inout) :: position      , velocity
-    integer         (kind=HSIZE_T)                                             :: iNode
+    type            (nodeData               )             , dimension(:)  , intent(inout) :: nodes
+    integer         (kind=HSIZE_T           )             , dimension(1)  , intent(in   ) :: firstNodeIndex           , nodeCount
+    double precision                         , allocatable, dimension(:,:), intent(inout) :: position                 , velocity
+    class           (cosmologyFunctionsClass), pointer                                    :: cosmologyFunctionsDefault
+    integer         (kind=HSIZE_T           )                                             :: iNode
 
     ! Initial particle data to null values.
     nodes%particleIndexStart=-1_kind_int8
     nodes%particleIndexCount=-1_kind_int8
 
     if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        !$omp critical(HDF5_Access)
        ! position.
        call haloTreesGroup%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
@@ -1144,13 +1157,13 @@ contains
        position=position*unitConversionLength
        if (scaleFactorExponentLength   /= 0) then
           do iNode=1,nodeCount(1)
-             position(:,iNode)=position(:,iNode)*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
+             position(:,iNode)=position(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
           end do
        end if
        velocity=velocity*unitConversionVelocity
        if (scaleFactorExponentVelocity /= 0) then
           do iNode=1,nodeCount(1)
-             velocity(:,iNode)=velocity(:,iNode)*Expansion_Factor(nodes(iNode)%nodeTime)**scaleFactorExponentVelocity
+             velocity(:,iNode)=velocity(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentVelocity
           end do
        end if
        ! Transfer to nodes.
@@ -1798,33 +1811,34 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type            (nodeData              )                    , dimension(:), intent(inout) , target::                         nodes
-    type            (treeNodeList          )                    , dimension(:), intent(inout) ::      nodeList
-    integer         (kind=kind_int8        )                                  , intent(  out) ::      historyCountMaximum
-    type            (nodeData              )           , pointer                              ::      thisNode
-    type            (treeNode              )           , pointer                              ::      firstProgenitor                         , hostNode                    , &
-         &                                                                                            orbitalPartner                          , satelliteNode
-    double precision                        , parameter                                       ::      timeUntilMergingInfinite        =1.0d30
-    double precision                                            , dimension(3)                ::      hostPosition                            , relativePosition            , &
-         &                                                                                            satellitePosition
-    double precision                                            , dimension(3)                ::      hostVelocity                            , relativeVelocity            , &
-         &                                                                                            satelliteVelocity
-    logical                                 , parameter                                       ::      acceptUnboundOrbits             =.false.
-    class           (nodeComponentBasic    )           , pointer                              ::      childBasicComponent                     , orbitalPartnerBasicComponent, &
-         &                                                                                            satelliteBasicComponent                 , thisBasicComponent
-    class           (nodeComponentPosition )           , pointer                              ::      childPositionComponent                  , hostPositionComponent       , &
-         &                                                                                            satellitePositionComponent              , thisPositionComponent
-    class           (nodeComponentSatellite)           , pointer                              ::      satelliteSatelliteComponent             , thisSatelliteComponent
-    type            (keplerOrbit           )                                                  ::      thisOrbit
-    integer                                                                                   ::      descendentIndex                         , iNode
-    integer         (kind=kind_int8        )                                                  ::      descendentLocation                      , historyCount                , &
-         &                                                                                            iIsolatedNode
-    logical                                                                                   ::      branchMerges                            , branchTipReached            , &
-         &                                                                                            descendentsFound                        , endOfBranch                 , &
-         &                                                                                            isolatedProgenitorExists                , nodeWillMerge
-    double precision                                                                          ::      radiusApocenter                         , radiusPericenter            , &
-         &                                                                                            radiusVirial                            , timeSubhaloMerges
-    type            (varying_string        )                                                  ::      message
+    type            (nodeData               )                    , dimension(:), intent(inout) , target::                         nodes
+    type            (treeNodeList           )                    , dimension(:), intent(inout) ::      nodeList
+    integer         (kind=kind_int8         )                                  , intent(  out) ::      historyCountMaximum
+    type            (nodeData               )           , pointer                              ::      thisNode
+    type            (treeNode               )           , pointer                              ::      firstProgenitor                         , hostNode                    , &
+         &                                                                                             orbitalPartner                          , satelliteNode
+    double precision                         , parameter                                       ::      timeUntilMergingInfinite        =1.0d30
+    double precision                                             , dimension(3)                ::      hostPosition                            , relativePosition            , &
+         &                                                                                             satellitePosition
+    double precision                                             , dimension(3)                ::      hostVelocity                            , relativeVelocity            , &
+         &                                                                                             satelliteVelocity
+    logical                                  , parameter                                       ::      acceptUnboundOrbits             =.false.
+    class           (nodeComponentBasic     )           , pointer                              ::      childBasicComponent                     , orbitalPartnerBasicComponent, &
+         &                                                                                             satelliteBasicComponent                 , thisBasicComponent
+    class           (nodeComponentPosition  )           , pointer                              ::      childPositionComponent                  , hostPositionComponent       , &
+         &                                                                                             satellitePositionComponent              , thisPositionComponent
+    class           (nodeComponentSatellite )           , pointer                              ::      satelliteSatelliteComponent             , thisSatelliteComponent
+    class           (cosmologyFunctionsClass)           , pointer                              ::      cosmologyFunctionsDefault
+    type            (keplerOrbit            )                                                  ::      thisOrbit
+    integer                                                                                    ::      descendentIndex                         , iNode
+    integer         (kind=kind_int8         )                                                  ::      descendentLocation                      , historyCount                , &
+         &                                                                                             iIsolatedNode
+    logical                                                                                    ::      branchMerges                            , branchTipReached            , &
+         &                                                                                             descendentsFound                        , endOfBranch                 , &
+         &                                                                                             isolatedProgenitorExists                , nodeWillMerge
+    double precision                                                                           ::      radiusApocenter                         , radiusPericenter            , &
+         &                                                                                             radiusVirial                            , timeSubhaloMerges
+    type            (varying_string         )                                                  ::      message
 
     historyCountMaximum  = 0
     nodes%mergesWithIndex=-1
@@ -1994,7 +2008,9 @@ contains
 
     ! Set orbits.
     if (mergerTreeReadPresetOrbits) then
-       iIsolatedNode=0
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
+      iIsolatedNode=0
        do iNode=1,size(nodes)
           if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
@@ -2037,7 +2053,7 @@ contains
                    relativePosition=mod(relativePosition-0.5d0*lengthSimulationBox,lengthSimulationBox)+0.5d0*lengthSimulationBox
                 end if
                 ! Account for Hubble flow.
-                if (.not.velocitiesIncludeHubbleFlow) relativeVelocity=relativeVelocity+relativePosition*Hubble_Parameter(tCosmological=satelliteBasicComponent%time())
+                if (.not.velocitiesIncludeHubbleFlow) relativeVelocity=relativeVelocity+relativePosition*cosmologyFunctionsDefault%hubbleParameterEpochal(time=satelliteBasicComponent%time())
                 ! Create the orbit.
                 call thisOrbit%reset()
                 call thisOrbit%massesSet            (                                     &
@@ -2299,26 +2315,30 @@ contains
     use Cosmology_Functions
     use Histories
     implicit none
-    type            (nodeData              )         , dimension(:  ), intent(inout), target :: nodes
-    type            (treeNodeList          )         , dimension(:  ), intent(inout)         :: nodeList
-    double precision                                 , dimension(:  ), intent(inout)         :: historyMass           , historyTime
-    double precision                                 , dimension(:,:), intent(inout)         :: position              , velocity
-    type            (nodeData              ), pointer                                        :: thisNode
-    type            (treeNode              ), pointer                                        :: firstProgenitor
-    class           (nodeComponentSatellite), pointer                                        :: thisSatelliteComponent
-    class           (nodeComponentPosition ), pointer                                        :: thisPositionComponent
-    integer         (kind=kind_int8        )                                                 :: descendentLocation    , historyCount, iIsolatedNode, &
-         &                                                                                      iTime
-    integer                                                                                  :: descendentIndex       , iAxis       , iNode
-    logical                                                                                  :: descendentsFound      , endOfBranch
-    double precision                                                                         :: expansionFactor
-    type            (varying_string        )                                                 :: message
-    type            (history               )                                                 :: subhaloHistory
+    type            (nodeData               )         , dimension(:  ), intent(inout), target :: nodes
+    type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList
+    double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime
+    double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity
+    type            (nodeData               ), pointer                                        :: thisNode
+    type            (treeNode               ), pointer                                        :: firstProgenitor
+    class           (nodeComponentSatellite ), pointer                                        :: thisSatelliteComponent
+    class           (nodeComponentPosition  ), pointer                                        :: thisPositionComponent
+    class           (cosmologyFunctionsClass), pointer                                        :: cosmologyFunctionsDefault
+    integer         (kind=kind_int8         )                                                 :: descendentLocation       , historyCount, &
+         &                                                                                       iIsolatedNode            , iTime
+    integer                                                                                   :: descendentIndex          , iAxis       , &
+         &                                                                                       iNode
+    logical                                                                                   :: descendentsFound         , endOfBranch
+    double precision                                                                          :: expansionFactor
+    type            (varying_string         )                                                 :: message
+    type            (history                )                                                 :: subhaloHistory
 
     if (mergerTreeReadPresetSubhaloMasses.or.mergerTreeReadPresetPositions) then
        ! Check that preset subhalo masses are supported.
        if (mergerTreeReadPresetSubhaloMasses.and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
             & call Galacticus_Error_Report('Merger_Tree_Read_Do','presetting subhalo masses requires a component that supports setting of node bound mass histories')
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        historyBuildNodeLoop: do iNode=1,size(nodes)
           historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeIsUnreachable) then
              iIsolatedNode=nodes(iNode)%primaryIsolatedNodeIndex
@@ -2420,13 +2440,13 @@ contains
                          ! Get the cosmic age and expansion factor.
                          select case (particleEpochType)
                          case (particleEpochTypeTime           )
-                            expansionFactor=Expansion_Factor(historyTime(iTime))
+                            expansionFactor=cosmologyFunctionsDefault%expansionFactor(historyTime(iTime))
                          case (particleEpochTypeExpansionFactor)
                             expansionFactor=historyTime(iTime)
-                            historyTime(iTime)=Cosmology_Age(expansionFactor)
+                            historyTime(iTime)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
                          case (particleEpochTypeRedshift       )
-                            expansionFactor=Expansion_Factor_from_Redshift(historyTime(iTime))
-                            historyTime(iTime)=Cosmology_Age(expansionFactor)
+                            expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(historyTime(iTime))
+                            historyTime(iTime)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
                          end select
                          ! Convert position units.
                          position(:,iTime)=position(:,iTime)*unitConversionLength

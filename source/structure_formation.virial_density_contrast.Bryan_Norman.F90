@@ -41,17 +41,20 @@ contains
     use ISO_Varying_String
     use Numerical_Comparison
     use Galacticus_Error
-    use Cosmological_Parameters
+    use Cosmology_Parameters
    implicit none
     type     (varying_string             ), intent(in   )          :: virialDensityContrastMethod
     procedure(Virial_Density_Bryan_Norman), intent(inout), pointer :: Virial_Density_Contrast_Tabulate
+    class    (cosmologyParametersClass   )               , pointer :: thisCosmologyParameters
 
     if (virialDensityContrastMethod == 'Bryan-Norman1998') then
        Virial_Density_Contrast_Tabulate => Virial_Density_Bryan_Norman
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Check that fitting formulae are applicable to this cosmology.
-       if (Omega_DE() == 0.0d0) then
+       if (thisCosmologyParameters%OmegaDarkEnergy() == 0.0d0) then
           fitType=fitTypeZeroLambda
-       else if (.not.Values_Differ(Omega_Matter()+Omega_DE(),1.0d0,absTol=1.0d-6)) then
+       else if (.not.Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-6)) then
           fitType=fitTypeFlatUniverse
        else
           call Galacticus_Error_Report('Virial_Density_Bryan_Norman_Initialize','no fitting formula available for this cosmology')
@@ -66,10 +69,11 @@ contains
     use Numerical_Constants_Math
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
-    integer                                               :: deltaTableNumberPoints, iTime
-    double precision                                      :: x
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
+    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+    integer                                                               :: deltaTableNumberPoints   , iTime
+    double precision                                                      :: x
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -85,16 +89,18 @@ contains
     allocate(table1DLogarithmicLinear :: deltaVirialTable)
     select type (deltaVirialTable)
     type is (table1DLogarithmicLinear)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Create the table.
        call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Evaluate the fitting formulae of Bryan & Norman at each time to get the density contrast.
        do iTime=1,deltaTableNumberPoints
-          x=Omega_Matter_Total(deltaVirialTable%x(iTime))-1.0d0
+          x=cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))-1.0d0
           select case (fitType)
           case (fitTypeZeroLambda)
-             call deltaVirialTable%populate((18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/Omega_Matter_Total(deltaVirialTable%x(iTime)),iTime)
+             call deltaVirialTable%populate((18.0d0*Pi**2+60.0d0*x-32.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime)),iTime)
           case (fitTypeFlatUniverse)
-             call deltaVirialTable%populate((18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/Omega_Matter_Total(deltaVirialTable%x(iTime)),iTime)
+             call deltaVirialTable%populate((18.0d0*Pi**2+82.0d0*x-39.0d0*x**2)/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime)),iTime)
           end select
        end do
     end select

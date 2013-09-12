@@ -46,10 +46,10 @@ contains
     use Galacticus_Nodes
     use Input_Parameters
     implicit none
-    type   (mergerTree        ), intent(in   ), target :: thisTree
-    type   (treeNode          ), pointer               :: nextNode   , previousNode, thisNode, essentialNode
-    class  (nodeComponentBasic), pointer               :: thisBasic
-    type   (mergerTree        ), pointer               :: currentTree
+    type (mergerTree        ), intent(in   ), target :: thisTree
+    type (treeNode          ), pointer               :: essentialNode, nextNode, previousNode, thisNode
+    class(nodeComponentBasic), pointer               :: thisBasic
+    type (mergerTree        ), pointer               :: currentTree
 
     ! Check if module is initialized.
     if (.not.pruneNonEssentialModuleInitialized) then
@@ -107,8 +107,8 @@ contains
           do while (thisBasic%time() < mergerTreePruningNonEssentialTime .and. associated(essentialNode%parent))
              essentialNode => essentialNode%parent
              thisBasic => essentialNode%basic()
-          end do          
-          
+          end do
+
           ! Get root node of the tree.
           thisNode => currentTree%baseNode
           ! Walk the tree, pruning branches.
@@ -122,7 +122,7 @@ contains
                   &    .or.                                         &
                   &     essentialNode%isProgenitorOf(     thisNode) &
                   &   )                                             &
-                  & ) then               
+                  & ) then
                 ! Decouple from other nodes.
                 if (thisNode%isPrimaryProgenitorOf(previousNode)) then
                    previousNode%firstChild => thisNode%sibling

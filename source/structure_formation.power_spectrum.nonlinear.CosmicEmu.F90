@@ -53,7 +53,7 @@ contains
   double precision function Power_Spectrum_Nonlinear_CosmicEmu(waveNumber,time)
     !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
     use Numerical_Interpolation
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Galacticus_Error
     use FoX_wxml
@@ -82,10 +82,10 @@ contains
 
        ! Store the new time and find the corresponding redshift.
        timePrevious=time
-       redshift=Redshift_from_Expansion_Factor(Expansion_Factor(time))
+       redshift=Redshift_from_cosmologyFunctionsDefault%expansionFactor(cosmologyFunctionsDefault%expansionFactor(time))
 
        ! Check that this is a flat cosmology.
-       if (Values_Differ(Omega_Matter()+Omega_DE(),1.0d0,absTol=1.0d-3))                                       &
+       if (Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-3))                                       &
             & call Galacticus_Error_Report(                                                                    &
             &                              'Power_Spectrum_Nonlinear_CosmicEmu'                              , &
             &                              'this method is applicable only to flat matter+dark energy models'  &
@@ -109,7 +109,7 @@ contains
        parameterFile    ="powerSpectrumParameters.xml"
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
-       write (parameterLabel,'(f5.3)') Omega_Matter()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
        call Write_Parameter(parameterDoc,"Omega_Matter"             ,parameterLabel)
        write (parameterLabel,'(f6.4)') Omega_b     ()
        call Write_Parameter(parameterDoc,"Omega_b"                  ,parameterLabel)
@@ -141,7 +141,7 @@ contains
           if (powerSpectrumLine(1:1) == "#") then
              if (powerSpectrumLine(1:33) == "# dimensionless Hubble parameter") then
                 read (powerSpectrumLine(index(powerSpectrumLine,":")+1:),*) littleHubbleCMB
-                if (Values_Differ(littleHubbleCMB,Little_H_0(),relTol=1.0d-2)) &
+                if (Values_Differ(littleHubbleCMB,thisCosmologyParameters%HubbleConstant(unitsLittleH),relTol=1.0d-2)) &
                      call Galacticus_Error_Report(                                                                         &
                      &                            'Power_Spectrum_Nonlinear_CosmicEmu'                                   , &
                      &                            'values of H_0 in Galacticus and CosmicEmu are significantly different'  &

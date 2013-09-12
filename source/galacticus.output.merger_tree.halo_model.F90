@@ -339,16 +339,18 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    type            (treeNode          ), intent(inout), pointer      :: thisNode
-    integer                             , intent(in   )               :: iOutput
-    integer         (kind=kind_int8    ), intent(in   )               :: treeIndex
-    logical                             , intent(in   )               :: nodePassesFilter
-    class           (nodeComponentBasic)               , pointer      :: thisBasicComponent
-    double precision                    , allocatable  , dimension(:) :: fourierProfile
-    integer                                                           :: iWavenumber
-    double precision                                                  :: expansionFactor
-    type            (varying_string    )                              :: groupName
-    type            (hdf5Object        )                              :: outputGroup       , profilesGroup, treeGroup
+    type            (treeNode               ), intent(inout), pointer      :: thisNode
+    integer                                  , intent(in   )               :: iOutput
+    integer         (kind=kind_int8         ), intent(in   )               :: treeIndex
+    logical                                  , intent(in   )               :: nodePassesFilter
+    class           (nodeComponentBasic     )               , pointer      :: thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctionsDefault
+    double precision                         , allocatable  , dimension(:) :: fourierProfile
+    integer                                                                :: iWavenumber
+    double precision                                                       :: expansionFactor
+    type            (varying_string         )                              :: groupName
+    type            (hdf5Object             )                              :: outputGroup              , profilesGroup, &
+         &                                                                    treeGroup
 
     ! If halo model output was requested, output the Fourier-space halo profiles.
     if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
@@ -366,8 +368,10 @@ contains
        call Alloc_Array(fourierProfile,[wavenumberCount])
        ! Get the basic component.
        thisBasicComponent => thisNode%basic()
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Get the expansion factor.
-       expansionFactor=Expansion_Factor(thisBasicComponent%time())
+       expansionFactor=cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount

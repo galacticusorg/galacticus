@@ -190,14 +190,16 @@ contains
 
   double precision function Dark_Matter_Halo_Mean_Density(thisNode)
     !% Returns the mean density for {\tt thisNode}.
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    integer                                                      :: i                 , meanDensityTablePoints
-    double precision                                             :: time
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass )               , pointer :: cosmologyFunctionsDefault
+    integer                                                            :: i                        , meanDensityTablePoints
+    double precision                                                   :: time
 
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
@@ -217,8 +219,12 @@ contains
        meanDensityTablePoints=int(log10(meanDensityTimeMaximum/meanDensityTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
        call meanDensityTable%destroy()
        call meanDensityTable%create(meanDensityTimeMinimum,meanDensityTimeMaximum,meanDensityTablePoints)
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        do i=1,meanDensityTablePoints
-          call meanDensityTable%populate(Halo_Virial_Density_Contrast(meanDensityTable%x(i))*Omega_Matter()*Critical_Density()/Expansion_Factor(meanDensityTable%x(i))**3,i)
+          call meanDensityTable%populate(Halo_Virial_Density_Contrast(meanDensityTable%x(i))*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/cosmologyFunctionsDefault%expansionFactor(meanDensityTable%x(i))**3,i)
        end do
     end if
     ! Return the stored value.
@@ -231,10 +237,11 @@ contains
     use Cosmology_Functions
     use Virial_Density_Contrast
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: aExpansion               , time
-    double precision                    , save                   :: densityGrowthRatePrevious, timePrevious=-1.0d0
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                                                  :: aExpansion               , time
+    double precision                         , save                   :: densityGrowthRatePrevious, timePrevious=-1.0d0
     !$omp threadprivate(timePrevious,densityGrowthRatePrevious)
     if (thisNode%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
@@ -248,12 +255,14 @@ contains
        if (time /= timePrevious) then
           ! It is not, so recompute the density growth rate.
           timePrevious=time
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
           ! Get the expansion factor at this time.
-          aExpansion=Expansion_Factor(time)
+          aExpansion=cosmologyFunctionsDefault%expansionFactor(time)
           ! Compute growth rate of its mean density based on mean cosmological density and overdensity of a collapsing halo.
           densityGrowthRatePrevious=Dark_Matter_Halo_Mean_Density(thisNode)&
                &*(Halo_Virial_Density_Contrast_Rate_of_Change(time)/Halo_Virial_Density_Contrast(time)-3.0d0&
-               &*Expansion_Rate(aExpansion))
+               &*cosmologyFunctionsDefault%expansionRate(aExpansion))
        end if
        ! Return the stored value.
        Dark_Matter_Halo_Mean_Density_Growth_Rate=densityGrowthRatePrevious

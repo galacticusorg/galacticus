@@ -387,10 +387,10 @@ contains
     use FoX_DOM
     use Galacticus_Error
     implicit none
-    class    (keplerOrbit), intent(inout)               :: self
-    type     (node       ), pointer                     :: keplerOrbitDefinition
-    type     (node       ), pointer                     :: property
-    type     (nodeList   ), pointer                     :: propertyList
+    class(keplerOrbit), intent(inout) :: self
+    type (node       ), pointer       :: keplerOrbitDefinition
+    type (node       ), pointer       :: property
+    type (nodeList   ), pointer       :: propertyList
     character(len=18     ), parameter    , dimension(5) :: propertyNames=                       &
          &                                                               [                      &
          &                                                                'massHost          ', &
@@ -399,9 +399,9 @@ contains
          &                                                                'velocityTangential', &
          &                                                                'radius            '  &
          &                                                               ]
-    integer                                             :: i
-    double precision                                    :: propertyValue,massHost,massSatellite
-    logical                                             :: massHostSet,massSatelliteSet
+    integer          :: i
+    double precision :: massHost   , massSatellite   , propertyValue
+    logical          :: massHostSet, massSatelliteSet
 
     ! Get the radius.
     do i=1,size(propertyNames)

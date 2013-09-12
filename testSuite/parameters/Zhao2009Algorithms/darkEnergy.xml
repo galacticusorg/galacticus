@@ -1,7 +1,7 @@
 <!-- Parameter file used for testing Zhao et al. 2009 algorithms in a dark energy universe model. -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
+    <name>cosmologyFunctionsMethod</name>
     <value>matter-lambda</value>
   </parameter>
   <parameter>

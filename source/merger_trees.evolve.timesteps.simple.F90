@@ -43,15 +43,16 @@ contains
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode          ), intent(inout)          , pointer :: thisNode
-    procedure       (                  ), intent(inout)          , pointer :: End_Of_Timestep_Task
-    double precision                    , intent(inout)                    :: timeStep
-    logical                             , intent(in   )                    :: report
-    type            (treeNode          ), intent(inout), optional, pointer :: lockNode
-    type            (varying_string    ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
-    double precision                                                       :: expansionFactor     , expansionTimescale, ourTimeStep, &
-         &                                                                    time
+    type            (treeNode               ), intent(inout)          , pointer :: thisNode
+    procedure       (                       ), intent(inout)          , pointer :: End_Of_Timestep_Task
+    double precision                         , intent(inout)                    :: timeStep
+    logical                                  , intent(in   )                    :: report
+    type            (treeNode               ), intent(inout), optional, pointer :: lockNode
+    type            (varying_string         ), intent(inout), optional          :: lockType
+    class           (nodeComponentBasic     )                         , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctionsDefault
+    double precision                                                            :: expansionFactor          , expansionTimescale, &
+         &                                                                         ourTimeStep              , time
 
     if (.not.timestepSimpleInitialized) then
        !$omp critical (timestepSimpleInitialize)
@@ -85,13 +86,16 @@ contains
        !$omp end critical (timestepSimpleInitialize)
     end if
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
+
     ! Get current cosmic time.
     thisBasicComponent => thisNode%basic()
     time=thisBasicComponent%time()
 
     ! Find current expansion timescale.
-    expansionFactor=Expansion_Factor(time)
-    expansionTimescale=1.0d0/Expansion_Rate(expansionFactor)
+    expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
+    expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
 
     ! Determine suitable timestep.
     ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)

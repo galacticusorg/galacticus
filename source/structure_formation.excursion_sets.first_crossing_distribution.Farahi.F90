@@ -285,20 +285,21 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    double precision                , intent(in   )               :: time                             , varianceProgenitor
-    double precision                , parameter                   :: varianceMinimumDefault    =1.0d-2
-    double precision                , parameter                   :: varianceTolerance         =1.0d-6
-    real            (kind=kind_quad), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
-         &                                                           varianceTableRateQuad
-    logical                                                       :: makeTable
-    integer                                                       :: i                                , iTime                    , &
-         &                                                           iVariance                        , j                        , &
-         &                                                           loopCount                        , loopCountTotal
-    double precision                                              :: timeProgenitor                   , varianceMinimumRate
-    character       (len=6         )                              :: label
-    type            (varying_string)                              :: message
-    real            (kind=kind_quad)                              :: crossingFraction                 , effectiveBarrierInitial  , &
-         &                                                           sigma1f                          , varianceTableStepRate
+    double precision                         , intent(in   )               :: time                             , varianceProgenitor
+    double precision                         , parameter                   :: varianceMinimumDefault    =1.0d-2
+    double precision                         , parameter                   :: varianceTolerance         =1.0d-6
+    real            (kind=kind_quad         ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
+         &                                                                    varianceTableRateQuad
+    class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctionsDefault
+    logical                                                                :: makeTable
+    integer                                                                :: i                                , iTime                    , &
+         &                                                                    iVariance                        , j                        , &
+         &                                                                    loopCount                        , loopCountTotal
+    double precision                                                       :: timeProgenitor                   , varianceMinimumRate
+    character       (len=6                  )                              :: label
+    type            (varying_string         )                              :: message
+    real            (kind=kind_quad         )                              :: crossingFraction                 , effectiveBarrierInitial  , &
+         &                                                                    sigma1f                          , varianceTableStepRate
 
     ! Determine if we need to make the table.
     !$omp critical (Excursion_Sets_First_Crossing_Probability_Farahi_Init)
@@ -317,8 +318,10 @@ contains
           timeMaximumRate   =max(timeMaximumRate,2.0d0*time)
           timeTableCountRate=int(log10(timeMaximumRate/timeMinimumRate)*dble(timeTableNumberPerDecade))+1
        else
-          timeMinimumRate   =Cosmology_Age(Expansion_Factor_From_Redshift(redshiftMaximumRate))
-          timeMaximumRate   =Cosmology_Age(Expansion_Factor_From_Redshift(redshiftMinimumRate))
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          timeMinimumRate   =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximumRate))
+          timeMaximumRate   =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimumRate))
           timeMinimumRate   =min(timeMinimumRate,0.5d0*time)
           timeMaximumRate   =max(timeMaximumRate,2.0d0*time)
           timeTableCountRate=max(int(log10(timeMaximumRate/timeMinimumRate)*dble(timeTableNumberPerDecade))+1,2)

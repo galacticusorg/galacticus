@@ -31,13 +31,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   use Critical_Overdensity
   use Linear_Growth
   implicit none
-  double precision                , dimension(7) :: redshift           =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
-  type            (varying_string)               :: parameterFile
-  character       (len=1024      )               :: message
-  integer                                        :: iExpansion
-  double precision                               :: age                                                               , alpha                      , &
-       &                                            criticalOverdensity                                               , criticalOverdensityExpected, &
-       &                                            expansionFactor                                                   , omega
+  double precision                         , dimension(7) :: redshift                 =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
+  class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  type            (varying_string         )               :: parameterFile
+  character       (len=1024               )               :: message
+  integer                                                 :: iExpansion
+  double precision                                        :: age                                                                     , alpha                      , &
+       &                                                     criticalOverdensity                                                     , criticalOverdensityExpected, &
+       &                                                     expansionFactor                                                         , omega
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.size')
@@ -48,14 +49,16 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Two_Thirds
   ! Test spherical collapse in a flat universe.
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminusTwoThirds.xml'
   call Input_Parameters_File_Open(parameterFile)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   do iExpansion=1,size(redshift)
-     expansionFactor            =Expansion_Factor_From_Redshift(redshift(iExpansion))
-     age                        =Cosmology_Age(expansionFactor)
+     expansionFactor            =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
+     age                        =cosmologyFunctionsDefault%cosmicTime(expansionFactor)
      criticalOverdensity        =Critical_Overdensity_for_Collapse(age)
-     omega                      =Cosmology_Dark_Energy_Equation_Of_State(age)
+     omega                      =cosmologyFunctionsDefault%equationOfStateDarkEnergy(age)
      alpha                      =0.353d0*omega**4+1.044d0*omega**3+1.128d0*omega**2+0.555d0*omega+0.131d0
-     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+alpha*log10(Omega_Matter_Total(age)))/Linear_Growth_Factor(age)
-     write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",Omega_Matter_Total(age),"]"
+     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+alpha*log10(cosmologyFunctionsDefault%omegaMatterEpochal(age)))/Linear_Growth_Factor(age)
+     write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensity,criticalOverdensityExpected,relTol=1.5d-3)
   end do
   call Input_Parameters_File_Close

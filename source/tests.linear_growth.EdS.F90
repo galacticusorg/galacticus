@@ -24,11 +24,12 @@ program Tests_Linear_Growth_EdS
   use Cosmology_Functions
   use Memory_Management
   implicit none
-  double precision                , dimension(8), parameter :: redshift       =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
-  type            (varying_string)                          :: parameterFile
-  character       (len=1024      )                          :: message
-  integer                                                   :: iExpansion
-  double precision                                          :: expansionFactor                                                          , linearGrowth
+  double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
+  class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+  type            (varying_string         )                          :: parameterFile
+  character       (len=1024               )                          :: message
+  integer                                                            :: iExpansion
+  double precision                                                   :: expansionFactor                                                                    , linearGrowth
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.linear_growth.EdS.size')
@@ -39,8 +40,10 @@ program Tests_Linear_Growth_EdS
   ! Test growth factor in an Einstein-de Sitter universe. Growth factor should equal the expansion factor.
   parameterFile='testSuite/parameters/linearGrowth/EdS.xml'
   call Input_Parameters_File_Open(parameterFile)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   do iExpansion=1,size(redshift)
-     expansionFactor=Expansion_Factor_From_Redshift(redshift(iExpansion))
+     expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowth=Linear_Growth_Factor(aExpansion=expansionFactor,component=linearGrowthComponentDarkMatter)
      write (message,'(a,f6.1,a)') "dark matter linear growth factor [z=",redshift(iExpansion),"]"
      call Assert(trim(message),linearGrowth,expansionFactor,relTol=1.0d-3)

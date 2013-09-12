@@ -87,12 +87,13 @@ contains
     use Galacticus_Display
     use Galacticus_Calculations_Resets
     implicit none
-    class           (nodeComponentBasic), pointer :: thisBasicComponent
-    integer                                       :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
-         &                                           iMass                       , iOutput                         , &
-         &                                           outputCount                 , verbosityLevel
-    double precision                              :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
-    type            (treeNode          ), pointer :: thisNode
+    class           (nodeComponentBasic     ), pointer :: thisBasicComponent
+    integer                                            :: haloMassFunctionsCount      , haloMassFunctionsPointsPerDecade, &
+         &                                                iMass                       , iOutput                         , &
+         &                                                outputCount                 , verbosityLevel
+    double precision                                   :: haloMassFunctionsMassMaximum, haloMassFunctionsMassMinimum
+    type            (treeNode               ), pointer :: thisNode
+    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
 
     ! Get the verbosity level parameter.
     !@ <inputParameter>
@@ -147,11 +148,12 @@ contains
     else
        call Get_Input_Parameter('outputRedshifts',outputRedshifts                     )
     end if
-
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputExpansionFactors     (iOutput)=Expansion_Factor_from_Redshift      (outputRedshifts       (iOutput))
-       outputTimes                (iOutput)=Cosmology_Age                       (outputExpansionFactors(iOutput))
+       outputExpansionFactors     (iOutput)=cosmologyFunctionsDefault%expansionFactorFromRedshift      (outputRedshifts       (iOutput))
+       outputTimes                (iOutput)=cosmologyFunctionsDefault%cosmicTime                       (outputExpansionFactors(iOutput))
        outputGrowthFactors        (iOutput)=Linear_Growth_Factor                (outputTimes           (iOutput))
        outputCriticalOverdensities(iOutput)=Critical_Overdensity_for_Collapse   (outputTimes           (iOutput))
        outputVirialDensityContrast(iOutput)=Halo_Virial_Density_Contrast        (outputTimes           (iOutput))
