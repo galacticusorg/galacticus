@@ -45,6 +45,13 @@ while ( my $fileName = readdir(dirHndl) ) {
 	if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ );
 }
 closedir(dirHndl);
+opendir(dirHndl,$sourceDir."/../work/build");
+while ( my $fileName = readdir(dirHndl) ) {
+    # Find function definitions.
+    push(@fileNames,$sourceDir."/../work/build/".$fileName)
+	if ( $fileName =~ m/\.Inc$/ );
+}
+closedir(dirHndl);
 
 # Initialize data hashes.
 my %parametersRead;
