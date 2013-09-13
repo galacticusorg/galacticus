@@ -782,11 +782,11 @@
       <value>matterDarkEnergy</value>
     </parameter>
     <parameter>
-      <name>darkEnergyEquationOfStateOmega0</name>
+      <name>darkEnergyEquationOfStateW0</name>
       <value>-0.8</value>
     </parameter>
     <parameter>
-      <name>darkEnergyEquationOfStateOmega0</name>
+      <name>darkEnergyEquationOfStateW0</name>
       <value>0.1</value>
     </parameter>
     <parameter>
