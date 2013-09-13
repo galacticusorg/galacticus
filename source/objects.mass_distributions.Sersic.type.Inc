@@ -19,6 +19,21 @@ type, public, extends(massDistributionSpherical) :: massDistributionSersic
    !% The S\'ersic density profile.
    double precision :: densityNormalization, mass, radiusHalfMass
  contains
+   !@ <objectMethods>
+   !@   <object>massDistributionSersic</object>
+   !@   <objectMethod>
+   !@     <method>initialize</method>
+   !@     <description>Initialize the mass distribution.</description>
+   !@     <type>\void</type>
+   !@     <arguments>\doublezero index\argin, \doublezero halfMassRadius\argin, \doublezero densityNormalization\argin, \doublezero mass\argin, \logicalzero\ isDimensionless\argin</arguments>
+   !@   </objectMethod>
+   !@   <objectMethod>
+   !@     <method>halfMassRadiusProjected</method>
+   !@     <description>Return the half mass radius of the profile in projection.</description>
+   !@     <type>\doublezero</type>
+   !@     <arguments></arguments>
+   !@   </objectMethod>
+   !@ </objectMethods>
    procedure :: initialize             =>Mass_Distribution_Sersic_Initialize
    procedure :: density                =>Mass_Distribution_Sersic_Density
    procedure :: densityRadialMoment    =>Mass_Distribution_Sersic_Density_Radial_Moment
