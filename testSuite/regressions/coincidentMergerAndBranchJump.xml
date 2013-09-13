@@ -51,7 +51,7 @@
   <!-- Cosmological parameters and options -->
   <parameter>
     <name>cosmologyFunctionsMethod</name>
-    <value>matter-lambda</value>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>H_0</name>
