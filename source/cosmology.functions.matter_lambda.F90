@@ -36,8 +36,8 @@
      class           (cosmologyParametersClass), pointer                   :: cosmology
      logical                                                               :: collapsingUniverse                        =.false.
      integer                                                               :: iTableTurnaround
-     double precision                                                      :: expansionFactorMaximum                            , expansionFactorPrevious                       , &
-          &                                                                   timeMaximum                                       , timePrevious                                  , &
+     double precision                                                      :: expansionFactorMaximum                            , expansionFactorPrevious                =-1.0d0, &
+          &                                                                   timeMaximum                                       , timePrevious                           =-1.0d0, &
           &                                                                   timeTurnaround
      logical                                                               :: ageTableInitialized                       =.false.
      integer                                                               :: ageTableNumberPoints
@@ -822,7 +822,6 @@ contains
 
     ! Quit on invalid input.
     if (comovingDistance < 0.0d0) call Galacticus_Error_Report('matterLambdaTimeFromComovingDistance','comoving distance must be positive')
-    !$omp critical(matterLambdaDistanceInitialize)
     ! Check if we need to recompute our table.
     remakeTable=.true.
     do while (remakeTable)
@@ -836,7 +835,6 @@ contains
        ! Remake table if necessary.
        if (remakeTable) call self%distanceTabulate(time)
     end do
-    !$omp end critical(matterLambdaDistanceInitialize)
     ! Interpolate to get the comoving distance.
     matterLambdaTimeAtDistanceComoving                                &
          & =Interpolate(                                              &
@@ -863,7 +861,6 @@ contains
     ! Quit on invalid input.
     if (time <                 0.0d0 ) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be positive'   )
     if (time > self%cosmicTime(1.0d0)) call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time must be in the past')
-    !$omp critical(matterLambdaDistanceInitialize)
     ! Check if we need to recompute our table.
     if (self%distanceTableInitialized) then
        remakeTable=(time < self%distanceTableTime(1).or.time > self%distanceTableTime(self%distanceTableNumberPoints))
@@ -871,7 +868,6 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) call self%distanceTabulate(time)
-    !$omp end critical(matterLambdaDistanceInitialize)
     ! Quit on invalid input.
     if (self%collapsingUniverse.and.time>self%timeMaximum) &
          & call Galacticus_Error_Report('matterLambdaComovingDistance','cosmological time exceeds that at the Big Crunch')
@@ -901,19 +897,15 @@ contains
     logical                                                                   :: gotComovingDistance
     double precision                                                          :: comovingDistance   , luminosityDistance
 
-    !$omp critical(matterLambdaDistanceInitialize)
     ! Check if we need to recompute our table.
     if (.not.self%distanceTableInitialized) call self%distanceTabulate(self%cosmicTime(1.0d0))
-    !$omp end critical(matterLambdaDistanceInitialize)
     ! Convert to comoving distance from whatever was supplied.
     gotComovingDistance=.false.
     if (present(distanceModulus)) then
        luminosityDistance=10.0d0**((distanceModulus-25.0d0)/5.0d0)
-       !$omp critical(matterLambdaDistanceInitialize)
        do while (luminosityDistance > -self%distanceTableLuminosityDistanceNegated(1))
           call self%distanceTabulate(0.5d0*self%distanceTableTimeMinimum)
        end do
-       !$omp end critical(matterLambdaDistanceInitialize)
        comovingDistance                                                      &
             & =-Interpolate(                                                 &
             &               self%distanceTableNumberPoints                 , &
