@@ -34,6 +34,10 @@
   double precision            :: matterDarkEnergyDominateFactorCurrent
   !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
 
+  ! Default parameters of the dark energy equation of state
+  logical                     :: matterDarkEnergyDefaultsRead=.false.
+  double precision            :: matterDarkEnergyEquationOfStateW0Default, matterDarkEnergyEquationOfStateW1Default
+
   type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
      !% A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
      private
@@ -70,43 +74,49 @@ contains
     use Input_Parameters
     use Cosmology_Parameters
     implicit none
-    type            (cosmologyFunctionsMatterDarkEnergy), target  :: matterDarkEnergyDefaultConstructor
-    class           (cosmologyParametersClass          ), pointer :: thisCosmologyParameters
-    double precision                                              :: darkEnergyEquationOfStateW0       , darkEnergyEquationOfStateW1
+    type (cosmologyFunctionsMatterDarkEnergy), target  :: matterDarkEnergyDefaultConstructor
+    class(cosmologyParametersClass          ), pointer :: thisCosmologyParameters
 
+    if (.not.matterDarkEnergyDefaultsRead) then
+       !$omp critical(matterDarkEnergyDefaultConstructorParameters)
+       if (.not.matterDarkEnergyDefaultsRead) then
+          ! Read the dark energy equation of state.
+          !@ <inputParameter>
+          !@   <name>darkEnergyEquationOfStateW0</name>
+          !@   <defaultValue>-1 (cosmological constant)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkEnergyEquationOfStateW0',matterDarkEnergyEquationOfStateW0Default,defaultValue=-1.0d0)
+          !@ <inputParameter>
+          !@   <name>darkEnergyEquationOfStateW1</name>
+          !@   <defaultValue>0 (constant equation of state)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkEnergyEquationOfStateW1',matterDarkEnergyEquationOfStateW1Default,defaultValue=0.0d0)
+          matterDarkEnergyDefaultsRead=.true.
+       end if
+       !$omp end critical(matterDarkEnergyDefaultConstructorParameters)
+    end if
     ! Get the default cosmological parameters.
     thisCosmologyParameters => cosmologyParameters()
-    ! Read the dark energy equation of state.
-    !@ <inputParameter>
-    !@   <name>darkEnergyEquationOfStateW0</name>
-    !@   <defaultValue>-1 (cosmological constant)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('darkEnergyEquationOfStateW0',darkEnergyEquationOfStateW0,defaultValue=-1.0d0)
-    !@ <inputParameter>
-    !@   <name>darkEnergyEquationOfStateW1</name>
-    !@   <defaultValue>0 (constant equation of state)</defaultValue>
-    !@   <attachedTo>module</attachedTo>
-    !@   <description>
-    !@     The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-    !@   </description>
-    !@   <type>real</type>
-    !@   <cardinality>1</cardinality>
-    !@   <group>cosmology</group>
-    !@ </inputParameter>
-    call Get_Input_Parameter('darkEnergyEquationOfStateW1',darkEnergyEquationOfStateW1,defaultValue=0.0d0)
     ! Use it to construct a matter plus dark energy cosmological functions class.
-    matterDarkEnergyDefaultConstructor                               &
-         & =matterDarkEnergyConstructor(                             &
-         &                              thisCosmologyParameters    , &
-         &                              darkEnergyEquationOfStateW0, &
-         &                              darkEnergyEquationOfStateW1  &
+    matterDarkEnergyDefaultConstructor                                            &
+         & =matterDarkEnergyConstructor(                                          &
+         &                              thisCosmologyParameters                 , &
+         &                              matterDarkEnergyEquationOfStateW0Default, &
+         &                              matterDarkEnergyEquationOfStateW1Default  &
          &                             )
     return
   end function matterDarkEnergyDefaultConstructor
@@ -128,6 +138,8 @@ contains
     ! Store equation of state.
     matterDarkEnergyConstructor%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
     matterDarkEnergyConstructor%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
+    ! Force a build of the expansion factor table, which will determine if this Universe collapses.
+    call matterDarkEnergyConstructor%expansionFactorTabulate()
     return
   end function matterDarkEnergyConstructor
 
@@ -467,12 +479,14 @@ contains
           self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor
        end do
     end if
-    if (self%collapsingUniverse) self%ageTableTimeMaximum=min(self%ageTableTimeMaximum,self%timeTurnaround)
-
     ! Determine number of points to tabulate.
     self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)     *dble(matterDarkEnergyAgeTableNPointsPerDecade))+1
     self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
-
+    ! Assume this Universe does not collapse initially.
+    self%collapsingUniverse    =.false.
+    self%expansionFactorMaximum=0.0d0
+    self%timeTurnaround        =0.0d0
+    self%timeMaximum           =0.0d0
     ! Deallocate arrays if currently allocated.
     if (allocated(self%ageTableTime)) then
        ! Determine number of points that are being added at the start of the array.
