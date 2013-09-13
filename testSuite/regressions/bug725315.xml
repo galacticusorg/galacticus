@@ -93,7 +93,7 @@
   </parameter>
   <parameter>
     <name>cosmologyFunctionsMethod</name>
-    <value>matter-lambda</value>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>criticalOverdensityMethod</name>

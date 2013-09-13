@@ -3,10 +3,10 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
-# Ensure that nodeComponent and treeNode objects are built.
-make work/build/objects.nodes.components.Inc;
+# Ensure that nodeComponent and treeNode objects are built, along with any functions.
+make all
 if ( $? != 0 ) then
- echo Failed to build work/build/objects.nodes.components.Inc
+ echo Failed to build all executables
  exit 1
 endif
 
