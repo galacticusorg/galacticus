@@ -19,6 +19,15 @@ type, public, extends(massDistributionSpherical) :: massDistributionNFW
    !% The NFW \citep{navarro_structure_1996} density profile.
    double precision :: densityNormalization, scaleLength
  contains
+   !@ <objectMethods>
+   !@   <object>massDistributionNFW</object>
+   !@   <objectMethod>
+   !@     <method>initialize</method>
+   !@     <description>Initialize the mass distribution.</description>
+   !@     <type>\void</type>
+   !@     <arguments>\doublezero scaleLength\argin, \doublezero concentration\argin, \doublezero densityNormalization\argin, \doublezero mass\argin, \doublezero virialRadius\argin, \logicalzero\ isDimensionless\argin</arguments>
+   !@   </objectMethod>
+   !@ </objectMethods>
    procedure :: initialize=>Mass_Distribution_NFW_Initialize
    procedure :: density   =>Mass_Distribution_NFW_Density
 end type massDistributionNFW
