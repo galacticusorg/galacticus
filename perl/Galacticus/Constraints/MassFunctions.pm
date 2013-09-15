@@ -19,6 +19,8 @@ use Data::Dumper;
 use LaTeX::Encode;
 use XML::Simple;
 use Scalar::Util 'reftype';
+use Switch;
+use Astro::Cosmology;
 require Galacticus::HDF5;
 require Galacticus::StellarMass;
 require Galacticus::HIGasMass;
@@ -69,15 +71,6 @@ sub Construct {
     $config->{'y'          } = +10.0** $config->{'y'          }
         if ( $config->{'yScaling'} eq "log10" );
     
-    # Convert to Hubble constant of Galacticus model.
-    my $hubbleRatio             =  $galacticus->{'parameters'}->{'H_0'}/$config->{'hubbleConstantObserved'};
-    $config->{'x'          }   *=  $hubbleRatio**$config->{'massHubbleExponent'        };
-    $config->{'y'          }   *=  $hubbleRatio**$config->{'massFunctionHubbleExponent'};
-    $config->{'yUpperError'}   *=  $hubbleRatio**$config->{'massFunctionHubbleExponent'};
-    $config->{'yLowerError'}   *=  $hubbleRatio**$config->{'massFunctionHubbleExponent'};
-    $config->{'covariance' }   *= ($hubbleRatio**$config->{'massFunctionHubbleExponent'})**2
-	if ( exists($config->{'covariance'}) );
-
     # Convert from per log10(M) to per log(M) if necessary.
     if ( $config->{'yIsPer'} eq "log10" ) {
 	$config->{'y'          } /= log(10.0);
@@ -112,15 +105,37 @@ sub Construct {
     	    $errorGalacticus      = sqrt($covarianceGalacticus->diagonal(0,1));
     	}
     }
-
     # Read galaxy data and construct mass function if necessary.
     if ( $gotModelMassFunction == 0 ) {
 	$galacticus->{'tree'} = "all";
 	&HDF5::Count_Trees  ($galacticus                      );
 	&HDF5::Select_Output($galacticus,$config->{'redshift'});
 	&HDF5::Get_Dataset  ($galacticus,['mergerTreeWeight',$config->{'massType'}]);
-	my $dataSets        = $galacticus->{'dataSets'};
-	my $weight          = $dataSets->{'mergerTreeWeight'};
+	my $dataSets = $galacticus->{'dataSets'};
+	my $weight   = $dataSets->{'mergerTreeWeight'};
+	# Find cosmological conversion factors.
+	my $cosmologyObserved = Astro::Cosmology->new(omega_matter => $config->{'omegaMatterObserved'}, omega_lambda =>  $config->{'omegaDarkEnergyObserved'}, h0 =>  $config->{'hubbleConstantObserved'});
+	my $cosmologyModel    = Astro::Cosmology->new(omega_matter => $galacticus->{'parameters'}->{'Omega_Matter'}, omega_lambda => $galacticus->{'parameters'}->{'Omega_DE'}, h0 => $galacticus->{'parameters'}->{'H_0'});
+	my $cosmologyScalingMass        ;
+	my $cosmologyScalingMassFunction;
+	if ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'none' ) {
+	    # Nothing to do.
+	} elsif ( $config->{'cosmologyScalingMass'}->atstr(0) eq 'luminosity' ) {
+	    $cosmologyScalingMass = ($cosmologyObserved->luminosity_distance($config->{'redshift'})/$cosmologyModel->luminosity_distance($config->{'redshift'}))**2;
+	} else {
+	    die('MassFunctions::Construct: unrecognized cosmology scaling');
+	}
+	if ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'none' ) {
+	    # Nothing to do.
+	} elsif ( $config->{'cosmologyScalingMassFunction'}->atstr(0) eq 'inverseComovingVolume' ) {
+	    $cosmologyScalingMassFunction =
+		($cosmologyModel->comoving_distance($config->{'redshift'})/$cosmologyObserved->comoving_distance($config->{'redshift'}))**2
+		/($cosmologyModel->h0($config->{'redshift'})/$cosmologyObserved->h0($config->{'redshift'}))**2;
+	} else {
+	    die('MassFunctions::Construct: unrecognized cosmology scaling');
+	}
+	$dataSets->{$config->{'massType'}} *= $cosmologyScalingMass        ;
+	$weight                            *= $cosmologyScalingMassFunction;
 	# Map masses.
 	my $logarithmicMass;
 	if ( exists($config->{'massMap'}) ) {
@@ -277,7 +292,7 @@ sub Construct {
 	my ($gnuPlot, $plotFileEPS, $plot);
 	# Open a pipe to GnuPlot.
 	($plotFileEPS = $arguments{'plotFile'}) =~ s/\.pdf$/.eps/;
-	open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
+	open($gnuPlot,"|gnuplot ");#1>/dev/null 2>&1");
 	print $gnuPlot "set terminal epslatex color colortext lw 2 solid 7\n";
 	print $gnuPlot "set output '".$plotFileEPS."'\n";
 	print $gnuPlot "set lmargin screen 0.15\n";
@@ -321,7 +336,7 @@ sub Construct {
 	&PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
 	&LaTeX::GnuPlot2PDF($plotFileEPS,margin => 1);
-#    &MetaData::Write($arguments{'plotFile'},$galacticusFile,$self);
+
     }
 
 }
