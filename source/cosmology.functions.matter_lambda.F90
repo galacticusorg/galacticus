@@ -59,6 +59,21 @@
      logical                                                               :: resetInterpolationDistance                =.true. , resetInterpolationDistanceInverse      =.true., &
           &                                                                   resetInterpolationLuminosityDistance      =.true.
    contains
+     !@ <objectMethods>
+     !@   <object>cosmologyFunctionsMatterLambda</object>
+     !@   <objectMethod>
+     !@     <method>distancetabulate</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Tabulate comoving distance as a function of cosmic time.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>expansionFactorTabulate</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Tabulate expansion factor as a function of cosmic time.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      !# <workaround type="gfortran" PR="58356" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58356">
      !# final     :: matterLambdaDestructor
      !# </workaround>
