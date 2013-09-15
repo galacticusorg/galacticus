@@ -47,17 +47,19 @@ $massFunctionConfig->{'title'              } = "Stellar mass function at \$z\\ap
 my $xml          = new XML::Simple;
 my $observations = $xml->XMLin("data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_2013.xml");
 my $columns      = ${$observations->{'stellarMassFunction'}}[$entry]->{'columns'};
-$massFunctionConfig->{'x'                         } = pdl @{$columns->{'stellarMass' }->{'datum'}};
-$massFunctionConfig->{'y'                         } = pdl @{$columns->{'massFunction'}->{'datum'}};
-$massFunctionConfig->{'yUpperError'               } = pdl @{$columns->{'upperError'  }->{'datum'}};
-$massFunctionConfig->{'yLowerError'               } = pdl @{$columns->{'lowerError'  }->{'datum'}};
-$massFunctionConfig->{'yIsPer'                    } = "log10";
-$massFunctionConfig->{'xScaling'                  } = $columns->{'stellarMass' }->{'scaling'};
-$massFunctionConfig->{'yScaling'                  } = $columns->{'massFunction'}->{'scaling'};
-$massFunctionConfig->{'observationLabel'          } = $observations->{'label'};
-$massFunctionConfig->{'hubbleConstantObserved'    } = $columns->{'stellarMass' }->{'hubble'        };
-$massFunctionConfig->{'massHubbleExponent'        } = $columns->{'stellarMass' }->{'hubbleExponent'};
-$massFunctionConfig->{'massFunctionHubbleExponent'} = $columns->{'massFunction'}->{'hubbleExponent'};
+$massFunctionConfig->{'x'                           } = pdl @{$columns->{'stellarMass' }->{'datum'}};
+$massFunctionConfig->{'y'                           } = pdl @{$columns->{'massFunction'}->{'datum'}};
+$massFunctionConfig->{'yUpperError'                 } = pdl @{$columns->{'upperError'  }->{'datum'}};
+$massFunctionConfig->{'yLowerError'                 } = pdl @{$columns->{'lowerError'  }->{'datum'}};
+$massFunctionConfig->{'yIsPer'                      } = "log10";
+$massFunctionConfig->{'xScaling'                    } = $columns->{'stellarMass' }->{'scaling'};
+$massFunctionConfig->{'yScaling'                    } = $columns->{'massFunction'}->{'scaling'};
+$massFunctionConfig->{'observationLabel'            } = $observations->{'label'};
+$massFunctionConfig->{'hubbleConstantObserved'      } = $observations->{'cosmology'          }->{'hubble'          };
+$massFunctionConfig->{'omegaMatterObserved'         } = $observations->{'cosmology'          }->{'omegaMatter'     };
+$massFunctionConfig->{'omegaDarkEnergyObserved'     } = $observations->{'cosmology'          }->{'omegaDarkEnergy' };
+$massFunctionConfig->{'cosmologyScalingMass'        } = $columns     ->{'stellarMass'        }->{'cosmologyScaling'};
+$massFunctionConfig->{'cosmologyScalingMassFunction'} = $columns     ->{'stellarMassFunction'}->{'cosmologyScaling'}; 
 
 # Construct the mass function.
 &MassFunctions::Construct(\%arguments,$massFunctionConfig);
