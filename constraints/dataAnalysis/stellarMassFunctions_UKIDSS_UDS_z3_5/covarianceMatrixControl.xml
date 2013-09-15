@@ -1,0 +1,12 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Caputi et al. mass functions -->
+  <!-- Andrew Benson                                                          -->
+  <!-- 24-August-2012                                                         -->
+
+  <workDirectory>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/</workDirectory>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/bin%BINstage%STAGE/covarianceMatrix.xml</parameterFile>
+
+</constrain>
