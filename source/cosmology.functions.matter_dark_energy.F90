@@ -43,6 +43,15 @@
      private
      double precision :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
    contains
+     !@ <objectMethods>
+     !@   <object>cosmologyFunctionsMatterDarkEnergy</object>
+     !@   <objectMethod>
+     !@     <method>targetSelf</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Set a module-scope pointer to {\tt self}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: cosmicTime                   =>matterDarkEnergyCosmicTime
      procedure :: omegaDarkEnergyEpochal       =>matterDarkEnergyOmegaDarkEnergyEpochal
      procedure :: hubbleParameterEpochal       =>matterDarkEnergyHubbleParameterEpochal

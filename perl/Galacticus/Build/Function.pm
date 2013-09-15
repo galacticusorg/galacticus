@@ -156,6 +156,56 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
     $buildData->{'content'} .= "    contains\n";
+    $buildData->{'content'} .= "    !@ <objectMethods>\n";
+    $buildData->{'content'} .= "    !@   <object>".$directive."Class</object>\n";
+    foreach my $method ( @methods ) {
+	my $argumentList = "";
+	my @arguments;
+	if ( exists($method->{'argument'}) ) {
+	    if ( UNIVERSAL::isa($method->{'argument'},"ARRAY") ) {
+		push(@arguments,@{$method->{'argument'}});
+	    } else {
+		push(@arguments,  $method->{'argument'} );
+	    }
+	}
+	my $separator = "";
+	foreach my $argument ( @arguments ) {
+	    foreach my $intrinsic ( keys(%intrinsicDeclarations) ) {
+		my $declarator = $intrinsicDeclarations{$intrinsic};
+		if ( my @matches = $argument =~ m/$declarator->{'regEx'}/ ) {
+		    my $intrinsicName =                          $declarator->{'intrinsic' }    ;
+		    my $type          =                 $matches[$declarator->{'type'      }-1] ;
+		    my $attributeList =                 $matches[$declarator->{'attributes'}-1] ;
+		    $attributeList =~ s/^\s*,?\s*//;
+		    $attributeList =~ s/\s*$//;
+		    my @attributes = &Fortran_Utils::Extract_Variables($attributeList, keepQualifiers => 1, removeSpaces => 1);
+		    my @variables     = split(/\s*,\s*/,$matches[$declarator->{'variables' }-1]);
+		    foreach my $variable ( @variables ) {
+			$argumentList .= $separator."\\textcolor{red}{\\textless ".$intrinsicName;
+			$argumentList .= "(".$type.")"
+			    if ( defined($type) );
+			$argumentList .= "\\textgreater} ".$variable;
+			foreach my $attribute ( @attributes ) {
+			    $argumentList .= "\\argin"
+				if ( $attribute eq "intent(in)" );
+			    $argumentList .= "\\argout"
+				if ( $attribute eq "intent(out)" );
+			    $argumentList .= "\\arginout"
+				if ( $attribute eq "intent(inout)" );
+			}
+			$separator     = ",";
+		    }
+		}
+	    }
+	}
+	$buildData->{'content'} .= "    !@   <objectMethod>\n";
+	$buildData->{'content'} .= "    !@     <method>".$method->{'name'}."</method>\n";
+	$buildData->{'content'} .= "    !@     <type>".$method->{'type'}."</type>\n";
+	$buildData->{'content'} .= "    !@     <arguments>".$argumentList."</arguments>\n";
+	$buildData->{'content'} .= "    !@     <description>".$method->{'description'}."</description>\n";
+	$buildData->{'content'} .= "    !@   </objectMethod>\n";
+    }
+    $buildData->{'content'} .= "    !@ </objectMethods>\n";
     my $methodTable = Text::Table->new(
 	{
 	    is_sep => 1,
