@@ -14,6 +14,7 @@ use Switch;
 use XML::Simple;
 use Data::Dumper;
 use LaTeX::Encode;
+use Fcntl qw(SEEK_SET);
 require Fortran::Utils;
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
@@ -45,13 +46,6 @@ while ( my $fileName = readdir(dirHndl) ) {
 	if ( ( $fileName =~ m/\.F90$/ || $fileName =~ m/\.cpp$/ ) && $fileName !~ m/^\.\#/ );
 }
 closedir(dirHndl);
-opendir(dirHndl,$sourceDir."/../work/build");
-while ( my $fileName = readdir(dirHndl) ) {
-    # Find function definitions.
-    push(@fileNames,$sourceDir."/../work/build/".$fileName)
-	if ( $fileName =~ m/\.Inc$/ );
-}
-closedir(dirHndl);
 
 # Initialize data hashes.
 my %parametersRead;
@@ -65,8 +59,9 @@ foreach my $fileName ( @fileNames ) {
     (my $leafName = $fileName) =~ s/^$sourceDir\///;
     (my $leafNamePrint = $leafName) =~ s/_/\\_/g;
 
-    # Open the file.
-    open(my $fileHandle,$fileName);
+    # Add the file to the list of filenames to process.
+    my @fileNames     = ( $fileName );
+    my @filePositions = (        -1 );
 
     # Initialize the data directive buffer.
     my $dataDirective  = "";
@@ -79,203 +74,229 @@ foreach my $fileName ( @fileNames ) {
     # Initialize derived-type boolean.
     my $inDerivedType = "";
 
-    # Scan the file.
-    until ( eof($fileHandle) ) {
-
-	my $rawLine;
-	my $processedLine;
-	my $bufferedComments;
-	if ( $fileName =~ m/\.(F90|Inc)$/ ) {
-	    &Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
-	} else {
-	    $rawLine = <$fileHandle>;
-	}
-
-	# Check for entering, leaving program units.
-	if ( $rawLine =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
-	    my $moduleName = $1;
-	    unless ( $moduleName eq "procedure" ) {push(@programUnits,"module:".$moduleName)};
-	}
-	if ( $rawLine =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"program:".$1)};
-	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"subroutine:".$2)};
-	if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"function:".$5)};
-	if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {pop(@programUnits)};
-
-	# Check for derived-type definitions.
-	if ( defined($processedLine) ) {
-	    if ( $processedLine =~ m/$derivedTypeOpenRegex/i ) {
-		$inDerivedType = $3;
-		$objects{lc($inDerivedType)}->{'name'} = $inDerivedType;
-		if ( defined($1) ) {
-		    my $attributes = $1;
-		    if ( $attributes =~ m/extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
-			$objects{lc($inDerivedType)}->{'extends'} = lc($1);
-		    }
+    # Process files until none remain.
+    while ( scalar(@fileNames) > 0 ) {
+	# Open the file.
+	open(my $fileHandle,$fileNames[0]);
+	seek($fileHandle,$filePositions[0],SEEK_SET) unless ( $filePositions[0] == -1 );
+	
+	# Scan the file.
+	until ( eof($fileHandle) ) {
+	    
+	    my $rawLine;
+	    my $processedLine;
+	    my $bufferedComments;
+	    if ( $fileName =~ m/\.(F90|Inc)$/ ) {
+		&Fortran_Utils::Get_Fortran_Line($fileHandle,$rawLine,$processedLine,$bufferedComments);
+	    } else {
+		$rawLine = <$fileHandle>;
+	    }
+	    
+	    # Detect include files, and recurse into them.
+	    if ( defined($processedLine) && $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+		my $includeFile = $1;
+		if ( -e $sourceDir."/../work/build/".$includeFile ) {
+		    $filePositions[0] = tell($fileHandle);
+		    unshift(@fileNames,$sourceDir."/../work/build/".$includeFile);
+		    unshift(@filePositions,-1);
+		    last;
+		} elsif ( -e $sourceDir."/".$includeFile ) {
+		    $filePositions[0] = tell($fileHandle);
+		    unshift(@fileNames,$sourceDir."/".$includeFile);
+		    unshift(@filePositions,-1);
+		    last;
 		}
 	    }
-	    if ( $processedLine =~ m/$derivedTypeCloseRegex/i ) {
-		$inDerivedType = "";
+	    
+	    # Check for entering, leaving program units.
+	    if ( $rawLine =~ m/^\s*module\s+([a-zA-Z0-9_]+)/ ) {
+		my $moduleName = $1;
+		unless ( $moduleName eq "procedure" ) {push(@programUnits,"module:".$moduleName)};
 	    }
-	}
-
-	# Check for type-bound procedures.
-	if ( $inDerivedType ne "" ) {
-	    if ( $processedLine =~ m/$typeBoundRegex/i ) {
-		my $method = lc($3);
-		$objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
-		    unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
+	    if ( $rawLine =~ m/^\s*program\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"program:".$1)};
+	    if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"subroutine:".$2)};
+	    if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"function:".$5)};
+	    if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {pop(@programUnits)};
+	    
+	    # Check for derived-type definitions.
+	    if ( defined($processedLine) ) {
+		if ( $processedLine =~ m/$derivedTypeOpenRegex/i ) {
+		    $inDerivedType = $3;
+		    $objects{lc($inDerivedType)}->{'name'} = $inDerivedType;
+		    if ( defined($1) ) {
+			my $attributes = $1;
+			if ( $attributes =~ m/extends\s*\(\s*([a-zA-Z0-9_]+)\s*\)/ ) {
+			    $objects{lc($inDerivedType)}->{'extends'} = lc($1);
+			}
+		    }
+		}
+		if ( $processedLine =~ m/$derivedTypeCloseRegex/i ) {
+		    $inDerivedType = "";
+		}
 	    }
-	}
-
-	# Check for parameter reading lines - used to check that all parameters are documented.
-	if ( $rawLine =~ m/^\s*call\s+get_input_parameter\s*\(\s*[\"\']\s*(\w+)\s*[\"\']/i ) {
-	    $parametersRead{$1} .= $fileName." ";
-	}
-       
-	# Search for "!@".
-	my $process = 0;
-	if ( $rawLine =~ m/^\s*(\!|\/\/)\@\s/ ) {
-	    # Found directive - add it to the buffer.
-	    if ( $dataDirective eq "" && $rawLine =~ m/<([^>]+)>/ ) {
-		$openingElement = $1;
-	    } elsif ( $rawLine =~ m/<\/$openingElement>/ ) {
+	    
+	    # Check for type-bound procedures.
+	    if ( $inDerivedType ne "" ) {
+		if ( $processedLine =~ m/$typeBoundRegex/i ) {
+		    my $method = lc($3);
+		    $objects{lc($inDerivedType)}->{'methods'}->{$method}->{'description'} = "UNDEFINED"
+			unless ( exists($objects{lc($inDerivedType)}->{'methods'}->{$method}) );
+		}
+	    }
+	    
+	    # Check for parameter reading lines - used to check that all parameters are documented.
+	    if ( $rawLine =~ m/^\s*call\s+get_input_parameter\s*\(\s*[\"\']\s*(\w+)\s*[\"\']/i ) {
+		$parametersRead{$1} .= $fileName." ";
+	    }
+	    
+	    # Search for "!@".
+	    my $process = 0;
+	    if ( $rawLine =~ m/^\s*(\!|\/\/)\@\s/ ) {
+		# Found directive - add it to the buffer.
+		if ( $dataDirective eq "" && $rawLine =~ m/<([^>]+)>/ ) {
+		    $openingElement = $1;
+		} elsif ( $rawLine =~ m/<\/$openingElement>/ ) {
+		    $process = 1;
+		}
+		$rawLine =~ s/^\s*(\!|\/\/)\@\s*//;
+		$rawLine =~ s/\s*$//;
+		$dataDirective .= $rawLine." ";
+	    } elsif ( $dataDirective ne "" ) {
 		$process = 1;
 	    }
-	    $rawLine =~ s/^\s*(\!|\/\/)\@\s*//;
-	    $rawLine =~ s/\s*$//;
-	    $dataDirective .= $rawLine." ";
-	} elsif ( $dataDirective ne "" ) {
-	    $process = 1;
-	}
-	if ( $process == 1 ) {
-	    # Process a directive.
-	    $openingElement = "";
-	    my $data = eval{$xml->XMLin($dataDirective, KeepRoot => 1)};
-	    my $lineNumber = $.;
-	    die("Extract_Data.pl failed in file ".$fileName." at line ".$lineNumber." with message:\n".$@."and data \n".$dataDirective) if ($@);
-
-	    # Loop over all data types found.
-	    foreach my $dataType ( keys(%{$data}) ) {
-		my $contents = $data->{$dataType};
-		switch ( $dataType ) {
-		    case ( "enumeration" ) {
-			foreach ( @{$contents->{'entry'}}) {
-			    push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
-			}
-			my $programUnitIndex = scalar(@programUnits)-1;
-			$programUnitIndex = -1 
-			    unless ( defined($programUnits[$programUnitIndex]) );
-			my $regEx = "^module";
-			until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
-				--$programUnitIndex
-			}
-			($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
-			$enumerations {$contents->{'name'}}->{'file'       } = $leafName;
-			$enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
-		    }
-		    case ( "inputParameter" ) {
-			(my $printName = $contents->{'name'}) =~ s/_/\\_/g;
-			my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
-			$buffer .= "{\\bf Attached to:} ";
-			my $attachedTo;
-			my $attachedAt;
-			if ( exists($contents->{'attachedTo'}) ) {
+	    if ( $process == 1 ) {
+		# Process a directive.
+		$openingElement = "";
+		my $data = eval{$xml->XMLin($dataDirective, KeepRoot => 1)};
+		my $lineNumber = $.;
+		die("Extract_Data.pl failed in file ".$fileName." at line ".$lineNumber." with message:\n".$@."and data \n".$dataDirective) if ($@);
+		
+		# Loop over all data types found.
+		foreach my $dataType ( keys(%{$data}) ) {
+		    my $contents = $data->{$dataType};
+		    switch ( $dataType ) {
+			case ( "enumeration" ) {
+			    foreach ( @{$contents->{'entry'}}) {
+				push(@{$enumerations{$contents->{'name'}}->{'entry'}},$_->{'label'});
+			    }
 			    my $programUnitIndex = scalar(@programUnits)-1;
-			    my $regEx = $contents->{'attachedTo'}.":";
 			    $programUnitIndex = -1 
 				unless ( defined($programUnits[$programUnitIndex]) );
+			    my $regEx = "^module";
 			    until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
 				--$programUnitIndex
 			    }
-			    if ( $programUnitIndex >= 0 ) {
-				$attachedTo = "{\\tt ".$programUnits[$programUnitIndex]."}";
-				$attachedAt = $programUnitIndex;
+			    ($enumerations{$contents->{'name'}}->{'module'     } = $programUnits[$programUnitIndex]) =~ s/^module://;
+			    $enumerations {$contents->{'name'}}->{'file'       } = $leafName;
+			    $enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
+			}
+			case ( "inputParameter" ) {
+			    (my $printName = $contents->{'name'}) =~ s/_/\\_/g;
+			    my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
+			    $buffer .= "{\\bf Attached to:} ";
+			    my $attachedTo;
+			    my $attachedAt;
+			    if ( exists($contents->{'attachedTo'}) ) {
+				my $programUnitIndex = scalar(@programUnits)-1;
+				my $regEx = $contents->{'attachedTo'}.":";
+				$programUnitIndex = -1 
+				    unless ( defined($programUnits[$programUnitIndex]) );
+				until ( $programUnitIndex == -1 || $programUnits[$programUnitIndex] =~ m/$regEx/ ) {
+				    --$programUnitIndex
+				}
+				if ( $programUnitIndex >= 0 ) {
+				    $attachedTo = "{\\tt ".$programUnits[$programUnitIndex]."}";
+				    $attachedAt = $programUnitIndex;
+				} else {
+				    $attachedTo = "unknown";
+				    $attachedAt = -1;
+				}
 			    } else {
-				$attachedTo = "unknown";
-				$attachedAt = -1;
+				$attachedTo = "{\\tt ".$programUnits[-1]."}";
+				$attachedAt = scalar(@programUnits)-1;
 			    }
-			} else {
-			    $attachedTo = "{\\tt ".$programUnits[-1]."}";
-			    $attachedAt = scalar(@programUnits)-1;
-			}
-
-			my $attachedLink = $leafName.":";
-			for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
-			    if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
-				my $unitName = lc($1);
-				$unitName =~ s/\\_/_/g;
-				$attachedLink .= $unitName.":";
+			    
+			    my $attachedLink = $leafName.":";
+			    for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
+				if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
+				    my $unitName = lc($1);
+				    $unitName =~ s/\\_/_/g;
+				    $attachedLink .= $unitName.":";
+				}
 			    }
+			    $attachedLink =~ s/:$//;
+			    
+			    my $targetPrefix;
+			    my $targetSuffix;
+			    if ( $attachedTo =~ m/:/ ) {
+				$targetPrefix = "\\hyperlink{".$attachedLink."}{";
+				$targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
+				$targetPrefix =~ s/program:/prog:/;
+				$targetPrefix =~ s/module:/mod:/;
+				$targetPrefix =~ s/subroutine:/sub:/;
+				$targetPrefix =~ s/function:/func:/;
+				$targetSuffix = "}";
+			    } else {
+				$targetPrefix = "";
+				$targetSuffix = "";
+			    }
+			    $attachedTo =~ s/_/\\_/g;
+			    $buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
+			    $buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
+			    $buffer .= "{\\bf Default value:} ";
+			    if ( exists($contents->{'defaultValue'}) ) {
+				$buffer .= $contents->{'defaultValue'};
+			    } else {
+				$buffer .= "none";
+			    }
+			    $buffer .= "\\\\\n";
+			    $buffer .= "{\\bf Description:} ".$contents->{'description'};
+			    $buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
+			    $buffer .= "\n\n";
+			    $parametersData{$contents->{'name'}} = $buffer;
 			}
-			$attachedLink =~ s/:$//;
-
-			my $targetPrefix;
-			my $targetSuffix;
-			if ( $attachedTo =~ m/:/ ) {
-			    $targetPrefix = "\\hyperlink{".$attachedLink."}{";
-			    $targetPrefix =~ s/\{\\tt\s+([^\}]+)\}/$1/;
-			    $targetPrefix =~ s/program:/prog:/;
-			    $targetPrefix =~ s/module:/mod:/;
-			    $targetPrefix =~ s/subroutine:/sub:/;
-			    $targetPrefix =~ s/function:/func:/;
-			    $targetSuffix = "}";
-			} else {
-			    $targetPrefix = "";
-			    $targetSuffix = "";
+			case ( "objectMethod" ) {
+			    my $object = lc($contents->{'object'});
+			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
+			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'description'} = $contents->{'description'};
+			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'arguments'  } = $contents->{'arguments'  }
+			    if ( exists($contents->{'arguments'}) );
+			    $objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
+			    if ( exists($contents->{'type'}) );
 			}
-			$attachedTo =~ s/_/\\_/g;
-			$buffer .= $targetPrefix.$attachedTo.$targetSuffix."\\\\\n";
-			$buffer .= "{\\bf File:} \\hyperlink{".$leafName."}{{\\tt ".$leafNamePrint."}}\\\\\n";
-			$buffer .= "{\\bf Default value:} ";
-			if ( exists($contents->{'defaultValue'}) ) {
-			    $buffer .= $contents->{'defaultValue'};
-			} else {
-			    $buffer .= "none";
-			}
-			$buffer .= "\\\\\n";
-			$buffer .= "{\\bf Description:} ".$contents->{'description'};
-			$buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
-			$buffer .= "\n\n";
-			$parametersData{$contents->{'name'}} = $buffer;
-		    }
-		    case ( "objectMethod" ) {
-			my $object = lc($contents->{'object'});
-			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'method'     } = $contents->{'method'     };
-			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'description'} = $contents->{'description'};
-			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'arguments'  } = $contents->{'arguments'  }
-			   if ( exists($contents->{'arguments'}) );
-			$objects{$object}->{'methods'}->{lc($contents->{'method'})}->{'type'       } = $contents->{'type'       }
-			   if ( exists($contents->{'type'}) );
-		    }
-		    case ( "objectMethods" ) {
-			my $object = lc($contents->{'object'});
-			my @methods;
-			if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
-			    @methods = @{$contents->{'objectMethod'}};
-			} else {
-			    push(@methods,$contents->{'objectMethod'});
-			}
-			foreach my $method ( @methods ) {
-			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'method'     } = $method->{'method'     };
-			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'description'} = $method->{'description'};
-			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'arguments'  } = $method->{'arguments'  }
-			       if ( exists($method->{'arguments'}) );
-			    $objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
-			       if ( exists($method->{'type'}) );
+			case ( "objectMethods" ) {
+			    my $object = lc($contents->{'object'});
+			    my @methods;
+			    if ( UNIVERSAL::isa($contents->{'objectMethod'},"ARRAY") ) {
+				@methods = @{$contents->{'objectMethod'}};
+			    } else {
+				push(@methods,$contents->{'objectMethod'});
+			    }
+			    foreach my $method ( @methods ) {
+				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'method'     } = $method->{'method'     };
+				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'description'} = $method->{'description'};
+				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'arguments'  } = $method->{'arguments'  }
+				if ( exists($method->{'arguments'}) );
+				$objects{$object}->{'methods'}->{lc($method->{'method'})}->{'type'       } = $method->{'type'       }
+				if ( exists($method->{'type'}) );
+			    }
 			}
 		    }
 		}
+		
+		# Reset the directive buffer.
+		$dataDirective = "";
 	    }
-
-	    # Reset the directive buffer.
-	    $dataDirective = "";
+	    
 	}
-
+	
+	# Close the file and shift the list of filenames.
+	if ( eof($fileHandle) ) {
+	    shift(@fileNames);
+	    shift(@filePositions);
+	}
+	close($fileHandle);
     }
-
-    # Close the file.
-    close($fileHandle);
-
 }
 
 # Copy any methods inherited from parent classes.
