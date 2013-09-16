@@ -786,8 +786,8 @@
       <value>-0.8</value>
     </parameter>
     <parameter>
-      <name>darkEnergyEquationOfStateW0</name>
-      <value>0.1</value>
+      <name>darkEnergyEquationOfStateW1</name>
+      <value>0.0</value>
     </parameter>
     <parameter>
       <name>criticalOverdensityMethod</name>
