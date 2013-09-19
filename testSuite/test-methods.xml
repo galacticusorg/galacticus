@@ -240,10 +240,10 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>satelliteMergingMethod</name>
-      <value>BoylanKolchin2008</value>
+      <name>satelliteMergingTimescalesMethod</name>
+      <value>boylanKolchin2008</value>
       <value>Lacey-Cole</value>
-      <value>Jiang2008</value>
+      <value>jiang2008</value>
       <value>Lacey-Cole+Tormen</value>
       <value>Wetzel-White2010</value>
     </parameter>

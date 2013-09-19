@@ -15,84 +15,99 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of merging timescales for satellites.
+!% Contains a module that provides and object that implements satellite merging timescales.
 
 module Satellite_Merging_Timescales
-  !% Implements calculations of merging timescales for satellites.
+  !% Provides and object that implements satellite merging timescales.
   use ISO_Varying_String
-  implicit none
+  use Galacticus_Nodes
+  use Kepler_Orbits
+  !# <include directive="satelliteMergingTimescales" type="functionModules" >
+  include 'satelliteMergingTimescales.functionModules.inc'
+  !# </include>
   private
-  public :: Satellite_Time_Until_Merging
+  public :: Satellite_Merging_Timescale_State_Store   , Satellite_Merging_Timescale_State_Retrieve, &
+       &    Satellite_Merging_Timescale_State_Snapshot
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                          :: satelliteMergeTimescaleInitialized=.false.
+  !# <include directive="satelliteMergingTimescales" type="function" >
+  !#  <description>Object providing merging timescales for satellites.</description>
+  !#  <default>jiang2008</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="timeUntilMerging" >
+  !#   <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode   ), intent(inout), pointer :: thisNode</argument>
+  !#   <argument>type(keplerOrbit), intent(inout)          :: thisOrbit</argument>
+  !#  </method>
+  !#  <method name="stateStore" >
+  !#   <description>Store the state of the object to file.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <modules>FGSL</modules>
+  !#   <argument>integer           , intent(in   ) :: stateFile    </argument>
+  !#   <argument>type   (fgsl_file), intent(in   ) :: fgslStateFile</argument>
+  !#   <code>! Do nothing.</code>
+  !#  </method>
+  !#  <method name="stateRestore" >
+  !#   <description>Restore the state of the object from file.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <modules>FGSL</modules>
+  !#   <argument>integer           , intent(in   ) :: stateFile    </argument>
+  !#   <argument>type   (fgsl_file), intent(in   ) :: fgslStateFile</argument>
+  !#   <code>! Do nothing.</code>
+  !#  </method>
+  !#  <method name="stateSnapshot" >
+  !#   <description>Stores a snapshot of the object state.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <code>! Do nothing.</code>
+  !#  </method>
+  include 'satelliteMergingTimescales.type.inc'
+  !# </include>
 
-  ! Name of satellite merging timescale method used.
-  type     (varying_string              )          :: satelliteMergingMethod
-
-  ! Pointer for function that will be called to assign merging times to satellites.
-  procedure(Satellite_Time_Until_Merging), pointer :: Satellite_Time_Until_Merging_Get  =>null()
-
-contains
-
-  subroutine Satellite_Merging_Timescales_Initialize
-    !% Initialize the satellite merging timescale module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="satelliteMergingMethod" type="moduleUse">
-    include 'satellite.merging.timescale.moduleUse.inc'
-    !# </include>
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Satellite_Merging_Timescale_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Satellite_Merging_Timescale_State_Store(stateFile,fgslStateFile)
+    !% Store the state to file.
     implicit none
+    integer                                 , intent(in   ) :: stateFile
+    type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
+    class  (satelliteMergingTimescalesClass), pointer       :: thisSatelliteMergingTimescales
 
-    ! Initialize if necessary.
-    if (.not.satelliteMergeTimescaleInitialized) then
-       !$omp critical(Satellite_Merging_Timescales_Initialization)
-       if (.not.satelliteMergeTimescaleInitialized) then
-
-          ! Get the satellite merging timescale method.
-          !@ <inputParameter>
-          !@   <name>satelliteMergingMethod</name>
-          !@   <defaultValue>Jiang2008</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The name of the method to be used to compute satellite merging timescales.
-          !@   </description>
-          !@   <type>string</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('satelliteMergingMethod',satelliteMergingMethod,defaultValue='Jiang2008')
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>satelliteMergingMethod,Satellite_Time_Until_Merging_Get</functionArgs>
-          include 'satellite.merging.timescale.inc'
-          !# </include>
-          if (.not.associated(Satellite_Time_Until_Merging_Get))                                           &
-               & call Galacticus_Error_Report(                                                             &
-               &                              'Tree_Node_Methods_Satellite_Orbit_Initialize'             , &
-               &                              'method '//char(satelliteMergingMethod)//' is unrecognized'  &
-               &                             )
-          ! Record that this module is now initialized.
-          satelliteMergeTimescaleInitialized=.true.
-       end if
-       !$omp end critical(Satellite_Merging_Timescales_Initialization)
-    end if
+    thisSatelliteMergingTimescales => satelliteMergingTimescales()
+    call thisSatelliteMergingTimescales%stateStore(stateFile,fgslStateFile)
     return
-  end subroutine Satellite_Merging_Timescales_Initialize
+  end subroutine Satellite_Merging_Timescale_State_Store
 
-  double precision function Satellite_Time_Until_Merging(thisNode,thisOrbit)
-    !% Return the satellite merging timescale for {\tt thisNode} (in units of Gyr).
-    use Galacticus_Nodes
-    use Kepler_Orbits
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Satellite_Merging_Timescale_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Satellite_Merging_Timescale_State_Retrieve(stateFile,fgslStateFile)
+    !% Retrieve the state from file.
     implicit none
-    type(treeNode   ), intent(inout), pointer :: thisNode
-    type(keplerOrbit), intent(inout)          :: thisOrbit
+    integer                                 , intent(in   ) :: stateFile
+    type   (fgsl_file                      ), intent(in   ) :: fgslStateFile
+    class  (satelliteMergingTimescalesClass), pointer       :: thisSatelliteMergingTimescales
 
-    ! Initialize the module.
-    call Satellite_Merging_Timescales_Initialize
-
-    ! Get the cooling radius using the selected method.
-    Satellite_Time_Until_Merging=Satellite_Time_Until_Merging_Get(thisNode,thisOrbit)
+    thisSatelliteMergingTimescales => satelliteMergingTimescales()
+    call thisSatelliteMergingTimescales%stateRestore(stateFile,fgslStateFile)
     return
-  end function Satellite_Time_Until_Merging
+  end subroutine Satellite_Merging_Timescale_State_Retrieve
+
+  !# <galacticusStateSnapshotTask>
+  !#  <unitName>Satellite_Merging_Timescale_State_Snapshot</unitName>
+  !# </galacticusStateSnapshotTask>
+  subroutine Satellite_Merging_Timescale_State_Snapshot()
+    !% Retrieve the state from file.
+    implicit none
+    class(satelliteMergingTimescalesClass), pointer :: thisSatelliteMergingTimescales
+
+    thisSatelliteMergingTimescales => satelliteMergingTimescales()
+    call thisSatelliteMergingTimescales%stateSnapshot()
+    return
+  end subroutine Satellite_Merging_Timescale_State_Snapshot
 
 end module Satellite_Merging_Timescales
