@@ -74,7 +74,7 @@
      !@     <description>Tabulate expansion factor as a function of cosmic time.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     !# <workaround type="gfortran" PR="58356" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58356">
+     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
      !# final     :: matterLambdaDestructor
      !# </workaround>
      procedure :: stateStore                   =>matterLambdaStateStore
