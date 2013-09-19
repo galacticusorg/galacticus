@@ -238,7 +238,14 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= $methodTable->table();
     $buildData->{'content'} .= "   end type ".$directive."Class\n\n";
 
-    # Scan implementation code to determine dependencis.
+    # Insert interface to class constructors.
+    $buildData->{'content'} .= "   interface ".$directive."\n";
+    $buildData->{'content'} .= "    module procedure ".$directive."ConstructorDefault\n";
+    $buildData->{'content'} .= "    module procedure ".$directive."ConstructorNamed\n";
+    $buildData->{'content'} .= "   end interface\n";
+
+
+    # Scan implementation code to determine dependencies.
     my %dependencies;
     my %classes;
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
@@ -301,15 +308,49 @@ sub Functions_Generate_Output {
     # Insert "contains" separator.
     $buildData->{'content'} .= "contains\n\n";
 
-    # Create function to return default object.
-    $buildData->{'content'} .= "   function ".$directive."()\n";
+    # Create default constructor.
+    $buildData->{'content'} .= "   function ".$directive."ConstructorDefault()\n";
     $buildData->{'content'} .= "      !% Return a pointer to the default {\\tt ".$directive."} object.\n";
     $buildData->{'content'} .= "      implicit none\n";
-    $buildData->{'content'} .= "      class(".$directive."Class), pointer :: ".$directive."\n\n";
+    $buildData->{'content'} .= "      class(".$directive."Class), pointer :: ".$directive."ConstructorDefault\n\n";
     $buildData->{'content'} .= "      if (.not.associated(".$directive."Default)) call ".$directive."Initialize()\n";
-    $buildData->{'content'} .= "      ".$directive." => ".$directive."Default\n";
+    $buildData->{'content'} .= "      ".$directive."ConstructorDefault => ".$directive."Default\n";
     $buildData->{'content'} .= "      return\n";
-    $buildData->{'content'} .= "   end function ".$directive."\n\n";
+    $buildData->{'content'} .= "   end function ".$directive."ConstructorDefault\n\n";
+
+    # Create named constructor.
+    $buildData->{'content'} .= "   function ".$directive."ConstructorNamed(typeName)\n";
+    $buildData->{'content'} .= "      !% Return a pointer to a newly created {\\tt ".$directive."} object of the specified type.\n";
+    $buildData->{'content'} .= "      use ISO_Varying_String\n";
+    $buildData->{'content'} .= "      use Galacticus_Error\n";
+    $buildData->{'content'} .= "      implicit none\n";
+    $buildData->{'content'} .= "      class(".$directive."Class), pointer :: ".$directive."ConstructorNamed\n\n";
+    $buildData->{'content'} .= "      character(len=*), intent(in   ) :: typeName\n";
+    $buildData->{'content'} .= "      type(varying_string) :: message\n\n";
+    $buildData->{'content'} .= "      select case (trim(typeName))\n";
+    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+	(my $name = $class->{'name'}) =~ s/^$directive//;
+	$name = lcfirst($name);
+	$buildData->{'content'} .= "     case ('".$name."')\n";
+	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."ConstructorNamed)\n";
+	$buildData->{'content'} .= "        select type (".$directive."ConstructorNamed)\n";
+	$buildData->{'content'} .= "          type is (".$class->{'name'}.")\n";
+	$buildData->{'content'} .= "            ".$directive."ConstructorNamed=".$class->{'name'}."()\n";
+	$buildData->{'content'} .= "         end select\n";
+    }
+    $buildData->{'content'} .= "      case default\n";
+    $buildData->{'content'} .= "         message='Unrecognized type \"'//trim(typeName)//'\" Available options are:'\n";
+    my @classNames;
+    push(@classNames,$_->{'name'})
+	foreach ( @{$buildData->{$directive}->{'classes'}} );
+    foreach ( sort(@classNames) ) {
+	(my $name = $_) =~ s/^$directive//;
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
+    }
+    $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."ConstructorNamed',message)\n";
+    $buildData->{'content'} .= "      end select\n";
+    $buildData->{'content'} .= "      return\n";
+    $buildData->{'content'} .= "   end function ".$directive."ConstructorNamed\n\n";
 
     # Create initialization function.
     $buildData->{'content'} .= "   subroutine ".$directive."Initialize()\n";
@@ -350,10 +391,9 @@ sub Functions_Generate_Output {
     }
     $buildData->{'content'} .= "      case default\n";
     $buildData->{'content'} .= "         message='Unrecognized option for [".$directive."Method](='//".$directive."Method//'). Available options are:'\n";
-    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
-	(my $name = $class->{'name'}) =~ s/^$directive//;
-	$name = lcfirst($name);
-	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
+    foreach ( sort(@classNames) ) {
+	(my $name = $_) =~ s/^$directive//;
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
