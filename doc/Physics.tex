@@ -1924,33 +1924,41 @@ Selected with {\tt stellarFeedbackMethod}$=${\tt standard}, the method assumes t
 
 Substructures and merging of nodes/substructures is controlled by several algorithms which are described below:
 
-\subsection{Merging Timescales}\index{merging!dynamical friction}
+\subsection{Merging Timescales}\index{merging!timescale}
 
-The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingMethod} parameter.
+The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingTimescalesMethod} parameter.
 
-\subsubsection{Dynamical Friction: Lacey \& Cole}
+\subsubsection{Lacey \& Cole (1993)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Lacey-Cole}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
 
-\subsubsection{Dynamical Friction: Lacey \& Cole $+$ Tormen}
+\subsubsection{Lacey \& Cole (1993) $+$ Tormen}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Lacey-Cole+Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
 \begin{equation}
  \tau_{\rm merge} = {f_\tau \Phi \tau_{\rm dynamical} \over 2 B(1)} { M_{\rm host}/M_{\rm satellite} \over \ln (M_{\rm host}/M_{\rm satellite})}
 \end{equation}
 where $f_\tau=${\tt mergingTimescaleMultiplier}, $\tau_{\rm dynamical}$ is the dynamical time of the host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78} (R_{\rm c}/R_{\rm virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion $0.26$ as found by \cite{cole_hierarchical_2000}.
 
-\subsubsection{Dynamical Friction: Jiang (2008)}
+\subsubsection{Jiang (2008)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}.
 
-\subsubsection{Dynamical Friction: Boylan-Kolchin (2008)}
+\subsubsection{Boylan-Kolchin (2008)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt BoylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
-\subsubsection{Dynamical Friction: Wetzel \& White (2010)}
+\subsubsection{Wetzel \& White (2010)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Wetzel-White2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
+
+\subsubsection{Preset}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt preset}, this method returns a precomputed merging timescale stored by the satellite component.
+
+\subsubsection{Null}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt null}, this method returns zero merging timescale.
 
 \subsection{Virial Orbits}
 

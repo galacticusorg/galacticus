@@ -534,8 +534,8 @@
     <value>Benson2005</value>
   </parameter>
   <parameter>
-    <name>satelliteMergingMethod</name>
-    <value>Jiang2008</value>
+    <name>satelliteMergingTimescalesMethod</name>
+    <value>jiang2008</value>
   </parameter>
   <parameter>
     <name>mergingTimescaleMultiplier</name>
