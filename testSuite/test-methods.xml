@@ -242,10 +242,16 @@
     <parameter>
       <name>satelliteMergingTimescalesMethod</name>
       <value>boylanKolchin2008</value>
-      <value>Lacey-Cole</value>
-      <value>jiang2008</value>
-      <value>Lacey-Cole+Tormen</value>
-      <value>Wetzel-White2010</value>
+      <value>laceyCole1993</value>
+      <value>jiang2008
+      <parameter>
+	<name>mergerTreeReadSubresolutionMergingMethod</name>
+	<value>null</value>
+	<value>boylanKolchin2008</value>
+      </parameter>
+      </value>
+      <value>laceyCole1993Tormen</value>
+      <value>wetzelWhite2010</value>
     </parameter>
   </parameters>
   <parameters>
