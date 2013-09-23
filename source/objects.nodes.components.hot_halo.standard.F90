@@ -428,7 +428,7 @@ contains
     type (treeNode                    ), pointer       :: selfHost
 
     selfHost => self%host()
-    Node_Component_Hot_Halo_Standard_Outer_Radius=min(self%outerRadiusValue(),Dark_Matter_Halo_Virial_Radius(selfHost))
+    Node_Component_Hot_Halo_Standard_Outer_Radius=max(min(self%outerRadiusValue(),Dark_Matter_Halo_Virial_Radius(selfHost)),0.0d0)
     return
   end function Node_Component_Hot_Halo_Standard_Outer_Radius
 
@@ -593,7 +593,7 @@ contains
         excessMassHeatingRate=inputMassHeatingRate-massHeatingRate
 
         ! Remove any excess mass heating rate from the halo.
-        call Node_Component_Hot_Halo_Standard_Push_To_Null(thisNode,excessMassHeatingRate)
+        call Node_Component_Hot_Halo_Standard_Push_From_Halo(thisNode,excessMassHeatingRate)
 
      end if
 
@@ -645,6 +645,7 @@ contains
              angularMomentumHeatingRateRemaining=coolingRate*Cooling_Specific_Angular_Momentum(coolingFromNode,infallRadius)
              gotAngularMomentumCoolingRate=.true.
           end if
+
           if (massRate < 0.0d0) then
              if (massHeatingRateRemaining == 0.0d0) then
                 angularMomentumCoolingRate=-angularMomentumHeatingRateRemaining
@@ -675,7 +676,7 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Push_To_Cooling_Pipes
 
-  subroutine Node_Component_Hot_Halo_Standard_Push_To_Null(thisNode,massRate)
+  subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo(thisNode,massRate)
     !% Push mass from the hot halo into an infinite sink (along with appropriate amounts of metals, chemicals and angular momentum) at the given rate.
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
@@ -683,39 +684,35 @@ contains
     implicit none
     type            (treeNode            )      , intent(inout), pointer :: thisNode
     double precision                            , intent(in   )          :: massRate
-    class           (nodeComponentHotHalo)                     , pointer :: thisHotHaloComponent
+    class           (nodeComponentHotHalo)                     , pointer :: thisHotHalo
     type            (abundances          ), save                         :: abundancesRates
     type            (chemicalAbundances  ), save                         :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
     double precision                                                     :: angularMomentumRate , massRateLimited
 
     ! Get the hot halo component.
-    thisHotHaloComponent => thisNode%hotHalo()
-
+    thisHotHalo => thisNode%hotHalo()
     ! Ignore zero rates.
-    if (massRate /= 0.0d0 .and. thisHotHaloComponent%mass() > 0.0d0) then
-
+    if (massRate /= 0.0d0 .and. thisHotHalo%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
-       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHaloComponent%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode))
-
-       ! Remove mass from the hot component.
-       call thisHotHaloComponent%           massRate(-    massRateLimited)
-
-       ! Find the rate of angular momentum loss.
-       angularMomentumRate=thisHotHaloComponent%angularMomentum()*massRateLimited/thisHotHaloComponent%mass()
-       call thisHotHaloComponent%angularMomentumRate(-angularMomentumRate)
-
-       ! Get the rate of change of abundances.
-       abundancesRates    =thisHotHaloComponent%abundances     ()*massRateLimited/thisHotHaloComponent%mass()
-       call thisHotHaloComponent%     abundancesRate(-    abundancesRates)
-
-       ! Get the rate of change of chemicals.
-       chemicalsRates     =thisHotHaloComponent%chemicals      ()*massRateLimited/thisHotHaloComponent%mass()
-       call thisHotHaloComponent%      chemicalsRate(-     chemicalsRates)
-
+       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*thisHotHalo%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode))
+       ! Get the rate of change of abundances, chemicals, and angular momentum.
+       abundancesRates    =thisHotHalo%abundances     ()*massRateLimited/thisHotHalo%mass()
+       angularMomentumRate=thisHotHalo%angularMomentum()*massRateLimited/thisHotHalo%mass()
+       chemicalsRates     =thisHotHalo%chemicals      ()*massRateLimited/thisHotHalo%mass()
+       ! Remove mass, etc. from the hot component.
+       call thisHotHalo%           massRate(-    massRateLimited)
+       call thisHotHalo%     abundancesRate(-    abundancesRates)
+       call thisHotHalo%angularMomentumRate(-angularMomentumRate)
+       call thisHotHalo%      chemicalsRate(-     chemicalsRates)
+       ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
+       if (thisNode%isSatellite().and.hotHaloTrackStrippedGas) then
+          call thisHotHalo%      strippedMassRate(+massRateLimited)
+          call thisHotHalo%strippedAbundancesRate(+abundancesRates)
+       end if
     end if
     return
-  end subroutine Node_Component_Hot_Halo_Standard_Push_To_Null
+  end subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo
 
   double precision function Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(thisNode,thisHotHaloComponent)
     !% Compute the fraction of material outflowing into the hot halo of {\tt thisNode} which is susceptible to being stripped
@@ -832,12 +829,15 @@ contains
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
     use Hot_Halo_Density_Profile
+    use Hot_Halo_Ram_Pressure_Stripping_Timescales
+    use Cosmology_Parameters
     implicit none
     type            (treeNode                    )           , intent(inout), pointer :: thisNode
     logical                                                  , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
     double precision                              , parameter                         :: outerRadiusOverVirialRadiusMinimum=1.0d-3
     type            (abundances                  ), save                              :: abundancesReturnRate                     , accretionRateAbundances  , &
          &                                                                               outflowedAbundances
@@ -853,7 +853,8 @@ contains
          &                                                                               massToDensityConversion                  , numberDensityHydrogen    , &
          &                                                                               outerRadius                              , outerRadiusGrowthRate    , &
          &                                                                               outflowedMass                            , ramPressureRadius        , &
-         &                                                                               temperature
+         &                                                                               temperature                              , densityMinimum           , &
+         &                                                                               radiusVirial
 
     ! Get the hot halo component.
     thisHotHaloComponent => thisNode%hotHalo()
@@ -862,7 +863,6 @@ contains
        ! Find the rate of gas mass accretion onto the halo.
        massAccretionRate      =Halo_Baryonic_Accretion_Rate       (thisNode)
        failedMassAccretionRate=Halo_Baryonic_Failed_Accretion_Rate(thisNode)
-
        ! Determine the type of the current hot halo component.
        select type (thisHotHaloComponent)
        type  is (nodeComponentHotHalo        )
@@ -943,6 +943,35 @@ contains
              call thisHotHaloComponent%         angularMomentumRate(+angularMomentumReturnRate)
              call thisHotHaloComponent%     outflowedAbundancesRate(-     abundancesReturnRate)
              call thisHotHaloComponent%              abundancesRate(+     abundancesReturnRate)
+             ! The outer radius must be increased as the halo fills up with gas.
+             outerRadius =thisHotHaloComponent%outerRadius()
+             radiusVirial=Dark_Matter_Halo_Virial_Radius(thisNode)
+             if (outerRadius < radiusVirial) then 
+                densityAtOuterRadius=Hot_Halo_Density(thisNode,outerRadius)
+                ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
+                ! density profile.
+                if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
+                   ! Limit the density at the outer radius to one third of the mean virial density (for baryons, assuming a
+                   ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
+                   ! no gas.
+                   thisCosmologyParameters => cosmologyParameters()
+                   densityMinimum=(thisCosmologyParameters%omegaBaryon()/thisCosmologyParameters%omegaMatter())*thisBasicComponent%mass()/radiusVirial**3/4.0d0/Pi
+                   call thisHotHaloComponent%outerRadiusRate(           &
+                        &                     massReturnRate            &
+                        &                    /4.0d0                     &
+                        &                    /Pi                        &
+                        &                    /outerRadius**2            &
+                        &                    /max(                      &
+                        &                         densityAtOuterRadius, &
+                        &                         densityMinimum        &
+                        &                        )                      &
+                        &                   )
+                ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
+                else if (massReturnRate > 0.0d0) then
+                   ! Force some growth here so the radius is not trapped at zero.
+                   call thisHotHaloComponent%outerRadiusRate(Dark_Matter_Halo_Virial_Velocity(thisNode)*kilo*gigaYear/megaParsec)
+                end if
+             end if
              ! If we have a non-zero return rate, compute associated chemical rates.
              if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
                 ! Compute coefficient in conversion of mass to density for this node.
@@ -971,21 +1000,20 @@ contains
              ramPressureRadius=Hot_Halo_Ram_Pressure_Stripping_Radius(thisNode)
              outerRadius      =thisHotHaloComponent%outerRadius()
              ! Test whether the ram pressure radius is smaller than the current outer radius of the hot gas profile.
-             if     (                                                           &
-                  &  ramPressureRadius                      < outerRadius .and. &
-                  &  thisHotHaloComponent%mass           () >       0.0d0 .and. &
-                  &  thisHotHaloComponent%angularMomentum() >       0.0d0       &
+             if     (                                                                                                                            &
+                  &  thisHotHaloComponent%mass           () >  0.0d0                                                                       .and. &
+                  &  thisHotHaloComponent%angularMomentum() >  0.0d0                                                                       .and. &
+                  &  outerRadius                            >  ramPressureRadius                                                           .and. &
+                  &  outerRadius                            <=                                    Dark_Matter_Halo_Virial_Radius(thisNode) .and. &
+                  &  outerRadius                            >  outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode)       &
                   & ) then
-                ! The ram pressure stripping radius is within the outer radius. Cause the outer radius to shrink to the ram pressure
-                ! stripping radius on the halo dynamical timescale.
+                ! Cause the outer radius to shrink to the ram pressure stripping radius.
+                outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Hot_Halo_Ram_Pressure_Stripping_Timescale(thisNode)
                 densityAtOuterRadius =Hot_Halo_Density(thisNode,outerRadius)
-                outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
-                if (outerRadius <= Dark_Matter_Halo_Virial_Radius(thisNode) .and. outerRadius > outerRadiusOverVirialRadiusMinimum*Dark_Matter_Halo_Virial_Radius(thisNode)) then
-                   massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
-                   call thisHotHaloComponent%outerRadiusRate(+outerRadiusGrowthRate)
-                   call thisHotHaloComponent%    massSinkSet(+         massLossRate)
-                   call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,-massLossRate)
-                end if
+                massLossRate         =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
+                call thisHotHaloComponent%outerRadiusRate(+outerRadiusGrowthRate)
+                call thisHotHaloComponent%    massSinkSet(+         massLossRate)
+                call Node_Component_Hot_Halo_Standard_Strip_Gas_Rate(thisNode,-massLossRate)
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
@@ -1009,7 +1037,7 @@ contains
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic  )               , pointer :: thisBasicComponent
     double precision                      , parameter              :: scaleMassRelative   =1.0d-3
-    double precision                      , parameter              :: scaleRadiusRelative =1.0d+0
+    double precision                      , parameter              :: scaleRadiusRelative =1.0d-1
     double precision                                               :: massVirial                 , radiusVirial, &
          &                                                            velocityVirial
 
@@ -1385,7 +1413,13 @@ contains
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
        thisHotHaloComponent => thisNode%hotHalo()
-       if (thisHotHaloComponent%mass() > 0.0d0) then
+       if     (                                                &
+            &   thisHotHaloComponent%mass           () > 0.0d0 &
+            &  .and.                                           &
+            &   thisHotHaloComponent%angularMomentum() > 0.0d0 &
+            &  .and.                                           &
+            &   thisHotHaloComponent%outerRadius    () > 0.0d0 &
+            & ) then
           ! Get the cooling rate.
           coolingRate=Cooling_Rate(thisNode)
        else
