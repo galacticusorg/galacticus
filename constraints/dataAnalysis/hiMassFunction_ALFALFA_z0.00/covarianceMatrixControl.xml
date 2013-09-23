@@ -1,0 +1,30 @@
+<constrain>
+  <!-- Configuration file for fitting of conditional mass function to -->
+  <!-- Martin et al. (2011) ALFALFA HI mass function                  -->
+  <!-- Andrew Benson                                                  -->
+  <!-- 06-July-2012                                                   -->
+
+  <observedDataFile>data/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/</baseDirectory>
+
+  <bieFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/covarianceMatrix.bie</bieFile>
+
+  <constraintFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/hiMassFunction_ALFALFA_z0.00/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>himfALFALFA</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Martin et al. (2011)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>HI</massType>
+  <massVariable>M_{\rm HI}</massVariable>
+
+</constrain>
