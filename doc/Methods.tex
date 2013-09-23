@@ -2728,6 +2728,45 @@ Currently defined hot halo ram pressure stripping radii methods are:
  \item [\hyperlink{hot_halo.ram_pressure_stripping.Font2008.F90:hot_halo_ram_pressure_stripping_font2008:hot_halo_ram_pressure_stripping_font2008_get}{{\tt Font2008}}] Computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}.
 \end{description}
 
+\subsubsection{Hot Halo Ram Pressure Stripping Timescale}
+
+Additional methods for the ram pressure stripping timescale in hot halos can be added using the {\tt hotHaloRamPressureStrippingTimescaleMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt virialRadius} method is described by a directive:
+\begin{verbatim}
+ !# <hotHaloRamPressureStrippingTimescaleMethod>
+ !#  <unitName>Hot_Halo_Ram_Pressure_Timescales_Halo_DynTime_Initialize</unitName>
+ !# </hotHaloRamPressureStrippingTimescaleMethod>
+\end{verbatim}
+Here, {\tt Hot\_Halo\_Ram\_Pressure\_Timescales\_Halo\_DynTime\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: hotHaloRamPressureStrippingTimescaleMethod
+    procedure(),          pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Timescale_Get
+    
+    if (hotHaloRamPressureStrippingTimescaleMethod == 'myMethod') Hot_Halo_Ram_Pressure_Timescale_Get => My_Hot_Halo_Ram_Pressure_Timescale_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloRamPressureStrippingTimescaleMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Ram\_Pressure\_Timescale\_Get} must be set to point to a function which returns the timescale on which material is removed from the hot halo due to ram pressure forces. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The ram pressure stripping timescale function must have the form:
+\begin{verbatim}
+ double precision function Hot_Halo_Ram_Pressure_Timescale_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Hot_Halo_Ram_Pressure_Timescale_Get
+\end{verbatim}
+The function must return the timescale (in units of Gyr) on which the hot halo of {\tt thisNode} is being stripped by ram pressure forces.
+
+Currently defined hot halo ram pressure stripping timescale methods are:
+\begin{description}
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.halo_dynamical_time.F90:hot_halo_ram_pressure_timescales_halo_dyntime:hot_halo_ram_pressure_timescale_halo_dyntime}{{\tt haloDynamicalTime}}] Sets the ram pressure stripping timescale equal to the dynamical time of the node's dark matter halo
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.ram_pressure_acceleration.F90:hot_halo_ram_pressure_timescales_ram_pressure_accel:hot_halo_ram_pressure_timescale_ram_pressure_accel}{{\tt ramPressureAcceleration}}] Computes the timescale from the ram pressure acceleration following \cite{roediger_ram_2007}.
+\end{description}
 
 \subsubsection{Hot Halo Temperature Profile}
 

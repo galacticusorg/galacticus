@@ -1236,6 +1236,25 @@ Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this meth
 where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_{\rm ram, hot, host}$ is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
 
+\section{Hot Halo Ram Pressure Stripping Timescale}\index{hot halo!ram pressure stripping!timescale}
+
+The algorithm to be used when determining the timescale on which the hot halo is stripped by ram pressure forces is selected via the {\tt hotHaloRamPressureStrippingTimescaleMethod} parameter.
+
+\subsection{Halo Dynamical Timescale}
+
+Selected with {\tt hotHaloRamPressureStrippingTimescaleMethod}$=${\tt haloDynamicalTime} this method sets the ram pressure stripping timecale equal to the dynamical time of the associated halo.
+
+\subsection{Ram Pressure Acceleration}
+
+Selected with {\tt hotHaloRamPressureStrippingTimescaleMethod}$=${\tt ramPressureAcceleration} this method computes the ram pressure stripping timecale from the acceleration imparted by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
+\begin{equation}
+ a_{\rm ram pressure} = P_{\rm ram pressure}/\Sigma,
+\end{equation}
+where $P_{\rm ram pressure}$ is the ram pressure force per unit area, and $\Sigma$ is the surface density of gas. The associated timescale to accelerate gas over a distance $r_{\rm outer}$ (the current outer radius of the hot halo) is then:
+\begin{equation}
+ \tau_{\rm ram pressure} = \sqrt{2 r_{\rm outer} \Sigma_{\rm outer} / P_{\rm ram pressure}}.
+\end{equation}
+
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
 The algorithm to be used when determining the hot halo temperature profile is selected via the {\tt hotHaloTemperatureMethod} parameter.

@@ -283,6 +283,14 @@
     <value>Font2008</value>
   </parameter>
   <parameter>
+    <name>hotHaloRamPressureForceMethod</name>
+    <value>Font2008</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+    <value>ramPressureAcceleration</value>
+  </parameter>
+  <parameter>
     <name>hotHaloOutflowStrippingEfficiency</name>
     <value>0.1</value>
   </parameter>

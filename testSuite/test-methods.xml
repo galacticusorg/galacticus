@@ -755,6 +755,19 @@
     </parameter> 
   </parameters>
 
+  <!-- Hot halo ram pressure mass loss rates -->
+  <parameters>
+    <parameter>
+      <name>hotHaloRamPressureForceMethod</name>
+      <value>Font2008</value>
+    </parameter> 
+    <parameter>
+      <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+      <value>haloDynamicalTime</value>
+      <value>ramPressureAcceleration</value>
+    </parameter> 
+  </parameters>
+
   <!-- Disk and spheroid ram pressure mass loss rates -->
   <parameters>
     <parameter>
