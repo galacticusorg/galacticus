@@ -38,9 +38,30 @@ contains
     !% Default constructor for the \cite{jiang_fitting_2008} merging timescale class.
     use Galacticus_Display
     use Input_Parameters
+    use Galacticus_Nodes
+    use Input_Parameters
+    use Galacticus_Error
     implicit none
     type(satelliteMergingTimescalesJiang2008) :: jiang2008DefaultConstructor
 
+       ! Set the function pointer to our implementation.
+       Satellite_Time_Until_Merging => Satellite_Time_Until_Merging_Jiang2008
+       ! Get input parameters.
+          !@ <inputParameter>
+          !@   <name>satelliteMergingJiang2008Scatter</name>
+          !@   <defaultValue>$0$</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     Specifies whether or not to add random scatter to the dynamical friction timescales in the {\tt Jiang2008} satellite merging time implementation.
+          !@   </description>
+          !@   <type>string</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>starFormation</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('satelliteMergingJiang2008Scatter',satelliteMergingJiang2008Scatter,defaultValue=0.0d0)
+          ! Check that required properties are gettable.
+          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('Satellite_Time_Until_Merging_Jiang2008_Initialize','this method requires that the "mass" property of the basic component be gettable')
+    end if
     return
   end function jiang2008DefaultConstructor
 
@@ -59,6 +80,7 @@ contains
     use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
     use Satellite_Orbits
+    use Gaussian_Random
     implicit none
     class           (satelliteMergingTimescalesJiang2008)           , intent(inout)          :: self
     type            (treeNode                           )           , intent(inout), pointer :: thisNode
@@ -100,6 +122,52 @@ contains
             & *((a*(orbitalCircularity**b)+d)/2.0d0/C)           &
             & *          massRatio                               &
             & /log(1.0d0+massRatio)
+       end if
     end if
     return
   end function jiang2008TimeUntilMerging
+
+  !# <galacticusStateSnapshotTask>
+  !#  <unitName>Satellite_Time_Until_Merging_Jiang2008_Snapshot</unitName>
+  !# </galacticusStateSnapshotTask>
+  subroutine Satellite_Time_Until_Merging_Jiang2008_Snapshot
+    !% Store a snapshot of the random number generator internal state.
+    implicit none
+
+    if (.not.resetRandomSequence) clonedPseudoSequenceObject=FGSL_Rng_Clone(randomSequenceObject)
+    resetRandomSequenceSnapshot=resetRandomSequence
+    return
+  end subroutine Satellite_Time_Until_Merging_Jiang2008_Snapshot
+  
+  !# <galacticusStateStoreTask>
+  !#  <unitName>Satellite_Time_Until_Merging_Jiang2008_State_Store</unitName>
+  !# </galacticusStateStoreTask>
+  subroutine Satellite_Time_Until_Merging_Jiang2008_State_Store(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    write (stateFile) resetRandomSequenceSnapshot
+    if (.not.resetRandomSequenceSnapshot) call Pseudo_Random_Store(clonedPseudoSequenceObject,fgslStateFile)
+    return
+  end subroutine Satellite_Time_Until_Merging_Jiang2008_State_Store
+  
+  !# <galacticusStateRetrieveTask>
+  !#  <unitName>Satellite_Time_Until_Merging_Jiang2008_State_Retrieve</unitName>
+  !# </galacticusStateRetrieveTask>
+  subroutine Satellite_Time_Until_Merging_Jiang2008_State_Retrieve(stateFile,fgslStateFile)
+    !% Write the stored snapshot of the random number state to file.
+    use FGSL
+    use Pseudo_Random
+    implicit none
+    integer,         intent(in) :: stateFile
+    type(fgsl_file), intent(in) :: fgslStateFile
+
+    read (stateFile) resetRandomSequence
+    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
+    return
+  end subroutine Satellite_Time_Until_Merging_Jiang2008_State_Retrieve
+    
