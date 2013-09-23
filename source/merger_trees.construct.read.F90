@@ -141,6 +141,9 @@ module Merger_Tree_Read
   ! Effective infinity for merging times.
   double precision                                 , parameter                                    :: timeUntilMergingInfinite        =1.0d30
 
+  ! Record of warnings issued.
+  logical                                                                                         :: warningNestedHierarchyIssued    =.false.
+
   ! Type used to store raw data.
   type nodeData
      !% Structure used to store raw data read from merger tree files.
@@ -2124,6 +2127,9 @@ contains
 
   subroutine Scan_for_Branch_Jumps(nodes,nodeList)
     !% Search for subhalos which move between branches/trees.
+    use ISO_Varying_String
+    use String_Handling
+    use Galacticus_Display
     implicit none
     type            (nodeData      ), dimension(:), intent(inout), target :: nodes
     type            (treeNodeList  ), dimension(:), intent(inout)         :: nodeList
@@ -2133,6 +2139,7 @@ contains
     integer         (kind=kind_int8)                                      :: iIsolatedNode
     logical                                                               :: isMergerEvent, subhaloJumps  , wasMergerEvent
     double precision                                                      :: timeOfJump
+    type            (varying_string)                                      :: message
 
     ! If branch jumps are not allowed, simply return.
     if (.not.mergerTreeReadAllowBranchJumps) return
@@ -2159,11 +2166,21 @@ contains
           if (Is_Subhalo_Subhalo_Merger(nodes,nodes(iNode))) then
              descendentNode => null()
              currentHost => Last_Host_Descendent(nodes(iNode))
-
              ! Add a jump if the tree ends before the descendent time.
-             if (currenthost%nodeTime <= nodes(iNode)%descendent%nodeTime) then
+             if (currentHost%nodeTime <= nodes(iNode)%descendent%nodeTime) then
                 timeOfJump     =  currentHost%nodeTime
                 jumpToHost     => nodes(iNode)%descendent%host
+                do while (jumpToHost%isSubhalo)
+                   if (.not.warningNestedHierarchyIssued) then
+                      message='nested hierarchy detected [node '
+                      message=message//nodes(iNode)%descendent%nodeIndex//']'
+                      message=message//char(10)//'ignoring as not currently supported'
+                      message=message//char(10)//'warning will not be issued again'
+                      call Galacticus_Display_Message(message,verbosityWarn)
+                      warningNestedHierarchyIssued=.true.
+                   end if
+                   jumpToHost => jumpToHost%host
+                end do
                 call Create_Branch_Jump_Event(                                                    &
                      &                        nodeList(iIsolatedNode                      )%node, &
                      &                        nodeList(jumpToHost%primaryIsolatedNodeIndex)%node, &
