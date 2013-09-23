@@ -149,7 +149,7 @@ contains
        call Get_Input_Parameter('mergerTreeBuildTreesBaseRedshift',mergerTreeBuildTreesBaseRedshift,defaultValue=0.0d0 )
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesBeginAtTree</name>
-       !@   <defaultValue>1</defaultValue>
+       !@   <defaultValue>1 (if processing trees in ascending order), or equal to the number of trees (otherwise)</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees.
@@ -157,8 +157,7 @@ contains
        !@   <type>integer</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeBuildTreesBeginAtTree' ,mergerTreeBuildTreesBeginAtTree ,defaultValue=1     )
-       nextTreeIndex=mergerTreeBuildTreesBeginAtTree
+       call Get_Input_Parameter('mergerTreeBuildTreesBeginAtTree' ,mergerTreeBuildTreesBeginAtTree ,defaultValue=0     )
        !@ <inputParameter>
        !@   <name>mergerTreeBuildTreesHaloMassDistribution</name>
        !@   <defaultValue>uniform</defaultValue>
@@ -311,6 +310,14 @@ contains
           ! Get the integral of the halo mass function over this range.
           treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
        end do
+       ! Determine the index of the tree at which to begin.
+       if (mergerTreeBuildTreesProcessDescending) then
+          if (mergerTreeBuildTreesBeginAtTree == 0) mergerTreeBuildTreesBeginAtTree=treeCount
+          nextTreeIndex=treeCount+1-mergerTreeBuildTreesBeginAtTree
+       else
+          if (mergerTreeBuildTreesBeginAtTree == 0) mergerTreeBuildTreesBeginAtTree=1
+          nextTreeIndex=            mergerTreeBuildTreesBeginAtTree
+       end if
        ! Determine which tree builder to use.
        !@ <inputParameter>
        !@   <name>mergerTreeBuildMethod</name>
