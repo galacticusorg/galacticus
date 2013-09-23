@@ -1,0 +1,136 @@
+<dataSets>
+  <massFunction>
+    <description>HI mass function data from Martin et al. (210).</description>
+    <description>Derived from 40% of the ALFALFA survey (10,119 galaxies).</description>
+    <description>Data are 2DSWML estimates, as shown in Fig. 10 of source.</description>
+    <url>http://adsabs.harvard.edu/abs/2010ApJ...723.1359M</url>
+    <label>Martin et al. (2010)</label>
+    <source>Data read by Andrew Benson from Fig. 10 of source using Datathief.</source>
+    <columns>
+      <mass>
+	<description>HI gas mass</description>
+	<units>Solar masses</units>
+	<hubble>70.0</hubble>
+	<hubbleExponent>-2</hubbleExponent>
+	<scaling>linear</scaling>
+	<datum>1.99526e+06</datum>
+	<datum>3.16228e+06</datum>
+	<datum>5.01187e+06</datum>
+	<datum>7.94328e+06</datum>
+	<datum>1.25893e+07</datum>
+	<datum>1.99526e+07</datum>
+	<datum>3.16228e+07</datum>
+	<datum>5.01187e+07</datum>
+	<datum>7.94328e+07</datum>
+	<datum>1.25893e+08</datum>
+	<datum>1.99526e+08</datum>
+	<datum>3.16228e+08</datum>
+	<datum>5.01187e+08</datum>
+	<datum>7.94328e+08</datum>
+	<datum>1.25893e+09</datum>
+	<datum>1.99526e+09</datum>
+	<datum>3.16228e+09</datum>
+	<datum>5.01187e+09</datum>
+	<datum>7.94328e+09</datum>
+	<datum>1.25893e+10</datum>
+	<datum>1.99526e+10</datum>
+	<datum>3.16228e+10</datum>
+	<datum>5.01187e+10</datum>
+	<datum>7.94328e+10</datum>
+      </mass>
+      <massFunction>
+	<description>HI gas mass function</description>
+	<units>Mpc^-3 dex^-1</units>
+	<hubble>70.0</hubble>
+	<hubbleExponent>3</hubbleExponent>
+	<scaling>linear</scaling>
+	<datum>0.31</datum>
+	<datum>0.22</datum>
+	<datum>0.19</datum>
+	<datum>0.14</datum>
+	<datum>7.45e-2</datum>
+	<datum>9.14e-2</datum>
+	<datum>5.86e-2</datum>
+	<datum>5.6e-2</datum>
+	<datum>5.63e-2</datum>
+	<datum>3.88e-2</datum>
+	<datum>4.0e-2</datum>
+	<datum>3.34e-2</datum>
+	<datum>2.6e-2</datum>
+	<datum>2.36e-2</datum>
+	<datum>2.02e-2</datum>
+	<datum>1.62e-2</datum>
+	<datum>1.05e-2</datum>
+	<datum>7.26e-3</datum>
+	<datum>4.84e-3</datum>
+	<datum>2.66e-3</datum>
+	<datum>8.83e-4</datum>
+	<datum>1.65e-4</datum>
+	<datum>2.9e-5</datum>
+	<datum>3.59e-6</datum>
+      </massFunction>
+      <upperError>
+	<description>HI gas mass function upper error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>70.0</hubble>
+	<hubbleExponent>3</hubbleExponent>
+	<scaling>linear</scaling>
+	<datum>0.31</datum>
+	<datum>0.16</datum>
+	<datum>0.08</datum>
+	<datum>0.05</datum>
+	<datum>0.0255</datum>
+	<datum>0.0186</datum>
+	<datum>0.0116</datum>
+	<datum>0.0098</datum>
+	<datum>0.0073</datum>
+	<datum>0.0047</datum>
+	<datum>0.0052</datum>
+	<datum>0.0043</datum>
+	<datum>0.003</datum>
+	<datum>0.002</datum>
+	<datum>0.0015</datum>
+	<datum>0.0017</datum>
+	<datum>0.001</datum>
+	<datum>0.00073</datum>
+	<datum>0.00042</datum>
+	<datum>0.00023</datum>
+	<datum>0.000101</datum>
+	<datum>1.8e-05</datum>
+	<datum>5.8e-06</datum>
+	<datum>2.4e-06</datum>
+      </upperError>
+      <lowerError>
+	<description>HI gas mass function lower error</description>
+	<units>Mpc^-3 per log10(HI gas mass)</units>
+	<hubble>70.0</hubble>
+	<hubbleExponent>3</hubbleExponent>
+	<scaling>linear</scaling>
+	<datum>0.15</datum>
+	<datum>0.1</datum>
+	<datum>0.06</datum>
+	<datum>0.0442</datum>
+	<datum>0.0194</datum>
+	<datum>0.022</datum>
+	<datum>0.0105</datum>
+	<datum>0.007</datum>
+	<datum>0.0077</datum>
+	<datum>0.0049</datum>
+	<datum>0.0044</datum>
+	<datum>0.0042</datum>
+	<datum>0.0029</datum>
+	<datum>0.0027</datum>
+	<datum>0.0019</datum>
+	<datum>0.0017</datum>
+	<datum>0.00093</datum>
+	<datum>0.00071</datum>
+	<datum>0.0005</datum>
+	<datum>0.00023</datum>
+	<datum>8.6e-05</datum>
+	<datum>1.7e-05</datum>
+	<datum>5.2e-06</datum>
+	<datum>1.42e-06</datum>
+      </lowerError>
+    </columns>
+  </massFunction>
+</dataSets>

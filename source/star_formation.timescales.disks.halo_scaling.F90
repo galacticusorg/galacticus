@@ -40,6 +40,9 @@ module Star_Formation_Timescale_Disks_Halo_Scaling
   ! Stored values of the timescale.
   double precision                 :: timeScaleStored
   !$omp threadprivate(timescaleStored)
+  ! Normalization of the timescale.
+  double precision :: timeScaleNormalization
+  
 contains
 
   !# <starFormationTimescaleDisksMethod>
@@ -50,8 +53,9 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     implicit none
-    type     (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod
-    procedure(Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
+    type            (varying_string                            ), intent(in   )          :: starFormationTimescaleDisksMethod 
+    procedure       (Star_Formation_Timescale_Disk_Halo_Scaling), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get 
+    double precision                                            , parameter              :: virialVelocityNormalization=200.0d0
 
     if (starFormationTimescaleDisksMethod == 'haloScaling') then
        Star_Formation_Timescale_Disk_Get => Star_Formation_Timescale_Disk_Halo_Scaling
@@ -92,6 +96,9 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationTimescaleDisksHaloScalingRedshiftExponent',starFormationTimescaleDisksHaloScalingRedshiftExponent,defaultValue=0.0d0)
+       ! Compute the normalization of the timescale.
+       timeScaleNormalization= starFormationTimescaleDisksHaloScalingTimescale                                           &
+       &                      /virialVelocityNormalization**starFormationTimescaleDisksHaloScalingVirialVelocityExponent
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_Halo_Scaling_Initialize
@@ -105,6 +112,10 @@ contains
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
     double precision                         , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                    , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
+    double precision                    , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                  :: expansionFactor                    , virialVelocity
 
     ! Get the basic component.
@@ -122,11 +133,23 @@ contains
        virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
        expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
 
+       ! Compute the velocity factor.
+       if (virialVelocity /= velocityPrevious) then
+          velocityPrevious      =virialVelocity
+          velocityFactorPrevious=virialVelocity**starFormationTimescaleDisksHaloScalingVirialVelocityExponent
+       end if
+
+       ! Compute the expansion-factor factor.
+       if (expansionFactor /= expansionFactorPrevious) then
+          expansionFactorPrevious      =      expansionFactor
+          expansionFactorFactorPrevious=1.0d0/expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
+       end if
+
        ! Return the timescale.
-       timescaleStored=                                                                                                   &
-            &  starFormationTimescaleDisksHaloScalingTimescale                                                            &
-            & *(virialVelocity/virialVelocityNormalization)**starFormationTimescaleDisksHaloScalingVirialVelocityExponent &
-            & /expansionFactor**starFormationTimescaleDisksHaloScalingRedshiftExponent
+       timescaleStored=                      &
+            &  timeScaleNormalization        &
+            & *velocityFactorPrevious        &
+            & *expansionFactorFactorPrevious
 
        ! Record that the timescale is now computed.
        timescaleComputed=.true.

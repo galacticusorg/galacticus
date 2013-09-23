@@ -28,7 +28,7 @@ module Cooling_Rates_Simple_Scaling
 
   ! The fixed timescale for cooling.
   double precision :: coolingRateSimpleScalingTimescale     , coolingRateSimpleScalingTimescaleExponent, &
-       &              coolingRateSimpleScalingTransitionMass
+       &              coolingRateSimpleScalingTransitionMass, coolingRateSimpleScalingCutoffExponent
 
 contains
 
@@ -81,6 +81,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateSimpleScalingTransitionMass',coolingRateSimpleScalingTransitionMass,defaultValue=1.0d12)
+       !@ <inputParameter>
+       !@   <name>coolingRateSimpleScalingCutoffExponent</name>
+       !@   <defaultValue>$1$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The exponent appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingRateSimpleScalingCutoffExponent',coolingRateSimpleScalingCutoffExponent,defaultValue=1.0d0)
 
        ! Check that the properties we need are gettable.
        if (.not.defaultHotHaloComponent%massIsGettable())                             &
@@ -118,8 +129,13 @@ contains
     thisBasicComponent   => thisNode%basic  ()
     thisHotHaloComponent => thisNode%hotHalo()
     expansionFactor=cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
-    coolingRate    = exp(-thisBasicComponent%mass()/coolingRateSimpleScalingTransitionMass) &
-         &          *expansionFactor**coolingRateSimpleScalingTimescaleExponent             &
+    coolingRate    = exp(                                                       &
+         &               -(                                                     &
+         &                  thisBasicComponent%mass()                           &
+         &                 /coolingRateSimpleScalingTransitionMass              &
+         &                )**coolingRateSimpleScalingCutoffExponent             &
+         &              )                                                       &
+         &          *expansionFactor**coolingRateSimpleScalingTimescaleExponent &
          &          /coolingRateSimpleScalingTimescale
     Cooling_Rate_Simple_Scaling=thisHotHaloComponent%mass()*coolingRate
     return
