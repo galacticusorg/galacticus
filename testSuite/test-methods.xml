@@ -132,10 +132,6 @@
       </value>
       <value>read
       <parameter>
-	<name>treeNodeMethodSatellite</name>
-	<value>preset</value>
-      </parameter>
-      <parameter>
 	<name>hotHaloRamPressureStrippingMethod</name>
 	<value>virialRadius</value>
       </parameter>
@@ -161,15 +157,31 @@
       </parameter>
       <parameter>
 	<name>treeNodeMethodSatellite</name>
-	<value>standard</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetMergerTimes</name>
-	<value>false</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetMergerNodes</name>
-	<value>false</value>
+	<value>standard
+	<parameter>
+	  <name>mergerTreeReadPresetMergerTimes</name>
+	  <value>false</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadPresetMergerNodes</name>
+	  <value>false</value>
+	</parameter>
+	</value>
+	<value>preset
+	<parameter>
+	  <name>mergerTreeReadPresetMergerTimes</name>
+	  <value>true</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadPresetMergerNodes</name>
+	  <value>true</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadSubresolutionMergingMethod</name>
+	  <value>null</value>
+	  <value>boylanKolchin2008</value>
+	</parameter>
+	</value>
       </parameter>
       <parameter>
 	<name>mergerTreeReadPresetSubhaloMasses</name>
@@ -243,13 +255,7 @@
       <name>satelliteMergingTimescalesMethod</name>
       <value>boylanKolchin2008</value>
       <value>laceyCole1993</value>
-      <value>jiang2008
-      <parameter>
-	<name>mergerTreeReadSubresolutionMergingMethod</name>
-	<value>null</value>
-	<value>boylanKolchin2008</value>
-      </parameter>
-      </value>
+      <value>jiang2008</value>
       <value>laceyCole1993Tormen</value>
       <value>wetzelWhite2010</value>
     </parameter>
