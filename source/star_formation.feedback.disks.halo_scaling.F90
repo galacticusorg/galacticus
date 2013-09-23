@@ -30,6 +30,9 @@ module Star_Formation_Feedback_Disks_Halo_Scaling
   double precision :: diskOutflowFraction              , diskOutflowRedshiftExponent, &
        &              diskOutflowVirialVelocityExponent
 
+  ! Normalization factor for the outflow rate.
+  double precision :: outflowNormalization
+  
 contains
 
   !# <starFormationFeedbackDisksMethod>
@@ -39,9 +42,11 @@ contains
     !% Initializes the ``halo scaling'' disk star formation feedback module.
     use ISO_Varying_String
     use Input_Parameters
+    use Stellar_Feedback
     implicit none
-    type     (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod
-    procedure(Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get
+    type            (varying_string                                        ), intent(in   )          :: starFormationFeedbackDisksMethod              
+    procedure       (Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling), intent(inout), pointer :: Star_Formation_Feedback_Disk_Outflow_Rate_Get 
+    double precision                                                        , parameter              :: virialVelocityNormalization=200.0d0
 
     if (starFormationFeedbackDisksMethod == 'haloScaling') then
        Star_Formation_Feedback_Disk_Outflow_Rate_Get => Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling
@@ -82,21 +87,27 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('diskOutflowRedshiftExponent',diskOutflowRedshiftExponent,defaultValue=0.0d0)
+       ! Compute the normalization factor.
+       outflowNormalization= diskOutflowFraction                                            &
+            &               /feedbackEnergyInputAtInfinityCanonical                         &
+            &               /virialVelocityNormalization**diskOutflowVirialVelocityExponent
     end if
     return
   end subroutine Star_Formation_Feedback_Disks_Halo_Scaling_Initialize
 
   double precision function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling(thisNode,starFormationRate,energyInputRate)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\tt thisNode}.
-    use Stellar_Feedback
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode               ), intent(inout), pointer :: thisNode
     double precision                         , intent(in   )          :: energyInputRate                    , starFormationRate
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    double precision                         , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                         , parameter              :: virialVelocityNormalization=200.0d0
+    double precision                         , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
     double precision                                                  :: expansionFactor                    , virialVelocity
 
     ! Get the default cosmology functions object.
@@ -108,12 +119,24 @@ contains
     virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
     expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
 
+    ! Compute the velocity factor.
+    if (virialVelocity /= velocityPrevious) then
+       velocityPrevious      =virialVelocity
+       velocityFactorPrevious=virialVelocity**diskOutflowVirialVelocityExponent
+    end if
+    
+    ! Compute the expansion-factor factor.
+    if (expansionFactor /= expansionFactorPrevious) then
+       expansionFactorPrevious      =      expansionFactor
+       expansionFactorFactorPrevious=1.0d0/expansionFactor**diskOutflowRedshiftExponent
+    end if
+
     ! Compute the outflow rate.
-    Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling=                                 &
-         &  diskOutflowFraction                                                             &
-         & *energyInputRate/feedbackEnergyInputAtInfinityCanonical                          &
-         & *(virialVelocity/virialVelocityNormalization)**diskOutflowVirialVelocityExponent &
-         & /expansionFactor**diskOutflowRedshiftExponent
+    Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling= &
+         & outflowNormalization                             &
+         & *energyInputRate                                 &
+         & *velocityFactorPrevious                          &
+         & *expansionFactorFactorPrevious
     return
   end function Star_Formation_Feedback_Disk_Outflow_Rate_Halo_Scaling
 

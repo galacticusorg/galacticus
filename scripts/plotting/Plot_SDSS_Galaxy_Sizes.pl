@@ -94,7 +94,7 @@ print gnuPlot "set output \"tmp.ps\"\n";
 # Read the XML data file.
 my @tmpFiles;
 undef(@tmpFiles);
-my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Galaxy_Sizes_SDSS_Shen_2003.xml");
+my $data = $xml->XMLin($galacticusPath."data/observations/galaxySizes/Galaxy_Sizes_By_Luminosity_SDSS_Shen_2003.xml");
 foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     my $columns = $dataSet->{'columns'};
     my $x = pdl @{$columns->{'radius'}->{'data'}};
