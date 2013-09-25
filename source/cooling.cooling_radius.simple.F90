@@ -263,7 +263,11 @@ contains
        ! Scale all chemical masses by their mass in atomic mass units to get a number density.
        call chemicalMasses%massToNumber(chemicalDensities)
        ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-       massToDensityConversion=Chemicals_Mass_To_Density_Conversion(thisHotHaloComponent%outerRadius())
+       if (thisHotHaloComponent%outerRadius() > 0.0d0) then
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(thisHotHaloComponent%outerRadius())
+       else
+          massToDensityConversion=0.0d0
+       end if
        ! Convert to number density.
        chemicalDensities=chemicalDensities*massToDensityConversion
     end if
