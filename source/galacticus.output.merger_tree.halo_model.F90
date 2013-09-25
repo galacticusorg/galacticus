@@ -310,15 +310,18 @@ contains
     use IO_HDF5
     type            (hdf5Object), intent(inout) :: outputGroup
     double precision            , intent(in   ) :: time
+    double precision                            :: growthFactor, growthFactorDerivative
 
     ! Initialize the module.
     call Galacticus_Output_Halo_Model_Initialize
 
     ! Store growth factor if we are outputting halo model data.
     if (outputHaloModelData) then
+       growthFactor          =Linear_Growth_Factor                       (time)
+       growthFactorDerivative=Linear_Growth_Factor_Logarithmic_Derivative(time)
        !$omp critical (HDF5_Access)
-       call outputGroup%writeAttribute(Linear_Growth_Factor                       (time),'linearGrowthFactor'             )
-       call outputGroup%writeAttribute(Linear_Growth_Factor_Logarithmic_Derivative(time),'linearGrowthFactorLogDerivative')
+       call outputGroup%writeAttribute(growthFactor          ,'linearGrowthFactor'             )
+       call outputGroup%writeAttribute(growthFactorDerivative,'linearGrowthFactorLogDerivative')
        !$omp end critical (HDF5_Access)
     end if
 
