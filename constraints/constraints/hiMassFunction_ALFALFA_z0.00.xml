@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z=0.00 HI mass function. -->
+<constraint>
+  <name>ALFALFA z=0.00 HI mass function</name>
+  <label>hiMassFunctionZ0.00</label>
+  <outputRedshift>0.0</outputRedshift>
+  <haloMassResolution>5.0e7</haloMassResolution>
+  <haloMassMinimum>2.0e8</haloMassMinimum>
+  <haloMassMaximum>2.0e14</haloMassMaximum>
+  <analysis>constraints/scripts/hiMassFunction_ALFALFA_z0.0.pl</analysis>
+</constraint>
