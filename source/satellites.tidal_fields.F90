@@ -53,7 +53,7 @@ contains
           ! Get the cooling rate method parameter.
           !@ <inputParameter>
           !@   <name>satellitesTidalFieldMethod</name>
-          !@   <defaultValue>sphericalSymmetry</defaultValue>
+          !@   <defaultValue>null</defaultValue>
           !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The name of the method to be used when computing the tidal field acting on a satellite.
@@ -61,7 +61,7 @@ contains
           !@   <type>string</type>
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
-          call Get_Input_Parameter('satellitesTidalFieldMethod',satellitesTidalFieldMethod,defaultValue='sphericalSymmetry')
+          call Get_Input_Parameter('satellitesTidalFieldMethod',satellitesTidalFieldMethod,defaultValue='null')
           ! Include file that makes calls to all available method initialization routines.
           !# <include directive="satellitesTidalFieldMethod" type="functionCall" functionType="void">
           !#  <functionArgs>satellitesTidalFieldMethod,Satellites_Tidal_Field_Get</functionArgs>
