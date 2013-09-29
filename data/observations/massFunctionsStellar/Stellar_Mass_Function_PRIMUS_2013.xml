@@ -3,15 +3,19 @@
   <url>http://adsabs.harvard.edu/abs/2013ApJ...767...50M</url>
   <label>Moustakas et al. (2013)</label>
   <source>Data taken directly from tables 3 and 4 of Moustakas et al. (2013).</source>
+  <cosmology>
+    <hubble>70.0</hubble>
+    <omegaMatter>0.3</omegaMatter>
+    <omegaDarkEnergy>0.7</omegaDarkEnergy>
+  </cosmology>
   <stellarMassFunction>
     <redshift minimum="0.0" maximum="0.1" />
     <columns>
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>9.0</datum>
 	<datum>9.1</datum>
 	<datum>9.2</datum>
@@ -47,9 +51,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-1.899</datum>
 	<datum>-1.923</datum>
 	<datum>-1.970</datum>
@@ -85,8 +88,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.017</datum>
 	<datum>0.017</datum>
@@ -123,8 +124,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.017</datum>
 	<datum>0.016</datum>
@@ -166,9 +165,8 @@
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>8.8</datum>
 	<datum>8.9</datum>
 	<datum>9.0</datum>
@@ -199,9 +197,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.009</datum>
 	<datum>-2.039</datum>
 	<datum>-2.160</datum>
@@ -232,8 +229,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.048</datum>
 	<datum>0.050</datum>
@@ -265,46 +260,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
-	<scaling>log10</scaling>
-	<datum>0.054</datum>
-	<datum>0.056</datum>
-	<datum>0.045</datum>
-	<datum>0.050</datum>
-	<datum>0.066</datum>
-	<datum>0.061</datum>
-	<datum>0.038</datum>
-	<datum>0.036</datum>
-	<datum>0.036</datum>
-	<datum>0.037</datum>
-	<datum>0.034</datum>
-	<datum>0.034</datum>
-	<datum>0.038</datum>
-	<datum>0.037</datum>
-	<datum>0.035</datum>
-	<datum>0.038</datum>
-	<datum>0.038</datum>
-	<datum>0.039</datum>
-	<datum>0.041</datum>
-	<datum>0.043</datum>
-	<datum>0.052</datum>
-	<datum>0.063</datum>
-	<datum>0.089</datum>
-	<datum>0.10</datum>
-	<datum>0.40</datum>
-	<datum>0.30</datum>
-      </upperError>
-    </columns>
-  </stellarMassFunction>
-  <stellarMassFunction>
-    <redshift minimum="0.30" maximum="0.40" />
-    <columns>
-      <stellarMass>
-	<description>Galaxy stellar mass</description>
-	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>9.2</datum>
 	<datum>9.3</datum>
@@ -334,9 +289,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.132</datum>
 	<datum>-2.210</datum>
 	<datum>-2.190</datum>
@@ -365,8 +319,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.040</datum>
 	<datum>0.038</datum>
@@ -396,8 +348,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.043</datum>
 	<datum>0.042</datum>
@@ -432,9 +382,8 @@
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>9.6</datum>
 	<datum>9.7</datum>
 	<datum>9.8</datum>
@@ -462,9 +411,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.292</datum>
 	<datum>-2.347</datum>
 	<datum>-2.289</datum>
@@ -492,8 +440,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.063</datum>
 	<datum>0.029</datum>
@@ -522,8 +468,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.072</datum>
 	<datum>0.031</datum>
@@ -557,9 +501,8 @@
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>10.0</datum>
 	<datum>10.1</datum>
 	<datum>10.2</datum>
@@ -582,9 +525,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.419</datum>
 	<datum>-2.394</datum>
 	<datum>-2.371</datum>
@@ -607,8 +549,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.033</datum>
 	<datum>0.026</datum>
@@ -632,8 +572,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.036</datum>
 	<datum>0.027</datum>
@@ -662,9 +600,8 @@
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>10.4</datum>
 	<datum>10.5</datum>
 	<datum>10.6</datum>
@@ -686,9 +623,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.387</datum>
 	<datum>-2.320</datum>
 	<datum>-2.353</datum>
@@ -710,8 +646,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.021</datum>
 	<datum>0.025</datum>
@@ -734,8 +668,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.022</datum>
 	<datum>0.027</datum>
@@ -763,9 +695,8 @@
       <stellarMass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>luminosity</cosmologyScaling>
 	<datum>10.8</datum>
 	<datum>10.9</datum>
 	<datum>11.0</datum>
@@ -783,9 +714,8 @@
       <massFunction>
 	<description>Galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
+	<cosmologyScaling>inverseComovingVolume</cosmologyScaling>
 	<datum>-2.583</datum>
 	<datum>-2.658</datum>
 	<datum>-2.701</datum>
@@ -803,8 +733,6 @@
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.026</datum>
 	<datum>0.022</datum>
@@ -823,8 +751,6 @@
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
 	<units>Mpc^-3 dex^-1</units>
-	<hubble>70.0</hubble>
-	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>0.028</datum>
 	<datum>0.023</datum>

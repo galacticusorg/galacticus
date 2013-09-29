@@ -8,6 +8,9 @@
     <description>Petrosian r50 half-light radius distribution for 8.1 &lt; log10(Mstellar) &lt; 8.3 for late-type galaxies.</description>
     <massMaximum>199526231.496887</massMaximum>
     <massMinimum>125892541.179417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.0411149721104522</datum>
       <datum>0.0510504999975406</datum>
@@ -30,7 +33,7 @@
       <datum>1.95614029812565</datum>
       <datum>2.42381796455463</datum>
       <datum>3.00400049572423</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -57,7 +60,7 @@
       <datum>0.1551</datum>
       <datum>0.4653</datum>
       <datum>0.07755</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -95,6 +98,9 @@
     <description>Petrosian r50 half-light radius distribution for 8.3 &lt; log10(Mstellar) &lt; 8.5 for late-type galaxies.</description>
     <massMaximum>316227766.016838</massMaximum>
     <massMinimum>199526231.496888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.0405508535448384</datum>
       <datum>0.0510504999975406</datum>
@@ -117,7 +123,7 @@
       <datum>2.60435390455169</datum>
       <datum>3.28170848544526</datum>
       <datum>4.13523314347606</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -144,7 +150,7 @@
       <datum>0.4137</datum>
       <datum>0.04321</datum>
       <datum>-0.04321</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -182,6 +188,9 @@
     <description>Petrosian r50 half-light radius distribution for 8.5 &lt; log10(Mstellar) &lt; 8.7 for late-type galaxies.</description>
     <massMaximum>501187233.627271</massMaximum>
     <massMinimum>316227766.016838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.270832014429895</datum>
       <datum>0.314123190598619</datum>
@@ -204,7 +213,7 @@
       <datum>3.90031784475066</datum>
       <datum>4.523764623325</datum>
       <datum>5.24686632777617</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -231,7 +240,7 @@
       <datum>0.1689</datum>
       <datum>0.04222</datum>
       <datum>-0.04222</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -269,6 +278,9 @@
     <description>Petrosian r50 half-light radius distribution for 8.7 &lt; log10(Mstellar) &lt; 8.9 for late-type galaxies.</description>
     <massMaximum>794328234.724282</massMaximum>
     <massMinimum>501187233.627273</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.273023481294007</datum>
       <datum>0.324414307904885</datum>
@@ -291,7 +303,7 @@
       <datum>6.09677264457244</datum>
       <datum>7.2443596007499</datum>
       <datum>8.60993752184601</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -318,7 +330,7 @@
       <datum>-0.0248</datum>
       <datum>-0.0248</datum>
       <datum>0.0248</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -356,6 +368,9 @@
     <description>Petrosian r50 half-light radius distribution for 8.9 &lt; log10(Mstellar) &lt; 9.1 for late-type galaxies.</description>
     <massMaximum>1258925411.79417</massMaximum>
     <massMinimum>794328234.724282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.041209751909733</datum>
       <datum>0.0553350109215737</datum>
@@ -378,7 +393,7 @@
       <datum>8.32530206749242</datum>
       <datum>11.1943788346715</datum>
       <datum>15.0522006863213</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -405,7 +420,7 @@
       <datum>0.01927</datum>
       <datum>0.009635</datum>
       <datum>-0.009635</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -443,6 +458,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.1 &lt; log10(Mstellar) &lt; 9.3 for late-type galaxies.</description>
     <massMaximum>1995262314.96887</massMaximum>
     <massMinimum>1258925411.79417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.436515832240166</datum>
       <datum>0.501071844287176</datum>
@@ -465,7 +483,7 @@
       <datum>5.23721013923193</datum>
       <datum>6.01173737483278</datum>
       <datum>6.90080888548452</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -492,7 +510,7 @@
       <datum>0.1148</datum>
       <datum>0.04606</datum>
       <datum>-0.0230309357359965</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -530,6 +548,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.3 &lt; log10(Mstellar) &lt; 9.5 for late-type galaxies.</description>
     <massMaximum>3162277660.16838</massMaximum>
     <massMinimum>1995262314.96888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.735529337867272</datum>
       <datum>0.854515608676131</datum>
@@ -552,7 +573,7 @@
       <datum>10.9144033644876</datum>
       <datum>12.6765186585785</datum>
       <datum>14.7231250243272</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -579,7 +600,7 @@
       <datum>-0.009644</datum>
       <datum>-0.009644</datum>
       <datum>0.009644</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -617,6 +638,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.5 &lt; log10(Mstellar) &lt; 9.7 for late-type galaxies.</description>
     <massMaximum>5011872336.27271</massMaximum>
     <massMinimum>3162277660.16838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.485623841391426</datum>
       <datum>0.56689157152319</datum>
@@ -639,7 +663,7 @@
       <datum>7.85235634610072</datum>
       <datum>9.16642522419559</datum>
       <datum>10.700399687349</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -666,7 +690,7 @@
       <datum>0.01962</datum>
       <datum>0.01308</datum>
       <datum>-0.00653723310397553</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -704,6 +728,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.7 &lt; log10(Mstellar) &lt; 9.9 for late-type galaxies.</description>
     <massMaximum>7943282347.24282</massMaximum>
     <massMinimum>5011872336.27274</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.471954357244604</datum>
       <datum>0.553095340740311</datum>
@@ -726,7 +753,7 @@
       <datum>8.22242649947071</datum>
       <datum>9.6382902362397</datum>
       <datum>11.297959146728</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -753,7 +780,7 @@
       <datum>0.0525</datum>
       <datum>0.02007</datum>
       <datum>-0.00501250124564026</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -791,6 +818,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.9 &lt; log10(Mstellar) &lt; 10.1 for late-type galaxies.</description>
     <massMaximum>12589254117.9417</massMaximum>
     <massMinimum>7943282347.24282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.81350457561444</datum>
       <datum>0.941304207654299</datum>
@@ -813,7 +843,7 @@
       <datum>11.2460497396693</datum>
       <datum>13.0016957803329</datum>
       <datum>15.0314196609002</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -840,7 +870,7 @@
       <datum>0.003796</datum>
       <datum>0.003796</datum>
       <datum>-0.003796</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -878,6 +908,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.1 &lt; log10(Mstellar) &lt; 10.3 for late-type galaxies.</description>
     <massMaximum>19952623149.6887</massMaximum>
     <massMinimum>12589254117.9417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.703072319883833</datum>
       <datum>0.813242374987214</datum>
@@ -900,7 +933,7 @@
       <datum>9.66050878989813</datum>
       <datum>11.1686324778056</datum>
       <datum>12.9121927361353</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -927,7 +960,7 @@
       <datum>0.03287</datum>
       <datum>0.01178</datum>
       <datum>-0.00294300033955857</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -965,6 +998,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.3 &lt; log10(Mstellar) &lt; 10.5 for late-type galaxies.</description>
     <massMaximum>31622776601.6838</massMaximum>
     <massMinimum>19952623149.6888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.933877689165405</datum>
       <datum>1.06974434660878</datum>
@@ -987,7 +1023,7 @@
       <datum>10.7646521362984</datum>
       <datum>12.3310483322891</datum>
       <datum>14.1253754462275</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1014,7 +1050,7 @@
       <datum>0.02096</datum>
       <datum>0.004657</datum>
       <datum>0.002329</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1052,6 +1088,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.5 &lt; log10(Mstellar) &lt; 10.7 for late-type galaxies.</description>
     <massMaximum>50118723362.7271</massMaximum>
     <massMinimum>31622776601.6838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.671119719698421</datum>
       <datum>0.785778243559009</datum>
@@ -1074,7 +1113,7 @@
       <datum>11.4551294144554</datum>
       <datum>13.3967668742594</datum>
       <datum>15.7036280433355</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1101,7 +1140,7 @@
       <datum>0.009619</datum>
       <datum>0.006413</datum>
       <datum>-0.00160275003898331</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1139,6 +1178,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.7 &lt; log10(Mstellar) &lt; 10.9 for late-type galaxies.</description>
     <massMaximum>79432823472.4282</massMaximum>
     <massMinimum>50118723362.7273</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.0765395757808</datum>
       <datum>1.25040297989424</datum>
@@ -1161,7 +1203,7 @@
       <datum>15.9220872705117</datum>
       <datum>18.4926861897808</datum>
       <datum>21.4783047413053</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1188,7 +1230,7 @@
       <datum>0.004329</datum>
       <datum>0.001505</datum>
       <datum>-0.001505</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1226,6 +1268,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.9 &lt; log10(Mstellar) &lt; 11.1 for late-type galaxies.</description>
     <massMaximum>125892541179.417</massMaximum>
     <massMinimum>79432823472.4282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.28085509453628</datum>
       <datum>1.46994132651385</datum>
@@ -1248,7 +1293,7 @@
       <datum>15.2756605823807</datum>
       <datum>17.4984668862466</datum>
       <datum>20.0447202736516</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1275,7 +1320,7 @@
       <datum>0.01383</datum>
       <datum>0.001537</datum>
       <datum>-0.001537</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1313,6 +1358,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.1 &lt; log10(Mstellar) &lt; 11.3 for late-type galaxies.</description>
     <massMaximum>199526231496.887</massMaximum>
     <massMinimum>125892541179.417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.58161217700804</datum>
       <datum>1.81384428087062</datum>
@@ -1335,7 +1383,7 @@
       <datum>18.578044550917</datum>
       <datum>21.3304491314658</datum>
       <datum>24.4343055269397</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1362,7 +1410,7 @@
       <datum>0.008231</datum>
       <datum>0.002058</datum>
       <datum>0.002595</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1400,6 +1448,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.3 &lt; log10(Mstellar) &lt; 11.5 for late-type galaxies.</description>
     <massMaximum>316227766016.838</massMaximum>
     <massMinimum>199526231496.888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>2.24750155042126</datum>
       <datum>2.55740788582677</datum>
@@ -1422,7 +1473,7 @@
       <datum>23.0144181740851</datum>
       <datum>26.1818300821899</datum>
       <datum>29.7851642942919</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1449,7 +1500,7 @@
       <datum>0.004334</datum>
       <datum>0.004334</datum>
       <datum>-0.004334</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1487,6 +1538,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.5 &lt; log10(Mstellar) &lt; 11.7 for late-type galaxies.</description>
     <massMaximum>501187233627.271</massMaximum>
     <massMinimum>316227766016.838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>2.6952558665041</datum>
       <datum>3.09314301094896</datum>
@@ -1509,7 +1563,7 @@
       <datum>32.1366053864032</datum>
       <datum>36.897759857015</datum>
       <datum>42.2668614265603</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1536,7 +1590,7 @@
       <datum>-0.01383</datum>
       <datum>-0.01383</datum>
       <datum>0.01383</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1574,6 +1628,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.7 &lt; log10(Mstellar) &lt; 11.9 for late-type galaxies.</description>
     <massMaximum>794328234724.282</massMaximum>
     <massMinimum>501187233627.273</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>3.70424753029958</datum>
       <datum>4.14954042634363</datum>
@@ -1596,7 +1653,7 @@
       <datum>28.5101826750391</datum>
       <datum>31.9153785510076</datum>
       <datum>35.7272838151929</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1623,7 +1680,7 @@
       <datum>0.08347</datum>
       <datum>-0.08347</datum>
       <datum>-0.08347</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1661,6 +1718,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.9 &lt; log10(Mstellar) &lt; 12.1 for late-type galaxies.</description>
     <massMaximum>1258925411794.17</massMaximum>
     <massMinimum>794328234724.282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>5.22877555313442</datum>
       <datum>5.67936786772003</datum>
@@ -1683,7 +1743,7 @@
       <datum>23.1206479017559</datum>
       <datum>25.1188643150958</datum>
       <datum>27.2897778280804</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1710,7 +1770,7 @@
       <datum>-0.4689</datum>
       <datum>0.4689</datum>
       <datum>-0.4689</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1748,6 +1808,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.3 &lt; log10(Mstellar) &lt; 9.5 for early-type galaxies.</description>
     <massMaximum>3162277660.16838</massMaximum>
     <massMinimum>1995262314.96888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.183358057759778</datum>
       <datum>0.221258518438038</datum>
@@ -1770,7 +1833,7 @@
       <datum>5.39262225891571</datum>
       <datum>6.50728757754879</datum>
       <datum>7.85235634610072</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1797,7 +1860,7 @@
       <datum>-0.115</datum>
       <datum>0.115</datum>
       <datum>0.115</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1835,6 +1898,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.5 &lt; log10(Mstellar) &lt; 9.7 for early-type galaxies.</description>
     <massMaximum>5011872336.27271</massMaximum>
     <massMinimum>3162277660.16838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.357355112734903</datum>
       <datum>0.417349598465317</datum>
@@ -1857,7 +1923,7 @@
       <datum>5.8411720709283</datum>
       <datum>6.82181597938182</datum>
       <datum>7.96709507808649</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1884,7 +1950,7 @@
       <datum>0.114</datum>
       <datum>-0.114</datum>
       <datum>-0.114</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -1922,6 +1988,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.7 &lt; log10(Mstellar) &lt; 9.9 for early-type galaxies.</description>
     <massMaximum>7943282347.24282</massMaximum>
     <massMinimum>5011872336.27274</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.654033509448895</datum>
       <datum>0.750758054119937</datum>
@@ -1944,7 +2013,7 @@
       <datum>7.83249272191254</datum>
       <datum>8.99083442951803</datum>
       <datum>10.327614057614</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -1971,7 +2040,7 @@
       <datum>-0.0582246317596566</datum>
       <datum>0.1165</datum>
       <datum>-0.0582246317596566</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2009,6 +2078,9 @@
     <description>Petrosian r50 half-light radius distribution for 9.9 &lt; log10(Mstellar) &lt; 10.1 for early-type galaxies.</description>
     <massMaximum>12589254117.9417</massMaximum>
     <massMinimum>7943282347.24282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.808444107599947</datum>
       <datum>0.926403100736399</datum>
@@ -2031,7 +2103,7 @@
       <datum>9.38642036672135</datum>
       <datum>10.7646521362984</datum>
       <datum>12.3310483322891</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2058,7 +2130,7 @@
       <datum>-0.04003</datum>
       <datum>0.04003</datum>
       <datum>-0.04003</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2096,6 +2168,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.1 &lt; log10(Mstellar) &lt; 10.3 for early-type galaxies.</description>
     <massMaximum>19952623149.6887</massMaximum>
     <massMinimum>12589254117.9417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.6347460398327</datum>
       <datum>0.768245455679267</datum>
@@ -2118,7 +2193,7 @@
       <datum>19.6788628970684</datum>
       <datum>23.8231946935869</datum>
       <datum>28.8403150312661</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2145,7 +2220,7 @@
       <datum>-0.01423</datum>
       <datum>-0.01423</datum>
       <datum>0.01423</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2183,6 +2258,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.3 &lt; log10(Mstellar) &lt; 10.5 for early-type galaxies.</description>
     <massMaximum>31622776601.6838</massMaximum>
     <massMinimum>19952623149.6888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.951831339388826</datum>
       <datum>1.10082934979181</datum>
@@ -2205,7 +2283,7 @@
       <datum>13.031667784523</datum>
       <datum>15.1008015416415</datum>
       <datum>17.4984668862466</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2232,7 +2310,7 @@
       <datum>0.02517</datum>
       <datum>0.01239</datum>
       <datum>-0.01239</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2270,6 +2348,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.5 &lt; log10(Mstellar) &lt; 10.7 for early-type galaxies.</description>
     <massMaximum>50118723362.7271</massMaximum>
     <massMinimum>31622776601.6838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.391832089394111</datum>
       <datum>0.47500698938312</datum>
@@ -2292,7 +2373,7 @@
       <datum>12.5314117494142</datum>
       <datum>15.1705036745934</datum>
       <datum>18.4077200146896</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2319,7 +2400,7 @@
       <datum>0.005684</datum>
       <datum>-0.002842</datum>
       <datum>0.002842</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2357,6 +2438,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.7 &lt; log10(Mstellar) &lt; 10.9 for early-type galaxies.</description>
     <massMaximum>79432823472.4282</massMaximum>
     <massMinimum>50118723362.7273</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>0.837722152575059</datum>
       <datum>0.971739820818556</datum>
@@ -2379,7 +2463,7 @@
       <datum>12.1059813355048</datum>
       <datum>14.0604752412991</datum>
       <datum>16.3305194789433</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2406,7 +2490,7 @@
       <datum>0.009101</datum>
       <datum>0.00455</datum>
       <datum>-0.00227593934065934</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2444,6 +2528,9 @@
     <description>Petrosian r50 half-light radius distribution for 10.9 &lt; log10(Mstellar) &lt; 11.1 for early-type galaxies.</description>
     <massMaximum>125892541179.417</massMaximum>
     <massMinimum>79432823472.4282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.03518983783545</datum>
       <datum>1.20561876780796</datum>
@@ -2466,7 +2553,7 @@
       <datum>16.0694125301288</datum>
       <datum>18.7499450806742</datum>
       <datum>21.8776162394955</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2493,7 +2580,7 @@
       <datum>0.004251</datum>
       <datum>0.007086</datum>
       <datum>-0.00141723976855772</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2531,6 +2618,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.1 &lt; log10(Mstellar) &lt; 11.3 for early-type galaxies.</description>
     <massMaximum>199526231496.887</massMaximum>
     <massMinimum>125892541179.417</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.69863473253662</datum>
       <datum>1.96110117547605</datum>
@@ -2553,7 +2643,7 @@
       <datum>22.4905460583578</datum>
       <datum>26.0015956316527</datum>
       <datum>29.9916251898765</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2580,7 +2670,7 @@
       <datum>-0.001376</datum>
       <datum>0.002821</datum>
       <datum>0.001376</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2618,6 +2708,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.3 &lt; log10(Mstellar) &lt; 11.5 for early-type galaxies.</description>
     <massMaximum>316227766016.838</massMaximum>
     <massMinimum>199526231496.888</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>1.85054648979471</datum>
       <datum>2.11592368524095</datum>
@@ -2640,7 +2733,7 @@
       <datum>20.6538015581053</datum>
       <datum>23.6047823318058</datum>
       <datum>26.9773943244492</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2667,7 +2760,7 @@
       <datum>0.007567</datum>
       <datum>0.008714</datum>
       <datum>-0.00435738397980262</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2705,6 +2798,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.5 &lt; log10(Mstellar) &lt; 11.7 for early-type galaxies.</description>
     <massMaximum>501187233627.271</massMaximum>
     <massMinimum>316227766016.838</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>2.91742701400117</datum>
       <datum>3.38376348861765</datum>
@@ -2727,7 +2823,7 @@
       <datum>42.1696503428582</datum>
       <datum>48.8652359342834</datum>
       <datum>56.6239289038253</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2754,7 +2850,7 @@
       <datum>-0.004217</datum>
       <datum>0.004217</datum>
       <datum>-0.004217</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2792,6 +2888,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.7 &lt; log10(Mstellar) &lt; 11.9 for early-type galaxies.</description>
     <massMaximum>794328234724.282</massMaximum>
     <massMinimum>501187233627.273</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>2.92280606593193</datum>
       <datum>3.34272000137866</datum>
@@ -2814,7 +2913,7 @@
       <datum>32.7340694878838</datum>
       <datum>37.4110588272053</datum>
       <datum>42.7562886151586</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2841,7 +2940,7 @@
       <datum>0.01673</datum>
       <datum>0.01468</datum>
       <datum>-0.01468</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
@@ -2879,6 +2978,9 @@
     <description>Petrosian r50 half-light radius distribution for 11.9 &lt; log10(Mstellar) &lt; 12.1 for early-type galaxies.</description>
     <massMaximum>1258925411794.17</massMaximum>
     <massMinimum>794328234724.282</massMinimum>
+    <mass>
+      <cosmologyScaling>luminosity</cosmologyScaling>
+    </mass>
     <radius>
       <datum>3.26437467542946</datum>
       <datum>3.67366880110303</datum>
@@ -2901,7 +3003,7 @@
       <datum>27.3526872630671</datum>
       <datum>30.8318795024935</datum>
       <datum>34.6736850452532</datum>
-      <hubbleExponent>-1</hubbleExponent>
+      <cosmologyScaling>angular</cosmologyScaling>
       <scaling>linear</scaling>
       <units>kpc</units>
       <unitsInSI>3.08567758e+19</unitsInSI>
@@ -2928,7 +3030,7 @@
       <datum>0.5357</datum>
       <datum>0.3554</datum>
       <datum>-0.08885</datum>
-      <hubbleExponent>0</hubbleExponent>
+      <cosmologyScaling>none</cosmologyScaling>
       <scaling>linear</scaling>
       <units>Number per log10(half-light radius), normalized to unit area.</units>
       <unitsInSI></unitsInSI>
