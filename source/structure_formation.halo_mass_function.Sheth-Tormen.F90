@@ -36,7 +36,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    procedure(Halo_Mass_Function_Sheth_Tormen_Differential), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
 
     if (haloMassFunctionMethod == 'Sheth-Tormen') Halo_Mass_Function_Differential_Get => Halo_Mass_Function_Sheth_Tormen_Differential
     return

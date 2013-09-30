@@ -41,7 +41,7 @@ contains
     use IO_XML
     implicit none
     type     (varying_string  ), intent(in   )          :: supernovaePopIIIMethod
-    procedure(double precision), intent(inout), pointer :: SNePopIII_Cumulative_Energy_Get
+    procedure(SNePopIII_Cumulative_Energy_HegerWoosley), intent(inout), pointer :: SNePopIII_Cumulative_Energy_Get
     type     (Node            )               , pointer :: doc                            , energyElement, &
          &                                                 massElement
     integer                                             :: ioErr

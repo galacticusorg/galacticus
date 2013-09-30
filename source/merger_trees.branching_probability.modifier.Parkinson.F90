@@ -38,7 +38,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingModifierMethod
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get
+    procedure(Merger_Tree_Branching_Modifier_Parkinson), intent(inout), pointer :: Merger_Tree_Branching_Modifier_Get
 
     if (treeBranchingModifierMethod == 'Parkinson-Cole-Helly2008') then
        Merger_Tree_Branching_Modifier_Get => Merger_Tree_Branching_Modifier_Parkinson

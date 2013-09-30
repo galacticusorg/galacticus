@@ -36,7 +36,8 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get
+    procedure(Excursion_Sets_Barrier_Linear), intent(inout), pointer :: Excursion_Sets_Barrier_Get
+    procedure(Excursion_Sets_Barrier_Gradient_Linear), intent(inout), pointer :: Excursion_Sets_Barrier_Gradient_Get
     type     (varying_string  ), intent(inout)          :: barrierName
     character(len=10          )                         :: label
 

@@ -34,8 +34,14 @@ module Excursion_Sets_Barriers
   type     (varying_string                 )                            :: barrierName                                 , barrierRatesName
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Excursion_Sets_Barrier         ), pointer                   :: Excursion_Sets_Barrier_Get          =>null()
-  procedure(Excursion_Sets_Barrier_Gradient), pointer                   :: Excursion_Sets_Barrier_Gradient_Get =>null()
+  procedure(Excursion_Sets_Barrier_Template), pointer                   :: Excursion_Sets_Barrier_Get          =>null()
+  procedure(Excursion_Sets_Barrier_Template), pointer                   :: Excursion_Sets_Barrier_Gradient_Get =>null()
+
+  abstract interface
+    double precision function Excursion_Sets_Barrier_Template(variance,time)
+      double precision, intent(in   ) :: time, variance
+    end function Excursion_Sets_Barrier_Template
+  end interface
 
 contains
 

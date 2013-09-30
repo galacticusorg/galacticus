@@ -65,7 +65,8 @@ contains
     use IO_XML
     implicit none
     type            (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod
-    procedure       (double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get
+    procedure       (Critical_Overdensity_Mass_Scaling_WDM), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get
+    procedure       (Critical_Overdensity_Mass_Scaling_Gradient_WDM), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Gradient_Get
     type            (Node            )               , pointer :: doc                                  , thisNode
     integer                                                    :: ioErr
     double precision                                           :: matterRadiationEqualityRedshift      , warmDarkMatterCriticalOverdensityGX           , &

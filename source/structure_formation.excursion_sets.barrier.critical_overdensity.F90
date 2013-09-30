@@ -34,7 +34,8 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: excursionSetBarrierMethod
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_Barrier_Get, Excursion_Sets_Barrier_Gradient_Get
+    procedure(Excursion_Sets_Barrier_Critical_Overdensity), intent(inout), pointer :: Excursion_Sets_Barrier_Get
+    procedure(Excursion_Sets_Barrier_Gradient_Critical_Overdensity), intent(inout), pointer :: Excursion_Sets_Barrier_Gradient_Get
     type     (varying_string  ), intent(inout)          :: barrierName
 
     if (excursionSetBarrierMethod == 'criticalOverdensity') then

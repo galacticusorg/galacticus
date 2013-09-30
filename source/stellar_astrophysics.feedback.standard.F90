@@ -43,7 +43,7 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarFeedbackMethod
-    procedure(double precision), intent(inout), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get
+    procedure(Stellar_Feedback_Cumulative_Energy_Input_Standard), intent(inout), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get
 
     if (stellarFeedbackMethod == 'standard') then
        ! Set procedure pointers.
