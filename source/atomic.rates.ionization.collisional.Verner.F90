@@ -449,7 +449,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: atomicCollisionalIonizationMethod
-    procedure(double precision), intent(inout), pointer :: Atomic_Rate_Ionization_Collisional_Get
+    procedure(Atomic_Rate_Ionization_Collisional_Verner), intent(inout), pointer :: Atomic_Rate_Ionization_Collisional_Get
 
     ! Check if this atomic collisional ionization rate method has been selected.
     if (atomicCollisionalIonizationMethod == 'Verner') Atomic_Rate_Ionization_Collisional_Get => Atomic_Rate_Ionization_Collisional_Verner

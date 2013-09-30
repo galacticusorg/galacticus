@@ -43,8 +43,8 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type     (varying_string          ), intent(in   )          :: intergalaticMediumStateMethod
-    procedure(double precision        ), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
-    procedure(double precision        ), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
+    procedure(Intergalactic_Medium_Electron_Fraction_File), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(Intergalactic_Medium_Temperature_File), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
     class    (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
     character(len=32                  )                         :: parameterLabel
     type     (varying_string          )                         :: command                                   , parameterFile, &
