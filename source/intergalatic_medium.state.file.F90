@@ -60,7 +60,8 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: intergalaticMediumStateMethod
-    procedure(double precision), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get, Intergalactic_Medium_Temperature_Get
+    procedure(Intergalactic_Medium_Electron_Fraction_File), intent(inout), pointer :: Intergalactic_Medium_Electron_Fraction_Get
+    procedure(Intergalactic_Medium_Temperature_File), intent(inout), pointer :: Intergalactic_Medium_Temperature_Get
 
     ! Test if our method has been selected.
     if (intergalaticMediumStateMethod == 'file') then

@@ -43,7 +43,7 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    procedure(Halo_Mass_Function_Differential_Tinker2008), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
     type     (Node            )               , pointer :: columnElement                      , columnsElement, &
          &                                                 doc
     integer                                             :: ioErr

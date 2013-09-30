@@ -54,7 +54,8 @@ contains
     use String_Handling
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarTracksMethod
-    procedure(double precision), intent(inout), pointer :: Stellar_Effective_Temperature_Get, Stellar_Luminosity_Get
+    procedure(Stellar_Luminosity_File), intent(inout), pointer :: Stellar_Effective_Temperature_Get
+    procedure(Stellar_Effective_Temperature_File), intent(inout), pointer :: Stellar_Luminosity_Get
     type     (varying_string  )                         :: groupName                        , stellarTracksFile
     integer                                             :: ageCountMaximum                  , fileFormatVersion      , &
          &                                                 initialMassCount                 , initialMassCountMaximum, &

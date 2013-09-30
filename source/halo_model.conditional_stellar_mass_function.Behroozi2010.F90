@@ -57,7 +57,8 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: conditionalStellarMassFunctionMethod
-    procedure(double precision), intent(inout), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get, Cumulative_Conditional_Stellar_Mass_Function_Var_Get
+    procedure(Cumulative_Conditional_Stellar_Mass_Function_Behroozi2010), intent(inout), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Get
+    procedure(Cumulative_Conditional_Stellar_Mass_Function_Var_Behroozi2010), intent(inout), pointer :: Cumulative_Conditional_Stellar_Mass_Function_Var_Get
 
     if (conditionalStellarMassFunctionMethod == 'Behroozi2010') then
        Cumulative_Conditional_Stellar_Mass_Function_Get     => Cumulative_Conditional_Stellar_Mass_Function_Behroozi2010
