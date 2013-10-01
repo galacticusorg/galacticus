@@ -35,30 +35,44 @@ module Satellite_Orbits
   integer                   , parameter, public :: extremumPericenter            =-1
   integer                   , parameter, public :: extremumApocenter             =+1
 
+  ! Error codes.
+  integer, parameter, public :: errorCodeSuccess          =0
+  integer, parameter, public :: errorCodeOrbitUnbound     =1
+  integer, parameter, public :: errorCodeNoEquivalentOrbit=2
+
 contains
 
-  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
     !% Solves for the equivalent circular orbit radius for {\tt thisOrbit} in {\tt hostNode}.
     use Root_Finder
     use Kepler_Orbits
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: hostNode
-    type            (keplerOrbit      ), intent(inout)          :: thisOrbit
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                   :: finder
+    type            (treeNode         ), intent(inout), pointer  :: hostNode
+    type            (keplerOrbit      ), intent(inout)           :: thisOrbit
+    integer                            , intent(  out), optional :: errorCode
+    double precision                   , parameter               :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder       ), save                    :: finder
     !$omp threadprivate(finder)
-    type            (keplerOrbit      )                         :: currentOrbit
+    type            (keplerOrbit      )                          :: currentOrbit
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
-
+    ! Assign the active node.
+    activeNode => hostNode
+    ! Store the orbital energy.
     orbitalEnergyInternal=thisOrbit%energy()
+    ! Test for conditions that an equivalent circular orbit exists.
     if (orbitalEnergyInternal >= 0.0d0) then
        ! Orbit is unbound, return unphysical value.
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
+       if (present(errorCode)) errorCode=errorCodeOrbitUnbound
+    else if (Equivalent_Circular_Orbit_Solver(0.0d0) > 0.0d0) then
+       ! No equivalent circular orbit exists (i.e. the orbital energy is less [i.e. more negative] than the gravitational
+       ! potential at zero radius. Return an unphysical value.
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
+       if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       activeNode => hostNode
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
           call finder%tolerance   (toleranceAbsolute,toleranceRelative)
@@ -71,6 +85,7 @@ contains
                &                  )
        end if
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=Dark_Matter_Halo_Virial_Radius(hostNode))
+       if (present(errorCode)) errorCode=errorCodeSuccess
     end if
     return
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
