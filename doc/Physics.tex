@@ -1414,7 +1414,7 @@ If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these mas
  \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
 \end{description}
 
-In the case of reading root halo masses from a file, the file should be an XML file with the following form:
+In the case of reading root halo masses from a file, the file can be either an XML or HDF5 file. An XML file should have the following form:
 \begin{verbatim}
  <mergerTrees>
   <treeRootMass>13522377303.5998</treeRootMass>
@@ -1423,9 +1423,30 @@ In the case of reading root halo masses from a file, the file should be an XML f
   .
   .
   .
+  <treeWeight>13522377303.5998</treeWeight>
+  <treeWeight>19579530191.8709</treeWeight>
+  <treeWeight>21061025282.9613</treeWeight>
+  .
+  .
+  .
  </mergerTrees>
 \end{verbatim}
-where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate.
+where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) {\tt treeWeight} elements give the corresponding weight (in units of Mpc$^{-3}$) to assign to each tree. An HDF5 file should have the following structure:
+\begin{verbatim}
+HDF5 {
+GROUP '/' {
+   DATASET 'treeRootMass' {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( * ) / ( * ) }
+   }
+   DATASET 'treeWeight' {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( * ) / ( * ) }
+   }
+}
+}
+\end{verbatim}
+where the {\tt treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) {\tt treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to assign to each tree.
 
 \subsection{Fully Specified}\label{sec:TreeConstructFullySpecified}
 
