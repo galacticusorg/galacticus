@@ -70,6 +70,7 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use FoX_dom
+    use IO_HDF5
     use IO_XML
     !# <include directive="mergerTreeBuildMethod" type="moduleUse">
     include 'merger_trees.build.modules.inc'
@@ -83,9 +84,10 @@ contains
     double precision                            , parameter                           :: toleranceAbsolute            =0.0d0 , toleranceRelative                 =1.0d-3
     double precision                            , allocatable, dimension(:)           :: massFunctionSampleLogMass           , massFunctionSampleLogMassMonotonic       , &
          &                                                                               massFunctionSampleProbability
-    integer                                                                           :: iSample                             , iTree                                    , &
-         &                                                                               ioErr                               , jSample                                  , &
-         &                                                                               massFunctionSampleCount
+    logical                                                                           :: computeTreeWeights
+    integer                                                                           :: ioErr                               , jSample                                  , &
+         &                                                                               massFunctionSampleCount             , iSample                                  , &
+         &                                                                               iTree
     type            (fgsl_qrng                 )                                      :: quasiSequenceObject
     logical                                                                           :: quasiSequenceReset           =.true.
     double precision                                                                  :: expansionFactor                     , massFunctionSampleLogPrevious            , &
@@ -97,6 +99,7 @@ contains
     type            (fgsl_interp_accel         )                                      :: interpolationAccelerator
     type            (c_ptr                     )                                      :: parameterPointer
     logical                                                                           :: integrandReset               =.true., interpolationReset                =.true.
+    type(hdf5Object)                                :: treeFile
 
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'build') then
@@ -203,6 +206,7 @@ contains
        call Alloc_Array(treeWeight  ,[treeCount])
 
        ! Determine how to compute the tree root masses.
+       computeTreeWeights=.true.
        select case (char(mergerTreeBuildTreesHaloMassDistribution))
        case ("quasi","uniform")
           ! Generate a randomly sampled set of halo masses.
@@ -263,53 +267,79 @@ contains
           call Dealloc_Array(massFunctionSampleLogMassMonotonic)
        case ("read")
           ! Read masses from a file.
-          !$omp critical (FoX_DOM_Access)
-          doc => parseFile(char(mergerTreeBuildTreeMassesFile),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unable to read or parse merger tree root mass file')
-          ! Read all tree masses.
-          call XML_Array_Read(doc,"treeRootMass",treeHaloMass)
-          ! Allocate array for tree weights.
-          treeCount=size(treeHaloMass)
-          call Alloc_Array(treeWeight  ,[treeCount])
-          ! Finished - destroy the XML document.
-          call destroy(doc)
-          !$omp end critical (FoX_DOM_Access)
+          ! Detect file type.
+          if (extract(mergerTreeBuildTreeMassesFile,len(mergerTreeBuildTreeMassesFile)-3,len(mergerTreeBuildTreeMassesFile)) == ".xml") then
+             !$omp critical (FoX_DOM_Access)
+             doc => parseFile(char(mergerTreeBuildTreeMassesFile),iostat=ioErr)
+             if (ioErr /= 0) call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unable to read or parse merger tree root mass file')
+             ! Read all tree masses.
+             call XML_Array_Read(doc,"treeRootMass",treeHaloMass)
+             ! Allocate array for tree weights.
+             treeCount=size(treeHaloMass)
+             call Alloc_Array(treeWeight,[treeCount])
+             ! Extract tree weights if available.
+             if (XML_Path_Exists(doc,"treeWeight")) then
+                computeTreeWeights=.false.
+                call XML_Array_Read_Static(doc,"treeWeight",treeWeight)
+             end if
+             ! Finished - destroy the XML document.
+             call destroy(doc)
+             !$omp end critical (FoX_DOM_Access)
+          else if (extract(mergerTreeBuildTreeMassesFile,len(mergerTreeBuildTreeMassesFile)-4,len(mergerTreeBuildTreeMassesFile)) == ".hdf5") then
+             !$omp critical (HDF5_Access)
+             call treeFile%openFile(char(mergerTreeBuildTreeMassesFile),overWrite=.false.,readOnly=.true.)
+             call treeFile%readDataset('treeRootMass',treeHaloMass)
+             treeCount=size(treeHaloMass)
+             if (treeFile%hasDataset('treeWeight')) then
+                call treeFile%readDataset('treeWeight',treeWeight)
+                computeTreeWeights=.false.
+             else
+                call Alloc_Array(treeWeight,shape(treeHaloMass))
+                computeTreeWeights=.true.
+             end if
+             call treeFile%close()
+             !$omp end critical (HDF5_Access)
+          else
+             call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown file type for halo masses')
+          end if
        case default
           call Galacticus_Error_Report('Merger_Tree_Build_Initialize','unknown halo mass distribution option')
        end select
 
        ! Compute the weight (number of trees per unit volume) for each tree.
-       do iTree=1,treeCount
-          ! Get the minimum mass of the interval occupied by this tree.
-          if (iTree==1) then
-             if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                massMinimum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+       if (computeTreeWeights) then
+          do iTree=1,treeCount
+             ! Get the minimum mass of the interval occupied by this tree.
+             if (iTree==1) then
+                if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
+                   massMinimum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree+1))
+                else
+                   massMinimum=mergerTreeBuildHaloMassMinimum
+                end if
              else
-                massMinimum=mergerTreeBuildHaloMassMinimum
+                massMinimum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
              end if
-          else
-             massMinimum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree-1))
-          end if
-          ! Get the maximum mass of the interval occupied by this tree.
-          if (iTree==treeCount) then
-             if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
-                massMaximum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+             ! Get the maximum mass of the interval occupied by this tree.
+             if (iTree==treeCount) then
+                if (char(mergerTreeBuildTreesHaloMassDistribution) == "read") then
+                   massMaximum=treeHaloMass(iTree)*sqrt(treeHaloMass(iTree)/treeHaloMass(iTree-1))
+                else
+                   massMaximum=mergerTreeBuildHaloMassMaximum
+                end if
              else
-                massMaximum=mergerTreeBuildHaloMassMaximum
+                massMaximum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
              end if
-          else
-             massMaximum=sqrt(treeHaloMass(iTree)*treeHaloMass(iTree+1))
-          end if
-          ! For distributions of masses, adjust the masses at the end points so that they are at the
-          ! geometric mean of their range.
-          if     (                                                          &
-               &   (iTree == 1 .or. iTree == treeCount)                     &
-               &  .and.                                                     &
-               &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
-               & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
-          ! Get the integral of the halo mass function over this range.
-          treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
-       end do
+             ! For distributions of masses, adjust the masses at the end points so that they are at the
+             ! geometric mean of their range.
+             if     (                                                          &
+                  &   (iTree == 1 .or. iTree == treeCount)                     &
+                  &  .and.                                                     &
+                  &   char(mergerTreeBuildTreesHaloMassDistribution) /= "read" &
+                  & ) treeHaloMass(iTree)=sqrt(massMinimum*massMaximum)
+             ! Get the integral of the halo mass function over this range.
+             treeWeight(iTree)=Halo_Mass_Function_Integrated(mergerTreeBuildTreesBaseTime,MassMinimum,MassMaximum)
+          end do
+       end if
        ! Determine the index of the tree at which to begin.
        if (mergerTreeBuildTreesProcessDescending) then
           if (mergerTreeBuildTreesBeginAtTree == 0) mergerTreeBuildTreesBeginAtTree=treeCount
