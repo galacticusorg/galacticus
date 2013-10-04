@@ -37,9 +37,9 @@ contains
     use Input_Parameters
     use Star_Formation_IMF_Utilities
     implicit none
-    type     (varying_string), intent(in   )          :: imfNames         (:), imfSelectionMethod
-    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do
-    type     (varying_string)                         :: imfSelectionFixed
+    type     (varying_string  ), intent(in   )          :: imfNames         (:), imfSelectionMethod
+    procedure(IMF_Select_Fixed), intent(inout), pointer :: IMF_Select_Do
+    type     (varying_string  )                         :: imfSelectionFixed
 
     if (imfSelectionMethod == 'fixed') then
        IMF_Select_Do => IMF_Select_Fixed
