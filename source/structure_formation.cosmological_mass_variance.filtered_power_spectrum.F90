@@ -117,7 +117,7 @@ contains
             &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     else
        Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=4.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Variance_Integral=sqrt(Variance_Integral)
