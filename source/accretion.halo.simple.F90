@@ -32,6 +32,7 @@ module Accretion_Halos_Simple
 
   ! Options controlling accretion.
   logical                              :: accretionHalosSimpleNegativeAccretionAllowed
+  logical                              :: accretionHalosSimpleAccreteNewGrowthOnly
 
   ! Index of Solar abundance pattern.
   integer                              :: abundanceIndexSolar
@@ -59,6 +60,7 @@ contains
     use Galacticus_Error
     use Chemical_Abundances_Structure
     use Intergalactic_Medium_State
+    use Galacticus_Nodes
     implicit none
     type            (varying_string                                    ), intent(in   )          :: accretionHalosMethod
     procedure       (Halo_Baryonic_Accretion_Rate_Simple_Get           ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Get
@@ -138,8 +140,30 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter("accretionHalosSimpleNegativeAccretionAllowed",accretionHalosSimpleNegativeAccretionAllowed,defaultValue=.true.)
+       !@ <inputParameter>
+       !@   <name>accretionHalosSimpleAccreteNewGrowthOnly</name>
+       !@   <defaultValue>false</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@    Specifies whether accretion from the \IGM\ is allowed only when a halo is growing past its previous greatest mass.
+       !@   </description>
+       !@   <type>boolean</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter("accretionHalosSimpleAccreteNewGrowthOnly",accretionHalosSimpleAccreteNewGrowthOnly,defaultValue=.false.)
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])
+       ! Check that required properties have required attributes.       
+       if     (                                                                                                                  &
+            &   accretionHalosSimpleAccreteNewGrowthOnly                                                                         &
+            &  .and.                                                                                                             &
+            &   .not.defaultBasicComponent%massMaximumIsGettable()                                                               &
+            & ) call Galacticus_Error_Report(                                                                                    &
+            &                                'Accretion_Halos_Simple_Initialize'                                               , &
+            &                                'accretionHalosSimpleAccreteNewGrowthOnly=true requires that the "massMaximum" '//  &
+            &                                'property of the basic component be gettable'                                       &
+            &                               )
+
     end if
     return
   end subroutine Accretion_Halos_Simple_Initialize
@@ -178,6 +202,10 @@ contains
              growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Accretion_Rate_Simple_Get=Halo_Baryonic_Accretion_Rate_Simple_Get+unaccretedMass*growthRate
           end if
+       end if
+       ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
+       if (accretionHalosSimpleAccreteNewGrowthOnly) then
+          if (thisBasicComponent%mass() < thisBasicComponent%massMaximum()) Halo_Baryonic_Accretion_Rate_Simple_Get=0.0d0
        end if
     end if
     return
@@ -240,6 +268,10 @@ contains
              growthRate=thisBasicComponent%accretionRate()/thisBasicComponent%mass()
              Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=-unaccretedMass*growthRate
           end if
+       end if
+       ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
+       if (accretionHalosSimpleAccreteNewGrowthOnly) then
+          if (thisBasicComponent%mass() < thisBasicComponent%massMaximum()) Halo_Baryonic_Failed_Accretion_Rate_Simple_Get=0.0d0
        end if
     end if
     return
