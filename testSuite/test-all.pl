@@ -96,6 +96,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.random.exe",                                                   # Tests of random number generators.
+	valgrind => 0
+    },
+    {
 	name     => "tests.arrays.exe",                                                   # Tests of array functions.
 	valgrind => 0
     },
