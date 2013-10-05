@@ -889,7 +889,7 @@ contains
           call Halo_Baryonic_Accretion_Rate_Abundances(thisNode,accretionRateAbundances)
           call thisHotHaloComponent%abundancesRate(accretionRateAbundances)
           ! Next block of tasks occur only if the accretion rate is non-zero.
-          if (massAccretionRate > 0.0d0) then
+          if (thisBasicComponent%accretionRate() /= 0.0d0) then
              ! Compute the rate of accretion of angular momentum.
              angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(thisNode)*(massAccretionRate &
                   &/thisBasicComponent%accretionRate())
@@ -1282,6 +1282,10 @@ contains
        call hostHotHaloComponent%                    massSet(                                                 &
             &                                                 hostHotHaloComponent%mass                    () &
             &                                                +thisHotHaloComponent%mass                    () &
+            &                                               )
+       call hostHotHaloComponent%          unaccretedMassSet(                                                 &
+            &                                                 hostHotHaloComponent%unaccretedMass          () &
+            &                                                +thisHotHaloComponent%unaccretedMass          () &
             &                                               )
        call hostHotHaloComponent%         angularMomentumSet(                                                 &
             &                                                 hostHotHaloComponent%angularMomentum         () &
