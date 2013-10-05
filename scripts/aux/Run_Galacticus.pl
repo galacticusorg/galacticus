@@ -54,7 +54,7 @@ if ( exists($arguments{"instance"}) && $arguments{"instance"} =~ m/(\d+):(\d+)/ 
 
 # Read in the file of models to be run.
 my $xml         = new XML::Simple;
-my $modelsToRun = $xml->XMLin($runFile, KeyAttr => "", ForceArray => [ "value", "parameter", "parameters", "requirement" ]);
+my $modelsToRun = $xml->XMLin($runFile, KeyAttr => "", ForceArray => [ "modify", "value", "parameter", "parameters", "requirement" ]);
 
 # Read in any configuration options.
 my $config;
@@ -627,6 +627,25 @@ sub Create_Parameter_Hashes {
 		# Parameter has only one value, but it has sub-structure. Promote that substructure and push
 		# the hash back onto the stack.
 		foreach my $subName ( keys(%{${$hash->{$name}}[0]->{'subtree'}}) ) {
+		    # Look for parameter definitions which modify existing values, and apply them
+		    foreach my $subValue ( @{${$hash->{$name}}[0]->{'subtree'}->{$subName}} ) {
+			if ( $subValue->{'value'} =~ m/\%\%modify\%\%([^\%]+)\%\%([^\%]+)\%\%/ ) {
+			    my $find        = $1;
+			    my $replaceBase = $2;
+			    my @newValues = @{$hash->{$subName}};
+			    foreach my $newValue ( @newValues ) {
+				if ( my @captures = $newValue->{'value'} =~ m/$find/ ) {
+				    my $replace = $replaceBase;
+				    for(my $i=scalar(@captures)-1;$i>=0;--$i) {
+					my $j = $i+1;
+					$replace =~ s/\\$j/$captures[$i]/g;
+				    }
+				    $newValue->{'value'} =~ s/$find/$replace/;
+				}
+			    }
+			    @{${$hash->{$name}}[0]->{'subtree'}->{$subName}} = @newValues;
+			}
+		    }
 		    @{$hash->{$subName}} = @{${$hash->{$name}}[0]->{'subtree'}->{$subName}};
 		}
 		delete(${$hash->{$name}}[0]->{'subtree'});
@@ -664,26 +683,53 @@ sub Parameters_To_Hash {
     my $hash;
     foreach ( @{$parameters->{'parameter'}} ) {
 	my $name = $_->{'name'};
-	foreach my $value ( @{$_->{'value'}} ) {
-	    if ( UNIVERSAL::isa($value,"HASH") ) {
-		# This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
-		push(
-		    @{$hash->{$name}},
-		    {
-			value   => $value->{'content'},
-			subtree => &Parameters_To_Hash($value)
-		    }
-		    );
-	    } else {
-		# This value has no subtree, so just store the value.
-		push(
-		    @{$hash->{$name}},
-		    {
-			value   => $value
-		    }
-		    );
+	if ( exists($_->{'value'}) ) {
+	    foreach my $value ( @{$_->{'value'}} ) {
+		if ( UNIVERSAL::isa($value,"HASH") ) {
+		    # This value of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
+		    push(
+			@{$hash->{$name}},
+			{
+			    value   => $value->{'content'},
+			    subtree => &Parameters_To_Hash($value)
+			}
+			);
+		} else {
+		    # This value has no subtree, so just store the value.
+		    push(
+			@{$hash->{$name}},
+			{
+			    value   => $value
+			}
+			);
+		}
 	    }
 	}
+	if ( exists($_->{'modify'}) ) {
+	    foreach my $modify ( @{$_->{'modify'}} ) {
+		if ( exists($modify->{'parameter'}) ) {
+		    # This modify of the parameter contains a subtree. Get a hash representation by calling ourself recursively.
+		    push(
+			@{$hash->{$name}},
+			{
+			    modify  => $modify->{'content'},
+			    subtree => &Parameters_To_Hash($modify)
+			}
+			);
+		} else {
+		    # This modify has no subtree, so just store the value.
+		    push(
+			@{$hash->{$name}},
+			{
+			    value   => "\%\%modify\%\%".$modify->{'find'}."\%\%".$modify->{'replace'}."\%\%"
+			}
+			);
+		}
+	    }
+	}
+	
+
+
     }
     return $hash;
 }
