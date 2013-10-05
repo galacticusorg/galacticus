@@ -1,0 +1,29 @@
+<constrain>
+  <!-- Configuration file for fitting of CSMF to Li & White mass function -->
+  <!-- Andrew Benson                                                      -->
+  <!-- 06-July-2012                                                       -->
+
+  <observedDataFile>data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.xml</observedDataFile>
+
+  <baseDirectory>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/</baseDirectory>
+
+  <bieFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.bie</bieFile>
+
+  <constraintFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.hdf5</constraintFile>
+
+  <parameterFile>constraints/dataAnalysis/stellarMassFunction_SDSS_z0.07/covarianceMatrix.xml</parameterFile>
+
+  <!-- Label for PBS jobs -->
+  <pbsLabel>smfSDSS</pbsLabel>
+
+  <!-- Number of stages (iterations) to carry out -->
+  <stageCount>4</stageCount>
+
+  <!-- Source for mass function -->
+  <sourceLabel>Li &amp; White (2009)</sourceLabel>
+
+  <!-- Label for mass type -->
+  <massType>stellar</massType>
+  <massVariable>M_\star</massVariable>
+
+</constrain>
