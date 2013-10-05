@@ -235,7 +235,7 @@ contains
                 !@ </inputParameter>
                 call Get_Input_Parameter('mergerTreeRegridRedshifts',mergerTreeRegridTimeGrid)
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeRegridTimeGrid(iTime)))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeRegridTimeGrid(iTime)))
                 end do
                 call Sort_Do(mergerTreeRegridTimeGrid)
              end select             
