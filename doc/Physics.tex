@@ -1606,10 +1606,10 @@ This task enforces monotonic growth a halo mass along each branch of each merger
 
 This task will interpolate the merger tree structure onto a new array of timesteps if {\tt [mergerTreeRegridTimes]}$=${\tt true}. The timestep array is specified via the parameters:
 \begin{description}
-\item[{\tt [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array;
-\item[{\tt [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array;
+\item[{\tt [mergerTreeRegridSpacing]}] The spacing of the timesteps. Five options are available: {\tt linear} will space timesteps uniformly in expansion factor, {\tt logarithmic} will space timesteps uniformly in the logarithm of expansion factor, {\tt log critical density} will space timesteps uniformly in the logarithm of critical density, $\delta_{\rm c}$, {\tt millennium} will use times corresponding to the redshifts of snapshots in the Millennium Simulation database, while {\tt read} will use times corresponding to the redshifts specified in the {\tt mergerTreeRegridRedshifts} parameter;
+\item[{\tt [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array (ignored for {\tt millennium} and {\tt read} spacings);
+\item[{\tt [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array (ignored for {\tt millennium} and {\tt read} spacings);
 \item[{\tt [mergerTreeRegridCount]}] The number of timesteps in the array;
-\item[{\tt [mergerTreeRegridSpacing]}] The spacing of the timesteps. Two options are available: {\tt linear} will space timesteps uniformly in expansion factor, while {\tt logarithmic} will space timesteps uniformly in the logarithm of expansion factor.
 \end{description}
 Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger tree!N-body} affects the properties of galaxies that form in them.
 
