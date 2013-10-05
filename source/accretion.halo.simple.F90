@@ -145,7 +145,7 @@ contains
        !@   <defaultValue>false</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
-       !@    Specifies whether accretion from the \IGM\ is allowed only when a halo is growing past its previous greatest mass.
+       !@    Specifies whether accretion from the \gls{igm} is allowed only when a halo is growing past its previous greatest mass.
        !@   </description>
        !@   <type>boolean</type>
        !@   <cardinality>1</cardinality>
