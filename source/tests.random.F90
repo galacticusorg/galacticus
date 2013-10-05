@@ -1,0 +1,58 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a program to test random number functions.
+
+program Test_Random
+  !% Tests that random number functions work.
+  use Memory_Management 
+  use Unit_Tests
+  use FGSL
+  use Pseudo_Random
+  implicit none
+  integer                   , parameter             :: sampleCount=10000000, limitCount=6
+  double precision          , dimension(limitCount) :: upperLimit=[1.0d-5,1.0d-4,1.0d-3,1.0d-2,1.0d-1,0.5d0]
+  double precision          , dimension(limitCount) :: frequency,frequencyError,deviation
+  integer                   , dimension(limitCount) :: upperLimitCount
+  type            (fgsl_rng)                        :: pseudoSequenceObject
+  double precision                                  :: x
+  logical                                           :: reset=.true.
+  integer                                           :: i,j
+  
+  ! Read in basic code memory usage.
+  call Code_Memory_Usage('tests.random.size')
+
+  ! Begin unit tests.
+  call Unit_Tests_Begin_Group("random numbers")
+  
+  upperLimitCount=0
+  do i=1,sampleCount
+     x=Pseudo_Random_Get(pseudoSequenceObject,reset)
+     do j=1,size(upperLimit)
+        if (x <= upperLimit(j)) upperLimitCount(j)=upperLimitCount(j)+1
+     end do
+  end do
+  frequency     =dble(upperLimitCount)/dble(sampleCount)
+  frequencyError=sqrt(dble(sampleCount)*upperLimit*(1.0d0-upperLimit))/dble(sampleCount)
+  deviation     =abs(frequency-upperLimit)/frequencyError
+  call Assert('uniformity of random numbers',all(deviation < 3.0d0),.true.)
+
+  ! End unit tests.
+  call Unit_Tests_End_Group()
+  call Unit_Tests_Finish()
+
+end program Test_Random
