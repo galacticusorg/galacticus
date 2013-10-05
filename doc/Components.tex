@@ -580,11 +580,11 @@ Properties are evolved according to:
 
 \noindent\emph{Node promotion:} $M_{\rm node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
-\subsection{``Simple'' Implemenation}
+\subsection{``Standard Implemenation}
 
 \subsubsection{Properties}
 
-The simple basic properties implementation defines the following properties:
+The standard basic properties implementation defines the following properties:
 \begin{description}
  \item [{\tt mass}] The total mass of the node: $M_{\rm node}$ [{\tt basicMass}].
  \item [{\tt time}] The time at which the \gls{node} is defined: $t_{\rm node}$.
@@ -612,6 +612,30 @@ where the ``parent'' subscript indicates a property of the parent \gls{node} in 
 
 \noindent\emph{Node promotion:} $M_{\rm node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
+\subsection{``Standard-Tracking Implemenation}
+
+\subsubsection{Properties}
+
+The standard-tracking basic properties implementation extends the standard implementation and defines the following additional properties:
+\begin{description}
+ \item [{\tt massMaximum}] The maximum total mass of the node achieved prior to the current time along this node's branch: $M_{\rm node, maximum}$ [{\tt basicMassMaximum}].
+\end{description}
+
+\subsubsection{Initialization}
+
+The maximum mass along each branch is computed from the merger tree structure at initialization time.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} $M_{\rm node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
 
 \section{Position}\label{sec:ComponentPosition}
 
