@@ -63,7 +63,7 @@ program Tests_Sigma
   radius8=8.0d0/thisCosmologyParameters%HubbleConstant(unitsLittleH)
   mass8=4.0d0*Pi*thisCosmologyParameters%densityCritical()*thisCosmologyParameters%OmegaMatter()*radius8**3/3.0d0
   sigma8=Cosmological_Mass_Root_Variance(mass8)
-  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6)
+  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=2.5d-6)
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close
