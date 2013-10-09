@@ -93,11 +93,25 @@ contains
   double precision function Equivalent_Circular_Orbit_Solver(radius)
     !% Root function used in finding equivalent circular orbits.
     use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_Error_Codes
+    use Galacticus_Error
     implicit none
     double precision, intent(in   ) :: radius
+    double precision, parameter     :: potentialInfinite=1.0d30
+    double precision                :: potential
+    integer                         :: status
 
-    Equivalent_Circular_Orbit_Solver=Dark_Matter_Profile_Potential(activeNode,radius)+0.5d0&
-         &*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
+    potential=Dark_Matter_Profile_Potential(activeNode,radius,status)
+    select case (status)
+    case (darkMatterProfileSuccess)
+       Equivalent_Circular_Orbit_Solver=potential+0.5d0*Dark_Matter_Profile_Circular_Velocity(activeNode,radius)**2-orbitalEnergyInternal
+    case (darkMatterProfileErrorInfinite)
+       ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
+       ! this root-finding function is the sign of the function, return a large negative value.
+       Equivalent_Circular_Orbit_Solver=-potentialInfinite
+    case default
+       call Galacticus_Error_Report('Equivalent_Circular_Orbit_Solver','dark matter potential evaluation failed')
+    end select
     return
   end function Equivalent_Circular_Orbit_Solver
 

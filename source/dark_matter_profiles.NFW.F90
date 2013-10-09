@@ -261,18 +261,21 @@ contains
     return
   end function Dark_Matter_Profile_Enclosed_Mass_NFW
 
-  double precision function Dark_Matter_Profile_Potential_NFW(thisNode,radius)
+  double precision function Dark_Matter_Profile_Potential_NFW(thisNode,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles_Error_Codes
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                , parameter              :: radiusSmall                   =1.0d-10
-    double precision                                                         :: radiusOverScaleRadius                 , radiusTerm, &
-         &                                                                      virialRadiusOverScaleRadius
+    type            (treeNode                      ), intent(inout), pointer  :: thisNode
+    double precision                                , intent(in   )           :: radius
+    integer                                         , intent(  out), optional :: status
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
+    double precision                                , parameter               :: radiusSmall                   =1.0d-10
+    double precision                                                          :: radiusOverScaleRadius                 , radiusTerm, &
+         &                                                                       virialRadiusOverScaleRadius
 
+    if (present(status)) status=darkMatterProfileSuccess
     thisDarkMatterProfileComponent   => thisNode%darkMatterProfile(autoCreate=.true.)
     radiusOverScaleRadius            =radius                                  /thisDarkMatterProfileComponent%scale()
     virialRadiusOverScaleRadius      =Dark_Matter_Halo_Virial_Radius(thisNode)/thisDarkMatterProfileComponent%scale()
