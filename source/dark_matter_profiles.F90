@@ -46,7 +46,7 @@ module Dark_Matter_Profiles
   end interface
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get=>null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Circular_Velocity_Get                    =>null()
-  procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Potential_Get                            =>null()
+  procedure(Dark_Matter_Profile_Potential         ), pointer :: Dark_Matter_Profile_Potential_Get                            =>null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Enclosed_Mass_Get                        =>null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_kSpace_Get                               =>null()
   procedure(Dark_Matter_Profile_Parameter_Template), pointer :: Dark_Matter_Profile_Density_Get                              =>null()
@@ -176,18 +176,19 @@ contains
     return
   end function Dark_Matter_Profile_Circular_Velocity
 
-  double precision function Dark_Matter_Profile_Potential(thisNode,radius)
+  double precision function Dark_Matter_Profile_Potential(thisNode,radius,status)
     !% Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius}
     !% (given in units of Mpc).
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    double precision          , intent(in   )           :: radius
+    integer                   , intent(  out), optional :: status
 
     ! Initialize the module.
     call Dark_Matter_Profile_Initialize
 
     ! Get the circular velocity using the selected method.
-    Dark_Matter_Profile_Potential=Dark_Matter_Profile_Potential_Get(thisNode,radius)
+    Dark_Matter_Profile_Potential=Dark_Matter_Profile_Potential_Get(thisNode,radius,status)
 
     return
   end function Dark_Matter_Profile_Potential

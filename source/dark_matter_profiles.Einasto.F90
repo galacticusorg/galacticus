@@ -216,19 +216,23 @@ contains
     return
   end function Dark_Matter_Profile_Circular_Velocity_Einasto
 
-  double precision function Dark_Matter_Profile_Potential_Einasto(thisNode,radius)
+  double precision function Dark_Matter_Profile_Potential_Einasto(thisNode,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles_Error_Codes
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    double precision                                , intent(in   )          :: radius
-    class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
-    double precision                                                         :: alpha                         , radiusOverScaleRadius      , &
-         &                                                                      scaleRadius                   , virialRadiusOverScaleRadius
+    type            (treeNode                      ), intent(inout), pointer  :: thisNode
+    double precision                                , intent(in   )           :: radius
+    integer                                         , intent(  out), optional :: status
+    class           (nodeComponentBasic            )               , pointer  :: thisBasicComponent
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: thisDarkMatterProfileComponent
+    double precision                                                          :: alpha                         , radiusOverScaleRadius      , &
+         &                                                                       scaleRadius                   , virialRadiusOverScaleRadius
 
+    ! Assume success.
+    if (present(status)) status=darkMatterProfileSuccess
     ! Get components.
     thisBasicComponent             => thisNode%basic            (                 )
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
