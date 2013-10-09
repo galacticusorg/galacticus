@@ -97,19 +97,29 @@ contains
     return
   end function Dark_Matter_Profile_Enclosed_Mass_Isothermal
 
-  double precision function Dark_Matter_Profile_Potential_Isothermal(thisNode,radius)
+  double precision function Dark_Matter_Profile_Potential_Isothermal(thisNode,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\tt thisNode} at the given {\tt radius} (given in
     !% units of Mpc).
     use Galacticus_Nodes
+    use Dark_Matter_Profiles_Error_Codes
     use Dark_Matter_Halo_Scales
     use Galacticus_Error
     implicit none
-    type            (treeNode), intent(inout), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
+    type            (treeNode), intent(inout), pointer  :: thisNode
+    double precision          , intent(in   )           :: radius
+    integer                   , intent(  out), optional :: status
+    double precision          , parameter               :: radiusFractionalMinimum=1.0d-30
+    double precision                                    :: radiusFractional
 
-    if (radius <= 0.0d0) call Galacticus_Error_Report('Dark_Matter_Profile_Potential_Isothermal','isothermal profile potential is infinite at zero radius')
-    Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+log(radius/Dark_Matter_Halo_Virial_Radius(thisNode)))&
-         &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+    radiusFractional=radius/Dark_Matter_Halo_Virial_Radius(thisNode)
+    if (radiusFractional <= 0.0d0) then
+       Dark_Matter_Profile_Potential_Isothermal=0.0d0
+       if (present(status)) status=darkMatterProfileErrorInfinite
+    else
+       Dark_Matter_Profile_Potential_Isothermal=(-1.0d0+log(radiusFractional))&
+            &*Dark_Matter_Halo_Virial_Velocity(thisNode)**2
+       if (present(status)) status=darkMatterProfileSuccess
+    end if
     return
   end function Dark_Matter_Profile_Potential_Isothermal
 
