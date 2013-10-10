@@ -36,7 +36,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: blackHoleBinaryRecoilVelocityMethod
-    procedure(double precision), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get
+    procedure(Black_Hole_Binary_Recoil_Velocity_Null), intent(inout), pointer :: Black_Hole_Binary_Recoil_Velocity_Get
 
     if (blackHoleBinaryRecoilVelocityMethod == 'null') Black_Hole_Binary_Recoil_Velocity_Get => Black_Hole_Binary_Recoil_Velocity_Null
     return

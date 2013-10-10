@@ -68,17 +68,18 @@ contains
        &,transferFunctionLogT)
     !% Build a transfer function using the BBKS fitting formula.
     use Memory_Management
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Numerical_Ranges
     use Numerical_Constants_Math
     implicit none
-    double precision                           , intent(in   ) :: logWavenumber
-    double precision, allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
-    integer                                    , intent(  out) :: transferFunctionNumberPoints
-    integer                                                    :: iWavenumber
-    double precision                                           :: Gamma                       , q                             , &
-         &                                                        wavenumber                  , wavenumberHUnits              , &
-         &                                                        wavenumberScaleFree
+    double precision                                                     , intent(in   ) :: logWavenumber
+    double precision                          , allocatable, dimension(:), intent(inout) :: transferFunctionLogT        , transferFunctionLogWavenumber
+    integer                                                              , intent(  out) :: transferFunctionNumberPoints
+    class           (cosmologyParametersClass), pointer                                  :: thisCosmologyParameters
+    integer                                                                              :: iWavenumber
+    double precision                                                                     :: Gamma                       , q                            , &
+         &                                                                                  wavenumber                  , wavenumberHUnits             , &
+         &                                                                                  wavenumberScaleFree
 
     ! Set wavenumber range and number of points in table.
     logWavenumberMinimum=min(logWavenumberMinimum,logWavenumber-ln10)
@@ -93,11 +94,13 @@ contains
     ! Create range of wavenumbers.
     transferFunctionLogWavenumber=Make_Range(logWavenumberMinimum,logWavenumberMaximum,transferFunctionNumberPoints&
          &,rangeTypeLinear)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Create transfer function.
-    Gamma=Omega_Matter()*Little_H_0()*exp(-Omega_b()*(1.0d0+sqrt(2.0d0*Little_H_0())/Omega_Matter()))/((T_CMB()/2.7d0)**2)
+    Gamma=thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%HubbleConstant(unitsLittleH)*exp(-thisCosmologyParameters%OmegaBaryon()*(1.0d0+sqrt(2.0d0*thisCosmologyParameters%hubbleConstant(unitsLittleH))/thisCosmologyParameters%OmegaMatter()))/((thisCosmologyParameters%temperatureCMB()/2.7d0)**2)
     do iWavenumber=1,transferFunctionNumberPoints
        wavenumber         =exp(transferFunctionLogWavenumber(iWavenumber))
-       wavenumberHUnits   =wavenumber/Little_H_0()
+       wavenumberHUnits   =wavenumber/thisCosmologyParameters%HubbleConstant(unitsLittleH)
        wavenumberScaleFree=wavenumber*transferFunctionWDMFreeStreamingLength
        q                  =wavenumberHUnits/Gamma
        transferFunctionLogT(iWavenumber)=log((log(1.0+2.34d0*q)/2.34d0/q)/(1.0d0+3.89d0*q+(16.1d0*q)**2+(5.46d0*q)**3+(6.71d0&

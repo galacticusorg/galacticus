@@ -26,19 +26,13 @@ module Galactic_Dynamics_Bar_Instabilities
   public :: Bar_Instability_Timescale
 
   ! Flag to indicate if this module has been initialized.
-  logical                                      :: barInstabilitiesInitialized  =.false.
+  logical                                       :: barInstabilitiesInitialized  =.false.
 
   ! Name of cooling rate available method used.
-  type     (varying_string          )          :: barInstabilityMethod
+  type     (varying_string           )          :: barInstabilityMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Bar_Instability_Template), pointer :: Bar_Instability_Timescale_Get=>null()
-  abstract interface
-     double precision function Bar_Instability_Template(thisNode)
-       import treeNode
-       type(treeNode), intent(inout), pointer :: thisNode
-     end function Bar_Instability_Template
-  end interface
+  procedure(Bar_Instability_Timescale), pointer :: Bar_Instability_Timescale_Get=>null()
 
 contains
 
@@ -81,19 +75,18 @@ contains
     return
   end subroutine Galactic_Dynamics_Bar_Instability_Initialize
 
-  double precision function Bar_Instability_Timescale(thisNode)
+  subroutine Bar_Instability_Timescale(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     !% Returns a timescale on which the bar instability depletes material from a disk into a pseudo-bulge. A negative value
-    !% indicates no instability.
+    !% indicates no instability. Also returns the net torque due to any external force causing this instability.
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque, barInstabilityTimeScale
 
     ! Initialize the module.
     call Galactic_Dynamics_Bar_Instability_Initialize
-
     ! Get the timescale using the selected method.
-    Bar_Instability_Timescale=Bar_Instability_Timescale_Get(thisNode)
-
+    call Bar_Instability_Timescale_Get(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     return
-  end function Bar_Instability_Timescale
+  end subroutine Bar_Instability_Timescale
 
 end module Galactic_Dynamics_Bar_Instabilities

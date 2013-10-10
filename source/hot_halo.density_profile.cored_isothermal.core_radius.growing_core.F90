@@ -96,13 +96,14 @@ contains
     !% Returns the radius (in Mpc) of the core radius in a cored isothermal hot halo density profile. Assumes that the radius is
     !% a fraction of the dark matter profile scale radius, but which grows as gas is depleted to keep the density at the virial
     !% radius constant (similar to the algorithm of \citep{cole_hierarchical_2000}).
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: thisNode
     class           (nodeComponentBasic            )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo          )               , pointer :: thisHotHaloComponent
     class           (nodeComponentDarkMatterProfile)               , pointer :: thisDarkMatterProfileComponent
+    class           (cosmologyParametersClass      )               , pointer :: thisCosmologyParameters
     double precision                                , save                   :: hotGasFractionSaved                        , isothermalCoreRadiusOverVirialRadiusInitialSaved, &
          &                                                                      isothermalCoreRadiusOverVirialRadiusSaved
     !$omp threadprivate(isothermalCoreRadiusOverVirialRadiusInitialSaved,hotGasFractionSaved,isothermalCoreRadiusOverVirialRadiusSaved)
@@ -115,8 +116,10 @@ contains
     thisHotHaloComponent           => thisNode%hotHalo          ()
     thisDarkMatterProfileComponent => thisNode%darkMatterProfile()
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Find the fraction of gas in the hot halo relative to that expected from the universal baryon fraction.
-    hotGasFraction=(thisHotHaloComponent%mass()/thisBasicComponent%mass())*(Omega_Matter()/Omega_b())
+    hotGasFraction=(thisHotHaloComponent%mass()/thisBasicComponent%mass())*(thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%OmegaBaryon())
 
     ! Return an arbitrary value for empty halos.
     if (hotGasFraction <= 0.0d0) then

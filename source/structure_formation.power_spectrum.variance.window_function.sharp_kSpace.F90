@@ -35,7 +35,7 @@ contains
        &,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
     !% Initializes the ``kSpaceSharp'' power spectrum variance window function module.
     use Numerical_Constants_Math
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use ISO_Varying_String
     use Input_Parameters
     implicit none
@@ -43,6 +43,7 @@ contains
     procedure       (Power_Spectrum_Window_Function_Sharp_kSpace                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get
     procedure       (Power_Spectrum_Window_Function_Wavenumber_Maximum_Sharp_kSpace), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
     character       (len=32                                                        )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText
+    class           (cosmologyParametersClass                                      )               , pointer :: thisCosmologyParameters
     double precision                                                                                         :: powerSpectrumWindowFunctionSharpKSpaceNormalization
 
     if (powerSpectrumWindowFunctionMethod == 'kSpaceSharp') then
@@ -66,11 +67,13 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumWindowFunctionSharpKSpaceNormalization'&
             &,powerSpectrumWindowFunctionSharpKSpaceNormalizationText,defaultValue="natural")
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        if (powerSpectrumWindowFunctionSharpKSpaceNormalizationText == "natural") then
-          cutOffNormalization=(6.0d0*Pi**2*Omega_Matter()*Critical_Density())**(1.0d0/3.0d0)
+          cutOffNormalization=(6.0d0*Pi**2*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
        else
           read (powerSpectrumWindowFunctionSharpKSpaceNormalizationText,*) powerSpectrumWindowFunctionSharpKSpaceNormalization
-          cutOffNormalization=powerSpectrumWindowFunctionSharpKSpaceNormalization*(4.0d0*Pi*Omega_Matter()*Critical_Density()&
+          cutOffNormalization=powerSpectrumWindowFunctionSharpKSpaceNormalization*(4.0d0*Pi*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()&
                &/3.0d0)**(1.0d0/3.0d0)
        end if
     end if

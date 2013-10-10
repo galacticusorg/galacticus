@@ -137,11 +137,13 @@ contains
   double precision function Halo_Mass_Fraction_Integrated(time,massLow,massHigh)
     !% Return the halo mass fraction integrated between {\tt massLow} and {\tt massHigh}.
     use Numerical_Integration
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    double precision                            , intent(in   ) :: massHigh            , massLow   , time
+    double precision                            , intent(in   ) :: massHigh               , massLow   , &
+         &                                                         time
     double precision                            , target        :: timeTarget
-    double precision                                            :: logMassHigh         , logMassLow
+    class           (cosmologyParametersClass  ), pointer       :: thisCosmologyParameters
+    double precision                                            :: logMassHigh            , logMassLow
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
@@ -154,8 +156,10 @@ contains
          &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-5,integrationRule&
          &=FGSL_Integ_Gauss15)
     call Integrate_Done(integrandFunction,integrationWorkspace)
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Convert to a mass fraction.
-    Halo_Mass_Fraction_Integrated=Halo_Mass_Fraction_Integrated/Critical_Density()/Omega_Matter()
+    Halo_Mass_Fraction_Integrated=Halo_Mass_Fraction_Integrated/thisCosmologyParameters%densityCritical()/thisCosmologyParameters%OmegaMatter()
     return
   end function Halo_Mass_Fraction_Integrated
 

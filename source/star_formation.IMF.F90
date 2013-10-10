@@ -1347,7 +1347,7 @@ contains
            ! Open the XML file containing energy input.
           call Galacticus_Display_Indent('Parsing file: '//fileName,verbosityDebug)
           doc => parseFile(char(fileName),iostat=ioErr)
-          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input filee "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
+          if (ioErr /= 0) call Galacticus_Error_Report('IMF_Energy_Input_Rate_NonInstantaneous','Unable to parse energy input file "'//fileName//'"'//char(10)//'HELP: file may be corrupted - try deleting this file and rerunning Galacticus')
           ! Check the version number.
           if (XML_Path_Exists(doc,"fileFormat")) then
              thisItem => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")

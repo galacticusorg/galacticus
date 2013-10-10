@@ -290,31 +290,32 @@ contains
     use Accretion_Disks
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Dark_Matter_Halo_Scales
     use Black_Hole_Binary_Separations
     implicit none
     type            (treeNode                                          )           , intent(inout), pointer :: thisNode
     logical                                                                        , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template                      )           , intent(inout), pointer :: interruptProcedure
-    class           (nodeComponentBlackHole                            )                          , pointer :: binaryBlackHoleComponent                                                                                                                          , centralBlackHoleComponent                                     , &
+    class           (nodeComponentBlackHole                            )                          , pointer :: binaryBlackHoleComponent                                                                                                                          , centralBlackHoleComponent                                      , &
          &                                                                                                     thisBlackHoleComponent
     class           (nodeComponentSpheroid                             )                          , pointer :: thisSpheroidComponent
     class           (nodeComponentHotHalo                              )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic                                )                          , pointer :: thisBasicComponent
-    double precision                                                    , parameter                         :: windVelocity                =1.0d4                                                                                                                                                     !   Velocity of disk wind.
-    double precision                                                    , parameter                         :: ismTemperature              =1.0d4                                                                                                                                                     !   Temperature of the ISM.
+    class           (cosmologyParametersClass                          )                          , pointer :: thisCosmologyParameters
+    double precision                                                    , parameter                         :: windVelocity                =1.0d4                                                                                                                                                     !    Velocity of disk wind.
+    double precision                                                    , parameter                         :: ismTemperature              =1.0d4                                                                                                                                                     !    Temperature of the ISM.
     double precision                                                    , parameter                         :: criticalDensityNormalization=2.0d0*massHydrogenAtom*speedLight**2*megaParsec/3.0d0/Pi/boltzmannsConstant/gigaYear/ismTemperature/kilo/windVelocity
     integer                                                                                                 :: iInstance                                                                                                                                         , instanceCount
-    double precision                                                                                        :: accretionRateHotHalo                                                                                                                              , accretionRateSpheroid                                         , &
-         &                                                                                                     binaryRadius                                                                                                                                      , couplingEfficiency                                            , &
-         &                                                                                                     criticalDensityRadius2                                                                                                                            , energyInputRate                                               , &
-         &                                                                                                     heatingRate                                                                                                                                       , jetEfficiency                                                 , &
-         &                                                                                                     massAccretionRate                                                                                                                                 , radialMigrationRate                                           , &
-         &                                                                                                     radiativeEfficiency                                                                                                                               , radiusHardBinary                                              , &
-         &                                                                                                     restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                            , &
-         &                                                                                                     spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                               , &
-         &                                                                                                     spheroidRadius                                                                                                                                    , windEfficiencyNet                                             , &
+    double precision                                                                                        :: accretionRateHotHalo                                                                                                                              , accretionRateSpheroid                                          , &
+         &                                                                                                     binaryRadius                                                                                                                                      , couplingEfficiency                                             , &
+         &                                                                                                     criticalDensityRadius2                                                                                                                            , energyInputRate                                                , &
+         &                                                                                                     heatingRate                                                                                                                                       , jetEfficiency                                                  , &
+         &                                                                                                     massAccretionRate                                                                                                                                 , radialMigrationRate                                            , &
+         &                                                                                                     radiativeEfficiency                                                                                                                               , radiusHardBinary                                               , &
+         &                                                                                                     restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
+         &                                                                                                     spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
+         &                                                                                                     spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
          &                                                                                                     windFraction
     logical                                                                                                 :: binaryRadiusFound
 
@@ -367,9 +368,11 @@ contains
           if (restMassAccretionRate > 0.0d0) call thisBlackHoleComponent%spinRate(Black_Hole_Spin_Up_Rate(thisBlackHoleComponent,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
+             ! Get the default cosmology.
+             thisCosmologyParameters => cosmologyParameters()
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
              ! content in the halo drops below the cosmological mean.
-             couplingEfficiency=Hot_Mode_Fraction(thisNode)*((Omega_Matter()/Omega_b())*thisHotHaloComponent%mass()/thisBasicComponent%mass())**2
+             couplingEfficiency=Hot_Mode_Fraction(thisNode)*((thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%OmegaBaryon())*thisHotHaloComponent%mass()/thisBasicComponent%mass())**2
              ! Get jet power.
              heatingRate=jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2*couplingEfficiency
              ! Pipe this power to the hot halo.
@@ -812,11 +815,11 @@ contains
     type            (treeNode              )               , pointer :: thisNode
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
     class           (nodeComponentHotHalo  )               , pointer :: thisHotHaloComponent
-    double precision                        , parameter              :: gasDensityMinimum     =1.0d0                        !   Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
-    double precision                                                 :: accretionRadius             , accretionRateMaximum                                                                                                                  , &
-         &                                                              blackHoleMass               , gasDensity                                                                                                                            , &
-         &                                                              hotHaloTemperature          , hotModeFraction                                                                                                                       , &
-         &                                                              jeansLength                 , position             (                                                                                                              3), &
+    double precision                        , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    double precision                                                 :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
+         &                                                              blackHoleMass               , gasDensity                                                                                                                             , &
+         &                                                              hotHaloTemperature          , hotModeFraction                                                                                                                        , &
+         &                                                              jeansLength                 , position             (                                                                                                               3), &
          &                                                              radiativeEfficiency         , relativeVelocity
 
     ! Get the host node.

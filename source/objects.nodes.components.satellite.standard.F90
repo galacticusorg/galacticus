@@ -195,11 +195,12 @@ contains
     !% Set the orbit of the satellite at the virial radius.
     use Satellite_Merging_Timescales
     implicit none
-    class           (nodeComponentSatellite        ), intent(inout) :: self
-    type            (keplerOrbit                   ), intent(in   ) :: thisOrbit
-    type            (treeNode                      ), pointer       :: selfNode
-    double precision                                                :: mergeTime
-    type            (keplerOrbit                   )                :: virialOrbit
+    class           (nodeComponentSatellite         ), intent(inout) :: self
+    type            (keplerOrbit                    ), intent(in   ) :: thisOrbit
+    type            (treeNode                       ), pointer       :: selfNode
+    class           (satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescalesDefault
+    double precision                                                 :: mergeTime
+    type            (keplerOrbit                    )                :: virialOrbit
 
     select type (self)
     class is (nodeComponentSatelliteStandard)
@@ -209,7 +210,8 @@ contains
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=thisOrbit
-       mergeTime=Satellite_Time_Until_Merging(selfNode,virialOrbit)
+       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
+       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(selfNode,virialOrbit)
        if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
        ! Store the orbit.
        call self%virialOrbitSetValue(thisOrbit)
@@ -280,13 +282,14 @@ contains
     use Virial_Orbits
     use Satellite_Merging_Timescales
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    class           (nodeComponentBasic    )               , pointer :: basicComponent
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: thisOrbit
+    type            (treeNode                       ), intent(inout), pointer :: thisNode
+    type            (treeNode                       )               , pointer :: hostNode
+    class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
+    class           (nodeComponentBasic             )               , pointer :: basicComponent
+    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    logical                                                                   :: isNewSatellite
+    double precision                                                          :: mergeTime
+    type            (keplerOrbit                    )                         :: thisOrbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
@@ -321,7 +324,8 @@ contains
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satelliteComponent%virialOrbitSet(thisOrbit)
        ! Compute and store a time until merging.
-       mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
+       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
+       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
     end select
     return

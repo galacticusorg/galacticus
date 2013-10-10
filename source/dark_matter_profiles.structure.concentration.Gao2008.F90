@@ -48,17 +48,20 @@ contains
     use Galacticus_Nodes
     use Cosmology_Functions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: littleHubbleConstantGao2008=0.73d0
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: logarithmExpansionFactor          , logarithmHaloMass, &
-         &                                                          parameterA                        , parameterB
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    double precision                         , parameter              :: littleHubbleConstantGao2008=0.73d0
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                                                  :: logarithmExpansionFactor          , logarithmHaloMass, &
+         &                                                               parameterA                        , parameterB
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
     ! Compute the concentration.
     logarithmHaloMass                        =log10(littleHubbleConstantGao2008*thisBasicComponent%mass() )
-    logarithmExpansionFactor                 =log10(Expansion_Factor(           thisBasicComponent%time()))
+    logarithmExpansionFactor                 =log10(cosmologyFunctionsDefault%expansionFactor(           thisBasicComponent%time()))
     parameterA                               =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
     parameterB                               = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
     Dark_Matter_Profile_Concentration_Gao2008=10.0d0**(parameterA*logarithmHaloMass+parameterB)

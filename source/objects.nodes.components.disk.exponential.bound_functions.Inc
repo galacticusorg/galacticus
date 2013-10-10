@@ -301,6 +301,7 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   !% Computes the surface density at a given position for an exponential disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
+  use Tables
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
@@ -320,6 +321,11 @@ double precision function Node_Component_Disk_Exponential_Surface_Density(self,p
   if (.not.radiusScaleDiskComputed) then
      radiusScaleDisk        =self%radius()
      radiusScaleDiskComputed=.true.
+  end if
+  ! Return zero if the disk has unphysical size.
+  if (radiusScaleDisk <= 0.0d0) then
+     Node_Component_Disk_Exponential_Surface_Density=0.0d0
+     return
   end if
   ! Determine mass type.
   select case (massType)

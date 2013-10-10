@@ -70,6 +70,7 @@ contains
     type     (Node                   )               , pointer :: doc                                       , thisDatum     , &
          &                                                        thisSpectrum                              , thisWavelength
     type     (NodeList               )               , pointer :: spectraList
+    class    (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
     integer                                                    :: fileFormatVersion                         , iSpectrum     , &
          &                                                        ioErr                                     , jSpectrum
     logical                                                    :: timesIncreasing
@@ -102,9 +103,11 @@ contains
        spectraList => getElementsByTagname(doc,"spectra")
        ! Get the times from the file.
        call XML_Array_Read(spectraList,"redshift",spectraTimes)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Convert redshift to a time.
        do iSpectrum=1,spectraTimesCount
-          spectraTimes(iSpectrum)=Cosmology_Age(Expansion_Factor_from_Redshift(spectraTimes(iSpectrum)))
+          spectraTimes(iSpectrum)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(spectraTimes(iSpectrum)))
        end do
        ! Check if the times are monotonically ordered.
        if (.not.Array_Is_Monotonic(spectraTimes)) call Galacticus_Error_Report('Radiation_Initialize_File','spectra must be monotonically ordered in time')

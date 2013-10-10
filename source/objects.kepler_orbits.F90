@@ -389,8 +389,48 @@ contains
     implicit none
     class(keplerOrbit), intent(inout) :: self
     type (node       ), pointer       :: keplerOrbitDefinition
+    type (node       ), pointer       :: property
+    type (nodeList   ), pointer       :: propertyList
+    character(len=18     ), parameter    , dimension(5) :: propertyNames=                       &
+         &                                                               [                      &
+         &                                                                'massHost          ', &
+         &                                                                'massSatellite     ', &
+         &                                                                'velocityRadial    ', &
+         &                                                                'velocityTangential', &
+         &                                                                'radius            '  &
+         &                                                               ]
+    integer          :: i
+    double precision :: massHost   , massSatellite   , propertyValue
+    logical          :: massHostSet, massSatelliteSet
 
-    call Galacticus_Error_Report('Kepler_Orbit_Builder','building of keplerOrbit objects is not yet supported')
+    ! Get the radius.
+    do i=1,size(propertyNames)
+       propertyList => getElementsByTagName(keplerOrbitDefinition,trim(propertyNames(i)))
+       if (getLength(propertyList) >  1) call Galacticus_Error_Report('Kepler_Orbits_Builder','multiple '//trim(propertyNames(i))//' values specified')
+       if (getLength(propertyList) == 1) then
+          property => item(propertyList,0)
+          call extractDataContent(property,propertyValue)
+          select case (getNodeName(property))
+          case ( 'radius'             )
+             call self%            radiusSet(propertyValue)
+          case ( 'velocityRadial'     )
+             call self%    velocityRadialSet(propertyValue)
+          case ( 'velocityTangential' )
+             call self%velocityTangentialSet(propertyValue)
+          case ( 'massHost'           )
+             massHost        =propertyValue
+             massHostSet     =.true.
+          case ( 'massSatellite'      )
+             massSatellite   =propertyValue
+             massSatelliteSet=.true.
+          case default
+             call Galacticus_Error_Report('Kepler_Orbits_Builder','unrecognized property name')
+          end select
+       end if
+    end do
+    if (.not.(massHostSet.and.massSatelliteSet)) call Galacticus_Error_Report('Kepler_Orbits_Builder','satellite and host masses must be specified')
+    call self%massesSet(massSatellite,massHost)
+    call self%assertIsDefined()
     return
   end subroutine Kepler_Orbits_Builder
 

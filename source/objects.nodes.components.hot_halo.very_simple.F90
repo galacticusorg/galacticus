@@ -192,13 +192,14 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Tree_Initialize(thisNode)
     !% Initialize the contents of the very simple hot halo component.
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    type            (treeNode            )               , pointer :: childNode
-    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, thisHotHaloComponent
-    class           (nodeComponentBasic  )               , pointer :: childBasicComponent    , currentBasicComponent
-    double precision                                               :: hotHaloMass
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    type            (treeNode                )               , pointer :: childNode
+    class           (nodeComponentHotHalo    )               , pointer :: currentHotHaloComponent, thisHotHaloComponent
+    class           (nodeComponentBasic      )               , pointer :: childBasicComponent    , currentBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    double precision                                                   :: hotHaloMass
 
     ! If the very simple hot halo is not active, then return immediately.
     if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
@@ -206,6 +207,8 @@ contains
     ! Ensure that this module has been initialized.
     call Node_Component_Hot_Halo_Very_Simple_Initialize()
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Get the hot halo component.
     currentHotHaloComponent => thisNode%hotHalo()
     ! Ensure that it is of unspecified class.
@@ -221,7 +224,7 @@ contains
           hotHaloMass=hotHaloMass-childBasicComponent%mass()
           childNode => childNode%sibling
        end do
-       hotHaloMass=hotHaloMass*Omega_b()/Omega_Matter()
+       hotHaloMass=hotHaloMass*thisCosmologyParameters%OmegaBaryon()/thisCosmologyParameters%OmegaMatter()
        ! If this is non-zero, then create a hot halo component and add this mass to it.
        if (hotHaloMass > 0.0d0) then
           call Node_Component_Hot_Halo_Very_Simple_Create(thisNode)

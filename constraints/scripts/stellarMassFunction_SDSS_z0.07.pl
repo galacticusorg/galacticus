@@ -48,16 +48,18 @@ $massFunctionConfig->{'systematicZeroPoint'} = 11.3;
 
 # Read the observed data.
 my $observations                                      = new PDL::IO::HDF5($galacticusPath."data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5");
-$massFunctionConfig ->{'x'                         }  = $observations->dataset('mass'                    )->get    (                );
-$massFunctionConfig ->{'y'                         }  = $observations->dataset('massFunctionObserved'    )->get    (                );
-$massFunctionConfig ->{'yIsPer'                    }  = "ln";
-$massFunctionConfig ->{'xScaling'                  }  = "linear";
-$massFunctionConfig ->{'yScaling'                  }  = "linear";
-$massFunctionConfig ->{'covariance'                }  = $observations->dataset('covariance'              )->get    (                );
-($massFunctionConfig->{'observationLabel'          }) = $observations                                     ->attrGet('label'         );
-($massFunctionConfig->{'hubbleConstantObserved'    }) = $observations->group  ('Parameters'              )->attrGet('H_0'           );
-($massFunctionConfig->{'massHubbleExponent'        }) = $observations->dataset('mass'                    )->attrGet('hubbleExponent');
-($massFunctionConfig->{'massFunctionHubbleExponent'}) = $observations->dataset('massFunctionObserved'    )->attrGet('hubbleExponent');
+$massFunctionConfig ->{'x'                           }  = $observations->dataset('mass'                )->get    (                  );
+$massFunctionConfig ->{'y'                           }  = $observations->dataset('massFunctionObserved')->get    (                  );
+$massFunctionConfig ->{'yIsPer'                      }  = "ln";
+$massFunctionConfig ->{'xScaling'                    }  = "linear";
+$massFunctionConfig ->{'yScaling'                    }  = "linear";
+$massFunctionConfig ->{'covariance'                  }  = $observations->dataset('covariance'          )->get    (                  );
+($massFunctionConfig->{'observationLabel'            }) = $observations                                 ->attrGet('label'           );
+($massFunctionConfig->{'hubbleConstantObserved'      }) = $observations->group  ('Parameters'          )->attrGet('H_0'             );
+($massFunctionConfig->{'omegaMatterObserved'         }) = $observations->group  ('Parameters'          )->attrGet('Omega_Matter'    );
+($massFunctionConfig->{'omegaDarkEnergyObserved'     }) = $observations->group  ('Parameters'          )->attrGet('Omega_DE'        );
+($massFunctionConfig->{'cosmologyScalingMass'        }) = $observations->dataset('mass'                )->attrGet('cosmologyScaling');
+($massFunctionConfig->{'cosmologyScalingMassFunction'}) = $observations->dataset('massFunction'        )->attrGet('cosmologyScaling');
 
 # Construct the mass function.
 &MassFunctions::Construct(\%arguments,$massFunctionConfig);

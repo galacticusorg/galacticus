@@ -1,525 +1,262 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  !! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+  !!
+  !! This file is part of Galacticus.
+  !!
+  !!    Galacticus is free software: you can redistribute it and/or modify
+  !!    it under the terms of the GNU General Public License as published by
+  !!    the Free Software Foundation, either version 3 of the License, or
+  !!    (at your option) any later version.
+  !!
+  !!    Galacticus is distributed in the hope that it will be useful,
+  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  !!    GNU General Public License for more details.
+  !!
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements useful cosmological functions. This implementation assumes a Universe filled with
-!% collisionless matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a
-!% (1-a)$.
+  !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
+  !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-module Cosmology_Functions_Matter_Dark_Energy
-  !% Implements useful cosmological functions. This implementation assumes a Universe filled with collisionless matter
-  !% and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-  use Cosmological_Parameters
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy" />
   use FGSL
-  use, intrinsic :: ISO_C_Binding
-  implicit none
-  private
-  public :: Cosmology_Functions_Matter_Dark_Energy_Initialize, Cosmology_Matter_Dark_Energy_State_Store,&
-       & Cosmology_Matter_Dark_Energy_State_Retrieve
+  use Cosmology_Parameters
 
-  ! Variables used to track critical times in collapsing Universes.
-  logical                                                         :: collapsingUniverse         =.false.
-  integer                                                         :: iTableTurnaround
-  double precision                                                :: aExpansionMax                                                                                                  , tCosmologicalMax                                                                             , &
-       &                                                             tCosmologicalTurnaround
-  !$omp threadprivate(collapsingUniverse,iTableTurnaround,aExpansionMax,tCosmologicalMax,tCosmologicalTurnaround)
-  ! Dark energy equation of state.
-  double precision                                                :: darkEnergyEquationOfStateW0                                                                                    , darkEnergyEquationOfStateW1
+  integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
+  double precision, parameter :: matterDarkEnergyAgeTableNPointsPerOctave     =dble(matterDarkEnergyAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
+  double precision, parameter :: matterDarkEnergyAgeTableIncrementFactor      =exp(int(matterDarkEnergyAgeTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
+  integer         , parameter :: matterDarkEnergyDistanceTableNPointsPerDecade=100
+
+  ! Factor by which one component of Universe must dominate others such that we can ignore the others.
+  double precision, parameter :: matterDarkEnergyDominateFactor               =100.0d0
 
   ! Variables used in root finding.
-  double precision                                                :: dominateFactorCurrent
+  double precision            :: matterDarkEnergyDominateFactorCurrent
+  !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
 
-  ! Variables to hold table of expansion factor vs. cosmic time.
-  logical                                                         :: ageTableInitialized        =.false.
-  integer                                                         :: ageTableNumberPoints
-  double precision                                                :: ageTableTimeMaximum        =20.0d0                                                                             , ageTableTimeMinimum                                                                   =1.0d-4
-  integer                             , parameter                 :: ageTableNPointsPerDecade   =300
-  double precision                    , parameter                 :: ageTableNPointsPerOctave   =dble(ageTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
-  double precision                    , parameter                 :: ageTableIncrementFactor    =exp(int(ageTableNPointsPerOctave+1.0d0)*log(10.0d0)/dble(ageTableNPointsPerDecade))
-  double precision                    , allocatable, dimension(:) :: ageTableExpansionFactor                                                                                        , ageTableTime
-  type            (fgsl_interp       )                            :: interpolationObject                                                                                            , interpolationObjectInverse
-  type            (fgsl_interp_accel )                            :: interpolationAccelerator                                                                                       , interpolationAcceleratorInverse
-  logical                                                         :: resetInterpolation         =.true.
-  logical                                                         :: resetInterpolationInverse  =.true.
-  !$omp threadprivate(ageTableInitialized,ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum,ageTableTime)
-  !$omp threadprivate(ageTableExpansionFactor,interpolationObject,interpolationObjectInverse,interpolationAccelerator)
-  !$omp threadprivate(interpolationAcceleratorInverse,resetInterpolation,resetInterpolationInverse)
-  ! Variables used in the ODE solver.
-  type            (fgsl_odeiv_step   )                            :: odeStepper
-  type            (fgsl_odeiv_control)                            :: odeController
-  type            (fgsl_odeiv_evolve )                            :: odeEvolver
-  type            (fgsl_odeiv_system )                            :: odeSystem
-  logical                                                         :: odeReset                   =.true.                                                                                                               !    Ensure ODE variables will be reset on first call.
-  !$omp threadprivate (odeStepper,odeController,odeEvolver,odeSystem,odeReset)
+  ! Default parameters of the dark energy equation of state
+  logical                     :: matterDarkEnergyDefaultsRead=.false.
+  double precision            :: matterDarkEnergyEquationOfStateW0Default, matterDarkEnergyEquationOfStateW1Default
+
+  type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
+     !% A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
+     private
+     double precision :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
+   contains
+     !@ <objectMethods>
+     !@   <object>cosmologyFunctionsMatterDarkEnergy</object>
+     !@   <objectMethod>
+     !@     <method>targetSelf</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Set a module-scope pointer to {\tt self}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: cosmicTime                   =>matterDarkEnergyCosmicTime
+     procedure :: omegaDarkEnergyEpochal       =>matterDarkEnergyOmegaDarkEnergyEpochal
+     procedure :: hubbleParameterEpochal       =>matterDarkEnergyHubbleParameterEpochal
+     procedure :: equationOfStateDarkEnergy    =>matterDarkEnergyEquationOfStateDarkEnergy
+     procedure :: exponentDarkEnergy           =>matterDarkEnergyExponentDarkEnergy
+     procedure :: equalityEpochMatterDarkEnergy=>matterDarkEnergyEqualityEpochMatterDarkEnergy
+     procedure :: dominationEpochMatter        =>matterDarkEnergyDominationEpochMatter
+     procedure :: distanceComoving             =>matterDarkEnergyDistanceComoving
+     procedure :: timeAtDistanceComoving       =>matterDarkEnergyTimeAtDistanceComoving
+     procedure :: distanceComovingConvert      =>matterDarkEnergyDistanceComovingConvert
+     procedure :: expansionFactorTabulate      =>matterDarkEnergyMakeExpansionFactorTable
+     procedure :: targetSelf                   =>matterDarkEnergyTargetSelf
+  end type cosmologyFunctionsMatterDarkEnergy
+
+  ! Module scope pointer to the current object.
+  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal
+  !$omp threadprivate(matterDarkEnergySelfGlobal)
+
+  interface cosmologyFunctionsMatterDarkEnergy
+     !% Constructors for the matter plus dark energy cosmological functions class.
+     module procedure matterDarkEnergyDefaultConstructor
+     module procedure matterDarkEnergyConstructor
+  end interface cosmologyFunctionsMatterDarkEnergy
+
 contains
 
-  !# <cosmologyMethod>
-  !#  <unitName>Cosmology_Functions_Matter_Dark_Energy_Initialize</unitName>
-  !# </cosmologyMethod>
-  subroutine Cosmology_Functions_Matter_Dark_Energy_Initialize(cosmologyMethod,Expansion_Factor_Is_Valid_Get,Cosmic_Time_Is_Valid_Get &
-       &,Cosmology_Age_Get,Expansion_Factor_Get,Hubble_Parameter_Get,Early_Time_Density_Scaling_Get,Omega_Matter_Total_Get &
-       &,Omega_Dark_Energy_Get,Expansion_Rate_Get,Epoch_of_Matter_Dark_Energy_Equality_Get,Epoch_of_Matter_Domination_Get &
-       &,Epoch_of_Matter_Curvature_Equality_Get,CMB_Temperature_Get,Comoving_Distance_Get,Time_From_Comoving_Distance_Get&
-       &,Comoving_Distance_Conversion_Get,Cosmology_Dark_Energy_Equation_Of_State_Get,Cosmology_Dark_Energy_Exponent_Get)
-    !% Initialize the module.
-    use ISO_Varying_String
+  function matterDarkEnergyDefaultConstructor()
+    !% Default constructor for the matter plus dark energy cosmological functions class.
     use Input_Parameters
+    use Cosmology_Parameters
     implicit none
-    type     (varying_string                                         ), intent(in   )          :: cosmologyMethod
-    procedure(Early_Time_Density_Scaling_Matter_Dark_Energy          ), intent(inout), pointer :: Early_Time_Density_Scaling_Get
-    procedure(Expansion_Factor_Is_Valid_Matter_Dark_Energy           ), intent(inout), pointer :: Expansion_Factor_Is_Valid_Get
-    procedure(Cosmic_Time_Is_Valid_Matter_Dark_Energy                ), intent(inout), pointer :: Cosmic_Time_Is_Valid_Get
-    procedure(Cosmology_Age_Matter_Dark_Energy                       ), intent(inout), pointer :: Cosmology_Age_Get
-    procedure(Expansion_Factor_Matter_Dark_Energy                    ), intent(inout), pointer :: Expansion_Factor_Get
-    procedure(Hubble_Parameter_Matter_Dark_Energy                    ), intent(inout), pointer :: Hubble_Parameter_Get
-    procedure(Omega_Matter_Total_Matter_Dark_Energy                  ), intent(inout), pointer :: Omega_Matter_Total_Get
-    procedure(Omega_Dark_Energy_Matter_Dark_Energy                   ), intent(inout), pointer :: Omega_Dark_Energy_Get
-    procedure(Expansion_Rate_Matter_Dark_Energy                      ), intent(inout), pointer :: Expansion_Rate_Get
-    procedure(Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy), intent(inout), pointer :: Epoch_of_Matter_Dark_Energy_Equality_Get
-    procedure(Epoch_of_Matter_Domination_Matter_Dark_Energy          ), intent(inout), pointer :: Epoch_of_Matter_Domination_Get
-    procedure(Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy  ), intent(inout), pointer :: Epoch_of_Matter_Curvature_Equality_Get
-    procedure(CMB_Temperature_Matter_Dark_Energy                     ), intent(inout), pointer :: CMB_Temperature_Get
-    procedure(Comoving_Distance_Matter_Dark_Energy                   ), intent(inout), pointer :: Comoving_Distance_Get
-    procedure(Time_From_Comoving_Distance_Matter_Dark_Energy         ), intent(inout), pointer :: Time_From_Comoving_Distance_Get
-    procedure(Comoving_Distance_Conversion_Matter_Dark_Energy        ), intent(inout), pointer :: Comoving_Distance_Conversion_Get
-    procedure(Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy    ), intent(inout), pointer :: Cosmology_Dark_Energy_Equation_Of_State_Get
-    procedure(Cosmology_Dark_Energy_Exponent_Dark_Energy             ), intent(inout), pointer :: Cosmology_Dark_Energy_Exponent_Get
+    type (cosmologyFunctionsMatterDarkEnergy), target  :: matterDarkEnergyDefaultConstructor
+    class(cosmologyParametersClass          ), pointer :: thisCosmologyParameters
 
-    ! Check if our method is selected.
-    if (cosmologyMethod == 'matter-darkEnergy') then
-       ! Set up procedure pointers.
-       Expansion_Factor_Is_Valid_Get               => Expansion_Factor_Is_Valid_Matter_Dark_Energy
-       Cosmic_Time_Is_Valid_Get                    => Cosmic_Time_Is_Valid_Matter_Dark_Energy
-       Cosmology_Age_Get                           => Cosmology_Age_Matter_Dark_Energy
-       Expansion_Factor_Get                        => Expansion_Factor_Matter_Dark_Energy
-       Hubble_Parameter_Get                        => Hubble_Parameter_Matter_Dark_Energy
-       Early_Time_Density_Scaling_Get              => Early_Time_Density_Scaling_Matter_Dark_Energy
-       Omega_Matter_Total_Get                      => Omega_Matter_Total_Matter_Dark_Energy
-       Omega_Dark_Energy_Get                       => Omega_Dark_Energy_Matter_Dark_Energy
-       Expansion_Rate_Get                          => Expansion_Rate_Matter_Dark_Energy
-       Epoch_of_Matter_Dark_Energy_Equality_Get    => Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy
-       Epoch_of_Matter_Curvature_Equality_Get      => Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy
-       Epoch_of_Matter_Domination_Get              => Epoch_of_Matter_Domination_Matter_Dark_Energy
-       CMB_Temperature_Get                         => CMB_Temperature_Matter_Dark_Energy
-       Comoving_Distance_Get                       => Comoving_Distance_Matter_Dark_Energy
-       Time_From_Comoving_Distance_Get             => Time_From_Comoving_Distance_Matter_Dark_Energy
-       Comoving_Distance_Conversion_Get            => Comoving_Distance_Conversion_Matter_Dark_Energy
-       Cosmology_Dark_Energy_Equation_Of_State_Get => Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy
-       Cosmology_Dark_Energy_Exponent_Get          => Cosmology_Dark_Energy_Exponent_Dark_Energy
-       ! Read the dark energy equation of state.
-       !@ <inputParameter>
-       !@   <name>darkEnergyEquationOfStateW0</name>
-       !@   <defaultValue>-1 (cosmological constant)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkEnergyEquationOfStateW0',darkEnergyEquationOfStateW0,defaultValue=-1.0d0)
-       !@ <inputParameter>
-       !@   <name>darkEnergyEquationOfStateW1</name>
-       !@   <defaultValue>0 (constant equation of state)</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@   <group>cosmology</group>
-       !@ </inputParameter>
-       call Get_Input_Parameter('darkEnergyEquationOfStateW1',darkEnergyEquationOfStateW1,defaultValue=0.0d0)
+    if (.not.matterDarkEnergyDefaultsRead) then
+       !$omp critical(matterDarkEnergyDefaultConstructorParameters)
+       if (.not.matterDarkEnergyDefaultsRead) then
+          ! Read the dark energy equation of state.
+          !@ <inputParameter>
+          !@   <name>darkEnergyEquationOfStateW0</name>
+          !@   <defaultValue>-1 (cosmological constant)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkEnergyEquationOfStateW0',matterDarkEnergyEquationOfStateW0Default,defaultValue=-1.0d0)
+          !@ <inputParameter>
+          !@   <name>darkEnergyEquationOfStateW1</name>
+          !@   <defaultValue>0 (constant equation of state)</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@   <group>cosmology</group>
+          !@ </inputParameter>
+          call Get_Input_Parameter('darkEnergyEquationOfStateW1',matterDarkEnergyEquationOfStateW1Default,defaultValue=0.0d0)
+          matterDarkEnergyDefaultsRead=.true.
+       end if
+       !$omp end critical(matterDarkEnergyDefaultConstructorParameters)
     end if
+    ! Get the default cosmological parameters.
+    thisCosmologyParameters => cosmologyParameters()
+    ! Use it to construct a matter plus dark energy cosmological functions class.
+    matterDarkEnergyDefaultConstructor                                            &
+         & =matterDarkEnergyConstructor(                                          &
+         &                              thisCosmologyParameters                 , &
+         &                              matterDarkEnergyEquationOfStateW0Default, &
+         &                              matterDarkEnergyEquationOfStateW1Default  &
+         &                             )
     return
-  end subroutine Cosmology_Functions_Matter_Dark_Energy_Initialize
+  end function matterDarkEnergyDefaultConstructor
 
-  logical function Expansion_Factor_Is_Valid_Matter_Dark_Energy(aExpansion)
-    !% Checks that the expansion factor falls within allowed ranges.
+  function matterDarkEnergyConstructor(thisCosmologyParameters,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1)
+    !% Constructor for the matter plus dark energy cosmological functions class.
+    use Numerical_Comparison
+    use Cosmology_Parameters
+    use ISO_Varying_String
+    use ODE_Solver
+    use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision, intent(in   ) :: aExpansion
+    type            (cosmologyFunctionsMatterDarkEnergy)                        :: matterDarkEnergyConstructor
+    class           (cosmologyParametersClass          ), intent(in   ), target :: thisCosmologyParameters
+    double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
 
-    Expansion_Factor_Is_Valid_Matter_Dark_Energy=(aExpansion > 0.0d0 .and. (aExpansion<aExpansionMax .or. .not.collapsingUniverse))
+    ! Store a pointer to the cosmological parameters object.
+    matterDarkEnergyConstructor%cosmology => thisCosmologyParameters
+    ! Store equation of state.
+    matterDarkEnergyConstructor%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
+    matterDarkEnergyConstructor%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
+    ! Force a build of the expansion factor table, which will determine if this Universe collapses.
+    call matterDarkEnergyConstructor%expansionFactorTabulate()
     return
-  end function Expansion_Factor_Is_Valid_Matter_Dark_Energy
+  end function matterDarkEnergyConstructor
 
-  logical function Cosmic_Time_Is_Valid_Matter_Dark_Energy(time)
-    !% Checks that the time falls within allowed ranges.
-    implicit none
-    double precision, intent(in   ) :: time
-
-    Cosmic_Time_Is_Valid_Matter_Dark_Energy=(time > 0.0d0 .and. (time<tCosmologicalMax .or. .not.collapsingUniverse))
-    return
-  end function Cosmic_Time_Is_Valid_Matter_Dark_Energy
-
-  double precision function Cosmology_Age_Matter_Dark_Energy(aExpansion,collapsingPhase)
+  double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
+    !% Return the cosmological matter density in units of the critical density at the present day.
     use Galacticus_Error
     use Numerical_Interpolation
     implicit none
-    double precision, intent(in   )           :: aExpansion
-    logical         , intent(in   ), optional :: collapsingPhase
-    logical                                   :: collapsingPhaseActual
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   )           :: expansionFactor
+    logical                                             , intent(in   ), optional :: collapsingPhase
+    logical                                                                       :: collapsingPhaseActual
 
-    ! Initialize the module if necessary.
     ! Validate the input.
-    if (.not.Expansion_Factor_Is_Valid_Matter_Dark_Energy(aExpansion)) call Galacticus_Error_Report('Cosmology_Age_Matter_Dark_Energy'&
-         &,'expansion factor is invalid')
-
+    if (.not.self%expansionFactorIsValid(expansionFactor)) &
+         & call Galacticus_Error_Report('matterDarkEnergyCosmicTime','expansion factor is invalid')
     ! Determine if we are in the expanding or collapsing phase for this universe.
     if (present(collapsingPhase)) then
        collapsingPhaseActual=collapsingPhase
     else
        collapsingPhaseActual=.false. ! Assume expanding phase by default.
     end if
-
     ! Ensure tabulation is initialized.
-    if (.not.ageTableInitialized) call Make_Expansion_Factor_Table(ageTableTimeMinimum)
-
+    if (.not.self%ageTableInitialized) call self%expansionFactorTabulate(self%ageTableTimeMinimum)
     ! Ensure that the tabulation spans a sufficient range of expansion factors.
     if (collapsingPhaseActual) then
        ! We assume that the universe does not collapse.
-       call Galacticus_Error_Report('Cosmology_Age_Matter_Dark_Energy','non-collapsing universe assumed')
+       call Galacticus_Error_Report('matterDarkEnergyCosmicTime','non-collapsing universe assumed')
     else
        ! In expanding phase ensure that sufficiently small and large expansion factors have been reached.
-       do while (ageTableExpansionFactor(1)>aExpansion)
-          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
-          call Make_Expansion_Factor_Table
+       do while (self%ageTableExpansionFactor(                        1) > expansionFactor)
+          self%ageTableTimeMinimum=    self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+          call self%expansionFactorTabulate()
        end do
-       do while (ageTableExpansionFactor(ageTableNumberPoints)<aExpansion)
-          ageTableTimeMaximum=ageTableTimeMaximum*ageTableIncrementFactor
-          call Make_Expansion_Factor_Table
+       do while (self%ageTableExpansionFactor(self%ageTableNumberPoints) < expansionFactor)
+          self%ageTableTimeMaximum=max(self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor,self%timeTurnaround)
+          call self%expansionFactorTabulate()
        end do
     end if
-
     ! Interpolate to get cosmic time.
-    Cosmology_Age_Matter_Dark_Energy=Interpolate(ageTableNumberPoints,ageTableExpansionFactor&
-         &,ageTableTime,interpolationObject,interpolationAccelerator&
-         &,aExpansion,reset=resetInterpolation)
+    matterDarkEnergyCosmicTime                             &
+         & =Interpolate(                               &
+         &              self%ageTableNumberPoints    , &
+         &              self%ageTableExpansionFactor , &
+         &              self%ageTableTime            , &
+         &              self%interpolationObject     , &
+         &              self%interpolationAccelerator, &
+         &              expansionFactor              , &
+         &              reset=self%resetInterpolation  &
+         &             )
     return
-  end function Cosmology_Age_Matter_Dark_Energy
+  end function matterDarkEnergyCosmicTime
 
-  double precision function Expansion_Factor_Matter_Dark_Energy(tCosmological)
-    !% Returns the expansion factor at cosmological time {\tt tCosmological}.
-    use Numerical_Interpolation
+  double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
+    !% Return the dark energy density parameter at expansion factor {\tt expansionFactor}.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ) :: tCosmological
-    double precision, save          :: expansionFactorPrevious, tCosmologicalPrevious
-    !$omp threadprivate(tCosmologicalPrevious,expansionFactorPrevious)
-    logical                         :: remakeTable
-    double precision                :: tEffective
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    logical                                             , intent(in   ), optional :: collapsingPhase
+    double precision                                                              :: expansionFactorActual
 
-    ! Check if the time differs from the previous time.
-    if (tCosmological /= tCosmologicalPrevious) then
-
-       ! Quit on invalid input.
-       if (tCosmological<0.0d0) call Galacticus_Error_Report('Expansion_Factor_Matter_Dark_Energy','cosmological time must be positive')
-
-       ! Check if we need to recompute our table.
-       if (ageTableInitialized) then
-          remakeTable=(tCosmological<ageTableTime(1).or.tCosmological>ageTableTime(ageTableNumberPoints))
+   ! Determine the actual expansion factor to use.
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','only one of time or expansion factor can be specified')
        else
-          remakeTable=.true.
-       end if
-       if (remakeTable) call Make_Expansion_Factor_Table(tCosmological)
-
-       ! Quit on invalid input.
-       if (collapsingUniverse.and.tCosmological>tCosmologicalMax) call Galacticus_Error_Report('Expansion_Factor_Matter_Dark_Energy','cosmological time&
-            & exceeds that at the Big Crunch')
-
-       ! Interpolate to get the expansion factor.
-       if (collapsingUniverse) then
-          if (tCosmological <= tCosmologicalTurnaround) then
-             tEffective=tCosmological
-          else
-             tEffective=tCosmologicalMax-tCosmological
-          end if
-       else
-          tEffective=tCosmological
-       end if
-
-       expansionFactorPrevious=Interpolate(ageTableNumberPoints,ageTableTime,ageTableExpansionFactor,interpolationObjectInverse&
-            &,interpolationAcceleratorInverse,tEffective,reset=resetInterpolationInverse)
-       tCosmologicalPrevious=tCosmological
-    end if
-
-    ! Return the stored expansion factor.
-    Expansion_Factor_Matter_Dark_Energy=expansionFactorPrevious
-    return
-  end function Expansion_Factor_Matter_Dark_Energy
-
-  subroutine Make_Expansion_Factor_Table(tCosmological)
-    !% Builds a table of expansion factor vs. time.
-    use Numerical_Interpolation
-    use Numerical_Ranges
-    use Memory_Management
-    implicit none
-    double precision, intent(in   ), optional     :: tCosmological
-    double precision, allocatable  , dimension(:) :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
-    double precision, parameter                   :: turnaroundTimeTolerance         =1.0d-12
-    double precision, parameter                   :: dominateFactor                  =100.0d0
-    integer                                       :: iTime                                   , prefixPointCount
-    double precision                              :: Omega_Dominant                          , aDominant            , &
-         &                                           deltaTime                               , densityPower         , &
-         &                                           tDominant                               , time
-    logical                                       :: solutionFound                           , timeExceeded
-
-    ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
-    call Early_Time_Density_Scaling_Matter_Dark_Energy(dominateFactor,densityPower,aDominant,Omega_Dominant)
-
-    ! Find the corresponding time.
-    tDominant=-2.0d0/densityPower/H_0_invGyr()/sqrt(Omega_Dominant)/aDominant**(0.5d0*densityPower)
-
-    ! Find minimum and maximum times to tabulate.
-    if (present(tCosmological)) then
-       time=tCosmological
-       do while (ageTableTimeMinimum > min(time,tDominant)/2.0d0)
-          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
-       end do
-       do while (ageTableTimeMaximum < max(time,tDominant)*2.0d0)
-          ageTableTimeMaximum=ageTableTimeMaximum*ageTableIncrementFactor
-       end do
-    else
-       do while (ageTableTimeMinimum > tDominant/2.0d0)
-          ageTableTimeMinimum=ageTableTimeMinimum/ageTableIncrementFactor
-       end do
-       do while (ageTableTimeMaximum < tDominant*2.0d0)
-          ageTableTimeMaximum=ageTableTimeMaximum*ageTableIncrementFactor
-       end do
-    end if
-    if (collapsingUniverse) ageTableTimeMaximum=min(ageTableTimeMaximum,tCosmologicalTurnaround)
-
-    ! Determine number of points to tabulate.
-    ageTableNumberPoints=int(log10(ageTableTimeMaximum/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade))+1
-    ageTableTimeMaximum=ageTableTimeMinimum*10.0d0**(dble(ageTableNumberPoints)/dble(ageTableNPointsPerDecade))
-
-    ! Deallocate arrays if currently allocated.
-    if (allocated(ageTableTime)) then
-       ! Determine number of points that are being added at the start of the array.
-       prefixPointCount=int(log10(ageTableTime(1)/ageTableTimeMinimum)*dble(ageTableNPointsPerDecade)+0.5d0)
-       call Move_Alloc(ageTableTime           ,ageTableTimeTemporary           )
-       call Move_Alloc(ageTableExpansionFactor,ageTableExpansionFactorTemporary)
-       ! Allocate the arrays to current required size.
-       call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
-       call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
-       ! Create set of grid points in time variable.
-       ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the expansion factors to a negative value to indicate they are not yet computed.
-       ageTableExpansionFactor=-1.0d0
-       ! Paste in the previously computed regions.
-       ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
-       ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
-       ! Deallocate the temporary arrays.
-       call Dealloc_Array(ageTableTimeTemporary           )
-       call Dealloc_Array(ageTableExpansionFactorTemporary)
-    else
-       ! Allocate the arrays to current required size.
-       call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
-       call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
-       ! Create set of grid points in time variable.
-       ageTableTime=Make_Range(ageTableTimeMinimum,ageTableTimeMaximum,ageTableNumberPoints,rangeTypeLogarithmic)
-       ! Set the expansion factors to a negative value to indicate they are not yet computed.
-       ageTableExpansionFactor=-1.0d0
-    end if
-    ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
-    ! Universe and use the appropriate analytic solution.
-    if (ageTableExpansionFactor(1) < 0.0d0) ageTableExpansionFactor(1)=(-0.5d0*densityPower*ageTableTime(1)*H_0_invGyr()&
-         &*sqrt(Omega_Dominant))**(-2.0d0/densityPower)
-    ! Solve ODE to get corresponding expansion factors.
-    do iTime=2,ageTableNumberPoints
-       ! Compute the expansion factor if it is not already computed.
-       if (ageTableExpansionFactor(iTime) < 0.0d0) then
-          ageTableExpansionFactor(iTime)=Expansion_Factor_Change(                                  &
-               &                                                 ageTableTime           (iTime-1), &
-               &                                                 ageTableTime           (iTime  ), &
-               &                                                 ageTableExpansionFactor(iTime-1)  &
-               &                                                )
-          ! Check for a universe which is no longer expanding (i.e. has reached its maximum expansion).
-          if (ageTableExpansionFactor(iTime) == ageTableExpansionFactor(iTime-1)) then
-             ! Record that we have a collapsing Universe.
-             collapsingUniverse=.true.
-             ! Record the maximum expansion factor.
-             aExpansionMax          =ageTableExpansionFactor(iTime-1)
-             ! Find the time of maximum expansion by bisection.
-             tCosmologicalTurnaround=(ageTableTime(iTime-1)+ageTableTime(iTime-2))/2.0d0
-             deltaTime              =(ageTableTime(iTime-1)-ageTableTime(iTime-2))/2.0d0
-             solutionFound=.false.
-             do while (.not.solutionFound)
-                timeExceeded=(                                                           &
-                &              Expansion_Factor_Change(                                  &
-                &                                      ageTableTime           (iTime-2), &
-                &                                      tCosmologicalTurnaround         , &
-                &                                      ageTableExpansionFactor(iTime-2)  &
-                &                                     )                                  &
-                &             >=                                                         &
-                &              ageTableExpansionFactor(iTime-1)                          &
-                &            )
-                solutionFound=timeExceeded .and. deltaTime < turnaroundTimeTolerance*tCosmologicalTurnaround
-                if (.not.solutionFound) then
-                   deltaTime=0.5d0*deltaTime
-                   if (timeExceeded) then
-                      tCosmologicalTurnaround=tCosmologicalTurnaround-deltaTime
-                   else
-                      tCosmologicalTurnaround=tCosmologicalTurnaround+deltaTime
-                   end if
-                end if
-             end do
-             tCosmologicalMax       =2.0d0*tCosmologicalTurnaround
-             ! Limit the tables to the expanding part of the evolution.
-             iTableTurnaround       =iTime-2
-             call Move_Alloc(ageTableTime           ,ageTableTimeTemporary           )
-             call Move_Alloc(ageTableExpansionFactor,ageTableExpansionFactorTemporary)
-             ageTableNumberPoints=iTableTurnaround
-             call Alloc_Array(ageTableTime,           [ageTableNumberPoints])
-             call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
-             ageTableTime           =ageTableTimeTemporary           (1:ageTableNumberPoints)
-             ageTableExpansionFactor=ageTableExpansionFactorTemporary(1:ageTableNumberPoints)
-             exit
-          end if
-       end if
-    end do
-
-    call Interpolate_Done(interpolationObject       ,interpolationAccelerator       ,resetInterpolation       )
-    call Interpolate_Done(interpolationObjectInverse,interpolationAcceleratorInverse,resetInterpolationInverse)
-    resetInterpolation       =.true.
-    resetInterpolationInverse=.true.
-    ! Flag that the table is now initialized.
-    ageTableInitialized=.true.
-    return
-  end subroutine Make_Expansion_Factor_Table
-
-  double precision function Expansion_Factor_Change(timeStart,timeEnd,expansionFactorStart)
-    !% Compute the expansion factor at time {\tt timeEnd} given an initial value {\tt expansionFactorStart} at time {\tt
-    !% timeStart}.
-    use ODE_Solver
-    implicit none
-    double precision       , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
-         &                                    timeStart
-    double precision       , dimension(1)  :: y
-    double precision       , parameter     :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-12
-    double precision                       :: time
-    type            (c_ptr)                :: parameterPointer
-
-    time=timeStart
-    y(1)=expansionFactorStart
-    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,timeEnd,1,y&
-         &,ageTableODEsDarkEnergy,parameterPointer,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
-    Expansion_Factor_Change=y(1)
-    return
-  end function Expansion_Factor_Change
-
-  function ageTableODEsDarkEnergy(t,a,dadt,parameterPointer) bind(c)
-    !% System of differential equations to solve for expansion factor vs. age.
-    integer(kind=c_int   )                              :: ageTableODEsDarkEnergy
-    real   (kind=c_double)              , value         :: t
-    real   (kind=c_double), dimension(1), intent(in   ) :: a
-    real   (kind=c_double), dimension(1)                :: dadt
-    type   (c_ptr        )              , value         :: parameterPointer
-
-    dadt(1)=a(1)*Expansion_Rate_Matter_Dark_Energy(a(1))
-    ageTableODEsDarkEnergy=FGSL_Success
-  end function ageTableODEsDarkEnergy
-
-  double precision function Expansion_Rate_Matter_Dark_Energy(aExpansion)
-    !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\tt aExpansion}.
-    implicit none
-    double precision, intent(in   ) :: aExpansion
-
-    ! Required value is simply the Hubble parameter but expressed in units of inverse Gyr.
-    Expansion_Rate_Matter_Dark_Energy=Hubble_Parameter_Matter_Dark_Energy(aExpansion=aExpansion)*H_0_invGyr()/H_0()
-    return
-  end function Expansion_Rate_Matter_Dark_Energy
-
-  double precision function Hubble_Parameter_Matter_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
-    !% Returns the Hubble parameter at the request cosmological time, {\tt tCosmological}, or expansion factor, {\tt aExpansion}.
-    use Galacticus_Error
-    implicit none
-    double precision, intent(in   ), optional :: aExpansion      , tCosmological
-    logical         , intent(in   ), optional :: collapsingPhase
-    double precision                          :: aExpansionActual, sqrtArgument
-
-    ! Determine the actual expansion factor to use.
-    if (present(tCosmological)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('Hubble_Parameter_Matter_Dark_Energy','only one of time or expansion factor can be specified')
-       else
-          aExpansionActual=Expansion_Factor_Matter_Dark_Energy(tCosmological)
+          expansionFactorActual=self%expansionFactor(time)
        end if
     else
-       if (present(aExpansion)) then
-          aExpansionActual=aExpansion
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
        else
-          call Galacticus_Error_Report('Hubble_Parameter_Matter_Dark_Energy','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('matterDarkEnergyOmegaDarkEnergyEpochal','either a time or expansion factor must be specified')
        end if
     end if
-    ! Compute the Hubble parameter at the specified expansion factor.
-    sqrtArgument=max(Omega_Matter()/aExpansionActual**3+Omega_DE()*aExpansionActual**Cosmology_Dark_Energy_Exponent_Dark_Energy(expansionFactor=aExpansionActual)+Omega_K()/aExpansionActual**2,0.0d0)
-    Hubble_Parameter_Matter_Dark_Energy=H_0()*sqrt(sqrtArgument)
-    ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
-    if (collapsingUniverse) then
-       if (present(tCosmological)) then
-          if (tCosmological>tCosmologicalTurnaround) Hubble_Parameter_Matter_Dark_Energy=-Hubble_Parameter_Matter_Dark_Energy
-       else
-          if (present(collapsingPhase)) then
-             if (collapsingPhase) Hubble_Parameter_Matter_Dark_Energy=-Hubble_Parameter_Matter_Dark_Energy
-          end if
-       end if
-    end if
+    matterDarkEnergyOmegaDarkEnergyEpochal                                                                       &
+         & =                        self%cosmology%OmegaDarkEnergy       (                                     ) &
+         &  *expansionFactorActual**self          %exponentDarkEnergy    (expansionFactor=expansionFactorActual) &
+         &  *(                                                                                                   &
+         &                          self%cosmology%HubbleConstant        (unitsStandard                        ) &
+         &    /                     self%          HubbleParameterEpochal(expansionFactor=expansionFactorActual) &
+         &   )**2
     return
-  end function Hubble_Parameter_Matter_Dark_Energy
+  end function matterDarkEnergyOmegaDarkEnergyEpochal
 
-  subroutine Early_Time_Density_Scaling_Matter_Dark_Energy(dominateFactor,densityPower,aDominant,Omega_Dominant)
-    implicit none
-    double precision, intent(in   )           :: dominateFactor
-    double precision, intent(  out)           :: aDominant     , densityPower
-    double precision, intent(  out), optional :: Omega_Dominant
-
-    ! For matter and cosmological constant, matter always dominates at early times.
-    densityPower=-3.0d0 ! Power-law scaling of matter density with expansion factor.
-
-    ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
-    aDominant=Epoch_of_Matter_Domination_Matter_Dark_Energy(dominateFactor)
-
-    ! Return the density parameter in the dominant species if required.
-    if (present(Omega_Dominant)) Omega_Dominant=Omega_Matter()
-    return
-  end subroutine Early_Time_Density_Scaling_Matter_Dark_Energy
-
-  double precision function Epoch_of_Matter_Domination_Matter_Dark_Energy(dominateFactor)
+  double precision function matterDarkEnergyDominationEpochMatter(self,dominateFactor)
     use Cosmology_Functions_Parameters
     use Root_Finder
     implicit none
-    double precision                , intent(in   ) :: dominateFactor
-    type            (rootFinder    ), save          :: finder
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
+    type            (rootFinder                        ), save          :: finder
     !$omp threadprivate(finder)
-    double precision                                :: aDominantCurvature , aDominantDarkEnergy      , &
-         &                                             aMatterEquality    , darkEnergyExponentCurrent, &
-         &                                             rangeExpandDownward, rangeExpandUpward
+    double precision                                    , intent(in   ) :: dominateFactor
+    double precision                                                    :: aDominantCurvature              , aDominantDarkEnergy              , &
+         &                                                                 aMatterEquality                 , darkEnergyExponentCurrent        , &
+         &                                                                 expansionFactorDominantCurvature, expansionFactorDominantDarkEnergy, &
+         &                                                                 rangeExpandDownward             , rangeExpandUpward
 
     ! Choose present day as default - will be used if no other densities present (i.e. Einsetin-de Sitter).
-    Epoch_of_Matter_Domination_Matter_Dark_Energy=1.0d0
-
+    matterDarkEnergyDominationEpochMatter=1.0d0
     ! Case where dark energy is present.
-    if (Omega_DE() /= 0.0d0) then
+    if (self%cosmology%OmegaDarkEnergy() /= 0.0d0) then
        if (.not.finder%isInitialized()) then
-          darkEnergyExponentCurrent=Cosmology_Dark_Energy_Exponent_Dark_Energy(expansionFactor=1.0d0)
+          darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
           if (darkEnergyExponentCurrent > -3.0d0) then
              ! Dark energy density is decaying less rapidly than matter.
-             if (Omega_Matter() < dominateFactor*Omega_DE()) then
+             if (self%cosmology%OmegaMatter() < dominateFactor*self%cosmology%OmegaDarkEnergy()) then
                 ! Matter density is less than dominated dark energy density. Search backward for epoch of domination.
                 rangeExpandUpward  =1.0d0
                 rangeExpandDownward=0.5d0
@@ -530,7 +267,7 @@ contains
              end if
           else
              ! Dark energy density is decaying more rapidly than matter.
-             if (Omega_Matter() < dominateFactor*Omega_DE()) then
+             if (self%cosmology%OmegaMatter() < dominateFactor*self%cosmology%OmegaDarkEnergy()) then
                 ! Matter density is less than dominated dark energy density. Search forward for epoch of domination.
                 rangeExpandUpward  =2.0d0
                 rangeExpandDownward=1.0d0
@@ -541,7 +278,7 @@ contains
              end if
           end if
           call finder%rootFunction(                                               &
-               &                   Matter_Dark_Energy_Domination                  &
+               &                   matterDarkEnergyDomination                     &
                &                  )
           call finder%tolerance   (                                               &
                &                   toleranceAbsolute  =0.0d0                    , &
@@ -553,124 +290,85 @@ contains
                &                   rangeExpandType    =rangeExpandMultiplicative  &
                &                  )
        end if
-       dominateFactorCurrent=dominateFactor
+       matterDarkEnergyDominateFactorCurrent = dominateFactor
+       call self%targetSelf()
        aDominantDarkEnergy  =finder%find(rootGuess=1.0d0)
-
        ! Choose earliest expansion factor.
-       Epoch_of_Matter_Domination_Matter_Dark_Energy=min(Epoch_of_Matter_Domination_Matter_Dark_Energy,aDominantDarkEnergy)
+       matterDarkEnergyDominationEpochMatter=min(matterDarkEnergyDominationEpochMatter,aDominantDarkEnergy)
     end if
-
-    if (Omega_K() /= 0.0d0) then
+    if (self%cosmology%OmegaCurvature() /= 0.0d0) then
        ! Find the expansion factor of matter-curvature equality.
-       aMatterEquality=Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy(requestTypeExpansionFactor)
-
+       aMatterEquality=self%equalityEpochMatterCurvature(requestTypeExpansionFactor)
        ! Find the earlier expansion factor at which matter dominates by the specified amount (ratio of matter
        ! to curvature density scales as the expansion factor).
        aDominantCurvature=aMatterEquality/dominateFactor
-
        ! Choose earliest expansion factor.
-       Epoch_of_Matter_Domination_Matter_Dark_Energy=min(Epoch_of_Matter_Domination_Matter_Dark_Energy,aDominantCurvature)
+       matterDarkEnergyDominationEpochMatter=min(matterDarkEnergyDominationEpochMatter,aDominantCurvature)
     end if
     return
-  end function Epoch_of_Matter_Domination_Matter_Dark_Energy
+  end function matterDarkEnergyDominationEpochMatter
 
-  double precision function Matter_Dark_Energy_Domination(expansionFactor)
-    implicit none
-    double precision, intent(in   ) :: expansionFactor
-
-    Matter_Dark_Energy_Domination=Omega_Matter()/expansionFactor**3-dominateFactorCurrent*Omega_DE()*expansionFactor**Cosmology_Dark_Energy_Exponent_Dark_Energy(expansionFactor=expansionFactor)
-    return
-  end function Matter_Dark_Energy_Domination
-
-  double precision function Omega_Matter_Total_Matter_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
-    !% Return the matter density parameter at expansion factor {\tt aExpansion}.
+  double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
+    !% Returns the Hubble parameter at the request cosmological time, {\tt time}, or expansion factor, {\tt expansionFactor}.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , tCosmological
-    logical         , intent(in   ), optional :: collapsingPhase
-    double precision                          :: aExpansionActual
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    logical                                             , intent(in   ), optional :: collapsingPhase
+    double precision                                                              :: expansionFactorActual, sqrtArgument
 
     ! Determine the actual expansion factor to use.
-    if (present(tCosmological)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('Omega_Matter_Total_Matter_Dark_Energy','only one of time or expansion factor can be specified')
+    if (present(time)) then
+       if (present(expansionFactor)) then
+          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterEpochal','only one of time or expansion factor can be specified')
        else
-          aExpansionActual=Expansion_Factor_Matter_Dark_Energy(tCosmological)
+          expansionFactorActual=self%expansionFactor(time)
        end if
     else
-       if (present(aExpansion)) then
-          aExpansionActual=aExpansion
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
        else
-          call Galacticus_Error_Report('Omega_Matter_Total_Matter_Dark_Energy','either a time or expansion factor must be specified')
+          call Galacticus_Error_Report('matterDarkEnergyHubbleParameterEpochal','either a time or expansion factor must be specified')
        end if
     end if
-    Omega_Matter_Total_Matter_Dark_Energy=Omega_Matter()*((H_0()/Hubble_Parameter_Matter_Dark_Energy(aExpansion=aExpansionActual))**2)/(aExpansionActual**3)
-    return
-  end function Omega_Matter_Total_Matter_Dark_Energy
-
-  double precision function Omega_Dark_Energy_Matter_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
-    !% Return the dark energy density parameter at expansion factor {\tt aExpansion}.
-    use Galacticus_Error
-    implicit none
-    double precision, intent(in   ), optional :: aExpansion      , tCosmological
-    logical         , intent(in   ), optional :: collapsingPhase
-    double precision                          :: aExpansionActual
-
-    ! Determine the actual expansion factor to use.
-    if (present(tCosmological)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('Omega_Dark_Energy_Matter_Dark_Energy','only one of time or expansion factor can be specified')
+    ! Compute the Hubble parameter at the specified expansion factor.
+    sqrtArgument=                                                                                            &
+         &       max(                                                                                        &
+         &            self%cosmology%OmegaMatter    ()                                                       &
+         &           /expansionFactorActual**3                                                               &
+         &           +self%cosmology%OmegaDarkEnergy()                                                       &
+         &           *expansionFactorActual**self%exponentDarkEnergy(expansionFactor=expansionFactorActual)  &
+         &           +self%cosmology%OmegaCurvature ()                                                       &
+         &           /expansionFactorActual**2                                                             , &
+         &           0.0d0                                                                                   &
+         &          )
+    matterDarkEnergyHubbleParameterEpochal=self%cosmology%HubbleConstant(unitsStandard)*sqrt(sqrtArgument)
+    ! Make the Hubble parameter negative if we are in the collapsing phase of the Universe.
+    if (self%collapsingUniverse) then
+       if    (present(time           )) then
+          if    (time>self%timeTurnaround) matterDarkEnergyHubbleParameterEpochal=-matterDarkEnergyHubbleParameterEpochal
        else
-          aExpansionActual=Expansion_Factor_Matter_Dark_Energy(tCosmological)
-       end if
-    else
-       if (present(aExpansion)) then
-          aExpansionActual=aExpansion
-       else
-          call Galacticus_Error_Report('Omega_Dark_Energy_Matter_Dark_Energy','either a time or expansion factor must be specified')
+          if (present(collapsingPhase)) then
+             if (collapsingPhase         ) matterDarkEnergyHubbleParameterEpochal=-matterDarkEnergyHubbleParameterEpochal
+          end if
        end if
     end if
-    Omega_Dark_Energy_Matter_Dark_Energy=Omega_DE()*aExpansionActual**Cosmology_Dark_Energy_Exponent_Dark_Energy(expansionFactor=aExpansionActual)*((H_0()/Hubble_Parameter_Matter_Dark_Energy(aExpansion=aExpansionActual))**2)
     return
-  end function Omega_Dark_Energy_Matter_Dark_Energy
+  end function matterDarkEnergyHubbleParameterEpochal
 
-  double precision function CMB_Temperature_Matter_Dark_Energy(tCosmological,aExpansion,collapsingPhase)
-    !% Return the temperature of the CMB at expansion factor {\tt aExpansion}.
-    use Galacticus_Error
-    implicit none
-    double precision, intent(in   ), optional :: aExpansion      , tCosmological
-    logical         , intent(in   ), optional :: collapsingPhase
-    double precision                          :: aExpansionActual
-
-    ! Determine the actual expansion factor to use.
-    if (present(tCosmological)) then
-       if (present(aExpansion)) then
-          call Galacticus_Error_Report('CMB_Temperature_Matter_Dark_Energy','only one of time or expansion factor can be specified')
-       else
-          aExpansionActual=Expansion_Factor_Matter_Dark_Energy(tCosmological)
-       end if
-    else
-       if (present(aExpansion)) then
-          aExpansionActual=aExpansion
-       else
-          call Galacticus_Error_Report('CMB_Temperature_Matter_Dark_Energy','either a time or expansion factor must be specified')
-       end if
-    end if
-    CMB_Temperature_Matter_Dark_Energy=T_CMB()/aExpansionActual
-    return
-  end function CMB_Temperature_Matter_Dark_Energy
-
-  double precision function Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy(requestType)
+  double precision function matterDarkEnergyEqualityEpochMatterDarkEnergy(self,requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     use Cosmology_Functions_Parameters
+    use Cosmology_Parameters
     use Root_Finder
     implicit none
-    integer                     , intent(in   ), optional :: requestType
-    type            (rootFinder), save                    :: finder
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    integer                                             , intent(in   ), optional :: requestType
+    type            (rootFinder                        ), save                    :: finder
     !$omp threadprivate(finder)
-    integer                                               :: requestTypeActual
-    double precision                                      :: darkEnergyExponentCurrent, rangeExpandDownward, &
-         &                                                   rangeExpandUpward
+    integer                                                                       :: requestTypeActual
+    double precision                                                              :: darkEnergyExponentCurrent, rangeExpandDownward, &
+         &                                                                           rangeExpandUpward
 
     if (present(requestType)) then
        requestTypeActual=requestType
@@ -678,10 +376,10 @@ contains
        requestTypeActual=requestTypeExpansionFactor
     end if
     if (.not.finder%isInitialized()) then
-       darkEnergyExponentCurrent=Cosmology_Dark_Energy_Exponent_Dark_Energy(expansionFactor=1.0d0)
+       darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
        if (darkEnergyExponentCurrent > -3.0d0) then
           ! Dark energy density is decaying less rapidly than matter.
-          if (Omega_Matter() < Omega_DE()) then
+          if (self%cosmology%OmegaMatter() < self%cosmology%OmegaDarkEnergy()) then
              ! Matter density is less than dark energy density. Search backward for epoch of domination.
              rangeExpandUpward  =1.0d0
              rangeExpandDownward=0.5d0
@@ -692,7 +390,7 @@ contains
           end if
        else
           ! Dark energy density is decaying more rapidly than matter.
-          if (Omega_Matter() < Omega_DE()) then
+          if (self%cosmology%OmegaMatter() < self%cosmology%OmegaDarkEnergy()) then
              ! Matter density is less than dark energy density. Search forward for epoch of domination.
              rangeExpandUpward  =2.0d0
              rangeExpandDownward=1.0d0
@@ -703,7 +401,7 @@ contains
           end if
        end if
        call finder%rootFunction(                                               &
-            &                   Matter_Dark_Energy_Domination                  &
+            &                   matterDarkEnergyDomination                     &
             &                  )
        call finder%tolerance   (                                               &
             &                   toleranceAbsolute  =0.0d0                    , &
@@ -715,146 +413,310 @@ contains
             &                   rangeExpandType    =rangeExpandMultiplicative  &
             &                  )
     end if
-    dominateFactorCurrent=1.0d0
-    Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy=finder%find(rootGuess=1.0d0)
+    matterDarkEnergyDominateFactorCurrent =  1.0d0
+    call self%targetSelf()
+    matterDarkEnergyEqualityEpochMatterDarkEnergy=finder%find(rootGuess=1.0d0)
     if (present(requestType)) then
-       if (requestType == requestTypeTime) Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy &
-            &=Cosmology_Age_Matter_Dark_Energy(Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy)
+       if (requestType == requestTypeTime)                                    &
+            &                  matterDarkEnergyEqualityEpochMatterDarkEnergy  &
+            & =self%cosmicTime(matterDarkEnergyEqualityEpochMatterDarkEnergy)
     end if
     return
-  end function Epoch_of_Matter_Dark_Energy_Equality_Matter_Dark_Energy
+  end function matterDarkEnergyEqualityEpochMatterDarkEnergy
 
-  double precision function Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy(requestType)
-    !% Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
-    use Cosmology_Functions_Parameters
+  double precision function matterDarkEnergyDomination(expansionFactor)
+    !% Function used in root finding when seeking epoch at which matter dominates over dark energy.
     implicit none
-    integer, intent(in   ), optional :: requestType
-    integer                          :: requestTypeActual
+    double precision, intent(in   ) :: expansionFactor
 
-    if (present(requestType)) then
-       requestTypeActual=requestType
-    else
-       requestTypeActual=requestTypeExpansionFactor
-    end if
-
-    Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy=Omega_Matter()/abs(Omega_K())
-    if (requestType == requestTypeTime) Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy&
-         &=Cosmology_Age_Matter_Dark_Energy(Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy)
+    matterDarkEnergyDomination=                                                                                                 &
+         &                      matterDarkEnergySelfGlobal%cosmology%OmegaMatter    ()                                          &
+         &                     /expansionFactor**3                                                                              &
+         &                     -matterDarkEnergyDominateFactorCurrent                                                           &
+         &                     *matterDarkEnergySelfGlobal%cosmology%OmegaDarkEnergy()                                          &
+         &                     *expansionFactor**matterDarkEnergySelfGlobal%exponentDarkEnergy(expansionFactor=expansionFactor)
     return
-  end function Epoch_of_Matter_Curvature_Equality_Matter_Dark_Energy
+  end function matterDarkEnergyDomination
 
-  double precision function Time_From_Comoving_Distance_Matter_Dark_Energy(comovingDistance)
+  subroutine matterDarkEnergyTargetSelf(self)
+    !% Set a module-scope pointer to the current dark energy cosmology functions object.
+    implicit none
+    class(cosmologyFunctionsMatterDarkEnergy), intent(in   ), target :: self
+
+    matterDarkEnergySelfGlobal => self
+    return
+  end subroutine matterDarkEnergyTargetSelf
+
+  subroutine matterDarkEnergyMakeExpansionFactorTable(self,time)
+    !% Builds a table of expansion factor vs. time for dark energy universes.
+    use Numerical_Interpolation
+    use Numerical_Ranges
+    use Memory_Management
+    use, intrinsic :: ISO_C_Binding
+    use Cosmology_Parameters
+    implicit none
+    class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
+    double precision                                                 , intent(in   ), optional :: time
+    double precision                                    , parameter                            :: turnaroundTimeTolerance         =1.0d-12
+    double precision                                    , parameter                            :: odeToleranceAbsolute            =1.0d-9 , odeToleranceRelative    =1.0d-9
+    double precision                                    , allocatable, dimension(:)            :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
+    integer                                                                                    :: iTime                                   , prefixPointCount
+    double precision                                                                           :: OmegaDominant                           , deltaTime                      , &
+         &                                                                                        densityPower                            , expansionFactor      (1)       , &
+         &                                                                                        expansionFactorDominant                 , timeActual                     , &
+         &                                                                                        timeDominant
+    logical                                                                                    :: solutionFound                           , timeExceeded
+
+    ! Find expansion factor early enough that a single component dominates the evolution of the Universe.
+    call self%densityScalingEarlyTime(matterDarkEnergyDominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
+    ! Find the corresponding time.
+    timeDominant=-2.0d0/densityPower/self%cosmology%HubbleConstant(unitsTime)/sqrt(OmegaDominant)/expansionFactorDominant**(0.5d0*densityPower)
+    ! Find minimum and maximum times to tabulate.
+    if (present(time)) then
+       timeActual=time
+       do while (self%ageTableTimeMinimum > min(timeActual,timeDominant)/2.0d0)
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+       end do
+       do while (self%ageTableTimeMaximum < max(timeActual,timeDominant)*2.0d0)
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor
+       end do
+    else
+       do while (self%ageTableTimeMinimum > timeDominant/2.0d0)
+          self%ageTableTimeMinimum=self%ageTableTimeMinimum/matterDarkEnergyAgeTableIncrementFactor
+       end do
+       do while (self%ageTableTimeMaximum < timeDominant*2.0d0)
+          self%ageTableTimeMaximum=self%ageTableTimeMaximum*matterDarkEnergyAgeTableIncrementFactor
+       end do
+    end if
+    ! Determine number of points to tabulate.
+    self%ageTableNumberPoints=int(log10(self%ageTableTimeMaximum/self%ageTableTimeMinimum)     *dble(matterDarkEnergyAgeTableNPointsPerDecade))+1
+    self%ageTableTimeMaximum =self%ageTableTimeMinimum*10.0d0**(dble(self%ageTableNumberPoints)/dble(matterDarkEnergyAgeTableNPointsPerDecade))
+    ! Assume this Universe does not collapse initially.
+    self%collapsingUniverse    =.false.
+    self%expansionFactorMaximum=0.0d0
+    self%timeTurnaround        =0.0d0
+    self%timeMaximum           =0.0d0
+    ! Deallocate arrays if currently allocated.
+    if (allocated(self%ageTableTime)) then
+       ! Determine number of points that are being added at the start of the array.
+       prefixPointCount=int(log10(self%ageTableTime(1)/self%ageTableTimeMinimum)*dble(matterDarkEnergyAgeTableNPointsPerDecade)+0.5d0)
+       call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
+       call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
+       ! Allocate the arrays to current required size.
+       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
+       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       ! Create set of grid points in time variable.
+       self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the expansion factors to a negative value to indicate they are not yet computed.
+       self%ageTableExpansionFactor=-1.0d0
+       ! Paste in the previously computed regions.
+       self%ageTableTime           (prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableTimeTemporary
+       self%ageTableExpansionFactor(prefixPointCount+1:prefixPointCount+size(ageTableTimeTemporary))=ageTableExpansionFactorTemporary
+       ! Deallocate the temporary arrays.
+       call Dealloc_Array(ageTableTimeTemporary           )
+       call Dealloc_Array(ageTableExpansionFactorTemporary)
+    else
+       ! Allocate the arrays to current required size.
+       call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
+       call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+       ! Create set of grid points in time variable.
+       self%ageTableTime=Make_Range(self%ageTableTimeMinimum,self%ageTableTimeMaximum,self%ageTableNumberPoints,rangeTypeLogarithmic)
+       ! Set the expansion factors to a negative value to indicate they are not yet computed.
+       self%ageTableExpansionFactor=-1.0d0
+    end if
+    ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
+    ! Universe and use the appropriate analytic solution.
+    if (self%ageTableExpansionFactor(1) < 0.0d0)       &
+         &    self%ageTableExpansionFactor(         1) &
+         & =(                                          &
+         &   -0.5d0                                    &
+         &   *densityPower                             &
+         &   *self%ageTableTime            (        1) &
+         &   *self%cosmology%HubbleConstant(unitsTime) &
+         &   *sqrt(OmegaDominant)                      &
+         &  )**(-2.0d0/densityPower)
+    ! Solve ODE to get corresponding expansion factors.
+    self%iTableTurnaround  =  self%ageTableNumberPoints
+    call self%targetSelf()
+    do iTime=2,self%ageTableNumberPoints
+       ! Compute the expansion factor if it is not already computed.
+       if (self%ageTableExpansionFactor(iTime) < 0.0d0) then
+          self%ageTableExpansionFactor(iTime)=matterDarkEnergyExpansionFactorChange(                                  &
+               &                                                 self%ageTableTime           (iTime-1), &
+               &                                                 self%ageTableTime           (iTime  ), &
+               &                                                 self%ageTableExpansionFactor(iTime-1)  &
+               &                                                )
+          ! Check for a universe which is no longer expanding (i.e. has reached its maximum expansion).
+          if (self%ageTableExpansionFactor(iTime) == self%ageTableExpansionFactor(iTime-1)) then
+             ! Record that we have a collapsing Universe.
+             self%collapsingUniverse=.true.
+             ! Record the maximum expansion factor.
+             self%expansionFactorMaximum=self%ageTableExpansionFactor(iTime-1)
+             ! Find the time of maximum expansion by bisection.
+             self%timeTurnaround=(self%ageTableTime(iTime-1)+self%ageTableTime(iTime-2))/2.0d0
+             deltaTime          =(self%ageTableTime(iTime-1)-self%ageTableTime(iTime-2))/2.0d0
+             solutionFound      =.false.
+             do while (.not.solutionFound)
+                timeExceeded=(                                                                &
+                &              matterDarkEnergyExpansionFactorChange(                         &
+                &                                      self%ageTableTime           (iTime-2), &
+                &                                      self%timeTurnaround                  , &
+                &                                      self%ageTableExpansionFactor(iTime-2)  &
+                &                                     )                                       &
+                &             >=                                                              &
+                &              self%ageTableExpansionFactor(iTime-1)                          &
+                &            )
+                solutionFound=timeExceeded .and. deltaTime < turnaroundTimeTolerance*self%timeTurnaround
+                if (.not.solutionFound) then
+                   deltaTime=0.5d0*deltaTime
+                   if (timeExceeded) then
+                      self%timeTurnaround=self%timeTurnaround-deltaTime
+                   else
+                      self%timeTurnaround=self%timeTurnaround+deltaTime
+                   end if
+                end if
+             end do
+             self%timeMaximum=2.0d0*self%timeTurnaround
+             ! Limit the tables to the expanding part of the evolution.
+             self%iTableTurnaround=iTime-2
+             call Move_Alloc(self%ageTableTime           ,ageTableTimeTemporary           )
+             call Move_Alloc(self%ageTableExpansionFactor,ageTableExpansionFactorTemporary)
+             self%ageTableNumberPoints=self%iTableTurnaround
+             call Alloc_Array(self%ageTableTime,           [self%ageTableNumberPoints])
+             call Alloc_Array(self%ageTableExpansionFactor,[self%ageTableNumberPoints])
+             self%ageTableTime           =ageTableTimeTemporary           (1:self%ageTableNumberPoints)
+             self%ageTableExpansionFactor=ageTableExpansionFactorTemporary(1:self%ageTableNumberPoints)
+             exit
+          end if
+       end if
+    end do
+    call Interpolate_Done(self%interpolationObject       ,self%interpolationAccelerator       ,self%resetInterpolation       )
+    call Interpolate_Done(self%interpolationObjectInverse,self%interpolationAcceleratorInverse,self%resetInterpolationInverse)
+    self%resetInterpolation       =.true.
+    self%resetInterpolationInverse=.true.
+    ! Flag that the table is now initialized.
+    self%ageTableInitialized      =.true.
+    return
+  end subroutine matterDarkEnergyMakeExpansionFactorTable
+
+  double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
+    !% Compute the expansion factor at time {\tt timeEnd} given an initial value {\tt expansionFactorStart} at time {\tt
+    !% timeStart}.
+    use ODE_Solver
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    double precision                    , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
+         &                                                 timeStart
+    double precision                    , dimension(1)  :: y
+    double precision                    , parameter     :: odeToleranceAbsolute=1.0d-9, odeToleranceRelative=1.0d-12
+    double precision                                    :: time
+    type            (c_ptr             )                :: parameterPointer
+    type            (fgsl_odeiv_step   )                :: odeStepper
+    type            (fgsl_odeiv_control)                :: odeController
+    type            (fgsl_odeiv_evolve )                :: odeEvolver
+    type            (fgsl_odeiv_system )                :: odeSystem
+    logical                                             :: odeReset            =.true.
+
+    time=timeStart
+    y(1)=expansionFactorStart
+    call ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,time,timeEnd,1,y,matterDarkEnergyAgeTableODEs,parameterPointer&
+         &,odeToleranceAbsolute,odeToleranceRelative,reset=odeReset)
+    call ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
+    matterDarkEnergyExpansionFactorChange=y(1)
+    return
+  end function matterDarkEnergyExpansionFactorChange
+
+  function matterDarkEnergyAgeTableODEs(t,a,dadt,parameterPointer) bind(c)
+    !% System of differential equations to solve for expansion factor vs. age.
+    use, intrinsic :: ISO_C_Binding
+    integer(kind=c_int   )                              :: matterDarkEnergyAgeTableODEs
+    real   (kind=c_double)              , value         :: t
+    real   (kind=c_double), dimension(1), intent(in   ) :: a
+    real   (kind=c_double), dimension(1)                :: dadt
+    type   (c_ptr        )              , value         :: parameterPointer
+
+    dadt(1)=a(1)*matterDarkEnergySelfGlobal%expansionRate(a(1))
+    matterDarkEnergyAgeTableODEs=FGSL_Success
+  end function matterDarkEnergyAgeTableODEs
+
+  double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
     !% Returns the cosmological time corresponding to given {\tt comovingDistance}.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ) :: comovingDistance
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
+    double precision                                    , intent(in   ) :: comovingDistance
 
-    call Galacticus_Error_Report('Time_From_Comoving_Distance_Matter_Dark_Energy','functionality not implemented')
+    call Galacticus_Error_Report('matterDarkEnergyTimeAtDistanceComoving','functionality not implemented')
     return
-  end function Time_From_Comoving_Distance_Matter_Dark_Energy
+  end function matterDarkEnergyTimeAtDistanceComoving
 
-  double precision function Comoving_Distance_Matter_Dark_Energy(tCosmological)
-    !% Returns the comoving distance to cosmological time {\tt tCosmological}.
+  double precision function matterDarkEnergyDistanceComoving(self,time)
+    !% Returns the comoving distance to cosmological time {\tt time}.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ) :: tCosmological
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
+    double precision                                    , intent(in   ) :: time
 
-    call Galacticus_Error_Report('Comoving_Distance_Matter_Dark_Energy','functionality not implemented')
-   return
-  end function Comoving_Distance_Matter_Dark_Energy
+    call Galacticus_Error_Report('matterDarkEnergyDistanceComoving','functionality not implemented')
+    return
+   end function matterDarkEnergyDistanceComoving
 
-  double precision function Comoving_Distance_Conversion_Matter_Dark_Energy(output,distanceModulus,redshift)
+  double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceModulus,redshift)
     !% Convert bewteen different measures of distance.
     use Galacticus_Error
     implicit none
-    integer         , intent(in   )           :: output
-    double precision, intent(in   ), optional :: distanceModulus, redshift
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    integer                                             , intent(in   )           :: output
+    double precision                                    , intent(in   ), optional :: distanceModulus, redshift
 
-    call Galacticus_Error_Report('Comoving_Distance_Conversion_Matter_Dark_Energy','functionality not implemented')
+    call Galacticus_Error_Report('matterDarkEnergyDistanceComovingConvert','functionality not implemented')
     return
-  end function Comoving_Distance_Conversion_Matter_Dark_Energy
+  end function matterDarkEnergyDistanceComovingConvert
 
-  double precision function Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy(time,expansionFactor)
+  double precision function matterDarkEnergyEquationOfStateDarkEnergy(self,time,expansionFactor)
     !% Return the dark energy equation of state.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: expansionFactor      , time
-    double precision                          :: expansionFactorActual
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    double precision                                                              :: expansionFactorActual
 
     if (present(expansionFactor)) then
        expansionFactorActual=expansionFactor
     else if (present(time)) then
-       expansionFactorActual=Expansion_Factor_Matter_Dark_Energy(time)
+       expansionFactorActual=self%expansionFactor(time)
     else
-       if (darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy','equation of state is time dependent, but no time given')
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyEquationOfStateDarkEnergy','equation of state is time dependent, but no time given')
        expansionFactorActual=1.0d0
     end if
-    Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy=darkEnergyEquationOfStateW0+darkEnergyEquationOfStateW1&
-         &*expansionFactorActual*(1.0d0-expansionFactorActual)
-    return
-  end function Cosmology_Dark_Energy_Equation_Of_State_Dark_Energy
+    matterDarkEnergyEquationOfStateDarkEnergy= &
+         &  self%darkEnergyEquationOfStateW0   &
+         & +self%darkEnergyEquationOfStateW1   &
+         & *       expansionFactorActual       &
+         & *(1.0d0-expansionFactorActual)
+   return
+  end function matterDarkEnergyEquationOfStateDarkEnergy
 
-  double precision function Cosmology_Dark_Energy_Exponent_Dark_Energy(time,expansionFactor)
-    !% Return the dark energy equation of state.
+  double precision function matterDarkEnergyExponentDarkEnergy(self,time,expansionFactor)
+    !% Return the dark energy exponent.
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: expansionFactor      , time
-    double precision                          :: expansionFactorActual
+    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    double precision                                    , intent(in   ), optional :: expansionFactor      , time
+    double precision                                                              :: expansionFactorActual
 
     if      (present(expansionFactor)) then
        expansionFactorActual=expansionFactor
     else if (present(time           )) then
-       expansionFactorActual=Expansion_Factor_Matter_Dark_Energy(time)
+       expansionFactorActual=self%expansionFactor(time)
     else
-       if (darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('Cosmology_Dark_Energy_Exponent_Dark_Energy','equation of state is time dependent, but no time given')
+       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('matterDarkEnergyExponentDarkEnergy','equation of state is time dependent, but no time given')
        expansionFactorActual=1.0d0
     end if
     if (expansionFactorActual == 1.0d0) then
-       Cosmology_Dark_Energy_Exponent_Dark_Energy=-3.0d0*(1.0d0+darkEnergyEquationOfStateW0)
+       matterDarkEnergyExponentDarkEnergy=-3.0d0*(1.0d0+self%darkEnergyEquationOfStateW0)
     else
-       Cosmology_Dark_Energy_Exponent_Dark_Energy=-3.0d0*(1.0d0+darkEnergyEquationOfStateW0)+3.0d0*darkEnergyEquationOfStateW1*(1.0d0-expansionFactorActual)**2/2.0d0/log(expansionFactorActual)
+       matterDarkEnergyExponentDarkEnergy=-3.0d0*(1.0d0+self%darkEnergyEquationOfStateW0)+3.0d0*self%darkEnergyEquationOfStateW1*(1.0d0-expansionFactorActual)**2/2.0d0/log(expansionFactorActual)
     end if
     return
-  end function Cosmology_Dark_Energy_Exponent_Dark_Energy
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Cosmology_Matter_Dark_Energy_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Cosmology_Matter_Dark_Energy_State_Store(stateFile,fgslStateFile)
-    !% Write the tablulation state to file.
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    ! Store the full tables, as they are hysteretic and cannot be reconstructed precisely without knowing the path by which they
-    ! were originally constructed.
-    write (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
-    write (stateFile) ageTableTime,ageTableExpansionFactor
-    return
-  end subroutine Cosmology_Matter_Dark_Energy_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Cosmology_Matter_Dark_Energy_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Cosmology_Matter_Dark_Energy_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the tabulation state from the file.
-    use Memory_Management
-    implicit none
-    integer           , intent(in   ) :: stateFile
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-
-    ! Read the tabulations.
-    read (stateFile) ageTableNumberPoints,ageTableTimeMinimum,ageTableTimeMaximum
-    if (allocated(ageTableTime           )) call Dealloc_Array(ageTableTime           )
-    if (allocated(ageTableExpansionFactor)) call Dealloc_Array(ageTableExpansionFactor)
-    call Alloc_Array(ageTableTime           ,[ageTableNumberPoints])
-    call Alloc_Array(ageTableExpansionFactor,[ageTableNumberPoints])
-    read (stateFile) ageTableTime,ageTableExpansionFactor
-
-    ! Ensure that interpolation objects will get reset.
-    resetInterpolation       =.true.
-    resetInterpolationInverse=.true.
-    return
-  end subroutine Cosmology_Matter_Dark_Energy_State_Retrieve
-
-end module Cosmology_Functions_Matter_Dark_Energy
+  end function matterDarkEnergyExponentDarkEnergy

@@ -161,7 +161,8 @@ contains
     implicit none
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: radiusCoreOverRadiusOuter, radiusOuter
+    double precision                      , parameter              :: radiusCoreOverRadiusOuterSeriesLimit=400.0d0
+    double precision                                               :: radiusCoreOverRadiusOuter                   , radiusOuter
 
     ! Get outer radius and ratio of core radius to virial radius.
     thisHotHaloComponent => thisNode            %hotHalo    ()
@@ -171,23 +172,32 @@ contains
        return
     end if
     radiusCoreOverRadiusOuter=Hot_Halo_Density_Cored_Isothermal_Core_Radius(thisNode)/radiusOuter
-
-    ! Compute the normalization.
-    Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get=                                                  &
-         &                                                       (                                                 &
-         &                                                        1.0d0                                            &
-         &                                                       - radiusCoreOverRadiusOuter                       &
-         &                                                        *atan(1.0d0/radiusCoreOverRadiusOuter)          &
-         &                                                      )                                                  &
-         &                                                     /(                                                  &
-         &                                                        0.5d0                                            &
-         &                                                       + radiusCoreOverRadiusOuter**2                    &
-         &                                                        *log(                                           &
-         &                                                               radiusCoreOverRadiusOuter                 &
-         &                                                              /sqrt(1.0d0+radiusCoreOverRadiusOuter**2) &
-         &                                                             )                                           &
-         &                                                      )                                                  &
-         &                                                     /radiusOuter
+    ! Compute the normalization, using a series solution to maintain accuracy for large core to outer radius ratios.
+    if (radiusCoreOverRadiusOuter < radiusCoreOverRadiusOuterSeriesLimit) then
+       Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get=                                                 &
+            &                                                       (                                                &
+            &                                                        1.0d0                                           &
+            &                                                       - radiusCoreOverRadiusOuter                      &
+            &                                                        *atan(1.0d0/radiusCoreOverRadiusOuter)          &
+            &                                                      )                                                 &
+            &                                                     /(                                                 &
+            &                                                        0.5d0                                           &
+            &                                                       + radiusCoreOverRadiusOuter**2                   &
+            &                                                        *log(                                           &
+            &                                                               radiusCoreOverRadiusOuter                &
+            &                                                              /sqrt(1.0d0+radiusCoreOverRadiusOuter**2) &
+            &                                                             )                                          &
+            &                                                      )                                                 &
+            &                                                     /radiusOuter
+    else
+       Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get=                                               &
+            &                                                        4.0d0/3.0d0                                   &
+            &                                                       +(                                             &
+            &                                                           4.0d0/ 45.0d0                              &
+            &                                                         -34.0d0/945.0d0/radiusCoreOverRadiusOuter**2 &
+            &                                                        )                                             &
+            &                                                       /                 radiusCoreOverRadiusOuter**2
+    end if
     return
   end function Hot_Halo_Profile_Rotation_Normalization_Cored_Isothermal_Get
 

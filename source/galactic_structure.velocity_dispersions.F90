@@ -74,7 +74,7 @@ contains
     if (componentDensity <= 0.0d0) then
        Galactic_Structure_Velocity_Dispersion=0.0d0
     else
-       Galactic_Structure_Velocity_Dispersion=sqrt(densityVelocityVariance/componentDensity)
+       Galactic_Structure_Velocity_Dispersion=sqrt(max(densityVelocityVariance,0.0d0)/componentDensity)
     end if
     return
   end function Galactic_Structure_Velocity_Dispersion

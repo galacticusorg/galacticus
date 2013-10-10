@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
 my $galacticusPath;
 if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
- $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
- $galacticusPath = "./";
+    $galacticusPath = "./";
 }
 unshift(@INC,$galacticusPath."perl"); 
 use strict;
@@ -21,12 +21,19 @@ require Fortran::Utils;
 die('Usage: Make_Unique_Label_Functions.pl <sourceDir>') unless ( scalar(@ARGV) == 1 );
 my $sourceDirectory = $ARGV[0]."/source";
 
+# Parse the code directive locations file.
+my $codeDirectiveLocationsXML = new XML::Simple;
+my $codeDirectiveLocations    =$codeDirectiveLocationsXML->XMLin($ARGV[0]."/work/build/Code_Directive_Locations.xml");
+
 # Open the output file.
 open(oHndl,">./work/build/utility.input_parameters.unique_labels.inc"             );
 open(vHndl,">./work/build/utility.input_parameters.unique_labels.visibilities.inc");
 
 # Store for default parameter values.
 my %defaultValues;
+
+# Set of directives that we're watching.
+my @directives;
 
 # Scan the source directory for source files.
 opendir(dHndl,$sourceDirectory);
@@ -78,7 +85,6 @@ while ( my $fileName = readdir(dHndl) ) {
 
     # Process the file if necessary.
     if ( $processFile == 1 ) {
-
 	# Initialize the definition code.
 	my $definitionCode;
 	
@@ -105,16 +111,26 @@ while ( my $fileName = readdir(dHndl) ) {
 	    $definitionCode .= "  logical             , intent(in), optional :: includeVersion,asHash\n";
 	    $definitionCode .= "  type(varying_string)                       :: parameterValue\n";
 	    $definitionCode .= "  ".$labelFunction."=''\n";
-	    	   
-	    # Scan dependencies for default parameter values.
+	    
+	    # Build a stack of dependency files.
+	    my @initialDependencyFiles;
 	    open(iHndl,$depFile);
 	    while ( my $depName = <iHndl> ) {
+		chomp($depName);
+		$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;
+		push(@initialDependencyFiles,$depName);
+	    }
+	    # Scan dependencies for default parameter values.
+	    my @depFiles = @initialDependencyFiles;
+	    while ( scalar(@depFiles) > 0 ) {
+		my $depName = pop(@depFiles);
 		chomp($depName);
 		$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;       
 		# Scan the file for default parameter values.
 		my $sourceFile = $sourceDirectory."/".$depName.".F90";
 		unless ( $depName eq "utility.input_parameters" ) {
 		    my $fileHandle;
+		    my $methodXmlBuffer;
 		    open($fileHandle,$sourceFile);
 		    until ( eof($fileHandle) ) {
 			# Grab the next Fortran line.
@@ -128,43 +144,104 @@ while ( my $fileName = readdir(dHndl) ) {
 				$defaultValue =~ s/^\s*'//;
 				$defaultValue =~ s/'\s*$//;
 				$defaultValue =~ s/'/''/;
+				$defaultValue =~ s/^\s*//;
+				$defaultValue =~ s/\s*$//;
 				if ( $processedLine =~ m/Get_Input_Parameter\s*\(\s*'([^']*)'/i ) {
 				    my $parameterName = $1;
 				    $defaultValues{$parameterName} = $defaultValue;
 				}
 			    }
 			}
+			# Add files contains new-style method implementations to the stack.
+			if ( $bufferedComments =~ m/^\#(.*)/ ) {
+			    my $xmlLine = $1;
+			    $methodXmlBuffer = "" if ( $xmlLine =~ m/^\s*<include[\s>]/ );
+			    $methodXmlBuffer .= $xmlLine;
+			    if ( $xmlLine =~ m/^\s*<\/include>\s*$/ ) {
+				# Parse the XML.
+				my $xml = new XML::Simple;
+				my $method = $xml->XMLin($methodXmlBuffer);
+				if ( $method->{'type'} eq "function" ) {
+				    # Find the files which implement this function.
+				    my @implementations;
+				    if ( UNIVERSAL::isa($codeDirectiveLocations->{$method->{'directive'}}->{'file'},"ARRAY") ) {
+					push(@implementations,@{$codeDirectiveLocations->{$method->{'directive'}}->{'file'}});
+				    } else {
+					push(@implementations,  $codeDirectiveLocations->{$method->{'directive'}}->{'file'} );
+				    }
+				    $_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/
+					foreach ( @implementations );
+				    push(@depFiles,@implementations);
+				}
+			    }
+			}
 		    }
-		    close(sFile);
+		    close($fileHandle);
 		}		
 	    }
 	    close(iHndl);
-
 	    # Process the list of dependencies.
-	    open(iHndl,$depFile);
-	    while ( my $depName = <iHndl> ) {
-		chomp($depName);
-		$depName =~ s/\.\/work\/build\/(.*)\.o$/$1/;
+	    @depFiles = @initialDependencyFiles;
+	    while ( scalar(@depFiles) > 0 ) {
+		# Pop a dependency file off the stack.
+		my $depName = pop(@depFiles);	    
 		# Get the name of the associated module.
 		my $moduleFile = "./work/build/".$depName.".m";
+		my $moduleName = $depName;
 		open(jHndl,$moduleFile);
 		unless ( eof(jHndl) ) {
-		    my $moduleName = <jHndl>;
+		    $moduleName = <jHndl>;
 		    chomp($moduleName);
-		    $moduleName       =~ s/\.\/work\/build\/(.*)\.mod$/$1/;
-		    my $moduleCode    = "  ".$labelFunction."=".$labelFunction."//'::".$moduleName."'\n";	
-		    my $hasParameters = 0;
-		    # Scan this file for parameters.
-		    my $methodParameter;
-		    my $methodValue;
-		    my $xmlBuffer;
-		    my $sourceFile = $sourceDirectory."/".$depName.".F90";
+		    $moduleName =~ s/\.\/work\/build\/(.*)\.mod$/$1/;
+		}
+		close(jHndl);
+		my $moduleCode    = "  ".$labelFunction."=".$labelFunction."//'::".$moduleName."'\n";	
+		my $hasParameters = 0;
+		# Scan this file for parameters.
+		my $methodParameter;
+		my $methodValue;
+		my $xmlBuffer;
+		my $methodXmlBuffer;
+		my $sourceFile = $sourceDirectory."/".$depName.".F90";
+		if ( -e $sourceFile ) {
 		    open(sFile,$sourceFile);
 		    while ( my $line = <sFile> ) {
-			# Find method activations.
+			# Find old-style method activations.
 			if ( $line =~ m/^\s*if\s*\(\s*([a-zA-Z0-9_]+)Method\s*==\s*\'([a-zA-Z0-9_\-\+]+)\'\s*\)/ ) {
 			    $methodParameter = $1."Method";
 			    $methodValue     = $2;
+			}
+			# Find new-style method activations.
+			foreach my $directive ( @directives ) {
+			    if ( $line =~ m/\s*(\!|\/\/)\#\s*<$directive\s+name\s*=\s*\"$directive(.*)\"\s*\/>/ ) {
+				$methodParameter = $directive."Method";
+				$methodValue     = lcfirst($2);
+			    }
+			}
+			# Add files contains new-style method implementations to the stack.
+			if ( $line =~ m/^\s*(\!|\/\/)\#(.*)/ ) {
+			    my $xmlLine = $2;
+			    $methodXmlBuffer = "" if ( $xmlLine =~ m/^\s*<include[\s>]/ );
+			    $methodXmlBuffer .= $xmlLine;
+			    if ( $xmlLine =~ m/^\s*<\/include>\s*$/ ) {
+				# Parse the XML.
+				my $xml = new XML::Simple;
+				my $method = $xml->XMLin($methodXmlBuffer);
+				if ( $method->{'type'} eq "function" ) {
+				    # Find the files which implement this function.
+				    my @implementations;
+				    if ( UNIVERSAL::isa($codeDirectiveLocations->{$method->{'directive'}}->{'file'},"ARRAY") ) {
+					push(@implementations,@{$codeDirectiveLocations->{$method->{'directive'}}->{'file'}});
+				    } else {
+					push(@implementations,  $codeDirectiveLocations->{$method->{'directive'}}->{'file'} );
+				    }
+				    $_ =~ s/^.*$sourceDirectory\/(.*)\.F90/$1/
+					foreach ( @implementations );
+				    push(@depFiles,@implementations);
+				    push(@directives,$method->{'directive'});
+				    $defaultValues{$method->{'directive'}."Method"} = $method->{'default'};
+				}
+			    }
 			}
 			# Find XML blobs.
 			if ( $line =~ m/^\s*(\!|\/\/)@(.*)/ ) {
@@ -175,7 +252,6 @@ while ( my $fileName = readdir(dHndl) ) {
 				# Parse the XML.
 				my $xml = new XML::Simple;
 				my $inputParameter = $xml->XMLin($xmlBuffer);
-
 				my $ignore = 0;
 				$ignore = 1
 				    if ( exists($ignoreParameters{$inputParameter->{'name'}}) );
@@ -183,12 +259,11 @@ while ( my $fileName = readdir(dHndl) ) {
 				    $ignore = 1
 					if ( $inputParameter->{'name'} =~ m/$_/ );
 				}
-
 				unless ( $ignore == 1 ) {
 				    $moduleCode .= "  call Get_Input_Parameter_VarString('".$inputParameter->{'name'}."',parameterValue";
 				    my $defaultValue = "";
 				    $defaultValue = $defaultValues{$inputParameter->{'name'}}
-				       if ( exists($defaultValues{$inputParameter->{'name'}}) );
+				    if ( exists($defaultValues{$inputParameter->{'name'}}) );
 				    $moduleCode .= ",defaultValue='".$defaultValue."'";
 				    $moduleCode .= ",writeOutput=.false.)\n";
 				    $moduleCode .= "  ".$labelFunction."=".$labelFunction."//'#".$inputParameter->{'name'}."['//parameterValue//']'\n";
@@ -198,23 +273,22 @@ while ( my $fileName = readdir(dHndl) ) {
 			}
 		    }
 		    close(sFile);
-		    if ( $hasParameters == 1 ) {
-			if ( defined($methodParameter) ) {
-			    $definitionCode .= "  call Get_Input_Parameter_VarString('".$methodParameter."',parameterValue";
-			    my $defaultValue = "";
-			    $defaultValue = $defaultValues{$methodParameter}
-			        if ( exists($defaultValues{$methodParameter}) );
-			    $definitionCode .= ",defaultValue='".$defaultValue."'";
-			    $definitionCode .= ",writeOutput=.false.)\n";
-			}
-			$definitionCode .= "  if (parameterValue == '".$methodValue."') then\n"
-			    if ( defined($methodParameter) );
-			$definitionCode .= $moduleCode;
-			$definitionCode .= "  end if\n"
-			    if ( defined($methodParameter) );	
-		    }
 		}
-		close(jHndl);
+		if ( $hasParameters == 1 ) {
+		    if ( defined($methodParameter) ) {
+			$definitionCode .= "  call Get_Input_Parameter_VarString('".$methodParameter."',parameterValue";
+			my $defaultValue = "";
+			$defaultValue = $defaultValues{$methodParameter}
+			if ( exists($defaultValues{$methodParameter}) );
+			$definitionCode .= ",defaultValue='".$defaultValue."'";
+			$definitionCode .= ",writeOutput=.false.)\n";
+		    }
+		    $definitionCode .= "  if (parameterValue == '".$methodValue."') then\n"
+			if ( defined($methodParameter) );
+		    $definitionCode .= $moduleCode;
+		    $definitionCode .= "  end if\n"
+			if ( defined($methodParameter) );	
+		}
 	    }
 	    close(iHndl);
 	    

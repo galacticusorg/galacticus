@@ -144,12 +144,25 @@ The {\tt runFile} is an XML file with the following structure:
    <value>0.04</value>
   </parameter>
   <parameter>
+   <name>imfSelectionFixed</name>
+   <value>Salpeter</value>
+   <value>Chabrier</value>
+  </parameter>
+  <parameter>
    <name>starFormationTimescaleDisksMethod</name>
    <value>Kennicutt-Schmidt
     <parameter>
      <name>starFormationKennicuttSchmidtTruncate</name>
      <value>true</value>
-     <value>false</value>
+     <value>false
+     <parameter>
+      <name>imfSelectionFixed</name>
+      <modify>
+        <find>^(.*)</find>
+        <replace>\1Truncated</replace>
+      </modify>
+     </parameter>
+     </value>
     </parameter>
    </value>
    <value>dynamical time</value>
@@ -158,6 +171,8 @@ The {\tt runFile} is an XML file with the following structure:
 </parameterGrid>
 \end{verbatim}
 Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamical time}.
+
+It is also possible to set the value of a parameter by modifying the current value using a Perl regular expression. This is done by given a {\tt modify} element instead of a {\tt value} element in the parameter definition. The {\tt modify} element must contain {\tt find} and {\tt replace} elements, the first of which must be a valid Perl regular expression, and the second of which must specify the replacement text. In the above example, the {\tt parameters} block specifies that models are two be run for {\tt [imfSelectionFixed]}$=${\tt Salpeter} and {\tt Chabrier}. However, for the case of {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt false} these parameters will be modified by suffixing them with ``{\tt Truncated}''.
 
 Some variables, which are expanded at run time, are available. These include:
 \begin{description}

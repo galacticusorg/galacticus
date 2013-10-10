@@ -53,6 +53,10 @@ if ( nelem($mass) == nelem($observedMass) ) {
     die("generateCovarianceMatrix.pl: number of mass bins in data and covariance matrix do not match\n");
 }
 
+# Set cosmology scalings for mass and mass function.
+$hdfFile->dataset->{'mass'        }->attrSet(cosmologyScaling => "luminosity"           );
+$hdfFile->dataset->{'massFunction'}->attrSet(cosmologyScaling => "inverseComovingVolume");
+
 # Compute the inverse and determinant of the covariance matrix - store to file.
 my $covariance             = $hdfFile->dataset('covariance')->get();
 my $covarianceZeroDiagonal = $covariance->copy();

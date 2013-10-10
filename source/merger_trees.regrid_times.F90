@@ -42,6 +42,7 @@ module Merger_Trees_Regrid_Times
   integer                         , parameter                 :: mergerTreeRegridSpacingLogarithmic           =1
   integer                         , parameter                 :: mergerTreeRegridSpacingLogCriticalOverdensity=2
   integer                         , parameter                 :: mergerTreeRegridSpacingMillennium            =3
+  integer,              parameter                 :: mergerTreeRegridSpacingRead                  =4
 
 contains
 
@@ -61,22 +62,24 @@ contains
     use Numerical_Interpolation
     use Kind_Numbers
     use Merger_Trees_Dump
+    use Sort
     implicit none
-    type            (mergerTree        ), intent(inout), target                :: thisTree
-    type            (treeNode          )                             , pointer :: childNode               , nextNode            , &
-         &                                                                        siblingNode             , thisNode
-    type            (treeNodeList      ), allocatable  , dimension(:)          :: newNodes
-    integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: highlightNodes
-    class           (nodeComponentBasic)                             , pointer :: childBasicComponent     , parentBasicComponent, &
-         &                                                                        thisBasicComponent
-    type            (mergerTree        )                             , pointer :: currentTree
-    type            (fgsl_interp_accel )                                       :: interpolationAccelerator
-    logical                                                                    :: interpolationReset
-    integer                                                                    :: allocErr                , iNow                , &
-         &                                                                        iParent                 , iTime
-    double precision                                                           :: massNow                 , massParent          , &
-         &                                                                        timeNow                 , timeParent
-    integer         (kind=kind_int8    )                                       :: firstNewNode            , nodeIndex
+    type            (mergerTree             ), intent(inout), target                :: thisTree
+    type            (treeNode               )                             , pointer :: childNode                , nextNode            , &
+         &                                                                             siblingNode              , thisNode
+    type            (treeNodeList           ), allocatable  , dimension(:)          :: newNodes
+    integer         (kind=kind_int8         ), allocatable  , dimension(:)          :: highlightNodes
+    class           (nodeComponentBasic     )                             , pointer :: childBasicComponent      , parentBasicComponent, &
+         &                                                                             thisBasicComponent
+    type            (mergerTree             )                             , pointer :: currentTree
+    class           (cosmologyFunctionsClass)                             , pointer :: cosmologyFunctionsDefault
+    type            (fgsl_interp_accel      )                                       :: interpolationAccelerator
+    logical                                                                         :: interpolationReset
+    integer                                                                         :: allocErr                 , iNow                , &
+         &                                                                             iParent                  , iTime
+    double precision                                                                :: massNow                  , massParent          , &
+         &                                                                             timeNow                  , timeParent
+    integer         (kind=kind_int8         )                                       :: firstNewNode             , nodeIndex
 
     ! Check if module is initialized.
     if (.not.regridTimeModuleInitialized) then
@@ -160,10 +163,13 @@ contains
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingLogCriticalOverdensity
              case ("millennium")
                 mergerTreeRegridSpacing=mergerTreeRegridSpacingMillennium
+             case ("read")
+                mergerTreeRegridSpacing=mergerTreeRegridSpacingRead
              case default
                 call Galacticus_Error_Report('Merger_Tree_Regrid_Time','unrecognized spacing type: '//mergerTreeRegridSpacingAsText)
              end select
-
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
              ! Construct array of grid expansion factors.
              call Alloc_Array(mergerTreeRegridTimeGrid,[mergerTreeRegridCount])
              select case (mergerTreeRegridSpacing)
@@ -172,21 +178,21 @@ contains
                      &,mergerTreeRegridCount,rangeTypeLinear     )
                 ! Convert expansion factors to time.
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridTimeGrid(iTime))
                 end do
              case (mergerTreeRegridSpacingLogarithmic           )
                 mergerTreeRegridTimeGrid=Make_Range(mergerTreeRegridStartExpansionFactor,mergerTreeRegridEndExpansionFactor&
                      &,mergerTreeRegridCount,rangeTypeLogarithmic)
                 ! Convert expansion factors to time.
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(mergerTreeRegridTimeGrid(iTime))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridTimeGrid(iTime))
                 end do
              case (mergerTreeRegridSpacingLogCriticalOverdensity)
                 ! Build a logarithmic grid in critical overdensity.
                 mergerTreeRegridTimeGrid&
                      & =Make_Range(                                                                                        &
-                     &              Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridStartExpansionFactor)) &
-                     &             ,Critical_Overdensity_for_Collapse(Cosmology_Age(mergerTreeRegridEndExpansionFactor  )) &
+                     &              Critical_Overdensity_for_Collapse(cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridStartExpansionFactor)) &
+                     &             ,Critical_Overdensity_for_Collapse(cosmologyFunctionsDefault%cosmicTime(mergerTreeRegridEndExpansionFactor  )) &
                      &             ,mergerTreeRegridCount                                                                  &
                      &             ,rangeTypeLogarithmic                                                                   &
                      &            )
@@ -214,10 +220,25 @@ contains
                      &                     0.115883d0, 0.089288d0, 0.064493d0, 0.041403d0, 0.019933d0, 0.000000d0  &
                      &                   ]
                 do iTime=1,mergerTreeRegridCount
-                   mergerTreeRegridTimeGrid(iTime)=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeRegridTimeGrid(iTime)))
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeRegridTimeGrid(iTime)))
                 end do
-             end select
-
+             case (mergerTreeRegridSpacingRead)
+                ! Read redshifts from a parameter.
+                !@ <inputParameter>
+                !@   <name>mergerTreeRegridRedshifts</name>
+                !@   <attachedTo>module</attachedTo>
+                !@   <description>
+                !@     The redshifts at which merger trees are to regridded when the {\tt [mergerTreeRegridSpacing]}$=${\tt read} option is selected.
+                !@   </description>
+                !@   <type>real</type>
+                !@   <cardinality>0..</cardinality>
+                !@ </inputParameter>
+                call Get_Input_Parameter('mergerTreeRegridRedshifts',mergerTreeRegridTimeGrid)
+                do iTime=1,mergerTreeRegridCount
+                   mergerTreeRegridTimeGrid(iTime)=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeRegridTimeGrid(iTime)))
+                end do
+                call Sort_Do(mergerTreeRegridTimeGrid)
+             end select             
           end if
 
           ! Flag that module is initialized.
@@ -286,6 +307,9 @@ contains
                       massParent          =  massParent-childBasicComponent%mass()
                       childNode           => childNode%sibling
                    end do
+                else
+                   ! Halo is not the primary progenitor of its parent. Assume that its mass does not grow further.
+                   massParent=massNow
                 end if
 
                 ! Locate these times in the list of grid times.
@@ -293,7 +317,7 @@ contains
                 iParent=Interpolate_Locate(mergerTreeRegridCount,mergerTreeRegridTimeGrid,interpolationAccelerator,timeParent,reset=interpolationReset)
 
                 ! For nodes existing precisely at a grid time, ignore this grid point. (These are, typically, nodes which have been created at these points.)
-                if (timeNow == mergerTreeRegridTimeGrid(iNow)) iNow=iNow+1
+                if (timeParent == mergerTreeRegridTimeGrid(iParent)) iParent=iParent-1
 
                 ! If the branch from node to parent spans one or more grid times, insert new nodes at those points.
                 if (iParent > iNow) then
@@ -303,7 +327,7 @@ contains
                    do iTime=iNow+1,iParent
                       nodeIndex=nodeIndex+1_kind_int8
                       newNodes(iTime-iNow)%node => treeNode(hostTree=currentTree)
-                      call newNodes(iTime-Inow)%node%indexSet(nodeIndex)
+                      call newNodes(iTime-iNow)%node%indexSet(nodeIndex)
                    end do
                    ! Assign node properties and build links.
                    do iTime=iNow+1,iParent
@@ -414,7 +438,7 @@ contains
                 else
                    ! Handle non-primary nodes.
                    if (associated(thisNode%firstChild)) then
-                      ! Handle nod-primary nodes with children.
+                      ! Handle non-primary nodes with children.
                       ! Assign all children a parent that is the parent of the current node.
                       childNode => thisNode%firstChild
                       do while (associated(childNode))

@@ -19,6 +19,15 @@ type, public, extends(massDistributionSpherical) :: massDistributionHernquist
    !% The Hernquist \citep{hernquist_analytical_1990} density profile.
    double precision :: densityNormalization, mass, scaleLength
  contains
+   !@ <objectMethods>
+   !@   <object>massDistributionHernquist</object>
+   !@   <objectMethod>
+   !@     <method>initialize</method>
+   !@     <description>Initialize the mass distribution.</description>
+   !@     <type>\void</type>
+   !@     <arguments>\doublezero scaleLength\argin, \doublezero densityNormalization\argin, \doublezero mass\argin, \logicalzero\ isDimensionless\argin</arguments>
+   !@   </objectMethod>
+   !@ </objectMethods>
    procedure :: initialize          =>Mass_Distribution_Hernquist_Initialize
    procedure :: density             =>Mass_Distribution_Hernquist_Density
    procedure :: densityRadialMoment =>Mass_Distribution_Hernquist_Density_Radial_Moment

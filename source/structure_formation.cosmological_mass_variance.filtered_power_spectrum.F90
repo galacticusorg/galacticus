@@ -94,18 +94,22 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
     use Numerical_Integration
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Power_Spectrum_Window_Functions
     implicit none
     double precision                            , intent(in   ) :: mass
     logical                                     , intent(in   ) :: useTopHat
-    double precision                                            :: topHatRadius        , wavenumberMaximum, wavenumberMinimum
+    class           (cosmologyParametersClass  ), pointer       :: thisCosmologyParameters
+    double precision                                            :: topHatRadius           , wavenumberMaximum, &
+         &                                                         wavenumberMinimum
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     smoothingMass=mass
-    topHatRadius=((3.0d0/4.0d0/Pi)*mass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
+    topHatRadius=((3.0d0/4.0d0/Pi)*mass/thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
     wavenumberMinimum=    0.0d0/topHatRadius
     wavenumberMaximum=min(1.0d3/topHatRadius,Power_Spectrum_Window_Function_Wavenumber_Maximum(smoothingMass))
     if (useTopHat) then
@@ -113,7 +117,7 @@ contains
             &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     else
        Variance_Integral=Integrate(wavenumberMinimum,wavenumberMaximum,Variance_Integrand,parameterPointer&
-            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
+            &,integrandFunction ,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=4.0d-6,integrationRule=FGSL_Integ_Gauss15)/2.0d0/Pi**2
     end if
     call Integrate_Done(integrandFunction,integrationWorkspace)
     Variance_Integral=sqrt(Variance_Integral)

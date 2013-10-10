@@ -25,7 +25,7 @@ module Galacticus_Output_Trees_Tree_Indices
   public :: Galacticus_Output_Tree_Tree_Indices, Galacticus_Output_Tree_Tree_Indices_Property_Count, Galacticus_Output_Tree_Tree_Indices_Names
 
   ! Number of properties.
-  integer, parameter :: indexPropertyCount=1
+  integer, parameter :: indexPropertyCount   =1
 
   ! Flag indicating whether or not tree index is to be output.
   logical            :: outputTreeIndices
@@ -109,7 +109,7 @@ contains
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
     integer                   , intent(inout)          :: doublePropertyCount, integerPropertyCount
-    
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Indices_Initialize()
 
@@ -132,10 +132,10 @@ contains
          &                                                      integerProperty
     integer         (kind=kind_int8), intent(inout)          :: integerBuffer    (:,:)
     double precision                , intent(inout)          :: doubleBuffer     (:,:)
-    
+
     ! Initialize the module.
     call Galacticus_Output_Tree_Indices_Initialize()
-    
+
     if (outputTreeIndices) then
        integerProperty=integerProperty+1
        integerBuffer(integerBufferCount,integerProperty)=thisNode%hostTree%index

@@ -510,7 +510,9 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Population_Properties
     use Numerical_Constants_Astronomical
-     use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+    use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+    use Tidal_Stripping_Mass_Loss_Rate_Disks
+    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                                         ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk                                )               , pointer :: thisDisk
@@ -519,19 +521,20 @@ contains
     logical                                                            , intent(inout)          :: interrupt
     procedure       (Interrupt_Procedure_Template                     ), intent(inout), pointer :: interruptProcedureReturn
     procedure       (Interrupt_Procedure_Template                     )               , pointer :: interruptProcedure
-    type            (abundances                                       ), save                   :: fuelAbundances          , fuelAbundancesRates       , &
+    type            (abundances                                       ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
          &                                                                                         stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                            :: angularMomentum         , angularMomentumOutflowRate, &
-         &                                                                                         barInstabilityTimescale , diskDynamicalTime         , &
-         &                                                                                         diskMass                , energyInputRate           , &
-         &                                                                                         fuelMass                , fuelMassRate              , &
-         &                                                                                         gasMass                 , massLossRate              , &
-         &                                                                                         massOutflowRate         , massOutflowRateFromHalo   , &
-         &                                                                                         massOutflowRateToHotHalo, outflowToHotHaloFraction  , &
-         &                                                                                         starFormationRate       , stellarMassRate           , &
-         &                                                                                         transferRate
-    type            (history                                          )                         :: historyTransferRate     , stellarHistoryRate
+    double precision                                                                            :: angularMomentum             , angularMomentumOutflowRate, &
+         &                                                                                         barInstabilitySpecificTorque, barInstabilityTimescale   , &
+         &                                                                                         diskDynamicalTime           , diskMass                  , &
+         &                                                                                         energyInputRate             , fractionGas               , &
+         &                                                                                         fractionStellar             , fuelMass                  , &
+         &                                                                                         fuelMassRate                , gasMass                   , &
+         &                                                                                         massLossRate                , massOutflowRate           , &
+         &                                                                                         massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
+         &                                                                                         outflowToHotHaloFraction    , starFormationRate         , &
+         &                                                                                         stellarMassRate             , transferRate
+    type            (history                                          )                         :: historyTransferRate         , stellarHistoryRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -627,7 +630,7 @@ contains
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
        if (thisNode%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.
-          barInstabilityTimescale=Bar_Instability_Timescale(thisNode)
+          call Bar_Instability_Timescale(thisNode,barInstabilityTimescale,barInstabilitySpecificTorque)
        else
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
           ! case as the disk radius may be unphysical also.
@@ -677,19 +680,46 @@ contains
              call thisDisk    %starFormationHistoryRate(-historyTransferRate                             )
              call thisSpheroid%starFormationHistoryRate(+historyTransferRate,interrupt,interruptProcedure)
           end if
-
+          ! Additional external torque.
+          if (thisSpheroid%angularMomentum() < (thisSpheroid%massGas()+thisSpheroid%massStellar())*Dark_Matter_Halo_Virial_Radius(thisNode)*Dark_Matter_Halo_Virial_Velocity(thisNode) .and. thisSpheroid%radius() < Dark_Matter_Halo_Virial_Radius(thisNode)) then
+             call thisSpheroid%angularMomentumRate(+barInstabilitySpecificTorque*(thisSpheroid%massGas()+thisSpheroid%massStellar()),interrupt,interruptProcedure)
+          end if
        end if
 
        ! Apply mass loss rate due to ram pressure stripping.
        if (thisDisk%massGas() > 0.0d0) then
           massLossRate=Ram_Pressure_Stripping_Mass_Loss_Rate_Disk(thisNode)
-          thisHotHalo => thisNode%hotHalo()
-          call    thisDisk%                  massGasRate(-massLossRate                                                                       )
-          call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-          call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
-          call thisHotHalo%           outflowingMassRate(-massLossRate                                                                       )
-          call thisHotHalo%outflowingAngularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
-          call thisHotHalo%outflowingAbundancesRate     (-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+          if (massLossRate > 0.0d0) then
+             thisHotHalo => thisNode%hotHalo()
+             call    thisDisk%                  massGasRate(-massLossRate                                                                       )
+             call    thisDisk%          angularMomentumRate(-massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call    thisDisk%            abundancesGasRate(-massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+             call thisHotHalo%           outflowingMassRate(+massLossRate                                                                       )
+             call thisHotHalo%outflowingAngularMomentumRate(+massLossRate*thisDisk%angularMomentum()/(thisDisk%massGas()+thisDisk%massStellar()))
+             call thisHotHalo%outflowingAbundancesRate     (+massLossRate*thisDisk%abundancesGas  ()/ thisDisk%massGas()                        )
+          end if
+       end if
+
+       ! Apply mass loss rate due to tidal stripping.
+       if (thisDisk%massGas()+thisDisk%massStellar() > 0.0d0) then
+          massLossRate=Tidal_Stripping_Mass_Loss_Rate_Disk(thisNode)
+          if (massLossRate > 0.0d0) then
+             thisHotHalo    => thisNode%hotHalo()
+             fractionGas    =  min(1.0d0,max(0.0d0,thisDisk%massGas()/(thisDisk%massGas()+thisDisk%massStellar())))
+             fractionStellar=  1.0d0-fractionGas
+             if (fractionGas     > 0.0d0 .and. thisDisk%massGas    () > 0.0d0) then
+                call    thisDisk%                  massGasRate(-fractionGas    *massLossRate                                                                         )
+                call    thisDisk%            abundancesGasRate(-fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
+                call thisHotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
+                call thisHotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*thisDisk%abundancesGas    ()/ thisDisk%massGas()                        )
+                call thisHotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
+             end if
+             if (fractionStellar > 0.0d0 .and. thisDisk%massStellar() > 0.0d0) then
+                call    thisDisk%              massStellarRate(-fractionStellar*massLossRate                                                                       )
+                call    thisDisk%        abundancesStellarRate(-fractionStellar*massLossRate*thisDisk%abundancesStellar()/                  thisDisk%massStellar() )
+             end if
+             call       thisDisk%          angularMomentumRate(-                massLossRate*thisDisk%angularMomentum  ()/(thisDisk%massGas()+thisDisk%massStellar()))
+          end if
        end if
     end select
 

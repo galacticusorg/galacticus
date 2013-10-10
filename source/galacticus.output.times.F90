@@ -42,8 +42,9 @@ contains
     use Histories
     use Cosmology_Functions
     implicit none
-    integer          :: iOutput
-    double precision :: aExpansion
+    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    integer                                            :: iOutput
+    double precision                                   :: aExpansion
 
     if (.not.outputsInitialized) then
        !$omp critical (Tasks_Evolve_Tree_Initialize)
@@ -68,11 +69,12 @@ contains
           else
              call Get_Input_Parameter('outputRedshifts',outputTimes                     )
           end if
-
+          ! Get the default cosmology functions object.
+          cosmologyFunctionsDefault => cosmologyFunctions()
           ! Convert redshifts to times.
           do iOutput=1,outputCount
-             aExpansion=Expansion_Factor_from_Redshift(outputTimes(iOutput))
-             outputTimes(iOutput)=Cosmology_Age(aExpansion)
+             aExpansion=cosmologyFunctionsDefault%expansionFactorFromRedshift(outputTimes(iOutput))
+             outputTimes(iOutput)=cosmologyFunctionsDefault%cosmicTime(aExpansion)
           end do
 
           ! Sort the times.

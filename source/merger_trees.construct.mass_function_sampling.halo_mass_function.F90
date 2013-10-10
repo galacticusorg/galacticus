@@ -32,7 +32,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
 
     if (haloMassFunctionSamplingMethod == 'haloMassFunction') Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
     return

@@ -81,12 +81,15 @@ contains
     !% \cite{wechsler_concentrations_2002}.
     use Cosmology_Functions
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: baseNode
-    double precision                    , intent(in   )          :: nodeMass
-    class           (nodeComponentBasic)               , pointer :: baseBasicComponent
-    double precision                                             :: expansionFactor                   , expansionFactorBase, &
-         &                                                          mergerTreeFormationExpansionFactor
+    type            (treeNode               ), intent(inout), pointer :: baseNode
+    double precision                         , intent(in   )          :: nodeMass
+    class           (nodeComponentBasic     )               , pointer :: baseBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                                                  :: expansionFactor                   , expansionFactorBase, &
+         &                                                               mergerTreeFormationExpansionFactor
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     baseBasicComponent => baseNode%basic()
     select case (accretionHistoryWechslerFormationRedshiftCompute)
     case (.true.)
@@ -94,18 +97,18 @@ contains
        mergerTreeFormationExpansionFactor=Expansion_Factor_At_Formation (baseBasicComponent%mass()                )
     case (.false.)
        ! Use the specified formation redshift.
-       mergerTreeFormationExpansionFactor=Expansion_Factor_from_Redshift(accretionHistoryWechslerFormationRedshift)
+       mergerTreeFormationExpansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(accretionHistoryWechslerFormationRedshift)
     end select
 
     ! Get the expansion factor at the tree base.
-    expansionFactorBase=Expansion_Factor(baseBasicComponent%time())
+    expansionFactorBase=cosmologyFunctionsDefault%expansionFactor(baseBasicComponent%time())
 
     ! Compute the expansion factor for the current node.
     expansionFactor    =expansionFactorBase/(1.0d0-0.5d0*log(nodeMass/baseBasicComponent%mass())&
          &/mergerTreeFormationExpansionFactor)
 
     ! Find the time corresponding to this expansion factor.
-    Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002=Cosmology_Age(expansionFactor)
+    Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
 
    return
   end function Dark_Matter_Halo_Mass_Accretion_Time_Wechsler2002
@@ -116,10 +119,14 @@ contains
     use Power_Spectra
     use Critical_Overdensity
     implicit none
-    double precision, intent(in   ) :: haloMass
-    double precision, parameter     :: haloMassFraction   =0.015d0                         !   Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
-    double precision                :: formationTime              , haloMassCharacteristic                                                               , &
-         &                             sigmaCharacteristic
+    double precision                         , intent(in   ) :: haloMass
+    double precision                         , parameter     :: haloMassFraction         =0.015d0                         !    Wechsler et al. (2002;  Astrophysical Journal, 568:52-70).
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
+    double precision                                         :: formationTime                    , haloMassCharacteristic                                                                , &
+         &                                                      sigmaCharacteristic
+
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
 
     ! Compute the characteristic mass at formation time.
     haloMassCharacteristic=haloMassFraction*haloMass
@@ -131,7 +138,7 @@ contains
     formationTime=Time_of_Collapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
 
     ! Get the corresponding expansion factor.
-    Expansion_Factor_At_Formation=Expansion_Factor(formationTime)
+    Expansion_Factor_At_Formation=cosmologyFunctionsDefault%expansionFactor(formationTime)
 
     return
   end function Expansion_Factor_At_Formation

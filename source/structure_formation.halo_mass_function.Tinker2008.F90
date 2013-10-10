@@ -43,7 +43,7 @@ contains
     use Galacticus_Input_Paths
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionMethod
-    procedure(double precision), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
+    procedure(Halo_Mass_Function_Differential_Tinker2008), intent(inout), pointer :: Halo_Mass_Function_Differential_Get
     type     (Node            )               , pointer :: columnElement                      , columnsElement, &
          &                                                 doc
     integer                                             :: ioErr
@@ -77,33 +77,38 @@ contains
     !% Compute the \cite{tinker_towardhalo_2008} halo mass function.
     use Power_Spectra
     use Virial_Density_Contrast
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Cosmology_Functions
     use FGSL
     use Numerical_Interpolation
     use Linear_Growth
     implicit none
-    double precision                   , intent(in   ) :: mass                           , time
-    double precision                                   :: alpha                          , sigma
-    type            (fgsl_interp      ), save          :: interpolationObject
-    type            (fgsl_interp_accel), save          :: interpolationAccelerator
-    logical                            , save          :: resetInterpolation      =.true.
+    double precision                          , intent(in   )       :: mass                            , time
+    double precision                                                :: alpha                           , sigma
+    type            (fgsl_interp             )               , save :: interpolationObject
+    type            (fgsl_interp_accel       )               , save :: interpolationAccelerator
+    logical                                                  , save :: resetInterpolation       =.true.
     !$omp threadprivate(interpolationObject,interpolationAccelerator,resetInterpolation)
-    double precision                   , save          :: timePrevious            =-1.0d0
+    double precision                                         , save :: timePrevious             =-1.0d0
     !$omp threadprivate(timePrevious)
-    double precision                   , save          :: Delta                          , a             , &
-         &                                                a0                             , alphaDelta    , &
-         &                                                b                              , b0            , &
-         &                                                c                              , c0            , &
-         &                                                expansionFactor                , growthFactor  , &
-         &                                                normalization                  , normalization0
+    double precision                                         , save :: Delta                           , a             , &
+         &                                                             a0                              , alphaDelta    , &
+         &                                                             b                               , b0            , &
+         &                                                             c                               , c0            , &
+         &                                                             expansionFactor                 , growthFactor  , &
+         &                                                             normalization                   , normalization0
     !$omp threadprivate(expansionFactor,Delta,growthFactor,normalization0,a0,b0,c0,normalization,a,alphaDelta,b,c)
+    class           (cosmologyParametersClass), pointer             :: thisCosmologyParameters
+    class           (cosmologyFunctionsClass ), pointer             :: cosmologyFunctionsDefault
+
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= timePrevious) then
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Get halo virial density contrast, expansion factor and growth factor.
-       expansionFactor=Expansion_Factor            (time)
-       Delta          =Halo_Virial_Density_Contrast(time)
-       growthFactor   =Linear_Growth_Factor        (time)
+       expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
+       Delta          =Halo_Virial_Density_Contrast             (time)
+       growthFactor   =Linear_Growth_Factor                     (time)
 
        ! Compute coefficients of fitting function.
        normalization0=Interpolate(deltaTableNumberPoints,deltaTableDelta,deltaTableNormalization &
@@ -126,10 +131,12 @@ contains
        timePrevious=time
     end if
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Compute the mass function.
     sigma=Cosmological_Mass_Root_Variance(mass)*growthFactor
     alpha=abs(Cosmological_Mass_Root_Variance_Logarithmic_Derivative(mass))
-    Halo_Mass_Function_Differential_Tinker2008=(Omega_Matter()*Critical_Density()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
+    Halo_Mass_Function_Differential_Tinker2008=(thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()/mass**2)*alpha*normalization*exp(-c/sigma**2)&
          &*(1.0d0+(b/sigma)**a)
     return
   end function Halo_Mass_Function_Differential_Tinker2008

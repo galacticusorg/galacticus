@@ -34,7 +34,8 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: criticalOverdensityMassScalingMethod
-    procedure(double precision), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get, Critical_Overdensity_Mass_Scaling_Gradient_Get
+    procedure(Critical_Overdensity_Mass_Scaling_Null), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Get
+    procedure(Critical_Overdensity_Mass_Scaling_Gradient_Null), intent(inout), pointer :: Critical_Overdensity_Mass_Scaling_Gradient_Get
 
     if (criticalOverdensityMassScalingMethod == 'null') then
        Critical_Overdensity_Mass_Scaling_Get          => Critical_Overdensity_Mass_Scaling_Null

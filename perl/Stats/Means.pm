@@ -12,6 +12,41 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 }
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
+use PDL::NiceSlice;
+
+sub AdaptiveBinnedMean {
+    # Compute the mean of data binned into bins containing equal numbers of points.
+
+    # Get the arguments.
+    my $x           = shift;
+    my $y           = shift;
+    my $countPerBin = shift;
+
+    # Construct output arrays.
+    my $binCount    = int(nelem($x)/$countPerBin);
+    ++$binCount
+	unless ( nelem($x) % $countPerBin == 0 );
+    my $xMean       = pdl zeroes($binCount);
+    my $yMean       = pdl zeroes($binCount);
+
+    # Order the x values.
+    my $xIndex      = $x->qsorti();
+
+    # Iterate through bins, computing the means.
+    for(my $i=0;$i<$binCount;++$i) {
+	# Find minimum and maximum indices to include in this bin.
+	my $jMinimum =  $i   *$countPerBin  ;
+	my $jMaximum = ($i+1)*$countPerBin-1;
+	$jMaximum    = nelem($x)-1
+	    if ( $jMaximum > nelem($x)-1 );
+	# Compute the means.
+	$xMean->(($i)) .= $x->($xIndex)->($jMinimum:$jMaximum)->average();
+	$yMean->(($i)) .= $y->($xIndex)->($jMinimum:$jMaximum)->average();
+    }
+
+    # Return the results.
+    return ($xMean, $yMean);
+}
 
 sub BinnedMean {
     # Distribute input data into specified bins, find the total weight and the error.

@@ -3,10 +3,10 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
-# Ensure that nodeComponent and treeNode objects are built.
-make work/build/objects.nodes.components.Inc;
+# Ensure that nodeComponent and treeNode objects are built, along with any functions.
+make all
 if ( $? != 0 ) then
- echo Failed to build work/build/objects.nodes.components.Inc
+ echo Failed to build all executables
  exit 1
 endif
 
@@ -43,7 +43,7 @@ endif
 
 # Compile the manual.
 @ iPass = 1
-while( $iPass <= 4 )
+while( $iPass <= 6 )
  # Run pdflatex.
  pdflatex Galacticus | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
  if ( $? != 0 ) then

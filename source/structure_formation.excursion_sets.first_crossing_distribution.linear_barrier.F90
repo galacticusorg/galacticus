@@ -36,8 +36,9 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: excursionSetFirstCrossingMethod
-    procedure(double precision), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get, Excursion_Sets_First_Crossing_Rate_Get, &
-         &                                                 Excursion_Sets_Non_Crossing_Rate_Get
+    procedure(Excursion_Sets_First_Crossing_Probability_Linear), intent(inout), pointer :: Excursion_Sets_First_Crossing_Probability_Get
+    procedure(Excursion_Sets_First_Crossing_Rate_Linear), intent(inout), pointer :: Excursion_Sets_First_Crossing_Rate_Get
+    procedure(Excursion_Sets_Non_Crossing_Rate_Linear), intent(inout), pointer :: Excursion_Sets_Non_Crossing_Rate_Get
 
     if (excursionSetFirstCrossingMethod == 'linearBarrier') then
        Excursion_Sets_First_Crossing_Probability_Get => Excursion_Sets_First_Crossing_Probability_Linear

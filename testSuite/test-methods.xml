@@ -20,6 +20,7 @@
       <name>barInstabilityMethod</name>
       <value>ELN</value>
       <value>null</value>
+      <value>ELN+tidal</value>
     </parameter>
   </parameters>
   <parameters>
@@ -131,10 +132,6 @@
       </value>
       <value>read
       <parameter>
-	<name>treeNodeMethodSatellite</name>
-	<value>preset</value>
-      </parameter>
-      <parameter>
 	<name>hotHaloRamPressureStrippingMethod</name>
 	<value>virialRadius</value>
       </parameter>
@@ -160,15 +157,31 @@
       </parameter>
       <parameter>
 	<name>treeNodeMethodSatellite</name>
-	<value>standard</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetMergerTimes</name>
-	<value>false</value>
-      </parameter>
-      <parameter>
-	<name>mergerTreeReadPresetMergerNodes</name>
-	<value>false</value>
+	<value>standard
+	<parameter>
+	  <name>mergerTreeReadPresetMergerTimes</name>
+	  <value>false</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadPresetMergerNodes</name>
+	  <value>false</value>
+	</parameter>
+	</value>
+	<value>preset
+	<parameter>
+	  <name>mergerTreeReadPresetMergerTimes</name>
+	  <value>true</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadPresetMergerNodes</name>
+	  <value>true</value>
+	</parameter>
+	<parameter>
+	  <name>mergerTreeReadSubresolutionMergingMethod</name>
+	  <value>null</value>
+	  <value>boylanKolchin2008</value>
+	</parameter>
+	</value>
       </parameter>
       <parameter>
 	<name>mergerTreeReadPresetSubhaloMasses</name>
@@ -239,12 +252,12 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>satelliteMergingMethod</name>
-      <value>BoylanKolchin2008</value>
-      <value>Lacey-Cole</value>
-      <value>Jiang2008</value>
-      <value>Lacey-Cole+Tormen</value>
-      <value>Wetzel-White2010</value>
+      <name>satelliteMergingTimescalesMethod</name>
+      <value>boylanKolchin2008</value>
+      <value>laceyCole1993</value>
+      <value>jiang2008</value>
+      <value>laceyCole1993Tormen</value>
+      <value>wetzelWhite2010</value>
     </parameter>
   </parameters>
   <parameters>
@@ -742,7 +755,20 @@
     </parameter> 
   </parameters>
 
-  <!-- Disk ram pressure mass loss rates -->
+  <!-- Hot halo ram pressure mass loss rates -->
+  <parameters>
+    <parameter>
+      <name>hotHaloRamPressureForceMethod</name>
+      <value>Font2008</value>
+    </parameter> 
+    <parameter>
+      <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+      <value>haloDynamicalTime</value>
+      <value>ramPressureAcceleration</value>
+    </parameter> 
+  </parameters>
+
+  <!-- Disk and spheroid ram pressure mass loss rates -->
   <parameters>
     <parameter>
       <name>ramPressureStrippingMassLossRateDisksMethod</name>
@@ -750,20 +776,43 @@
       <value>null</value>
     </parameter> 
   </parameters>
+  <parameters>
+    <parameter>
+      <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
 
+  <!-- Disk and spheroid tidal mass loss rates -->
+  <parameters>
+    <parameter>
+      <name>tidalStrippingMassLossRateDisksMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+  <parameters>
+    <parameter>
+      <name>tidalStrippingMassLossRateSpheroidsMethod</name>
+      <value>simple</value>
+      <value>null</value>
+    </parameter> 
+  </parameters>
+  
   <!-- Dark energy cosmology -->
   <parameters>
     <parameter>
-      <name>cosmologyMethod</name>
-      <value>matter-darkEnergy</value>
+      <name>cosmologyFunctionsMethod</name>
+      <value>matterDarkEnergy</value>
     </parameter>
     <parameter>
-      <name>darkEnergyEquationOfStateOmega0</name>
+      <name>darkEnergyEquationOfStateW0</name>
       <value>-0.8</value>
     </parameter>
     <parameter>
-      <name>darkEnergyEquationOfStateOmega0</name>
-      <value>0.1</value>
+      <name>darkEnergyEquationOfStateW1</name>
+      <value>0.0</value>
     </parameter>
     <parameter>
       <name>criticalOverdensityMethod</name>

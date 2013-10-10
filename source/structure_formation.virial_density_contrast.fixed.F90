@@ -93,10 +93,11 @@ contains
     use Cosmology_Functions
     use Tables
     implicit none
-    double precision                      , intent(in   ) :: time
-    class           (table1D), allocatable, intent(inout) :: deltaVirialTable
-    integer                                               :: deltaTableNumberPoints, iTime
-    double precision                                      :: densityContrast
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
+    class           (cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+    integer                                                               :: deltaTableNumberPoints   , iTime
+    double precision                                                      :: densityContrast
 
     ! Find minimum and maximum times to tabulate.
     deltaTableTimeMinimum=min(deltaTableTimeMinimum,time/2.0d0)
@@ -114,6 +115,8 @@ contains
     allocate(table1DLogarithmicLinear :: deltaVirialTable)
     select type (deltaVirialTable)
     type is (table1DLogarithmicLinear)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
        ! Create the table.
        call deltaVirialTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
        ! Populate the table.
@@ -121,7 +124,7 @@ contains
           densityContrast=virialDensityContrastFixed
           ! If the fixed value is defined with respect to the critical density, then translate it to be
           ! with respect to mean density.
-          if (densityType == densityTypeCritical) densityContrast=densityContrast/Omega_Matter_Total(deltaVirialTable%x(iTime))
+          if (densityType == densityTypeCritical) densityContrast=densityContrast/cosmologyFunctionsDefault%omegaMatterEpochal(deltaVirialTable%x(iTime))
           call deltaVirialTable%populate(densityContrast,iTime)
        end do
     end select

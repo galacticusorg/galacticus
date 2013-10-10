@@ -42,7 +42,7 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Stellar_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
 
     if (haloMassFunctionSamplingMethod == 'stellarMassFunction') then
        ! Set the pointer to point to our function.

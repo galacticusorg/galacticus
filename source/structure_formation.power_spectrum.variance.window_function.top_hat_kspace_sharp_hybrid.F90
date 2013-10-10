@@ -37,13 +37,14 @@ contains
   subroutine Power_Spectrum_Window_Functions_TH_KSS_Hybrid_Initialize(powerSpectrumWindowFunctionMethod,Power_Spectrum_Window_Function_Get,Power_Spectrum_Window_Function_Wavenumber_Maximum_Get)
     !% Initializes the ``topHatKSpaceSharpHybrid'' power spectrum variance window function module.
     use Numerical_Constants_Math
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use ISO_Varying_String
     use Input_Parameters
     implicit none
     type            (varying_string                                                 ), intent(in   )          :: powerSpectrumWindowFunctionMethod
     procedure       (Power_Spectrum_Window_Function_TH_KSS_Hybrid                   ), intent(inout), pointer :: Power_Spectrum_Window_Function_Get
     procedure       (Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid), intent(inout), pointer :: Power_Spectrum_Window_Function_Wavenumber_Maximum_Get
+    class           (cosmologyParametersClass                                       )               , pointer :: thisCosmologyParameters
     character       (len=32                                                         )                         :: powerSpectrumWindowFunctionSharpKSpaceNormalizationText
     double precision                                                                                          :: powerSpectrumWindowFunctionSharpKSpaceNormalization
 
@@ -68,11 +69,13 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('powerSpectrumWindowFunctionSharpKSpaceNormalization'&
             &,powerSpectrumWindowFunctionSharpKSpaceNormalizationText,defaultValue="natural")
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        if (powerSpectrumWindowFunctionSharpKSpaceNormalizationText == "natural") then
-          cutOffNormalization=(6.0d0*Pi**2*Omega_Matter()*Critical_Density())**(1.0d0/3.0d0)
+          cutOffNormalization=(6.0d0*Pi**2*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
        else
           read (powerSpectrumWindowFunctionSharpKSpaceNormalizationText,*) powerSpectrumWindowFunctionSharpKSpaceNormalization
-          cutOffNormalization=powerSpectrumWindowFunctionSharpKSpaceNormalization*(4.0d0*Pi*Omega_Matter()*Critical_Density()&
+          cutOffNormalization=powerSpectrumWindowFunctionSharpKSpaceNormalization*(4.0d0*Pi*thisCosmologyParameters%OmegaMatter()*thisCosmologyParameters%densityCritical()&
                &/3.0d0)**(1.0d0/3.0d0)
        end if
        !@ <inputParameter>
@@ -98,16 +101,20 @@ contains
     !% are chosen such that $r_{\rm th}^2 + r_{\rm s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}$ and $r_{\rm s}=\beta r_{\rm th}$ where
     !% $\beta=${\tt [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
     use Numerical_Constants_Math
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    double precision, intent(in   ) :: smoothingMass           , wavenumber
-    double precision, parameter     :: xSeriesMaximum   =1.0d-3
-    double precision                :: kSpaceSharpRadius       , topHatRadius    , topHatWindowFunction, &
-         &                             totalRadius             , wavenumberCutOff, x                   , &
-         &                             xSquared
+    double precision                          , intent(in   ) :: smoothingMass                 , wavenumber
+    double precision                          , parameter     :: xSeriesMaximum         =1.0d-3
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    double precision                                          :: kSpaceSharpRadius             , topHatRadius, &
+         &                                                       topHatWindowFunction          , totalRadius , &
+         &                                                       wavenumberCutOff              , x           , &
+         &                                                       xSquared
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Find the radius enclosing this mass.
-    totalRadius=((3.0d0/4.0d0/Pi)*smoothingMass/Omega_Matter()/Critical_Density())**(1.0d0/3.0d0)
+    totalRadius=((3.0d0/4.0d0/Pi)*smoothingMass/thisCosmologyParameters%OmegaMatter()/thisCosmologyParameters%densityCritical())**(1.0d0/3.0d0)
 
     ! Find the top-hat and sharp k-space radii, and the k-space wavenumber.
     topHatRadius     =totalRadius/sqrt(1.0d0+powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio**2)
@@ -154,7 +161,7 @@ contains
     !% [powerSpectrumWindowFunctionSharpKSpaceTopHatRadiiRatio]}.
     implicit none
     double precision, intent(in   ) :: smoothingMass
-    double precision, parameter     :: wavenumberLarge=1.0d30 !   Effective infinity.
+    double precision, parameter     :: wavenumberLarge=1.0d30 !    Effective infinity.
 
     Power_Spectrum_Window_Function_Wavenumber_Maximum_TH_KSS_Hybrid=wavenumberLarge
     return

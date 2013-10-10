@@ -114,11 +114,10 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
-    use Dark_Matter_Halo_Formation_Times
     implicit none
     type   (treeNode                      ), intent(inout), pointer :: thisNode
     type   (treeNode                      )               , pointer :: descendentNode
-    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatisticsComponent
+    class  (nodeComponentMergingStatistics)               , pointer :: thisMergingStatisticsComponent,descendentMergingStatistics
     integer                                                         :: hierarchyLevel
 
     ! Return immediately if this class is not active.
@@ -128,22 +127,57 @@ contains
     call Node_Component_Merging_Statistics_Standard_Initialize()
 
     ! Create a merger statistics component and initialize it.
+    thisMergingStatisticsComponent => thisNode%mergingStatistics()
+    select type (thisMergingStatisticsComponent)
+    class is (nodeComponentMergingStatisticsStandard)
+       ! Node has been initialized already.
+       return
+    end select
     thisMergingStatisticsComponent => thisNode%mergingStatistics(autoCreate=.true.)
     select type (thisMergingStatisticsComponent)
     class is (nodeComponentMergingStatisticsStandard)
        hierarchyLevel=0
        descendentNode => thisNode
-       do while (.not.descendentNode%isOnMainBranch())
-          if (.not.descendentNode%isPrimaryProgenitor()) hierarchyLevel=hierarchyLevel+1
+       do while (associated(descendentNode))
+          if (associated(descendentNode%parent).and..not.descendentNode%isPrimaryProgenitor()) hierarchyLevel=hierarchyLevel+1
+          if (.not.associated(thisNode,descendentNode)) then
+             descendentMergingStatistics => descendentNode%mergingStatistics()
+             select type (descendentMergingStatistics)
+             class is (nodeComponentMergingStatisticsStandard)
+                hierarchyLevel=hierarchyLevel+descendentMergingStatistics%nodeHierarchyLevel()
+                exit
+             end select
+          end if
           descendentNode => descendentNode%parent
        end do
-       call thisMergingStatisticsComponent%   nodeHierarchyLevelSet(hierarchyLevel)
-       call thisMergingStatisticsComponent%galaxyMajorMergerTimeSet(        -1.0d0)
-       call thisMergingStatisticsComponent%  nodeMajorMergerTimeSet(        -1.0d0)
-       call thisMergingStatisticsComponent%    nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
+       descendentNode => thisNode
+       do while (associated(descendentNode))
+          call Node_Component_Merging_Statistics_Standard_Merger_Tree_Init_Set(descendentNode,hierarchyLevel)
+          if (descendentNode%isPrimaryProgenitor()) then
+             descendentNode => descendentNode%parent
+          else
+             descendentNode => null()
+          end if
+       end do
     end select
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
+
+  subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init_Set(thisNode,hierarchyLevel)
+    !% Set the initial properties of the standard merging statistics component in a node.
+    use Dark_Matter_Halo_Formation_Times
+    implicit none
+    type   (treeNode                      ), intent(inout), pointer :: thisNode
+    integer                                , intent(in   )          :: hierarchyLevel
+    class  (nodeComponentMergingStatistics),                pointer :: thisMergingStatistics
+
+    thisMergingStatistics => thisNode%mergingStatistics(autoCreate=.true.)
+    call thisMergingStatistics%   nodeHierarchyLevelSet(hierarchyLevel)
+    call thisMergingStatistics%galaxyMajorMergerTimeSet(        -1.0d0)
+    call thisMergingStatistics%  nodeMajorMergerTimeSet(        -1.0d0)
+    call thisMergingStatistics%    nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(thisNode,nodeFormationMassFraction))
+    return
+  end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init_Set
 
   !# <nodeMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Merger</unitName>

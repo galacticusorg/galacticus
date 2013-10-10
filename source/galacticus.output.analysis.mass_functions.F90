@@ -210,13 +210,15 @@ module Galacticus_Output_Analyses_Mass_Functions
      ! The number of mass bins.
      integer                                                               :: massesCount
      ! Arrays for the masses and mass function.
-     double precision                        , allocatable, dimension(:  ) :: masses                  , massesLogarithmic       , &
-          &                                                                   massesLogarithmicMinimum, massesLogarithmicMaximum, &
+     double precision                        , allocatable, dimension(:  ) :: masses                  , massesLogarithmic              , &
+          &                                                                   massesLogarithmicMinimum, massesLogarithmicMaximum       , &
           &                                                                   massFunction
      ! Arrays for accumulation of of main branch galaxies
      double precision                        , allocatable, dimension(:,:) :: mainBranchGalaxyWeights , mainBranchGalaxyWeightsSquared
      ! Array for the covariance matrix.
      double precision                        , allocatable, dimension(:,:) :: massFunctionCovariance
+     ! Cosmology conversion factors.
+     double precision                                                      :: cosmologyConversionMass , cosmologyConversionMassFunction
   end type massFunction
 
   ! Mass functions.
@@ -259,28 +261,29 @@ contains
     use IO_HDF5
     use ISO_Varying_String
     use Memory_Management
-    use Cosmological_Parameters
     use Galactic_Structure_Enclosed_Masses
     use Input_Parameters
     use Galacticus_Output_Times
     use Galacticus_Error
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Numerical_Comparison
     use String_Handling
-    use FoX_dom
+    use Galacticus_Output_Analyses_Cosmology_Scalings
     implicit none
-    type            (mergerTree        ), intent(in   )                 :: thisTree
-    type            (treeNode          ), intent(inout), pointer        :: thisNode
-    integer                             , intent(in   )                 :: iOutput
-    type            (varying_string    ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
-    class           (nodeComponentBasic)               , pointer        :: thisBasic
-    type            (node              )               , pointer        :: doc,massFunctionElement,columnElement,massElement,hubbleElement,hubbleExponentElement,datum
-    type            (nodeList          )               , pointer        :: dataList
-    type            (hdf5Object        )                                :: dataFile,massDataset,parameters
-    integer                                                             :: i,j,k,currentAnalysis,activeAnalysisCount,iDatum,ioErr,haloMassBin
-    double precision                                                    :: massHubbleExponent,dataHubbleParameter,hubbleRatio &
-         &,mass,massLogarithmic,randomError
-    type            (varying_string    )                                :: parameterName,analysisMassFunctionCovarianceModelText
+    type            (mergerTree                    ), intent(in   )                 :: thisTree
+    type            (treeNode                      ), intent(inout), pointer        :: thisNode
+    integer                                         , intent(in   )                 :: iOutput
+    type            (varying_string                ), intent(in   ), dimension(:  ) :: mergerTreeAnalyses
+    class           (nodeComponentBasic            )               , pointer        :: thisBasic
+    type            (hdf5Object                    )                                :: dataFile,massDataset,parameters
+    integer                                                                         :: i,j,k,currentAnalysis,activeAnalysisCount,haloMassBin
+    double precision                                                                :: massHubbleExponent,dataHubbleParameter &
+         &,mass,massLogarithmic,randomError,dataOmegaMatter,dataOmegaDarkEnergy
+    type            (varying_string                )                                :: parameterName,analysisMassFunctionCovarianceModelText,cosmologyScalingMass,cosmologyScalingMassFunction
+    class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
+    type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
+    type            (cosmologyParametersSimple     )                                :: cosmologyParametersObserved
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -361,6 +364,7 @@ contains
              analysisActive=.true.
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
+             cosmologyFunctionsModel => cosmologyFunctions()
              do i=1,size(mergerTreeAnalyses)
                 do j=1,massFunctionsSupportedCount
                    if (mergerTreeAnalyses(i) == trim(massFunctionLabels(j))) then
@@ -379,16 +383,16 @@ contains
                       ! Find which output number corresponds to the required redshift.
                       massFunctions(currentAnalysis)%outputNumber=-1
                       do k=1,Galacticus_Output_Time_Count()
-                         if     (                                                                                        &
-                              &  Values_Agree(                                                                           &
-                              &               massFunctionDescriptors(j)%redshift                                      , &
-                              &               Redshift_From_Expansion_Factor(                                            &
-                              &                                              Expansion_Factor(                           &
-                              &                                                               Galacticus_Output_Time(k)  &
-                              &                                                              )                           &
-                              &                                             )                                          , &
-                              &               absTol=0.001d0                                                             &
-                              &              )                                                                           &
+                         if     (                                                                                             &
+                              &  Values_Agree(                                                                                &
+                              &               massFunctionDescriptors(j)%redshift                                           , &
+                              &               cosmologyFunctionsModel%redshiftFromExpansionFactor(                            &
+                              &               cosmologyFunctionsModel%expansionFactor             (                           &
+                              &                                                                    Galacticus_Output_Time(k)  &
+                              &                                                                   )                           &
+                              &                                                                  )                          , &
+                              &               absTol=0.001d0                                                                  &
+                              &              )                                                                                &
                               & ) then
                             massFunctions(currentAnalysis)%outputNumber=k
                             exit
@@ -401,18 +405,31 @@ contains
                          ! SDSS z=0.07 stellar mass function.
                          !$omp critical(HDF5_Access)
                          call dataFile%openFile(char(Galacticus_Input_Path())//'/data/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5',readOnly=.true.)
-                         call dataFile   %readDataset  ('mass'          ,massFunctions(currentAnalysis)%masses             )
-                         massDataset=dataFile%openDataset('mass'      )
-                         call massDataset%readAttribute('hubbleExponent',massHubbleExponent                                )
+                         call dataFile   %readDataset  ('mass'          ,massFunctions(currentAnalysis)%masses)
+                         massDataset=dataFile%openDataset('mass'        )
+                         call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMass               ,allowPseudoScalar=.true.)
                          call massDataset%close()
-                         parameters =dataFile%openGroup  ('Parameters')
-                         call parameters %readAttribute('H_0'           ,dataHubbleParameter                               )
+                         massDataset=dataFile%openDataset('massFunction')
+                         call massDataset%readAttribute('cosmologyScaling',cosmologyScalingMassFunction       ,allowPseudoScalar=.true.)
+                         call massDataset%close()
+                         parameters =dataFile%openGroup  ('Parameters'  )
+                         call parameters %readAttribute('H_0'             ,dataHubbleParameter                )
+                         call parameters %readAttribute('Omega_Matter'    ,dataOmegaMatter                    )
+                         call parameters %readAttribute('Omega_DE'        ,dataOmegaDarkEnergy                )
                          call parameters %close()
                          call dataFile   %close()
                          !$omp end critical(HDF5_Access)
-                         ! Adjust masses to current Hubble parameter.
-                         hubbleRatio=H_0()/dataHubbleParameter
-                         massFunctions(currentAnalysis)%masses=massFunctions(currentAnalysis)%masses*hubbleRatio**massHubbleExponent
+                         ! Create the observed cosmology.
+                         cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
+                              &                                                     OmegaMatter    =dataOmegaMatter    , &
+                              &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
+                              &                                                     HubbleConstant =dataHubbleParameter, &
+                              &                                                     temperatureCMB =0.0d0              , &
+                              &                                                     OmegaBaryon    =0.0d0                &
+                              &                                                    )
+                         cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
+                              &                                                     cosmologyParametersObserved          &
+                              &                                                    )
                          ! Construct mass function array.
                          massFunctions(currentAnalysis)%massesCount=size(massFunctions(currentAnalysis)%masses)
                          call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic             ,[massFunctions(currentAnalysis)%massesCount                                           ])
@@ -448,12 +465,22 @@ contains
                          call massDataset%close()
                          parameters =dataFile%openGroup  ('Parameters')
                          call parameters %readAttribute('H_0'           ,dataHubbleParameter                               )
+                         call parameters %readAttribute('Omega_Matter'  ,dataOmegaMatter                                   )
+                         call parameters %readAttribute('Omega_DE'      ,dataOmegaDarkEnergy                               )
                          call parameters %close()
                          call dataFile   %close()
                          !$omp end critical(HDF5_Access)
-                         ! Adjust masses to current Hubble parameter.
-                         hubbleRatio=H_0()/dataHubbleParameter
-                         massFunctions(currentAnalysis)%masses=massFunctions(currentAnalysis)%masses*hubbleRatio**massHubbleExponent
+                         ! Create the observed cosmology.
+                         cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
+                              &                                                     OmegaMatter    =dataOmegaMatter    , &
+                              &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
+                              &                                                     HubbleConstant =dataHubbleParameter, &
+                              &                                                     temperatureCMB =0.0d0              , &
+                              &                                                     OmegaBaryon    =0.0d0                &
+                              &                                                    )
+                         cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
+                              &                                                     cosmologyParametersObserved          &
+                              &                                                    )
                          ! Construct mass function array.
                          massFunctions(currentAnalysis)%massesCount=size(massFunctions(currentAnalysis)%masses)
                          call Alloc_Array(massFunctions(currentAnalysis)%massesLogarithmic             ,[massFunctions(currentAnalysis)%massesCount                                           ])
@@ -481,22 +508,32 @@ contains
                             end if
                          end do
                       case ('primusStellarMassFunctionZ0.100')
-                         call Load_PRIMUS_Mass_Function(0,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(0,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.250')
-                         call Load_PRIMUS_Mass_Function(1,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(1,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.350')
-                         call Load_PRIMUS_Mass_Function(2,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(2,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.450')
-                         call Load_PRIMUS_Mass_Function(3,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(3,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.575')
-                         call Load_PRIMUS_Mass_Function(4,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(4,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.725')
-                         call Load_PRIMUS_Mass_Function(5,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(5,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case ('primusStellarMassFunctionZ0.900')
-                         call Load_PRIMUS_Mass_Function(6,massFunctions(currentAnalysis))
+                         call Load_PRIMUS_Mass_Function(6,massFunctions(currentAnalysis),cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
                       case default
                          call Galacticus_Error_Report('Galacticus_Output_Analysis_Mass_Functions','unknown mass function')
                       end select
+                      ! Get cosmological conversion factors.
+                      call Cosmology_Conversion_Factors(                                                                                                &
+                           &                            massFunctions(currentAnalysis)%descriptor%redshift                                            , &
+                           &                            cosmologyFunctionsModel                                                                       , &
+                           &                            cosmologyFunctionsObserved                                                                    , &
+                           &                            cosmologyScalingMass           =cosmologyScalingMass                                          , &
+                           &                            cosmologyScalingMassFunction   =cosmologyScalingMassFunction                                  , &
+                           &                            cosmologyConversionMass        =massFunctions(currentAnalysis)%cosmologyConversionMass        , &
+                           &                            cosmologyConversionMassFunction=massFunctions(currentAnalysis)%cosmologyConversionMassFunction  &
+                           &                           )
                       exit
                    end if
                 end do
@@ -518,12 +555,13 @@ contains
        ! Allocate workspace.
        if (.not.allocated(thisGalaxy(i)%massFunction)) call Alloc_Array(thisGalaxy(i)%massFunction         ,[massFunctions(i)%massesCount                             ])
        if (.not.allocated(thisGalaxy(i)%covariance  )) call Alloc_Array(thisGalaxy(i)%covariance           ,[massFunctions(i)%massesCount,massFunctions(i)%massesCount])
-       ! Get the galactic stellar mass.
+       ! Get the galactic mass.
        mass=                                                                                                                &
             &  Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeDisk    ,massType=massFunctions(i)%descriptor%massType) &
             & +Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentTypeSpheroid,massType=massFunctions(i)%descriptor%massType)
        if (mass            <=                  0.0d0) return
        if (associated(massFunctions(i)%descriptor%mapMass)) mass=massFunctions(i)%descriptor%mapMass(mass,thisNode)
+       mass=mass*massFunctions(i)%cosmologyConversionMass ! Convert for cosmology.
        massLogarithmic=log10(mass)
        do j=1,massFunctions(i)%descriptor%systematicCoefficientCount
           massLogarithmic=massLogarithmic+massFunctions(i)%systematicCoefficients(j)*(log10(mass)-massFunctions(i)%descriptor%systematicLogM0)**(j-1)
@@ -537,7 +575,8 @@ contains
             &                      -erf((massFunctions(i)%massesLogarithmicMinimum-massLogarithmic)/randomError/sqrt(2.0d0)) &
             &                     )                                                                                          &
             &                     /2.0d0                                                                                     &
-            &                     *thisTree%volumeWeight
+            &                     *thisTree%volumeWeight                                                                     &
+            &                     *massFunctions(i)%cosmologyConversionMassFunction
        ! Accumulate mass function.
        !$omp critical (Galacticus_Output_Analysis_Mass_Functions_Accumulate)
        massFunctions(i)%massFunction          =massFunctions(i)%massFunction          +thisGalaxy(i)%massFunction
@@ -739,33 +778,59 @@ contains
     return
   end function Map_Mass_ALFALFA_HI_Mass_Function_Z0_00
 
-  subroutine Load_PRIMUS_Mass_Function(massFunctionIndex,thisMassFunction)
+  subroutine Load_PRIMUS_Mass_Function(massFunctionIndex,thisMassFunction,cosmologyParametersObserved,cosmologyFunctionsObserved,cosmologyScalingMass,cosmologyScalingMassFunction)
     !% Load the specified mass function from the PRIMUS stellar mass function dataset.
     use ISO_Varying_String
     use Galacticus_Error
-    use Cosmological_Parameters
+    use Cosmology_Functions
+    use Cosmology_Parameters
     use Galacticus_Input_Paths
     use Memory_Management
     use FoX_dom
+    use IO_XML
     implicit none
-    integer                         , intent(in   ) :: massFunctionIndex
-    type            (massFunction  ), intent(inout) :: thisMassFunction
-    type            (node          ), pointer       :: doc,massFunctionElement,columnElement,massElement,hubbleElement,hubbleExponentElement,datum
-    type            (nodeList      ), pointer       :: dataList
-    integer                                         :: k,iDatum,ioErr
-    double precision                                :: hubbleRatio,dataHubbleParameter,massHubbleExponent
+    integer                                         , intent(in   ) :: massFunctionIndex
+    type            (massFunction                  ), intent(inout) :: thisMassFunction
+    type            (cosmologyFunctionsMatterLambda), intent(inout) :: cosmologyFunctionsObserved
+    type            (cosmologyParametersSimple     ), intent(inout) :: cosmologyParametersObserved
+    type            (varying_string                ), intent(  out) :: cosmologyScalingMass,cosmologyScalingMassFunction
+    type            (node                          ), pointer       :: doc,massFunctionElement,columnElement,massElement,hubbleElement,datum,cosmology,omegaDarkEnergyElement,omegaMatterElement,datasetElement,cosmologyScalingElement
+    type            (nodeList                      ), pointer       :: dataList
+    character       (len=128                       )                :: cosmologyScaling
+    integer                                                         :: k,iDatum,ioErr
+    double precision                                                :: dataHubbleParameter,dataOmegaMatter,dataOmegaDarkEnergy
 
     !$omp critical (FoX_DOM_Access)
     doc => parseFile(char(Galacticus_Input_Path())//"data/observations/massFunctionsStellar/Stellar_Mass_Function_PRIMUS_2013.xml",iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Load_PRIMUS_Mass_Function','Unable to find data file')
-    massFunctionElement   => item(getElementsByTagname(doc                ,"stellarMassFunction" ),massFunctionIndex)
-    columnElement         => item(getElementsByTagname(massFunctionElement,"columns"             ),                0)
-    massElement           => item(getElementsByTagname(      columnElement,"stellarMass"         ),                0)
-    hubbleElement         => item(getElementsByTagname(      columnElement,"hubble"              ),                0)
-    hubbleExponentElement => item(getElementsByTagname(      columnElement,"hubbleExponent"      ),                0)
-    dataList              =>      getElementsByTagname(        massElement,"datum"               ) 
-    call extractDataContent(hubbleExponentElement,massHubbleExponent )
-    call extractDataContent(hubbleElement        ,dataHubbleParameter)
+    datasetElement          => item(getElementsByTagname(doc           ,"stellarMassFunction" ),massFunctionIndex)
+    columnElement           => item(getElementsByTagname(datasetElement,"columns"             ),                0)
+    massElement             => item(getElementsByTagname( columnElement,"stellarMass"         ),                0)
+    massFunctionElement     => item(getElementsByTagname( columnElement,"stellarMassFunction" ),                0)
+    cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(massElement        ,"cosmologyScaling")
+    call extractDataContent(cosmologyScalingElement,cosmologyScaling)
+    cosmologyScalingMass        =trim(cosmologyScaling)
+    cosmologyScalingElement => XML_Get_First_Element_By_Tag_Name(massFunctionElement,"cosmologyScaling")
+    call extractDataContent(cosmologyScalingElement,cosmologyScaling)
+    cosmologyScalingMassFunction=trim(cosmologyScaling)
+    cosmology               => XML_Get_First_Element_By_Tag_Name(doc      ,"cosmology"      )
+    hubbleElement           => XML_Get_First_Element_By_Tag_Name(cosmology,"hubble"         )
+    omegaMatterElement      => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaMatter"    )
+    omegaDarkEnergyElement  => XML_Get_First_Element_By_Tag_Name(cosmology,"omegaDarkEnergy")
+    call extractDataContent(hubbleElement         ,dataHubbleParameter)
+    call extractDataContent(omegaMatterElement    ,dataOmegaMatter    )
+    call extractDataContent(omegaDarkEnergyElement,dataOmegaDarkEnergy)
+    ! Create the observed cosmology.
+    cosmologyParametersObserved=cosmologyParametersSimple     (                                     &
+         &                                                     OmegaMatter    =dataOmegaMatter    , &
+         &                                                     OmegaDarkEnergy=dataOmegaDarkEnergy, &
+         &                                                     HubbleConstant =dataHubbleParameter, &
+         &                                                     temperatureCMB =0.0d0              , &
+         &                                                     OmegaBaryon    =0.0d0                &
+         &                                                    )
+    cosmologyFunctionsObserved =cosmologyFunctionsMatterLambda(                                     &
+         &                                                     cosmologyParametersObserved          &
+         &                                                    )
     ! Construct mass function array.
     thisMassFunction%massesCount=getLength(dataList)
     call Alloc_Array(thisMassFunction%masses                        ,[thisMassFunction%massesCount                                          ])
@@ -773,9 +838,9 @@ contains
     call Alloc_Array(thisMassFunction%massesLogarithmicMinimum      ,[thisMassFunction%massesCount                                          ])
     call Alloc_Array(thisMassFunction%massesLogarithmicMaximum      ,[thisMassFunction%massesCount                                          ])
     call Alloc_Array(thisMassFunction%massFunction                  ,[thisMassFunction%massesCount                                          ])
-    call Alloc_Array(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount              ])
-    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
-    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount    ])
+    call Alloc_Array(thisMassFunction%massFunctionCovariance        ,[thisMassFunction%massesCount,thisMassFunction%massesCount             ])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeights       ,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount   ])
+    call Alloc_Array(thisMassFunction%mainBranchGalaxyWeightsSquared,[thisMassFunction%massesCount,analysisMassFunctionsHaloMassBinsCount   ])
     do iDatum=0,getLength(dataList)-1
        datum => item(dataList,iDatum)
        call extractDataContent(datum,thisMassFunction%masses(iDatum+1))
@@ -783,9 +848,6 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    ! Adjust masses to current Hubble parameter.
-    hubbleRatio                                    =H_0()/dataHubbleParameter
-    thisMassFunction%masses                        =(10.0d0**thisMassFunction%masses)*(hubbleRatio**massHubbleExponent)
     thisMassFunction%massesLogarithmic             =log10(thisMassFunction%masses)
     thisMassFunction%massFunction                  =0.0d0
     thisMassFunction%massFunctionCovariance        =0.0d0

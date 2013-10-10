@@ -15,6 +15,8 @@ where $z_{\rm reionization}=${\tt [reionizationSuppressionRedshift]} is the reds
 
 Note that, if $\dot{M}_{\rm halo} < 0$ then negative accretion rates of gas into the node can result. This ccan be prevented by setting {\tt [accretionHalosSimpleNegativeAccretionAllowed]}$=${\tt false}.
 
+By default, gas is accreted whenever the halo is growing in total mass. However, setting {\tt [accretionHalosSimpleAccreteNewGrowthOnly]}$=${\tt true} causes accretion to occur only if the node mass is growing and exceeds the previous maximum node mass achieved along this branch of the merger tree. This requires use of a basic component which tracks the maximum mass along the branch (i.e. the {\tt massMaximum} property).
+
 \subsection{Null Method}
 
 Selected using {\tt accretionHalosMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
@@ -778,6 +780,10 @@ Selected with {\tt haloSpinDistributionMethod}$=${\tt deltaFunction}, under this
 
 The method uses to compute the bar instability timescale for galactic disks is selected via the {\tt barInstabilityMethod} parameter.
 
+\subsection{Null}
+
+Selected with {\tt barInstabilityMethod}$=${\tt null}, this method assumes no instability and so returns an infinite timescale, and no external driving torque.
+
 \subsection{Efstathiou, Lake \& Negroponte}
 
 Selected with {\tt barInstabilityMethod}$=${\tt ELN}, this method uses the stability criterion of \cite{efstathiou_stability_1982} to estimate when disks are unstable to bar formation:
@@ -785,6 +791,18 @@ Selected with {\tt barInstabilityMethod}$=${\tt ELN}, this method uses the stabi
  \epsilon \left( \equiv {V_{\rm peak} \over \sqrt{\G M_{\rm disk}/r_{\rm disk}}} \right) < \epsilon_{\rm c},
 \end{equation}
 for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), $M_{\rm disk}$ is the mass of the disk and $r_{\rm disk}$ is its scale length (assuming an exponential disk). The value of $\epsilon_{\rm c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by {\tt stabilityThresholdStellar} and {\tt stabilityThresholdGaseous} respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+\begin{equation}
+ t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
+\end{equation}
+where $\epsilon_{\rm iso}$ is the value of $\epsilon$ for an isolated disk and $t_{\rm disk}$ is the disk dynamical time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to a dynamical time for highly unstable disks. This method returns zero external driving torque.
+
+\subsection{Efstathiou, Lake \& Negroponte + Tidal Forces}
+
+Selected with {\tt barInstabilityMethod}$=${\tt ELN+tidal}, this method uses the stability criterion of \cite{efstathiou_stability_1982} to estimate when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
+\begin{equation}
+ \epsilon \left( \equiv {V_{\rm peak} \over \sqrt{\G M_{\rm disk}/r_{\rm disk}} + \hbox{max}(\mathcal{T},0) } \right) < \epsilon_{\rm c},
+\end{equation}
+for stability, where $V_{\rm peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated exponential disk), $M_{\rm disk}$ is the mass of the disk, $r_{\rm disk}$ is its scale length (assuming an exponential disk), $\mathcal{T} = \mathcal{F} r_{\rm disk}^2$ is the external driving specific torque, and $\mathcal{F}$ is the external tidal field (evaluated using the selected method; see \S\ref{sec:SatelliteTidalFields}). The value of $\epsilon_{\rm c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks as specified by {\tt stabilityThresholdStellar} and {\tt stabilityThresholdGaseous} respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
 \begin{equation}
  t_{\rm bar} = t_{\rm disk} {\epsilon_{\rm c} - \epsilon_{\rm iso} \over \epsilon_{\rm c} - \epsilon},
 \end{equation}
@@ -1272,6 +1290,25 @@ Selected with {\tt hotHaloRamPressureStrippingMethod}$=${\tt Font2008} this meth
 where $M_{\rm satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_{\rm ram, hot, host}$ is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}). The parameter $\alpha_{\rm rp}=${\tt [ramPressureStrippingFormFactor]} is a geometric factor of order unity.
 
 
+\section{Hot Halo Ram Pressure Stripping Timescale}\index{hot halo!ram pressure stripping!timescale}
+
+The algorithm to be used when determining the timescale on which the hot halo is stripped by ram pressure forces is selected via the {\tt hotHaloRamPressureStrippingTimescaleMethod} parameter.
+
+\subsection{Halo Dynamical Timescale}
+
+Selected with {\tt hotHaloRamPressureStrippingTimescaleMethod}$=${\tt haloDynamicalTime} this method sets the ram pressure stripping timecale equal to the dynamical time of the associated halo.
+
+\subsection{Ram Pressure Acceleration}
+
+Selected with {\tt hotHaloRamPressureStrippingTimescaleMethod}$=${\tt ramPressureAcceleration} this method computes the ram pressure stripping timecale from the acceleration imparted by the ram pressure force. Following \cite{roediger_ram_2007} this is approximated as:
+\begin{equation}
+ a_{\rm ram pressure} = P_{\rm ram pressure}/\Sigma,
+\end{equation}
+where $P_{\rm ram pressure}$ is the ram pressure force per unit area, and $\Sigma$ is the surface density of gas. The associated timescale to accelerate gas over a distance $r_{\rm outer}$ (the current outer radius of the hot halo) is then:
+\begin{equation}
+ \tau_{\rm ram pressure} = \sqrt{2 r_{\rm outer} \Sigma_{\rm outer} / P_{\rm ram pressure}}.
+\end{equation}
+
 \section{Hot Halo Temperature Profile}\label{sec:HotHaloTemperature}\index{hot halo!temperature profile}\index{temperature profile!hot halo}
 
 The algorithm to be used when determining the hot halo temperature profile is selected via the {\tt hotHaloTemperatureMethod} parameter.
@@ -1431,7 +1468,7 @@ If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these mas
  \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
 \end{description}
 
-In the case of reading root halo masses from a file, the file should be an XML file with the following form:
+In the case of reading root halo masses from a file, the file can be either an XML or HDF5 file. An XML file should have the following form:
 \begin{verbatim}
  <mergerTrees>
   <treeRootMass>13522377303.5998</treeRootMass>
@@ -1440,9 +1477,30 @@ In the case of reading root halo masses from a file, the file should be an XML f
   .
   .
   .
+  <treeWeight>13522377303.5998</treeWeight>
+  <treeWeight>19579530191.8709</treeWeight>
+  <treeWeight>21061025282.9613</treeWeight>
+  .
+  .
+  .
  </mergerTrees>
 \end{verbatim}
-where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate.
+where each {\tt treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) {\tt treeWeight} elements give the corresponding weight (in units of Mpc$^{-3}$) to assign to each tree. An HDF5 file should have the following structure:
+\begin{verbatim}
+HDF5 {
+GROUP '/' {
+   DATASET 'treeRootMass' {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( * ) / ( * ) }
+   }
+   DATASET 'treeWeight' {
+      DATATYPE  H5T_IEEE_F64BE
+      DATASPACE  SIMPLE { ( * ) / ( * ) }
+   }
+}
+}
+\end{verbatim}
+where the {\tt treeRootMass} dataset contains the mass (in Solar masses) of the root halo of a tree to generate, and the (optional) {\tt treeWeight} dataset contains the weight (in units of Mpc$^{-3}$) to assign to each tree.
 
 \subsection{Fully Specified}\label{sec:TreeConstructFullySpecified}
 
@@ -1615,10 +1673,10 @@ This task enforces monotonic growth a halo mass along each branch of each merger
 
 This task will interpolate the merger tree structure onto a new array of timesteps if {\tt [mergerTreeRegridTimes]}$=${\tt true}. The timestep array is specified via the parameters:
 \begin{description}
-\item[{\tt [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array;
-\item[{\tt [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array;
+\item[{\tt [mergerTreeRegridSpacing]}] The spacing of the timesteps. Five options are available: {\tt linear} will space timesteps uniformly in expansion factor, {\tt logarithmic} will space timesteps uniformly in the logarithm of expansion factor, {\tt log critical density} will space timesteps uniformly in the logarithm of critical density, $\delta_{\rm c}$, {\tt millennium} will use times corresponding to the redshifts of snapshots in the Millennium Simulation database, while {\tt read} will use times corresponding to the redshifts specified in the {\tt mergerTreeRegridRedshifts} parameter;
+\item[{\tt [mergerTreeRegridStartExpansionFactor]}] The smallest expansion factor in the array (ignored for {\tt millennium} and {\tt read} spacings);
+\item[{\tt [mergerTreeRegridEndExpansionFactor]}] The largest expansion factor in the array (ignored for {\tt millennium} and {\tt read} spacings);
 \item[{\tt [mergerTreeRegridCount]}] The number of timesteps in the array;
-\item[{\tt [mergerTreeRegridSpacing]}] The spacing of the timesteps. Two options are available: {\tt linear} will space timesteps uniformly in expansion factor, while {\tt logarithmic} will space timesteps uniformly in the logarithm of expansion factor.
 \end{description}
 Along each branch of the tree, new halos are inserted at times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger tree!N-body} affects the properties of galaxies that form in them.
 
@@ -1634,6 +1692,10 @@ This task allows for branches of merger trees to be pruned---i.e. nodes below a 
 
 This task allows for branches of merger trees to be pruned by hierarchy---i.e. nodes below a given depth in the hierarchy\footnote{The main branch is defined as depth 0. Other branches are assigned a depth equal to the depth of the branch onto which they merge plus 1. For example, any branch which merges directly onto the main branch is defined as depth 1.} are removed from the tree prior to any evolution.  To prune branches by hierarchy depth set {\tt [mergerTreePruneHierarchyAtDepth]} to the desired depth at which to prune. For example, a value of 1 will result in all branches except for the main branch being removed, while a value of 2 will remove all branches that do not merge directly onto the main branch. (Note that setting {\tt [mergerTreePruneHierarchyAtDepth]} to zero will result in no pruning.)
 
+\subsection{Tree Pruning By Essential Node}\index{merger tree!pruning!by essential node}
+
+This task allows for branches of merger trees to be pruned to leave only the branch occupied by an ``essential'' node, along with any progenitor branches of that node. This is intended primarily for debugging purposes where it can be convenient to cut away all non-essential branches of the tree. This pruning task is activated by setting {\tt [mergerTreePruneNonEssential]}$=${\tt true}. The essential node is specified by {\tt [mergerTreePruningNonEssentialID]} and {\tt [mergerTreePruningNonEssentialTime]}, which specify the index of the node, and the time at which its properties are required. Specifying the time is important---if the node is a satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node lives at the specified time.
+
 \section{Chemical Reaction Rates}\index{chemicals!reaction rates}\index{reaction rates!chemical}\label{sec:ChemicalReactionRates}
 
 Methods for computing chemical reaction rates are selected via the {\tt [chemicalReactionRatesMethods]} parameter. Multiple methods can be selected---their rates are cumulated.
@@ -1646,21 +1708,50 @@ Selected with {\tt chemicalReactionRatesMethods}$=${\tt null} this is a null met
 
 Selected with {\tt chemicalReactionRatesMethods}$=${\tt hydrogenNetwork} this method computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}. The parameter {\tt [hydrogenNetworkFast]} controls the approximations made. If set {\tt true} then H$^-$ is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see \citealt{abel_modeling_1997}).
 
-\section{Ram Pressure Induced Mass Loss Rates in Disks}
+\section{Ram Pressure Induced Mass Loss Rates in Disks/Spheroids}\label{sec:RamPressureMassLossRates}\index{ram pressure!mass loss rate}\index{mass loss!ram pressure induced}
 
-The methods for computing ram pressure induced rates of mass loss in disks are selected via the {\tt ramPressureStrippingMassLossRateDisksMethod} parameter.
+The methods for computing ram pressure induced rates of mass loss in disks/spheroids are selected via the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} parameter.
 
 \subsection{Simple}
 
-Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt simple} this method computes the mass loss rate to be:
+Selected with {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt simple} this method computes the mass loss rate to be, for disks:
 \begin{equation}
  \dot{M}_{\rm gas, disk} = \hbox{min}\left({\mathcal{F}_{\rm hot, host} \over 2 \pi {\rm G} \Sigma_{\rm gas}(r_{\rm half}) \Sigma_{\rm total}(r_{\rm half})}, R_{\rm maximum}\right) {M_{\rm gas, disk} \over \tau_{\rm dyn, disk}},
 \end{equation}
-where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_{\rm gas}(r)$ is the gas surface density in the disk, $\Sigma_{\rm total}(r)$ is the total surface density in the disk, $r_{\rm half}$ is the disk half-mass radius, $M_{\rm gas, disk}$ is the total gas mass in the disk, $\tau_{\rm dyn, disk} = r_{\rm disk}/v_{\rm disk}$ is the dynamical time in the disk, and $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum]} controls the maximum allowed rate of mass loss.
+where $\mathcal{F}_{\rm hot, host}$ is the ram pressure force due to the hot halo of the node's host (computed using the selected hot halo ram pressure force method; see \S\ref{sec:HotHaloRamPressureForce}), $\Sigma_{\rm gas}(r)$ is the gas surface density in the disk, $\Sigma_{\rm total}(r)$ is the total surface density in the disk, $r_{\rm half}$ is the disk half-mass radius, $M_{\rm gas, disk}$ is the total gas mass in the disk, $\tau_{\rm dyn, disk} = r_{\rm disk}/v_{\rm disk}$ is the dynamical time in the disk, and $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateDiskSimpleFractionalRateMaximum]} controls the maximum allowed rate of mass loss. For spheroids the mass loss rate is:
+\begin{equation}
+\dot{M}_{\rm gas} = -\hbox{max}(\alpha,R_{\rm maximum}) M_{\rm gas}/\tau_{\rm spheroid},
+\end{equation}
+where $R_{\rm maximum}=${\tt [ramPressureStrippingMassLossRateSpheroidSimpleFractionalRateMax]}
+\begin{equation}
+\alpha = \mathcal{F}_{\rm hot,host}/F_{\rm gravity},
+\end{equation}
+and,
+\begin{equation}
+F_{\rm gravity} = {4\over 3} \rho_{\rm gas}(r_{1/2}) {{\rm G} M_{\rm total}(r_{1/2})\over r_{1/2}}
+\end{equation}
+is the gravitational restoring force in the spheroid at the half-mass radius, $r_{\rm 1/2}$ \citep{takeda_ram_1984}.
+
 
 \subsection{Null}
 
-Selected with {\tt ramPressureStrippingMassLossRateDisksMethod}$=${\tt null} this method assumes zero mass loss rate always.
+Selected with {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
+
+\section{Satellite Tidal Fields}\label{sec:SatelliteTidalFields}\index{satellites!tidal fields}\index{tidal fields!satellites}
+
+The method for computing the tidal field experienced by satellite galaxies is selected via {\tt satellitesTidalFieldMethod}.
+
+\subsection{Null}
+
+Selected with {\tt satellitesTidalFieldMethod}$=${\tt null} this method assumes a zero tidal field always.
+
+\subsection{Spherical Symmetry}
+
+Selected with {\tt satellitesTidalFieldMethod}$=${\tt sphericalSymmetry} this method assumes a spherically-symmetric host halo, and computes the tidal field accordingly using:
+\begin{equation}
+ \mathcal{F} = {{\rm G} M_{\rm host}(<r_{\rm p}) \over r_{\rm p}^3} - 4 \pi {\rm G} \rho_{\rm host}(r_{\rm p}) + \omega_{\rm p}^2,
+\end{equation}
+where $r_{\rm p}$ is the pericentric radius. $M_{\rm host}(<r)$ is the mass of the host halo enclosed within a sphere of radius $r$, $\rho_{\rm host}(r)$ is the host density at radius $r$, and $\omega_{\rm p}$ is the orbital angular velocity at pericenter.
 
 \section{Star Formation Rate Surface Densities}\label{sec:StarFormationRateSurfaceDensity}\index{star formation!rate!surface density}
 
@@ -1940,33 +2031,42 @@ Selected with {\tt stellarFeedbackMethod}$=${\tt standard}, the method assumes t
 
 Substructures and merging of nodes/substructures is controlled by several algorithms which are described below:
 
-\subsection{Merging Timescales}\index{merging!dynamical friction}
+\subsection{Merging Timescales}\label{sec:SatelliteMergingTimescales}\index{merging!timescale}
 
-The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingMethod} parameter.
+The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingTimescalesMethod} parameter.
 
-\subsubsection{Dynamical Friction: Lacey \& Cole}
+\subsubsection{Lacey \& Cole (1993)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Lacey-Cole}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
 
-\subsubsection{Dynamical Friction: Lacey \& Cole $+$ Tormen}
+\subsubsection{Lacey \& Cole (1993) $+$ Tormen}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Lacey-Cole+Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
 \begin{equation}
  \tau_{\rm merge} = {f_\tau \Phi \tau_{\rm dynamical} \over 2 B(1)} { M_{\rm host}/M_{\rm satellite} \over \ln (M_{\rm host}/M_{\rm satellite})}
 \end{equation}
 where $f_\tau=${\tt mergingTimescaleMultiplier}, $\tau_{\rm dynamical}$ is the dynamical time of the host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78} (R_{\rm c}/R_{\rm virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion $0.26$ as found by \cite{cole_hierarchical_2000}.
 
-\subsubsection{Dynamical Friction: Jiang (2008)}\label{sec:DynamicalFrictionJiang2008}
+\subsubsection{Jiang (2008)}\label{sec:DynamicalFrictionJiang2008}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio $T_{\rm fit}/T_{\rm sim}$ where $T_{\rm fit}$ is the merging time from their fitting formula and $T_{\rm sim}$ is that measured from their N-body simulation. Furthermore, they show that the distribution of $T_{\rm fit}/T_{\rm sim}$ is well described by a log-normal with dispersion (in $\log[T_{\rm fit}/T_{\rm sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by this implementation by setting $\sigma=${\tt [satelliteMergingJiang2008Scatter]}$>0$ which will cause the merger time to be drawn from a log-normal distribution of width $\sigma$ with median equal to $T_{\rm fit}$.
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio $T_{\rm fit}/T_{\rm sim}$ where $T_{\rm fit}$ is the merging time from their fitting formula and $T_{\rm sim}$ is that measured from their N-body simulation. Furthermore, they show that the distribution of $T_{\rm fit}/T_{\rm sim}$ is well described by a log-normal with dispersion (in $\log[T_{\rm fit}/T_{\rm sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by this implementation by setting $\sigma=${\tt [satelliteMergingJiang2008Scatter]}$>0$ which will cause the merger time to be drawn from a log-normal distribution of width $\sigma$ with median equal to $T_{\rm fit}$.
 
-\subsubsection{Dynamical Friction: Boylan-Kolchin (2008)}
 
-Selected with {\tt satelliteMergingMethod}$=${\tt BoylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
+\subsubsection{Boylan-Kolchin (2008)}
 
-\subsubsection{Dynamical Friction: Wetzel \& White (2010)}
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
-Selected with {\tt satelliteMergingMethod}$=${\tt Wetzel-White2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
+\subsubsection{Wetzel \& White (2010)}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
+
+\subsubsection{Preset}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt preset}, this method returns a precomputed merging timescale stored by the satellite component.
+
+\subsubsection{Null}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt null}, this method returns zero merging timescale.
 
 \subsection{Virial Orbits}
 
@@ -2137,6 +2237,30 @@ The method to be used for computing the effects of binary mergers of supermassiv
 \subsection{Rezzolla et al. (2008)}
 
 Selected with {\tt blackHoleBinaryMergersMethod}$=${\tt Rezzolla2008}, this method uses the fitting function of \cite{rezzolla_final_2008} to compute the spin of the black hole resulting from a binary merger. The mass of the resulting black hole is assumed to equal the sum of the mass of the initial black holes (i.e. there is negligible energy loss through gravitational waves).
+
+\section{Tidal Induced Mass Loss Rates in Disks/Spheroids}\label{sec:TidalMassLossRates}\index{tidal forces!mass loss rate}\index{mass loss!tidal force induced}
+
+The methods for computing tidal induced rates of mass loss in disks/spheroids are selected via the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} parameter.
+
+\subsection{Simple}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt simple} this method computes the mass loss rate to be:
+\begin{equation}
+\dot{M} = -\alpha M/\tau_{\rm (disk|spheroid},
+\end{equation}
+where
+\begin{equation}
+\alpha = \hbox{min}(F_{\rm tidal}/F_{\rm gravity},R_{\rm maximum}),
+\end{equation}
+$F_{\rm tidal}=\mathcal{F}_{\rm tidal} r_{1/2}$, $\mathcal{F}_{\rm tidal}$ is the tidal field from the host halo (see \S\ref{sec:SatelliteTidalFields}),
+\begin{equation}
+F_{\rm gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
+\end{equation}
+is the gravitational restoring force in the disk/spheroid at the half-mass radius, $r_{\rm 1/2}$, and $R_{\rm maximum}=${\tt [tidalStrippingMassLossRate(Disk|Spheroid)SimpleFractionalRateMaximum]}.
+
+\subsection{Null}
+
+Selected with {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method}$=${\tt null} this method assumes zero mass loss rate always.
 
 \section{Survey Geometry}\index{surveys!geometry}
 
