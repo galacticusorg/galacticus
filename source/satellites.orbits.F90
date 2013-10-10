@@ -140,8 +140,8 @@ contains
     if      (   Extremum_Solver(currentOrbit%radius()) == 0.0d0             ) then
        ! Orbit is at extremum.
        radius=currentOrbit%radius()
-    else if (&
-         &    (&
+    else if (                                                                      &
+         &    (                                                                    &
          &      extremumType                           == extremumPericenter       &
          &     .and.                                                               &
          &      Extremum_Solver(currentOrbit%radius()) >  0.0d0                    &
@@ -155,6 +155,13 @@ contains
          &  ) then
        ! No solution exists, assume a circular orbit.
        radius=currentOrbit%radius()
+    else if (                                                                      &
+         &      extremumType                           == extremumPericenter       &
+         &   .and.                                                                 &
+         &      orbitalAngularMomentumInternal         <= 0.0d0                    &
+         &  ) then
+       ! Orbit is radial, so pericenter is zero.
+       radius=0.0d0
     else
        if (.not.finder%isInitialized()) then
           call finder%rootFunction(Extremum_Solver                    )
