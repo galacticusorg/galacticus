@@ -3076,7 +3076,7 @@ and should return the enclosed mass (in $M_\odot$) at the specified {\tt radius}
     return
  end function Dark_Matter_Profile_Potential_Get
 \end{verbatim}
-and should return the gravitational potential (in km$^2$/s$^2$) at the specified {\tt radius} (in Mpc) in {\tt thisNode}. The potential is conventionally chosen such that $\Phi(r_{\rm virial}=-V_{\rm virial}^2$ so that the potential at infinity is zero if the halo profile is truncated at the virial radius. If the {\tt status} argument is present, it should be set to one of the codes provided by the \hyperlink{dark_matter_profiles.error_codes.F90:dark_matter_profiles_error_Codes}{{\tt Dark\_Matter\_Profiles\_Error\_Codes}} module to indicate success of (the specific reason for) failure. The ``radius from specific angular momentum'' function should have the form:
+and should return the gravitational potential (in km$^2$/s$^2$) at the specified {\tt radius} (in Mpc) in {\tt thisNode}. The potential is conventionally chosen such that $\Phi(r_{\rm virial}=-V_{\rm virial}^2$ so that the potential at infinity is zero if the halo profile is truncated at the virial radius. If the {\tt status} argument is present, it should be set to one of the codes provided by the \hyperlink{dark_matter_profiles.error_codes.F90:dark_matter_profiles_error_codes}{{\tt Dark\_Matter\_Profiles\_Error\_Codes}} module to indicate success of (the specific reason for) failure. The ``radius from specific angular momentum'' function should have the form:
 \begin{verbatim}
  double precision function Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get(thisNode,specificAngularMomentum)
     implicit none
