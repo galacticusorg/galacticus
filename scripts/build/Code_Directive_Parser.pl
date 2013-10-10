@@ -146,7 +146,15 @@ close(directiveHndl);
 open(makefileHndl,">./work/build/Makefile_Directives");
 foreach my $directive ( keys(%includeDirectives) ) {
     (my $fileName = ${$includeDirectives{$directive}}{'fileName'}) =~ s/\.inc$/\.Inc/;
-    print makefileHndl $fileName.": ./work/build/".$directive.".xml\n";
+    my $extraDependencies = "";
+    # For "function" actions, add the file containing the directive as an additional dependency
+    # as these files are simply copied into the include file as part of the include file construction.
+    if ( $directive =~ m/^([a-zA-Z0-9_]+)\.function$/ ) {
+	my $name = $1;
+	my @fileNames = keys(%{$otherDirectives->{$name}});
+	$extraDependencies .= " ".join(" ",@fileNames);
+    }
+    print makefileHndl $fileName.": ./work/build/".$directive.".xml".$extraDependencies."\n";
     print makefileHndl "\t./scripts/build/Build_Include_File.pl ".$sourcedir." ./work/build/".$directive.".xml\n";
     print makefileHndl "\n";
     open(xmlHndl,">./work/build/".$directive.".xml.tmp");
@@ -159,5 +167,9 @@ foreach my $directive ( keys(%includeDirectives) ) {
 	system("mv $sourcedir/work/build/".$directive.".xml.tmp $sourcedir/work/build/".$directive.".xml");
     }
 }
+# Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
+# objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
+print makefileHndl "-include ./work/build/Makefile_Component_Includes\n";
+print makefileHndl "./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc\n\n";
 close(makefileHndl);
 exit;

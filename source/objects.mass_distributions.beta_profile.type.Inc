@@ -19,6 +19,15 @@ type, public, extends(massDistributionSpherical) :: massDistributionBetaProfile
    !% The $\beta$-profile: $\rho(r)=\rho_0/[1+(r/r_{\rm core})^2]^{3\beta/2}$
    double precision :: beta, coreRadius, densityNormalization
  contains
+   !@ <objectMethods>
+   !@   <object>massDistributionBetaProfile</object>
+   !@   <objectMethod>
+   !@     <method>initialize</method>
+   !@     <description>Initialize the mass distribution.</description>
+   !@     <type>\void</type>
+   !@     <arguments>\doublezero beta\argin, \doublezero coreRadius\argin, \doublezero densityNormalization\argin, \doublezero mass\argin, \doublezero outerRadius\argin, \logicalzero\ isDimensionless\argin</arguments>
+   !@   </objectMethod>
+   !@ </objectMethods>
    procedure :: initialize=>Mass_Distribution_Beta_Profile_Initialize
    procedure :: density   =>Mass_Distribution_Beta_Profile_Density
 end type massDistributionBetaProfile

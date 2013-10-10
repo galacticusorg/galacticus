@@ -17,7 +17,7 @@ To utilize merger trees from the file that you created in a \glc\ run it's neces
   </parameter>
   <parameter>
     <name>mergerTreeReadFileName</name>
-    <value>myNBodyTrees.hdf5
+    <value>myNBodyTrees.hdf5</value>
   </parameter>
 \end{verbatim}
 The first of these {\tt [mergerTreeConstructMethod]}$=${\tt read} tells \glc\ that merger trees will be constructed by reading them from a file. The second, {\tt [mergerTreeReadFileName]}, gives the name of the file from which to read the trees. In this example, we use the name of the file that was jus created.
@@ -134,7 +134,7 @@ Typically, a merging halo is not seen at precisely the time at which it crosses 
 The times at which subhalos merge with their host halo can be determined directly from the merger tree file if subhalo information is included in that file. Merging is assumed to occur when the subhalo no longer has a distinct descendent (i.e. it descends into a non-subhalo). If merging times are to be computed in this way set
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>    
   </parameter>
   <parameter>
@@ -145,7 +145,7 @@ The times at which subhalos merge with their host halo can be determined directl
 which select a satellite orbit method that allows merger times to be present and tell the merger tree construction method to preset those merger times respectively. If merger times are not to be computed in this way then instead set, for example,
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>standard</value>    
   </parameter>
   <parameter>
@@ -168,12 +168,14 @@ In addition to setting the times of merger events, it is possible to set the tar
 \end{verbatim}
 will cause the target node with which each merger should occur to be determined from the merger tree structure and preset for use in \glc.
 
+It is possible to add a delay between the last time at which a subhalo was seen in a simulation and the time at which it is considered to merge. This functionality is motivated by the consideration that a subhalo vanishing from a simulation may be simply due to it dropping below resolution rather than it actually having undergone a merger. The parameter {\tt [mergerTreeReadSubresolutionMergingMethod]} can be used to select a satellite merging timescale method (see \S\ref{sec:SatelliteMergingTimescales}) to use in this case. (It is set by default to ``{\tt null}'' such that no delay before merging occurs.) The orbit of the subhalo around its parent at the last time it is present in the merger tree is passed to this method and used to estimate a time until merging. This delay is added to the time at which the subhalo merges and, if merge target nodes are being set, the target node is updated accordingly.
+
 \subsubsection{Subhalo Masses}
 
 The masses of subhalos (specifically their time evolution after they become subhalos) can be set using the values stored in the merger tree file (if available). To set subhalo masses in this way use
 \begin{verbatim}
   <parameter>
-    <name>treeNodeMethodSatelliteOrbit</name>
+    <name>treeNodeMethodSatellite</name>
     <value>preset</value>    
   </parameter>
   <parameter>

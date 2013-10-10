@@ -56,8 +56,10 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
-    procedure(double precision), intent(inout), pointer :: Tree_Branch_Mass   , Tree_Branching_Probability , &
-         &                                                 Tree_Maximum_Step  , Tree_Subresolution_Fraction
+    procedure(Modified_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
+    procedure(Modified_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
+    procedure(Modified_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
+    procedure(Modified_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'modifiedPress-Schechter') then
        Tree_Branching_Probability  => Modified_Press_Schechter_Branching_Probability

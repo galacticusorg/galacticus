@@ -1,8 +1,8 @@
 <!-- Parameter file used for testing the NFW96 halo concentration algorithm in a dark energy universe model. -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>Omega_Matter</name>

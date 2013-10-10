@@ -51,6 +51,7 @@ contains
     implicit none
     type     (varying_string               ), intent(in   )          :: mergerTreeBuildMethod
     procedure(Merger_Tree_Build_Do_Cole2000), intent(inout), pointer :: Merger_Tree_Build
+    class    (cosmologyFunctionsClass      )               , pointer :: cosmologyFunctionsDefault
 
     ! Check if our method is to be used.
     if (mergerTreeBuildMethod == 'Cole2000') then
@@ -92,7 +93,8 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000HighestRedshift'  ,mergerTreeBuildCole2000HighestRedshift  ,defaultValue&
             &=1.0d5 )
-       mergerTreeBuildCole2000EarliestTime=Cosmology_Age(Expansion_Factor_From_Redshift(mergerTreeBuildCole2000HighestRedshift))
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       mergerTreeBuildCole2000EarliestTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildCole2000HighestRedshift))
        !@ <inputParameter>
        !@   <name>mergerTreeBuildCole2000FixedRandomSeeds</name>
        !@   <defaultValue>{\tt false}</defaultValue>
@@ -105,6 +107,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeBuildCole2000FixedRandomSeeds',mergerTreeBuildCole2000FixedRandomSeeds,defaultValue&
             &=.false.)
+       mergerTreeBuildCole2000EarliestTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(mergerTreeBuildCole2000HighestRedshift))
     end if
     return
   end subroutine Merger_Tree_Build_Cole2000_Initialize

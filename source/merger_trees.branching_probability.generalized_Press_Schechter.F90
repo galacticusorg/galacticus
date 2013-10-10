@@ -53,7 +53,7 @@ module Generalized_Press_Schechter_Branching
   logical                     :: generalizedPressSchechterSmoothAccretion
 
   ! Record of issued warnings.
-  logical                     :: subresolutionFractionIntegrandFailureWarned =.false.
+  logical                     :: subresolutionFractionIntegrandFailureWarned  =.false.
 
 contains
 
@@ -67,8 +67,10 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: treeBranchingMethod
-    procedure(double precision), intent(inout), pointer :: Tree_Branch_Mass   , Tree_Branching_Probability , &
-         &                                                 Tree_Maximum_Step  , Tree_Subresolution_Fraction
+    procedure(Generalized_Press_Schechter_Branching_Probability), intent(inout), pointer :: Tree_Branching_Probability
+    procedure(Generalized_Press_Schechter_Subresolution_Fraction), intent(inout), pointer :: Tree_Subresolution_Fraction
+    procedure(Generalized_Press_Schechter_Branch_Mass), intent(inout), pointer :: Tree_Branch_Mass
+    procedure(Generalized_Press_Schechter_Branching_Maximum_Step), intent(inout), pointer :: Tree_Maximum_Step
 
     if (treeBranchingMethod == 'generalizedPress-Schechter') then
        Tree_Branching_Probability  => Generalized_Press_Schechter_Branching_Probability
@@ -120,11 +122,15 @@ contains
     use Excursion_Sets_First_Crossings
     use Cosmology_Functions
     implicit none
-    double precision :: presentTime, testResult, varianceMaximum
+    class           (cosmologyFunctionsClass), pointer :: cosmologyFunctionsDefault
+    double precision                                   :: presentTime              , testResult, &
+         &                                                varianceMaximum
 
     !$omp critical (Excursion_Sets_Maximum_Sigma_Test)
     if (.not.excursionSetsTested) then
-       presentTime    =Cosmology_Age(1.0d0)
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       presentTime    =cosmologyFunctionsDefault%cosmicTime(1.0d0)
        sigmaMaximum   =Cosmological_Mass_Root_Variance(generalizedPressSchechterMinimumMass)
        varianceMaximum=sigmaMaximum**2
        testResult     =Excursion_Sets_First_Crossing_Probability(                      varianceMaximum,presentTime)
@@ -283,7 +289,7 @@ contains
     double precision                            , save          :: massResolutionPrevious                 =-1.0d0, resolutionSigma
     !$omp threadprivate(resolutionSigma,massResolutionPrevious)
     double precision                            , parameter     :: resolutionSigmaOverParentSigmaTolerance=1.0d-3
-    double precision                                            :: massMaximum                                    , massMinimum    , &
+    double precision                                            :: massMaximum                                   , massMinimum    , &
          &                                                         resolutionSigmaOverParentSigma
     type            (c_ptr                     )                :: parameterPointer
     type            (fgsl_function             )                :: integrandFunction

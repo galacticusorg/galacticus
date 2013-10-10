@@ -36,7 +36,7 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
-    procedure(double precision), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
+    procedure(Merger_Tree_Construct_Mass_Function_Sampling_Gaussian), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
 
     if (haloMassFunctionSamplingMethod == 'gaussian') then
        Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Gaussian

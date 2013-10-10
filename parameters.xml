@@ -43,8 +43,8 @@
 
   <!-- Cosmological parameters and options -->
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>H_0</name>
@@ -277,10 +277,18 @@
     <value>10000</value>
   </parameter>
 
-  <!-- Ram pressure stripping options -->
+  <!-- Hot halo ram pressure stripping options -->
   <parameter>
     <name>hotHaloRamPressureStrippingMethod</name>
     <value>Font2008</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloRamPressureForceMethod</name>
+    <value>Font2008</value>
+  </parameter>
+  <parameter>
+    <name>hotHaloRamPressureStrippingTimescaleMethod</name>
+    <value>ramPressureAcceleration</value>
   </parameter>
   <parameter>
     <name>hotHaloOutflowStrippingEfficiency</name>
@@ -289,6 +297,30 @@
   <parameter>
     <name>hotHaloTrackStrippedGas</name>
     <value>true</value>
+  </parameter>
+
+  <!-- Galaxy ram pressure stripping options -->
+  <parameter>
+    <name>ramPressureStrippingMassLossRateDisksMethod</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>ramPressureStrippingMassLossRateSpheroidsMethod</name>
+    <value>null</value>
+  </parameter>
+
+  <!-- Galaxy tidal stripping options -->
+  <parameter>
+    <name>tidalStrippingMassLossRateDisksMethod</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>tidalStrippingMassLossRateSpheroidsMethod</name>
+    <value>null</value>
+  </parameter>
+  <parameter>
+    <name>satellitesTidalFieldMethod</name>
+    <value>null</value>
   </parameter>
 
   <!-- Galactic structure solver options -->
@@ -511,8 +543,8 @@
     <value>Benson2005</value>
   </parameter>
   <parameter>
-    <name>satelliteMergingMethod</name>
-    <value>Jiang2008</value>
+    <name>satelliteMergingTimescalesMethod</name>
+    <value>jiang2008</value>
   </parameter>
   <parameter>
     <name>mergingTimescaleMultiplier</name>

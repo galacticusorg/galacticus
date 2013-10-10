@@ -38,7 +38,7 @@ contains
     use Star_Formation_IMF_Utilities
     implicit none
     type     (varying_string), intent(in   )          :: imfNames        (:), imfSelectionMethod
-    procedure(integer       ), intent(inout), pointer :: IMF_Select_Do
+    procedure(IMF_Select_Disk_Spheroid), intent(inout), pointer :: IMF_Select_Do
     type     (varying_string)                         :: imfSelectionDisk   , imfSelectionSpheroid
 
     if (imfSelectionMethod == 'diskSpheroid') then

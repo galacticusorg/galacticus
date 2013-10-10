@@ -2,8 +2,8 @@
 <!-- comparing to results from Jeremy Tinker's code (http://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar) -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>Omega_Matter</name>

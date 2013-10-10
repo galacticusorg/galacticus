@@ -1,0 +1,158 @@
+<data>
+  <column>k [Mpc^{-1}] - wavenumber</column>
+  <column>T(k) - transfer function</column>
+  <description>Transfer function used in the Mill Gas N-body calculation.</description>
+  <source>John Helly [j.c.helly@durham.ac.uk] (originally supplied by Adrian Jenkins).</source>
+  <fileFormat>1</fileFormat>
+  <parameter>
+    <name>Omega_b</name>
+    <value>0.0455</value>
+  </parameter>
+  <parameter>
+    <name>Omega_Matter</name>
+    <value>0.272</value>
+  </parameter>
+  <parameter>
+    <name>Omega_DE</name>
+    <value>0.728</value>
+  </parameter>
+  <parameter>
+    <name>H_0</name>
+    <value>70.4</value>
+  </parameter>
+  <extrapolation>
+    <wavenumber>
+      <limit>low</limit>
+      <method>fixed</method>
+    </wavenumber>
+    <wavenumber>
+      <limit>high</limit>
+      <method>power law</method>
+    </wavenumber>
+  </extrapolation>
+  <datum>4.99543e-06 1</datum>
+  <datum>4.99543e-05 0.962719</datum>
+  <datum>6.97545e-05 0.957195</datum>
+  <datum>9.74031e-05 0.9517</datum>
+  <datum>0.000136011 0.946236</datum>
+  <datum>0.000189484 0.940806</datum>
+  <datum>0.00026459 0.935406</datum>
+  <datum>0.000369464 0.927899</datum>
+  <datum>0.000515908 0.919392</datum>
+  <datum>0.000720398 0.909915</datum>
+  <datum>0.00100363 0.897429</datum>
+  <datum>0.00140143 0.880038</datum>
+  <datum>0.00195692 0.857039</datum>
+  <datum>0.00273258 0.826038</datum>
+  <datum>0.00296874 0.817524</datum>
+  <datum>0.00322532 0.807235</datum>
+  <datum>0.00350407 0.797077</datum>
+  <datum>0.00380691 0.786141</datum>
+  <datum>0.00414546 0.772681</datum>
+  <datum>0.00450373 0.760327</datum>
+  <datum>0.00489297 0.746449</datum>
+  <datum>0.00531585 0.731982</datum>
+  <datum>0.00577528 0.716144</datum>
+  <datum>0.00627441 0.699842</datum>
+  <datum>0.00683239 0.681554</datum>
+  <datum>0.00742288 0.663744</datum>
+  <datum>0.00806441 0.64417</datum>
+  <datum>0.00876138 0.623735</datum>
+  <datum>0.00951859 0.601867</datum>
+  <datum>0.0103651 0.578762</datum>
+  <datum>0.0112609 0.554626</datum>
+  <datum>0.0122341 0.530274</datum>
+  <datum>0.0132915 0.50408</datum>
+  <datum>0.0144402 0.477529</datum>
+  <datum>0.0157243 0.449781</datum>
+  <datum>0.0170833 0.421697</datum>
+  <datum>0.0185598 0.39355</datum>
+  <datum>0.0201638 0.365175</datum>
+  <datum>0.0219065 0.337676</datum>
+  <datum>0.0238546 0.310456</datum>
+  <datum>0.0259163 0.285102</datum>
+  <datum>0.0281561 0.261818</datum>
+  <datum>0.0305895 0.241268</datum>
+  <datum>0.0332332 0.222844</datum>
+  <datum>0.0361887 0.206776</datum>
+  <datum>0.0393163 0.192753</datum>
+  <datum>0.042616 0.180094</datum>
+  <datum>0.0459804 0.168268</datum>
+  <datum>0.0492689 0.156675</datum>
+  <datum>0.0526711 0.145044</datum>
+  <datum>0.0559207 0.13366</datum>
+  <datum>0.0592342 0.123027</datum>
+  <datum>0.0625998 0.11324</datum>
+  <datum>0.0660044 0.104954</datum>
+  <datum>0.0692744 0.098288</datum>
+  <datum>0.0726227 0.0929503</datum>
+  <datum>0.0759578 0.0887156</datum>
+  <datum>0.0792816 0.0852512</datum>
+  <datum>0.0826176 0.081988</datum>
+  <datum>0.0859553 0.0788226</datum>
+  <datum>0.0892838 0.0754919</datum>
+  <datum>0.0926131 0.0719368</datum>
+  <datum>0.0959561 0.0681947</datum>
+  <datum>0.0992825 0.0644689</datum>
+  <datum>0.10263 0.0609747</datum>
+  <datum>0.105967 0.0577699</datum>
+  <datum>0.109288 0.0550808</datum>
+  <datum>0.112609 0.0527838</datum>
+  <datum>0.115951 0.0509506</datum>
+  <datum>0.119281 0.0494312</datum>
+  <datum>0.122623 0.0480287</datum>
+  <datum>0.125943 0.0466874</datum>
+  <datum>0.129292 0.045342</datum>
+  <datum>0.132609 0.0438531</datum>
+  <datum>0.135948 0.0422766</datum>
+  <datum>0.139275 0.0406771</datum>
+  <datum>0.142617 0.0390572</datum>
+  <datum>0.145939 0.0375147</datum>
+  <datum>0.1518 0.0351683</datum>
+  <datum>0.15786 0.0332775</datum>
+  <datum>0.164162 0.0317432</datum>
+  <datum>0.170755 0.0302413</datum>
+  <datum>0.177571 0.0286484</datum>
+  <datum>0.18466 0.0268906</datum>
+  <datum>0.192076 0.0252087</datum>
+  <datum>0.199744 0.0237165</datum>
+  <datum>0.207717 0.0224932</datum>
+  <datum>0.216059 0.0213305</datum>
+  <datum>0.224684 0.020091</datum>
+  <datum>0.233654 0.0188582</datum>
+  <datum>0.243037 0.0177399</datum>
+  <datum>0.252739 0.0167475</datum>
+  <datum>0.262829 0.0158107</datum>
+  <datum>0.273321 0.0148748</datum>
+  <datum>0.284297 0.0139766</datum>
+  <datum>0.295646 0.0131644</datum>
+  <datum>0.369209 0.00929289</datum>
+  <datum>0.461076 0.00651479</datum>
+  <datum>0.575854 0.00454078</datum>
+  <datum>0.71915 0.00314686</datum>
+  <datum>0.898199 0.0021682</datum>
+  <datum>1.12169 0.00148885</datum>
+  <datum>1.40079 0.00101765</datum>
+  <datum>1.74933 0.000693188</datum>
+  <datum>2.1846 0.000470004</datum>
+  <datum>2.72818 0.00031831</datum>
+  <datum>3.407 0.000214586</datum>
+  <datum>4.25474 0.000144494</datum>
+  <datum>5.3134 9.69617e-05</datum>
+  <datum>6.63549 6.49158e-05</datum>
+  <datum>8.29035 4.3401e-05</datum>
+  <datum>10.3412 2.89735e-05</datum>
+  <datum>12.9292 1.92753e-05</datum>
+  <datum>16.1277 1.28233e-05</datum>
+  <datum>20.1638 8.51139e-06</datum>
+  <datum>25.152 5.64287e-06</datum>
+  <datum>31.4465 3.73251e-06</datum>
+  <datum>39.2259 2.46888e-06</datum>
+  <datum>49.0425 1.62742e-06</datum>
+  <datum>61.1748 1.07152e-06</datum>
+  <datum>76.4844 7.03072e-07</datum>
+  <datum>95.4053 4.61318e-07</datum>
+  <datum>119.281 3.02343e-07</datum>
+  <datum>148.79 1.9611e-07</datum>
+  <datum>704 9.33254e-09</datum>
+</data>

@@ -51,9 +51,10 @@ contains
     !% Initializes the ``atomic CIE ionization state from {\sc Cloudy}'' module.
     implicit none
     type     (varying_string  ), intent(in   )          :: chemicalStateMethod
-    procedure(double precision), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get    , Electron_Density_Get, &
-         &                                                 Electron_Density_Temperature_Log_Slope_Get
-    procedure(                ), intent(inout), pointer :: Chemical_Densities_Get
+    procedure(Electron_Density_Atomic_CIE_Cloudy), intent(inout), pointer :: Electron_Density_Density_Log_Slope_Get
+    procedure(Electron_Density_Temperature_Log_Slope_Atomic_CIE_Cloudy), intent(inout), pointer :: Electron_Density_Get
+    procedure(Electron_Density_Density_Log_Slope_Atomic_CIE_Cloudy), intent(inout), pointer :: Electron_Density_Temperature_Log_Slope_Get
+    procedure(Chemical_Densities_Atomic_CIE_Cloudy), intent(inout), pointer :: Chemical_Densities_Get
 
     ! Check if this chemical state has been selected.
     if (chemicalStateMethod == 'atomicCIECloudy') then

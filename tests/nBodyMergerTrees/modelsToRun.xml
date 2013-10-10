@@ -26,7 +26,7 @@
               <value>true</value>
             </parameter>
             <parameter>
-              <name>satelliteMergingMethod</name>
+              <name>satelliteMergingTimescalesMethod</name>
               <value>preset</value>
             </parameter>
             <parameter>

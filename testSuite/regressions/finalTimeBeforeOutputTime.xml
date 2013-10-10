@@ -186,8 +186,8 @@
     <value>Kitayama-Suto1996</value>
   </parameter>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>treeBranchingMethod</name>
@@ -362,8 +362,8 @@
     <value>simpleScaling</value>
   </parameter>
   <parameter>
-    <name>satelliteMergingMethod</name>
-    <value>Jiang2008</value>
+    <name>satelliteMergingTimescalesMethod</name>
+    <value>jiang2008</value>
   </parameter>
   <parameter>
     <name>treeNodeMethodSpin</name>

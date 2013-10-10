@@ -69,49 +69,44 @@ contains
     return
   end subroutine Galactic_Dynamics_Bar_Instabilities_ELN_Initialize
 
-  double precision function Bar_Instability_Timescale_ELN(thisNode)
+  subroutine Bar_Instability_Timescale_ELN(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
     use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk)               , pointer :: thisDiskComponent
-    double precision                   , parameter              :: stabilityIsolatedDisk        =0.6221297315d0
+    type            (treeNode         )           , intent(inout), pointer :: thisNode
+    double precision                              , intent(  out)          :: barInstabilityExternalDrivingSpecificTorque               , barInstabilityTimeScale
+    class           (nodeComponentDisk)                          , pointer :: thisDiskComponent
+    double precision                   , parameter                         :: stabilityIsolatedDisk                      =0.6221297315d0
     ! Factor by which to boost velocity (evaluated at scale radius) to convert to maximum velocity (assuming an isolated disk) as
     ! appears in stability criterion.
-    double precision                   , parameter              :: velocityBoostFactor          =1.180023758d0
+    double precision                   , parameter                         :: velocityBoostFactor                        =1.180023758d0
     ! Maximum timescale (in dynamical times) allowed.
-    double precision                   , parameter              :: timescaleDimensionlessMaximum=1.0d10
-    double precision                                            :: diskMass                                    , dynamicalTime            , &
-         &                                                         gasFraction                                 , stabilityEstimator       , &
-         &                                                         stabilityEstimatorRelative                  , stabilityIsolatedRelative, &
-         &                                                         stabilityThreshold                          , timescaleDimensionless
+    double precision                   , parameter                         :: timescaleDimensionlessMaximum              =1.0d10
+    double precision                                                       :: diskMass                                                  , dynamicalTime            , &
+         &                                                                    gasFraction                                               , stabilityEstimator       , &
+         &                                                                    stabilityEstimatorRelative                                , stabilityIsolatedRelative, &
+         &                                                                    stabilityThreshold                                        , timescaleDimensionless
 
     ! Assume infinite timescale (i.e. no instability) initially.
-    Bar_Instability_Timescale_ELN=-1.0d0
-
+    barInstabilityTimeScale                    =-1.0d0
+    barInstabilityExternalDrivingSpecificTorque= 0.0d0
     ! Get the disk.
     thisDiskComponent => thisNode%disk()
-
     ! Compute the disk mass.
     diskMass=thisDiskComponent%massGas()+thisDiskComponent%massStellar()
     ! Return if there is no disk.
-    if (diskMass <= 0.0d0) return
-
+    if (diskMass                            <= 0.0d0                                         ) return
     ! Return if disk has unphysical angular momentum.
-    if (thisDiskComponent%angularMomentum() <= 0.0d0) return
-
+    if (thisDiskComponent%angularMomentum() <= 0.0d0                                         ) return
     ! Return if disk has unphysical velocity or radius.
-    if (thisDiskComponent%velocity() <= 0.0d0 .or. thisDiskComponent%radius() <= 0.0d0) return
-
+    if (thisDiskComponent%velocity       () <= 0.0d0 .or. thisDiskComponent%radius() <= 0.0d0) return
     ! Compute the gas fraction in the disk.
     gasFraction=thisDiskComponent%massGas()/diskMass
-
     ! Compute the stability threshold.
     stabilityThreshold=stabilityThresholdStellar*(1.0d0-gasFraction)+stabilityThresholdGaseous*gasFraction
-
     ! Compute the stability estimator for this node.
     stabilityEstimator=max(&
          &                  stabilityIsolatedDisk               , &
@@ -123,14 +118,11 @@ contains
          &                       /thisDiskComponent%radius  ()    &
          &                      )                                 &
          &                )
-
     ! Check if the disk is bar unstable.
     if (stabilityEstimator < stabilityThreshold) then
        ! Disk is unstable, compute a timescale for depletion.
-
        ! Begin by finding the disk dynamical time.
        dynamicalTime=(megaParsec/kilo/gigaYear)*thisDiskComponent%radius()/min(thisDiskComponent%velocity(),speedLight/kilo)
-
        ! Simple scaling which gives infinite timescale at the threshold, decreasing to dynamical time for a maximally unstable
        ! disk.
        stabilityIsolatedRelative =stabilityThreshold-stabilityIsolatedDisk
@@ -140,11 +132,9 @@ contains
        else
           timescaleDimensionless=stabilityIsolatedRelative/stabilityEstimatorRelative
        end if
-       Bar_Instability_Timescale_ELN=dynamicalTime*timescaleDimensionless
-
+       barInstabilityTimeScale=dynamicalTime*timescaleDimensionless
     end if
-
     return
-  end function Bar_Instability_Timescale_ELN
+  end subroutine Bar_Instability_Timescale_ELN
 
 end module Galactic_Dynamics_Bar_Instabilities_ELN

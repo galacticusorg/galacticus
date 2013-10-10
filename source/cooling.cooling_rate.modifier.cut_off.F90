@@ -48,11 +48,12 @@ contains
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(inout)          :: coolingRate
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: virialVelocity
-    type            (varying_string    )                         :: coolingCutOffWhenText
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    double precision                         , intent(inout)          :: coolingRate
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                                                  :: virialVelocity
+    type            (varying_string         )                         :: coolingCutOffWhenText
 
     if (.not.moduleInitialized) then
        !$omp critical (Cooling_Rate_Modifier_Cut_Off_Initialize)
@@ -90,7 +91,8 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("coolingCutOffRedshift",coolingCutOffRedshift,defaultValue=0.0d0)
-          coolingCutOffTime=Cosmology_Age(Expansion_Factor_from_Redshift(coolingCutOffRedshift))
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          coolingCutOffTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(coolingCutOffRedshift))
           !@ <inputParameter>
           !@   <name>coolingCutOffWhen</name>
           !@   <defaultValue>after</defaultValue>

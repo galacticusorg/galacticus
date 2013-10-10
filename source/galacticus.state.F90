@@ -170,6 +170,7 @@ contains
     use Input_Parameters
     implicit none
 
+    !$omp critical(Galacticus_State_Initialize)
     if (.not.stateInitialized) then
 
        ! Get the base name of the state files.
@@ -202,6 +203,7 @@ contains
        stateInitialized=.true.
 
     end if
+    !$omp end critical(Galacticus_State_Initialize)
     return
   end subroutine State_Initialize
 

@@ -16,8 +16,8 @@
     <value>0.045</value>
   </parameter>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>criticalOverdensityMethod</name>

@@ -29,13 +29,14 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   use Cosmology_Functions
   use Virial_Density_Contrast
   implicit none
-  double precision                , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
-  double precision                , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
-  type            (varying_string)               :: parameterFile
-  character       (len=1024      )               :: message
-  integer                                        :: iExpansion
-  double precision                               :: age                                                       , expansionFactor, &
-       &                                            virialDensityContrast
+  double precision                         , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
+  double precision                         , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
+  class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctionsDefault
+  type            (varying_string         )               :: parameterFile
+  character       (len=1024               )               :: message
+  integer                                                 :: iExpansion
+  double precision                                        :: age                                                       , expansionFactor, &
+       &                                                     virialDensityContrast
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminus0.6.size')
@@ -46,11 +47,13 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   ! Test spherical collapse in a flat universe.
   parameterFile='testSuite/parameters/sphericalCollapse/darkEnergy.constantEoSminus0.6.xml'
   call Input_Parameters_File_Open(parameterFile)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
   do iExpansion=1,size(redshift)
-     expansionFactor            =Expansion_Factor_From_Redshift(redshift(iExpansion))
-     age                        =Cosmology_Age(expansionFactor)
-     virialDensityContrast        =Halo_Virial_Density_Contrast(age)
-     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",Omega_Matter_Total(age),"]"
+     expansionFactor      =cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift       (iExpansion))
+     age                  =cosmologyFunctionsDefault%cosmicTime                 (expansionFactor            )
+     virialDensityContrast=Halo_Virial_Density_Contrast(age)
+     write (message,'(a,f6.1,a,f6.4,a)') "virial density contrast [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctionsDefault%omegaMatterEpochal(age),"]"
      call Assert(trim(message),virialDensityContrast,virialDensityContrastExpected(iExpansion),relTol=1.0d-2)
   end do
   call Input_Parameters_File_Close

@@ -35,19 +35,20 @@ program Test_Zhao2009_Open
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (treeNode          )                         , pointer :: thisNode
-  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
-  integer                             , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
-  double precision                    , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.6d-2], timeDifferenceTolerance=[2.3d-2]
-  type            (varying_string    )                                   :: fileName                                 , message                          , &
-       &                                                                    parameterFile
-  integer                                                                :: dataLinesInFile                          , fUnit                            , &
-       &                                                                    iLine                                    , iMass                            , &
-       &                                                                    totalLinesInFile
-  double precision                                                       :: concentrationDifferenceMaximum           , haloMass                         , &
-       &                                                                    ourConcentration                         , ourTime                          , &
-       &                                                                    redshift                                 , theirConcentration               , &
-       &                                                                    theirTime                                , timeDifferenceMaximum
+  type            (treeNode               )                         , pointer :: thisNode
+  class           (nodeComponentBasic     )                         , pointer :: thisBasicComponent
+  integer                                  , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
+  double precision                         , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.6d-2], timeDifferenceTolerance=[2.3d-2]
+  class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctionsDefault
+  type            (varying_string         )                                   :: fileName                                 , message                         , &
+       &                                                                         parameterFile
+  integer                                                                     :: dataLinesInFile                          , fUnit                           , &
+       &                                                                         iLine                                    , iMass                           , &
+       &                                                                         totalLinesInFile
+  double precision                                                            :: concentrationDifferenceMaximum           , haloMass                        , &
+       &                                                                         ourConcentration                         , ourTime                         , &
+       &                                                                         redshift                                 , theirConcentration              , &
+       &                                                                         theirTime                                , timeDifferenceMaximum
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.open.size')
@@ -65,6 +66,8 @@ program Test_Zhao2009_Open
 
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
 
   ! Loop over halo masses to test.
   do iMass=1,size(logarithmicHaloMasses)
@@ -90,11 +93,11 @@ program Test_Zhao2009_Open
         read (fUnit,*) redshift,haloMass,theirConcentration
 
         ! Compute the corresponding cosmological time.
-        theirTime=Cosmology_Age(Expansion_Factor_From_Redshift(redshift))
+        theirTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshift))
 
         ! Set the mass and time of the original node.
         call thisBasicComponent%massSet(10.0d0**logarithmicHaloMasses(iMass))
-        call thisBasicComponent%timeSet(Cosmology_Age                (1.0d0))
+        call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime                (1.0d0))
 
         ! Get the time corresponding to the current halo mass.
         ourTime=Dark_Matter_Halo_Mass_Accretion_Time(thisNode,haloMass)

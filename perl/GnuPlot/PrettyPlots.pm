@@ -289,7 +289,7 @@ sub Prepare_Dataset {
 	)
        )
     {
-	$dummyPoint = "0 0\n";
+	$dummyPoint = "inf inf\n";
     } else {
 	$dummyPoint = "inf inf\n";
     }

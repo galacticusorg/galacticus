@@ -87,6 +87,12 @@ module Hashes
      !@     <type>\intzero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <description>Destroy the hash.</description>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: initialize           =>Initialize_Integer_Scalar
      procedure :: Set_Integer_Scalar_VS
@@ -105,7 +111,8 @@ module Hashes
      procedure :: keys                    =>Keys_Integer_Scalar
      procedure :: values                  =>Values_Integer_Scalar
      generic   :: exists     => Exists_Integer_Scalar_VS,Exists_Integer_Scalar_CH
-     procedure :: size=>Size_Integer_Scalar
+     procedure :: size   =>Size_Integer_Scalar
+     procedure :: destroy=>Destroy_Integer_Scalar
   end type integerScalarHash
 
   ! The number of new elements by which to extend hashes that need to grow.
@@ -375,5 +382,21 @@ contains
     end select
     return
   end subroutine Set_Integer_Scalar_VS
+
+  subroutine Destroy_Integer_Scalar(thisHash)
+    !% Destroys {\tt thisHash}.
+    implicit none
+    class  (integerScalarHash), intent(inout) :: thisHash
+    integer                                   :: i
+
+    if (allocated(thisHash%hashValues)) deallocate(thisHash%hashValues)
+    if (allocated(thisHash%hashKeys  )) then
+       do i=1,size(thisHash%hashKeys)
+          call thisHash%hashKeys(i)%destroy()
+       end do
+       deallocate(thisHash%hashKeys)
+    end if
+    return
+  end subroutine Destroy_Integer_Scalar
 
 end module Hashes

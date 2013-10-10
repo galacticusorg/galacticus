@@ -29,7 +29,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
 #include <objects.nodes.bindings.C.h>
   
 //: ./work/build/cosmology.functions.o
-#include <cosmology.functions.h>
+#include <cosmologyFunctions.h>
   
 //: ./work/build/utility.input_parameters.o
 #include <utility.input_parameters.h>
@@ -49,20 +49,21 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
   double Star_Formation_Timescale_Disk_Baugh2005(void *thisNode)
   {
     //% Return the star formation timescale for disks using the \cite{baugh_can_2005} prescription.
-    double time, expansionFactor, timeScale, diskVelocity;
-    double velocityNormalization  =200.0;
-    nodeComponentBasic thisBasicComponent (thisNode);
-    nodeComponentDisk  thisDiskComponent  (thisNode);
+    double                  time, expansionFactor, timeScale, diskVelocity;
+    double                  velocityNormalization    =200.0    ;
+    cosmologyFunctionsClass cosmologyFunctionsDefault          ;
+    nodeComponentBasic      thisBasicComponent       (thisNode);
+    nodeComponentDisk       thisDiskComponent        (thisNode);
 
     diskVelocity=thisDiskComponent.velocity();
     if (diskVelocity <= 0.0) {
       timeScale=0.0;
     } else {
       time           =thisBasicComponent.time();
-      expansionFactor=Expansion_Factor(time);
+      expansionFactor=cosmologyFunctionsDefault.expansionFactor(time);
       timeScale      =starFormationDiskTimescale
      	*pow(diskVelocity/velocityNormalization,starFormationDiskVelocityExponent)
-     	*pow(expansionFactor,starFormationExpansionExponent);
+     	*pow(expansionFactor                   ,starFormationExpansionExponent   );
     }
     return timeScale;
   }

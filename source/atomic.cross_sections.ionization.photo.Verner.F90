@@ -1938,7 +1938,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: atomicPhotoIonizationMethod
-    procedure(double precision), intent(inout), pointer :: Atomic_Cross_Section_Ionization_Photo_Get
+    procedure(Atomic_Cross_Section_Ionization_Photo_Verner), intent(inout), pointer :: Atomic_Cross_Section_Ionization_Photo_Get
 
     ! Check if this atomic photo ionization rate method has been selected.
     if (atomicPhotoIonizationMethod == 'Verner') Atomic_Cross_Section_Ionization_Photo_Get =>&

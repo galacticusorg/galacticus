@@ -47,7 +47,7 @@ CPPFLAGS += -I./source/ -I./work/build/ ${GALACTICUS_CPPFLAGS}
 CPPFLAGS += -g
 
 # List of additional Makefiles which contain dependency information
-MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps ./work/build/Makefile_Component_Includes
+MAKE_DEPS = ./work/build/Makefile_Module_Deps ./work/build/Makefile_Use_Deps ./work/build/Makefile_Include_Deps
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -184,9 +184,6 @@ vpath %.cpp source
 # Include rules to build include files generated from directives.
 -include ./work/build/Makefile_Directives
 
-# Include dependencies on component include files.
--include ./work/build/Makefile_Component_Includes
-
 # Rules for memory management routines.
 ./work/build/Allocatable_Arrays.xml: ./scripts/build/Find_Allocatable_Arrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/Find_Allocatable_Arrays.pl `pwd`
@@ -263,7 +260,5 @@ all: deps $(all_exes)
 ./work/build/Makefile_All_Execs: ./scripts/build/Find_Programs.pl source/*.[fF]90 source/*.h source/*.c source/*.cpp
 	@mkdir -p work/build
 	./scripts/build/Find_Programs.pl `pwd`
-
-./work/build/Makefile_Component_Includes: ./work/build/objects.nodes.components.Inc
 
 deps: $(MAKE_DEPS) ./work/build/Makefile_All_Execs

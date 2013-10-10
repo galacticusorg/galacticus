@@ -139,12 +139,13 @@ contains
     use Satellite_Merging_Timescales
     use Kepler_Orbits
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
-    logical                                                          :: isNewSatellite
-    double precision                                                 :: mergeTime
-    type            (keplerOrbit           )                         :: thisOrbit
+    type            (treeNode                       ), intent(inout), pointer :: thisNode
+    type            (treeNode                       )               , pointer :: hostNode
+    class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
+    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescalesDefault
+    logical                                                                   :: isNewSatellite
+    double precision                                                          :: mergeTime
+    type            (keplerOrbit           )                                  :: thisOrbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
@@ -169,7 +170,8 @@ contains
        hostNode => thisNode%parent
        thisOrbit=Virial_Orbital_Parameters(thisNode,hostNode,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       mergeTime=Satellite_Time_Until_Merging(thisNode,thisOrbit)
+       satelliteMergingTimescalesDefault => satelliteMergingTimescales()
+       mergeTime=satelliteMergingTimescalesDefault%timeUntilMerging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
     end select
     return

@@ -1,8 +1,8 @@
 <!-- Parameter file used for testing dark energy spherical collapse calculations in an open universe model. -->
 <parameters>
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-darkEnergy</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterDarkEnergy</value>
   </parameter>
   <parameter>
     <name>darkEnergyEquationOfStateW0</name>

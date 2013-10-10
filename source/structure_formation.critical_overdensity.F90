@@ -113,17 +113,21 @@ contains
     use Root_Finder
     use Cosmology_Functions
     implicit none
-    double precision            , intent(in   ), optional :: aExpansion              , time
-    logical                     , intent(in   ), optional :: collapsing
-    double precision            , parameter               :: massGuess        =1.0d13, toleranceAbsolute=0.0d0, &
-         &                                                   toleranceRelative=1.0d-6
-    type            (rootFinder), save                    :: finder
+    double precision                         , intent(in   ), optional :: aExpansion                      , time
+    logical                                  , intent(in   ), optional :: collapsing
+    double precision                         , parameter               :: massGuess                =1.0d13, toleranceAbsolute=0.0d0, &
+         &                                                                toleranceRelative        =1.0d-6
+    type            (rootFinder             ), save                    :: finder
     !$omp threadprivate(finder)
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the critical overdensity for collapse at this epoch.
     if (present(time)) then
        collapseTime=time
     else
-       collapseTime=Cosmology_Age(aExpansion,collapsing)
+       collapseTime=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsing)
     end if
     ! Find mass at which the root-variance (sigma) equals this critical overdensity.
     if (.not.finder%isInitialized()) then
@@ -155,11 +159,15 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , mass       , time
-    logical         , intent(in   ), optional :: collapsing
-    logical                                   :: collapsingActual, remakeTable
-    double precision                          :: timeActual
+    double precision                         , intent(in   ), optional :: aExpansion               , mass       , &
+         &                                                                time
+    logical                                  , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    logical                                                            :: collapsingActual         , remakeTable
+    double precision                                                   :: timeActual
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -174,7 +182,7 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+          timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Critical_Overdensity_for_Collapse','at least one argument must be given')
        end if
@@ -201,11 +209,15 @@ contains
     use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    double precision, intent(in   ), optional :: aExpansion      , mass       , time
-    logical         , intent(in   ), optional :: collapsing
-    logical                                   :: collapsingActual, remakeTable
-    double precision                          :: timeActual
+    double precision                         , intent(in   ), optional :: aExpansion               , mass       , &
+         &                                                                time
+    logical                                  , intent(in   ), optional :: collapsing
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    logical                                                            :: collapsingActual         , remakeTable
+    double precision                                                   :: timeActual
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Determine which type of input we have.
     if (present(time)) then
        if (present(aExpansion)) then
@@ -220,7 +232,7 @@ contains
           else
              collapsingActual=.false.
           end if
-          timeActual=Cosmology_Age(aExpansion,collapsingActual)
+          timeActual=cosmologyFunctionsDefault%cosmicTime(aExpansion,collapsingActual)
        else
           call Galacticus_Error_Report('Critical_Overdensity_for_Collapse_Time_Gradient','at least one argument must be given')
        end if
@@ -246,9 +258,10 @@ contains
     !% Returns the time of collapse for a perturbation of linear theory overdensity {\tt criticalOverdensity}.
     use Cosmology_Functions
     implicit none
-    double precision, intent(in   )           :: criticalOverdensity
-    double precision, intent(in   ), optional :: mass
-    double precision                          :: criticalOverdensityActual, time
+    double precision                         , intent(in   )           :: criticalOverdensity
+    double precision                         , intent(in   ), optional :: mass
+    class           (cosmologyFunctionsClass), pointer                 :: cosmologyFunctionsDefault
+    double precision                                                   :: criticalOverdensityActual, time
 
     ! Scale by a mass dependent factor if necessary.
     if (present(mass)) then
@@ -256,9 +269,10 @@ contains
     else
        criticalOverdensityActual=criticalOverdensity
     end if
-
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Check if we need to recompute our table.
-    if (.not.tablesInitialized) call Critical_Overdensity_Initialize(Cosmology_Age(1.0d0))
+    if (.not.tablesInitialized) call Critical_Overdensity_Initialize(cosmologyFunctionsDefault%cosmicTime(1.0d0))
     do while (criticalOverdensityActual<deltaCritTableReversed%x(1).or.criticalOverdensityActual&
          &>deltaCritTableReversed%x(-1))
        if (criticalOverdensityActual>deltaCritTableReversed%x(-1)) then

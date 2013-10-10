@@ -33,16 +33,17 @@ contains
     use Input_Parameters
     use Dates_and_Times
     use Numerical_Constants_Astronomical
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
-    character       (len=*         ), intent(in   ) :: nodesFile
-    type            (mergerTreeData), intent(inout) :: mergerTrees
-    integer                                         :: lineCountData            , lineCountTotal    , &
-         &                                             lineNumberStart          , lineNumberStop
-    double precision                                :: boxSize                  , powerSpectrumIndex, &
-         &                                             sigma_8
-    type            (varying_string)                :: source                   , transferFunction
-    logical                                         :: haloMassesIncludeSubhalos
+    character       (len=*                   ), intent(in   ) :: nodesFile
+    type            (mergerTreeData          ), intent(inout) :: mergerTrees
+    class           (cosmologyParametersClass), pointer       :: thisCosmologyParameters
+    integer                                                   :: lineCountData            , lineCountTotal    , &
+         &                                                       lineNumberStart          , lineNumberStop
+    double precision                                          :: boxSize                  , powerSpectrumIndex, &
+         &                                                       sigma_8
+    type            (varying_string          )                :: source                   , transferFunction
+    logical                                                   :: haloMassesIncludeSubhalos
 
     ! Process the file.
     ! Find number of lines in file, with and without comments.
@@ -74,11 +75,14 @@ contains
     call mergerTrees%setUnits(unitsMass  ,unitsInSI=massSolar ,hubbleExponent=0,scaleFactorExponent=0)
     call mergerTrees%setUnits(unitsLength,unitsInSI=megaParsec,hubbleExponent=0,scaleFactorExponent=0)
 
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
+
     ! Set cosmology metadata.
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,Omega_Matter()                     )
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,Omega_b     ()                     )
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,Omega_DE    ()                     )
-    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,Little_H_0  ()                     )
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaMatter'               ,thisCosmologyParameters%OmegaMatter    (           ))
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaBaryon'               ,thisCosmologyParameters%OmegaBaryon    (           ))
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'OmegaLambda'               ,thisCosmologyParameters%OmegaDarkEnergy(           ))
+    call    mergerTrees%addMetadata(metaDataCosmology  ,'HubbleParam'               ,thisCosmologyParameters%HubbleConstant (unitsLittleH))
     if (Input_Parameter_Is_Present("sigma_8"           )) then
        !@ <inputParameter>
        !@   <name>sigma_8</name>

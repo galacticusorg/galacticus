@@ -92,19 +92,20 @@ contains
 
   subroutine Galactic_Structure_Radii_Solve_Adiabatic(thisNode)
     !% Find the radii of galactic components in {\tt thisNode} using the ``adiabatic'' method.
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     use Galacticus_Error
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    integer                                  , parameter              :: iterationMaximum       =100
-    procedure       (Structure_Get_Template )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Structure_Set_Template )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
+    type            (treeNode                ), intent(inout), pointer :: thisNode
+    integer                                   , parameter              :: iterationMaximum       =100
+    procedure       (Structure_Get_Template  )               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
+    procedure       (Structure_Set_Template  )               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    logical                                                           :: componentActive
-    double precision                                                  :: specificAngularMomentum
+    class           (nodeComponentBasic      )               , pointer :: thisBasicComponent
+    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    logical                                                            :: componentActive
+    double precision                                                   :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
     thisNode%isPhysicallyPlausible=.true.
@@ -122,10 +123,12 @@ contains
           haloNode => thisNode
        end if
 
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
        ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
        ! exploring regimes of high baryonic mass, and this would cause problems.
        thisBasicComponent => thisNode%basic()
-       haloFraction=(Omega_Matter()-Omega_b())/Omega_Matter() ! Determine the dark matter fraction.
+       haloFraction=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())/thisCosmologyParameters%OmegaMatter() ! Determine the dark matter fraction.
 
        ! Begin iteration to find a converged solution.
        do while (iterationCount <= 2 .or. ( fitMeasure > adiabaticContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )

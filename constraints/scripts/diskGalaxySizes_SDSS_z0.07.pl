@@ -77,12 +77,12 @@ my $cosmologyGalacticus = Astro::Cosmology->new(
 # Compute cosmological correction factor for sizes.
 my $angularDistanceData             = $cosmologyData      ->angular_diameter_distance($sampleRedshift);
 my $angularDistanceGalacticus       = $cosmologyGalacticus->angular_diameter_distance($sampleRedshift);
-my $radiusCosmologyCorrectionFactor = $angularDistanceGalacticus/$angularDistanceData;
+my $radiusCosmologyCorrectionFactor = $angularDistanceData/$angularDistanceGalacticus;
 
 # Compute cosmological correction factor for masses.
 my $luminosityDistanceData          = $cosmologyData      ->luminosity_distance($sampleRedshift);
 my $luminosityDistanceGalacticus    = $cosmologyGalacticus->luminosity_distance($sampleRedshift);
-my $massCosmologyCorrectionFactor   = ($luminosityDistanceGalacticus/$luminosityDistanceData)**2;
+my $massCosmologyCorrectionFactor   = ($luminosityDistanceData/$luminosityDistanceGalacticus)**2;
 
 # Count the number of late-type distributions.
 my $distributionLateTypeCount = 0;
@@ -125,8 +125,6 @@ foreach my $dataSet ( @{$dataCompilation->{'distribution'}} ) {
 		die("diskGalaxySizes_SDSS_z0.07.pl: unknown scaling for ".$_);
 	    }
 	}
-	# Convert for cosmology.
-	$data->{'radius'} *= $radiusCosmologyCorrectionFactor;
 	# Construct data covariance matrix.
 	#  Construct temporary matrices used in finding covariance matrix.
 	my $radiusCount                                         = nelem($data->{'radius'});
@@ -156,8 +154,8 @@ foreach my $dataSet ( @{$dataCompilation->{'distribution'}} ) {
 	    )
 	    .= $data->{'covariance'};
 	# Find minimum and maximum masses for this bin.
-	$dataCompilation->{'massMinimum'}->(($j)) .= $dataSet->{'massMinimum'}*$massCosmologyCorrectionFactor;
-	$dataCompilation->{'massMaximum'}->(($j)) .= $dataSet->{'massMaximum'}*$massCosmologyCorrectionFactor;
+	$dataCompilation->{'massMinimum'}->(($j)) .= $dataSet->{'massMinimum'};
+	$dataCompilation->{'massMaximum'}->(($j)) .= $dataSet->{'massMaximum'};
     }
 }
 $dataCompilation->{'massLogarithmic'} = log10(sqrt($dataCompilation->{'massMinimum'}*$dataCompilation->{'massMaximum'}));
@@ -198,8 +196,8 @@ unless ( $gotModelSizeFunction == 1 ) {
 	$diskRadiusCoefficient                    *
 	$model->{'dataSets'}->{'nodeVirialRadius'}*
 	$model->{'dataSets'}->{'spinSpin'        };
-    $model->{'dataSets'}->{'diskRadiusLogarithmic'} = log10($model->{'dataSets'}->{'diskRadius'     });
-    $model->{'dataSets'}->{'massLogarithmic'      } = log10($model->{'dataSets'}->{'diskMassStellar'});
+    $model->{'dataSets'}->{'diskRadiusLogarithmic'} = log10($model->{'dataSets'}->{'diskRadius'     }*$radiusCosmologyCorrectionFactor);
+    $model->{'dataSets'}->{'massLogarithmic'      } = log10($model->{'dataSets'}->{'diskMassStellar'}*  $massCosmologyCorrectionFactor);
     # Apply mass systematics.
     my $massSystematicLogM0         = pdl 11.0;
     my $massSystematicParameterRoot = "diskGalaxySizesSDSSZ0.07MassSystematic";

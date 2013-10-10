@@ -656,21 +656,23 @@ where {\tt myMethod} is the name of this method as will be specified by the {\tt
 
 The bar instability timesacale function must have the form:
 \begin{verbatim}
-  double precision function My_Bar_Instability_Timescale(thisNode)
+  subroutine My_Bar_Instability_Timescale(thisNode,barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque)
     implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
+    type            (treeNode), intent(inout), pointer :: thisNode
+    double precision          , intent(  out)          :: barInstabilityTimeScale,barInstabilityExternalDrivingSpecificTorque
     .
     .
     .
     return
-  end function My_Bar_Instability_Timescale
+  end subroutine My_Bar_Instability_Timescale
 \end{verbatim}
-The function should compute and return the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned.
+The function should compute and return, in {\tt barInstabilityTimeScale} the timescale (in Gyr) for the bar instability in the disk in {\tt thisNode} to transfer material from the disk to the pseudo-bulge. If no instability is present, a negative timescale should be returned. Additionally, any specific torque external to the galaxy driving the instability should be returned in {\tt barInstabilityExternalDrivingSpecificTorque}.
 
 Currently defined bar instability methods are:
 \begin{description}
  \item [{\tt null}] A null method in which disks are never bar unstable;
  \item [{\tt ELN}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982}.
+ \item [{\tt ELN+tidal}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982} with an additional term to account for an external tidal field.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Initial Separation}
@@ -2756,6 +2758,45 @@ Currently defined hot halo ram pressure stripping radii methods are:
  \item [\hyperlink{hot_halo.ram_pressure_stripping.Font2008.F90:hot_halo_ram_pressure_stripping_font2008:hot_halo_ram_pressure_stripping_font2008_get}{{\tt Font2008}}] Computes the ram pressure stripping radius using the algorithm of \cite{font_colours_2008}.
 \end{description}
 
+\subsubsection{Hot Halo Ram Pressure Stripping Timescale}
+
+Additional methods for the ram pressure stripping timescale in hot halos can be added using the {\tt hotHaloRamPressureStrippingTimescaleMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt virialRadius} method is described by a directive:
+\begin{verbatim}
+ !# <hotHaloRamPressureStrippingTimescaleMethod>
+ !#  <unitName>Hot_Halo_Ram_Pressure_Timescales_Halo_DynTime_Initialize</unitName>
+ !# </hotHaloRamPressureStrippingTimescaleMethod>
+\end{verbatim}
+Here, {\tt Hot\_Halo\_Ram\_Pressure\_Timescales\_Halo\_DynTime\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(hotHaloRamPressureStrippingTimescaleMethod,Hot_Halo_Ram_Pressure_Stripping_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: hotHaloRamPressureStrippingTimescaleMethod
+    procedure(),          pointer, intent(inout) :: Hot_Halo_Ram_Pressure_Timescale_Get
+    
+    if (hotHaloRamPressureStrippingTimescaleMethod == 'myMethod') Hot_Halo_Ram_Pressure_Timescale_Get => My_Hot_Halo_Ram_Pressure_Timescale_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt hotHaloRamPressureStrippingTimescaleMethod} input parameter. The procedure pointer {\tt Hot\_Halo\_Ram\_Pressure\_Timescale\_Get} must be set to point to a function which returns the timescale on which material is removed from the hot halo due to ram pressure forces. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The ram pressure stripping timescale function must have the form:
+\begin{verbatim}
+ double precision function Hot_Halo_Ram_Pressure_Timescale_Get(thisNode)
+    implicit none
+    type(treeNode), intent(inout), pointer :: thisNode
+    .
+    .
+    .
+    return
+ end function Hot_Halo_Ram_Pressure_Timescale_Get
+\end{verbatim}
+The function must return the timescale (in units of Gyr) on which the hot halo of {\tt thisNode} is being stripped by ram pressure forces.
+
+Currently defined hot halo ram pressure stripping timescale methods are:
+\begin{description}
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.halo_dynamical_time.F90:hot_halo_ram_pressure_timescales_halo_dyntime:hot_halo_ram_pressure_timescale_halo_dyntime}{{\tt haloDynamicalTime}}] Sets the ram pressure stripping timescale equal to the dynamical time of the node's dark matter halo
+ \item [\hyperlink{hot_halo.ram_pressure_stripping.timescale.ram_pressure_acceleration.F90:hot_halo_ram_pressure_timescales_ram_pressure_accel:hot_halo_ram_pressure_timescale_ram_pressure_accel}{{\tt ramPressureAcceleration}}] Computes the timescale from the ram pressure acceleration following \cite{roediger_ram_2007}.
+\end{description}
 
 \subsubsection{Hot Halo Temperature Profile}
 
@@ -3054,17 +3095,18 @@ The halo enclosed mass function must have the form:
 \end{verbatim}
 and should return the enclosed mass (in $M_\odot$) at the specified {\tt radius} (in Mpc) in {\tt thisNode}. The halo potential function must have the form:
 \begin{verbatim}
- double precision function Dark_Matter_Profile_Potential_Get(thisNode,radius)
+ double precision function Dark_Matter_Profile_Potential_Get(thisNode,radius,status)
     implicit none
-    type(treeNode),   intent(inout), pointer :: thisNode
-    double precision, intent(in)             :: radius
+    type(treeNode),   intent(inout), pointer  :: thisNode
+    double precision, intent(in)              :: radius
+    integer         , intent(  out), optional :: status
     .
     .
     .
     return
  end function Dark_Matter_Profile_Potential_Get
 \end{verbatim}
-and should return the gravitational potential (in km$^2$/s$^2$) at the specified {\tt radius} (in Mpc) in {\tt thisNode}. The potential is conventionally chosen such that $\Phi(r_{\rm virial}=-V_{\rm virial}^2$ so that the potential at infinity is zero if the halo profile is truncated at the virial radius. The ``radius from specific angular momentum'' function should have the form:
+and should return the gravitational potential (in km$^2$/s$^2$) at the specified {\tt radius} (in Mpc) in {\tt thisNode}. The potential is conventionally chosen such that $\Phi(r_{\rm virial}=-V_{\rm virial}^2$ so that the potential at infinity is zero if the halo profile is truncated at the virial radius. If the {\tt status} argument is present, it should be set to one of the codes provided by the \hyperlink{dark_matter_profiles.error_codes.F90:dark_matter_profiles_error_codes}{{\tt Dark\_Matter\_Profiles\_Error\_Codes}} module to indicate success of (the specific reason for) failure. The ``radius from specific angular momentum'' function should have the form:
 \begin{verbatim}
  double precision function Dark_Matter_Profile_Radius_from_Specific_Angular_Momentum_Get(thisNode,specificAngularMomentum)
     implicit none
@@ -4109,9 +4151,9 @@ Currently defined intergalactic background radiation methods are:
 \end{description}
 The optional {\tt URL}, {\tt description}, {\tt reference} and {\tt source} elements can be used to give the provenance of the data. The {\tt wavelengths} element should contain a set of {\tt datum} elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\tt spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\tt redshift} element. Each {\tt spectra} element must contain an array of {\tt datum} elements that gives the spectrum at each wavelength listed in the {\tt wavelength} element. Spectra must be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
 
-\subsubsection{Ram Pressure Mass Loss Rates in Disks}
+\subsubsection{Ram Pressure Mass Loss Rates in Disks/Spheroids}
 
-Additional methods for computing ram pressure induced mass loss rates in disks can be added using the {\tt ramPressureStrippingMassLossRateDisksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method is described by a directive:
+Additional methods for computing ram pressure induced mass loss rates in disks/spheroids can be added using the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
 \begin{verbatim}
  !# <ramPressureStrippingMassLossRateDisksMethod>
  !#  <unitName>Ram_Pressure_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
@@ -4128,7 +4170,7 @@ Here, {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_Disks\_Simple\_Init} is t
     return
   end subroutine Method_Initialize
 \end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt ramPressureStrippingMassLossRateDisksMethod} input parameter. The procedure pointer {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_Disk\_Get} must be set to point to a function which returns mass loss rate due to ram pressure as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+where {\tt myMethod} is the name of this method as will be specified by the {\tt ramPressureStrippingMassLossRate(Disks|Spheroids)Method} input parameter. The procedure pointer {\tt Ram\_Pressure\_Stripping\_Mass\_Loss\_Rate\_(Disk|Spheroid)\_Get} must be set to point to a function which returns mass loss rate due to ram pressure as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
 
 The mass loss rate function must have the form:
 \begin{verbatim}
@@ -4141,7 +4183,7 @@ The mass loss rate function must have the form:
     return
  end function Ram_Pressure_Stripping_Mass_Loss_Rate_Disk_Get
 \end{verbatim}
-The function must return the mass loss rate induced by ram pressure forces (in units of $M_\odot$/Gyr) for the disk in {\tt thisNode}.
+The function must return the mass loss rate induced by ram pressure forces (in units of $M_\odot$/Gyr) for the disk/spheroid in {\tt thisNode}.
 
 Currently defined ram pressure mass loss rate methods are:
 \begin{description}
@@ -4322,12 +4364,53 @@ The function must return the merging timescale for {\tt thisNode} orbitting with
 
 Currently defined satellite virial orbit methods are:
 \begin{description}
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole.F90:dynamical_friction_lacey_cole:satellite_time_until_merging_lacey_cole}{{\tt Lacey-Cole}}] Computes the merging timescale using the method of \cite{lacey_merger_1993}.
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Lacey-Cole_Tormen.F90:dynamical_friction_lacey_cole_tormen:satellite_time_until_merging_lacey_cole_tormen}{{\tt Lacey-Cole+Tormen}}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Jiang2008.F90:dynamical_friction_jiang2008:satellite_time_until_merging_jiang2008}{{\tt Jiang2008}}] Computes the merging timescale using the method of \cite{jiang_fitting_2008};
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Boylan-Kolchin2008.F90:dynamical_friction_boylankolchin2008:satellite_time_until_merging_boylankolchin2008}{{\tt BoylanKolchin2008}}] Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008};
- \item [\hyperlink{satellites.merging.preset.F90:satellite_merging_times_preset:satellite_time_until_merging_preset}{{\tt preset}}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time;
- \item [\hyperlink{satellites.merging.dynamical_friction.timescale.Wetzel-White.F90:dynamical_friction_wetzel_white:satellite_time_until_merging_wetzel_white}{{\tt Wetzel-White}}] Computes the merging timescale using the method of \cite{wetzel_what_2010}.
+ \item [{\tt Lacey-Cole}] Computes the merging timescale using the method of \cite{lacey_merger_1993}.
+ \item [{\tt Lacey-Cole+Tormen}] Computes the merging timescale using the method of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000};
+ \item [{\tt Jiang2008}] Computes the merging timescale using the method of \cite{jiang_fitting_2008};
+ \item [{\tt BoylanKolchin2008}] Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008};
+ \item [{\tt preset}] This method assumes that merging times have been preset for every node (or, at least, every node which becomes a satellite). It therefore simply returns the preset merging time;
+ \item [{\tt Wetzel-White}] Computes the merging timescale using the method of \cite{wetzel_what_2010}.
+ \item [{\tt null}] Returns a zero timescale for merging.
+\end{description}
+
+\subsubsection{Satellite Tidal Fields}
+
+Additional methods for the satellite tidal fields can be added using the {\tt satellitesTidalFieldMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt sphericalSymmetry} method is described by a directive:
+\begin{verbatim}
+  !# <satellitesTidalFieldMethod>
+  !#  <unitName></unitName>
+  !# </satellitesTidalFieldMethod>
+\end{verbatim}
+Here, {\tt Satellites\_Tidal\_Fields\_Spherical\_Symmetry\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(satellitesTidalFieldMethod,Satellites_Tidal_Field_Get)
+    implicit none
+    type     (varying_string     )         , intent(in   ) :: satellitesTidalFieldMethod
+    procedure(My_Method_Procedure), pointer, intent(inout) :: Satellites_Tidal_Field_Get
+    
+    if (satellitesTidalFieldMethod == 'myMethod') Satellites_Tidal_Field_Get => My_Method_Procedure
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt satellitesTidalFieldMethod} input parameter. The procedure pointer {\tt Satellites\_Tidal\_Field\_Get} must be set to point to a function which returns the time until merging as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The satellite tidal field function must have the form:
+\begin{verbatim}
+ double precision function Satellites_Tidal_Fields(thisNode)
+    implicit none
+    type(treeNode), pointer, intent(inout) :: thisNode
+    .
+    .
+    .
+    return
+ end function Satellites_Tidal_Fields
+\end{verbatim}
+The function must return the magnitude of the tidal field for {\tt thisNode} in units of (km/s)$^2$ Mpc$^{-2}$.
+
+Currently defined satellite tidal field methods are:
+\begin{description}
+ \item [\hyperlink{satellites.tidal_fields.null.F90:satellites_tidal_fields_null}{{\tt null}}] Assumes a zero tidal field.
+ \item [\hyperlink{satellites.tidal_fields.spherical_symmetry.F90:satellites_tidal_fields_spherical_symmetry}{{\tt sphericalSymmetry}}] Computes the tidal field assuming a spherically-symmetric host halo.
 \end{description}
 
 \subsubsection{Satellite Virial Orbits}\label{sec:SatelliteVirialOrbits}
@@ -5039,6 +5122,47 @@ Currently defined type Ia supernovae methods are:
 \begin{description}
  \item [{\tt Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
 \end{description}
+
+\subsubsection{Tidal Mass Loss Rates in Disks/Spheroids}
+
+Additional methods for computing tidal induced mass loss rates in disks/spheroids can be added using the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt simple} method for disks is described by a directive:
+\begin{verbatim}
+ !# <tidalStrippingMassLossRateDisksMethod>
+ !#  <unitName>Tidal_Stripping_Mass_Loss_Rate_Disks_Simple_Init</unitName>
+ !# </tidalStrippingMassLossRateDisksMethod>
+\end{verbatim}
+Here, {\tt Tidal\_Stripping\_Mass\_Loss\_Rate\_Disks\_Simple\_Init} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
+\begin{verbatim}
+  subroutine Method_Initialize(tidalStrippingMassLossRateDisksMethod,Tidal_Stripping_Mass_Loss_Rate_Disk_Get)
+    implicit none
+    type(varying_string),          intent(in)    :: starFormationTimescaleDisksMethod
+    procedure(),          pointer, intent(inout) :: Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+    
+    if (tidalStrippingMassLossRateDisksMethod == 'myMethod') Tidal_Stripping_Mass_Loss_Rate_Disk_Get => My_Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+    return
+  end subroutine Method_Initialize
+\end{verbatim}
+where {\tt myMethod} is the name of this method as will be specified by the {\tt tidalStrippingMassLossRate(Disks|Spheroids)Method} input parameter. The procedure pointer {\tt Tidal\_Stripping\_Mass\_Loss\_Rate\_(Disk|Spheroid)\_Get} must be set to point to a function which returns mass loss rate due to tidal forces as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
+
+The mass loss rate function must have the form:
+\begin{verbatim}
+ double precision function Tidal_Stripping_Mass_Loss_Rate_Disk_Get(thisNode)
+    implicit none
+    type(treeNode), intent(in) :: thisNode
+    .
+    .
+    .
+    return
+ end function Tidal_Stripping_Mass_Loss_Rate_Disk_Get
+\end{verbatim}
+The function must return the mass loss rate induced by tidal forces (in units of $M_\odot$/Gyr) for the disk/spheroid in {\tt thisNode}.
+
+Currently defined ram pressure mass loss rate methods are:
+\begin{description}
+ \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.simple.F90:tidal_stripping_mass_loss_rate_disks_simple:tidal_stripping_mass_loss_rate_disk_simple}{{\tt simple}}] The mass loss rate scales in proportion to the ratio of tidal and gravitational restoring forces;
+ \item [\hyperlink{tidal_stripping.mass_loss_rate.disks.null.F90:tidal_stripping_mass_loss_rate_disks_null:tidal_stripping_mass_loss_rate_disk_null}{{\tt null}}] The mass loss rate is assumed to be always zero.
+\end{description}
+
 
 \subsubsection{Survey Geometry}
 

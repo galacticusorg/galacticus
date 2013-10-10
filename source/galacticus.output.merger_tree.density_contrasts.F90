@@ -56,8 +56,9 @@ contains
     use Input_Parameters
     use Memory_Management
     use Galactic_Structure_Options
-    use Cosmological_Parameters
+    use Cosmology_Parameters
     implicit none
+    class(cosmologyParametersClass), pointer :: thisCosmologyParameters
 
     if (.not.outputDensityContrastDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Density_Contrast_Initialize)
@@ -86,13 +87,15 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputDensityContrastDataDarkOnly',outputDensityContrastDataDarkOnly,defaultValue=.false.)
+          ! Get the default cosmology.
+          thisCosmologyParameters => cosmologyParameters()
           select case (outputDensityContrastDataDarkOnly)
           case (.true.)
              massTypeSelected=massTypeDark
-             referenceDensity=(Omega_Matter()-Omega_b())*Critical_Density()
+             referenceDensity=(thisCosmologyParameters%OmegaMatter()-thisCosmologyParameters%OmegaBaryon())*thisCosmologyParameters%densityCritical()
           case (.false.)
              massTypeSelected=massTypeAll
-             referenceDensity= Omega_Matter()           *Critical_Density()
+             referenceDensity= thisCosmologyParameters%OmegaMatter()                                       *thisCosmologyParameters%densityCritical()
           end select
 
           ! Read density contrast values if necessary.
@@ -262,14 +265,17 @@ contains
     use Cosmology_Functions
     use Numerical_Constants_Math
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: enclosedMass
+    double precision                         , intent(in   ) :: radius
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctionsDefault
+    double precision                                         :: enclosedMass
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Solve for the radius enclosing the specified density contrast.
     enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType&
          &=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
     Mean_Density_Contrast_Root=3.0d0*enclosedMass/4.0d0/Pi/radius**3/(referenceDensity &
-         &/Expansion_Factor(activeBasicComponent%time())**3)-meanDensityContrastTarget
+         &/cosmologyFunctionsDefault%expansionFactor(activeBasicComponent%time())**3)-meanDensityContrastTarget
     return
   end function Mean_Density_Contrast_Root
 

@@ -37,7 +37,8 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: stellarWindsMethod
-    procedure(double precision), intent(inout), pointer :: Stellar_Winds_Mass_Loss_Rate_Get, Stellar_Winds_Terminal_Velocity_Get
+    procedure(Stellar_Winds_Mass_Loss_Rate_Leitherer1992), intent(inout), pointer :: Stellar_Winds_Mass_Loss_Rate_Get
+    procedure(Stellar_Winds_Terminal_Velocity_Leitherer1992), intent(inout), pointer :: Stellar_Winds_Terminal_Velocity_Get
 
     if (stellarWindsMethod == 'Leitherer1992') then
        ! Set procedure pointers.

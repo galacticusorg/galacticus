@@ -50,8 +50,8 @@
 
   <!-- Cosmological parameters and options -->
   <parameter>
-    <name>cosmologyMethod</name>
-    <value>matter-lambda</value>
+    <name>cosmologyFunctionsMethod</name>
+    <value>matterLambda</value>
   </parameter>
   <parameter>
     <name>H_0</name>
@@ -325,6 +325,10 @@
     <name>hotHaloRamPressureStrippingMethod</name>
     <value>virialRadius</value>
   </parameter>
+  <parameter>
+    <name>satellitesTidalFieldMethod</name>
+    <value>null</value>
+  </parameter>
 
   <!-- Galactic structure solver options -->
   <parameter>
@@ -534,8 +538,8 @@
     <value>Benson2005</value>
   </parameter>
   <parameter>
-    <name>satelliteMergingMethod</name>
-    <value>Jiang2008</value>
+    <name>satelliteMergingTimescalesMethod</name>
+    <value>jiang2008</value>
   </parameter>
   <parameter>
     <name>mergingTimescaleMultiplier</name>

@@ -27,18 +27,20 @@ program Test_NFW96_Concentration_Dark_Energy
   use Input_Parameters
   use Dark_Matter_Profiles_Concentrations
   use Cosmology_Functions
-  use Cosmological_Parameters
+  use Cosmology_Parameters
   use Galacticus_Nodes
   use String_Handling
   use Unit_Tests
   implicit none
-  type            (treeNode          )                         , pointer :: thisNode
-  class           (nodeComponentBasic)                         , pointer :: thisBasicComponent
-  integer                             , dimension(6), parameter          :: chardenLogHaloMass    =[10,11,12,13,14,15]
-  double precision                    , dimension(6), parameter          :: chardenConcentrationZ0=[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], chardenConcentrationZ3=[5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]
-  type            (varying_string    )                                   :: message                                                                                                , parameterFile
-  integer                                                                :: iMass
-  double precision                                                       :: ourConcentration
+  type            (treeNode                )                         , pointer :: thisNode
+  class           (nodeComponentBasic      )                         , pointer :: thisBasicComponent
+  class           (cosmologyParametersClass)                         , pointer :: thisCosmologyParameters
+  class           (cosmologyFunctionsClass )                         , pointer :: cosmologyFunctionsDefault
+  integer                                   , dimension(6), parameter          :: chardenLogHaloMass       =[10,11,12,13,14,15]
+  double precision                          , dimension(6), parameter          :: chardenConcentrationZ0   =[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], chardenConcentrationZ3=[5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]
+  type            (varying_string          )                                   :: message                                                                                                   , parameterFile
+  integer                                                                      :: iMass
+  double precision                                                             :: ourConcentration
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.NFW96_concentration.dark_energy.size')
@@ -57,21 +59,26 @@ program Test_NFW96_Concentration_Dark_Energy
   ! Get the basic component.
   thisBasicComponent => thisNode%basic(autoCreate=.true.)
 
+  ! Get the default cosmology.
+  thisCosmologyParameters => cosmologyParameters()
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()
+
   ! Loop over halo masses.
   do iMass=1,size(chardenLogHaloMass)
 
      ! Set the mass of the original node.
-     call thisBasicComponent%massSet((10.0d0**chardenLogHaloMass(iMass))/Little_H_0())
+     call thisBasicComponent%massSet((10.0d0**chardenLogHaloMass(iMass))/thisCosmologyParameters%HubbleConstant(unitsLittleH))
 
      ! Compute and compare concentration at z=0.
-     call thisBasicComponent%timeSet(Cosmology_Age(1.00d0))
+     call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(1.00d0))
      ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
      message="10^"
      message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
 
      ! Compute and compare concentration at z=3.
-     call thisBasicComponent%timeSet(Cosmology_Age(0.25d0))
+     call thisBasicComponent%timeSet(cosmologyFunctionsDefault%cosmicTime(0.25d0))
      ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
      message="10^"
      message=message//chardenLogHaloMass(iMass)//" M⊙/h halo concentration at z=3"

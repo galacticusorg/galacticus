@@ -23,15 +23,18 @@ program Tests_Sigma
   use Memory_Management
   use Power_Spectra
   use Numerical_Ranges
-  use Cosmological_Parameters
+  use Cosmology_Parameters
   use Numerical_Constants_Math
   implicit none
-  type            (varying_string)                       :: parameterFile
-  integer                         , parameter            :: massCount    =10
-  double precision                , parameter            :: massMaximum  =1.0d15, massMinimum  =1.0d6
-  double precision                , dimension(massCount) :: mass                , massFromSigma      , sigma
-  integer                                                :: iMass
-  double precision                                       :: mass8               , radius8            , sigma8
+  type            (varying_string          )                       :: parameterFile
+  integer                                   , parameter            :: massCount              =10
+  double precision                          , parameter            :: massMaximum            =1.0d15, massMinimum  =1.0d6
+  double precision                          , dimension(massCount) :: mass                          , massFromSigma      , &
+       &                                                              sigma
+  class           (cosmologyParametersClass), pointer              :: thisCosmologyParameters
+  integer                                                          :: iMass
+  double precision                                                 :: mass8                         , radius8            , &
+       &                                                              sigma8
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.sigma.size')
@@ -53,11 +56,14 @@ program Tests_Sigma
   end do
   call Assert('M -> σ(M) -> M conversion loop',mass,massFromSigma,relTol=1.0d-3)
 
+  ! Get the default cosmology.
+  thisCosmologyParameters => cosmologyParameters()
+
   ! Compute the mass corresponding to 8Mpc/h.
-  radius8=8.0d0/Little_H_0()
-  mass8=4.0d0*Pi*Critical_Density()*Omega_Matter()*radius8**3/3.0d0
+  radius8=8.0d0/thisCosmologyParameters%HubbleConstant(unitsLittleH)
+  mass8=4.0d0*Pi*thisCosmologyParameters%densityCritical()*thisCosmologyParameters%OmegaMatter()*radius8**3/3.0d0
   sigma8=Cosmological_Mass_Root_Variance(mass8)
-  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=1.0d-6)
+  call Assert('σ₈ equals specified value',sigma8,sigma_8(),relTol=2.5d-6)
 
   ! Close the input parameter file.
   call Input_Parameters_File_Close

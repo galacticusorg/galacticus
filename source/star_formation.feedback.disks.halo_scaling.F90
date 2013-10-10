@@ -100,21 +100,24 @@ contains
     use Cosmology_Functions
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , intent(in   )          :: energyInputRate                    , starFormationRate
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                    , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
+    type            (treeNode               ), intent(inout), pointer :: thisNode
+    double precision                         , intent(in   )          :: energyInputRate                    , starFormationRate
+    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
+    double precision                         , save                   :: velocityPrevious           =-1.0d0, velocityFactorPrevious       =-1.0d0
     !$omp threadprivate(velocityPrevious,velocityFactorPrevious)
-    double precision                    , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
+    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
+    double precision                         , save                   :: expansionFactorPrevious    =-1.0d0, expansionFactorFactorPrevious=-1.0d0
     !$omp threadprivate(expansionFactorPrevious,expansionFactorFactorPrevious)
-    double precision                                             :: expansionFactor                    , virialVelocity
+    double precision                                                  :: expansionFactor                    , virialVelocity
 
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()
     ! Get the basic component.
     thisBasicComponent => thisNode%basic()
 
     ! Get virial velocity and expansion factor.
     virialVelocity =Dark_Matter_Halo_Virial_Velocity(thisNode                 )
-    expansionFactor=Expansion_Factor                (thisBasicComponent%time())
+    expansionFactor=cosmologyFunctionsDefault%expansionFactor                (thisBasicComponent%time())
 
     ! Compute the velocity factor.
     if (virialVelocity /= velocityPrevious) then

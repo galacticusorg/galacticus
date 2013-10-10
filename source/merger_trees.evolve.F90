@@ -383,7 +383,7 @@ contains
     implicit none
     type            (treeNode                     ), intent(inout)          , pointer :: thisNode
     double precision                               , intent(in   )                    :: endTime
-    type            (treeNode                     )                         , pointer :: satelliteNode
+    type            (treeNode                     )                         , pointer :: satelliteNode                , siblingNode
     procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: lockNode
@@ -393,6 +393,7 @@ contains
          &                                                                               siblingBasicComponent        , thisBasicComponent
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatelliteComponent
     type            (nodeEvent                    )                         , pointer :: thisEvent
+    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     double precision                                                                  :: expansionFactor              , expansionTimescale     , &
          &                                                                               hostTimeLimit                , time
     character       (len=9                        )                                   :: timeFormatted
@@ -456,12 +457,20 @@ contains
        ! Get the parent basic component.
        parentBasicComponent => thisNode%parent%basic()
        ! Get current cosmic time.
-       time=parentBasicComponent%time()
-       ! Find current expansion timescale.
-       expansionFactor=Expansion_Factor(time)
-       expansionTimescale=1.0d0/Expansion_Rate(expansionFactor)
-       ! Determine suitable timestep.
-       hostTimeLimit=time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute)
+       time=max(parentBasicComponent%time(),thisBasicComponent%time())
+       ! Check if the host has a child.
+       select case (associated(thisNode%parent%firstChild))
+       case (.true. )
+          ! Host still has a child - do not let the satellite evolve.
+          hostTimeLimit=time
+       case (.false.)
+          ! Find current expansion timescale.
+          cosmologyFunctionsDefault => cosmologyFunctions()
+          expansionFactor=cosmologyFunctionsDefault%expansionFactor(time)
+          expansionTimescale=1.0d0/cosmologyFunctionsDefault%expansionRate(expansionFactor)
+          ! Determine suitable timestep.
+          hostTimeLimit=time+min(timestepHostRelative*expansionTimescale,timestepHostAbsolute)
+       end select
        ! Limit to this time.
        if (hostTimeLimit < Evolve_To_Time) then
           if (present(lockNode)) lockNode => thisNode%parent
@@ -505,14 +514,18 @@ contains
 
     ! Also ensure that a primary progenitor does not evolve in advance of siblings. This is important since we can not promote a
     ! primary progenitor into its parent until all siblings have become satellites in that parent.
-    if (thisNode%isPrimaryProgenitor().and.associated(thisNode%sibling)) then
-       siblingBasicComponent => thisNode%sibling%basic()
-       if (max(thisBasicComponent%time(),siblingBasicComponent%time()) < Evolve_To_Time) then
-          if (present(lockNode)) lockNode => thisNode%sibling
-          if (present(lockType)) lockType =  "sibling"
-          Evolve_To_Time=max(thisBasicComponent%time(),siblingBasicComponent%time())
-       end if
-       if (report) call Evolve_To_Time_Report("sibling: ",Evolve_To_Time,thisNode%sibling%index())
+    if (thisNode%isPrimaryProgenitor()) then
+       siblingNode => thisNode%sibling
+       do while (associated(siblingNode))
+          siblingBasicComponent => siblingNode%basic()
+          if (max(thisBasicComponent%time(),siblingBasicComponent%time()) < Evolve_To_Time) then
+             if (present(lockNode)) lockNode => siblingNode
+             if (present(lockType)) lockType =  "sibling"
+             Evolve_To_Time=max(thisBasicComponent%time(),siblingBasicComponent%time())
+          end if
+          if (report) call Evolve_To_Time_Report("sibling: ",Evolve_To_Time,siblingNode%index())
+          siblingNode => siblingNode%sibling
+       end do
     end if
 
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
