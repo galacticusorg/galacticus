@@ -119,6 +119,11 @@ contains
     !% Solves for the pericentric radius and velocity of {\tt thisOrbit} in {\tt hostNode}.
     use Root_Finder
     use Kepler_Orbits
+    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_Error_Codes
+    use Numerical_Constants_Prefixes
+    use Numerical_Constants_Physical
+    use Galacticus_Error
     implicit none
     type            (treeNode         ), intent(inout), pointer :: hostNode
     type            (keplerOrbit      ), intent(inout)          :: thisOrbit
@@ -128,6 +133,8 @@ contains
     type            (rootFinder       ), save                   :: finder
     !$omp threadprivate(finder)
     type            (keplerOrbit      )                         :: currentOrbit
+    integer                                                     :: status
+    double precision                                            :: potential
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     currentOrbit=Satellite_Orbit_Convert_To_Current_Potential(thisOrbit,hostNode)
@@ -184,7 +191,23 @@ contains
        radius=finder%find(rootGuess=currentOrbit%radius())
     end if
     ! Get the orbital velocity at this radius.
-    velocity=orbitalAngularMomentumInternal/radius
+    if (orbitalAngularMomentumInternal > 0.0d0) then
+       ! Orbit is non-radial - use angular momentum to find velocity.
+       velocity=orbitalAngularMomentumInternal/radius
+    else
+       ! Orbit is radial - use energy to find velocity.
+       potential=Dark_Matter_Profile_Potential(activeNode,radius,status)
+       select case (status)
+       case (darkMatterProfileSuccess)
+          velocity=sqrt(2.0d0*(orbitalEnergyInternal-potential))
+       case (darkMatterProfileErrorInfinite)
+          ! The gravitational potential is negative infinity at this radius (most likely zero radius). Velocity is formally
+          ! infinite. Return speed of light as a suitably fast value.
+          velocity=speedLight/kilo
+       case default
+          call Galacticus_Error_Report('Satellite_Orbit_Extremum_Phase_Space_Coordinates','dark matter potential evaluation failed')
+       end select
+    end if
     return
   end subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
