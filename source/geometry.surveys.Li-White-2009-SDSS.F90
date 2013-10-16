@@ -35,9 +35,10 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
-    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get&
-         &,Geometry_Survey_Volume_Maximum_Get
-    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
+    procedure(Geometry_Survey_Distance_Maximum_Li_White_2009_SDSS), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get
+    procedure(Geometry_Survey_Solid_Angle_Li_White_2009_SDSS), pointer, intent(inout) :: Geometry_Survey_Solid_Angle_Get
+    procedure(Geometry_Survey_Volume_Maximum_Li_White_2009_SDSS), pointer, intent(inout) :: Geometry_Survey_Volume_Maximum_Get
+    procedure(Geometry_Survey_Window_Functions_Li_White_2009_SDSS), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
 
     if (surveyGeometryMethod == 'Li-White-2009-SDSS') then
        Geometry_Survey_Distance_Maximum_Get => Geometry_Survey_Distance_Maximum_Li_White_2009_SDSS
@@ -54,6 +55,7 @@ contains
     use Cosmology_Functions_Options
     implicit none
     double precision, intent(in) :: mass
+    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
     double precision             :: redshift,logarithmicMass
     
     ! Find the limiting redshift for this mass using a fit derived from Millennium Simulation SAMs. (See
@@ -61,9 +63,10 @@ contains
     logarithmicMass=log10(mass)
     redshift=-5.9502006195004d0+logarithmicMass*(2.63793788603951d0+logarithmicMass*(-0.421075858899237d0+logarithmicMass&
          &*(0.0285198776926787d0+logarithmicMass*(-0.000678327494720407d0))))
-    
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()     
     ! Convert from redshift to comoving distance.
-    Geometry_Survey_Distance_Maximum_Li_White_2009_SDSS=Comoving_Distance_Conversion(output=distanceTypeComoving,redshift&
+    Geometry_Survey_Distance_Maximum_Li_White_2009_SDSS=cosmologyFunctionsDefault%distanceComovingConvert(output=distanceTypeComoving,redshift&
          &=redshift)
     return
   end function Geometry_Survey_Distance_Maximum_Li_White_2009_SDSS
@@ -130,6 +133,7 @@ contains
     type   (varying_string  )                                                              :: message
     double precision         , save                                                        :: surveyDistanceMinimum&
          &,surveyDistanceMaximum
+    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
 
     ! Initialize geometry if necessary.
     if (.not.geometryInitialized) then
@@ -165,9 +169,11 @@ contains
        call Galacticus_Display_Message(message)
        randomsCount=j
 
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()    
        ! Compute the distances corresponding to the minimum and maximum redshifts.
-       surveyDistanceMinimum=Comoving_Distance(Cosmology_Age(Expansion_Factor_From_Redshift(0.001d0)))
-       surveyDistanceMaximum=Comoving_Distance(Cosmology_Age(Expansion_Factor_From_Redshift(0.500d0)))
+       surveyDistanceMinimum=cosmologyFunctionsDefault%distanceComoving(cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(0.001d0)))
+       surveyDistanceMaximum=cosmologyFunctionsDefault%distanceComoving(cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(0.500d0)))
        geometryInitialized=.true.
     end if
 

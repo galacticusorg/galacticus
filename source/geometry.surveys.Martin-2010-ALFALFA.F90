@@ -38,9 +38,10 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ),          intent(in   ) :: surveyGeometryMethod
-    procedure(double precision), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get,Geometry_Survey_Solid_Angle_Get&
-         &,Geometry_Survey_Volume_Maximum_Get
-    procedure(                ), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
+    procedure(Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA), pointer, intent(inout) :: Geometry_Survey_Distance_Maximum_Get
+    procedure(Geometry_Survey_Solid_Angle_Martin_2010_ALFALFA), pointer, intent(inout) :: Geometry_Survey_Solid_Angle_Get
+    procedure(Geometry_Survey_Volume_Maximum_Martin_2010_ALFALFA), pointer, intent(inout) :: Geometry_Survey_Volume_Maximum_Get
+    procedure(Geometry_Survey_Window_Functions_Martin_2010_ALFALFA), pointer, intent(inout) :: Geometry_Survey_Window_Functions_Get
 
     if (surveyGeometryMethod == 'Martin-2010-ALFALFA') then
        Geometry_Survey_Distance_Maximum_Get => Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA
@@ -53,9 +54,7 @@ contains
 
   double precision function Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA(mass)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmological_Parameters
-    use Cosmology_Functions
-    use Cosmology_Functions_Options
+    use Cosmology_Parameters
     implicit none
     double precision, intent(in) :: mass
     ! The signal-to-noise limit used by Martin et al. (2010).
@@ -70,6 +69,7 @@ contains
     double precision, parameter  :: massNormalization               =2.356d5
     double precision             :: logarithmicMass                                       , lineWidth                                , &
          &                          integratedFluxLimit
+    class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
 
     ! Get the logarithm of the mass.
     logarithmicMass=log10(mass)
@@ -82,9 +82,11 @@ contains
     else
        integratedFluxLimit=integratedFluxLimitNormalization*signalToNoise*    (lineWidth/lineWidthCharacteristic)
     end if
+    ! Get the default cosmology.
+    thisCosmologyParameters => cosmologyParameters()
     ! Convert from mass and limiting integrated flux to maximum distance using relation given in text of section 2.2 of Martin et
     ! al. (2010). Limit by the maximum velocity allowed for galaxies to make it into the sample.
-    Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/H_0())
+    Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA=min(sqrt(mass/massNormalization/integratedFluxLimit),sampleVelocityMaximum/thisCosmologyParameters%hubbleConstant())
     return
   end function Geometry_Survey_Distance_Maximum_Martin_2010_ALFALFA
 
@@ -123,13 +125,13 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use Cosmology_Functions
+    use Cosmology_Parameters
     use String_Handling
     use File_Utilities
     use Galacticus_Input_Paths
     use System_Command
     use Galacticus_Error
     use Pseudo_Random
-    use Cosmological_Parameters
     implicit none
     double precision         , intent(in   )                                               :: mass1,mass2
     integer                  , intent(in   )                                               :: gridCount
@@ -159,7 +161,8 @@ contains
     double precision                                                                       :: comovingDistanceMaximum1&
          &,comovingDistanceMaximum2,comovingDistanceMinimum1,comovingDistanceMinimum2,rightAscension,declination ,distance1&
          &,distance2,uniformRandom
-   
+    class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
+
     ! Initialize geometry if necessary.
     if (.not.geometryInitialized) then       
        ! Determine the solid angles of the different survey regions.
@@ -191,9 +194,11 @@ contains
           randomTheta(iRandom)=acos(uniformRandom*(cos(regionThetaRange(2,iRegion))-cos(regionThetaRange(1,iRegion)))+cos(regionThetaRange(1,iRegion)))
           uniformRandom=Pseudo_Random_Get(pseudoSequenceObject,reset)
        end do
-       ! Compute the distances corresponding to the minimum and maximum redshifts.
-       surveyDistanceMinimum=sampleVelocityMinimum/H_0()
-       surveyDistanceMaximum=sampleVelocityMaximum/H_0()
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
+      ! Compute the distances corresponding to the minimum and maximum redshifts.
+       surveyDistanceMinimum=sampleVelocityMinimum/thisCosmologyParameters%hubbleConstant()
+       surveyDistanceMaximum=sampleVelocityMaximum/thisCosmologyParameters%hubbleConstant()
        geometryInitialized=.true.
     end if
     ! Find the comoving distance corresponding to this distance module.
