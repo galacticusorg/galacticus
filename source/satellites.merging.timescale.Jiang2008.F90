@@ -162,7 +162,6 @@ contains
           randomDeviate=Gaussian_Random_Get(self%randomSequenceObject,self%scatter,self%resetRandomSequence)
           jiang2008TimeUntilMerging=jiang2008TimeUntilMerging*exp(randomDeviate)
        end if
-       end if
     end if
     return
   end function jiang2008TimeUntilMerging
@@ -202,12 +201,3 @@ contains
     if (.not.self%resetRandomSequence) call Pseudo_Random_Retrieve(self%randomSequenceObject,fgslStateFile)
     return
   end subroutine jiang2008StateRestore
-  
-    integer,         intent(in) :: stateFile
-    type(fgsl_file), intent(in) :: fgslStateFile
-
-    read (stateFile) resetRandomSequence
-    if (.not.resetRandomSequence) call Pseudo_Random_Retrieve(randomSequenceObject,fgslStateFile)
-    return
-  end subroutine Satellite_Time_Until_Merging_Jiang2008_State_Retrieve
-    
