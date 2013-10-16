@@ -258,6 +258,12 @@
       <value>jiang2008</value>
       <value>laceyCole1993Tormen</value>
       <value>wetzelWhite2010</value>
+      <value>villalobos2013
+      <parameter>
+	<name>satelliteMergingTimescaleVillalobos2013BaseMethod</name>
+	<value>boylanKolchin2008</value>
+      </parameter>
+      </value>
     </parameter>
   </parameters>
   <parameters>
