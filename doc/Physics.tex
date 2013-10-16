@@ -750,7 +750,11 @@ Here, $x_i$ is a number between 0 and 1 and $\alpha=${\tt mergerTreeBuildTreesHa
 
 \subsubsection{Halo Mass Function}
 
-Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, this method sets the sampling density function equal to the halo mass function, $\gamma(M) = {\rm d} n(M)/{\rm d}\log M$, resulting in a sample of halos representative of a volume of space.
+Selected with {\tt haloMassFunctionSamplingMethod}$=${\tt haloMassFunction}, this method sets the sampling density function equal to the halo mass function, $\gamma(M) = \hbox{minmax}(\phi_{\rm min},\phi_{\rm max},{\rm d} n(M)/{\rm d}\log M)$, where $\phi_{\rm min}=${\tt [haloMassFunctionSamplingAbundanceMinimum]}, $\phi_{\rm max}=${\tt [haloMassFunctionSamplingAbundanceMaximum]}, and
+\begin{equation}
+ \hbox{minmax}(a,b,x) = \left\{\begin{array}{ll}a & \hbox{ if } x < a \\ x & \hbox{ if } a \leq x \leq b\\ b & \hbox{ if } x > b,\end{array}\right.
+\end{equation}
+resulting in a sample of halos representative of a volume of space.
 
 \subsubsection{Stellar Mass Function}
 
