@@ -1466,10 +1466,12 @@ Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads me
 
 Selected with {\tt mergerTreeConstructMethod}$=${\tt build}, this method first creates a distribution of tree root halo masses and then builds a merger tree using the algorithm specified by the {\tt mergerTreeBuildMethod} parameter.
 
-If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these masses will be read from a file specified by {\tt [mergerTreeBuildTreeMassesFile]}. Otherwise, the root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The root halo masses are drawn from the density function specified by the halo mass function sampling density method (see \S\ref{sec:MassSamplingDensityFunction}). The distribution of $x$ is determined by the input parameter {\tt mergerTreeBuildTreesHaloMassDistribution} with options:
+If {\tt [mergerTreeBuildTreesHaloMassDistribution]}$=${\tt read}, then these masses will be read from a file specified by {\tt [mergerTreeBuildTreeMassesFile]}. Otherwise, the root halo masses are selected to range between {\tt mergerTreeBuildHaloMassMinimum} and {\tt mergerTreeBuildHaloMassMaximum} with {\tt mergerTreeBuildTreesPerDecade} trees per decade of root halo mass on average. Trees are rooted at {\tt mergerTreeBuildTreesBaseRedshift} and tree building will begin with the {\tt mergerTreeBuildTreesBeginAtTree}$^{\rm th}$ tree\footnote{This will normally be set to 1 to begin with the first tree. Other values allow to begin on later trees for debugging purposes.}. The root halo masses are usually drawn from the density function specified by the halo mass function sampling density method (see \S\ref{sec:MassSamplingDensityFunction}). The distribution of $x$ is determined by the input parameter {\tt mergerTreeBuildTreesHaloMassDistribution} with options:
 \begin{description}
  \item [{\tt uniform}] $x$ is distributed uniformly between 0 and 1;
- \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence.
+ \item [{\tt quasi}] $x$ is distributed using a quasi-random sequence;
+ \item [{\tt random}] $x$ is distributed using a pseudo-random sequence;
+ \item [{\tt read}] halos masses are instead read from a file.
 \end{description}
 
 In the case of reading root halo masses from a file, the file can be either an XML or HDF5 file. An XML file should have the following form:
