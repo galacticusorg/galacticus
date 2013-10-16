@@ -41,7 +41,8 @@ my %arguments = (
     reuseTrees          => "",
     suffix              => "",
     cleanUp             => "yes",
-    randomize           => "yes"
+    randomize           => "yes",
+    temperature         => 1.0
     );
 while ( $iArg < $#ARGV ) {
     ++$iArg;
@@ -50,6 +51,10 @@ while ( $iArg < $#ARGV ) {
 	++$iArg;
     }
 }
+
+# Remove any old semaphore file.
+unlink("/dev/shm/sem.galacticus")
+    if ( -e "/dev/shm/sem.galacticus" );
 
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
 my $badLogLikelihood = -1.0e30;
@@ -242,6 +247,9 @@ system("scripts/analysis/treeTiming.pl ".$workDirectory."/".$arguments{'galactic
 # Remove the model.
 unlink($workDirectory."/".$arguments{'galacticusFile'})
     if ( $arguments{'cleanUp'} eq "yes" );
+
+# Adjust likelihood for temperature.
+$logLikelihood /= $arguments{'temperature'};
 
 # Display the final likelihood.
 &outputLikelihood(\%arguments,$logLikelihood);

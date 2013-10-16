@@ -1,139 +1,5 @@
 \chapter{Constraining {\sc Galacticus}}
 
-\section{Configuration Document}
-
-An example configuration file is shown below:
-\begin{verbatim}
- <constrain>
-
-  <!-- Simulation definition -->
-  <name>myConstraints</name>
-  <workDirectory>constraints</workDirectory>
-  <report>no</report>
-  <cpulimit>3000</cpulimit>
-  <queue>normal</queue>
-
-  <!-- Base parameter set -->
-  <baseParameters>constraints/baseParameters.xml</baseParameters>
-
-  <!-- Compilation of constraints to use -->
-  <compilation>stellarMassFunction_SDSS_z0.07.xml</compilation>
-
-  <!-- MCMC method -->
-  <threads>48</threads>
-  <method>differentialEvolution</method>
-
-  <!-- MCMC definition -->
-  <monteCarlo>
-    <steps>10000</steps>
-    <stepsSkip>200</stepsSkip>
-    <goodSteps>200</goodSteps>
-    <maxTemperature>64.0</maxTemperature>
-    <proposalWidth>0.01</proposalWidth>
-    <epsWidth>0.02</epsWidth>
-    <gamma>0.0038</gamma>
-  </monteCarlo>
-
-  <!-- Use checkpointing -->
-  <checkpoint>
-    <interval>1</interval>
-    <autoRestart>false</autoRestart>
-  </checkpoint>
-
-  <!-- Define parameters to vary -->
-  <parameters>
-
-    <!-- Disk SNe feedback -->
-    <parameter>
-      <name>diskOutflowTimescaleMinimum</name>
-      <prior>
-        <distribution>uniform</distribution>
-        <mapping>logarithmic</mapping>
-        <lowerLimit>1.0e-3</lowerLimit>
-        <upperLimit>1.0e+0</upperLimit>
-      </prior>
-    </parameter>
-    <parameter>
-      <name>diskOutflowFraction</name>
-      <prior>
-        <distribution>normal</distribution>
-        <mean>0.1</mean>
-        <variance>0.03</variance>
-        <lowerLimit>0.0</lowerLimit>
-        <upperLimit>1.0</upperLimit>
-      </prior>
-    </parameter>
-  </parameters>
-
-  <!-- Include the standard WMAP-7 cosmological parameters and priors -->
-  <xi:include href="../../constraints/parameters/wmap7Cosmology.xml"
-     xmlns:xi="http://www.w3.org/2001/XInclude" />
-
-</constrain>
-\end{verbatim}
-
-\subsection{Simulation Definition}
-
-Practical details of the simulation which can be specified include:
-\begin{description}
- \item [{\tt name}] \emph{(required)} A name for this simulation, to be used in names for jobs submitted to PBS.
- \item [{\tt workDirectory}] \emph{(required)} The path of a work directory to which all results will be written;
- \item [{\tt report}] \emph{(optional)} If ``{\tt yes}'' then a report of each model evaluation will be written to a log file.
- \item [{\tt cpulimit}] \emph{(optional)} The maximum CPU time allowed for any given model evaluation. Model evaluations exceeding this time will be terminated.
- \item [{\tt queue}] \emph{(optional)} The name of the PBS queue to which jobs should be submitted. If this element is not permitted, jobs will be submitted to the default queue.
-\end{description}
-
-\subsection{Constraint Compilation}
-
-The {\tt compilation} element specifies the path to a file which defines a compilation of constraints to apply to this model. A compilation file has the following form:
-\begin{verbatim}
-<constraintCompilation>
-  <constraint>
-    <definition>constraints/constraints/stellarMassFunction_SDSS_z0.07.xml
-</definition>
-    <weight>1.0</weight>
-  </constraint>
-</constraintCompilation>
-\end{verbatim}
-Each {\tt constraint} element contains a {\tt definition} elements which specifies the path to a constraint configuration file (see \S\ref{sec:ConstraintConfigFiles}), and a {\tt weight} element which specifies the weight to be applied to this constraint.
-
-\subsection{MCMC Definition}
-
-\begin{description}
- \item [{\tt threads}] The number of parallel MPI threads to run in the Bayesian Inference Engine.
- \item [{\tt method}] The particular \gls{mcmc} algorithm to use. Currently, {\tt metrpolisHastings} and {\tt differentialEvolution} are supported.
- \item [{\tt monteCarlo}] Contains configuration for the \gls{mcmc} algorithm:
- \begin{description}
-  \item [{\tt steps}] The maximum number of steps to take.
-  \item [{\tt stepsSkip}] The number of steps to skip initially before testing for convergence.
-  \item [{\tt goodSteps}] The number of steps to take after convergence is attained.
-  \item [{\tt maxTemperature}] The maximum temperature to use in simulated annealing steps.
-  \item [{\tt proposalWidth}] (For the {\tt metrpolisHastings} algorithm.) The proposal width for the Metropolis-Hastings algorithm. 
-  \item [{\tt gamma}] (For the {\tt differentialEvolution} algorithm.) The fraction of the vector connecting the states of two parallel chains to use as a proposal in the next step. For a Gaussian posterior of $d$ dimensions the optimal choice is $\gamma = 2.38/\sqrt{2 d}$. For non-Gaussian posteriors a smaller value is usually required.
-  \item [{\tt epsWidth}] The width of the $\epsilon$ distribution---the random perturbation added to each proposal (required to ensure that the sampler is positively recurrent as is required for formal convergence of the \gls{mcmc} chain). A Cauchy distribution is used for this purpose. {\tt epsWidth} sets the $\gamma$ parameter of this distribution which controls its width. Specifically, $\gamma$ is set to {\tt epsWidth} times the upper minus lower limit for uniform priors, and the smaller of the upper minus lower limit and the root variance for normal priors. Making {\tt epsWidth} larger will increase the width of the distribution and so will make for larger random components in proposals.
- \end{description}
-\end{description}
-
-
-\subsection{Parameters}
-
-\subsubsection{Base Parameters}
-
-The {\tt baseParameters} elements specifies a file (in \glc's standard format---see \S\ref{sec:ParameterFiles}) which defines the base set of parameters for the model to be constrained.
-
-\subsubsection{Parameter}
-
-The {\tt parameters} element contains a list of {\tt parameter} elements, each of which specifies a \glc\ parameter which is to be constrained using the {\tt name} element. Additionally, a {\tt prior} element must be specified. The prior must contain a {\tt distribution} element which specifies the functional form of the prior distribution. Currently, {\tt uniform} and {\tt normal} are allowed. If {\tt uniform} is specified an optional {\tt mapping} element may be included. If {\tt mapping} is set to {\tt logarithmic} the the prior is assumed to be uniform in the logarithm of the parameter. If {\tt normal} is specified a normal distribution is used for the prior and both {\tt mean} and {\tt variance} elements must be specified. For a uniform distribution upper and lower limits must be specified. For a normal distribution these are optional.
-
-\subsubsection{Including External Parameters}
-
-Predefined sets of parameters (along with their priors) can be included using the {\tt xi:include} element. For example,
-\begin{verbatim}
- <xi:include href="../../constraints/parameters/wmap7Cosmology.xml"
-    xmlns:xi="http://www.w3.org/2001/XInclude" />
-\end{verbatim}
-will include a set of parameters from the file {\tt ../../constraints/parameters/wmap7Cosmology.xml} which defines priors on cosmological parameters consistent with the covariance matrix of the WMAP-7 cosmological constraints \citep{komatsu_seven-year_2010}.
-
 \section{Model Accuracy}\label{sec:ModelAccuracy}
 
 The model accuracy script processes the model described by a standard \glc\ constraints configuration file to assess how accurate the model is. Specifically, it determines the relative contribution to the covariance of each constraint arising from the finite number of merger trees run in the model and the intrinsic covariance of the observations. An accurate model should make a negligible contribution to the covariance.
@@ -859,11 +725,27 @@ The following subsections describe each entry in this file.
 \item[{\tt goodSteps}] The number of steps to perform after convergence is attained.
 \item[{\tt temperingFrequency}] The number of steps between successive temperings (in which the likelihood function is ``heated up'' to help get chains out of local minima).
 \item[{\tt maxTemperature}] The maximum temperature to use when tempering.
+\item [{\tt minTemperatureStates}] The minimum number of temperatures states when tempering.
 \item[{\tt proposalWidth}] Used for the {\tt metroplosHastings} algorithm, specfies the width of proposals.
 \item[{\tt gamma}] Used for the {\tt differentialEvolution} algorithm, specifies the fraction of the vector connecting to chain state to be used as the proposal for another chain.
 \item[{\tt epsWidth}] Used for the {\tt differentialEvolution} algorithm, specifies the width of the Cauchy distribution added to each proposal to ensure that the chains are positively recurrent.
+\item [{\tt grAlpha}] Set Gelman-Rubin convergence outlier detection confidence, $1-\alpha$.
+\item [{\tt grNOutlier}] Set number of iterations before applying an outlier test in the Gelman-Rubin convergence statistic.
+\item [{\tt grMaxOut}] Set the maximum number of outliers allowed in the Gelman-Rubin convergence statistic.
+\item [{\tt grRhatMax}] The correlation coefficient threshold for the Gelman-Rubin convergence statistic.
 \end{description}
 \end{description}
+
+\subsection{Post-prior}
+
+If present, the {\tt postPrior} block allows the use of the statelog from a previous calculation as the prior on a new calculation (in addition to any explicitly defined priors). 
+
+\begin{description}
+ \item [{\tt stateLog}] The full path to the statelog file containing the results of the prior calculation.
+ \item [{\tt restart}] If ``{\tt yes}'' then the posterior of the previous calculation is used only to sample the initial states of the new chains. It \emph{is not} used as a prior on the new calculation. If ``{\tt no}'' then the previous posterior is used as the new prior.
+ \item [{\tt burn}] The number of steps from the statelog to burn.
+\end{description}
+
 
 \subsection{Parameters and Priors}
 
@@ -902,3 +784,12 @@ To define a parameter in this way include a {\tt parameter} element of the form:
 </parameter>
 \end{verbatim}
 Here the {\tt define} element gives an equation for the parameter in terms of other parameters. All standard mathematical operators and functions (as recognized by Perl) can be used, and other parameters referenced by using their name prefixed with a ``\%''.
+
+\subsubsection{Including External Parameters}
+
+Predefined sets of parameters (along with their priors) can be included using the {\tt xi:include} element. For example,
+\begin{verbatim}
+ <xi:include href="../../constraints/parameters/wmap7Cosmology.xml"
+    xmlns:xi="http://www.w3.org/2001/XInclude" />
+\end{verbatim}
+will include a set of parameters from the file {\tt ../../constraints/parameters/wmap7Cosmology.xml} which defines priors on cosmological parameters consistent with the covariance matrix of the WMAP-7 cosmological constraints \citep{komatsu_seven-year_2010}.

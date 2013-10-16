@@ -94,6 +94,11 @@ for(my $i=0;$i<scalar(@parameters);++$i) {
 	 );
 }
 
+# Find the temperature.
+my $temperature = 1.0;
+$temperature = $config->{'temperature'}
+    if ( exists($config->{'temperature'}) );
+
 # Find the scratch directory.
 my $scratchDirectory = $config->{'workDirectory'}."/mcmc";
 $scratchDirectory = $config->{'scratchDirectory'}
@@ -134,7 +139,7 @@ my $baseParameters = "parameters.xml";
 $baseParameters = $config->{'baseParameters'} if ( exists($config->{'baseParameters'}) );
 
 # Run the Galacticus constraint script.
-my $runCommand = "./constraints/constrainGalacticus.pl ".$scratchDirectory." ".$config->{'compilation'}." ".$scratchDirectory."/newParameters_".$mpiRank.".xml ".$config->{'workDirectory'}." --baseParameters ".$baseParameters." --make no --timing no --output ".$scratchDirectory."/glcLikelihood.dat_".$mpiRank." --galacticusFile constrainGalacticus_".$mpiRank.".hdf5 --suffix ".$mpiRank." --failCount ".$config->{'workDirectory'}."/failureCount.txt --failArchive ".$config->{'workDirectory'}."/failure";
+my $runCommand = "./constraints/constrainGalacticus.pl ".$scratchDirectory." ".$config->{'compilation'}." ".$scratchDirectory."/newParameters_".$mpiRank.".xml ".$config->{'workDirectory'}." --baseParameters ".$baseParameters." --make no --timing no --output ".$scratchDirectory."/glcLikelihood.dat_".$mpiRank." --galacticusFile constrainGalacticus_".$mpiRank.".hdf5 --suffix ".$mpiRank." --temperature ".$temperature." --failCount ".$config->{'workDirectory'}."/failureCount.txt --failArchive ".$config->{'workDirectory'}."/failure";
 if ( exists($config->{'cpulimit'}) ) {
     my $cpuLimit = $config->{'cpulimit'};
     if ( exists($config->{'galacticusThreads'}) ) { 
