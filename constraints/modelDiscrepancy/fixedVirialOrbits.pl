@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -63,6 +63,9 @@ if ( $arguments{'make'} eq "yes" ) {
 # Get a hash of the parameter values.
 (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
 my @constraints = @{$constraintsRef};
+
+# Switch off thread locking.
+$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
 
 # Initialize a stack for PBS models.
 my @pbsStack;
@@ -176,21 +179,13 @@ foreach my $constraint ( @constraints ) {
     $variableCovariance    = reshape($variableCovariance,$ySize,$ySize);
     # Find the multiplicative discrepancy between these two models.
     (my $nonZero, my $zero)            = which_both($fixedY > 0.0);
-    my $modelDiscrepancyMultiplicative = $variableY;
+    my $modelDiscrepancyMultiplicative = $variableY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $fixedY->($nonZero);
     $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
-    # Compute the covariance arising from finite number of trees in the variable orbit model.
-    my $modelDiscrepancyCovariance                      = $variableCovariance+$fixedCovariance;
-    my $fixedYOuter                                     = outer($fixedY,$fixedY);
-    $fixedYOuter($modelDiscrepancyCovariance == 0.0;?) .= 1.0;
-    my $modelDiscrepancyCovarianceMultiplicative        = $modelDiscrepancyCovariance->copy();
-    $modelDiscrepancyCovarianceMultiplicative          .=
-	log
-	(
-	 1.0
-	 +$modelDiscrepancyCovariance
-	 /$fixedYOuter
-	);
+    # Compute the covariance.
+    my $modelDiscrepancyCovarianceMultiplicative = 
+	 $variableCovariance*outer(       1.0/$fixedY   ,       1.0/$fixedY   )
+	+$fixedCovariance   *outer($variableY/$fixedY**2,$variableY/$fixedY**2);
     # Output the model discrepancy to file.
     my $outputFile = new PDL::IO::HDF5(">".$workDirectory."/modelDiscrepancy/fixedVirialOrbits/discrepancy".ucfirst($constraintDefinition->{'label'}).".hdf5");
     $outputFile->dataset('multiplicative'          )->set($modelDiscrepancyMultiplicative          );
