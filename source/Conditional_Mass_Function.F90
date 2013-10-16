@@ -35,6 +35,7 @@ program Conditional_Mass_Function
   use Geometry_Surveys
   implicit none
   double precision                     , allocatable, dimension(:) :: mass,conditionalMassFunction
+  class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
   type     (varying_string            )                            :: parameterFile,conditionalMassFunctionOutputFileName
   character(len=32                    )                            :: conditionalMassFunctionHaloMassText
   integer                                                          :: conditionalMassFunctionMassCount,iMass
@@ -173,14 +174,17 @@ program Conditional_Mass_Function
   !@   <cardinality>1</cardinality>
   !@ </inputParameter>
   call Get_Input_Parameter('conditionalMassFunctionHaloMassMaximum',conditionalMassFunctionHaloMassMaximum,defaultValue=1.0d16)
+  
+  ! Get the default cosmology functions object.
+  cosmologyFunctionsDefault => cosmologyFunctions()     
 
   ! Decode the halo mass parameter.
   integrateOverHaloMassFunction=(conditionalMassFunctionHaloMassText == "all")
   if (.not.integrateOverHaloMassFunction) read (conditionalMassFunctionHaloMassText,*) conditionalMassFunctionHaloMass
 
   ! Compute the time corresponding to the specified redshift.
-  timeMinimum=Cosmology_Age(Expansion_Factor_from_Redshift(conditionalMassFunctionRedshiftMaximum))
-  timeMaximum=Cosmology_Age(Expansion_Factor_from_Redshift(conditionalMassFunctionRedshiftMinimum))
+  timeMinimum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMaximum))
+  timeMaximum=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(conditionalMassFunctionRedshiftMinimum))
 
   ! Find logarithmic limits for halo mass in integrations.
   logHaloMassLower=log10(conditionalMassFunctionHaloMassMinimum)
@@ -218,7 +222,7 @@ program Conditional_Mass_Function
               ! mass can be detected in this survey.
               distanceMaximum=Geometry_Survey_Distance_Maximum(sqrt(massBinMinimum*massBinMaximum))
               ! Set integration limits appropriately.
-              binTimeMinimum=max(timeMinimum,Time_From_Comoving_Distance(distanceMaximum))
+              binTimeMinimum=max(timeMinimum,cosmologyFunctionsDefault%timeAtDistanceComoving(distanceMaximum))
               binTimeMaximum=timeMaximum
            else
               ! No survey geometry is imposed, so use the full range of specified redshifts.
@@ -301,7 +305,7 @@ contains
          &                                           toleranceRelative=1.0d-3          , &
          &                                           reset=integrationResetTime          &
          &                                          )                                    &
-         &                               *Comoving_Volume_Element_Time(timePrime)
+         &                               *cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Integrand
 
@@ -313,7 +317,7 @@ contains
     real(c_double), value :: timePrime
     type(c_ptr),    value :: parameterPointer
 
-    Mass_Function_Time_Normalization_Integrand=Comoving_Volume_Element_Time(timePrime)
+    Mass_Function_Time_Normalization_Integrand=cosmologyFunctionsDefault%comovingVolumeElementTime(timePrime)
     return
   end function Mass_Function_Time_Normalization_Integrand
 
