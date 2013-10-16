@@ -40,7 +40,19 @@ my $config = &Parameters::Parse_Config($configFile);
 die("bieGalacticus.pl: workDirectory must be specified in config file") unless ( exists($config->{'workDirectory'}) );
 die("bieGalacticus.pl: compilation must be specified in config file"  ) unless ( exists($config->{'compilation'  }) );
 die("bieGalacticus.pl: parameters must be specified in config file"   ) unless ( exists($config->{'parameters'   }) );
-die("bieGalacticus.pl: threads must be specified in config file"      ) unless ( exists($config->{'threads'      }) );
+die("bieGalacticus.pl: nodes must be specified in config file"        ) unless ( exists($config->{'nodes'        }) );
+
+# Determine number of threads to run.
+my $threadsPerNode = 1;
+$threadsPerNode = $config->{'threadsPerNode'}
+    if ( exists($config->{'threadsPerNode'}) );
+my $nodeCount = 1;
+$nodeCount = $config->{'nodes'}
+    if ( exists($config->{'nodes'}) );
+my $biePerNode = $threadsPerNode;
+$biePerNode = $config->{'bieThreads'}
+   if ( exists($config->{'bieThreads'}) );
+my $bieThreadsTotal = $biePerNode*$nodeCount;
 
 # Determine the scratch directory.
 my $scratchDirectory = $config->{'workDirectory'}."/mcmc";
@@ -183,7 +195,14 @@ if ( exists($config->{'postPrior'}) ) {
     print oHndl "set postsi = new StateInfo(ndim)\n";
     print oHndl "set nburn  = ".$burnCount."\n";
     print oHndl "set post   = new EnsembleKD(postsi,0,nburn,\"".$config->{'postPrior'}->{'stateLog'}."\",0)\n";
-    print oHndl "set prior  = new PostPrior(oldPrior,post)\n";
+    my $restartPrior = "no";
+    $restartPrior = $config->{'postPrior'}->{'restart'}
+       if ( exists($config->{'postPrior'}->{'restart'}) );
+    if ( $restartPrior eq "yes" ) {
+	print oHndl "set prior  = new RestartPrior(oldPrior,post)\n";
+    } else {
+	print oHndl "set prior  = new PostPrior(oldPrior,post)\n";
+    }
 }
 
 # Create a Metropolis-Hastings helper class to define transition probability.
@@ -206,26 +225,44 @@ print oHndl "convrg->setNskip(".$nStepsSkip.")\n";
 my $nGood = 0;
 $nGood = $config->{'monteCarlo'}->{'goodSteps'} if ( exists($config->{'monteCarlo'}->{'goodSteps'}) );
 print oHndl "convrg->setNgood(".$nGood.")\n";
+my $alpha = 0.05;
+$alpha = $config->{'monteCarlo'}->{'grAlpha'} if ( exists($config->{'monteCarlo'}->{'grAlpha'}) );
+print oHndl "convrg->setAlpha(".$alpha.")\n";
+my $nOutlier = 500;
+$nOutlier = $config->{'monteCarlo'}->{'grNOutlier'} if ( exists($config->{'monteCarlo'}->{'grNOutlier'}) );
+print oHndl "convrg->setNoutlier(".$nOutlier.")\n";
+my $maxOutlier = 6;
+$maxOutlier = $config->{'monteCarlo'}->{'grMaxOut'} if ( exists($config->{'monteCarlo'}->{'grMaxOut'}) );
+print oHndl "convrg->setMaxout(".$maxOutlier.")\n";
+my $RhatMax = 1.2;
+$RhatMax = $config->{'monteCarlo'}->{'grRhatMax'} if ( exists($config->{'monteCarlo'}->{'grRhatMax'}) );
+print oHndl "convrg->setRhatMax(".$RhatMax.")\n";
 print oHndl "set mca = new MetropolisHastings()\n";
 print oHndl "set like = new LikelihoodComputationSerial()\n";
-    my $maxTemperature = 16.0;
-    $maxTemperature = $config->{'monteCarlo'}->{'maxTemperature'} if ( exists($config->{'monteCarlo'}->{'maxTemperature'}) );
+my $maxTemperature = 1.0;
+$maxTemperature = $config->{'monteCarlo'}->{'maxTemperature'} if ( exists($config->{'monteCarlo'}->{'maxTemperature'}) );
+if ( $maxTemperature > 1.0 ) {
     print oHndl "set Tmax = ".$maxTemperature."\n";
-my $minmc = 6;
-$minmc = $config->{'monteCarlo'}->{'minTemperatureStates'} if ( exists($config->{'monteCarlo'}->{'minTemperatureStates'}) );
-print oHndl "set minmc = ".$minmc."\n";
+    my $minmc = 6;
+    $minmc = $config->{'monteCarlo'}->{'minTemperatureStates'} if ( exists($config->{'monteCarlo'}->{'minTemperatureStates'}) );
+    print oHndl "set minmc = ".$minmc."\n";
+}
 if ( $algorithm eq "metropolisHastings" ) {
     print oHndl "set sim = new ParallelChains(si, minmc, Tmax,  mhwidth, convrg, prior, like, mca)\n";
     print oHndl "sim->SetAlgorithm(1)\n";
-    print oHndl "sim->NewNumber(".$config->{'threads'}.")\n";
+    print oHndl "sim->NewNumber(".$bieThreadsTotal.")\n";
 } elsif ( $algorithm eq "differentialEvolution" ) {
-    print oHndl "set sim = new TemperedDifferentialEvolution(si, ".$config->{'threads'}.", minmc, Tmax, eps, convrg, prior, like, mca)\n";
+    if ( $maxTemperature <= 1.0 ) {
+	print oHndl "set sim = new DifferentialEvolution(si, ".$bieThreadsTotal.", eps, convrg, prior, like, mca)\n";
+    } else {
+	print oHndl "set sim = new TemperedDifferentialEvolution(si, ".$bieThreadsTotal.", minmc, Tmax, eps, convrg, prior, like, mca)\n";
+	my $tempFreq = 10;
+	$tempFreq = $config->{'monteCarlo'}->{'temperingFrequency'}
+	if ( exists($config->{'monteCarlo'}->{'temperingFrequency'}) );
+	print oHndl "sim->SetTempFreq(".$tempFreq.")\n";
+    }
     print oHndl "sim->SetLinearMapping(1)\n";
     print oHndl "sim->SetJumpFreq(10)\n";
-    my $tempFreq = 10;
-    $tempFreq = $config->{'monteCarlo'}->{'temperingFrequency'}
-      if ( exists($config->{'monteCarlo'}->{'temperingFrequency'}) );
-    print oHndl "sim->SetTempFreq(".$tempFreq.")\n";
     my $gamma = 0.2;
     $gamma = $config->{'monteCarlo'}->{'gamma'}
       if ( exists($config->{'monteCarlo'}->{'gamma'}) );
@@ -255,10 +292,6 @@ my $queue = "";
 $queue = "#PBS -q ".$config->{'queue'}."\n"
     if ( exists($config->{'queue'}) );
 print oHndl $queue;
-my $threadsPerNode = 1;
-$threadsPerNode = $config->{'threadsPerNode'}
-    if ( exists($config->{'threadsPerNode'}) );
-my $nodeCount = int(($config->{'threads'}-1)/$threadsPerNode)+1;
 print oHndl "#PBS -l nodes=".$nodeCount.":ppn=".$threadsPerNode."\n";
 print oHndl "#PBS -o ".$config->{'workDirectory'}."/mcmc/bie.out\n";
 print oHndl "#PBS -e ".$config->{'workDirectory'}."/mcmc/bie.err\n";
@@ -298,7 +331,7 @@ print oHndl "rm -rf pdir/".$config->{'name'}."\n";
 print oHndl "rm -rf pdir/".$config->{'name'}."_restart*\n";
 print oHndl "scratch=\$(echo ".$scratchDirectory." | sed -r s/'\\/'/'\\\\\\/'/g)\n";
 print oHndl "sed -i~ -r s/\"\%\%SCRATCHDIRECTORY\%\%\"/\"\$scratch\"/g ".$config->{'workDirectory'}."/mcmc/bieInput.txt\n";
-print oHndl "mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 --mca mpi_yield_when_idle 1 -np ".$config->{'threads'}." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput.txt\n";
+print oHndl "mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 --mca mpi_yield_when_idle 1 -npernode ".$biePerNode." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput.txt\n";
 print oHndl "mv EnsembleStat.log.0 ".$config->{'workDirectory'}."/mcmc/\n";
 print oHndl "echo done > ".$config->{'workDirectory'}."/mcmc/done\n";
 print oHndl "rm -rf ".$scratchDirectory."\n";
@@ -332,8 +365,7 @@ if ( $autoRestart eq "true" ) {
     open(oHndl,">".$config->{'workDirectory'}."/mcmc/bieLaunch_restart1.sh");
     print oHndl "#!/bin/bash\n";
     print oHndl $queue;
-    my $nodeCount = int(($config->{'threads'}-1)/$threadsPerNode)+1;
-    print oHndl "#PBS -l nodes=".$nodeCount.":ppn=".$threadsPerNode."\n";
+    print oHndl "#PBS -l nodes=".$config->{'nodes'}.":ppn=".$threadsPerNode."\n";
     print oHndl "#PBS -o ".$config->{'workDirectory'}."/mcmc/bie_restart1.out\n";
     print oHndl "#PBS -e ".$config->{'workDirectory'}."/mcmc/bie_restart1.err\n";
     print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
@@ -376,7 +408,7 @@ if ( $autoRestart eq "true" ) {
     print oHndl " perl -pe 'my \$replace = sub { \"restart\".(\$_[0]+1) };s {restart(\\d)} {\$replace->(\$1)}ge' ".$config->{'workDirectory'}."/mcmc/bieInput_restart1.txt > ".$config->{'workDirectory'}."/mcmc/bieInput_restart2.txt\n";
     print oHndl " sed -i~ -r s/\"afternotok:[0-9]+\"/\"afternotok:\$PBS_JOBID\"/ ".$config->{'workDirectory'}."/mcmc/bieLaunch_restart2.sh\n";
     print oHndl "# qsub ".$config->{'workDirectory'}."/mcmc/bieLaunch_restart2.sh\n";
-    print oHndl " mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 -np ".$config->{'threads'}." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput_restart1.txt\n";
+    print oHndl " mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 -npernode ".$biePerNode." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput_restart1.txt\n";
     print oHndl " mv EnsembleStat.log.0 ".$config->{'workDirectory'}."/mcmc/\n";
     print oHndl " echo done > ".$config->{'workDirectory'}."/mcmc/done\n";
     print oHndl " rm -rf ".$scratchDirectory."\n";
@@ -389,8 +421,7 @@ if ( $autoRestart eq "true" ) {
     open(oHndl,">".$config->{'workDirectory'}."/mcmc/bieLaunch_restart1.sh");
     print oHndl "#!/bin/bash\n";
     print oHndl $queue;
-    my $nodeCount = int(($config->{'threads'}-1)/$threadsPerNode)+1;
-    print oHndl "#PBS -l nodes=".$nodeCount.":ppn=".$threadsPerNode."\n";
+    print oHndl "#PBS -l nodes=".$config->{'nodes'}.":ppn=".$threadsPerNode."\n";
     print oHndl "#PBS -o ".$config->{'workDirectory'}."/mcmc/bie_restart1.out\n";
     print oHndl "#PBS -e ".$config->{'workDirectory'}."/mcmc/bie_restart1.err\n";
     print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
@@ -425,7 +456,7 @@ if ( $autoRestart eq "true" ) {
 	print oHndl $_."\n";
     }
     }
-    print oHndl "mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 --mca mpi_yield_when_idle 1 -np ".$config->{'threads'}." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput_restart1.txt\n";
+    print oHndl "mpirun --mca btl ^openib --mca btl_tcp_if_include eth0 --mca mpi_yield_when_idle 1 -npernode ".$biePerNode." -hostfile \$PBS_NODEFILE ".$bie." -f ".$config->{'workDirectory'}."/mcmc/bieInput_restart1.txt\n";
     print oHndl "mv EnsembleStat.log.0 ".$config->{'workDirectory'}."/mcmc/\n";
     print oHndl "echo done > ".$config->{'workDirectory'}."/mcmc/done\n";
     print oHndl "rm -rf ".$scratchDirectory."\n";
