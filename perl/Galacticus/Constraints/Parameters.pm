@@ -235,6 +235,7 @@ sub Convert_BIE_Parameters_To_Galacticus {
 	    }
 	}
     }
+
     # Set the values of any parameters that are defined in terms of other parameters.
     my $failCount = 1;
     while ( $failCount > 0 ) {
@@ -391,7 +392,8 @@ sub Sample_Models {
 		my $constraintDefinition = $xml->XMLin($constraint->{'definition'});	    
 		# Insert code to run the analysis code.
 		my $analysisCode = $constraintDefinition->{'analysis'};
-		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
+		(my $plotLabel = $constraintDefinition->{'label'}) =~ s/\./_/g;
+		print oHndl $analysisCode." ".$galacticusFileName." --resultFile ".$modelDirectory."/".$constraintDefinition->{'label'}.".xml --plotFile ".$modelDirectory."/".$plotLabel.".pdf --outputFile ".$modelDirectory."/".$constraintDefinition->{'label'}."Likelihood.xml --modelDiscrepancies ".$workDirectory."/modelDiscrepancy\n";
 	    }
 	    close(oHndl);
 	    # Queue the calculation.
