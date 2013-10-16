@@ -36,8 +36,8 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string  ),          intent(in   ) :: mergerTreesBuildMassResolutionMethod
-    procedure(double precision), pointer, intent(inout) :: Merger_Tree_Build_Mass_Resolution_Get
+    type     (varying_string                          ),          intent(in   ) :: mergerTreesBuildMassResolutionMethod
+    procedure(Merger_Tree_Build_Mass_Resolution_Scaled), pointer, intent(inout) :: Merger_Tree_Build_Mass_Resolution_Get
     
     if (mergerTreesBuildMassResolutionMethod == 'scaled') then
        Merger_Tree_Build_Mass_Resolution_Get => Merger_Tree_Build_Mass_Resolution_Scaled
