@@ -20,6 +20,7 @@
 
 module Statistics_Mass_Function_Covariance
   !% Implements calculations of mass function covariances.
+  use Cosmology_Functions
   private
   public :: Mass_Function_Covariance_Matrix
 
@@ -45,8 +46,12 @@ module Statistics_Mass_Function_Covariance
 
   ! Table of biases.
   integer          :: timeBinCount
-double precision, dimension(:), allocatable :: timeTable
-double precision, dimension(:,:), allocatable :: biasTable
+  double precision, dimension(:), allocatable :: timeTable
+  double precision, dimension(:,:), allocatable :: biasTable
+  
+  ! Cosmological functions.
+  class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+  !$omp threadprivate(cosmologyFunctionsDefault)  
 
 contains
 
@@ -61,7 +66,6 @@ contains
     use Numerical_Ranges
     use Numerical_Integration
     use Numerical_Constants_Math
-    use Cosmology_Functions
     use Power_Spectra_Nonlinear
     use Galacticus_Error
     use Galacticus_Display
@@ -135,10 +139,13 @@ contains
        ! Record that the module is initialized.
        moduleInitialized=.true.
     end if
+    
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()     
 
     ! Determine number of times over which to tabulate bias.
-    timeMaximum =Cosmology_Age(Expansion_Factor_from_Redshift(redshiftMinimum))
-    timeMinimum =Cosmology_Age(Expansion_Factor_from_Redshift(redshiftMaximum))
+    timeMaximum =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
+    timeMinimum =cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum))
     timeBinCount=int(log10(timeMaximum/timeMinimum)*dble(timePointsPerDecade))+1
 
     ! Allocate arrays.
@@ -187,10 +194,10 @@ contains
        massBinMaximumI=10.0**(logMassBinCenter(i)+0.5d0*log10MassBinWidth)
 
        ! Find integration limits for this bin.
-       timeMaximum=    Cosmology_Age(              Expansion_Factor_from_Redshift  (redshiftMinimum))
-       timeMinimum=max(                                                                                &
-            &          Cosmology_Age              (Expansion_Factor_from_Redshift  (redshiftMaximum)), &
-            &          Time_From_Comoving_Distance(Geometry_Survey_Distance_Maximum(massBinCenterI ))  &
+       timeMaximum=    cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
+       timeMinimum=max(                                                                                                                          &
+            &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
+            &          cosmologyFunctionsDefault%timeAtDistanceComoving(Geometry_Survey_Distance_Maximum                     (massBinCenterI ))  &
             &         )
        ! Get the normalizing volume integral.
        integrationReset=.true.
@@ -288,15 +295,15 @@ contains
                   &                               )
 
              ! Find integration limits for this bin. We want the maximum of the volumes associated with the two bins.
-             timeMaximum=    Cosmology_Age(                  Expansion_Factor_from_Redshift  (redshiftMinimum))
-             timeMinimum=max(                                                                                    &
-                  &          Cosmology_Age              (    Expansion_Factor_from_Redshift  (redshiftMaximum)), &
-                  &          Time_From_Comoving_Distance(                                                        &
-                  &                                      max(                                                    &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterI ),  &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterJ )   &
-                  &                                         )                                                    &
-                  &                                     )                                                        &
+             timeMaximum=    cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
+             timeMinimum=max(                                                                                                                          &
+                  &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
+                  &          cosmologyFunctionsDefault%timeAtDistanceComoving(                                                                         &
+                  &                                                           max(                                                                     &
+                  &                                                               Geometry_Survey_Distance_Maximum(massBinCenterI ),                   &
+                  &                                                               Geometry_Survey_Distance_Maximum(massBinCenterJ )                    &
+                  &                                                              )                                                                     &
+                  &                                                          )                                                                         &
                   &         )
              
              ! Get the normalizing volume integral.
@@ -390,15 +397,15 @@ contains
           if (includeHalo) then
              integrationReset=.true.
              ! Find integration limits for this bin.
-             timeMaximum=    Cosmology_Age(                  Expansion_Factor_from_Redshift  (redshiftMinimum))
-             timeMinimum=max(                                                                                    &
-                  &          Cosmology_Age              (    Expansion_Factor_from_Redshift  (redshiftMaximum)), &
-                  &          Time_From_Comoving_Distance(                                                        &
-                  &                                      min(                                                    &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterI ),  &
-                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterJ )   &
-                  &                                         )                                                    &
-                  &                                     )                                                        &
+             timeMaximum=    cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMinimum))
+             timeMinimum=max(                                                                                                                          &
+                  &          cosmologyFunctionsDefault%cosmicTime            (cosmologyFunctionsDefault%expansionFactorFromRedshift(redshiftMaximum)), &
+                  &          cosmologyFunctionsDefault%timeAtDistanceComoving(                                                                         &
+                  &                                      min(                                                                                          &
+                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterI ),                                        &
+                  &                                          Geometry_Survey_Distance_Maximum(massBinCenterJ )                                         &
+                  &                                         )                                                                                          &
+                  &                                     )                                                                                              &
                   &         )
              ! Integrate over the volume.
              covarianceHalo(i,j)= Integrate(                               &
@@ -467,7 +474,7 @@ contains
     real(c_double), value :: time
     type(c_ptr),    value :: parameterPointer
 
-    Volume_Integrand=Comoving_Volume_Element_Time(time)
+    Volume_Integrand=cosmologyFunctionsDefault%comovingVolumeElementTime(time)
     return
   end function Volume_Integrand
 
@@ -499,7 +506,7 @@ contains
          &                 reset=integrationReset      &
          &                )
     call Integrate_Done(integrandFunction,integrationWorkspace)
-    Mass_Function_Time_Integrand_I=massFunction*Comoving_Volume_Element_Time(time)
+    Mass_Function_Time_Integrand_I=massFunction*cosmologyFunctionsDefault%comovingVolumeElementTime(time)
     return
   end function Mass_Function_Time_Integrand_I
 
@@ -559,7 +566,7 @@ contains
     ! Get the nonlinear power spectrum for the current wavenumber and time.
     powerSpectrum=Power_Spectrum_Nonlinear(waveNumber,time)
     ! Return the cross-correlation biased power spectrum multiplied by the volume element.
-    LSS_Integrand=biasI*biasJ*powerSpectrum*Comoving_Volume_Element_Time(time)
+    LSS_Integrand=biasI*biasJ*powerSpectrum*cosmologyFunctionsDefault%comovingVolumeElementTime(time)
     return
   end function LSS_Integrand
 
@@ -606,7 +613,7 @@ contains
          &                 reset=integrationReset    &
          &                )
     call Integrate_Done(integrandFunction,integrationWorkspace)
-    Halo_Occupancy_Time_Integrand=massFunction*Comoving_Volume_Element_Time(time)
+    Halo_Occupancy_Time_Integrand=massFunction*cosmologyFunctionsDefault%comovingVolumeElementTime(time)
     return
   end function Halo_Occupancy_Time_Integrand
 
