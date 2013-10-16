@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -20,6 +20,7 @@ use Clone qw(clone);
 use Text::Table;
 use Math::SigFigs;
 require Galacticus::Constraints::Parameters;
+require Galacticus::Constraints::Covariances;
 require GnuPlot::PrettyPlots;
 require GnuPlot::LaTeX;
 
@@ -73,6 +74,9 @@ my @constraints = @{$constraintsRef};
 # Set an initial random number seed.
 $parameters->{'parameter'}->{'randomSeed'}->{'value'} = 824;
 
+# Set a dummy baseline variable.
+$parameters->{'parameter'}->{'baseline'  }->{'value'} = 1.0;
+
 # Set the number of trees per decade of halo mass if specified on the command line.
 $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
    if ( exists($arguments{'treesPerDecade'}) );
@@ -80,6 +84,12 @@ $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $argu
 # Define parameters to test for convergence.
 my @convergences =
  (
+ {
+     parameter => "baseline",
+     factor    => 1.1,
+     steps     => 21,
+     ideal     => "smallest"
+ },
  {
      parameter => "mergerTreeBuildHaloMassMinimum",
      factor    => 1.259,
@@ -113,7 +123,7 @@ my @convergences =
  {
      parameter => "timestepHostAbsolute",
      factor    => 0.794,
-     steps     => 31, ## AJB HACK should be 21
+     steps     => 21,
      ideal     => "smallest"
  },
  {
@@ -181,7 +191,7 @@ if ( $parameters->{'parameter'}->{'mergerTreesBuildMassResolutionMethod'}->{'val
 my @pbsStack;
 foreach my $convergence ( @convergences ) {
     # Report on activity.
-    print "Running convergence models for: ".$convergence->{'parameter'}."\n";
+    print "Running convergence models for: ".$convergence->{'parameter'}."\n";    
     # Make a copy of the parameters.
     my $currentParameters = clone($parameters);
     # Step through values of this parameter.
@@ -194,9 +204,15 @@ foreach my $convergence ( @convergences ) {
 	system("mkdir -p ".$modelDirectory);
 	# Specify the output file name.
 	my $galacticusFileName = $modelDirectory."/galacticus.hdf5";
-	$currentParameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $galacticusFileName;
+	$currentParameters->{'parameter'}->{'galacticusOutputFileName'                }->{'value'} = $galacticusFileName;
 	# Increment the random number seed.
-        $currentParameters->{'parameter'}->{'randomSeed'}->{'value'} += 12;
+        $currentParameters->{'parameter'}->{'randomSeed'                              }->{'value'} += 12;
+	# Switch off resource sharing.
+        $currentParameters->{'parameter'}->{'treeEvolveThreadLock'                    }->{'value'} = "false";
+	# Switch off fixed random seeds.
+        $currentParameters->{'parameter'}->{'mergerTreeBuildCole2000FixedRandomSeeds' }->{'value'} = "false";
+	# Ensure we randomly sample from the halo mass function.
+        $currentParameters->{'parameter'}->{'mergerTreeBuildTreesHaloMassDistribution'}->{'value'} = "random";
 	# Check if the model has already been run.
 	unless ( -e $galacticusFileName ) {
 	    # Generate the parameter file.
@@ -282,7 +298,9 @@ foreach my $constraint ( @constraints ) {
 	    body   => ")"
 	}
 	);
-    # Iterative over convergence criteria, creating a plot of the convergence and reporting on its success or failure.
+    # Iterate over convergence criteria, creating a plot of the convergence and reporting on its success or failure.
+    my $baselineTestStatistic;
+    my $baselineTestStatisticVariance;
     foreach my $convergence ( @convergences ) {
 	# Report on activity.
 	print "Analysing convergence in ".$constraintDefinition->{'name'}." for: ".$convergence->{'parameter'}."\n";
@@ -294,7 +312,7 @@ foreach my $constraint ( @constraints ) {
 	for(my $i=0;$i<$convergence->{'steps'};++$i) {
 	    # Adjust the parameter.
 	    $currentParameters->{'parameter'}->{$convergence->{'parameter'}}->{'value'} *= $convergence->{'factor'}
-	    if ( $i > 0 );
+	       if ( $i > 0 );
 	    # Locate the model directory.
 	    my $modelDirectory = $workDirectory."/convergence/".$convergence->{'parameter'}."/".$i;
 	    # Read the results.
@@ -316,7 +334,6 @@ foreach my $constraint ( @constraints ) {
 		 }
 		);
 	}
-
 	# Construct the convergence measure.
 	my $parameter          = pdl [];
 	my $convergenceMeasure = pdl [];
@@ -335,42 +352,33 @@ foreach my $constraint ( @constraints ) {
 	}
 	my $optimal            = $results[$optimalEntry];
 	foreach ( @results ) {
-	    my $yOptimal = $optimal->{'y'}->copy();
-	    my $yThis    = $_      ->{'y'}->copy();
-	    my $covarianceOptimal = $optimal->{'covariance'}->copy();
-	    my $covarianceThis    = $_      ->{'covariance'}->copy();
-	    for(my $i=1;$i<nelem($yOptimal);++$i) {
-	    	$covarianceOptimal->(($i),($i)) .= $covarianceOptimal->(($i-1),($i-1)) 
-	    	    if ( $covarianceOptimal->(($i),($i)) <= 0.0 );
-	    	$covarianceThis   ->(($i),($i)) .= $covarianceThis   ->(($i-1),($i-1)) 
-	    	    if ( $covarianceThis   ->(($i),($i)) <= 0.0 );
-	    }
-	    my $difference                = $yOptimal-$yThis;
-	    my $scaledCovarianceOptimal   = $covarianceOptimal/$covarianceOptimal->((0),(0));
-	    my $inverseCovarianceOptimal  = minv($scaledCovarianceOptimal);
-	    $inverseCovarianceOptimal    /= $covarianceOptimal->((0),(0));
-	    my $vCvOptimal                = $difference x $inverseCovarianceOptimal x transpose($difference);
-	    my $measure                   = sqrt($vCvOptimal->((0),(0))/nelem($yOptimal));
-	    my $scaledCovariance          = $scaledCovarianceOptimal+$covarianceThis/$covarianceThis->((0),(0));
-	    my $inverseCovariance         = minv($scaledCovariance);
-	    $inverseCovariance           /= $covarianceThis->((0),(0));
-	    my $vCv                       = $difference x $inverseCovariance x transpose($difference);
-	    my $measureError              = pdl 0.0;
-	    $measureError                .=
-		sqrt(2.0*$vCv->((0),(0)))
-		/nelem($yOptimal)
-		/2.0
-		/$measure
-		unless ( $measure == 0.0 );
+	    my $difference        = $_->{'y'         }-$optimal->{'y'         };
+	    my $covariance        = $_->{'covariance'}+$optimal->{'covariance'};
+	    my $covarianceInverse = msyminv($covariance);
+	    my $dCd               = $difference x $covarianceInverse x transpose($difference);
+	    my $measure           = $dCd->((0),(0));
+	    my $measureError      = sqrt(2.0*$dCd->((0),(0)));
 	    unless ( $measure == 0.0 ) {
-		$parameter            = $parameter         ->append($_->{'parameter'});
-		$convergenceMeasure   = $convergenceMeasure->append($measure         );
-		$convergenceError     = $convergenceError  ->append($measureError    );
+	    	$parameter            = $parameter         ->append($_->{'parameter'});
+	    	$convergenceMeasure   = $convergenceMeasure->append($measure         );
+	    	$convergenceError     = $convergenceError  ->append($measureError    );
 	    }
 	}
-	# Renormalize convergence measure so that convergence occurs at a measure of 1.
-	$convergenceMeasure /= sqrt(2.0);
-	$convergenceError   /= sqrt(2.0);
+    	if ( $convergence->{'parameter'} eq "baseline" ) {
+	    $baselineTestStatistic         = average( $convergenceMeasure                                                          );
+	    $baselineTestStatisticVariance = average(($convergenceMeasure-$baselineTestStatistic)**2)/(nelem($convergenceMeasure)-1);
+	} else {
+	    $convergenceError =
+		($convergenceMeasure/$baselineTestStatistic)
+		*sqrt(
+		     ($convergenceError/$convergenceMeasure)**2
+		    +$baselineTestStatisticVariance/$baselineTestStatistic**2
+		);
+	    $convergenceMeasure /= $baselineTestStatistic;
+	    print $convergenceMeasure." ".$convergenceError."\n";
+	    die('testConvergence.pl: the baselnie test statistic is not defined')
+		if ( ! defined($baselineTestStatistic) );
+	}
 	# Report on convergence in this parameter.
 	my $current       = 0;
 	$current = 1
@@ -417,11 +425,10 @@ foreach my $constraint ( @constraints ) {
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	print $gnuPlot "set title 'Convergence of ".$constraintDefinition->{'name'}." with ".$convergence->{'parameter'}."'\n";
-	print $gnuPlot "set xlabel '".$convergence->{'parameter'}."'\n";
-	print $gnuPlot "set ylabel 'Convergence measure []'\n";
-	my $convergedX            = pdl ( $xMinimum, $xMaximum );
-	my $convergedY            = pdl (       1.00,     1.00 );
-	my $convergedYBoosted     = pdl (       0.80,     0.80 );
+	print $gnuPlot "set xlabel '{\\tt ".$convergence->{'parameter'}."}'\n";
+	print $gnuPlot "set ylabel 'Convergence measure; \$\\chi^2\$'\n";
+	my $convergedX = pdl ( $xMinimum, $xMaximum );
+	my $convergedY = pdl (       1.00,     1.00 );
 	# Add an arrow to show optimal direction.
 	my $xTip = 0.35;
 	$xTip = 0.65
@@ -434,16 +441,6 @@ foreach my $constraint ( @constraints ) {
 	     $convergedY,
 	     style       => "line",
 	     weight      => [5,3],
-	     color       => $PrettyPlots::colorPairs{'redYellow'}
-	    );
-	&PrettyPlots::Prepare_Dataset
-	    (
-	     \$plot,
-	     $convergedX       ,
-	     $convergedYBoosted,
-	     style       => "line",
-	     weight      => [5,3],
-	     linePattern => 3,
 	     color       => $PrettyPlots::colorPairs{'redYellow'}
 	    );
 	&PrettyPlots::Prepare_Dataset
@@ -481,13 +478,11 @@ foreach my $constraint ( @constraints ) {
     print $report "relevant statistic (as computed for this constraint) and that for the\n";
     print $report "same statistic from the most \"ideal\" model (i.e. the model in which\n";
     print $report "the parameter takes the value which should minimize numerical\n";
-    print $report "artefacts), divided by the sqrt(2) times the error in that\n";
-    print $report "statistic. (The sqrt(2) factor accounts for the fact that both models\n";
-    print $report "used in the difference have errors.) This number should be consistent\n";
-    print $report "with unity if convergence is achieved. The normalized convergence\n";
-    print $report "measure is (C-1)/E where C is the convergence measure and E is its\n";
-    print $report "error. It approximately represents the number of sigma deviation from\n";
-    print $report "convergence.\n\n";
+    print $report "artefacts), divided by the error in that statistic. number should be\n";
+    print $report "consistent with unity if convergence is achieved. The normalized\n";
+    print $report "convergence measure is (C-1)/E where C is the convergence measure and E\n";
+    print $report "is its error. It approximately represents the number of sigma deviation\n";
+    print $report "from convergence.\n\n";
     print $report $reportTable->table()."\n";
     close($report);
 }
