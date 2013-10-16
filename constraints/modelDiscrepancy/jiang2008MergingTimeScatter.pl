@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
-    $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
     $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
     $galacticusPath = "./";
@@ -64,6 +64,9 @@ if ( $arguments{'make'} eq "yes" ) {
 (my $constraintsRef, my $parameters) = &Parameters::Compilation($config->{'compilation'},$config->{'baseParameters'});
 my @constraints = @{$constraintsRef};
 
+# Switch off thread locking.
+$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+
 # Initialize a stack for PBS models.
 my @pbsStack;
 
@@ -76,7 +79,7 @@ my @models =
 	     [
 	      # Switch to using Jiang2008 implementation.
 	      {
-		  name  => "satelliteMergingMethod",
+		  name  => "satelliteMergingTimescaleMethod",
 		  value => "Jiang2008"
 	      }
 	     ]
@@ -87,7 +90,7 @@ my @models =
 	     [
 	      # Switch to using Jiang2008 implementation.
 	      {
-		  name  => "satelliteMergingMethod",
+		  name  => "satelliteMergingTimescaleMethod",
 		  value => "Jiang2008"
 	      },
 	      # Switch to using recommended scatter.
@@ -181,21 +184,13 @@ foreach my $constraint ( @constraints ) {
     $recommendedCovariance    = reshape($recommendedCovariance,$ySize,$ySize);
     # Find the multiplicative discrepancy between these two models.
     (my $nonZero, my $zero)            = which_both($defaultY > 0.0);
-    my $modelDiscrepancyMultiplicative = $recommendedY;
+    my $modelDiscrepancyMultiplicative = $recommendedY->copy();
     $modelDiscrepancyMultiplicative->($nonZero) /= $defaultY->($nonZero);
     $modelDiscrepancyMultiplicative->($zero   ) .= 1.0;
-    # Compute the covariance arising from finite number of trees in the variable orbit model.
-    my $modelDiscrepancyCovariance               = $recommendedCovariance+$defaultCovariance;
-    my $defaultYOuter                            = outer($defaultY,$defaultY);
-    $defaultYOuter($modelDiscrepancyCovariance == 0.0;?) .= 1.0;
-    my $modelDiscrepancyCovarianceMultiplicative = $modelDiscrepancyCovariance->copy();
-    $modelDiscrepancyCovarianceMultiplicative .=
-	log
-	(
-	 1.0
-	 +$modelDiscrepancyCovariance
-	 /$defaultYOuter
-	);
+    # Compute the covariance.
+    my $modelDiscrepancyCovarianceMultiplicative = 
+	 $recommendedCovariance*outer(          1.0/$defaultY   ,          1.0/$defaultY   )
+	+$defaultCovariance    *outer($recommendedY/$defaultY**2,$recommendedY/$defaultY**2);
     # Output the model discrepancy to file.
     my $outputFile = new PDL::IO::HDF5(">".$workDirectory."/modelDiscrepancy/jiang2008MergingTimeScatter/discrepancy".ucfirst($constraintDefinition->{'label'}).".hdf5");
     $outputFile->dataset('multiplicative'          )->set($modelDiscrepancyMultiplicative          );
