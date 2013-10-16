@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -61,7 +61,7 @@ system("mkdir -p ".$config->{'workDirectory'});
 # Ensure that Galacticus is built.
 if ( $arguments{'make'} eq "yes" ) {
     system("make Galacticus.exe");
-    die("testdModelAccuracy.pl: failed to build Galacticus.exe")
+    die("testModelAccuracy.pl: failed to build Galacticus.exe")
 	unless ( $? == 0 );
 }
 
@@ -74,6 +74,24 @@ $parameters->{'parameter'}->{'randomSeed'}->{'value'} = 824;
 
 # Ensure that tree timing logging is switched on.
 $parameters->{'parameter'}->{'metaCollectTimingData'}->{'value'} = "true";
+
+# Switch off thread locking.
+$parameters->{'parameter'}->{'treeEvolveThreadLock'}->{'value'} = "false";
+
+# Set the default number of trees per decade.
+$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $arguments{'treesPerDecade'}
+	if ( exists($arguments{'treesPerDecade'}) );
+
+# Ensure no abundance limits are applied for halo mass function sampling.
+$parameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMinimum'}->{'value'} = -1.0;
+$parameters->{'parameter'}->{'haloMassFunctionSamplingAbundanceMaximum'}->{'value'} = -1.0;
+
+# Ensure fixed mass resolution is used.
+$parameters->{'parameter'}->{'mergerTreesBuildMassResolutionMethod'    }->{'value'} = "fixed";
+if ( exists($arguments{'massResolution'}) ) {
+    $parameters->{'parameter'}->{'mergerTreeBuildMassResolutionFixed'  }->{'value'} =     $arguments{'massResolution'};
+    $parameters->{'parameter'}->{'mergerTreeBuildHaloMassMinimum'      }->{'value'} = 2.0*$arguments{'massResolution'};
+}
 
 # Define parameters to test for accuracy.
 my @accuracies =
@@ -137,8 +155,6 @@ for(my $pass=0;$pass<2;++$pass) {
 		    open(oHndl,">".$batchScriptFileName);
 		    print oHndl "#!/bin/bash\n";
 		    print oHndl "#PBS -N accuracy".ucfirst($accuracy->{'parameter'}).$samplingMethod.$i."\n";
-		    print oHndl "#PBS -l walltime=3:00:00\n";
-		    print oHndl "#PBS -l mem=4gb\n";
 		    print oHndl "#PBS -l nodes=1:ppn=12\n";
 		    print oHndl "#PBS -j oe\n";
 		    print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
@@ -236,7 +252,7 @@ foreach my $constraint ( @constraints ) {
 	print $gnuPlot "set format x '\$10^{\%L}\$'\n";
 	print $gnuPlot "set mytics 10\n";
 	print $gnuPlot "set format y '\$10^{\%L}\$'\n";
-	print $gnuPlot "set xrange [1.0e2:1.0e7]\n";
+	print $gnuPlot "set xrange [1.0e2:1.0e8]\n";
 	print $gnuPlot "set yrange [1.0e-1:1.0e2]\n";
 	print $gnuPlot "set title 'Convergence with tree processing time'\n";
 	print $gnuPlot "set xlabel 'Tree processing time [s]'\n";
