@@ -28,7 +28,8 @@ module Cooling_Rates_Simple_Scaling
 
   ! The fixed timescale for cooling.
   double precision :: coolingRateSimpleScalingTimescale     , coolingRateSimpleScalingTimescaleExponent, &
-       &              coolingRateSimpleScalingTransitionMass, coolingRateSimpleScalingCutoffExponent
+       &              coolingRateSimpleScalingCutOffWidth   , coolingRateSimpleScalingCutOffMass       , &
+       &              coolingRateSimpleScalingCutOffExponent
 
 contains
 
@@ -71,7 +72,7 @@ contains
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateSimpleScalingTimescaleExponent',coolingRateSimpleScalingTimescaleExponent,defaultValue=-1.5d0)
        !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingTransitionMass</name>
+       !@   <name>coolingRateSimpleScalingCutOffMass</name>
        !@   <defaultValue>$10^{12}M_\odot$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -80,9 +81,20 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingTransitionMass',coolingRateSimpleScalingTransitionMass,defaultValue=1.0d12)
+       call Get_Input_Parameter('coolingRateSimpleScalingCutOffMass',coolingRateSimpleScalingCutOffMass,defaultValue=1.0d12)
        !@ <inputParameter>
-       !@   <name>coolingRateSimpleScalingCutoffExponent</name>
+       !@   <name>coolingRateSimpleScalingCutOffWidth</name>
+       !@   <defaultValue>$1$</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The width appearing in the exponential term for cooling timescale in the simple scaling cooling rate model.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('coolingRateSimpleScalingCutOffWidth',coolingRateSimpleScalingCutOffWidth,defaultValue=1.0d0)
+       !@ <inputParameter>
+       !@   <name>coolingRateSimpleScalingCutOffExponent</name>
        !@   <defaultValue>$1$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
@@ -91,7 +103,7 @@ contains
        !@   <type>real</type>
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
-       call Get_Input_Parameter('coolingRateSimpleScalingCutoffExponent',coolingRateSimpleScalingCutoffExponent,defaultValue=1.0d0)
+       call Get_Input_Parameter('coolingRateSimpleScalingCutOffExponent',coolingRateSimpleScalingCutOffExponent,defaultValue=1.0d0)
 
        ! Check that the properties we need are gettable.
        if (.not.defaultHotHaloComponent%massIsGettable())                             &
@@ -118,25 +130,31 @@ contains
     use Cosmology_Functions
     implicit none
     type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: massRatioMaximum         =100.0d0
+    double precision                         , parameter              :: expArgumentMaximum         =100.0d0
     class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
     class           (nodeComponentHotHalo   )               , pointer :: thisHotHaloComponent
     class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                                                  :: coolingRate                      , expansionFactor
+    double precision                                                  :: coolingRate                        , expansionFactor, &
+         &                                                               expArgument                        , expFactor
 
     ! Get the default cosmology functions object.
     cosmologyFunctionsDefault => cosmologyFunctions()
     thisBasicComponent   => thisNode%basic  ()
     thisHotHaloComponent => thisNode%hotHalo()
-    expansionFactor=cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
-    coolingRate    = exp(                                                       &
-         &               -(                                                     &
-         &                  thisBasicComponent%mass()                           &
-         &                 /coolingRateSimpleScalingTransitionMass              &
-         &                )**coolingRateSimpleScalingCutoffExponent             &
-         &              )                                                       &
-         &          *expansionFactor**coolingRateSimpleScalingTimescaleExponent &
-         &          /coolingRateSimpleScalingTimescale
+    expansionFactor      =cosmologyFunctionsDefault%expansionFactor(thisBasicComponent%time())
+    expArgument          =log10(                                     &
+         &                       thisBasicComponent%mass()           &
+         &                      /coolingRateSimpleScalingCutOffMass  &
+         &                     )                                     &
+         &                /coolingRateSimpleScalingCutOffWidth
+    if (expArgument < expArgumentMaximum) then
+       expFactor=1.0d0/(1.0d0+exp(+expArgument))**coolingRateSimpleScalingCutOffExponent
+    else
+       expFactor=             exp(-expArgument   *coolingRateSimpleScalingCutOffExponent)
+    end if
+    coolingRate    = expansionFactor**coolingRateSimpleScalingTimescaleExponent &
+         &          /coolingRateSimpleScalingTimescale                          &
+         &          *expFactor
     Cooling_Rate_Simple_Scaling=thisHotHaloComponent%mass()*coolingRate
     return
   end function Cooling_Rate_Simple_Scaling
