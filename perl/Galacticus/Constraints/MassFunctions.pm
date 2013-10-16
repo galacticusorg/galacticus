@@ -194,11 +194,10 @@ sub Construct {
 			$covarianceMultiplier .= $discrepancyFile->dataset('multiplicativeCovariance')->get()
 			    if ( grep {$_ eq "multiplicativeCovariance"} @datasets );
 			$covarianceGalacticus .=
-			     $covarianceGalacticus                      *outer($multiplier  ,$multiplier)
-			    +                      $covarianceMultiplier*outer($yGalacticus,$yGalacticus)
-			    +$covarianceGalacticus*$covarianceMultiplier;
-			$yGalacticus          *=                               $multiplier;
-			$errorGalacticus      *=                               $multiplier;
+			      $covarianceGalacticus*outer($multiplier  ,$multiplier)
+			     +$covarianceMultiplier*outer($yGalacticus,$yGalacticus);
+			$yGalacticus          *= $multiplier;
+			$errorGalacticus      *= $multiplier;
 		    }
 		    if ( $dataset eq "additive" ) {
 			# Read the additive discrepancy
