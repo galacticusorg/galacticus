@@ -2060,6 +2060,14 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt boylanKolchin2008}, 
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
 
+\subsubsection{Villalobos et al. (2013)}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt villalobos2013}, this method computes merging timescales using the modifier of \cite{villalobos_improved_2013} as
+\begin{equation}
+\tau_{\rm merge} = (1+z)^\alpha \tau^\prime_{\rm merge},
+\end{equation}
+where $\alpha=${\tt [satelliteMergingTimescaleVillalobos2013Exponent]} and $\tau^\prime_{\rm merge}$ is the merging timescale computed by another satellite merging timescale method as specified via {\tt [satelliteMergingTimescaleVillalobos2013BaseMethod]}.
+
 \subsubsection{Preset}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt preset}, this method returns a precomputed merging timescale stored by the satellite component.
