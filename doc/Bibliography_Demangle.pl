@@ -60,6 +60,7 @@ while ( my $line = <iHndl> ) {
     $line =~ s/ì/\\`i/g;
     $line =~ s/Ä/\\"A/g;
     $line =~ s/Å/\\AA/g;
+    $line =~ s/Á/\\'A/g;
     $line =~ s/É/\\'E/g;
     $line =~ s/ô/\\^o/g;
     $line =~ s/ö/\\"o/g;
