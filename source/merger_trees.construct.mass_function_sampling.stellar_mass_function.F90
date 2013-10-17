@@ -175,7 +175,7 @@ contains
   function Xi_Integrand(logStellarMass,parameterPointer) bind(c)
     !% The integrand appearing in the $\xi$ function.
     use, intrinsic :: ISO_C_Binding
-    use Conditional_Stellar_Mass_Functions
+    use Conditional_Mass_Functions
     implicit none
     real            (kind=c_double)        :: Xi_Integrand
     real            (kind=c_double), value :: logStellarMass
@@ -190,7 +190,7 @@ contains
     stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*haloMassFunctionSamplingStellarMassFunctionErrorLogBinWidth)
 
     ! Compute the variance in the model conditional stellar mass function.
-    conditionalMassFunctionVariance=Cumulative_Conditional_Stellar_Mass_Function_Variance(massHalo,stellarMassMinimum,stellarMassMaximum)
+    conditionalMassFunctionVariance=Cumulative_Conditional_Mass_Function_Variance(massHalo,stellarMassMinimum,stellarMassMaximum)
 
     ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
     stellarMassFunctionObservedError= haloMassFunctionSamplingStellarMassFunctionErrorPhi0                                                                             &
