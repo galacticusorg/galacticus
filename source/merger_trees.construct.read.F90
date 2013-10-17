@@ -2037,14 +2037,14 @@ contains
                 ! Find relative position and velocity.
                 relativePosition=satellitePosition-hostPosition
                 relativeVelocity=satelliteVelocity-hostVelocity
+                ! Update position/velocity for periodicity and Hubble flow.
+                call Phase_Space_Position_Realize(satelliteBasicComponent%time(),relativePosition,relativeVelocity)
                 ! Catch zero separation halos.
                 if (Vector_Magnitude(relativePosition) == 0.0d0) then
                    message='merging halos ['
                    message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
                    call Galacticus_Error_Report('Scan_For_Mergers',message)
                 end if
-                ! Update position/velocity for periodicity and Hubble flow.
-                call Phase_Space_Position_Realize(satelliteBasicComponent%time(),relativePosition,relativeVelocity)
                 ! Create the orbit.
                 thisOrbit=Orbit_Construct(satelliteBasicComponent%mass(),orbitalPartnerBasicComponent%mass(),relativePosition,relativeVelocity)
                 ! Propagate to the virial radius.
@@ -2630,10 +2630,12 @@ contains
 
   subroutine Time_Until_Merging_Subresolution(lastSeenNode,nodes,iNode,timeSubhaloMerges)
     !% Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
+    use Vectors
     use Kepler_Orbits
     use Galacticus_Error
     use Satellite_Merging_Timescales
     use Input_Parameters
+    use String_Handling
     implicit none
     type            (nodeData                       ), intent(in   )                       :: lastSeenNode
     type            (nodeData                       ), intent(inout), dimension(:), target :: nodes
@@ -2652,6 +2654,8 @@ contains
     double precision                                                                       :: primaryProgenitorMass         , timeUntilMerging
     type            (varying_string                 )                                      :: mergerTreeReadSubresolutionMergingMethod
     type            (progenitorIterator             )                                      :: progenitors
+    character       (len=42                         )                                      :: coordinateLabel
+    type            (varying_string                 )                                      :: message
 
     ! Initialize if necessary.
     if (.not.functionInitialized) then
@@ -2696,6 +2700,20 @@ contains
           relativeVelocity=lastSeenNode%velocity-primaryProgenitor%velocity
           ! Update position/velocity for periodicity and Hubble flow.
           call Phase_Space_Position_Realize(lastSeenNode%nodeTime,relativePosition,relativeVelocity)
+          ! Catch zero separation halos.
+          if (Vector_Magnitude(relativePosition) == 0.0d0) then
+             message='merging halos ['
+             message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
+             write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%position
+             message=message//char(10)//"  position [primary  ] = "//trim(coordinateLabel)
+             write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %position
+             message=message//char(10)//"  position [satellite] = "//trim(coordinateLabel)
+             write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%velocity
+             message=message//char(10)//"  velocity [primary  ] = "//trim(coordinateLabel)
+             write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %velocity
+             message=message//char(10)//"  velocity [satellite] = "//trim(coordinateLabel)
+             call Galacticus_Error_Report('Time_Until_Merging_Subresolution',message)
+          end if
           ! Create the orbit.
           thisOrbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
           ! Check if the orbit is bound.
