@@ -2636,6 +2636,7 @@ contains
     use Satellite_Merging_Timescales
     use Input_Parameters
     use String_Handling
+    use Galacticus_Display
     implicit none
     type            (nodeData                       ), intent(in   )                       :: lastSeenNode
     type            (nodeData                       ), intent(inout), dimension(:), target :: nodes
@@ -2703,41 +2704,47 @@ contains
           ! Catch zero separation halos.
           if (Vector_Magnitude(relativePosition) == 0.0d0) then
              message='merging halos ['
-             message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
+             message=message//lastSeenNode%nodeIndex//' & '//primaryProgenitor%nodeIndex//'] have zero separation'
+             call Galacticus_Display_Indent  (message                          ,verbosityWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%position
-             message=message//char(10)//"  position [primary  ] = "//trim(coordinateLabel)
+             message="position [primary  ] = "//trim(coordinateLabel)
+             call Galacticus_Display_Message (message                          ,verbosityWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %position
-             message=message//char(10)//"  position [satellite] = "//trim(coordinateLabel)
+             message="position [satellite] = "//trim(coordinateLabel)
+             call Galacticus_Display_Message (message                          ,verbosityWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%velocity
-             message=message//char(10)//"  velocity [primary  ] = "//trim(coordinateLabel)
+             message="velocity [primary  ] = "//trim(coordinateLabel)
+             call Galacticus_Display_Message (message                          ,verbosityWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %velocity
-             message=message//char(10)//"  velocity [satellite] = "//trim(coordinateLabel)
-             call Galacticus_Error_Report('Time_Until_Merging_Subresolution',message)
-          end if
-          ! Create the orbit.
-          thisOrbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
-          ! Check if the orbit is bound.
-          if (thisOrbit%energy() < 0.0d0) then
-             ! Construct temporary nodes.
-             satelliteNode                => treeNode           (                 )
-             hostNode                     => treeNode           (                 )
-             satelliteNode%parent         => hostNode
-             hostNode     %firstSatellite => satelliteNode
-             satelliteBasicComponent      => satelliteNode%basic(autoCreate=.true.)
-             hostBasicComponent           => hostNode     %basic(autoCreate=.true.)
-             call satelliteBasicComponent%timeSet(lastSeenNode     %nodeTime)
-             call      hostBasicComponent%timeSet(primaryProgenitor%nodeTime)
-             call satelliteBasicComponent%massSet(lastSeenNode     %nodeMass)
-             call      hostBasicComponent%massSet(primaryProgenitor%nodeMass)
-             ! Determine the time until merging.
-             timeUntilMerging=thisSatelliteMergingTimescales%timeUntilMerging(satelliteNode,thisOrbit)
-             ! Clean up.
-             call satelliteNode%destroy()
-             call hostNode     %destroy()
-             deallocate(satelliteNode)
-             deallocate(hostNode     )
+             message="velocity [satellite] = "//trim(coordinateLabel)
+             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call Galacticus_Display_Unindent('assuming instantaneous merging' ,verbosityWarn)
           else
-             timeUntilMerging=timeUntilMergingInfinite
+             ! Create the orbit.
+             thisOrbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
+             ! Check if the orbit is bound.
+             if (thisOrbit%energy() < 0.0d0) then
+                ! Construct temporary nodes.
+                satelliteNode                => treeNode           (                 )
+                hostNode                     => treeNode           (                 )
+                satelliteNode%parent         => hostNode
+                hostNode     %firstSatellite => satelliteNode
+                satelliteBasicComponent      => satelliteNode%basic(autoCreate=.true.)
+                hostBasicComponent           => hostNode     %basic(autoCreate=.true.)
+                call satelliteBasicComponent%timeSet(lastSeenNode     %nodeTime)
+                call      hostBasicComponent%timeSet(primaryProgenitor%nodeTime)
+                call satelliteBasicComponent%massSet(lastSeenNode     %nodeMass)
+                call      hostBasicComponent%massSet(primaryProgenitor%nodeMass)
+                ! Determine the time until merging.
+                timeUntilMerging=thisSatelliteMergingTimescales%timeUntilMerging(satelliteNode,thisOrbit)
+                ! Clean up.
+                call satelliteNode%destroy()
+                call hostNode     %destroy()
+                deallocate(satelliteNode)
+                deallocate(hostNode     )
+             else
+                timeUntilMerging=timeUntilMergingInfinite
+             end if
           end if
        end if
        ! Find the new merging time, and the node with which the merging will occur.
