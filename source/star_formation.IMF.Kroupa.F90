@@ -57,6 +57,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Kroupa</unitName>
+  !#  <name>Kroupa</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Kroupa(imfNames,imfDescriptors)
     !% Register the name of this IMF.

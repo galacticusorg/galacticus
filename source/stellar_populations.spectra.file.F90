@@ -133,6 +133,16 @@ contains
        defaultFile=char(Galacticus_Input_Path())//'data/SSP_Spectra_imf'//imfName//'.hdf5'
 
        ! Get the file name.
+       !@ <inputParameter>
+       !@   <regEx>stellarPopulationSpectraFor(#imfRegisterName->name)IMF</regEx>
+       !@   <defaultValue>{\tt data/SSP\_Spectra\_imf\$1.hdf5}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The name of the file of stellar populations to use for the named \gls{imf}.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
        call Get_Input_Parameter(char(parameterName),stellarPopulationSpectraFile,defaultValue=char(defaultFile))
 
        ! Call routine to read in the tabulated data.

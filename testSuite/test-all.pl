@@ -124,6 +124,10 @@ my @executablesToRun = (
 	valgrind => 0
     },
     {
+	name     => "tests.regular_expressions.exe",                                      # Tests of regular expression utilities.
+	valgrind => 0
+    },
+    {
 	name     => "tests.hashes.cryptographic.exe",                                     # Tests of cryptographic hashing utilities.
 	valgrind => 0
     },

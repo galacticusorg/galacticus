@@ -90,6 +90,7 @@ contains
     use String_Handling
     use Galacticus_Display
     use File_Utilities
+    use Regular_Expressions
     !$ use OMP_Lib
     implicit none
     type     (varying_string)         , intent(in   )                   :: parameterFile
@@ -102,8 +103,10 @@ contains
     integer                                                             :: allowedParameterCount , distance                , &
          &                                                                 iParameter            , ioErr                   , &
          &                                                                 jParameter            , minimumDistance
-    type     (varying_string)                                           :: possibleMatch         , unknownParameter
-
+    type     (varying_string)                                           :: possibleMatch         , unknownParameter        , &
+         &                                                                 thisParameterName
+    type     (regEx         )                                           :: thisRegEx
+  
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterDoc => parseFile(char(parameterFile),iostat=ioErr)
@@ -140,7 +143,14 @@ contains
              parameterMatched=.false.
              do while (.not.parameterMatched .and. jParameter < allowedParameterCount)
                 thisParameter   => item(allowedParameterList,jParameter)
-                parameterMatched=(getTextContent(nameElement) == getTextContent(thisParameter))
+                thisParameterName=getTextContent(thisParameter)
+                if (extract(thisParameterName,1,6) == "regEx:") then
+                   thisRegEx=regEx(char(extract(thisParameterName,7,len(thisParameterName))))
+                   parameterMatched=thisRegEx%matches(getTextContent(nameElement))
+                   call thisRegEx%destroy()
+                else
+                   parameterMatched=(getTextContent(nameElement) == thisParameterName)
+                end if
                 jParameter=jParameter+1
              end do
              if (.not.parameterMatched) then

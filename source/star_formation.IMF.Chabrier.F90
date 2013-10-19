@@ -59,6 +59,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Chabrier</unitName>
+  !#  <name>Chabrier</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Chabrier(imfNames,imfDescriptors)
     !% Register the name of this IMF.

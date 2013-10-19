@@ -57,6 +57,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Baugh2005TopHeavy</unitName>
+  !#  <name>Baugh2005TopHeavy</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Baugh2005TopHeavy(imfNames,imfDescriptors)
     !% Register the name of this IMF.
