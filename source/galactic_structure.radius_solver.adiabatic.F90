@@ -77,7 +77,7 @@ contains
        call Get_Input_Parameter('adiabaticContractionUseFormationHalo',adiabaticContractionUseFormationHalo,defaultValue=.false.)
        !@ <inputParameter>
        !@   <name>adiabaticContractionSolutionTolerance</name>
-       !@   <defaultValue></defaultValue>
+       !@   <defaultValue>$10^{-2}$</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
        !@     Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.

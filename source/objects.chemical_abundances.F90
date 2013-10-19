@@ -226,7 +226,6 @@ contains
              call Alloc_Array(chemicalsMasses ,[chemicalsCount])
              !@ <inputParameter>
              !@   <name>chemicalsToTrack</name>
-             !@   <defaultValue></defaultValue>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
              !@     The names of the chemicals to be tracked.
