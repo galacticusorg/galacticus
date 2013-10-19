@@ -306,7 +306,6 @@ contains
              call Alloc_Array(elementsIndices,[elementsCount])
              !@ <inputParameter>
              !@   <name>elementsToTrack</name>
-             !@   <defaultValue></defaultValue>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
              !@     The names of the elements to be tracked.

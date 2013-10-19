@@ -116,7 +116,7 @@ contains
              call Get_Input_Parameter('outputDensityContrastValues',outputDensityContrastValues)
              !@ <inputParameter>
              !@   <name>outputDensityContrastHaloLoaded</name>
-             !@   <defaultValue></defaultValue>
+             !@   <defaultValue>true</defaultValue>
              !@   <attachedTo>module</attachedTo>
              !@   <description>
              !@     Specifies whether baryonic loading of the halo should be accounted for when outputting density contrast data.
