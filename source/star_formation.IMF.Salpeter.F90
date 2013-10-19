@@ -57,6 +57,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Salpeter</unitName>
+  !#  <name>Salpeter</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Salpeter(imfNames,imfDescriptors)
     !% Register the name of this IMF.

@@ -15,7 +15,9 @@ use XML::Simple;
 use Data::Dumper;
 use LaTeX::Encode;
 use Fcntl qw(SEEK_SET);
+use UNIVERSAL;
 require Fortran::Utils;
+require Galacticus::Doc::Parameters;
 
 # Scan Fortran90 source code and extract various useful data from "!@" lines.
 # Andrew Benson 12-Mar-2010
@@ -52,6 +54,7 @@ my %parametersRead;
 my %parametersData;
 my %objects;
 my %enumerations;
+my @emptyDefaults;
 
 foreach my $fileName ( @fileNames ) {
     # Get a printable file name.
@@ -117,7 +120,7 @@ foreach my $fileName ( @fileNames ) {
 	    if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"subroutine:".$2)};
 	    if ( $rawLine =~ m/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double precision|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+([a-zA-Z0-9_]+)/ ) {push(@programUnits,"function:".$5)};
 	    if ( $rawLine =~ m/^\s*end\s+(program|module|subroutine|function)\s/ ) {pop(@programUnits)};
-	    
+
 	    # Check for derived-type definitions.
 	    if ( defined($processedLine) ) {
 		if ( $processedLine =~ m/$derivedTypeOpenRegex/i ) {
@@ -191,11 +194,28 @@ foreach my $fileName ( @fileNames ) {
 			    $enumerations {$contents->{'name'}}->{'description'} = $contents->{'description'};
 			}
 			case ( "inputParameter" ) {
-			    (my $printName = $contents->{'name'}) =~ s/_/\\_/g;
+			    # Handle parameters defined as regular expressions.
+			    if ( exists($contents->{'regEx'}) ) {
+				$contents->{'name'} = "[regEx] ".latex_encode(&Parameters::ExpandRegEx($contents->{'regEx'},$sourceDir));
+			    }
+			    # Construct output data for this parameter.
+			    (my $printName = $contents->{'name'}) =~ s/([^\\])_/$1\\_/g;
 			    my $buffer  = "\\noindent {\\bf Name:} {\\tt ".$printName."}\\\\\n";
 			    $buffer .= "{\\bf Attached to:} ";
 			    my $attachedTo;
 			    my $attachedAt;
+			    # Detect empty "defaultValue" elements.
+			    if ( exists($contents->{'defaultValue'}) && UNIVERSAL::isa($contents->{'defaultValue'},"HASH") ) {
+				push(
+				    @emptyDefaults,
+				    {
+					name => $contents->{'name'},
+					file => $fileNames[0]
+				    }
+				    );
+				delete($contents->{'defaultValue'});
+			    }
+			    # Determine to what the parameter is attached.
 			    if ( exists($contents->{'attachedTo'}) ) {
 				my $programUnitIndex = scalar(@programUnits)-1;
 				my $regEx = $contents->{'attachedTo'}.":";
@@ -215,7 +235,6 @@ foreach my $fileName ( @fileNames ) {
 				$attachedTo = "{\\tt ".$programUnits[-1]."}";
 				$attachedAt = scalar(@programUnits)-1;
 			    }
-			    
 			    my $attachedLink = $leafName.":";
 			    for(my $iAttach=0;$iAttach<=$attachedAt;++$iAttach) {
 				if ( $programUnits[$iAttach] =~ m/^[^:]+:(.*)/ ) {
@@ -225,7 +244,6 @@ foreach my $fileName ( @fileNames ) {
 				}
 			    }
 			    $attachedLink =~ s/:$//;
-			    
 			    my $targetPrefix;
 			    my $targetSuffix;
 			    if ( $attachedTo =~ m/:/ ) {
@@ -253,7 +271,19 @@ foreach my $fileName ( @fileNames ) {
 			    $buffer .= "{\\bf Description:} ".$contents->{'description'};
 			    $buffer .= "\\\\" unless ( $buffer =~ m/\}\s*$/ );
 			    $buffer .= "\n\n";
-			    $parametersData{$contents->{'name'}} = $buffer;
+			    my $descriptor = 
+			    {
+				description      => $buffer      ,
+				file             => $fileNames[0],
+				attachmentStatus => $attachedTo 
+			    };
+			    # Use this instance of this parameter description if it is the first
+			    # instance seen, or if previous instances had unknown attachment status.
+			    my $useThisInstance = 1;
+			    $useThisInstance = 0
+				if ( exists($parametersData{$contents->{'name'}}) && $parametersData{$contents->{'name'}}->{'attachmentStatus'} ne "unknown" );
+			    $parametersData{$contents->{'name'}} = $descriptor
+				if ( $useThisInstance == 1 );
 			}
 			case ( "objectMethod" ) {
 			    my $object = lc($contents->{'object'});
@@ -324,9 +354,9 @@ open(parametersHndl,">".$outputRoot."Parameters.tex");
 open(methodHndl    ,">".$outputRoot."Methods.tex");
 
 # Write parameter descriptions.
-my @sortedParameters = sort { $parametersData{$a} cmp $parametersData{$b} } keys %parametersData;
+my @sortedParameters = sort(keys(%parametersData));
 foreach my $parameterName ( @sortedParameters ) {
-    print parametersHndl $parametersData{$parameterName};
+    print parametersHndl $parametersData{$parameterName}->{'description'};
 }
 
 # Write method descriptions.
@@ -373,6 +403,17 @@ foreach my $parameterRead ( keys(%parametersRead) ) {
     unless ( exists($parametersData{$parameterRead}) ) {
 	print "Warning: missing data for input parameter [".$parameterRead."] in file ".$parametersRead{$parameterRead}."\n";
     }
+}
+
+# Write warning messages about unknown attachments.
+foreach ( keys(%parametersRead) ) {
+    print "Warning: unknown attachment for input parameter [".$_."] in file ".$parametersData{$_}->{'file'}."\n"
+	if ( $parametersData{$_}->{'attachmentStatus'} eq "unknown" );
+}
+
+# Write warning messages about empty default values.
+foreach ( @emptyDefaults ) {
+    print "Warning: empty defaultValue for input parameter [".$_->{'name'}."] in file ".$_->{'file'}."\n";
 }
 
 # Construct enumeration documentation.

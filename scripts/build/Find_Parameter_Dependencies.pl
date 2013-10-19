@@ -1,16 +1,27 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+    $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+    $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+    $galacticusPath = "./";
+}
+unshift(@INC, $galacticusPath."perl"); 
 use XML::Simple;
 use Data::Dumper;
 use List::MoreUtils qw{ any };
+require Galacticus::Doc::Parameters;
 
 # Scan source files for input parameter definitions for a given executable.
 # Andrew Benson (18-October-2011)
 
 # Get the name of the executable to find parameters for.
-die("Usage: Find_Parameter_Dependencies.pl <executable>") unless ( scalar(@ARGV) == 1 );
-my $executable = $ARGV[0];
+die("Usage: Find_Parameter_Dependencies.pl <sourceDirectory> <executable>")
+    unless ( scalar(@ARGV) == 2 );
+my $sourceDirectory = $ARGV[0];
+my $executable      = $ARGV[1];
 
 # Build a hash of dependencies.
 my $dependencies;
@@ -52,8 +63,10 @@ while ( my $fileName = readdir(sDir) ) {
 			# Parse the XML.
 			my $xml = new XML::Simple;
 			my $inputParameter = $xml->XMLin($xmlBuffer);
-			if ( exists {map { $_ => 1 } @{$dependencies->{'objectFiles'}}}->{$objectFile} ) {
-			    unless ( exists {map { $_ => 1 } @{$dependencies->{'parameters' }}}->{$inputParameter->{'name'}} ) {
+			$inputParameter->{'name'} = "regEx:".&Parameters::ExpandRegEx($inputParameter->{'regEx'},$sourceDirectory)
+			    if ( exists($inputParameter->{'regEx'}) );
+			if ( grep {$_ eq $objectFile}  @{$dependencies->{'objectFiles'}} ) {
+			    unless ( grep {$_ eq $inputParameter->{'name'}} @{$dependencies->{'parameters' }} ) {
 				push(@{$dependencies->{'parameters'}},$inputParameter->{'name'});
 			    }
 			}
@@ -79,8 +92,12 @@ if ( -e $extraFile ) {
 my $outputList;
 @{$outputList->{'parameter'}} = @{$dependencies->{'parameters'}} if ( exists($dependencies->{'parameters'}) );
 my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"parameters");
+my $output = $xmlOutput->XMLout($outputList);
+# Escape square brackets in the output to that they get correctly parsed by FoX.
+$output =~ s/\[/&#x005B;/g;
+$output =~ s/\]/&#x005D;/g;
 open(oHndl,">./work/build/".$outputFile);
-print oHndl $xmlOutput->XMLout($outputList);
+print oHndl $output;
 close(oHndl);
 
 exit;

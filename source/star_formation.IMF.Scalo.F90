@@ -57,6 +57,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Scalo</unitName>
+  !#  <name>Scalo</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Scalo(imfNames,imfDescriptors)
     !% Register the name of this IMF.

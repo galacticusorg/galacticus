@@ -57,6 +57,7 @@ contains
 
   !# <imfRegisterName>
   !#  <unitName>Star_Formation_IMF_Register_Name_Kennicutt</unitName>
+  !#  <name>Kennicutt</name>
   !# </imfRegisterName>
   subroutine Star_Formation_IMF_Register_Name_Kennicutt(imfNames,imfDescriptors)
     !% Register the name of this IMF.

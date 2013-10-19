@@ -84,8 +84,8 @@ contains
     ! We do not have this chain loaded. Load it now.
     ! Get the stellar population postprocessing methods parameter.
     !@ <inputParameter>
-    !@   <name>stellarPopulationSpectraPostprocessDefaultMethods</name>
-    !@   <defaultValue>Meiksin2006</defaultValue>
+    !@   <regEx>stellarPopulationSpectraPostprocess[a-zA-Z0-9_]+Methods</regEx>
+    !@   <defaultValue>Meiksin2006 (for ``Default'' chain)</defaultValue>
     !@   <attachedTo>module</attachedTo>
     !@   <description>
     !@     The name of methods to be used for post-processing of stellar population spectra.

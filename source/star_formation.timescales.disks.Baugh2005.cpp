@@ -96,7 +96,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@ <inputParameter>
       //@   <name>starFormationDiskTimescale</name>
       //@   <defaultValue>8.0</defaultValue>
-      //@   <attachedTo>namespace</attachedTo>
+      //@   <attachedTo>file</attachedTo>
       //@   <description>
       //@     The timescale (in Gyr) for star formation in the \cite{baugh_can_2005} prescription.
       //@   </description>
@@ -108,7 +108,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@ <inputParameter>
       //@   <name>starFormationDiskVelocityExponent</name>
       //@   <defaultValue>-3.0</defaultValue>
-      //@   <attachedTo>namespace</attachedTo>
+      //@   <attachedTo>file</attachedTo>
       //@   <description>
       //@     The exponent for disk velocity in the \cite{baugh_can_2005} prescription for star formation in galactic disks.
       //@   </description>
@@ -120,7 +120,7 @@ namespace Star_Formation_Timescale_Disks_Baugh2005
       //@ <inputParameter>
       //@   <name>starFormationExpansionExponent</name>
       //@   <defaultValue>0.0</defaultValue>
-      //@   <attachedTo>namespace</attachedTo>
+      //@   <attachedTo>file</attachedTo>
       //@   <description>
       //@     The exponent for expansion factor in the \cite{baugh_can_2005} prescription for star formation in galactic disks.
       //@   </description>
