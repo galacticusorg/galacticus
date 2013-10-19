@@ -362,15 +362,17 @@ sub Prepare_Dataset {
 		} else {
 		    my $level = "upper";
 		    ${$plot}->{$phase}->{'data'} .= "set style fill solid 1.0 noborder\n";
-		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
-		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n";
+		    ${$plot}->{$phase}->{'data'} .= "plot '-' with filledcurve ".$options{'filledCurve'}." notitle".$lineType{$level}.$lineColor{$level}.$lineWeight{$level}." fill border\n";
+		    ${$plot}->{$phase}->{'data'} .= $x->index(0)." ".$y->index(0)." ".$y->index(0)."\n"
+			if ( $options{'filledCurve'} eq "closed" );
 		    for(my $iPoint=0;$iPoint<nelem($x);++$iPoint) {
 			${$plot}->{$phase}->{'data'} .= $x->index($iPoint)." ".$y->index($iPoint);
 			${$plot}->{$phase}->{'data'} .= " ".$options{'y2'}->index($iPoint)
 			    if ( $options{'filledCurve'} eq "closed" );
 			${$plot}->{$phase}->{'data'} .= "\n";
 		    }
-		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n";
+		    ${$plot}->{$phase}->{'data'} .= $x->index(nelem($x)-1)." ".$y->index(nelem($x)-1)." ".$y->index(nelem($x)-1)."\n"
+			if ( $options{'filledCurve'} eq "closed" );
 		    ${$plot}->{$phase}->{'data'} .= $endPoint;
 		}
 	    }
