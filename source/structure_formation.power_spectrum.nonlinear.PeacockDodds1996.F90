@@ -33,7 +33,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
-    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+    procedure(Power_Spectrum_Nonlinear_PeacockDodds1996), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
 
     if (powerSpectrumNonlinearMethod == 'Peacock-Dodds1996') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_PeacockDodds1996
     return
@@ -51,6 +51,7 @@ contains
     integer         , parameter     :: iterationCountMaximum=1000
     double precision, parameter     :: tolerance            =1.0d-3
     double precision, parameter     :: updateFraction       =0.1d0
+    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
     logical                         :: converged
     integer                         :: iterationCount
     double precision                :: A                           , B               , &
@@ -59,11 +60,12 @@ contains
          &                             fNLPrevious                 , g               , &
          &                             n                           , waveNumberLinear, &
          &                             x
-
+    
+    ! Get the default cosmology functions object.
+    cosmologyFunctionsDefault => cosmologyFunctions()     
     ! Make an initial guess that the nonlinear power spectrum equals the linear power spectrum.
     fNL        =Power_Spectrum_Dimensionless(waveNumber)
     fNLPrevious=fNL
-
     ! Iterate until a converged solution is found.
     converged     =.false.
     iterationCount=0
