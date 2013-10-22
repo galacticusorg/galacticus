@@ -25,7 +25,7 @@ module Galacticus_Build
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Galacticus_Build_Output
+  public :: Galacticus_Build_Output, Galacticus_Build_String
 
   interface
      function GSL_Get_Version() bind(c,name='GSL_Get_Version')
@@ -36,6 +36,74 @@ module Galacticus_Build
   end interface
 
 contains
+
+  function Galacticus_Build_String()
+    !% Returns a string describing the build environment of \glc.
+    use ISO_Varying_String
+    use String_Handling
+    use FoX_Common
+    use ISO_Varying_String
+    use FGSL
+    use HDF5
+    use Galacticus_Error
+    implicit none
+    type     (varying_string   )                        :: Galacticus_Build_String
+    character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
+    integer                     , parameter             :: versionStringlengthMaximum=10
+    integer                                             :: hdfError                     , hdfVersionMajor   , &
+         &                                                 hdfVersionMinor              , hdfVersionRelease , &
+         &                                                 iChr
+    type     (c_ptr            )                        :: charVersionPointer
+    type     (varying_string   )                        :: CCOMPILER                    , CCOMPILER_VERSION , &
+         &                                                 CFLAGS                       , CPPCOMPILER       , &
+         &                                                 CPPCOMPILER_VERSION          , CPPFLAGS          , &
+         &                                                 FCCOMPILER                   , FCCOMPILER_VERSION, &
+         &                                                 FCFLAGS                      , FCFLAGS_NOOPT     , &
+         &                                                 LIBS                         , MODULETYPE        , &
+         &                                                 PREPROCESSOR                 , versionString
+
+    ! Include build environment definitions.
+    include 'galacticus.output.build.environment.inc' ! NO_USES
+    ! Initialize an empty string.
+    Galacticus_Build_String=""
+    ! Write FGSL library version string.
+    Galacticus_Build_String=Galacticus_Build_String//":FGSL_version["//FGSL_Version//"]"
+    ! Write GSL library version string.
+    charVersionPointer=GSL_Get_Version()
+    call c_f_pointer(charVersionPointer,charVersionString,[versionStringlengthMaximum])
+    versionString=""
+    iChr=0
+    do while (iChr < versionStringlengthMaximum)
+      iChr=iChr+1
+      if (charVersionString(iChr) == c_null_char) exit
+      versionString=versionString//charVersionString(iChr)
+    end do
+    Galacticus_Build_String=Galacticus_Build_String//":GSL_version["//versionString//"]"
+    ! Write FoX library version string.
+    Galacticus_Build_String=Galacticus_Build_String//":FoX_version["//Fox_Version//"]"
+    ! Write HDF5 library version string.
+    call h5get_libversion_f(hdfVersionMajor,hdfVersionMinor,hdfVersionRelease,hdfError)
+    if (hdfError /= 0) call Galacticus_Error_Report('Galacticus_Build_Output','unable to get HDF5 library version number')
+    versionString=''
+    versionString=versionString//hdfVersionMajor//"."
+    versionString=versionString//hdfVersionMinor//"."
+    versionString=versionString//hdfVersionRelease
+    Galacticus_Build_String=Galacticus_Build_String//":HDF5_version["//versionString//"]"
+    ! Write Make environment variables.
+    Galacticus_Build_String=Galacticus_Build_String//":FCCOMPILER["         //FCCOMPILER         //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":PREPROCESSOR["       //PREPROCESSOR       //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CCOMPILER["          //CCOMPILER          //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CPPCOMPILER["        //CPPCOMPILER        //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":MODULETYPE["         //MODULETYPE         //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":FCFLAGS["            //FCFLAGS            //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":FCFLAGS_NOOPT["      //FCFLAGS_NOOPT      //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CFLAGS["             //CFLAGS             //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CPPFLAGS["           //CPPFLAGS           //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":FCCOMPILER_VERSION[" //FCCOMPILER_VERSION //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CCOMPILER_VERSION["  //CCOMPILER_VERSION  //"]"
+    Galacticus_Build_String=Galacticus_Build_String//":CPPCOMPILER_VERSION["//CPPCOMPILER_VERSION//"]"
+    return
+  end function Galacticus_Build_String
 
   !# <outputFileOpenTask>
   !#  <unitName>Galacticus_Build_Output</unitName>
@@ -114,7 +182,7 @@ contains
     call buildGroup%writeAttribute(CCOMPILER_VERSION  ,'make_CCOMPILER_VERSION  ')
     call buildGroup%writeAttribute(CPPCOMPILER_VERSION,'make_CPPCOMPILER_VERSION')
 
-    ! Add Bazaar changeset information.
+    ! Add Mercurial changeset information.
     if (File_Exists(Galacticus_Input_Path()//"work/build/galacticus.hg.patch")) then
        call changeSet(1)%loadFromFile(char(Galacticus_Input_Path()//'work/build/galacticus.hg.patch'))
        if (changeSet(1) /= "" ) call buildGroup%writeDataset(changeSet,'sourceChangeSetDiff','Output of "hg diff" - gives the uncommitted source changeset')

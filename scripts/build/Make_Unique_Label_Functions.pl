@@ -80,10 +80,10 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Begin creating the function for the definition.
     my $definitionCode =
 <<CODE;
-function $labelFunction(includeVersion,asHash)
+function $labelFunction(includeVersion,includeBuild,asHash)
  implicit none
  type   (varying_string)                       :: $labelFunction
- logical                , intent(in), optional :: includeVersion,asHash
+ logical                , intent(in), optional :: includeVersion,includeBuild,asHash
  type   (varying_string)                       :: parameterValue
  $labelFunction=''
 CODE
@@ -269,7 +269,10 @@ CODE
     $definitionCode .=
 <<CODE;
   if (present(includeVersion)) then
-    if (includeVersion) $labelFunction=$labelFunction//'_'//Galacticus_Version()
+    if (includeVersion) $labelFunction=$labelFunction//'_'//Galacticus_Version     ()
+  end if
+  if (present(includeBuild  )) then
+    if (includeBuild  ) $labelFunction=$labelFunction//'_'//Galacticus_Build_String()
   end if
   if (present(asHash)) then
     if (asHash) $labelFunction=Hash_MD5($labelFunction)
