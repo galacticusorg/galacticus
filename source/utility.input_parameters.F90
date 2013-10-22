@@ -103,10 +103,10 @@ contains
     integer                                                             :: allowedParameterCount , distance                , &
          &                                                                 iParameter            , ioErr                   , &
          &                                                                 jParameter            , minimumDistance
-    type     (varying_string)                                           :: possibleMatch         , unknownParameter        , &
-         &                                                                 thisParameterName
+    type     (varying_string)                                           :: possibleMatch         , thisParameterName       , &
+         &                                                                 unknownParameter
     type     (regEx         )                                           :: thisRegEx
-  
+
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterDoc => parseFile(char(parameterFile),iostat=ioErr)
@@ -276,13 +276,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(  out)           :: parameterValue
-    character(len=*), intent(in   )           :: parameterName
-    character(len=*), intent(in   ), optional :: defaultValue
-    logical         , intent(in   ), optional :: writeOutput
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
-    integer                                   :: iParameter
-    logical                                   :: foundMatch    , writeOutputActual
+    character(len=*       ), intent(  out)           :: parameterValue
+    character(len=*       ), intent(in   )           :: parameterName
+    character(len=*       ), intent(in   ), optional :: defaultValue
+    logical                , intent(in   ), optional :: writeOutput
+    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type     (DOMException)                          :: exception
+    integer                                          :: iParameter
+    logical                                          :: foundMatch    , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -301,8 +302,13 @@ contains
        nameElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterValue=getTextContent(valueElement)
-          foundMatch=.true.
+          parameterValue=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Char'                                                      , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
+         foundMatch=.true.
        end if
        iParameter=iParameter+1
     end do
@@ -342,6 +348,7 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
     type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
+    type     (DOMException  )                          :: exception
     integer                                            :: iParameter       , nEntries
     logical                                            :: foundMatch       , writeOutputActual
     type     (varying_string)                          :: parameterText
@@ -363,7 +370,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement)
+          parameterText=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Char_Array'                                                , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           nEntries=String_Count_Words(char(parameterText))
           if (nEntries > size(parameterValue)) then
              call Galacticus_Error_Report('Get_Input_Parameter_Char_Array','array parameter has too many entries')
@@ -409,6 +421,7 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue
     logical                  , intent(in   ), optional :: writeOutput
     type     (Node          ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type     (DOMException  )                          :: exception
     integer                                            :: iParameter
     logical                                            :: foundMatch    , writeOutputActual
 
@@ -429,7 +442,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterValue=getTextContent(valueElement)
+          parameterValue=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_VarString'                                                 , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           foundMatch=.true.
        end if
        iParameter=iParameter+1
@@ -470,6 +488,7 @@ contains
     character(len=*         ), intent(in   ), optional :: defaultValue  (:)
     logical                  , intent(in   ), optional :: writeOutput
     type     (Node          ), pointer                 :: nameElement      , thisParameter    , valueElement
+    type     (DOMException  )                          :: exception
     integer                                            :: iParameter       , nEntries
     logical                                            :: foundMatch       , writeOutputActual
     type     (varying_string)                          :: parameterText
@@ -491,7 +510,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement)
+          parameterText=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_VarString_Array'                                           , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           nEntries=String_Count_Words(char(parameterText))
           if (nEntries > size(parameterValue)) then
              call Galacticus_Error_Report('Get_Input_Parameter_VarString_Array','array parameter has too many entries')
@@ -532,13 +556,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character       (len=*), intent(in   )           :: parameterName
-    double precision       , intent(  out)           :: parameterValue
-    double precision       , intent(in   ), optional :: defaultValue
-    logical                , intent(in   ), optional :: writeOutput
-    type            (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
-    integer                                          :: iParameter
-    logical                                          :: foundMatch    , writeOutputActual
+    character       (len=*       ), intent(in   )           :: parameterName
+    double precision              , intent(  out)           :: parameterValue
+    double precision              , intent(in   ), optional :: defaultValue
+    logical                       , intent(in   ), optional :: writeOutput
+    type            (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type            (DOMException)                          :: exception
+    integer                                                 :: iParameter    , status
+    logical                                                 :: foundMatch    , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -548,7 +573,6 @@ contains
           call Galacticus_Error_Report('Get_Input_Parameter_Double','parameter file has not been parsed.')
        end if
     end if
-
     !$omp critical (FoX_DOM_Access)
     iParameter=0
     foundMatch=.false.
@@ -557,7 +581,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Double'                                                    , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           foundMatch=.true.
        end if
        iParameter=iParameter+1
@@ -592,13 +621,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character       (len=*), intent(in   )           :: parameterName
-    double precision       , intent(  out)           :: parameterValue(:)
-    double precision       , intent(in   ), optional :: defaultValue  (:)
-    logical                , intent(in   ), optional :: writeOutput
-    type            (Node ), pointer                 :: nameElement      , thisParameter    , valueElement
-    integer                                          :: iParameter
-    logical                                          :: foundMatch       , writeOutputActual
+    character       (len=*       ), intent(in   )           :: parameterName
+    double precision              , intent(  out)           :: parameterValue(:)
+    double precision              , intent(in   ), optional :: defaultValue  (:)
+    logical                       , intent(in   ), optional :: writeOutput
+    type            (Node        ), pointer                 :: nameElement      , thisParameter    , valueElement
+    type            (DOMException)                          :: exception
+    integer                                                 :: iParameter       , status
+    logical                                                 :: foundMatch       , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -617,7 +647,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Double_Array'                                              , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           foundMatch=.true.
        end if
        iParameter=iParameter+1
@@ -652,13 +687,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName
-    integer         , intent(  out)           :: parameterValue
-    integer         , intent(in   ), optional :: defaultValue
-    logical         , intent(in   ), optional :: writeOutput
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
-    integer                                   :: iParameter
-    logical                                   :: foundMatch    , writeOutputActual
+    character(len=*       ), intent(in   )           :: parameterName
+    integer                , intent(  out)           :: parameterValue
+    integer                , intent(in   ), optional :: defaultValue
+    logical                , intent(in   ), optional :: writeOutput
+    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type     (DOMException)                          :: exception
+    integer                                          :: iParameter    , status
+    logical                                          :: foundMatch    , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -677,8 +713,13 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
-          foundMatch=.true.
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Integer'                                                   , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
+         foundMatch=.true.
        end if
        iParameter=iParameter+1
     end do
@@ -712,13 +753,14 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName
-    integer         , intent(  out)           :: parameterValue(:)
-    integer         , intent(in   ), optional :: defaultValue  (:)
-    logical         , intent(in   ), optional :: writeOutput
-    type     (Node ), pointer                 :: nameElement      , thisParameter    , valueElement
-    integer                                   :: iParameter
-    logical                                   :: foundMatch       , writeOutputActual
+    character(len=*       ), intent(in   )           :: parameterName
+    integer                , intent(  out)           :: parameterValue(:)
+    integer                , intent(in   ), optional :: defaultValue  (:)
+    logical                , intent(in   ), optional :: writeOutput
+    type     (Node        ), pointer                 :: nameElement      , thisParameter    , valueElement
+    type     (DOMException)                          :: exception
+    integer                                          :: iParameter       , status
+    logical                                          :: foundMatch       , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -737,7 +779,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Integer_Array'                                             , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           foundMatch=.true.
        end if
        iParameter=iParameter+1
@@ -772,14 +819,15 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName
-    logical         , intent(  out)           :: parameterValue
-    logical         , intent(in   ), optional :: defaultValue
-    logical         , intent(in   ), optional :: writeOutput
-    type     (Node ), pointer                 :: nameElement   , thisParameter    , valueElement
-    integer                                   :: iParameter
-    logical                                   :: foundMatch    , writeOutputActual
-    character(len=5)                          :: datasetValue
+    character(len=*       ), intent(in   )           :: parameterName
+    logical                , intent(  out)           :: parameterValue
+    logical                , intent(in   ), optional :: defaultValue
+    logical                , intent(in   ), optional :: writeOutput
+    type     (Node        ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type     (DOMException)                          :: exception
+    integer                                          :: iParameter    , status
+    logical                                          :: foundMatch    , writeOutputActual
+    character(len=5       )                          :: datasetValue
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -798,8 +846,13 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
-          foundMatch=.true.
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Logical'                                                   , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
+         foundMatch=.true.
        end if
        iParameter=iParameter+1
     end do
@@ -839,15 +892,16 @@ contains
     !% \hyperlink{utility.input_parameters.F90:input_parameters:input_parameters_file_open}{{\tt Input\_Parameters\_File\_Open}} or no matching parameter is found, the
     !%  default value (if any) given by {\tt defaultValue} is returned. (If no default value is present an error occurs instead.)
     implicit none
-    character(len=*), intent(in   )           :: parameterName
-    logical         , intent(  out)           :: parameterValue(:                   )
-    logical         , intent(in   ), optional :: defaultValue  (:                   )
-    logical         , intent(in   ), optional :: writeOutput
-    type     (Node ), pointer                 :: nameElement                         , thisParameter    , &
-         &                                       valueElement
-    character(len=5)                          :: datasetValue  (size(parameterValue))
-    integer                                   :: iParameter
-    logical                                   :: foundMatch                          , writeOutputActual
+    character(len=*       ), intent(in   )           :: parameterName
+    logical                , intent(  out)           :: parameterValue(:                   )
+    logical                , intent(in   ), optional :: defaultValue  (:                   )
+    logical                , intent(in   ), optional :: writeOutput
+    type     (Node        ), pointer                 :: nameElement                         , thisParameter    , &
+         &                                              valueElement
+    type     (DOMException)                          :: exception
+    character(len=5       )                          :: datasetValue  (size(parameterValue))
+    integer                                          :: iParameter                          , status
+    logical                                          :: foundMatch                          , writeOutputActual
 
     ! If no parameter file has been read, either return the default or stop with an error message.
     if (.not.associated(parameterDoc)) then
@@ -866,7 +920,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          call extractDataContent(valueElement,parameterValue)
+          call extractDataContent(valueElement,parameterValue,ex=exception,iostat=status)
+          if (inException(exception).or.status /= 0)                                                                            &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Logical_Array'                                             , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           foundMatch=.true.
        end if
        iParameter=iParameter+1
@@ -912,6 +971,7 @@ contains
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue
     logical                              , intent(in   ), optional :: writeOutput
     type     (Node                      ), pointer                 :: nameElement   , thisParameter    , valueElement
+    type     (DOMException              )                          :: exception
     integer                                                        :: iParameter
     logical                                                        :: foundMatch    , writeOutputActual
     character(len=parameterLengthMaximum)                          :: parameterText
@@ -933,7 +993,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement)
+          parameterText=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Integer_Long'                                              , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           read (parameterText,*) parameterValue
           foundMatch=.true.
        end if
@@ -973,6 +1038,7 @@ contains
     integer  (kind=kind_int8            ), intent(in   ), optional :: defaultValue  (:)
     logical                              , intent(in   ), optional :: writeOutput
     type     (Node                      ), pointer                 :: nameElement      , thisParameter    , valueElement
+    type     (DOMException              )                          :: exception
     integer                                                        :: iParameter
     logical                                                        :: foundMatch       , writeOutputActual
     character(len=parameterLengthMaximum)                          :: parameterText
@@ -994,7 +1060,12 @@ contains
        nameElement   => XML_Get_First_Element_By_Tag_Name(thisParameter,"name")
        if (parameterName == getTextContent(nameElement)) then
           valueElement => XML_Get_First_Element_By_Tag_Name(thisParameter,"value")
-          parameterText=getTextContent(valueElement)
+          parameterText=getTextContent(valueElement,ex=exception)
+          if (inException(exception))                                                                                           &
+               & call Galacticus_Error_Report(                                                                                  &
+               &                              'Get_Input_Parameter_Integer_Long_Array'                                        , &
+               &                              'unable to parse parameter ['//parameterName//']='//getTextContent(valueElement)  &
+               &                              )
           read (parameterText,*) parameterValue
           foundMatch=.true.
        end if
