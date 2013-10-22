@@ -16,6 +16,9 @@ use Text::Balanced qw (extract_bracketed);
 use Text::Table;
 use Data::Dumper;
 
+# RegEx's useful for matching Fortran code.
+our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
+
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
     # Includes intelligent handling of OpenMP directives.
@@ -136,6 +139,29 @@ sub Truncate_Fortran_Lines {
     close(inHandle );
     close(outHandle);
 
+}
+
+sub Get_Matching_Lines {
+    # Return a list of all lines in a file matching a supplied regular expression.
+    my $fileName = shift;
+    my $regEx    = shift;
+    # Open the file, and read each line.
+    my @matches;
+    open(my $fileHandle,$fileName);
+    until ( eof($fileHandle) ) {
+	&Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+	if ( my @submatches = $processedLine =~ $regEx ) {
+	    push(
+		@matches,
+		{
+		    line => $processedLine,
+		    submatches => \@submatches
+		}
+		);
+	}
+    }
+    close($fileName);
+    return @matches;
 }
 
 sub Get_Fortran_Line {
