@@ -226,6 +226,9 @@ contains
                &                                     /mergerTreeComputeConditionalMassFunctionParentMassMinimum  &
                &                                    )
           call Alloc_Array(massParents,[mergerTreeComputeConditionalMassFunctionParentMassCount+1])
+          do i=1,mergerTreeComputeConditionalMassFunctionParentMassCount
+             massParents(i)=exp(massParentLogarithmicMinimum+(dble(i)-0.5d0)/massParentLogarithmicBinWidthInverse)
+          end do
           massParents=Make_Range(                                                           &
                &                 mergerTreeComputeConditionalMassFunctionParentMassMinimum, &
                &                 mergerTreeComputeConditionalMassFunctionParentMassMaximum, &
@@ -240,12 +243,9 @@ contains
                &                                    /mergerTreeComputeConditionalMassFunctionMassRatioMinimum  &
                &                                   )
           call Alloc_Array(massRatios,[mergerTreeComputeConditionalMassFunctionMassRatioCount+1])
-          massRatios=Make_Range(&
-               &                mergerTreeComputeConditionalMassFunctionMassRatioMinimum, &
-               &                mergerTreeComputeConditionalMassFunctionMassRatioMaximum, &
-               &                mergerTreeComputeConditionalMassFunctionMassRatioCount  , &
-               &                rangeType=rangeTypeLogarithmic                            &
-               &               )
+          do i=1,mergerTreeComputeConditionalMassFunctionMassRatioCount
+             massRatios(i)=exp(massRatioLogarithmicMinimum+(dble(i)-0.5d0)/massRatioLogarithmicBinWidthInverse)
+          end do
           ! Get the default cosmology functions object.
           cosmologyFunctionsDefault => cosmologyFunctions()
           ! Construct arrays of times for progenitors.
@@ -451,8 +451,8 @@ contains
                            &   )                                                              &
                            & ) then
                          ! Get the masses on the parent branch.
-                         parentBranchMassInitial=parentsChildBasic%mass()
-                         parentBranchMassFinal  =      parentBasicComponent%mass()
+                         parentBranchMassInitial=parentsChildBasic   %mass()
+                         parentBranchMassFinal  =parentBasicComponent%mass()
                          ! Find the parent mass at the required time.
                          massParent=parentBranchMassInitial+(parentBranchMassFinal-parentBranchMassInitial)*(timeParents(i)&
                               &-parentBranchBegin)/(parentBranchEnd-parentBranchBegin)
