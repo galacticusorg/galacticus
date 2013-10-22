@@ -27,6 +27,7 @@ module Input_Parameters
   use Galacticus_Error
   use Hashes_Cryptographic
   use Galacticus_Versioning
+  use Galacticus_Build
   implicit none
   private
   public :: Input_Parameters_File_Open, Close_Parameters_Group, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
