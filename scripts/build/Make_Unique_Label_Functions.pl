@@ -143,7 +143,7 @@ CODE
 	    # Detect the specific implementation of any new-style method used.
 	    my @directiveNamesUsed;
 	    # Construct the selection of all non-base-class implementations of this directive.
-	    my $allowed = join("|",grep {$_ ne $directive."Class"} keys($methodStructure->{$directive}));
+	    my $allowed = join("|",grep {$_ ne $directive."Class"} keys(%{$methodStructure->{$directive}}));
 	    # Match instantiations of the form:
 	    #  type(cosmologyParametersSimple) :: abcd
 	    unless ( grep {$_ =~ m/$sourceFile/} &ExtraUtils::as_array($codeDirectiveLocations->{$directive}->{'file'}) ) {
@@ -169,7 +169,7 @@ CODE
 	# Where an implementation extends another implementation, ensure that the extended implementation is
 	# used if the extension is used.
 	foreach my $directive ( @directives ) {
-	    foreach ( keys($methodStructure->{$directive}) ) {
+	    foreach ( keys(%{$methodStructure->{$directive}}) ) {
 		if ( exists($methodStructure->{$directive}->{$_}->{'isUsed'}) ) {
 		    my $parentImplementation = $methodStructure->{$directive}->{$_};
 		    while ( defined($parentImplementation->{'extends'}) ) {
