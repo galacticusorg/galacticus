@@ -263,7 +263,7 @@ contains
           !#  <ignoreRegex>^imf.*RecycledInstantaneous$</ignoreRegex>
           !#  <ignoreRegex>^imf.*YieldInstantaneous$</ignoreRegex>
           !# </uniqueLabel>
-          imfUniqueLabel=Star_Formation_IMF_Label(includeVersion=.true.,asHash=.true.)
+          imfUniqueLabel=Star_Formation_IMF_Label(includeSourceDigest=.true.,asHash=.true.)
           ! Flag that the module is now initialized.
           imfInitialized=.true.
        end if
