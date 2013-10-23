@@ -14,7 +14,9 @@ unshift(@INC,$galacticusPath."perl");
 use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
+use Switch;
 use Data::Dumper;
+use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
@@ -162,6 +164,97 @@ sub Get_Matching_Lines {
     }
     close($fileName);
     return @matches;
+}
+
+sub read_file {
+    # Return a complete listing of a source file, optionally returning only the processed lines.
+    my $fileName = shift;
+    (my %options) = @_
+	if ( scalar(@_) > 1 );
+    # Determine what to return.
+    my $returnType = "raw";
+    $returnType = $options{'state'}
+       if ( exists($options{'state'}) );
+    # Determine whitespace stripping options.
+    my $stripEmptyLines    = 0;
+    my $stripLeadingSpace  = 0;
+    my $stripTrailingSpace = 0;
+    my $stripRegEx;
+    $stripEmptyLines    = $options{'stripEmpty'   }
+       if ( exists($options{'stripEmpty'   }) );
+    $stripLeadingSpace  = $options{'stripLeading' }
+       if ( exists($options{'stripLeading' }) );
+    $stripTrailingSpace = $options{'stripTrailing'}
+       if ( exists($options{'stripTrailing'}) );
+    $stripRegEx         = $options{'stripRegEx'   }
+       if ( exists($options{'stripRegEx'   }) );
+    # Determine whether or not to follow included files.
+    my $followIncludes = 0;
+    $followIncludes = $options{'followIncludes'}
+       if ( exists($options{'followIncludes'}) );
+    my @includeLocations = ( "" );
+    push(@includeLocations,@{$options{'includeLocations'}})
+	if ( exists($options{'includeLocations'}) );
+    # Initialize the file name stack.
+    my @fileNames     = ( $fileName );
+    my @filePositions = (        -1 );  
+    # Initialize the code buffer.
+    my $codeBuffer;
+    # Iterate until all files are processed.
+    while ( scalar(@fileNames) > 0 ) {
+	# Open the file.
+	open(my $fileHandle,$fileNames[0]);
+	seek($fileHandle,$filePositions[0],SEEK_SET) 
+	    unless ( $filePositions[0] == -1 );
+	until ( eof($fileHandle) ) {
+	    &Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+	    # Detect include files, and recurse into them.
+	    if ( $followIncludes == 1 && $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
+		my $includeFileLeaf  = $1;
+		my $includeFileFound = 0;
+		foreach my $suffix ( ".inc", ".Inc" ) {
+		    foreach my $includeLocation ( @includeLocations ) {
+			(my $includePath = $fileNames[0]) =~ s/\/[^\/]+$/\//;
+			(my $includeFile = $includePath.$includeLocation."/".$includeFileLeaf) =~ s/\.inc$/$suffix/;
+			if ( -e $includeFile ) {
+			    $filePositions[0] = tell($fileHandle);
+			    unshift(@fileNames,$includeFile);
+			    unshift(@filePositions,-1);
+			    $includeFileFound = 1;
+			    last;
+			}
+		    }
+		    last
+			if ( $includeFileFound == 1 );
+		}
+		last
+		    if ( $includeFileFound == 1 );
+	    }
+	    # Process the line.
+	    my $line;
+	    switch ( $returnType ) {
+		case ( "raw"       ) {$line = $rawLine         }
+		case ( "processed" ) {$line = $processedLine   }
+		case ( "comments"  ) {$line = $bufferedComments}
+	    }
+	    $line =~ s/$stripRegEx//
+		if ( defined($stripRegEx) );
+	    $line =~ s/^\s*//
+		if ( $stripLeadingSpace  == 1 );
+	    $line =~ s/\s*$//g 
+		if ( $stripTrailingSpace == 1 );
+	    chomp($line);	
+	    $codeBuffer .= $line."\n"
+		unless ( $line =~ m/^\s*$/ && $stripEmptyLines == 1 );
+	}
+	# Close the file and shift the list of filenames.
+	if ( eof($fileHandle) ) {
+	    shift(@fileNames    );
+	    shift(@filePositions);
+	}
+	close($fileHandle);
+    }
+    return $codeBuffer;
 }
 
 sub Get_Fortran_Line {

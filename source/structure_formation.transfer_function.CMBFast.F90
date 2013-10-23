@@ -74,12 +74,12 @@ contains
     !#  <function>Transfer_Function_CMBFast_Label</function>
     !#  <ignore>transferFunctionFile</ignore>
     !# </uniqueLabel>
-    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeVersion=.true.,asHash=.true.)//".xml"
+    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeSourceDigest=.true.,asHash=.true.)//".xml"
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
     call xml_NewElement(parameterDoc,"uniqueLabel")
-    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeVersion=.true.)))
+    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeSourceDigest=.true.)))
     call xml_EndElement(parameterDoc,"uniqueLabel")
     ! Get the default cosmology.
     thisCosmologyParameters => cosmologyParameters()
