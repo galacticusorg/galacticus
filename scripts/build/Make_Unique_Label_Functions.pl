@@ -88,11 +88,12 @@ foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Begin creating the function for the definition.
     my $definitionCode =
 <<CODE;
-function $labelFunction(includeVersion,includeBuild,includeSourceDigest,asHash)
+function $labelFunction(includeVersion,includeBuild,includeSourceDigest,asHash,parameters)
   implicit none
-  type   (varying_string)                       :: $labelFunction
-  logical                , intent(in), optional :: includeVersion,includeBuild,includeSourceDigest,asHash
-  type   (varying_string)                       :: parameterValue
+  type   (varying_string    )                          :: $labelFunction
+  logical                    , intent(in   ), optional :: includeVersion,includeBuild,includeSourceDigest,asHash
+  type   (varying_string    )                          :: parameterValue
+  type   (inputParameterList), intent(  out), optional :: parameters
 
   $labelFunction=''
 CODE
@@ -205,7 +206,7 @@ CODE
 	    my $methodValue;
 	    # Extract old-style method activation parameter names and values.
 	    map 
-	    {$methodParameter = $_->{'submatches'}->[0]; $methodValue = $_->{'submatches'}->[1];} 
+	    {$methodParameter = $_->{'submatches'}->[0]."Method"; $methodValue = $_->{'submatches'}->[1];} 
 	    &Fortran_Utils::Get_Matching_Lines($sourceFile,qr/^\s*if\s*\(\s*([a-zA-Z0-9_]+)Method\s*==\s*\'([a-zA-Z0-9_\-\+]+)\'\s*\)/);
 	    # Extract new-style method activation parameter names and values.
 	    foreach my $directive ( @directives ) {
@@ -224,6 +225,9 @@ CODE
 <<CODE;
   call Get_Input_Parameter_VarString('$directive->{'name'}',parameterValue,defaultValue='$defaultValue',writeOutput=.false.)
   $labelFunction=$labelFunction//'#$directive->{'name'}\['//parameterValue//']'
+  if (present(parameters)) then
+    call parameters%add("$directive->{'name'}",char(parameterValue))
+  end if
 CODE
 		}
 	    }
@@ -274,10 +278,13 @@ CODE
 	    }
 	    if ( $hasParameters == 1 ) {
 		if ( $testMethodParameter == 1 ) {
-		    my $defaultValue = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
- 		    $definitionCode .=
+		    my $defaultValue  = exists($defaultValues{$methodParameter}) ? $defaultValues{$methodParameter} : "";
+ 		    $definitionCode  .=
 <<CODE;
   call Get_Input_Parameter_VarString('$methodParameter',parameterValue,defaultValue='$defaultValue',writeOutput=.false.)
+  if (present(parameters)) then
+    call parameters%add("$methodParameter",char(parameterValue))
+  end if
   if (parameterValue == '$methodValue') then
 $moduleCode  end if
 CODE
