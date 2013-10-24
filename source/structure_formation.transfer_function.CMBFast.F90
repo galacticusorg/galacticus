@@ -68,33 +68,23 @@ contains
     character       (len=32                  )                                           :: parameterLabel              , wavenumberLabel
     type            (varying_string          )                                           :: command                     , parameterFile
     type            (xmlf_t                  )                                           :: parameterDoc
+    type            (inputParameterList      )                                           :: dependentParameters
 
     ! Generate the name of the data file and an XML input parameter file.
     !# <uniqueLabel>
     !#  <function>Transfer_Function_CMBFast_Label</function>
     !#  <ignore>transferFunctionFile</ignore>
     !# </uniqueLabel>
-    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeSourceDigest=.true.,asHash=.true.)//".xml"
+    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
     call xml_NewElement(parameterDoc,"uniqueLabel")
     call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeSourceDigest=.true.)))
     call xml_EndElement(parameterDoc,"uniqueLabel")
-    ! Get the default cosmology.
-    thisCosmologyParameters => cosmologyParameters()
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
-    call Write_Parameter(parameterDoc,"Omega_Matter",parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaDarkEnergy()
-    call Write_Parameter(parameterDoc,"Omega_DE",parameterLabel)
-    write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon()
-    call Write_Parameter(parameterDoc,"Omega_b",parameterLabel)
-    write (parameterLabel,'(f4.1)') thisCosmologyParameters%HubbleConstant(unitsStandard)
-    call Write_Parameter(parameterDoc,"H_0",parameterLabel)
-    write (parameterLabel,'(f5.3)') thisCosmologyParameters%temperatureCMB()
-    call Write_Parameter(parameterDoc,"T_CMB",parameterLabel)
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call Write_Parameter(parameterDoc,"Y_He",parameterLabel)
+    call Write_Parameter_XML(parameterDoc,"Y_He",parameterLabel)
+    call dependentParameters%outputToXML(parameterDoc)
     call xml_Close(parameterDoc)
     ! Determine if we need to reinitialize this module.
     if (.not.transferFunctionInitialized) then
