@@ -115,19 +115,19 @@ contains
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
        write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter   ()
-       call Write_Parameter(parameterDoc,"Omega_Matter"             ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"Omega_Matter"             ,parameterLabel)
        write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon   ()
-       call Write_Parameter(parameterDoc,"Omega_b"                  ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"Omega_b"                  ,parameterLabel)
        write (parameterLabel,'(f7.4)') thisCosmologyParameters%HubbleConstant()
-       call Write_Parameter(parameterDoc,"H_0"                      ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"H_0"                      ,parameterLabel)
        write (parameterLabel,'(f6.4)') sigma_8     ()
-       call Write_Parameter(parameterDoc,"sigma_8"                  ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"sigma_8"                  ,parameterLabel)
        write (parameterLabel,'(f6.4)') Primordial_Power_Spectrum_Logarithmic_Derivative(waveNumberShort)
-       call Write_Parameter(parameterDoc,"powerSpectrumIndex"       ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"powerSpectrumIndex"       ,parameterLabel)
        write (parameterLabel,'(f6.3)') -1.0d0
-       call Write_Parameter(parameterDoc,"darkEnergyEquationOfState",parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"darkEnergyEquationOfState",parameterLabel)
        write (parameterLabel,'(f8.4)') redshift
-       call Write_Parameter(parameterDoc,"redshift"                 ,parameterLabel)
+       call Write_Parameter_XML(parameterDoc,"redshift"                 ,parameterLabel)
        call xml_Close(parameterDoc)
 
        ! Generate the power spectrum.

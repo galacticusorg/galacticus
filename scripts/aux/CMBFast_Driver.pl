@@ -138,10 +138,10 @@ if ( $makeFile == 1 ) {
        "T(k) - transfer function"
        );
    @{$transferFunction{'description'}} = "Cold dark matter power spectrum created by CMBFast.";
-   foreach my $parameter ( @parameters ) {
+   foreach my $parameter ( keys(%{$parameterHash}) ) {
        push(@{$transferFunction{'parameter'}},	    
 	    {
-		"name" => $parameter,
+		"name"  => $parameter,
 		"value" => $parameterHash->{$parameter}->{'value'}
 	    }
 	   );

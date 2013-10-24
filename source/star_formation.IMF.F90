@@ -21,6 +21,7 @@ module Star_Formation_IMF
   !% Implements functionality related to the stellar initial mass function.
   use ISO_Varying_String
   use Abundances_Structure
+  use Input_Parameters
   !# <include directive="imfRegister" type="moduleUse">
   include 'star_formation.IMF.register.modules.inc'
   !# </include>
@@ -102,7 +103,8 @@ module Star_Formation_IMF
   integer                         , parameter :: fileFormatCurrent                                      =1
 
   ! A unique label for output files.
-  type            (varying_string)            :: imfUniqueLabel
+  type            (varying_string    )        :: imfUniqueLabel
+  type            (inputParameterList)        :: imfUniqueParameters
 
   ! Options controlling instantaneous stellar evolution approximations.
   logical                                     :: starFormationImfInstantaneousApproximation
@@ -165,7 +167,6 @@ contains
   subroutine Star_Formation_IMF_Initialize
     !% Initialize the IMF subsystem.
     use Memory_Management
-    use Input_Parameters
     use Galacticus_Error
     implicit none
     type(varying_string) :: imfSelectionMethod
@@ -263,7 +264,7 @@ contains
           !#  <ignoreRegex>^imf.*RecycledInstantaneous$</ignoreRegex>
           !#  <ignoreRegex>^imf.*YieldInstantaneous$</ignoreRegex>
           !# </uniqueLabel>
-          imfUniqueLabel=Star_Formation_IMF_Label(includeSourceDigest=.true.,asHash=.true.)
+          imfUniqueLabel=Star_Formation_IMF_Label(includeSourceDigest=.true.,asHash=.true.,parameters=imfUniqueParameters)
           ! Flag that the module is now initialized.
           imfInitialized=.true.
        end if
@@ -591,6 +592,9 @@ contains
           call xml_NewElement(recycledFractionDoc,"date")
           call xml_AddCharacters(recycledFractionDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(recycledFractionDoc,"date")
+          call xml_NewElement(parameterDoc,"parameters")
+          call imfUniqueParameters%outputToXML(parameterDoc)
+          call xml_EndElement(parameterDoc,"parameters")
 
           ! Write ages to the XML file.
           call xml_NewElement(recycledFractionDoc,"ages")
@@ -1012,6 +1016,9 @@ contains
              call xml_NewElement(metalYieldDoc,"date")
              call xml_AddCharacters(metalYieldDoc,char(Formatted_Date_and_Time()))
              call xml_EndElement(metalYieldDoc,"date")
+             call xml_NewElement(parameterDoc,"parameters")
+             call imfUniqueParameters%outputToXML(parameterDoc)
+             call xml_EndElement(parameterDoc,"parameters")
 
              ! Write ages to the XML file.
              call xml_NewElement(metalYieldDoc,"ages")
@@ -1428,6 +1435,9 @@ contains
           call xml_NewElement(energyInputDoc,"date")
           call xml_AddCharacters(energyInputDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(energyInputDoc,"date")
+          call xml_NewElement(parameterDoc,"parameters")
+          call imfUniqueParameters%outputToXML(parameterDoc)
+          call xml_EndElement(parameterDoc,"parameters")
 
           ! Write ages to the XML file.
           call xml_NewElement(energyInputDoc,"ages")
