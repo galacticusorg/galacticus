@@ -592,9 +592,9 @@ contains
           call xml_NewElement(recycledFractionDoc,"date")
           call xml_AddCharacters(recycledFractionDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(recycledFractionDoc,"date")
-          call xml_NewElement(parameterDoc,"parameters")
-          call imfUniqueParameters%outputToXML(parameterDoc)
-          call xml_EndElement(parameterDoc,"parameters")
+          call xml_NewElement(recycledFractionDoc,"parameters")
+          call imfUniqueParameters%outputToXML(recycledFractionDoc)
+          call xml_EndElement(recycledFractionDoc,"parameters")
 
           ! Write ages to the XML file.
           call xml_NewElement(recycledFractionDoc,"ages")
@@ -1016,9 +1016,9 @@ contains
              call xml_NewElement(metalYieldDoc,"date")
              call xml_AddCharacters(metalYieldDoc,char(Formatted_Date_and_Time()))
              call xml_EndElement(metalYieldDoc,"date")
-             call xml_NewElement(parameterDoc,"parameters")
-             call imfUniqueParameters%outputToXML(parameterDoc)
-             call xml_EndElement(parameterDoc,"parameters")
+             call xml_NewElement(metalYieldDoc,"parameters")
+             call imfUniqueParameters%outputToXML(metalYieldDoc)
+             call xml_EndElement(metalYieldDoc,"parameters")
 
              ! Write ages to the XML file.
              call xml_NewElement(metalYieldDoc,"ages")
@@ -1435,9 +1435,9 @@ contains
           call xml_NewElement(energyInputDoc,"date")
           call xml_AddCharacters(energyInputDoc,char(Formatted_Date_and_Time()))
           call xml_EndElement(energyInputDoc,"date")
-          call xml_NewElement(parameterDoc,"parameters")
-          call imfUniqueParameters%outputToXML(parameterDoc)
-          call xml_EndElement(parameterDoc,"parameters")
+          call xml_NewElement(energyInputDoc,"parameters")
+          call imfUniqueParameters%outputToXML(energyInputDoc)
+          call xml_EndElement(energyInputDoc,"parameters")
 
           ! Write ages to the XML file.
           call xml_NewElement(energyInputDoc,"ages")
