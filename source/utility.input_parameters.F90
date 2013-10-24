@@ -31,7 +31,7 @@ module Input_Parameters
   implicit none
   private
   public :: Input_Parameters_File_Open, Close_Parameters_Group, Input_Parameters_File_Close, Get_Input_Parameter, Get_Input_Parameter_Array_Size,&
-       & Write_Parameter, Input_Parameter_Is_Present
+       & Write_Parameter_XML, Input_Parameter_Is_Present, inputParameterList
 
   ! Include public specifiers for functions that will generate unique labels for modules.
   include 'utility.input_parameters.unique_labels.visibilities.inc'
@@ -68,6 +68,32 @@ module Input_Parameters
   logical                        :: haveOutputFile
   type   (hdf5Object), pointer   :: outputFileObject
 
+  ! Define a type to hold lists of parameters (and values) prior to output.
+  type :: inputParameterList
+     !% A class to hold lists of parameters (and values) prior to output.
+     integer                                            :: count
+     type   (varying_string), allocatable, dimension(:) :: name,value
+   contains
+     !@ <objectMethods>
+     !@   <object>inputParameterList</object>
+     !@   <objectMethod>
+     !@     <method>outputToXML</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Write a list fo input parameters to an XML document.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>add</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} name\argin, \textcolor{red}{\textless character(len=*)\textgreater} value\argin</arguments>
+     !@     <description>Add a parameter and value to the list.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                inputParameterListDestructor    
+     procedure :: add         => inputParameterListAdd
+     procedure :: outputToXML => inputParameterListOutputToXML
+  end type inputParameterList
+  
 contains
 
   subroutine Input_Parameters_File_Open(parameterFile,outputFileObjectTarget,allowedParametersFile)
@@ -1094,24 +1120,6 @@ contains
     return
   end subroutine Get_Input_Parameter_Integer_Long_Array
 
-  subroutine Write_Parameter(parameterDoc,parameterName,parameterValue)
-    !% Add a parameter to the specified XML file.
-    use FoX_wxml
-    implicit none
-    type     (xmlf_t), intent(inout) :: parameterDoc
-    character(len=* ), intent(in   ) :: parameterName, parameterValue
-
-    call xml_NewElement(parameterDoc,"parameter")
-    call xml_NewElement(parameterDoc,"name")
-    call xml_AddCharacters(parameterDoc,trim(parameterName))
-    call xml_EndElement(parameterDoc,"name")
-    call xml_NewElement(parameterDoc,"value")
-    call xml_AddCharacters(parameterDoc,trim(parameterValue))
-    call xml_EndElement(parameterDoc,"value")
-    call xml_EndElement(parameterDoc,"parameter")
-    return
-  end subroutine Write_Parameter
-
   subroutine Make_Parameters_Group
     !% Create a group in the \glc\ output file in which to store parameters.
     implicit none
@@ -1164,6 +1172,76 @@ contains
     call Get_Input_Parameter_Integer(char(parameterNameF),parameterValue,defaultValue)
     return
   end subroutine Get_Input_Parameter_Integer_C
+
+  subroutine Write_Parameter_XML(parameterDoc,parameterName,parameterValue)
+    !% Add a parameter to the specified XML file.
+    use FoX_wxml
+    implicit none
+    type     (xmlf_t), intent(inout) :: parameterDoc
+    character(len=* ), intent(in   ) :: parameterName, parameterValue
+
+    call xml_NewElement   (parameterDoc,"parameter"         )
+    call xml_NewElement   (parameterDoc,"name"              )
+    call xml_AddCharacters(parameterDoc,trim(parameterName ))
+    call xml_EndElement   (parameterDoc,"name"              )
+    call xml_NewElement   (parameterDoc,"value"             )
+    call xml_AddCharacters(parameterDoc,trim(parameterValue))
+    call xml_EndElement   (parameterDoc,"value"             )
+    call xml_EndElement   (parameterDoc,"parameter"         )
+    return
+  end subroutine Write_Parameter_XML
+
+  subroutine inputParameterListDestructor(self)
+    !% Destroy an {\tt inputParameterList} object.
+    implicit none
+    type(inputParameterList), intent(inout) :: self
+
+    if (allocated(self%name )) deallocate(self%name )
+    if (allocated(self%value)) deallocate(self%value)
+    return
+  end subroutine inputParameterListDestructor
+
+  subroutine inputParameterListAdd(self,name,value)
+    !% Add a parameter to a list of input parameters to an XML document.
+    class    (inputParameterList), intent(inout)               :: self
+    character(len=*             ), intent(in   )               :: name             , value
+    type     (varying_string    ), allocatable  , dimension(:) :: nameTemporary    , valueTemporary
+    integer                      , parameter                   :: sizeIncrement =10
+    
+    if (.not.allocated(self%name)) then
+       allocate(self%name (sizeIncrement))
+       allocate(self%value(sizeIncrement))
+       self%count=0
+    else if (self%count == size(self%name)) then
+       call Move_Alloc(self%name , nameTemporary)
+       call Move_Alloc(self%value,valueTemporary)
+       allocate(self%name (size( nameTemporary)+sizeIncrement))
+       allocate(self%value(size(valueTemporary)+sizeIncrement))
+       self%name (1:size( nameTemporary))= nameTemporary
+       self%value(1:size(valueTemporary))=valueTemporary
+       deallocate( nameTemporary)
+       deallocate(valueTemporary)
+    end if
+    self%count=self%count+1
+    self%name (self%count)=name
+    self%value(self%count)=value
+    return
+  end subroutine inputParameterListAdd
+
+  subroutine inputParameterListOutputToXML(self,parameterDoc)
+    !% Write a list of input parameters to an XML document.
+    use FoX_wxml
+    class (inputParameterList), intent(in   ) :: self
+    type  (xmlf_t            ), intent(inout) :: parameterDoc
+    integer                                   :: i
+
+    if (allocated(self%name)) then
+       do i=1,self%count
+          call Write_Parameter_XML(parameterDoc,char(self%name(i)),char(self%value(i)))
+       end do
+    end if
+    return
+  end subroutine inputParameterListOutputToXML
 
   ! Include functions that generate unique labels for modules.
   include 'utility.input_parameters.unique_labels.inc'
