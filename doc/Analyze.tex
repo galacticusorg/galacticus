@@ -192,6 +192,10 @@ These subgroups will be present if the {\tt [mergerTreeOutputReferences]} parame
 
 Numerous other quantities can be optionally output. These are documented below:
 
+\subsubsection{Redshifts}\index{redshift!output}\index{output!redshift}
+
+The redshift corresponding to the time at which a node was last isolated can be output by setting {\tt [outputNodeRedshifts]} to {\tt true}. This quantity will be output as {\tt basicRedshiftLastIsolated}.
+
 \subsubsection{Mass Accretion Histories}
 
 A mass accretion history (i.e. mass as a function of time) for the main branch in each merger tree can be output by setting {\tt massAccretionHistoryOutput}$=${\tt true}. If requested, a new group {\tt massAccretionHistories} will be made in the \glc\ output file. It will contain groups called {\tt mergerTreeN} where {\tt N} is the merger tree index. Each such group will contain the following three datasets, defined for the main branch of the tree\footnote{``Main branch'' is defined by starting from the root node of a tree and repeatedly stepping back to the most massive progenitor of the branch. This does not necessarily pick out the most massive progenitor at a given time.}:
@@ -204,15 +208,6 @@ A mass accretion history (i.e. mass as a function of time) for the main branch i
 \subsubsection{Merger Tree Dump}
 
 A full dump of merger tree structure by setting {\tt mergerTreeStructureDump}$=${\tt true}. In this case, files will be dumped to the directory specified by {\tt [mergerTreeStructureDumpDirectory]} for each merger tree with final mass between {\tt [mergerTreeStructureDumpMassMinimum]} and {\tt [mergerTreeStructureDumpMassMaximum]}. Each tree is dumped to a file named ``{\tt mergerTreeDump:\textless treeIndex\textgreater:1.gv}'' in the specified directory in {\sc GraphViz} format.
-
-
-
-
-
-
-
-
-
 
 \subsubsection{Conditional Mass Functions}
 
