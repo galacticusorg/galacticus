@@ -29,7 +29,7 @@ module Regular_Expressions
 
   type :: regEx
      !% A regular expression object.
-     type(c_ptr) :: r
+     type(c_ptr) :: r=C_NULL_PTR
    contains
      !@ <objectMethods>
      !@   <object>regEx</object>
