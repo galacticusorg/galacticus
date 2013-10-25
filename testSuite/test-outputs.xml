@@ -297,7 +297,6 @@
     </parameter>
   </parameters>
 
-
   <!-- Satellite orbits -->
   <parameters>
     <parameter>
@@ -306,5 +305,12 @@
     </parameter>
   </parameters>
 
+  <!-- Redshifts -->
+  <parameters>
+    <parameter>
+      <name>outputNodeRedshifts</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
 
 </parameterGrid>
