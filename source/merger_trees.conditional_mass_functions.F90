@@ -101,238 +101,240 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter('mergerTreeComputeConditionalMassFunction',mergerTreeComputeConditionalMassFunction,defaultValue=.false.)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionParentMassCount</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of bins in parent mass when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassCount',mergerTreeComputeConditionalMassFunctionParentMassCount,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionParentMassMinimum</name>
-          !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The minimum parent halo mass to bin when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassMinimum',mergerTreeComputeConditionalMassFunctionParentMassMinimum,defaultValue=1.0d10)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionParentMassMaximum</name>
-          !@   <defaultValue>$10^{15}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum parent halo mass to bin when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassMaximum',mergerTreeComputeConditionalMassFunctionParentMassMaximum,defaultValue=1.0d15)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioCount</name>
-          !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The number of bins in mass ratio when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioCount',mergerTreeComputeConditionalMassFunctionMassRatioCount,defaultValue=10)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioMinimum</name>
-          !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The minimum mass ratio to bin when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioMinimum',mergerTreeComputeConditionalMassFunctionMassRatioMinimum,defaultValue=1.0d-4)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioMaximum</name>
-          !@   <defaultValue>$10^{15}M_\odot$</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum mass ratio to bin when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioMaximum',mergerTreeComputeConditionalMassFunctionMassRatioMaximum,defaultValue=1.0d+1)
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionParentRedshifts</name>
-          !@   <defaultValue>0.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The set of parent halo redshifts to use when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          massFunctionTimeCount=Get_Input_Parameter_Array_Size('mergerTreeComputeConditionalMassFunctionParentRedshifts')
-          if (Get_Input_Parameter_Array_Size('mergerTreeComputeConditionalMassFunctionParentRedshifts') /= massFunctionTimeCount) &
-               & call Galacticus_Error_Report('Merger_Tree_Conditional_Mass_Function','mismatch in sizes of parent and progenitor redshift arrays')
-          call Alloc_Array(mergerTreeComputeConditionalMassFunctionParentRedshifts    ,[massFunctionTimeCount])
-          call Alloc_Array(mergerTreeComputeConditionalMassFunctionProgenitorRedshifts,[massFunctionTimeCount])
-          call Alloc_Array(timeProgenitors                                            ,[massFunctionTimeCount])
-          call Alloc_Array(timeParents                                                ,[massFunctionTimeCount])
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentRedshifts',mergerTreeComputeConditionalMassFunctionParentRedshifts,defaultValue=[0.0d0])
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionProgenitorRedshifts</name>
-          !@   <defaultValue>1.0</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The set of progenitor halo redshifts to use when constructing conditional halo mass functions.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionProgenitorRedshifts',mergerTreeComputeConditionalMassFunctionProgenitorRedshifts,defaultValue=[1.0d0])
-          !@ <inputParameter>
-          !@   <name>mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth</name>
-          !@   <defaultValue>2</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.
-          !@   </description>
-          !@   <type>logical</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth',mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth,defaultValue=2)
-          !@ <inputParameter>
-          !@   <name>mergerTreeConditionalMassFunctionFormationRateTimeFraction</name>
-          !@   <defaultValue>0.01</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('mergerTreeConditionalMassFunctionFormationRateTimeFraction',mergerTreeConditionalMassFunctionFormationRateTimeFraction,defaultValue=0.01d0)
-          ! Construct bins for parent node mass.
-          massParentLogarithmicMinimum        =  log( mergerTreeComputeConditionalMassFunctionParentMassMinimum)
-          massParentLogarithmicBinWidthInverse= dble( mergerTreeComputeConditionalMassFunctionParentMassCount  ) &
-               &                               / log(                                                            &
-               &                                      mergerTreeComputeConditionalMassFunctionParentMassMaximum  &
-               &                                     /mergerTreeComputeConditionalMassFunctionParentMassMinimum  &
-               &                                    )
-          call Alloc_Array(massParents,[mergerTreeComputeConditionalMassFunctionParentMassCount+1])
-          massParents=Make_Range(                                                           &
-               &                 mergerTreeComputeConditionalMassFunctionParentMassMinimum, &
-               &                 mergerTreeComputeConditionalMassFunctionParentMassMaximum, &
-               &                 mergerTreeComputeConditionalMassFunctionParentMassCount  , &
-               &                 rangeType=rangeTypeLogarithmic                             &
-               &                )
-          ! Construct bins for mass ratio.
-          massRatioLogarithmicMinimum        =  log( mergerTreeComputeConditionalMassFunctionMassRatioMinimum)
-          massRatioLogarithmicBinWidthInverse= dble( mergerTreeComputeConditionalMassFunctionMassRatioCount  ) &
-               &                              / log(                                                           &
-               &                                     mergerTreeComputeConditionalMassFunctionMassRatioMaximum  &
-               &                                    /mergerTreeComputeConditionalMassFunctionMassRatioMinimum  &
-               &                                   )
-          call Alloc_Array(massRatios,[mergerTreeComputeConditionalMassFunctionMassRatioCount+1])
-          massRatios=Make_Range(&
-               &                mergerTreeComputeConditionalMassFunctionMassRatioMinimum, &
-               &                mergerTreeComputeConditionalMassFunctionMassRatioMaximum, &
-               &                mergerTreeComputeConditionalMassFunctionMassRatioCount  , &
-               &                rangeType=rangeTypeLogarithmic                            &
-               &               )
-          ! Get the default cosmology functions object.
-          cosmologyFunctionsDefault => cosmologyFunctions()
-          ! Construct arrays of times for progenitors.
-          do i=1,massFunctionTimeCount
-             timeProgenitors(i)=&
-                  & cosmologyFunctionsDefault%cosmicTime(                            &
-                  &  cosmologyFunctionsDefault%expansionFactorFromRedshift(          &
-                  &   mergerTreeComputeConditionalMassFunctionProgenitorRedshifts(i) &
-                  &  )                                                               &
-                  & )
-          end do
-          ! Construct arrays of times for parents.
-          do i=1,massFunctionTimeCount
-             timeParents(i)=                                                     & 
-                  & cosmologyFunctionsDefault%cosmicTime(                        &
-                  &  cosmologyFunctionsDefault%expansionFactorFromRedshift(      &
-                  &   mergerTreeComputeConditionalMassFunctionParentRedshifts(i) &
-                  &  )                                                           &
-                  & )
-          end do
-          ! Allocate and initialize array to store the condtional mass function.
-          call Alloc_Array(                                                          &
-               &           normalization                                           , &
-               &           [                                                         &
-               &            massFunctionTimeCount                                  , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount  &
-               &           ]                                                         &
-               &          )
-          call Alloc_Array(                                                          &
-               &           conditionalMassFunction                                 , &
-               &           [                                                         &
-               &            massFunctionTimeCount                                  , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount, &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount   &
-               &           ]                                                         &
-               &          )
-          call Alloc_Array(                                                          &
-               &           conditionalMassFunctionError                            , &
-               &           [                                                         &
-               &            massFunctionTimeCount                                  , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount, &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount   &
-               &           ]                                                         &
-               &          )
-          call Alloc_Array(                                                                 &
-               &           primaryProgenitorMassFunction                                  , &
-               &           [                                                                &
-               &            massFunctionTimeCount                                         , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
-               &            mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth  &
-               &           ]                                                                &
-               &          )
-          call Alloc_Array(                                                                 &
-               &           primaryProgenitorMassFunctionError                             , &
-               &           [                                                                &
-               &            massFunctionTimeCount                                         , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
-               &            mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth  &
-               &           ]                                                                &
-               &          )
-          call Alloc_Array(                                                                 &
-               &           formationRateFunction                                          , &
-               &           [                                                                &
-               &            massFunctionTimeCount                                         , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
-               &            2                                                               &
-               &           ]                                                                &
-               &          )
-          call Alloc_Array(                                                                 &
-               &           formationRateFunctionError                                     , &
-               &           [                                                                &
-               &            massFunctionTimeCount                                         , &
-               &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
-               &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
-               &            2                                                               &
-               &           ]                                                                &
-               &          )
-          normalization                     =0.0d0
-          conditionalMassFunction           =0.0d0
-          conditionalMassFunctionError      =0.0d0
-          primaryProgenitorMassFunction     =0.0d0
-          primaryProgenitorMassFunctionError=0.0d0
-          formationRateFunction             =0.0d0
-          formationRateFunctionError        =0.0d0
+          if (mergerTreeComputeConditionalMassFunction) then
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionParentMassCount</name>
+             !@   <defaultValue>10</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The number of bins in parent mass when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassCount',mergerTreeComputeConditionalMassFunctionParentMassCount,defaultValue=10)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionParentMassMinimum</name>
+             !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The minimum parent halo mass to bin when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassMinimum',mergerTreeComputeConditionalMassFunctionParentMassMinimum,defaultValue=1.0d10)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionParentMassMaximum</name>
+             !@   <defaultValue>$10^{15}M_\odot$</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The maximum parent halo mass to bin when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentMassMaximum',mergerTreeComputeConditionalMassFunctionParentMassMaximum,defaultValue=1.0d15)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioCount</name>
+             !@   <defaultValue>10</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The number of bins in mass ratio when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioCount',mergerTreeComputeConditionalMassFunctionMassRatioCount,defaultValue=10)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioMinimum</name>
+             !@   <defaultValue>$10^{10}M_\odot$</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The minimum mass ratio to bin when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioMinimum',mergerTreeComputeConditionalMassFunctionMassRatioMinimum,defaultValue=1.0d-4)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionMassRatioMaximum</name>
+             !@   <defaultValue>$10^{15}M_\odot$</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The maximum mass ratio to bin when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionMassRatioMaximum',mergerTreeComputeConditionalMassFunctionMassRatioMaximum,defaultValue=1.0d+1)
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionParentRedshifts</name>
+             !@   <defaultValue>0.0</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The set of parent halo redshifts to use when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             massFunctionTimeCount=Get_Input_Parameter_Array_Size('mergerTreeComputeConditionalMassFunctionParentRedshifts')
+             if (Get_Input_Parameter_Array_Size('mergerTreeComputeConditionalMassFunctionParentRedshifts') /= massFunctionTimeCount) &
+                  & call Galacticus_Error_Report('Merger_Tree_Conditional_Mass_Function','mismatch in sizes of parent and progenitor redshift arrays')
+             call Alloc_Array(mergerTreeComputeConditionalMassFunctionParentRedshifts    ,[massFunctionTimeCount])
+             call Alloc_Array(mergerTreeComputeConditionalMassFunctionProgenitorRedshifts,[massFunctionTimeCount])
+             call Alloc_Array(timeProgenitors                                            ,[massFunctionTimeCount])
+             call Alloc_Array(timeParents                                                ,[massFunctionTimeCount])
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionParentRedshifts',mergerTreeComputeConditionalMassFunctionParentRedshifts,defaultValue=[0.0d0])
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionProgenitorRedshifts</name>
+             !@   <defaultValue>1.0</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The set of progenitor halo redshifts to use when constructing conditional halo mass functions.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionProgenitorRedshifts',mergerTreeComputeConditionalMassFunctionProgenitorRedshifts,defaultValue=[1.0d0])
+             !@ <inputParameter>
+             !@   <name>mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth</name>
+             !@   <defaultValue>2</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.
+             !@   </description>
+             !@   <type>logical</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth',mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth,defaultValue=2)
+             !@ <inputParameter>
+             !@   <name>mergerTreeConditionalMassFunctionFormationRateTimeFraction</name>
+             !@   <defaultValue>0.01</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.
+             !@   </description>
+             !@   <type>real</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeConditionalMassFunctionFormationRateTimeFraction',mergerTreeConditionalMassFunctionFormationRateTimeFraction,defaultValue=0.01d0)
+             ! Construct bins for parent node mass.
+             massParentLogarithmicMinimum        =  log( mergerTreeComputeConditionalMassFunctionParentMassMinimum)
+             massParentLogarithmicBinWidthInverse= dble( mergerTreeComputeConditionalMassFunctionParentMassCount  ) &
+                  &                               / log(                                                            &
+                  &                                      mergerTreeComputeConditionalMassFunctionParentMassMaximum  &
+                  &                                     /mergerTreeComputeConditionalMassFunctionParentMassMinimum  &
+                  &                                    )
+             call Alloc_Array(massParents,[mergerTreeComputeConditionalMassFunctionParentMassCount+1])
+             massParents=Make_Range(                                                           &
+                  &                 mergerTreeComputeConditionalMassFunctionParentMassMinimum, &
+                  &                 mergerTreeComputeConditionalMassFunctionParentMassMaximum, &
+                  &                 mergerTreeComputeConditionalMassFunctionParentMassCount  , &
+                  &                 rangeType=rangeTypeLogarithmic                             &
+                  &                )
+             ! Construct bins for mass ratio.
+             massRatioLogarithmicMinimum        =  log( mergerTreeComputeConditionalMassFunctionMassRatioMinimum)
+             massRatioLogarithmicBinWidthInverse= dble( mergerTreeComputeConditionalMassFunctionMassRatioCount  ) &
+                  &                              / log(                                                           &
+                  &                                     mergerTreeComputeConditionalMassFunctionMassRatioMaximum  &
+                  &                                    /mergerTreeComputeConditionalMassFunctionMassRatioMinimum  &
+                  &                                   )
+             call Alloc_Array(massRatios,[mergerTreeComputeConditionalMassFunctionMassRatioCount+1])
+             massRatios=Make_Range(&
+                  &                mergerTreeComputeConditionalMassFunctionMassRatioMinimum, &
+                  &                mergerTreeComputeConditionalMassFunctionMassRatioMaximum, &
+                  &                mergerTreeComputeConditionalMassFunctionMassRatioCount  , &
+                  &                rangeType=rangeTypeLogarithmic                            &
+                  &               )
+             ! Get the default cosmology functions object.
+             cosmologyFunctionsDefault => cosmologyFunctions()
+             ! Construct arrays of times for progenitors.
+             do i=1,massFunctionTimeCount
+                timeProgenitors(i)=&
+                     & cosmologyFunctionsDefault%cosmicTime(                            &
+                     &  cosmologyFunctionsDefault%expansionFactorFromRedshift(          &
+                     &   mergerTreeComputeConditionalMassFunctionProgenitorRedshifts(i) &
+                     &  )                                                               &
+                     & )
+             end do
+             ! Construct arrays of times for parents.
+             do i=1,massFunctionTimeCount
+                timeParents(i)=                                                     & 
+                     & cosmologyFunctionsDefault%cosmicTime(                        &
+                     &  cosmologyFunctionsDefault%expansionFactorFromRedshift(      &
+                     &   mergerTreeComputeConditionalMassFunctionParentRedshifts(i) &
+                     &  )                                                           &
+                     & )
+             end do
+             ! Allocate and initialize array to store the condtional mass function.
+             call Alloc_Array(                                                          &
+                  &           normalization                                           , &
+                  &           [                                                         &
+                  &            massFunctionTimeCount                                  , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount  &
+                  &           ]                                                         &
+                  &          )
+             call Alloc_Array(                                                          &
+                  &           conditionalMassFunction                                 , &
+                  &           [                                                         &
+                  &            massFunctionTimeCount                                  , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount, &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount   &
+                  &           ]                                                         &
+                  &          )
+             call Alloc_Array(                                                          &
+                  &           conditionalMassFunctionError                            , &
+                  &           [                                                         &
+                  &            massFunctionTimeCount                                  , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount, &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount   &
+                  &           ]                                                         &
+                  &          )
+             call Alloc_Array(                                                                 &
+                  &           primaryProgenitorMassFunction                                  , &
+                  &           [                                                                &
+                  &            massFunctionTimeCount                                         , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
+                  &            mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth  &
+                  &           ]                                                                &
+                  &          )
+             call Alloc_Array(                                                                 &
+                  &           primaryProgenitorMassFunctionError                             , &
+                  &           [                                                                &
+                  &            massFunctionTimeCount                                         , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
+                  &            mergerTreeComputeConditionalMassFunctionPrimaryProgenitorDepth  &
+                  &           ]                                                                &
+                  &          )
+             call Alloc_Array(                                                                 &
+                  &           formationRateFunction                                          , &
+                  &           [                                                                &
+                  &            massFunctionTimeCount                                         , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
+                  &            2                                                               &
+                  &           ]                                                                &
+                  &          )
+             call Alloc_Array(                                                                 &
+                  &           formationRateFunctionError                                     , &
+                  &           [                                                                &
+                  &            massFunctionTimeCount                                         , &
+                  &            mergerTreeComputeConditionalMassFunctionParentMassCount       , &
+                  &            mergerTreeComputeConditionalMassFunctionMassRatioCount        , &
+                  &            2                                                               &
+                  &           ]                                                                &
+                  &          )
+             normalization                     =0.0d0
+             conditionalMassFunction           =0.0d0
+             conditionalMassFunctionError      =0.0d0
+             primaryProgenitorMassFunction     =0.0d0
+             primaryProgenitorMassFunctionError=0.0d0
+             formationRateFunction             =0.0d0
+             formationRateFunctionError        =0.0d0
+          end if
           ! Flag that module is initialized.
           moduleInitialized=.true.
        end if
