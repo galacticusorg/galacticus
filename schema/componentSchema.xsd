@@ -57,14 +57,15 @@
 		  <xs:element name="type"                  minOccurs="1" >
 		    <xs:simpleType>
 		      <xs:restriction base="xs:string">
-			<xs:enumeration value="real"       />
-			<xs:enumeration value="integer"    />
-			<xs:enumeration value="longInteger"/>
-			<xs:enumeration value="logical"    />
-			<xs:enumeration value="chemicals"  />
-			<xs:enumeration value="abundances" />
-			<xs:enumeration value="history"    />
-			<xs:enumeration value="keplerOrbit"/>
+			<xs:enumeration value="real"               />
+			<xs:enumeration value="integer"            />
+			<xs:enumeration value="longInteger"        />
+			<xs:enumeration value="logical"            />
+			<xs:enumeration value="chemicals"          />
+			<xs:enumeration value="abundances"         />
+			<xs:enumeration value="history"            />
+			<xs:enumeration value="keplerOrbit"        />
+			<xs:enumeration value="stellarLuminosities"/>
 		      </xs:restriction>
 		    </xs:simpleType>
 		  </xs:element>

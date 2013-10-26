@@ -62,7 +62,7 @@ contains
     use String_Handling
     use Galacticus_Nodes
     use Galactic_Structure_Options
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     implicit none
     type     (varying_string), dimension(5) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
@@ -185,7 +185,7 @@ contains
                    fractionLabel=fractionDefinition(2)
                    read (fractionLabel,*) radii(i)%fraction
                    radii(i)%weightBy      =weightByLuminosity
-                   radii(i)%weightByIndex=Stellar_Population_Luminosities_Index(fractionDefinition(3))
+                   radii(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
                 case default
                    call Galacticus_Error_Report('Galacticus_Output_Tree_Rotation_Curve_Initialize','unrecognized radius specifier')
                 end select

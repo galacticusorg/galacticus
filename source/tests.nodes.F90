@@ -78,12 +78,12 @@ program Test_Nodes
   call Assert('Created spheroid component has type "nodeComponent:spheroid:standard"',char(thisComponent%type()),'nodeComponent:spheroid:standard')
 
   ! Test setting and getting of 1-D arrays, with automatic allocation.
+  thisComponent => thisNode%position()
   select type  (thisComponent)
-  class is (nodeComponentSpheroid)
-     call thisComponent%luminositiesStellarSet([1.0d0,3.0d0,-12.3d0])
-     propertyArray=thisComponent%luminositiesStellar()
+  class is (nodeComponentPosition)
+     call thisComponent%velocitySet([1.0d0,3.0d0,-12.3d0])
+     propertyArray=thisComponent%velocity()
      call Assert('1D array property get/set consistency',propertyArray,[1.0d0,3.0d0,-12.3d0])
-     call Assert('1D array property size',thisComponent%luminositiesStellarCount(),3)
   class default
      call Galacticus_Error_Report('Test_Nodes','component is of incorrect class')
   end select

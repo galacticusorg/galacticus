@@ -42,6 +42,7 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   double precision                               , intent(in   )           :: radius
   logical                                        , intent(in   ), optional :: haloLoaded
   double precision                                                         :: fractionalRadius, spheroidRadius
+  type            (stellarLuminosities          )                          :: luminositiesSpheroid
 
   ! Return if the spheroid component is not selected.
   Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
@@ -61,7 +62,7 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
      select case (massType)
      case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
         luminositiesSpheroid=self%luminositiesStellar()
-        Node_Component_Spheroid_Standard_Enclosed_Mass       =luminositiesSpheroid(weightIndex)
+        Node_Component_Spheroid_Standard_Enclosed_Mass       =luminositiesSpheroid%luminosity(weightIndex)
      end select
   end select
   ! Return if total mass was requested.
@@ -146,7 +147,8 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
        &                                                                      weightIndex
   double precision                               , intent(in   )           :: positionSpherical(3)
   logical                                        , intent(in   ), optional :: haloLoaded
-  type            (coordinateSpherical  )                                  :: position
+  type            (coordinateSpherical          )                          :: position
+  type            (stellarLuminosities          )                          :: luminositiesSpheroid
 
   Node_Component_Spheroid_Standard_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
@@ -170,7 +172,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
         select case (massType)
         case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
            luminositiesSpheroid=self%luminositiesStellar()
-           Node_Component_Spheroid_Standard_Density=luminositiesSpheroid(weightIndex)
+           Node_Component_Spheroid_Standard_Density=luminositiesSpheroid%luminosity(weightIndex)
         end select
      end select
      ! Return if density is zero.

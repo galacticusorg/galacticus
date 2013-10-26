@@ -106,11 +106,10 @@ module Node_Component_Disk_Exponential
   !#   </property>
   !#   <property>
   !#     <name>luminositiesStellar</name>
-  !#     <type>real</type>
-  !#     <rank>1</rank>
+  !#     <type>stellarLuminosities</type>
+  !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
-  !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+  !#     <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
   !#   </property>
   !#   <property>
   !#     <name>stellarPropertiesHistory</name>
@@ -140,11 +139,6 @@ module Node_Component_Disk_Exponential
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
-  ! Internal count of luminosities and work arrays.
-  integer                                     :: luminositiesCount
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                          , luminositiesStellarRates      , &
-       &                                         luminositiesTransferRate                     , zeroLuminosities
-  !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates,luminositiesTransferRate)
   ! Parameters controlling the physical implementation.
   double precision                            :: diskMassToleranceAbsolute                    , diskOutflowTimescaleMinimum   , &
        &                                         diskStructureSolverRadius
@@ -160,8 +154,6 @@ module Node_Component_Disk_Exponential
 
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                    =.false.
-  logical                                     :: threadAllocationDone                 =.false.
-  !$omp threadprivate(threadAllocationDone)
 
 contains
 
@@ -172,7 +164,7 @@ contains
     !% Initializes the tree node exponential disk methods module.
     use Input_Parameters
     use Abundances_Structure
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     use Memory_Management
     use Tables
     use Node_Component_Disk_Exponential_Data
@@ -185,9 +177,6 @@ contains
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-
-       ! Get number of luminosity properties.
-       luminositiesCount=Stellar_Population_Luminosities_Count()
 
        ! Attach the cooling mass/angular momentum pipes from the hot halo component.
        call diskExponentialComponent%attachPipes()
@@ -277,18 +266,6 @@ contains
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Disk_Exponential_Initialize)
-
-    ! Allocate work arrays for luminosities for this thread.
-    if (.not.threadAllocationDone) then
-       call Alloc_Array(luminositiesDisk        ,[luminositiesCount])
-       call Alloc_Array(luminositiesTransferRate,[luminositiesCount])
-       call Alloc_Array(luminositiesStellarRates,[luminositiesCount])
-       call Alloc_Array(zeroLuminosities        ,[luminositiesCount])
-       call Alloc_Array(luminositiesMinimum     ,[luminositiesCount])
-       zeroLuminosities   =0.0d0
-       luminositiesMinimum=1.0d0
-       threadAllocationDone=.true.
-    end if
     return
   end subroutine Node_Component_Disk_Exponential_Initialize
 
@@ -337,6 +314,7 @@ contains
     use Histories
     use Galacticus_Error
     use Dark_Matter_Halo_Scales
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk )               , pointer :: thisDiskComponent
@@ -398,9 +376,9 @@ contains
                &   +thisDiskComponent%massStellar()
           if (diskMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call thisDiskComponent%        massStellarSet(           0.0d0)
-             call thisDiskComponent%  abundancesStellarSet(  zeroAbundances)
-             call thisDiskComponent%luminositiesStellarSet(zeroLuminosities)
+             call thisDiskComponent%        massStellarSet(                  0.0d0)
+             call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
+             call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
           else
              specificAngularMomentum=thisDiskComponent%angularMomentum()/diskMass
           end if
@@ -513,28 +491,30 @@ contains
     use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
     use Tidal_Stripping_Mass_Loss_Rate_Disks
     use Dark_Matter_Halo_Scales
+    use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                                         ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDisk                                )               , pointer :: thisDisk
-    class           (nodeComponentSpheroid                            )               , pointer :: thisSpheroid
-    class           (nodeComponentHotHalo                             )               , pointer :: thisHotHalo
-    logical                                                            , intent(inout)          :: interrupt
-    procedure       (Interrupt_Procedure_Template                     ), intent(inout), pointer :: interruptProcedureReturn
-    procedure       (Interrupt_Procedure_Template                     )               , pointer :: interruptProcedure
-    type            (abundances                                       ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
-         &                                                                                         stellarAbundancesRates
+    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDisk           )               , pointer :: thisDisk
+    class           (nodeComponentSpheroid       )               , pointer :: thisSpheroid
+    class           (nodeComponentHotHalo        )               , pointer :: thisHotHalo
+    logical                                       , intent(inout)          :: interrupt
+    procedure       (Interrupt_Procedure_Template), intent(inout), pointer :: interruptProcedureReturn
+    procedure       (Interrupt_Procedure_Template)               , pointer :: interruptProcedure
+    type            (abundances                  ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
+         &                                                                    stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                            :: angularMomentum             , angularMomentumOutflowRate, &
-         &                                                                                         barInstabilitySpecificTorque, barInstabilityTimescale   , &
-         &                                                                                         diskDynamicalTime           , diskMass                  , &
-         &                                                                                         energyInputRate             , fractionGas               , &
-         &                                                                                         fractionStellar             , fuelMass                  , &
-         &                                                                                         fuelMassRate                , gasMass                   , &
-         &                                                                                         massLossRate                , massOutflowRate           , &
-         &                                                                                         massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
-         &                                                                                         outflowToHotHaloFraction    , starFormationRate         , &
-         &                                                                                         stellarMassRate             , transferRate
-    type            (history                                          )                         :: historyTransferRate         , stellarHistoryRate
+    double precision                                                        :: angularMomentum             , angularMomentumOutflowRate, &
+         &                                                                     barInstabilitySpecificTorque, barInstabilityTimescale   , &
+         &                                                                     diskDynamicalTime           , diskMass                  , &
+         &                                                                     energyInputRate             , fractionGas               , &
+         &                                                                     fractionStellar             , fuelMass                  , &
+         &                                                                     fuelMassRate                , gasMass                   , &
+         &                                                                     massLossRate                , massOutflowRate           , &
+         &                                                                     massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
+         &                                                                     outflowToHotHaloFraction    , starFormationRate         , &
+         &                                                                     stellarMassRate             , transferRate
+    type            (history                      )                         :: historyTransferRate         , stellarHistoryRate
+    type            (stellarLuminosities          )                         :: luminositiesStellarRates    , luminositiesTransferRate
 
     ! Get a local copy of the interrupt procedure.
     interruptProcedure => interruptProcedureReturn
@@ -642,27 +622,27 @@ contains
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
           thisSpheroid => thisNode%spheroid()
           ! Gas mass.
-          transferRate          =max(         0.0d0,thisDisk    %massGas                (                         ))/barInstabilityTimescale
+          transferRate            =max(         0.0d0         ,thisDisk    %massGas                (                         ))/barInstabilityTimescale
           call                                      thisDisk    %massGasRate            (-           transferRate                              )
           call                                      thisSpheroid%massGasRate            (+           transferRate ,interrupt,interruptProcedure)
           ! Stellar mass.
-          transferRate          =max(         0.0d0,thisDisk    %massStellar            (                         ))/barInstabilityTimescale
+          transferRate            =max(         0.0d0         ,thisDisk    %massStellar            (                         ))/barInstabilityTimescale
           call                                      thisDisk    %massStellarRate        (-           transferRate                              )
           call                                      thisSpheroid%massStellarRate        (+           transferRate ,interrupt,interruptProcedure)
           ! Angular momentum.
-          transferRate          =max(         0.0d0,thisDisk    %angularMomentum        (                         ))/barInstabilityTimescale
+          transferRate            =max(         0.0d0         ,thisDisk    %angularMomentum        (                         ))/barInstabilityTimescale
           call                                      thisDisk    %angularMomentumRate    (-           transferRate                              )
           call                                      thisSpheroid%angularMomentumRate    (+           transferRate ,interrupt,interruptProcedure)
           ! Gas abundances.
-          fuelAbundancesRates   =max(zeroAbundances,thisDisk    %abundancesGas          (                         ))/barInstabilityTimescale
+          fuelAbundancesRates     =max(zeroAbundances         ,thisDisk    %abundancesGas          (                         ))/barInstabilityTimescale
           call                                      thisDisk    %abundancesGasRate      (-     fuelAbundancesRates                             )
           call                                      thisSpheroid%abundancesGasRate      (+     fuelAbundancesRates,interrupt,interruptProcedure)
           ! Stellar abundances.
-          stellarAbundancesRates=max(zeroAbundances,thisDisk    %abundancesStellar      (                         ))/barInstabilityTimescale
+          stellarAbundancesRates  =max(zeroAbundances         ,thisDisk    %abundancesStellar      (                         ))/barInstabilityTimescale
           call                                      thisDisk    %abundancesStellarRate  (-  stellarAbundancesRates                             )
           call                                      thisSpheroid%abundancesStellarRate  (+  stellarAbundancesRates,interrupt,interruptProcedure)
           ! Stellar luminosities.
-          luminositiesTransferRate=max(       0.0d0,thisDisk    %luminositiesStellar    (                         ))/barInstabilityTimescale
+          luminositiesTransferRate=max(zeroStellarLuminosities,thisDisk    %luminositiesStellar    (                         ))/barInstabilityTimescale
           call                                      thisDisk    %luminositiesStellarRate(-luminositiesTransferRate                             )
           call                                      thisSpheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
           ! Stellar properties history.
@@ -738,12 +718,14 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     use Abundances_Structure
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk    )               , pointer :: thisDiskComponent
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
     double precision                       , parameter              :: massMinimum                   =1.0d0
     double precision                       , parameter              :: angularMomentumMinimum        =1.0d-2
+    double precision                       , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                :: angularMomentum                      , mass
     type            (history              )                         :: stellarPopulationHistoryScales
 
@@ -787,17 +769,15 @@ contains
                &                                         )
        end if
 
-       ! Set scales for stellar luminosities if necessary.
-       if (luminositiesCount > 0) then
-          ! Set scale for stellar luminosities.
-          call thisDiskComponent%luminositiesStellarScale(                                                  &
-               &                                          max(                                              &
-               &                                               thisDiskComponent    %luminositiesStellar()  &
-               &                                              +thisSpheroidComponent%luminositiesStellar(), &
-               &                                               luminositiesMinimum                          &
-               &                                             )                                              &
-               &                                         )
-       end if
+       ! Set scale for stellar luminosities.
+       call thisDiskComponent%luminositiesStellarScale(                                                  &
+            &                                          max(                                              &
+            &                                               thisDiskComponent    %luminositiesStellar()  &
+            &                                              +thisSpheroidComponent%luminositiesStellar(), &
+            &                                               unitStellarLuminosities                      &
+            &                                              *luminosityMinimum                            &
+            &                                             )                                              &
+            &                                         )
 
        ! Set scales for stellar population properties and star formation histories.
        stellarPopulationHistoryScales=thisDiskComponent%stellarPropertiesHistory()
@@ -824,6 +804,7 @@ contains
     use Abundances_Structure
     use Satellite_Merging_Mass_Movements_Descriptors
     use Galacticus_Error
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     class           (nodeComponentDisk    )               , pointer :: hostDiskComponent      , thisDiskComponent
@@ -947,10 +928,10 @@ contains
        case default
           call Galacticus_Error_Report('Node_Component_Disk_Exponential_Satellite_Merging','unrecognized movesTo descriptor')
        end select
-       call thisDiskComponent%        massStellarSet(           0.0d0)
-       call thisDiskComponent%  abundancesStellarSet(  zeroAbundances)
-       call thisDiskComponent%luminositiesStellarSet(zeroLuminosities)
-       call thisDiskComponent%    angularMomentumSet(           0.0d0)
+       call thisDiskComponent%        massStellarSet(                  0.0d0)
+       call thisDiskComponent%  abundancesStellarSet(         zeroAbundances)
+       call thisDiskComponent%luminositiesStellarSet(zeroStellarLuminosities)
+       call thisDiskComponent%    angularMomentumSet(                  0.0d0)
     end select
     return
   end subroutine Node_Component_Disk_Exponential_Satellite_Merging

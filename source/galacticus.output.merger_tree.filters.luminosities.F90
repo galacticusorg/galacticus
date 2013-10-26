@@ -27,9 +27,6 @@ module Galacticus_Merger_Tree_Output_Filter_Luminosities
   logical                                     :: luminosityFilterInitialized                =.false.
   logical                                     :: luminosityFilterActive
 
-  ! Internal record of the number of luminosities in use.
-  integer                                     :: luminosityCount
-
   ! The absolute magnitude thresholds for this filter.
   double precision, allocatable, dimension(:) :: luminosityFilterAbsoluteMagnitudeThresholds
 
@@ -44,7 +41,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Memory_Management
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     implicit none
     type(varying_string), dimension(:), intent(in   ) :: filterNames
 
@@ -54,16 +51,13 @@ contains
        luminosityFilterActive=any(filterNames == "luminosity")
        ! If this filter is active, read the minimum stellar mass.
        if (luminosityFilterActive) then
-          ! Get a count of the number of luminosities being processed.
-          luminosityCount=Stellar_Population_Luminosities_Count()
-
           ! Check that the list of thresholds has the correct size.
-          if (Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholds') /= luminosityCount)                                                &
+          if (Get_Input_Parameter_Array_Size('luminosityFilterAbsoluteMagnitudeThresholds') /= unitStellarLuminosities%luminosityCount())                      &
                & call  Galacticus_Error_Report(                                                                                                                &
                &                               'Galacticus_Merger_Tree_Output_Filter_Luminosity_Initialize'                                                  , &
                &                               'luminosityFilterAbsoluteMagnitudeThresholds input arrays must have same dimension as other luminosity arrays'  &
                &                              )
-          call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholds,[luminosityCount])
+          call Alloc_Array(luminosityFilterAbsoluteMagnitudeThresholds,[unitStellarLuminosities%luminosityCount()])
 
           ! Get the minimum stellar mass for output
           !@ <inputParameter>
@@ -92,7 +86,7 @@ contains
     use Galacticus_Nodes
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode          ), intent(inout), pointer :: thisNode
     logical                             , intent(inout)          :: doOutput
@@ -110,10 +104,10 @@ contains
     time=thisBasicComponent%time()
 
     ! Loop over all luminosities.
-    do iLuminosity=1,luminosityCount
+    do iLuminosity=1,unitStellarLuminosities%luminosityCount()
 
        ! Only check those luminosities which are being output at this output time.
-       if (Stellar_Population_Luminosities_Output(iLuminosity,time)) then
+       if (unitStellarLuminosities%isOutput(iLuminosity,time)) then
 
           ! Get the total stellar luminosity of the galaxy.
           luminosity=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=iLuminosity)

@@ -53,10 +53,11 @@ double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,rad
   use Node_Component_Disk_Exponential_Data
   implicit none
   class           (nodeComponentDiskExponential), intent(inout)           :: self
-  integer                                       , intent(in   )           :: componentType, massType        , weightBy, weightIndex
+  integer                                       , intent(in   )           :: componentType   , massType        , weightBy, weightIndex
   double precision                              , intent(in   )           :: radius
   logical                                       , intent(in   ), optional :: haloLoaded
-  double precision                                                        :: diskRadius   , fractionalRadius
+  double precision                                                        :: diskRadius      , fractionalRadius
+  type            (stellarLuminosities         )                          :: luminositiesDisk
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Enclosed_Mass=0.0d0
@@ -76,7 +77,7 @@ double precision function Node_Component_Disk_Exponential_Enclosed_Mass(self,rad
      select case (massType)
      case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
         luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Exponential_Enclosed_Mass   =luminositiesDisk(weightIndex)
+        Node_Component_Disk_Exponential_Enclosed_Mass   =luminositiesDisk%luminosity(weightIndex)
      end select
   end select
   ! Return if no mass.
@@ -110,6 +111,7 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
   double precision                              , parameter                          :: coshArgumentMaximum       =50.0d0
   double precision                                                                   :: coshTerm                         , fractionalHeight      , &
        &                                                                                fractionalRadius                 , positionCylindrical(3)
+  type            (stellarLuminosities         )                                     :: luminositiesDisk
 
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Exponential_Density=0.0d0
@@ -129,7 +131,7 @@ double precision function Node_Component_Disk_Exponential_Density(self,positionS
      select case (massType)
      case (massTypeAll,massTypeBaryonic,massTypeGalactic,massTypeStellar)
         luminositiesDisk=self%luminositiesStellar()
-        Node_Component_Disk_Exponential_Density=luminositiesDisk(weightIndex)
+        Node_Component_Disk_Exponential_Density=luminositiesDisk%luminosity(weightIndex)
      end select
   end select
   ! Skip further calculation if mass or radius is zero.

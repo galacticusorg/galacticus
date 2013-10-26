@@ -110,11 +110,10 @@ module Node_Component_Spheroid_Standard
   !#   </property>
   !#   <property>
   !#     <name>luminositiesStellar</name>
-  !#     <type>real</type>
-  !#     <rank>1</rank>
+  !#     <type>stellarLuminosities</type>
+  !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <classDefault modules="Stellar_Population_Properties_Luminosities" count="Stellar_Population_Luminosities_Count()">0.0d0</classDefault>
-  !#     <output labels="':'//Stellar_Population_Luminosities_Name({i})" count="Stellar_Population_Luminosities_Count()" condition="Stellar_Population_Luminosities_Output({i},time)" modules="Stellar_Population_Properties_Luminosities" unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+  !#     <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
   !#   </property>
   !#   <property>
   !#     <name>stellarPropertiesHistory</name>
@@ -156,11 +155,6 @@ module Node_Component_Spheroid_Standard
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
-  ! Internal count of luminosities and work arrays.
-  integer                                     :: luminositiesCount
-  double precision, allocatable, dimension(:) :: luminositiesMinimum                         , luminositiesStellarRates       , &
-       &                                         zeroLuminosities
-  !$omp threadprivate(zeroLuminosities,luminositiesMinimum,luminositiesStellarRates)
   ! Storage for the star formation history time range, used whene extending this range.
   double precision, allocatable, dimension(:) :: starFormationHistoryTemplate
   !$omp threadprivate(starFormationHistoryTemplate)
@@ -170,8 +164,7 @@ module Node_Component_Spheroid_Standard
 
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                   =.false.
-  logical                                     :: threadAllocationDone                =.false.
-  !$omp threadprivate(threadAllocationDone)
+
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -180,7 +173,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Initialize()
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     use Abundances_Structure
     use ISO_Varying_String
     use Galacticus_Error
@@ -198,9 +191,6 @@ contains
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-
-       ! Get number of luminosity properties.
-       luminositiesCount=Stellar_Population_Luminosities_Count()
 
        ! Create the spheroid mass distribution.
        !@ <inputParameter>
@@ -306,17 +296,6 @@ contains
        moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Spheroid_Standard_Initialize)
-
-    ! Allocate work arrays for luminosities for this thread.
-    if (.not.threadAllocationDone) then
-       call Alloc_Array(luminositiesSpheroid    ,[luminositiesCount])
-       call Alloc_Array(luminositiesStellarRates,[luminositiesCount])
-       call Alloc_Array(zeroLuminosities        ,[luminositiesCount])
-       call Alloc_Array(luminositiesMinimum     ,[luminositiesCount])
-       zeroLuminosities   =0.0d0
-       luminositiesMinimum=1.0d0
-       threadAllocationDone=.true.
-    end if
     return
   end subroutine Node_Component_Spheroid_Standard_Initialize
 
@@ -349,6 +328,7 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Abundances_Structure
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     class           (nodeComponentSpheroid )               , pointer :: thisSpheroidComponent
@@ -410,9 +390,9 @@ contains
                &       +thisSpheroidComponent%massStellar()
           if (spheroidMass == 0.0d0) then
              specificAngularMomentum=0.0d0
-             call thisSpheroidComponent%        massStellarSet(           0.0d0)
-             call thisSpheroidComponent%  abundancesStellarSet(  zeroAbundances)
-             call thisSpheroidComponent%luminositiesStellarSet(zeroLuminosities)
+             call thisSpheroidComponent%        massStellarSet(                  0.0d0)
+             call thisSpheroidComponent%  abundancesStellarSet(         zeroAbundances)
+             call thisSpheroidComponent%luminositiesStellarSet(zeroStellarLuminosities)
           else
              specificAngularMomentum=thisSpheroidComponent%angularMomentum()/spheroidMass
           end if
@@ -524,6 +504,7 @@ contains
     use Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
     use Tidal_Stripping_Mass_Loss_Rate_Spheroids
     use Satellites_Tidal_Fields
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     logical                                , intent(inout)          :: interrupt
@@ -543,6 +524,7 @@ contains
          &                                                             starFormationRate         , stellarMassRate         , &
          &                                                             tidalField                , tidalTorque
     type            (history              )                         :: stellarHistoryRate
+    type            (stellarLuminosities  )                         :: luminositiesStellarRates
 
     ! Get the disk and check that it is of our class.
     thisSpheroid => thisNode%spheroid()
@@ -712,6 +694,7 @@ contains
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     class           (nodeComponentSpheroid)               , pointer :: thisSpheroidComponent
@@ -719,6 +702,7 @@ contains
     double precision                       , parameter              :: massMinimum                   =1.0d0
     double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
     double precision                       , parameter              :: gasMassScaling                =0.1d0
+    double precision                       , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                :: angularMomentum                     , mass
     type            (history              )                         :: stellarPopulationHistoryScales
 
@@ -766,13 +750,14 @@ contains
        end if
 
        ! Set scales for stellar luminosities if necessary.
-       if (luminositiesCount > 0) call thisSpheroidComponent%luminositiesStellarScale(                                                  &
-            &                                                                         max(                                              &
-            &                                                                                  thisDiskComponent%luminositiesStellar()  &
-            &                                                                             +thisSpheroidComponent%luminositiesStellar(), &
-            &                                                                             luminositiesMinimum                           &
-            &                                                                            )                                              &
-            &                                                                        )
+       call thisSpheroidComponent%luminositiesStellarScale(                                                   &
+            &                                               max(                                              &
+            &                                                        thisDiskComponent%luminositiesStellar()  &
+            &                                                   +thisSpheroidComponent%luminositiesStellar(), &
+            &                                                    unitStellarLuminosities                      &
+            &                                                   *luminosityMinimum                            &
+            &                                                  )                                              &
+            &                                              )
 
        ! Set scales for stellar population properties history.
        stellarPopulationHistoryScales=thisSpheroidComponent%stellarPropertiesHistory()
@@ -798,6 +783,7 @@ contains
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
+    use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode             ), intent(inout), pointer :: thisNode
     type            (treeNode             )               , pointer :: hostNode
@@ -927,7 +913,7 @@ contains
                   &                                                  zeroAbundances                              &
                   &                                                )
              call hostSpheroidComponent%luminositiesStellarSet     (                                             &
-                  &                                                  zeroLuminosities                            &
+                  &                                                  zeroStellarLuminosities                     &
                   &                                                )
              ! Also add stellar properties histories.
              historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
@@ -968,7 +954,7 @@ contains
                   &                                                  zeroAbundances                              &
                   &                                                )
              call hostDiskComponent    %     luminositiesStellarSet(                                             &
-                  &                                                  zeroLuminosities                            &
+                  &                                                  zeroStellarLuminosities                     &
                   &                                                )
              ! Also add stellar properties histories.
              historyDisk    =    hostDiskComponent%stellarPropertiesHistory()
@@ -1098,10 +1084,10 @@ contains
              case default
                 call Galacticus_Error_Report('Node_Component_Spheroid_Standard_Satellite_Merging','unrecognized movesTo descriptor')
              end select
-             call thisSpheroidComponent%        massStellarSet(0.0d0           )
-             call thisSpheroidComponent%  abundancesStellarSet(zeroAbundances  )
-             call thisSpheroidComponent%luminositiesStellarSet(zeroLuminosities)
-             call thisSpheroidComponent%    angularMomentumSet(0.0d0           )
+             call thisSpheroidComponent%        massStellarSet(0.0d0                  )
+             call thisSpheroidComponent%  abundancesStellarSet(zeroAbundances         )
+             call thisSpheroidComponent%luminositiesStellarSet(zeroStellarLuminosities)
+             call thisSpheroidComponent%    angularMomentumSet(0.0d0                  )
           end if
 
           ! Set the angular momentum of the spheroid.

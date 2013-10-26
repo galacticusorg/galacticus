@@ -26,7 +26,4 @@ module Node_Component_Spheroid_Standard_Data
   ! The mass distribution object.
   class           (massDistribution), pointer                   :: spheroidMassDistribution
 
-  ! Luminosity work arrays.
-  double precision                  , allocatable, dimension(:) :: luminositiesSpheroid
-  !$omp threadprivate(luminositiesSpheroid)
 end module Node_Component_Spheroid_Standard_Data
