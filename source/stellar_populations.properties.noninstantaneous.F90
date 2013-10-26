@@ -104,29 +104,29 @@ contains
     use Abundances_Structure
     use Histories
     use Star_Formation_IMF
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     use Numerical_Interpolation
     use FGSL
     implicit none
-    double precision                                              , intent(  out)          :: energyInputRate          , fuelMassRate          , &
-         &                                                                                    stellarMassRate
-    type            (abundances        )                          , intent(inout)          :: fuelAbundancesRates      , stellarAbundancesRates
-    double precision                    , dimension(:)            , intent(  out)          :: stellarLuminositiesRates
-    double precision                                              , intent(in   )          :: starFormationRate
-    type            (abundances        )                          , intent(in   )          :: fuelAbundances
-    integer                                                       , intent(in   )          :: component
-    type            (treeNode          )                          , intent(inout), pointer :: thisNode
-    type            (history           )                          , intent(inout)          :: thisHistory
-    class           (nodeComponentBasic)                                         , pointer :: thisBasicComponent
-    double precision                    , dimension(elementsCount)                         :: fuelMetallicity          , fuelMetalsRateOfChange, &
-         &                                                                                    metalReturnRate          , metalYieldRate        , &
-         &                                                                                    stellarMetalsRateOfChange
-    integer                                                                                :: iElement                 , iHistory              , &
-         &                                                                                    imfSelected
-    double precision                                                                       :: ageMaximum               , ageMinimum            , &
-         &                                                                                    currentTime              , recyclingRate
-    type            (fgsl_interp_accel )                                                   :: interpolationAccelerator
-    logical                                                                                :: interpolationReset
+    double precision                     , intent(  out)                     :: energyInputRate          , fuelMassRate          , &
+         &                                                                      stellarMassRate
+    type            (abundances         ), intent(inout)                     :: fuelAbundancesRates      , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out)                     :: stellarLuminositiesRates
+    double precision                     , intent(in   )                     :: starFormationRate
+    type            (abundances        ) , intent(in   )                     :: fuelAbundances
+    integer                              , intent(in   )                     :: component
+    type            (treeNode          ) , intent(inout)           , pointer :: thisNode
+    type            (history           ) , intent(inout)                     :: thisHistory
+    class           (nodeComponentBasic)                           , pointer :: thisBasicComponent
+    double precision                     , dimension(elementsCount)          :: fuelMetallicity          , fuelMetalsRateOfChange, &
+         &                                                                      metalReturnRate          , metalYieldRate        , &
+         &                                                                      stellarMetalsRateOfChange
+    integer                                                                  :: iElement                 , iHistory              , &
+         &                                                                      imfSelected
+    double precision                                                         :: ageMaximum               , ageMinimum            , &
+         &                                                                      currentTime              , recyclingRate
+    type            (fgsl_interp_accel  )                                    :: interpolationAccelerator
+    logical                                                                  :: interpolationReset
 
     ! Get the current time.
     thisBasicComponent => thisNode%basic()
@@ -160,8 +160,7 @@ contains
     imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
 
     ! Set luminosity rates of change.
-    if (size(stellarLuminositiesRates) > 0) stellarLuminositiesRates=starFormationRate&
-         &*Stellar_Population_Luminosities_Get(imfSelected,currentTime,fuelAbundances)
+    call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,currentTime,fuelAbundances)
 
     ! Set rates of change in the stellar populations properties future history.
     do iHistory=1,size(thisHistory%time)-1

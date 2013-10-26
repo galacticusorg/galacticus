@@ -12,4 +12,8 @@
     <name>treeNodeMethodBlackHole</name>
     <value>standard</value>
   </parameter>
+  <parameter>
+    <name>treeNodeMethodPosition</name>
+    <value>preset</value>
+  </parameter>
 </parameters>

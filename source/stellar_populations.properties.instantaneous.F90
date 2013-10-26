@@ -72,23 +72,23 @@ contains
     use Abundances_Structure
     use Histories
     use Star_Formation_IMF
-    use Stellar_Population_Properties_Luminosities
+    use Stellar_Luminosities_Structure
     use Stellar_Feedback
     implicit none
-    double precision                                  , intent(  out)          :: energyInputRate              , fuelMassRate             , &
-         &                                                                        stellarMassRate
-    type            (abundances        )              , intent(inout)          :: fuelAbundancesRates          , stellarAbundancesRates
-    double precision                    , dimension(:), intent(  out)          :: stellarLuminositiesRates
-    double precision                                  , intent(in   )          :: starFormationRate
-    type            (abundances        )              , intent(in   )          :: fuelAbundances
-    integer                                           , intent(in   )          :: component
-    type            (treeNode          )              , intent(inout), pointer :: thisNode
-    type            (history           )              , intent(inout)          :: thisHistory
-    class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
-    integer                                                                    :: imfSelected
-    double precision                                                           :: fuelMetallicity              , fuelMetalsRateOfChange   , &
-         &                                                                        recycledFractionInstantaneous, stellarMetalsRateOfChange, &
-         &                                                                        time                         , yieldInstantaneous
+    double precision                     , intent(  out)          :: energyInputRate              , fuelMassRate             , &
+         &                                                           stellarMassRate
+    type            (abundances         ), intent(inout)          :: fuelAbundancesRates          , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out)          :: stellarLuminositiesRates
+    double precision                     , intent(in   )          :: starFormationRate
+    type            (abundances         ), intent(in   )          :: fuelAbundances
+    integer                              , intent(in   )          :: component
+    type            (treeNode           ), intent(inout), pointer :: thisNode
+    type            (history            ), intent(inout)          :: thisHistory
+    class           (nodeComponentBasic )               , pointer :: thisBasicComponent
+    integer                                                       :: imfSelected
+    double precision                                              :: fuelMetallicity              , fuelMetalsRateOfChange   , &
+         &                                                           recycledFractionInstantaneous, stellarMetalsRateOfChange, &
+         &                                                           time                         , yieldInstantaneous
 
     ! Get the instantaneous recycling rate for the IMF.
     recycledFractionInstantaneous=IMF_Recycled_Fraction_Instantaneous(starFormationRate,fuelAbundances,component)
@@ -120,10 +120,8 @@ contains
     time=thisBasicComponent%time()
 
     ! Set luminosity rates of change.
-    if (size(stellarLuminositiesRates) > 0) stellarLuminositiesRates=starFormationRate&
-         &*Stellar_Population_Luminosities_Get(imfSelected,time,fuelAbundances)
-
-    return
+    call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,time,fuelAbundances)
+   return
   end subroutine Stellar_Population_Properties_Rates_Instantaneous
 
   subroutine Stellar_Population_Properties_Scales_Instantaneous(thisHistory,stellarMass,stellarAbundances)

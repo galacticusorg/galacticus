@@ -37,9 +37,6 @@ module Node_Component_Disk_Exponential_Data
   !$omp threadprivate(radiusScaleDiskComputed)
   double precision                                                      :: radiusScaleDisk
   !$omp threadprivate(radiusScaleDisk)
-  ! Luminosity work arrays.
-  double precision                          , allocatable, dimension(:) :: luminositiesDisk
-  !$omp threadprivate(luminositiesDisk)
   ! Tabulation of the exponential disk rotation curve.
   integer                                   , parameter                 :: rotationCurvePointsPerDecade                 =10
   integer                                                               :: rotationCurvePointsCount

@@ -249,23 +249,26 @@ sub Get_Suffix {
     # Determine the suffix to use.
     my $suffix = "";
     switch ( $propertyType ) {
-	case ( "scalar"      ) {
-	    $suffix = "";
+	case ( "scalar"              ) {
+	    $suffix = ""                     ;
 	}
-	case ( "array"       ) {
-	    $suffix = "_Array";
+	case ( "array"               ) {
+	    $suffix = "_Array"               ;
 	}
-	case ( "history"     ) {
-	    $suffix = "_History";
+	case ( "history"             ) {
+	    $suffix = "_History"             ;
 	}
-	case ( "abundances"  ) {
-	    $suffix = "_Abundances";
+	case ( "abundances"          ) {
+	    $suffix = "_Abundances"          ;
 	}
 	case ( "chemicalAbundances"  ) {
-	    $suffix = "_Chemical_Abundances";
+	    $suffix = "_Chemical_Abundances" ;
 	}
-	case ( "keplerOrbit" ) {
-	    $suffix = "_Kepler_Orbit";
+	case ( "keplerOrbit"         ) {
+	    $suffix = "_Kepler_Orbit"        ;
+	}
+	case ( "stellarLuminosities" ) {
+	    $suffix = "_Stellar_Luminosities";
 	}
 	else {
 	    die("Build_Include_File.pl: unrecognized property type");
@@ -282,14 +285,15 @@ sub dataObjectDocName {
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"     ) {$name .= "integer"                  }
-	    case ( "longInteger" ) {$name .= "integer(kind=kind\\_int8)"}
-	    case ( "logical"     ) {$name .= "logical"                  }
-	    case ( "real"        ) {$name .= "double"                   }
-	    case ( "chemicals"   ) {$name .= "type(chemicalAbundances)" }
-	    case ( "abundances"  ) {$name .= "type(abundances)"         }
-	    case ( "history"     ) {$name .= "type(history)"            }
-	    case ( "keplerOrbit" ) {$name .= "type(keplerOrbit)"        }
+	    case ( "integer"             ) {$name .= "integer"                  }
+	    case ( "longInteger"         ) {$name .= "integer(kind=kind\\_int8)"}
+	    case ( "logical"             ) {$name .= "logical"                  }
+	    case ( "real"                ) {$name .= "double"                   }
+	    case ( "chemicals"           ) {$name .= "type(chemicalAbundances)" }
+	    case ( "abundances"          ) {$name .= "type(abundances)"         }
+	    case ( "history"             ) {$name .= "type(history)"            }
+	    case ( "keplerOrbit"         ) {$name .= "type(keplerOrbit)"        }
+	    case ( "stellarLuminosities" ) {$name .= "type(stellarLuminosities)"}
 	    else {die "Build_Include_File.pl::dataObjectDocName: 'type' specifier is unknown"}
 	}
     } else {
@@ -316,14 +320,15 @@ sub dataObjectName {
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"     ) {$name .= "Integer"            }
-	    case ( "longInteger" ) {$name .= "LongInteger"        }
-	    case ( "logical"     ) {$name .= "Logical"            }
-	    case ( "real"        ) {$name .= "Double"             }
-	    case ( "chemicals"   ) {$name .= "ChemicalAbundances" }
-	    case ( "abundances"  ) {$name .= "Abundances"         }
-	    case ( "history"     ) {$name .= "History"            }
-	    case ( "keplerOrbit" ) {$name .= "KeplerOrbit"        }
+	    case ( "integer"             ) {$name .= "Integer"            }
+	    case ( "longInteger"         ) {$name .= "LongInteger"        }
+	    case ( "logical"             ) {$name .= "Logical"            }
+	    case ( "real"                ) {$name .= "Double"             }
+	    case ( "chemicals"           ) {$name .= "ChemicalAbundances" }
+	    case ( "abundances"          ) {$name .= "Abundances"         }
+	    case ( "history"             ) {$name .= "History"            }
+	    case ( "keplerOrbit"         ) {$name .= "KeplerOrbit"        }
+	    case ( "stellarLuminosities" ) {$name .= "StellarLuminosities"}
 	    else {die "Build_Include_File.pl::dataObjectName: 'type' specifier is unknown"}
 	}
     } else {
@@ -355,37 +360,41 @@ sub dataObjectPrimitiveName {
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"     ) {
-		$name = "integer"                 ;
-		$type = "Integer"                 ;
+	    case ( "integer"             ) {
+		$name = "integer"                  ;
+		$type = "Integer"                  ;
 	    }
-	    case ( "longInteger" ) {
-		$name = "integer(kind=kind_int8)" ;
-		$type = "LongInteger"             ;
+	    case ( "longInteger"         ) {
+		$name = "integer(kind=kind_int8)"  ;
+		$type = "LongInteger"              ;
 	    }
-	    case ( "logical"     ) {
-		$name = "logical"                 ;
-		$type = "Logical"                 ;
+	    case ( "logical"             ) {
+		$name = "logical"                  ;
+		$type = "Logical"                  ;
 	    }
-	    case ( "real"        ) {
-		$name = "double precision"        ;
-		$type = "Double"                  ;
+	    case ( "real"                ) {
+		$name = "double precision"         ;
+		$type = "Double"                   ;
 	    }
-	    case ( "abundances"  ) {
-		$name = "type(abundances        )";
-		$type = "Abundances"              ;
+	    case ( "abundances"          ) {
+		$name = "type(abundances)"         ;
+		$type = "Abundances"               ;
 	    }
-	    case ( "history"     ) {
-		$name = "type(history)"           ;
-		$type = "History"                 ;
+	    case ( "history"             ) {
+		$name = "type(history)"            ;
+		$type = "History"                  ;
 	    }
-	    case ( "chemicals"   ) {
-		$name = "type(chemicalAbundances)";
-		$type = "ChemicalAbundances"      ;
+	    case ( "chemicals"           ) {
+		$name = "type(chemicalAbundances)" ;
+		$type = "ChemicalAbundances"       ;
 	    }
-	    case ( "keplerOrbit" ) {
-		$name = "type(keplerOrbit)"       ;
-		$type = "KeplerOrbit"             ;
+	    case ( "keplerOrbit"         ) {
+		$name = "type(keplerOrbit)"        ;
+		$type = "KeplerOrbit"              ;
+	    }
+	    case ( "stellarLuminosities" ) {
+		$name = "type(stellarLuminosities)";
+		$type = "StellarLuminosities"      ;
 	    }
 	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
 	}
@@ -423,41 +432,46 @@ sub Data_Object_Definition {
     # Extract the type.
     if ( exists($dataObject->{'type'}) ) {
 	switch ( $dataObject->{'type'} ) {
-	    case ( "integer"     ) {
+	    case ( "integer"             ) {
 		$intrinsicName = "integer"                ;
 		$label         = "Integer"                ;
 	    }
-	    case ( "longInteger" ) {
+	    case ( "longInteger"         ) {
 		$intrinsicName = "integer(kind=kind_int8)";
 		$label         = "LongInteger"            ;
 	    }
-	    case ( "logical"     ) {
+	    case ( "logical"             ) {
 		$intrinsicName = "logical"                ;
 		$label         = "Logical"                ;
 	    }
-	    case ( "real"        ) {
+	    case ( "real"                ) {
 		$intrinsicName = "double precision"       ;
 		$label         = "Double"                 ;
 	    }
-	    case ( "abundances"  ) {
+	    case ( "abundances"          ) {
 		$intrinsicName = "type"                   ;
 		$type          = "abundances"             ;
 		$label         = "Abundances"             ;
 	    }
-	    case ( "history"     ) {
+	    case ( "history"             ) {
 		$intrinsicName = "type"                   ;
 		$type          = "history"                ;
 		$label         = "History"                ;
 	    }
-	    case ( "chemicals"   ) {
+	    case ( "chemicals"           ) {
 		$intrinsicName = "type"                   ;
 		$type          = "chemicalAbundances"     ;
 		$label         = "ChemicalAbundances"     ;
 	    }
-	    case ( "keplerOrbit" ) {
+	    case ( "keplerOrbit"         ) {
 		$intrinsicName = "type"                   ;
 		$type          = "keplerOrbit"            ;
 		$label         = "KeplerOrbit"            ;
+	    }
+	    case ( "stellarLuminosities" ) {
+		$intrinsicName = "type"                   ;
+		$type          = "stellarLuminosities"    ;
+		$label         = "StellarLuminosities"    ;
 	    }
 	    else {die "Build_Include_File.pl::dataObjectPrimitiveName: 'type' specifier [".$dataObject->{'type'}."] is unknown"}
 	}

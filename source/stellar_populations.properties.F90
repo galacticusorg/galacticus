@@ -35,50 +35,13 @@ module Stellar_Population_Properties
   type     (varying_string                              )          :: stellarPopulationPropertiesMethod
 
   ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Population_Properties_Rates_Template), pointer :: Stellar_Population_Properties_Rates_Get=>null()
-  abstract interface
-     subroutine Stellar_Population_Properties_Rates_Template(starFormationRate,fuelAbundances,component,thisNode,thisHistory &
-          &,stellarMassRate,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
-       import treeNode, abundances, history
-       double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , &
-            &                                                                stellarMassRate
-       type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
-       double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates
-       double precision                          , intent(in   )          :: starFormationRate
-       type            (abundances)              , intent(in   )          :: fuelAbundances
-       integer                                   , intent(in   )          :: component
-       type            (treeNode  )              , intent(inout), pointer :: thisNode
-       type            (history   )              , intent(inout)          :: thisHistory
-     end subroutine Stellar_Population_Properties_Rates_Template
-  end interface
-
+  procedure(Stellar_Population_Properties_Rates         ), pointer :: Stellar_Population_Properties_Rates_Get         => null()
   ! Pointer to the function that sets scale factors for error control of stellar population properties.
-  procedure(Stellar_Population_Properties_Scales_Template), pointer :: Stellar_Population_Properties_Scales_Get=>null()
-  abstract interface
-     subroutine Stellar_Population_Properties_Scales_Template(thisHistory,stellarMass,stellarAbundances)
-       import abundances, history
-       double precision            , intent(in   ) :: stellarMass
-       type            (abundances), intent(in   ) :: stellarAbundances
-       type            (history   ), intent(inout) :: thisHistory
-     end subroutine Stellar_Population_Properties_Scales_Template
-  end interface
-
+  procedure(Stellar_Population_Properties_Scales        ), pointer :: Stellar_Population_Properties_Scales_Get        => null()
   ! Pointer to the function that returns the size of any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Count_Template), pointer :: Stellar_Population_Properties_History_Count_Get=>null()
-  abstract interface
-     integer function Stellar_Population_Properties_History_Count_Template()
-     end function Stellar_Population_Properties_History_Count_Template
-  end interface
-
+  procedure(Stellar_Population_Properties_History_Count ), pointer :: Stellar_Population_Properties_History_Count_Get => null()
   ! Pointer to the subroutine that creates any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Create_Template), pointer :: Stellar_Population_Properties_History_Create_Do=>null()
-  abstract interface
-     subroutine Stellar_Population_Properties_History_Create_Template(thisNode,thisHistory)
-       import treeNode, history
-       type(treeNode), intent(inout), pointer :: thisNode
-       type(history ), intent(inout)          :: thisHistory
-     end subroutine Stellar_Population_Properties_History_Create_Template
-  end interface
+  procedure(Stellar_Population_Properties_History_Create), pointer :: Stellar_Population_Properties_History_Create_Do => null()
 
 contains
 
@@ -123,16 +86,17 @@ contains
   subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate &
        &,stellarAbundancesRates ,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
+    use Stellar_Luminosities_Structure
     implicit none
-    double precision                          , intent(  out)          :: energyInputRate         , fuelMassRate           , &
-         &                                                                stellarMassRate
-    type            (abundances)              , intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
-    double precision            , dimension(:), intent(  out)          :: stellarLuminositiesRates
-    double precision                          , intent(in   )          :: starFormationRate
-    type            (abundances)              , intent(in   )          :: fuelAbundances
-    integer                                   , intent(in   )          :: component
-    type            (treeNode  )              , intent(inout), pointer :: thisNode
-    type            (history   )              , intent(inout)          :: thisHistory
+    double precision                     , intent(  out)          :: energyInputRate         , fuelMassRate           , &
+         &                                                           stellarMassRate
+    type            (abundances         ), intent(inout)          :: fuelAbundancesRates     , stellarAbundancesRates
+    type            (stellarLuminosities), intent(  out)          :: stellarLuminositiesRates
+    double precision                     , intent(in   )          :: starFormationRate
+    type            (abundances         ), intent(in   )          :: fuelAbundances
+    integer                              , intent(in   )          :: component
+    type            (treeNode           ), intent(inout), pointer :: thisNode
+    type            (history            ), intent(inout)          :: thisHistory
 
     ! Ensure module is initialized.
     call Stellar_Population_Properties_Rates_Initialize

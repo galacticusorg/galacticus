@@ -26,6 +26,7 @@ module Galacticus_Nodes
   use Kepler_Orbits
   use Abundances_Structure
   use Chemical_Abundances_Structure
+  use Stellar_Luminosities_Structure
   use Histories
   use Numerical_Constants_Astronomical
   use IO_HDF5
@@ -44,7 +45,6 @@ module Galacticus_Nodes
      !% Type describing a non-evolvable scalar integer property of a node component.
      integer :: value
   end type nodeDataIntegerScalar
-
 
   type, private :: nodeDataInteger1d
      !% Type describing a non-evolvable 1-D integer property of a node component.
@@ -78,28 +78,33 @@ module Galacticus_Nodes
 
   type, private :: nodeDataAbundancesScalarEvolvable
      !% Type describing an evolvable scalar {\\tt abundances} property of a node component.
-     type(abundances        ) :: rate, scale, value
+     type(abundances         ) :: rate, scale, value
   end type nodeDataAbundancesScalarEvolvable
 
   type, private :: nodeDataChemicalAbundancesScalarEvolvable
      !% Type describing an evolvable scalar {\\tt chemicalAbundances} property of a node component.
-     type(chemicalAbundances) :: rate, scale, value
+     type(chemicalAbundances ) :: rate, scale, value
   end type nodeDataChemicalAbundancesScalarEvolvable
 
   type, private :: nodeDataHistoryScalarEvolvable
      !% Type describing an evolvable scalar {\\tt history} property of a node component.
-     type(history           ) :: rate, scale, value
+     type(history            ) :: rate, scale, value
   end type nodeDataHistoryScalarEvolvable
 
   type, private :: nodeDataHistoryScalar
      !% Type describing an non-evolvable scalar {\\tt history} property of a node component.
-     type(history           ) :: value
+     type(history            ) :: value
   end type nodeDataHistoryScalar
 
   type, private :: nodeDataKeplerOrbitScalar
      !% Type describing a non-evolvable scalar {\\tt keplerOrbit} property of a node component.
-     type(keplerOrbit       ) :: value
+     type(keplerOrbit        ) :: value
   end type nodeDataKeplerOrbitScalar
+
+  type, private :: nodeDataStellarLuminositiesScalarEvolvable
+     !% Type describing an evolvable scalar {\\tt stellarLuminosities} property of a node component.
+     type(stellarLuminosities) :: rate, scale, value
+  end type nodeDataStellarLuminositiesScalarEvolvable
 
   type, public :: treeNodeList
      !% Type to give a list of treeNodes.
