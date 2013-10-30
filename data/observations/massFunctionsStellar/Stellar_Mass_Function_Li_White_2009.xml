@@ -1,58 +1,58 @@
 <dataSets>
-  <stellarMassFunction>
-    <description></description>
+  <massFunction>
+    <description>The stellar mass function of galaxies at zâ0.07 from the SDSS as reported by Li &amp; White (2009)</description>
     <url>http://adsabs.harvard.edu/abs/2009MNRAS.398.2177L</url>
     <label>Li and White (2009)</label>
     <source>Table supplied by Rob Crain (r.a.crain@gmail.com)</source>
     <columns>
-      <stellarMass>
+      <mass>
 	<description>Galaxy stellar mass</description>
 	<units>Solar masses</units>
 	<hubble>100.0</hubble>
 	<hubbleExponent>-2</hubbleExponent>
 	<scaling>log10</scaling>
 	<datum>8.155</datum>
-	<datum>8.252</datum>
-	<datum>8.349</datum>
-	<datum>8.446</datum>
-	<datum>8.552</datum>
-	<datum>8.649</datum>
+	<datum>8.255</datum>
+	<datum>8.355</datum>
+	<datum>8.455</datum>
+	<datum>8.555</datum>
+	<datum>8.655</datum>
 	<datum>8.755</datum>
-	<datum>8.852</datum>
-	<datum>8.949</datum>
-	<datum>9.056</datum>
-	<datum>9.153</datum>
-	<datum>9.249</datum>
-	<datum>9.356</datum>
-	<datum>9.453</datum>
-	<datum>9.550</datum>
-	<datum>9.656</datum>
-	<datum>9.753</datum>
-	<datum>9.850</datum>
-	<datum>9.947</datum>
-	<datum>10.044</datum>
-	<datum>10.150</datum>
-	<datum>10.247</datum>
-	<datum>10.354</datum>
-	<datum>10.450</datum>
-	<datum>10.547</datum>
-	<datum>10.644</datum>
-	<datum>10.751</datum>
-	<datum>10.847</datum>
-	<datum>10.944</datum>
-	<datum>11.041</datum>
-	<datum>11.138</datum>
-	<datum>11.245</datum>
-	<datum>11.341</datum>
-	<datum>11.438</datum>
-	<datum>11.535</datum>
-	<datum>11.632</datum>
-	<datum>11.719</datum>
-	<datum>11.835</datum>
-      </stellarMass>
+	<datum>8.855</datum>
+	<datum>8.955</datum>
+	<datum>9.055</datum>
+	<datum>9.155</datum>
+	<datum>9.255</datum>
+	<datum>9.355</datum>
+	<datum>9.455</datum>
+	<datum>9.555</datum>
+	<datum>9.655</datum>
+	<datum>9.755</datum>
+	<datum>9.855</datum>
+	<datum>9.955</datum>
+	<datum>10.055</datum>
+	<datum>10.155</datum>
+	<datum>10.255</datum>
+	<datum>10.355</datum>
+	<datum>10.455</datum>
+	<datum>10.555</datum>
+	<datum>10.655</datum>
+	<datum>10.755</datum>
+	<datum>10.855</datum>
+	<datum>10.955</datum>
+	<datum>11.055</datum>
+	<datum>11.155</datum>
+	<datum>11.255</datum>
+	<datum>11.355</datum>
+	<datum>11.455</datum>
+	<datum>11.555</datum>
+	<datum>11.655</datum>
+	<datum>11.755</datum>
+	<datum>11.855</datum>
+      </mass>
       <massFunction>
 	<description>Galaxy stellar mass function</description>
-	<units>Solar masses</units>
+	<units>Mpc^-3 dex^-1</units>
 	<hubble>100.0</hubble>
 	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
@@ -97,7 +97,7 @@
       </massFunction>
       <lowerError>
 	<description>Lower error on galaxy stellar mass function</description>
-	<units>Solar masses</units>
+	<units>Mpc^-3 dex^-1</units>
 	<hubble>100.0</hubble>
 	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
@@ -142,7 +142,7 @@
       </lowerError>
       <upperError>
 	<description>Upper error on galaxy stellar mass function</description>
-	<units>Solar masses</units>
+	<units>Mpc^-3 dex^-1</units>
 	<hubble>100.0</hubble>
 	<hubbleExponent>3</hubbleExponent>
 	<scaling>log10</scaling>
@@ -186,5 +186,5 @@
 	<datum>0.562</datum>
       </upperError>
     </columns>
-  </stellarMassFunction>
+  </massFunction>
 </dataSets>

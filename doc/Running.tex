@@ -27,7 +27,7 @@ The file {\tt galacticusConfig.xml}, is present, is used to configure \glc\ and 
 The name and e-mail address in the {\tt contact} section will be stored in any \glc\ models run---this helps track the provenance of the model. The {\tt email} section determines how e-mail will be sent. Within this section, you can place one or more {\tt host} elements, the {\tt name} element of which specifies the host name of the computer to which these rules apply (the {\tt default} host is used if no other match is found). For each host, the {\tt method} element specifies how e-mail should be sent, either by {\tt sendmail} or via {\tt smtp}. For SMTP transport (which currently supports SSL connections only), you must specify the {\tt host} SMTP server, {\tt user} name. The {\tt passwordFrom} element specifies how the password for the SMTP log in should be obtained. If set to {\tt input} then the user will be prompted for the password as needed. Alternatively, if you use the \href{http://www.kde.org/}{KDE} desktop and the \href{http://utils.kde.org/projects/kwalletmanager/}{KDEWallet} password manager, 
 setting {\tt passwordFrom} to {\tt kdewallet} will cause the password to be stored in the KDE wallet and retrieved from there subsequently.
 
-\section{Parameter Files}
+\section{Parameter Files}\label{sec:ParameterFiles}
 
 \glc\ requires a file of parameters to be given as a command line argument. The parameter file is an XML file (which makes it easy to manipulate and construct these files from within many languages, e.g. Perl) with the following structure:
 \begin{verbatim}
@@ -283,6 +283,10 @@ where {\tt model1} etc. are the names of the various output files and {\tt model
 \subsection{Limiting the Load Average}\index{load average}
 
 If {\tt [treeEvolveLimitLoadAverage]}$=${\tt true} then \glc\ will attempt to keep the load average of the system under {\tt [treeEvolveLoadAverageMaximum]} by waiting to run trees if the current load average exceeds this value. {\tt [treeEvolveLoadAverageMaximum]} can be set to the numerical maximum load average desired or, alternatively, can be set to {\tt processorCount} in which case the number of processor cores present on the system will be used for {\tt [treeEvolveLoadAverageMaximum]}.
+
+\subsubsection{Thread Locking via Semaphores}\label{sec:Semaphores}\index{semaphores}
+
+An alternative is to use Linux's semaphoring system to share processors between multiple instances of \glc\ running on a single machine. To activiate this mode, set {\tt [treeEvolveThreadLock]} to the total number of threads that should be active at any one time across all instances of \glc\ running on a machine. You can also set this parameter to {\tt processorCount} to set a a value equal to the total number of processors on the machine. With this parameter set, each instance of \glc\ running on a machine will request a semaphore for each thread that it attempts to run, with the maximum number of semaphores set to the value of {\tt [treeEvolveThreadLock]}. This means that, if one instance of \glc\ has claimed 6 semaphores when {\tt [treeEvolveThreadLock]}$=${\tt 8}, then a second instance of \glc\ will only run 2 threads. Once the first instance releases its semaphores, the second instance will claim them and begin running more threads.
 
 \section{Additional Codes}
 
