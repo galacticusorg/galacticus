@@ -19,9 +19,10 @@
 
 module Merger_Tree_Output_Structure
   !% Outputs the structure of entire merger trees.
+  use IO_HDF5
   implicit none
   private
-  public :: Merger_Tree_Structure_Output
+  public :: Merger_Tree_Structure_Output, Merger_Tree_Structure_PreClose
 
   ! Flag indicating if module is initialized.
   logical :: structureOutputModuleInitialized         =.false.
@@ -31,6 +32,9 @@ module Merger_Tree_Output_Structure
 
   ! Flag indicating if virial quantities should be included in output.
   logical :: mergerTreeStructureOutputVirialQuantities
+
+  ! Group to which merger tree structures are written.
+  type(hdf5Object) :: structureGroup
 
 contains
 
@@ -55,7 +59,6 @@ contains
     type            (treeNode          )                             , pointer :: thisNode
     integer         (kind=kind_int8    ), allocatable  , dimension(:)          :: nodeIndex
     double precision                    , allocatable  , dimension(:)          :: nodeProperty
-    type            (hdf5Object        ), save                                 :: structureGroup
     class           (nodeComponentBasic)                             , pointer :: thisBasicComponent
     type            (mergerTree        )                             , pointer :: currentTree
     integer                                                                    :: nodeCount
@@ -256,5 +259,16 @@ contains
 
     return
   end subroutine Merger_Tree_Structure_Output
+
+  !# <hdfPreCloseTask>
+  !#  <unitName>Merger_Tree_Structure_PreClose</unitName>
+  !# </hdfPreCloseTask>
+  subroutine Merger_Tree_Structure_PreClose
+    !% Close the merger tree structure group.
+    implicit none
+
+    if (mergerTreeStructureOutput) call structureGroup%close()
+    return
+  end subroutine Merger_Tree_Structure_PreClose
 
 end module Merger_Tree_Output_Structure
