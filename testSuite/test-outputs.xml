@@ -306,5 +306,16 @@
     </parameter>
   </parameters>
 
+  <!-- Merger tree structure -->
+  <parameters>
+    <parameter>
+      <name>mergerTreeStructureOutput</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>mergerTreeStructureOutputVirialQuantities</name>
+      <value>true</value>
+    </parameter>
+  </parameters>
 
 </parameterGrid>
