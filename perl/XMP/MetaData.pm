@@ -82,8 +82,8 @@ sub Write {
 
     # Get the Galacticus input path.
     my $galacticusPath;
-    if ( exists($ENV{"GALACTICUS_ROOT_V091"}) ) {
-	$galacticusPath = $ENV{"GALACTICUS_ROOT_V091"};
+    if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+	$galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
 	$galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
     } else {
 	$galacticusPath = "./";
