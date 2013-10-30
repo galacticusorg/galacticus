@@ -790,6 +790,8 @@ contains
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
     integer                                                              :: i
 
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (Stellar_Luminosities_Is_Output(i,time)) then
@@ -808,6 +810,8 @@ contains
     integer                              , intent(inout) :: doublePropertyCount, integerPropertyCount
     double precision                     , intent(in   ) :: time
 
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
     doublePropertyCount=doublePropertyCount+Stellar_Luminosities_Output_Count_Get(time)
     return
   end subroutine Stellar_Luminosities_Output_Count
@@ -818,6 +822,8 @@ contains
     double precision, intent(in   ) :: time
     integer                         :: i
 
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
     Stellar_Luminosities_Output_Count_Get=0
     do i=1,luminosityCount
        if (Stellar_Luminosities_Is_Output(i,time)) Stellar_Luminosities_Output_Count_Get=Stellar_Luminosities_Output_Count_Get+1
@@ -839,6 +845,8 @@ contains
     double precision                                   , intent(in   ) :: unitsInSI
     integer                                                            :: i
 
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (Stellar_Luminosities_Is_Output(i,time)) then
@@ -860,6 +868,8 @@ contains
     double precision, intent(in   ) :: time
     double precision, parameter     :: timeTolerance  =1.0d-3
 
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
     select case (luminosityOutputOption)
     case (luminosityOutputOptionAll)
        Stellar_Luminosities_Is_Output=.true.
@@ -887,6 +897,9 @@ contains
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
+
+    ! Return if no luminosities are tracked.
+    if (luminosityCount == 0) return
 
     ! Get the ages that this stellar population will have at the various output times.
     ages=luminosityCosmicTime-time
