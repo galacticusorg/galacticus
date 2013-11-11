@@ -78,7 +78,7 @@ program Test_Nodes
   call Assert('Created spheroid component has type "nodeComponent:spheroid:standard"',char(thisComponent%type()),'nodeComponent:spheroid:standard')
 
   ! Test setting and getting of 1-D arrays, with automatic allocation.
-  thisComponent => thisNode%position()
+  thisComponent => thisNode%position(autoCreate=.true.)
   select type  (thisComponent)
   class is (nodeComponentPosition)
      call thisComponent%velocitySet([1.0d0,3.0d0,-12.3d0])
