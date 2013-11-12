@@ -321,19 +321,19 @@ foreach my $srcdir ( @sourcedirs ) {
 		    print $outfile ".".$workDir.$base.$gvname,": .".$workDir.$base.$dname." ";
 		    if ( scalar(@sortedinc) > 0 ) {print $outfile ".",join(".",@sortedinc)};
 		    print $outfile "\n";
-		    print $outfile "\t\@echo \\\"$pname\\\" > .$workDir$base$gvname\n";
+		    print $outfile "\t\@echo \\\"$base$pname\\\" > .$workDir$base$gvname\n";
 		    foreach my $extra_include ( @extra_includes ) {
 			(my $dFile = $extra_include) =~ s/\.o$/.d/;
 			if ( $extra_include =~ m/\// ) {
-			    print $outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $dFile >> .$workDir$base$gvname\n";
+			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' $dFile >> .$workDir$base$gvname\n";
 			} else {
-			    print $outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$workDir$dFile >> .$workDir$base$gvname\n";
+			    print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$workDir$dFile >> .$workDir$base$gvname\n";
 			}
 		    }
 		    foreach my $item (@sortedinc) {
 			$item =~ s/\s+$//;
-			print $outfile "\t\@awk '{print \"\\\"".$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$item >> .$workDir$base$gvname\n";
-			print $outfile "\t\@cat `awk '{print \".".$workDir.$base."\"\$\$1\".gv\"}' .$item` >> .$workDir$base$gvname\n";
+			print $outfile "\t\@awk '{print \"\\\"".$base.$pname."\\\" -> \\\"\"\$\$1\"\\\"\"}' .$item >> .$workDir$base$gvname\n";
+			print $outfile "\t\@cat `awk '{print \".".$workDir."\"\$\$1\".gv\"}' .$item` >> .$workDir$base$gvname\n";
 		    }
 		    print $outfile "\t\@sort -u .$workDir$base$gvname -o .$workDir$base$gvname\n\n";
 		}
