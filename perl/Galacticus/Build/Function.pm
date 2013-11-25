@@ -252,9 +252,9 @@ sub Functions_Generate_Output {
 	open(my $classFile,$class->{'file'});
 	until ( eof($classFile) ) {
 	    &Fortran_Utils::Get_Fortran_Line($classFile,my $rawLine, my $processedLine, my $bufferedComments);
-	    if ( $processedLine =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i ) {
+	    if ( $processedLine =~ m/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*$directive([a-z0-9_]+)\s*$/i ) {
 		my $extends = $2;
-		my $type    = $4;
+		my $type    = $directive.$4;
 		$class  ->{'type'   } = $type;
 		$class  ->{'extends'} = $extends;
 		$classes  {$type    } = $class;
