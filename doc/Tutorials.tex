@@ -371,3 +371,39 @@ A simple plotting script is provided which illustrates how to access and use the
 scripts/plotting/plotGrasilSpectrum.pl galacticus.hdf5 5 9 217 43.2 SED.pdf
 \end{verbatim}
 will plot the \gls{sed} of node 217, in merger tree 9, at output 5 from the {\tt galacticus.hdf5} file. The \gls{sed} will be shown for an inclination of $43.2^\circ$ and the plot will be written to {\tt SED.pdf}.
+
+\section{Outputting Stellar Luminosities}\index{luminosities!stellar}\index{stellar!luminosities}\index{luminosities!galactic}\index{galaxy!luminosities}
+
+\glc\ can compute the stellar luminosity of galaxies in any required combination of filter, redshift, and frame. To cause luminosities to be computed add something such as the following to your input parameter file:
+\begin{verbatim}
+ <parameter>
+  <name>luminosityFilter</name>
+  <value>SDSS_r</value>
+ </parameter>
+ <parameter>
+  <name>luminosityRedshift</name>
+  <value>0.1</value>
+ </parameter>
+ <parameter>
+  <name>luminosityType</name>
+  <value>observed</value>
+ </parameter>
+\end{verbatim}
+This would result in a dataset called {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} being output (along with a similar dataset for the spheroid component), corresponding to the luminosity in the SDSS r-band filter, as observed at $z=0.1$. To get the same filter but in the rest-frame of the galaxy, change the {\tt luminosityType} to ``{\tt rest}''. Available filters can be found in the {\tt data/filters} folder. Luminosities are always output in units of the zero-point of the AB magnitude system, such that $-2.5\log_{10}L$ (where $L$ is the output luminosity) gives the AB absolute magnitude of the galaxy.
+
+You can add additional luminosities by simply adding more entries in these parameter values. For example:
+\begin{verbatim}
+ <parameter>
+   <name>luminosityFilter</name>
+   <value>SDSS_r SDSS_g</value>
+ </parameter>
+ <parameter>
+   <name>luminosityRedshift</name>
+   <value>0.1 0.3</value>
+ </parameter>
+ <parameter>
+   <name>luminosityType</name>
+   <value>observed rest</value>
+ </parameter>
+\end{verbatim}
+would result in datasets {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} and {\tt diskLuminositiesStellar:SDSS\_g:rest:z0.3000}. 
