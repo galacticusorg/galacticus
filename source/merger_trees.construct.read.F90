@@ -24,172 +24,102 @@ module Merger_Tree_Read
   use IO_HDF5
   use HDF5
   use Kind_Numbers
+  use Merger_Tree_Read_Importers
   implicit none
   private
   public :: Merger_Tree_Read_Initialize
 
   ! The name of the file from which to read merger trees and its internal object.
-  type            (hdf5Object                    )                                                :: mergerTreeFile
-  type            (varying_string                )                                                :: mergerTreeReadFileName
-
-  ! The halo trees group.
-  type            (hdf5Object                    )                                                :: haloTreesGroup
-
-  ! The particles group.
-  type            (hdf5Object                    )                                                :: particlesGroup
-  integer                                                                                         :: particleEpochType
-  integer                                                                             , parameter :: particleEpochTypeTime                    =0
-  integer                                                                             , parameter :: particleEpochTypeExpansionFactor         =1
-  integer                                                                             , parameter :: particleEpochTypeRedshift                =2
-  character       (len=16                        )                                                :: particleEpochDatasetName
-
-  ! Cosmological parameters group.
-  type            (hdf5Object                    )                                                :: cosmologicalParametersGroup
-
-  ! Tree indexing group.
-  type            (hdf5Object                    )                                                :: treeIndexGroup
-
-  ! Units group.
-  type            (hdf5Object                    )                                                :: unitsGroup
-
-  ! Simulation properties group.
-  type            (hdf5Object                    )                                                :: simulationGroup
-
+  type            (varying_string                )                                                :: mergerTreeReadFileName                                                                       
+  class           (mergerTreeImporterClass       )                                      , pointer :: defaultImporter                                                                              
+  
   ! Index of the next merger tree to read.
-  integer                                                                                         :: nextTreeToRead                           =0
-
+  integer                                                                                         :: nextTreeToRead                           =0                                                  
+  
   ! Index of the first tree to process.
-  integer         (kind=kind_int8                )                                                :: mergerTreeReadBeginAt
-
-  ! Scaling factors to convert read data to Galacticus internal units.
-  double precision                                                                                :: unitConversionLength                        , unitConversionMass                    , &
-       &                                                                                             unitConversionTime                          , unitConversionVelocity
-  integer                                                                                         :: scaleFactorExponentLength                   , scaleFactorExponentMass               , &
-       &                                                                                             scaleFactorExponentTime                     , scaleFactorExponentVelocity
-
-  ! Indexing information for merger tree halos.
-  integer                                                  , allocatable, dimension(:)            :: mergerTreeFirstNodeIndex                    , mergerTreeNodeCount
-  integer         (kind=kind_int8                )         , allocatable, dimension(:)            :: mergerTreeIndex
-
+  integer         (kind=kind_int8                )                                                :: mergerTreeReadBeginAt                                                                        
+  
   ! Volume weight factor for trees.
-  double precision                                                                                :: treeVolumeWeightCurrent                     , treeVolumeWeightUniform
-  double precision                                         , allocatable, dimension(:)            :: treeVolumeWeight
+  double precision                                                                                :: treeVolumeWeightCurrent                                                                      
   !$omp threadprivate(treeVolumeWeightCurrent)
-  ! Size of the simulation box.
-  double precision                                                                                :: lengthSimulationBox
-
-  ! Flag indicating whether mismatches in cosmological parameters should be considered fatal.
-  logical                                                                                         :: mergerTreeReadMismatchIsFatal
-
-  ! Flag indicating whether or not subhalo masses are included in halo masses.
-  logical                                                                                         :: haloMassesIncludeSubhalos
-
-  ! Flag indicating whether or not positions are periodic.
-  logical                                                                                         :: simulationIsPeriodic
-
-  ! Flag indicating whether or not velocities include Hubble flow.
-  logical                                                                                         :: velocitiesIncludeHubbleFlow
 
   ! Flag indicating whether branch jumps are allowed.
-  logical                                                                                         :: mergerTreeReadAllowBranchJumps
-
+  logical                                                                                         :: mergerTreeReadAllowBranchJumps                                                               
+  
   ! Flag indicating whether subhalo promotions are allowed.
-  logical                                                                                         :: mergerTreeReadAllowSubhaloPromotions
-
+  logical                                                                                         :: mergerTreeReadAllowSubhaloPromotions                                                         
+  
   ! Flags indicating whether or not to preset subhalo properties.
-  logical                                                                                         :: mergerTreeReadPresetMergerTimes
-  logical                                                                                         :: mergerTreeReadPresetMergerNodes
-  logical                                                                                         :: mergerTreeReadPresetSubhaloMasses
-  logical                                                                                         :: mergerTreeReadPresetPositions
-  logical                                                                                         :: mergerTreeReadPresetScaleRadii
-  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass
-  logical                                                                                         :: mergerTreeReadPresetSpins
-  logical                                                                                         :: mergerTreeReadPresetOrbits                  , mergerTreeReadPresetOrbitsAssertAllSet, &
-       &                                                                                             mergerTreeReadPresetOrbitsBoundOnly         , mergerTreeReadPresetOrbitsSetAll
-
+  logical                                                                                         :: mergerTreeReadPresetMergerTimes                                                              
+  logical                                                                                         :: mergerTreeReadPresetMergerNodes                                                              
+  logical                                                                                         :: mergerTreeReadPresetSubhaloMasses                                                            
+  logical                                                                                         :: mergerTreeReadPresetPositions                                                                
+  logical                                                                                         :: mergerTreeReadPresetScaleRadii                                                               
+  double precision                                                                                :: mergerTreeReadPresetScaleRadiiMinimumMass                                                    
+  logical                                                                                         :: mergerTreeReadPresetSpins                                                                    
+  logical                                                                                         :: mergerTreeReadPresetOrbits                       , mergerTreeReadPresetOrbitsAssertAllSet, & 
+       &                                                                                             mergerTreeReadPresetOrbitsBoundOnly              , mergerTreeReadPresetOrbitsSetAll          
+  
   ! Option controlling fatality of missing host node condition.
-  logical                                                                                         :: mergerTreeReadMissingHostsAreFatal
-
+  logical                                                                                         :: mergerTreeReadMissingHostsAreFatal                                                           
+  
   ! Option controlling whether tree indices should always be set to the corresponding node index.
-  logical                                                                                         :: mergerTreeReadTreeIndexToRootNodeIndex
-
+  logical                                                                                         :: mergerTreeReadTreeIndexToRootNodeIndex                                                       
+  
   ! Labels used for node properties.
-  integer                                                                             , parameter :: nodeIsUnreachable                        =-1
-  integer                                                                             , parameter :: nodeIsReachable                          =0
-
-  ! Labels for switches.
-  integer                                                                             , parameter :: integerTrue                              =1
-  integer                                                                             , parameter :: integerFalse                             =0
-  integer                                                                             , parameter :: integerUnknown                           =-1
-
+  integer                                                                    , parameter          :: nodeIsUnreachable                        =-1                                                 
+  integer                                                                    , parameter          :: nodeIsReachable                          =0                                                  
+  
   ! Internal list of output times and the relative tolerance used to "snap" nodes to output times.
-  integer                                                                                         :: outputTimesCount
-  double precision                                                                                :: mergerTreeReadOutputTimeSnapTolerance
-  double precision                                         , allocatable, dimension(:)            :: outputTimes
-
+  integer                                                                                         :: outputTimesCount                                                                             
+  double precision                                                                                :: mergerTreeReadOutputTimeSnapTolerance                                                        
+  double precision                                , allocatable, dimension(:)                     :: outputTimes                                                                                  
+  
   ! Node used in root finding.
-  logical                                                                                         :: haveScaleRadii
-  class           (nodeComponentDarkMatterProfile), pointer                                       :: activeDarkMatterProfileComponent
-  class           (nodeComponentBasic            ), pointer                                       :: activeBasicComponent
-  type            (treeNode                      ), pointer                                       :: activeNode
-  double precision                                                                                :: halfMassRadius
+  class           (nodeComponentDarkMatterProfile)                                      , pointer :: activeDarkMatterProfileComponent                                                             
+  class           (nodeComponentBasic            )                                      , pointer :: activeBasicComponent                                                                         
+  type            (treeNode                      )                                      , pointer :: activeNode                                                                                   
+  double precision                                                                                :: halfMassRadius                                                                               
   !$omp threadprivate(activeDarkMatterProfileComponent,activeBasicComponent,activeNode,halfMassRadius)
   ! Sorted node index list.
-  integer         (kind=kind_int8                )         , allocatable, dimension(:)            :: descendentLocations                         , nodeLocations
-  integer         (kind=kind_int8                )         , allocatable, dimension(:)            :: descendentIndicesSorted                     , nodeIndicesSorted
- 
+  integer         (kind=kind_int8                ), allocatable, dimension(:)                     :: descendentLocations                              , nodeLocations                             
+  integer         (kind=kind_int8                ), allocatable, dimension(:)                     :: descendentIndicesSorted                          , nodeIndicesSorted                         
+  
   ! Effective infinity for merging times.
-  double precision                                 , parameter                                    :: timeUntilMergingInfinite        =1.0d30
-
+  double precision                                                           , parameter          :: timeUntilMergingInfinite                 =1.0d30                                             
+  
   ! Record of warnings issued.
-  logical                                                                                         :: warningNestedHierarchyIssued    =.false.
-
-  ! Type used to store raw data.
-  type nodeData
-     !% Structure used to store raw data read from merger tree files.
-     integer         (kind=kind_int8)               :: descendentIndex   , hostIndex               , &
-          &                                            isolatedNodeIndex , mergesWithIndex         , &
-          &                                            nodeIndex         , particleIndexCount      , &
-          &                                            particleIndexStart, primaryIsolatedNodeIndex
-     double precision                               :: angularMomentum   , halfMassRadius          , &
-          &                                            nodeMass          , nodeTime                , &
-          &                                            scaleRadius
-     double precision                , dimension(3) :: position          , velocity
-     logical                                        :: childIsSubhalo    , isSubhalo
-     type            (nodeData      ), pointer      :: descendent        , host                    , &
-          &                                            parent
-     type            (treeNode      ), pointer      :: node
-  end type nodeData
-
+  logical                                                                                         :: warningNestedHierarchyIssued             =.false.                                            
+  
   ! Iterator object for iterating over progenitor nodes.
   type :: progenitorIterator
-     integer(kind=kind_int8) :: progenitorLocation, progenitorIndex, targetIndex
-     logical                 :: progenitorsFound
+     integer(kind=kind_int8) :: progenitorIndex , progenitorLocation, targetIndex 
+     logical                 :: progenitorsFound                                  
    contains
      !@ <objectMethods>
      !@   <object>progenitorIterator</object>
      !@   <objectMethod>
      !@     <method>descendentSet</method>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless type(nodeData)\textgreater} node\argin, \textcolor{red}{\textless type(nodeData)(:)\textgreater} nodes\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(nodeData)\textgreater} node\argin, \textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
      !@     <description>Set the target descendent node and initialize the iterator.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>next</method>
      !@     <type>\logicalzero</type>
-     !@     <arguments>\textcolor{red}{\textless type(nodeData)(:)\textgreater} nodes\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
      !@     <description>Move to the next progenitor. Returns true if the next progenitor exists, false otherwise.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>index</method>
      !@     <type>\textcolor{red}{\textless integer(kind=kind\_int8)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(nodeData)(:)\textgreater} nodes\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
      !@     <description>Return the index of the current progenitor.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>current</method>
-     !@     <type>\textcolor{red}{\textless *type(nodeData)\textgreater}</type>
-     !@     <arguments>\textcolor{red}{\textless type(nodeData)(:)\textgreater} nodes\argin</arguments>
+     !@     <type>\textcolor{red}{\textless *class(nodeData)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless class(nodeData)(:)\textgreater} nodes\argin</arguments>
      !@     <description>Return a pointer to the current progenitor.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -199,11 +129,11 @@ module Merger_Tree_Read
      !@     <description>Return true if any progenitors exist, false otherwise.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: descendentSet => progenitorIteratorDescendentSet
-     procedure :: next          => progenitorIteratorNext
-     procedure :: index         => progenitorIteratorIndex
-     procedure :: current       => progenitorIteratorCurrent
-     procedure :: exist         => progenitorIteratorExist
+     procedure :: descendentSet=>progenitorIteratorDescendentSet 
+     procedure :: next         =>progenitorIteratorNext          
+     procedure :: index        =>progenitorIteratorIndex         
+     procedure :: current      =>progenitorIteratorCurrent       
+     procedure :: exist        =>progenitorIteratorExist         
   end type progenitorIterator
 
 contains
@@ -217,26 +147,16 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Galacticus_Output_Times
-    use Numerical_Comparison
-    use Cosmology_Parameters
-    use Power_Spectra
     use Numerical_Constants_Astronomical
+    use Numerical_Constants_Boolean
     use Memory_Management
+    use Cosmology_Parameters
     implicit none
-    type            (varying_string          ), intent(in   )          :: mergerTreeConstructMethod
-    procedure       (Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
-    integer                                                            :: haloMassesIncludeSubhalosInteger  , hubbleExponent             , &
-         &                                                                iOutput                           , simulationIsPeriodicInteger, &
-         &                                                                treesAreSelfContained             , treesHaveSubhalos          , &
-         &                                                                velocitiesIncludeHubbleFlowInteger
-    double precision                                                   :: cosmologicalParameter
-    character       (len=14                  )                         :: valueString
-    type            (varying_string          )                         :: message
-    double precision                                                   :: localLittleH0                     , localOmegaBaryon           , &
-         &                                                                localOmegaDE                      , localOmegaMatter           , &
-         &                                                                localSigma8
-
+    type     (varying_string          ), intent(in   )          :: mergerTreeConstructMethod 
+    procedure(Merger_Tree_Read_Do     ), intent(inout), pointer :: Merger_Tree_Construct     
+    integer                                                     :: iOutput                   
+    type     (varying_string          )                         :: message                   
+    
     ! Check if our method is to be used.
     if (mergerTreeConstructMethod == 'read') then
        ! Assign pointer to our merger tree construction subroutine.
@@ -252,17 +172,6 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('mergerTreeReadFileName',mergerTreeReadFileName)
-       !@ <inputParameter>
-       !@   <name>mergerTreeReadMismatchIsFatal</name>
-       !@   <attachedTo>module</attachedTo>
-       !@   <defaultValue>true</defaultValue>
-       !@   <description>
-       !@     Specifies whether mismatches in cosmological parameter values between \glc\ and the merger tree file should be considered fatal.
-       !@   </description>
-       !@   <type>boolean</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter('mergerTreeReadMismatchIsFatal',mergerTreeReadMismatchIsFatal,defaultValue=.true.)
        !@ <inputParameter>
        !@   <name>mergerTreeReadPresetMergerTimes</name>
        !@   <attachedTo>module</attachedTo>
@@ -458,36 +367,17 @@ contains
           outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
        end do
 
-       ! Get the default cosmology.
-       thisCosmologyParameters => cosmologyParameters()
-       ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
-       localLittleH0   =thisCosmologyParameters%HubbleConstant(unitsLittleH)
-       localOmegaMatter=thisCosmologyParameters%OmegaMatter()
-       localOmegaDE    =thisCosmologyParameters%OmegaDarkEnergy()
-       localOmegaBaryon=thisCosmologyParameters%OmegaBaryon()
-       localSigma8     =sigma_8()
-
-       ! Read basic data from the merger tree file.
-       !$omp critical(HDF5_Access)
        ! Open the file.
-       call mergerTreeFile%openFile(char(mergerTreeReadFileName),readOnly=.true.)
-       ! Open the merger trees group.
-       haloTreesGroup=mergerTreeFile%openGroup("haloTrees")
-
-       ! Determine if trees have subhalos.
-       if (haloTreesGroup%hasAttribute("treesHaveSubhalos")) then
-          call haloTreesGroup%readAttribute("treesHaveSubhalos",treesHaveSubhalos,allowPseudoScalar=.true.)
-       else
-          treesHaveSubhalos=integerUnknown
-       end if
+       defaultImporter => mergerTreeImporter()
+       call defaultImporter%open(mergerTreeReadFileName)
 
        ! Validate input parameters.
        if (mergerTreeReadPresetMergerNodes.and..not.mergerTreeReadPresetMergerTimes) then
           message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
           message=message//" try setting [mergerTreeReadPresetMergerTimes]=true."//char(10)
-          if (treesHaveSubhalos /= integerTrue) then
+          if (defaultimporter%treesHaveSubhalos() /= booleanTrue) then
              message=message//" Note: presetting merger target nodes and merger times is usually only a good idea when subhalo information is present in the merger trees"
-             if (treesHaveSubhalos == integerFalse) then
+             if (defaultimporter%treesHaveSubhalos() == booleanFalse) then
                 message=message//" (which the current trees do not)"
              else
                 message=message//" (subhalo presence in the current trees was not specified)"
@@ -516,246 +406,51 @@ contains
        end if
 
        ! Perform sanity checks if subhalos are not included.
-       if (treesHaveSubhalos == integerFalse) then
+       if (defaultimporter%treesHaveSubhalos() == booleanFalse) then
           if (mergerTreeReadPresetMergerTimes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger times as no subhalos are present; try setting [mergerTreeReadPresetMergerTimes]=false')
           if (mergerTreeReadPresetMergerNodes  ) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset merger nodes as no subhalos are present; try setting [mergerTreeReadPresetMergerNodes]=false')
           if (mergerTreeReadPresetSubhaloMasses) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','cannot preset subhalo masses as no subhalos are present; try setting [mergerTreeReadPresetSubhaloMasses]=false')
        end if
-
-       ! Check that we can handle the type of tree in this file.
-       if (haloTreesGroup%hasAttribute("haloMassesIncludeSubhalos")) then
-          call haloTreesGroup%readAttribute("haloMassesIncludeSubhalos",haloMassesIncludeSubhalosInteger,allowPseudoScalar=.true.)
-          haloMassesIncludeSubhalos=(haloMassesIncludeSubhalosInteger == 1)
-       else
-          call Galacticus_Error_Report('Merger_Tree_Read_Initialize','required attribute "haloMassesIncludeSubhalos" not present')
-       end if
-
-       ! Determine if subhalo masses have been included in halo masses.
-       if (haloTreesGroup%hasAttribute("treesAreSelfContained")) then
-          call haloTreesGroup%readAttribute("treesAreSelfContained",treesAreSelfContained,allowPseudoScalar=.true.)
-          if (treesAreSelfContained == 0) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','only self-contained trees are supported')
-       end if
-
-       ! Compute unit conversion factors.
-       unitsGroup=mergerTreeFile%openGroup("units")
-       call unitsGroup%readAttribute("massUnitsInSI"              ,unitConversionMass       ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("massScaleFactorExponent"    ,scaleFactorExponentMass  ,allowPseudoScalar=.true.)
-       call unitsGroup%readAttribute("massHubbleExponent"         ,hubbleExponent           ,allowPseudoScalar=.true.)
-       unitConversionMass    =unitConversionMass    *(localLittleH0**hubbleExponent)/massSolar
-       if (unitConversionMass <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for mass')
-       if ((mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits).and..not.(unitsGroup%hasAttribute("lengthUnitsInSI").and.unitsGroup%hasAttribute("velocityUnitsInSI"))) call Galacticus_Error_Report('Merger_Tree_Read_Do','length and velocity units must be given if positions/velocities or orbits are to be preset')
-       if (unitsGroup%hasAttribute("lengthUnitsInSI")) then
-          call unitsGroup%readAttribute("lengthUnitsInSI"            ,unitConversionLength     ,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("lengthScaleFactorExponent"  ,scaleFactorExponentLength,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("lengthHubbleExponent"       ,hubbleExponent           ,allowPseudoScalar=.true.)
-          unitConversionLength  =unitConversionLength  *(localLittleH0**hubbleExponent)/megaParsec
-          if (unitConversionLength <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for length')
-       end if
-       if (unitsGroup%hasAttribute("velocityUnitsInSI")) then
-          call unitsGroup%readAttribute("velocityUnitsInSI"          ,unitConversionVelocity     ,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("velocityScaleFactorExponent",scaleFactorExponentVelocity,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("velocityHubbleExponent"     ,hubbleExponent             ,allowPseudoScalar=.true.)
-          unitConversionVelocity=unitConversionVelocity*(localLittleH0**hubbleExponent)/kilo
-          if (unitConversionVelocity <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Do','non-positive units for velocity')
-       end if
-       if (unitsGroup%hasAttribute("timeUnitsInSI")) then
-          call unitsGroup%readAttribute("timeUnitsInSI"           ,unitConversionTime       ,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("timeScaleFactorExponent" ,scaleFactorExponentTime  ,allowPseudoScalar=.true.)
-          call unitsGroup%readAttribute("timeHubbleExponent"      ,hubbleExponent           ,allowPseudoScalar=.true.)
-          unitConversionTime =unitConversionTime    *(localLittleH0**hubbleExponent)/gigayear
-          if (scaleFactorExponentTime /= 0) call Galacticus_Error_Report("Merger_Tree_Read_Do","expect no scaling of time units with expansion factor")
-       end if
-       call unitsGroup%close()
-
-       ! Determine if velocities include Hubble flow.
-       if (haloTreesGroup%hasAttribute("velocitiesIncludeHubbleFlow")) then
-          call haloTreesGroup%readAttribute("velocitiesIncludeHubbleFlow",velocitiesIncludeHubbleFlowInteger,allowPseudoScalar=.true.)
-          velocitiesIncludeHubbleFlow=(velocitiesIncludeHubbleFlowInteger == 1)
-       else
-          velocitiesIncludeHubbleFlow=.true.
-       end if
-
-       ! Determine if positions are periodic.
-       if (haloTreesGroup%hasAttribute("positionsArePeriodic")) then
-          call haloTreesGroup%readAttribute("positionsArePeriodic",simulationIsPeriodicInteger,allowPseudoScalar=.true.)
-          simulationIsPeriodic=(simulationIsPeriodicInteger == 1)
-       else
-          simulationIsPeriodic=.false.
-       end if
-
-       ! Get the volume of the simulation.
-       if (mergerTreeFile%hasGroup("simulation")) then
-          simulationGroup=mergerTreeFile%openGroup("simulation")
-          if (simulationGroup%hasAttribute("boxSize")) then
-             call simulationGroup%readAttribute("boxSize",lengthSimulationBox,allowPseudoScalar=.true.)
-             if (lengthSimulationBox <= 0.0d0) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','simulation box length must be positive')
-             lengthSimulationBox=lengthSimulationBox*unitConversionLength
-             treeVolumeWeightUniform=1.0d0/lengthSimulationBox**3
-          else
-             call Galacticus_Error_Report('Merger_Tree_Read_Initialize','the boxSize attribute of the simulation group is required')
-          end if
-          call simulationGroup%close()
-       else
-          treeVolumeWeightUniform=1.0d0
-          if (simulationIsPeriodic) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','the boxSize attribute of the simulation group is required')
-       end if
-
-       ! Check that cosmological parameters are consistent with the internal ones.
-       cosmologicalParametersGroup=mergerTreeFile%openGroup("cosmology")
-       if (cosmologicalParametersGroup%hasAttribute("OmegaMatter")) then
-          call cosmologicalParametersGroup%readAttribute("OmegaMatter",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
-             message='Omega_Matter in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localOmegaMatter
-             message=message//trim(valueString)//']'
-             if (mergerTreeReadMismatchIsFatal) then
-                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
-             else
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       else if (cosmologicalParametersGroup%hasAttribute("Omega0")) then
-          ! <expiry>
-          !  <label>Warning regarding use of Omega0 in merger tree files.</label>
-          !  <date>25-Aug-2012</date>
-          ! </expiry>
-          call Galacticus_Display_Message('WARNING: Use of "Omega0" in merger tree files is deprecated - use OmegaMatter instead',verbosityWarn)
-          call cosmologicalParametersGroup%readAttribute("Omega0",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localOmegaMatter,absTol=0.001d0)) then
-             message='Omega_Matter in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localOmegaMatter
-             message=message//trim(valueString)//']'
-             if (mergerTreeReadMismatchIsFatal) then
-                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
-             else
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       end if
-       if (cosmologicalParametersGroup%hasAttribute("OmegaBaryon")) then
-          call cosmologicalParametersGroup%readAttribute("OmegaBaryon",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localOmegaBaryon,absTol=0.001d0)) then
-             message='Omega_b in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localOmegaBaryon
-             message=message//trim(valueString)//']'
-             if (mergerTreeReadMismatchIsFatal) then
-                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
-             else
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       end if
-       if (cosmologicalParametersGroup%hasAttribute("OmegaLambda")) then
-          call cosmologicalParametersGroup%readAttribute("OmegaLambda",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localOmegaDE,absTol=0.001d0)) then
-             message='Omega_DE in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localOmegaDE
-             message=message//trim(valueString)//']'
-             if (mergerTreeReadMismatchIsFatal) then
-                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
-             else
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       end if
-       if (cosmologicalParametersGroup%hasAttribute("HubbleParam")) then
-          call cosmologicalParametersGroup%readAttribute("HubbleParam",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localLittleH0,absTol=0.00001d0)) then
-             message='H_0 in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localLittleH0
-             message=message//trim(valueString)//']'
-             if (mergerTreeReadMismatchIsFatal) then
-                call Galacticus_Error_Report('Merger_Tree_Read_Initialize',message)
-             else
-                call Galacticus_Display_Message(message,verbosityWarn)
-             end if
-          end if
-       end if
-       if (cosmologicalParametersGroup%hasAttribute("sigma_8")) then
-          call cosmologicalParametersGroup%readAttribute("sigma_8",cosmologicalParameter,allowPseudoScalar=.true.)
-          if (Values_Differ(cosmologicalParameter,localSigma8,absTol=0.00001d0)) then
-             message='sigma_8 in merger tree file ['
-             write (valueString,'(e14.8)') cosmologicalParameter
-             message=message//trim(valueString)//'] differs from the internal value ['
-             write (valueString,'(e14.8)') localSigma8
-             message=message//trim(valueString)//'] - may not matter if sigma_8 is not use in other functions'
-             call Galacticus_Display_Message(message)
-          end if
-       end if
-       call cosmologicalParametersGroup%close()
-
-       if (mergerTreeFile%hasGroup("treeIndex")) then
-          treeIndexGroup=mergerTreeFile%openGroup("treeIndex")
-          call treeIndexGroup%readDataset("firstNode"    ,mergerTreeFirstNodeIndex)
-          call treeIndexGroup%readDataset("numberOfNodes",mergerTreeNodeCount     )
-          call treeIndexGroup%readDataset("treeIndex"    ,mergerTreeIndex         )
-          if (treeIndexGroup%hasDataset("treeWeight")) then
-             call treeIndexGroup%readDataset("treeWeight",treeVolumeWeight)
-             treeVolumeWeight=treeVolumeWeight/unitConversionLength**3
-          end if
-          call treeIndexGroup%close()
-       else
-          call Galacticus_Error_Report('Merger_Tree_Read_Initialize','merger tree file must contain the treeIndex group')
-       end if
-
+       ! Determine if subhalo masses have been included in halo masses.   
+       if (defaultImporter%treesAreSelfContained() == booleanFalse) call Galacticus_Error_Report('Merger_Tree_Read_Initialize','only self-contained trees are supported')   
        ! Check that position information is present if required.
-       if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
-          if (.not.(haloTreesGroup%hasDataset("position").and.haloTreesGroup%hasDataset("velocity"))) call&
-               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting positions requires that both position and&
-               & velocity datasets be present in merger tree file")
-       end if
-
+       if     (                                                                                   &
+            &   (                                                                                 &
+            &     mergerTreeReadPresetPositions                                                   &
+            &    .or.                                                                             &
+            &     mergerTreeReadPresetOrbits                                                      &
+            &   )                                                                                 &
+            &  .and.                                                                              &
+            &   .not.defaultImporter%positionsAvailable(positions=.true.,velocities=.true.)       &
+            & )                                                                                   &
+            & call Galacticus_Error_Report(                                                       &
+            &                              "Merger_Tree_Read_Initialize"                        , &
+            &                              "presetting positions requires that both position and  &
+            &                               velocity datasets be present in merger tree file"     &
+            &                             )
        ! Check that half-mass radius information is present if required.
-       if (mergerTreeReadPresetScaleRadii) then
-          if     (                                                                                                                                                   &
-               &  .not.(                                                                                                                                             &
-               &        haloTreesGroup%hasDataset("halfMassRadius")                                                                                                  &
-               &         .or.                                                                                                                                        &
-               &        haloTreesGroup%hasDataset("scaleRadius"   )                                                                                                  &
-               &       )                                                                                                                                             &
-               & ) call Galacticus_Error_Report(                                                                                                                     &
-               &                                "Merger_Tree_Read_Initialize",                                                                                       &
-               &                                "presetting scale radii requires that at least one of halfMassRadius or scaleRadius datasets be present in merger"// &
-               &                                "tree file; try setting"//char(10)//"  [mergerTreeReadPresetScaleRadii]=false"                                       &
-               &                               )
-       end if
-
+       if     (                                                                                                                                                    &
+            &   mergerTreeReadPresetScaleRadii                                                                                                                     &
+            &  .and.                                                                                                                                               &
+            &   .not.defaultImporter%scaleRadiiAvailable()                                                                                                         &
+            & )  call Galacticus_Error_Report(                                                                                                                     &
+            &                                "Merger_Tree_Read_Initialize"                                                                                       , &
+            &                                "presetting scale radii requires that at least one of halfMassRadius or scaleRadius datasets be present in merger"//  &
+            &                                "tree file; try setting"//char(10)//"  [mergerTreeReadPresetScaleRadii]=false"                                        &
+            &                               )
        ! Check that angular momentum information is present if required.
-       if (mergerTreeReadPresetSpins) then
-          if (.not.haloTreesGroup%hasDataset("angularMomentum")) call&
-               & Galacticus_Error_Report("Merger_Tree_Read_Initialize","presetting spins requires that the angularMomentum dataset be present in merger tree file; try setting"//char(10)//"  [mergerTreeReadPresetSpins]=false")
-       end if
-
-       ! Reset first node indices to Fortran array standard.
-       mergerTreeFirstNodeIndex=mergerTreeFirstNodeIndex+1
-
-       ! Open the group of particle data.
-       if (mergerTreeFile%hasGroup("particles")) then
-          particlesGroup=mergerTreeFile%openGroup("particles")
-          if (particlesGroup%hasDataset("time")) then
-             particleEpochType=particleEpochTypeTime
-             particleEpochDatasetName="time"
-          else if (particlesGroup%hasDataset("expansionFactor")) then
-             particleEpochType=particleEpochTypeExpansionFactor
-             particleEpochDatasetName="expansionFactor"
-          else if (particlesGroup%hasDataset("redshift")) then
-             particleEpochType=particleEpochTypeRedshift
-             particleEpochDatasetName="redshift"
-          else
-             call Galacticus_Error_Report("Merger_Tree_Read_Do","particles group must have one of time, redshift or expansionFactor datasets")
-          end if
-       end if
-       !$omp end critical(HDF5_Access)
+       if     (                                                                                          &
+            &   mergerTreeReadPresetSpins                                                                &
+            &  .and.                                                                                     &
+            &   .not.defaultImporter%angularMomentaAvailable()                                           &
+            & )                                                                                          &
+            & call Galacticus_Error_Report(                                                              &
+            &                              "Merger_Tree_Read_Initialize"                              ,  &
+            &                              "presetting spins requires that the angularMomentum dataset   &
+            &                               be present in merger tree file; try setting"              // &
+            &                              char(10)                                                   // &
+            &                              " [mergerTreeReadPresetSpins]=false"                          &
+            &                             )
     end if
     return
   end subroutine Merger_Tree_Read_Initialize
@@ -767,56 +462,48 @@ contains
     use Galacticus_Error
     use String_Handling
     use Memory_Management
+    use Arrays_Search
+    use Numerical_Comparison
     implicit none
-    type            (mergerTree                    )                             , intent(inout), target :: thisTree
-    logical                                                                      , intent(in   )         :: skipTree
-    double precision                                , allocatable, dimension(:  )                        :: historyMass              , historyTime
-    double precision                                , allocatable, dimension(:,:)                        :: position                 , velocity
-    type            (nodeData                      ), allocatable, dimension(:  )               , target :: nodes
-    type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList
-    logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo
-    integer         (kind=HSIZE_T                  )             , dimension(1  )                        :: firstNodeIndex           , nodeCount
-    class           (cosmologyFunctionsClass       ), pointer                                            :: cosmologyFunctionsDefault
-    integer                                                                                              :: isolatedNodeCount
-    integer         (kind=kind_int8                )                                                     :: historyCountMaximum      , iNode
-    logical                                                                                              :: haveTree
-    type            (varying_string                )                                                     :: message
-
+    type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
+    logical                                                                      , intent(in   )         :: skipTree                               
+    double precision                                , allocatable, dimension(:  )                        :: historyMass        , historyTime       
+    double precision                                , allocatable, dimension(:,:)                        :: position           , velocity          
+    class           (nodeData                      ), allocatable, dimension(:  )               , target :: nodes                                  
+    type            (treeNodeList                  ), allocatable, dimension(:  )                        :: thisNodeList                           
+    logical                                         , allocatable, dimension(:  )                        :: childIsSubhalo                         
+    integer                                                                                              :: iOutput            , isolatedNodeCount 
+    integer         (kind=kind_int8                )                                                     :: historyCountMaximum, iNode             
+    logical                                                                                              :: haveTree                               
+    type            (varying_string                )                                                     :: message                                
+    
     !$omp critical(mergerTreeReadTree)
     ! Increment the tree to read index.
     nextTreeToRead=nextTreeToRead+1
     ! Keep incrementing the tree index until we find the first tree to process (if we haven't done so already). Also skip trees
     ! that contain 1 or fewer nodes and these are unprocessable.
-    if (nextTreeToRead <= size(mergerTreeFirstNodeIndex)) then
-       do while ( (       mergerTreeReadBeginAt            > 0                     &
-            &       .and. mergerTreeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
-            &     )                                                                &
-            &     .or. mergerTreeNodeCount(nextTreeToRead) <= 1                    &
+    if (nextTreeToRead <= defaultImporter%treeCount()) then
+       do while (                                                                      &
+            &     (                                                                    &
+            &       mergerTreeReadBeginAt                     > 0                      &
+            &      .and.                                                               &
+            &       defaultImporter%treeIndex(nextTreeToRead) /= mergerTreeReadBeginAt &
+            &     )                                                                    &
+            &    .or.                                                                  &
+            &       defaultImporter%nodeCount(nextTreeToRead) <= 1                     &
             &   )
           nextTreeToRead=nextTreeToRead+1
           ! If the end of the list has been reached, exit.
-          if (nextTreeToRead > size(mergerTreeFirstNodeIndex)) exit
+          if (nextTreeToRead > defaultImporter%treeCount()) exit
        end do
     end if
 
     ! Flag that we've now found the first merger tree to process.
     mergerTreeReadBeginAt=-1
 
-    if (nextTreeToRead > size(mergerTreeFirstNodeIndex))  then
+    if (nextTreeToRead > defaultImporter%treeCount())  then
        ! All trees have been read.
-       !$omp critical(HDF5_Access)
-       ! Close the halo trees group.
-       if (haloTreesGroup%isOpen()) call haloTreesGroup%close()
-       ! Test if the merger tree file is still open.
-       if (mergerTreeFile%isOpen()) then
-          ! Close the particles group.
-          if (mergerTreeFile%hasGroup("particles")) then
-             if (particlesGroup%isOpen()) call particlesGroup%close()
-          end if
-          ! Close the file.
-          call mergerTreeFile%close()
-       end if
-       !$omp end critical(HDF5_Access)
+       call defaultImporter%close()
        ! Flag that we do not have a tree.
        haveTree=.false.
     else
@@ -841,44 +528,31 @@ contains
        else
           ! Set tree properties.
           ! treeIndex
-          thisTree%index=mergerTreeIndex(nextTreeToRead)
+          thisTree%index=defaultImporter%treeIndex(nextTreeToRead)
           ! volumeWeight
-          if (allocated(treeVolumeWeight)) then
-             ! Use the tree-specific weight if available.
-             treeVolumeWeightCurrent=treeVolumeWeight(nextTreeToRead)
-          else
-             ! Otherwise use the same weight for all trees.
-             treeVolumeWeightCurrent=treeVolumeWeightUniform
-          end if
+          treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToRead)
           thisTree%volumeWeight=treeVolumeWeightCurrent
-
-          ! Get the start index and extent of the datasets for this tree.
-          firstNodeIndex(1)=mergertreeFirstNodeIndex(nextTreeToRead)
-          nodeCount     (1)=mergerTreeNodeCount     (nextTreeToRead)
-
-          ! Allocate temporary arrays to hold the merger tree data.
-          allocate(nodes(nodeCount(1)))
-          call Memory_Usage_Record(sizeof(nodes))
-
           ! Read data from the file.
-          call Read_Node_Data(nodes,firstNodeIndex,nodeCount)
-
-          ! Sort node indices.
-          call Create_Node_Indices(nodes,nodeCount)
-
-          ! Get the default cosmology functions object.
-          cosmologyFunctionsDefault => cosmologyFunctions()
-
-          ! Convert masses to Galacticus internal units.
-          nodes%nodeMass=nodes%nodeMass*unitConversionMass
-          if (scaleFactorExponentMass /= 0) then
-             do iNode=1,nodeCount(1)
-                nodes(iNode)%nodeMass=nodes(iNode)%nodeMass*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentMass
+          call defaultImporter%import(                                                                                     &
+               &                      nextTreeToRead                                                                     , &
+               &                      nodes                                                                              , &
+               &                      requireScaleRadii    = mergerTreeReadPresetScaleRadii                              , &
+               &                      requireAngularMomenta= mergerTreeReadPresetSpins                                   , &
+               &                      requirePositions     =(mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits)  &
+               &                     )
+          ! Snap node times to output times if a tolerance has been specified.
+          if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
+             ! Loop over all nodes.
+             do iNode=1,size(nodes)
+                ! Find closest output time to the node time.
+                iOutput=Search_Array_For_Closest(outputTimes,nodes(iNode)%nodeTime)
+                ! Test if this time is sufficiently close that we should snap the node time to it.
+                if (Values_Agree(nodes(iNode)%nodeTime,outputTimes(iOutput),relTol=mergerTreeReadOutputTimeSnapTolerance)) nodes(iNode)%nodeTime=outputTimes(iOutput)
              end do
           end if
-
-          ! Read optional datasets.
-          call Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
+          
+          ! Sort node indices.
+          call Create_Node_Indices(nodes)
 
           ! Identify subhalos.
           nodes%isSubhalo=nodes%nodeIndex /= nodes%hostIndex
@@ -890,10 +564,10 @@ contains
           call Enforce_Subhalo_Status(nodes)
 
           ! If necessary, add masses of subhalos to host halos.
-          if (.not.haloMassesIncludeSubhalos) then
-             do iNode=1,nodeCount(1)
+          if (.not.defaultImporter%massesIncludeSubhalos()) then
+             do iNode=1,size(nodes)
                 if (nodes(iNode)%host%nodeIndex /= nodes(iNode)%nodeIndex) nodes(iNode)%host%nodeMass= &
-                     &                                                         nodes(iNode)%host%nodeMass+nodes(iNode)%nodeMass
+                     &                                                     nodes(iNode)%host%nodeMass+nodes(iNode)%nodeMass
              end do
           end if
 
@@ -944,7 +618,7 @@ contains
           if (mergerTreeReadPresetSpins     ) call Assign_Spin_Parameters(nodes,thisNodeList)
 
           ! Assign isolated node indices to subhalos.
-          call Assign_Isolated_Node_Indices(nodes,thisNodeList)
+          call Assign_Isolated_Node_Indices(nodes)
 
           ! Ensure that isolated nodes with progenitors that descend into subhalos have valid primary progenitors.
           call Validate_Isolated_Halos(nodes)
@@ -997,134 +671,30 @@ contains
     return
   end subroutine Merger_Tree_Read_Do
 
-  subroutine Read_Node_Data(nodes,firstNodeIndex,nodeCount)
-    !% Read node data from an HDF5 file.
-    use Galacticus_Error
-    use Cosmology_Functions
-    use Arrays_Search
-    use Numerical_Comparison
-    use Vectors
-    use Memory_Management
-    implicit none
-    type            (nodeData               )             , dimension(:)  , intent(inout) :: nodes
-    integer         (kind=HSIZE_T           )             , dimension(1)  , intent(in   ) :: firstNodeIndex           , nodeCount
-    double precision                         , allocatable, dimension(:,:)                :: angularMomentum
-    class           (cosmologyFunctionsClass), pointer                                    :: cosmologyFunctionsDefault
-    integer         (kind=kind_int8         )                                             :: iNode
-    integer                                                                               :: iOutput                  , scaleFactorExponentAngularMomentum
-
-    !$omp critical(HDF5_Access)
-    ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
-    ! nodeIndex
-    call haloTreesGroup%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount)
-    ! hostIndex
-    call haloTreesGroup%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount)
-    ! parentNode
-    call haloTreesGroup%readDatasetStatic("descendentIndex",nodes%descendentIndex,firstNodeIndex,nodeCount)
-    ! nodeMass
-    call haloTreesGroup%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount)
-    ! nodeTime
-    if      (haloTreesGroup%hasDataset("time"           )) then
-       ! Time is present, so read it.
-       call haloTreesGroup%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount)
-       ! Convert to Galacticus internal units.
-       nodes%nodeTime=nodes%nodeTime*unitConversionTime
-    else if (haloTreesGroup%hasDataset("expansionFactor")) then
-       ! Expansion factor is present, read it instead.
-       call haloTreesGroup%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
-       ! Convert expansion factors to times.
-       do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
-       end do
-    else if (haloTreesGroup%hasDataset("redshift"       )) then
-       ! Redshift is present, read it instead.
-       call haloTreesGroup%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
-       ! Convert redshifts to times.
-       do iNode=1,nodeCount(1)
-          nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
-       end do
-    else
-       call Galacticus_Error_Report("Merger_Tree_Read_Do","one of time, redshift or expansionFactor data sets must be present in haloTrees group")
-    end if
-    ! Scale or half-mass radius.
-    if (mergerTreeReadPresetScaleRadii) then
-       haveScaleRadii=haloTreesGroup%hasDataset("scaleRadius")
-       if (haveScaleRadii) then
-          call haloTreesGroup%readDatasetStatic("scaleRadius",nodes%scaleRadius,firstNodeIndex,nodeCount)
-          nodes%scaleRadius=nodes%scaleRadius*unitConversionLength
-          if (scaleFactorExponentLength /= 0) then
-             do iNode=1,nodeCount(1)
-                nodes(iNode)%scaleRadius=nodes(iNode)%scaleRadius*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
-             end do
-          end if
-       else
-          call haloTreesGroup%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
-          nodes%halfMassRadius=nodes%halfMassRadius*unitConversionLength
-          if (scaleFactorExponentLength /= 0) then
-             do iNode=1,nodeCount(1)
-                nodes(iNode)%halfMassRadius=nodes(iNode)%halfMassRadius*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
-             end do
-          end if
-       end if
-    end if
-    ! Halo spin.
-    if (mergerTreeReadPresetSpins     ) then
-       call haloTreesGroup%readDataset("angularMomentum",angularMomentum,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       angularMomentum=angularMomentum*unitConversionLength*unitConversionVelocity*unitConversionMass
-       scaleFactorExponentAngularMomentum=scaleFactorExponentLength+scaleFactorExponentVelocity+scaleFactorExponentMass
-       if (scaleFactorExponentAngularMomentum /= 0) then
-          do iNode=1,nodeCount(1)
-             angularMomentum(:,iNode)=angularMomentum(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentAngularMomentum
-          end do
-       end if
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(:,iNode))
-       end forall
-       call Dealloc_Array(angularMomentum)
-    end if
-    !$omp end critical(HDF5_Access)
-
-    ! Snap node times to output times if a tolerance has been specified.
-    if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
-       ! Loop over all nodes.
-       do iNode=1,nodeCount(1)
-          ! Find closest output time to the node time.
-          iOutput=Search_Array_For_Closest(outputTimes,nodes(iNode)%nodeTime)
-          ! Test if this time is sufficiently close that we should snap the node time to it.
-          if (Values_Agree(nodes(iNode)%nodeTime,outputTimes(iOutput),relTol=mergerTreeReadOutputTimeSnapTolerance)) nodes(iNode)%nodeTime=outputTimes(iOutput)
-       end do
-    end if
-
-    return
-  end subroutine Read_Node_Data
-
-  subroutine Create_Node_Indices(nodes,nodeCount)
+  subroutine Create_Node_Indices(nodes)
     !% Create a sorted list of node indices with an index into the original array.
     use Galacticus_Display
     use String_Handling
     use Memory_Management
     use Sort
     implicit none
-    type   (nodeData      ), dimension(:), intent(inout) :: nodes
-    integer(kind=HSIZE_T  ), dimension(1), intent(in   ) :: nodeCount
-    integer                                              :: iNode
-    type   (varying_string)                              :: message
-
+    class  (nodeData      ), dimension(:), intent(inout) :: nodes   
+    integer                                              :: iNode   
+    type   (varying_string)                              :: message 
+    
     ! Build a sorted list of node indices with an index into the original arrays.
-    call Alloc_Array(nodeLocations          ,int(nodeCount))
-    call Alloc_Array(nodeIndicesSorted      ,int(nodeCount))
-    call Alloc_Array(descendentLocations    ,int(nodeCount))
-    call Alloc_Array(descendentIndicesSorted,int(nodeCount))
+    call Alloc_Array(nodeLocations          ,shape(nodes))
+    call Alloc_Array(nodeIndicesSorted      ,shape(nodes))
+    call Alloc_Array(descendentLocations    ,shape(nodes))
+    call Alloc_Array(descendentIndicesSorted,shape(nodes))
     nodeLocations      =Sort_Index_Do(nodes%nodeIndex      )
     descendentLocations=Sort_Index_Do(nodes%descendentIndex)
-    forall (iNode=1:int(nodeCount(1)))
+    forall (iNode=1:size(nodes))
        nodeIndicesSorted      (iNode)=nodes(nodeLocations      (iNode))%nodeIndex
        descendentIndicesSorted(iNode)=nodes(descendentLocations(iNode))%descendentIndex
     end forall
     if (Galacticus_Verbosity_Level() >= verbosityWarn) then
-       do iNode=2,int(nodeCount(1))
+       do iNode=2,size(nodes)
           if (nodeIndicesSorted(iNode) == nodeIndicesSorted(iNode-1)) then
              if (Galacticus_Verbosity_Level() >= verbosityWarn) then
                 message="duplicate node index found ["
@@ -1141,10 +711,10 @@ contains
     !% Return the location in the original array of the given {\tt nodeIndex}.
     use Arrays_Search
     implicit none
-    integer(kind=kind_int8)                :: Node_Location
-    integer(kind=kind_int8), intent(in   ) :: nodeIndex
-    integer(kind=kind_int8)                :: iNode
-
+    integer(kind=kind_int8)                :: Node_Location 
+    integer(kind=kind_int8), intent(in   ) :: nodeIndex     
+    integer(kind=kind_int8)                :: iNode         
+    
     iNode=Search_Array(nodeIndicesSorted,nodeIndex)
     if (iNode < 1 .or. iNode > size(nodeIndicesSorted)) then
        Node_Location=1
@@ -1158,8 +728,8 @@ contains
     !% Return the sort index of the given {\tt descendentIndex}.
     use Arrays_Search
     implicit none
-    integer(kind=kind_int8), intent(in   ) :: descendentIndex
-
+    integer(kind=kind_int8), intent(in   ) :: descendentIndex 
+    
     Descendent_Node_Sort_Index=Search_Array(descendentIndicesSorted,descendentIndex)
     return
   end function Descendent_Node_Sort_Index
@@ -1176,66 +746,16 @@ contains
     return
   end subroutine Destroy_Node_Indices
 
-  subroutine Read_Particle_Data(nodes,firstNodeIndex,nodeCount,position,velocity)
-    !% Read data on particle positions/velocities.
-    use Cosmology_Functions
-    implicit none
-    type            (nodeData               )             , dimension(:)  , intent(inout) :: nodes
-    integer         (kind=HSIZE_T           )             , dimension(1)  , intent(in   ) :: firstNodeIndex           , nodeCount
-    double precision                         , allocatable, dimension(:,:), intent(inout) :: position                 , velocity
-    class           (cosmologyFunctionsClass), pointer                                    :: cosmologyFunctionsDefault
-    integer         (kind=HSIZE_T           )                                             :: iNode
-
-    ! Initial particle data to null values.
-    nodes%particleIndexStart=-1_kind_int8
-    nodes%particleIndexCount=-1_kind_int8
-
-    if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
-       ! Get the default cosmology functions object.
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       !$omp critical(HDF5_Access)
-       ! position.
-       call haloTreesGroup%readDataset("position",position,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! velocity.
-       call haloTreesGroup%readDataset("velocity",velocity,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! If a set of most bound particle indices are present, read them.
-       if (haloTreesGroup%hasDataset("particleIndexStart").and.haloTreesGroup%hasDataset("particleIndexCount")) then
-          call haloTreesGroup%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount)
-          call haloTreesGroup%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount)
-       end if
-       !$omp end critical(HDF5_Access)
-       ! Convert to Galacticus internal units.
-       position=position*unitConversionLength
-       if (scaleFactorExponentLength   /= 0) then
-          do iNode=1,nodeCount(1)
-             position(:,iNode)=position(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentLength
-          end do
-       end if
-       velocity=velocity*unitConversionVelocity
-       if (scaleFactorExponentVelocity /= 0) then
-          do iNode=1,nodeCount(1)
-             velocity(:,iNode)=velocity(:,iNode)*cosmologyFunctionsDefault%expansionFactor(nodes(iNode)%nodeTime)**scaleFactorExponentVelocity
-          end do
-       end if
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%position=position(:,iNode)
-          nodes(iNode)%velocity=velocity(:,iNode)
-       end forall
-    end if
-    return
-  end subroutine Read_Particle_Data
-
   subroutine Build_Descendent_Pointers(nodes)
     !% Builds pointers from each node to its descendent node.
     use String_Handling
     use Galacticus_Error
     use Galacticus_Display
     implicit none
-    type   (nodeData      ), dimension(:), intent(inout), target :: nodes
-    integer(kind=kind_int8)                                      :: iNode  , nodeLocation
-    type   (varying_string)                                      :: message
-
+    class  (nodeData      ), dimension(:), intent(inout), target :: nodes                 
+    integer(kind=kind_int8)                                      :: iNode  , nodeLocation 
+    type   (varying_string)                                      :: message               
+    
     do iNode=1,size(nodes)
        if (nodes(iNode)%descendentIndex >= 0) then
           nodeLocation=Node_Location(nodes(iNode)%descendentIndex)
@@ -1277,14 +797,13 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type   (nodeData          ), dimension(:), intent(inout), target :: nodes
-    type   (nodeData          ), pointer                             :: descendentNode          , progenitorNode
-    integer(kind=kind_int8    )                                      :: iNode
-    logical                                                          :: isolatedProgenitorExists, failed
-    integer                                                          :: descendentIndex
-    type   (varying_string    )                                      :: message
-    type   (progenitorIterator)                                      :: progenitors
-
+    class  (nodeData          ), dimension(:), intent(inout), target :: nodes                                    
+    class  (nodeData          ), pointer                             :: descendentNode, progenitorNode           
+    integer(kind=kind_int8    )                                      :: iNode                                    
+    logical                                                          :: failed        , isolatedProgenitorExists 
+    type   (varying_string    )                                      :: message                                  
+    type   (progenitorIterator)                                      :: progenitors                              
+    
     ! Return immediately if subhalo promotions are allowed.
     if (mergerTreeReadAllowSubhaloPromotions) return
     ! Subhalo promotions are not allowed, so enforce subhalo status.
@@ -1348,16 +867,15 @@ contains
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
     use Node_Subhalo_Promotions
     implicit none
-    type   (nodeData          )         , dimension(:), intent(inout), target :: nodes
-    type   (treeNodeList      )         , dimension(:), intent(inout)         :: nodeList
-    type   (nodeData          ), pointer                                      :: descendentNode    , progenitorNode
-    type   (nodeEvent         ), pointer                                      :: newEvent          , pairEvent
-    type   (treeNode          ), pointer                                      :: promotionNode     , thisNode
-    integer(kind=kind_int8    )                                               :: descendentLocation, iNode
-    logical                                                                   :: descendentsFound  , isolatedProgenitorExists
-    integer                                                                   :: descendentIndex
-    type   (progenitorIterator)                                               :: progenitors
-
+    class  (nodeData          )         , dimension(:), intent(inout), target :: nodes                                    
+    type   (treeNodeList      )         , dimension(:), intent(inout)         :: nodeList                                 
+    class  (nodeData          ), pointer                                      :: descendentNode          , progenitorNode 
+    type   (nodeEvent         ), pointer                                      :: newEvent                , pairEvent      
+    type   (treeNode          ), pointer                                      :: promotionNode           , thisNode       
+    integer(kind=kind_int8    )                                               :: iNode                                    
+    logical                                                                   :: isolatedProgenitorExists                 
+    type   (progenitorIterator)                                               :: progenitors                              
+    
     ! Return immediately if subhalo promotion is not allowed.
     if (.not.mergerTreeReadAllowSubhaloPromotions) return
     ! Find subhalos to be promoted.
@@ -1399,11 +917,11 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type   (nodeData      ), dimension(:), intent(inout), target :: nodes
-    type   (nodeData      ), pointer                             :: parentNode
-    integer(kind=kind_int8)                                      :: iNode
-    type   (varying_string)                                      :: message
-
+    class  (nodeData      ), dimension(:), intent(inout), target :: nodes      
+    class  (nodeData      ), pointer                             :: parentNode 
+    integer(kind=kind_int8)                                      :: iNode      
+    type   (varying_string)                                      :: message    
+    
     do iNode=1,size(nodes)
        if (associated(nodes(iNode)%descendent)) then
           if (nodes(iNode)%nodeIndex == nodes(iNode)%host%nodeIndex) then
@@ -1442,16 +960,16 @@ contains
     !% Create an array of standard nodes and associated structures.
     use Memory_Management
     implicit none
-    type   (mergerTree        )                           , intent(inout) :: thisTree
-    type   (nodeData          )             , dimension(:), intent(inout) :: nodes
-    type   (treeNodeList      ), allocatable, dimension(:), intent(inout) :: nodeList
-    logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo
-    integer                                               , intent(  out) :: isolatedNodeCount
-    integer(kind=kind_int8    )                                           :: iNode
-    integer                                                               :: descendentIndex   , iIsolatedNode   , initialSatelliteCount
-    logical                                                               :: createNode
-    type   (progenitorIterator)                                           :: progenitors
-
+    type   (mergerTree        )                           , intent(inout) :: thisTree                                 
+    class  (nodeData          )             , dimension(:), intent(inout) :: nodes                                    
+    type   (treeNodeList      ), allocatable, dimension(:), intent(inout) :: nodeList                                 
+    logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo                           
+    integer                                               , intent(  out) :: isolatedNodeCount                        
+    integer(kind=kind_int8    )                                           :: iNode                                    
+    integer                                                               :: iIsolatedNode    , initialSatelliteCount 
+    logical                                                               :: createNode                               
+    type   (progenitorIterator)                                           :: progenitors                              
+    
     ! Determine how many nodes are isolated (i.e. not subhalos).
     isolatedNodeCount=count(.not.nodes%isSubhalo)
 
@@ -1498,18 +1016,18 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type     (mergerTree        )                       , intent(inout) , target::                    thisTree
-    type     (nodeData          )         , dimension(:), intent(inout) ::      nodes
-    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList
-    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent
-    type     (mergerTree        ), pointer                              ::      currentTree
-    type     (nodeData          ), pointer                              ::      parentNode
-    integer                                                             ::      iNode
-    integer  (kind=kind_int8    )                                       ::      iIsolatedNode
-    type     (varying_string    )                                       ::      message
-    character(len=12            )                                       ::      label
-    logical                                                             ::      assignLastIsolatedTime
-
+    type     (mergerTree        )                       , intent(inout) , target::                    thisTree 
+    class    (nodeData          )         , dimension(:), intent(inout) ::      nodes                          
+    type     (treeNodeList      )         , dimension(:), intent(inout) ::      nodeList                       
+    class    (nodeComponentBasic), pointer                              ::      nodeBasicComponent             
+    type     (mergerTree        ), pointer                              ::      currentTree                    
+    class    (nodeData          ), pointer                              ::      parentNode                     
+    integer                                                             ::      iNode                          
+    integer  (kind=kind_int8    )                                       ::      iIsolatedNode                  
+    type     (varying_string    )                                       ::      message                        
+    character(len=12            )                                       ::      label                          
+    logical                                                             ::      assignLastIsolatedTime         
+    
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node (or an initial satellite).
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
@@ -1581,14 +1099,14 @@ contains
     !% Build child and sibling links between nodes.
     use Memory_Management
     implicit none
-    type   (nodeData          )             , dimension(:), intent(inout) :: nodes
-    type   (treeNodeList      )             , dimension(:), intent(inout) :: nodeList
-    logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo
-    class  (nodeComponentBasic), pointer                                  :: nodeBasicComponent, primaryBasicComponent
-    integer                                                               :: iNode
-    integer(kind=kind_int8    )                                           :: iIsolatedNode
-    logical                                                               :: descendsToSubhalo
-
+    class  (nodeData          )             , dimension(:), intent(inout) :: nodes                                     
+    type   (treeNodeList      )             , dimension(:), intent(inout) :: nodeList                                  
+    logical                    , allocatable, dimension(:), intent(inout) :: childIsSubhalo                            
+    class  (nodeComponentBasic), pointer                                  :: nodeBasicComponent, primaryBasicComponent 
+    integer                                                               :: iNode                                     
+    integer(kind=kind_int8    )                                           :: iIsolatedNode                             
+    logical                                                               :: descendsToSubhalo                         
+    
     childIsSubhalo=.false.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -1654,18 +1172,18 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type            (nodeData                      )                 , dimension(:), intent(inout) :: nodes
-    type            (treeNodeList                  )                 , dimension(:), intent(inout) :: nodeList
-    double precision                                , parameter                                    :: scaleRadiusMaximumAllowed     =100.0d0, toleranceAbsolute  =1.0d-9, &
-         &                                                                                            toleranceRelative             =1.0d-9
-    logical                                                    , save                              :: excessiveScaleRadiiReported   =.false.
-    class           (nodeComponentBasic            ), pointer                                      :: thisBasicComponent
-    class           (nodeComponentDarkMatterProfile), pointer                                      :: thisDarkMatterProfileComponent
-    integer                                                                                        :: iNode
-    integer         (kind=kind_int8                )                                               :: iIsolatedNode
-    double precision                                                                               :: radiusScale
-    logical                                                                                        :: excessiveHalfMassRadii                , excessiveScaleRadii
-    type            (rootFinder                    )           , save                              :: finder
+    class           (nodeData                      )                 , dimension(:), intent(inout) :: nodes                                                                 
+    type            (treeNodeList                  )                 , dimension(:), intent(inout) :: nodeList                                                              
+    double precision                                , parameter                                    :: scaleRadiusMaximumAllowed     =100.0d0, toleranceAbsolute  =1.0d-9, & 
+         &                                                                                            toleranceRelative             =1.0d-9                                 
+    logical                                                    , save                              :: excessiveScaleRadiiReported   =.false.                                
+    class           (nodeComponentBasic            ), pointer                                      :: thisBasicComponent                                                    
+    class           (nodeComponentDarkMatterProfile), pointer                                      :: thisDarkMatterProfileComponent                                        
+    integer                                                                                        :: iNode                                                                 
+    integer         (kind=kind_int8                )                                               :: iIsolatedNode                                                         
+    double precision                                                                               :: radiusScale                                                           
+    logical                                                                                        :: excessiveHalfMassRadii                , excessiveScaleRadii           
+    type            (rootFinder                    )           , save                              :: finder                                                                
     !$omp threadprivate(finder)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -1684,7 +1202,7 @@ contains
              ! Get the dark matter profile component.
              thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
              ! Check if we have scale radii read directly from file.
-             if (haveScaleRadii) then
+             if (nodes(iNode)%scaleRadius > 0.0d0) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
              else
@@ -1732,14 +1250,14 @@ contains
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
-    type            (nodeData          )         , dimension(:), intent(inout) :: nodes
-    type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList
-    class           (nodeComponentBasic), pointer                              :: thisBasicComponent
-    class           (nodeComponentSpin ), pointer                              :: thisSpinComponent
-    integer                                                                    :: iNode
-    integer         (kind=kind_int8    )                                       :: iIsolatedNode
-    double precision                                                           :: spin
-
+    class           (nodeData          )         , dimension(:), intent(inout) :: nodes              
+    type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
+    class           (nodeComponentBasic), pointer                              :: thisBasicComponent 
+    class           (nodeComponentSpin ), pointer                              :: thisSpinComponent  
+    integer                                                                    :: iNode              
+    integer         (kind=kind_int8    )                                       :: iIsolatedNode      
+    double precision                                                           :: spin               
+    
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
@@ -1763,8 +1281,8 @@ contains
     !% Function used to find scale radius of dark matter halos given their half-mass radius.
     use Dark_Matter_Profiles
     implicit none
-    double precision, intent(in   ) :: radius
-
+    double precision, intent(in   ) :: radius 
+    
     ! Set scale radius to current guess.
     call activeDarkMatterProfileComponent%scaleSet(radius)
     ! Compute difference between mass fraction enclosed at half mass radius and one half.
@@ -1772,16 +1290,15 @@ contains
     return
   end function Half_Mass_Radius_Root
 
-  subroutine Assign_Isolated_Node_Indices(nodes,nodeList)
+  subroutine Assign_Isolated_Node_Indices(nodes)
     !% Assign to each node the number of the corresponding isolated node.
     implicit none
-    type   (nodeData      ), dimension(:), intent(inout) :: nodes
-    type   (treeNodeList  ), dimension(:), intent(inout) :: nodeList
-    type   (nodeData      ), pointer                     :: thisNode
-    integer(kind=kind_int8)                              :: iIsolatedNode
-    integer                                              :: iNode
-    logical                                              :: endOfBranch
-
+    class  (nodeData      ), dimension(:), intent(inout) :: nodes         
+    class  (nodeData      ), pointer                     :: thisNode      
+    integer(kind=kind_int8)                              :: iIsolatedNode 
+    integer                                              :: iNode         
+    logical                                              :: endOfBranch   
+    
     ! First make a copy of the currently assigned isolated node indices. These will be used
     ! later to reference the nodes which are the primary node associated with objects in nodeList.
     nodes%primaryIsolatedNodeIndex=nodes%isolatedNodeIndex
@@ -1825,35 +1342,34 @@ contains
     use String_Handling
     use Galacticus_Error
     implicit none
-    type            (nodeData                       )                    , dimension(:), intent(inout) , target :: nodes
-    type            (treeNodeList                   )                    , dimension(:), intent(inout)          :: nodeList
-    integer         (kind=kind_int8                 )                                  , intent(  out)          :: historyCountMaximum
-    type            (nodeData                       )           , pointer                                       :: thisNode                                , lastSeenNode                , &
-         &                                                                                                         progenitorNode
-    type            (treeNode                       )           , pointer                                       :: firstProgenitor                         , hostNode                    , &
-         &                                                                                                         orbitalPartner                          , satelliteNode
-    double precision                                                     , dimension(3)                         :: hostPosition                            , relativePosition            , &
-         &                                                                                                         satellitePosition
-    double precision                                                     , dimension(3)                         :: hostVelocity                            , relativeVelocity            , &
-         &                                                                                                         satelliteVelocity
-    logical                                          , parameter                                                :: acceptUnboundOrbits             =.false.
-    class           (nodeComponentBasic             )           , pointer                                       :: childBasicComponent                     , orbitalPartnerBasicComponent, &
-         &                                                                                                         satelliteBasicComponent                 , thisBasicComponent
-    class           (nodeComponentPosition          )           , pointer                                       :: childPositionComponent                  , hostPositionComponent       , &
-         &                                                                                                         satellitePositionComponent              , thisPositionComponent
-    class           (nodeComponentSatellite         )           , pointer                                       :: satelliteSatelliteComponent             , thisSatelliteComponent
-    type            (keplerOrbit                    )                                                           :: thisOrbit
-    integer                                                                                                     :: descendentIndex                         , iNode
-    integer         (kind=kind_int8                 )                                                           :: descendentLocation                      , historyCount                , &
-         &                                                                                                         iIsolatedNode
-    logical                                                                                                     :: branchMerges                            , branchTipReached            , &
-         &                                                                                                         descendentsFound                        , endOfBranch                 , &
-         &                                                                                                         isolatedProgenitorExists                , nodeWillMerge
-    double precision                                                                                            :: radiusApocenter                         , radiusPericenter            , &
-         &                                                                                                         radiusVirial                            , timeSubhaloMerges
-    type            (varying_string         )                                                                   :: message
-    type            (progenitorIterator     )                                                                   :: progenitors
-
+    class           (nodeData                       )           , dimension(:), intent(inout), target :: nodes                                                                
+    type            (treeNodeList                   )           , dimension(:), intent(inout)         :: nodeList                                                             
+    integer         (kind=kind_int8                 )                         , intent(  out)         :: historyCountMaximum                                                  
+    class           (nodeData                       ), pointer                                        :: lastSeenNode                       , progenitorNode              , & 
+         &                                                                                               thisNode                                                             
+    type            (treeNode                       ), pointer                                        :: firstProgenitor                    , hostNode                    , & 
+         &                                                                                               orbitalPartner                     , satelliteNode                   
+    double precision                                            , dimension(3)                        :: hostPosition                       , relativePosition            , & 
+         &                                                                                               satellitePosition                                                    
+    double precision                                            , dimension(3)                        :: hostVelocity                       , relativeVelocity            , & 
+         &                                                                                               satelliteVelocity                                                    
+    logical                                          , parameter                                      :: acceptUnboundOrbits        =.false.                                  
+    class           (nodeComponentBasic             ), pointer                                        :: childBasicComponent                , orbitalPartnerBasicComponent, & 
+         &                                                                                               satelliteBasicComponent            , thisBasicComponent              
+    class           (nodeComponentPosition          ), pointer                                        :: childPositionComponent             , hostPositionComponent       , & 
+         &                                                                                               satellitePositionComponent         , thisPositionComponent           
+    class           (nodeComponentSatellite         ), pointer                                        :: satelliteSatelliteComponent        , thisSatelliteComponent          
+    type            (keplerOrbit                    )                                                 :: thisOrbit                                                            
+    integer                                                                                           :: iNode                                                                
+    integer         (kind=kind_int8                 )                                                 :: historyCount                       , iIsolatedNode                   
+    logical                                                                                           :: branchMerges                       , branchTipReached            , & 
+         &                                                                                               endOfBranch                        , isolatedProgenitorExists    , & 
+         &                                                                                               nodeWillMerge                                                        
+    double precision                                                                                  :: radiusApocenter                    , radiusPericenter            , & 
+         &                                                                                               radiusVirial                       , timeSubhaloMerges               
+    type            (varying_string                 )                                                 :: message                                                              
+    type            (progenitorIterator             )                                                 :: progenitors                                                          
+    
     historyCountMaximum  = 0
     nodes%mergesWithIndex=-1
     do iNode=1,size(nodes)
@@ -1878,7 +1394,7 @@ contains
                       endOfBranch =.true.
                       branchMerges=.true.
                       nodes(iNode)%mergesWithIndex=nodes(iNode)%descendent%nodeIndex
-                      historyCount=historyCount+max(0_kind_int8,nodes(iNode)%particleIndexCount)
+                      historyCount=historyCount+max(0_kind_int8,defaultImporter%subhaloTraceCount(nodes(iNode)))
                    end if
                    lastSeenNode => nodes(iNode)
                    thisNode     => nodes(iNode)%descendent
@@ -1893,11 +1409,11 @@ contains
                       ! No descendent, indicating tip of branch has been reached
                       branchTipReached            =.true.
                       endOfBranch                 =.true.
-                      historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                      historyCount                =historyCount+max(0_kind_int8,defaultImporter%subhaloTraceCount(thisNode))
                    else if (.not.thisNode%descendent%isSubhalo) then
                       ! Descendent is not a subhalo, treat as a merging event or a subhalo promotion.
                       endOfBranch                 =.true.
-                      historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                      historyCount                =historyCount+max(0_kind_int8,defaultImporter%subhaloTraceCount(thisNode))
                       ! Search for any isolated progenitors of the node's descendent.
                       isolatedProgenitorExists=.false.
                       call progenitors%descendentSet(thisNode%descendent,nodes)
@@ -1929,7 +1445,7 @@ contains
                             branchMerges                =.true.
                             endOfBranch                 =.true.
                             nodes(iNode)%mergesWithIndex=progenitorNode%descendent%nodeIndex
-                            historyCount                =historyCount+max(0_kind_int8,thisNode%particleIndexCount)
+                            historyCount                =historyCount+max(0_kind_int8,defaultImporter%subhaloTraceCount(thisNode))
                             lastSeenNode                => thisNode
                             thisNode                    => thisNode%descendent
                             exit
@@ -1967,7 +1483,7 @@ contains
                 ! Record the node with which the merger occurs.
                 nodes(iNode)%mergesWithIndex=nodes(iNode)%descendent%nodeIndex
                 ! Ensure the history arrays will be large enough to hold data for this node.
-                historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,nodes(iNode)%particleIndexCount))
+                historyCountMaximum=max(historyCountMaximum,max(0_kind_int8,defaultImporter%subhaloTraceCount(nodes(iNode))))
                 ! Account for any subresolution merging time.
                 call Time_Until_Merging_Subresolution(nodes(iNode),nodes,iNode,timeSubhaloMerges)
              end if
@@ -2086,12 +1602,12 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type   (nodeData      ), dimension(:), intent(inout) :: nodes
-    type   (treeNodeList  ), dimension(:), intent(inout) :: nodeList
-    integer                                              :: iNode
-    integer(kind=kind_int8)                              :: jNode
-    type   (varying_string)                              :: message
-
+    class  (nodeData      ), dimension(:), intent(inout) :: nodes    
+    type   (treeNodeList  ), dimension(:), intent(inout) :: nodeList 
+    integer                                              :: iNode    
+    integer(kind=kind_int8)                              :: jNode    
+    type   (varying_string)                              :: message  
+    
     if (mergerTreeReadPresetMergerNodes) then
        do iNode=1,size(nodes)
           ! Check if this node was flagged as merging with another node.
@@ -2131,16 +1647,16 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    type            (nodeData      ), dimension(:), intent(inout), target :: nodes
-    type            (treeNodeList  ), dimension(:), intent(inout)         :: nodeList
-    type            (nodeData      ), pointer                             :: currentHost  , descendentNode, hostDescendent, jumpToHost, &
-         &                                                                   previousNode
-    integer                                                               :: iNode
-    integer         (kind=kind_int8)                                      :: iIsolatedNode
-    logical                                                               :: isMergerEvent, subhaloJumps  , wasMergerEvent
-    double precision                                                      :: timeOfJump
-    type            (varying_string)                                      :: message
-
+    class           (nodeData      ), dimension(:), intent(inout), target :: nodes                                                        
+    type            (treeNodeList  ), dimension(:), intent(inout)         :: nodeList                                                     
+    class           (nodeData      ), pointer                             :: currentHost  , descendentNode, hostDescendent, jumpToHost, & 
+         &                                                                   previousNode                                                 
+    integer                                                               :: iNode                                                        
+    integer         (kind=kind_int8)                                      :: iIsolatedNode                                                
+    logical                                                               :: isMergerEvent, subhaloJumps  , wasMergerEvent                
+    double precision                                                      :: timeOfJump                                                   
+    type            (varying_string)                                      :: message                                                      
+    
     ! If branch jumps are not allowed, simply return.
     if (.not.mergerTreeReadAllowBranchJumps) return
     ! Search for subhalos whose descendents live in a different host than that to which their
@@ -2276,9 +1792,9 @@ contains
   function Last_Host_Descendent(thisNode) result (currentHost)
     !% Return a pointer to the last descendent that can be reached from {\tt thisNode} when descending through hosts.
     implicit none
-    type(nodeData), pointer               :: currentHost
-    type(nodeData), intent(inout), target :: thisNode
-
+    class(nodeData), pointer               :: currentHost 
+    class(nodeData), intent(inout), target :: thisNode    
+    
     currentHost => thisNode%host
     do while(associated(currentHost%descendent))
        currentHost => currentHost%descendent%host
@@ -2290,10 +1806,10 @@ contains
     !% Create a matched-pair of branch jump events in the given nodes.
     use Node_Branch_Jumps
     implicit none
-    type            (treeNode ), intent(inout), pointer :: jumpToHost, thisNode
-    double precision           , intent(in   )          :: timeOfJump
-    type            (nodeEvent)               , pointer :: newEvent  , pairEvent
-
+    type            (treeNode ), intent(inout), pointer :: jumpToHost, thisNode  
+    double precision           , intent(in   )          :: timeOfJump            
+    type            (nodeEvent)               , pointer :: newEvent  , pairEvent 
+    
     newEvent       => thisNode%createEvent()
     newEvent %time =  timeOfJump
     newEvent %node => jumpToHost
@@ -2313,25 +1829,22 @@ contains
     use Cosmology_Functions
     use Histories
     implicit none
-    type            (nodeData               )         , dimension(:  ), intent(inout), target :: nodes
-    type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList
-    double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime
-    double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity
-    type            (nodeData               ), pointer                                        :: thisNode                 , progenitorNode
-    type            (treeNode               ), pointer                                        :: firstProgenitor
-    class           (nodeComponentSatellite ), pointer                                        :: thisSatelliteComponent
-    class           (nodeComponentPosition  ), pointer                                        :: thisPositionComponent
-    class           (cosmologyFunctionsClass), pointer                                        :: cosmologyFunctionsDefault
-    integer         (kind=kind_int8         )                                                 :: descendentLocation       , historyCount, &
-         &                                                                                       iIsolatedNode            , iTime
-    integer                                                                                   :: descendentIndex          , iAxis       , &
-         &                                                                                       iNode
-    logical                                                                                   :: descendentsFound         , endOfBranch
-    double precision                                                                          :: expansionFactor
-    type            (varying_string         )                                                 :: message
-    type            (history                )                                                 :: subhaloHistory
-    type            (progenitorIterator     )                                                 :: progenitors
-
+    class           (nodeData               )         , dimension(:  ), intent(inout), target :: nodes                                    
+    type            (treeNodeList           )         , dimension(:  ), intent(inout)         :: nodeList                                 
+    double precision                                  , dimension(:  ), intent(inout)         :: historyMass              , historyTime   
+    double precision                                  , dimension(:,:), intent(inout)         :: position                 , velocity      
+    class           (nodeData               ), pointer                                        :: progenitorNode           , thisNode      
+    type            (treeNode               ), pointer                                        :: firstProgenitor                          
+    class           (nodeComponentSatellite ), pointer                                        :: thisSatelliteComponent                   
+    class           (nodeComponentPosition  ), pointer                                        :: thisPositionComponent                    
+    class           (cosmologyFunctionsClass), pointer                                        :: cosmologyFunctionsDefault                
+    integer         (kind=kind_int8         )                                                 :: historyCount             , iIsolatedNode 
+    integer                                                                                   :: iNode                                    
+    logical                                                                                   :: endOfBranch                              
+    type            (varying_string         )                                                 :: message                                  
+    type            (history                )                                                 :: subhaloHistory                           
+    type            (progenitorIterator     )                                                 :: progenitors                              
+    
     if (mergerTreeReadPresetSubhaloMasses.or.mergerTreeReadPresetPositions) then
        ! Check that preset subhalo masses are supported.
        if (mergerTreeReadPresetSubhaloMasses.and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
@@ -2345,7 +1858,7 @@ contains
              historyBuildHasDescendentSelect: if (associated(nodes(iNode)%descendent)) then
                 ! Set a pointer to the current node - this will be updated if any descendents are traced.
                 thisNode => nodes(iNode)
-                ! Set initial number of times in the history to zero.
+                  ! Set initial number of times in the history to zero.
                 historyCount=0
                 ! Select the subset which have a subhalo as a descendent and are not the primary progenitor.
                 historyBuildSubhaloSelect: if (nodes(iNode)%descendent%isSubhalo) then
@@ -2399,57 +1912,24 @@ contains
                 ! Set the position history for this node.
                 if (mergerTreeReadPresetPositions.and..not.nodeList(iIsolatedNode)%node%isPrimaryProgenitor()) then
                    ! Check if particle data is available for this node.
-                   if (thisNode%particleIndexStart >= 0) then
+                   if (defaultImporter%subhaloTraceCount(thisNode) > 0) then
                       ! Check that arrays are large enough to hold particle data. They should be. If they are not, it's a
                       ! bug.
-                      if (historyCount+thisNode%particleIndexCount > size(historyTime)) then
+                      if (historyCount+defaultImporter%subhaloTraceCount(thisNode) > size(historyTime)) then
                          message='history arrays are too small to hold data for node '
-                         message=message//nodeList(iIsolatedNode)%node%index()//': ['//historyCount//'+'//thisNode%particleIndexCount//']='//(historyCount+thisNode%particleIndexCount)//'>'//size(historyTime)
+                         message=message//nodeList(iIsolatedNode)%node%index()//': ['//historyCount//'+'//defaultImporter%subhaloTraceCount(thisNode)//']='//(historyCount+defaultImporter%subhaloTraceCount(thisNode))//'>'//size(historyTime)
                          call Galacticus_Error_Report('Merger_Tree_Read_Do',message)
                       end if
-                      ! Read position data.
-                      !$omp critical(HDF5_Access)
-                      call particlesGroup%readDatasetStatic("position",position   (:,historyCount+1:historyCount&
-                           &+thisNode%particleIndexCount),[1_kind_int8,thisNode%particleIndexStart+1],[3_kind_int8&
-                           &,thisNode%particleIndexCount])
-                      ! Read velocity data.
-                      call particlesGroup%readDatasetStatic("velocity",velocity   (:,historyCount+1:historyCount&
-                           &+thisNode%particleIndexCount),[1_kind_int8,thisNode%particleIndexStart+1],[3_kind_int8&
-                           &,thisNode%particleIndexCount])
-                      ! Read epoch data.
-                      call particlesGroup%readDatasetStatic(trim(particleEpochDatasetName),historyTime(historyCount&
-                           &+1:historyCount +thisNode%particleIndexCount),[thisNode%particleIndexStart+1]&
-                           &,[thisNode%particleIndexCount])
-                      !$omp end critical(HDF5_Access)
-                      do iTime=historyCount+1,historyCount+thisNode%particleIndexCount
-                         ! Get the cosmic age and expansion factor.
-                         select case (particleEpochType)
-                         case (particleEpochTypeTime           )
-                            expansionFactor=cosmologyFunctionsDefault%expansionFactor(historyTime(iTime))
-                         case (particleEpochTypeExpansionFactor)
-                            expansionFactor=historyTime(iTime)
-                            historyTime(iTime)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
-                         case (particleEpochTypeRedshift       )
-                            expansionFactor=cosmologyFunctionsDefault%expansionFactorFromRedshift(historyTime(iTime))
-                            historyTime(iTime)=cosmologyFunctionsDefault%cosmicTime(expansionFactor)
-                         end select
-                         ! Convert position units.
-                         position(:,iTime)=position(:,iTime)*unitConversionLength
-                         if (scaleFactorExponentLength /= 0) then
-                            do iAxis=1,3
-                               position(iAxis,iTime)=position(iAxis,iTime)*expansionFactor**scaleFactorExponentLength
-                            end do
-                         end if
-                         ! Convert velocity units.
-                         velocity(:,iTime)=velocity(:,iTime)*unitConversionVelocity
-                         if (scaleFactorExponentLength /= 0) then
-                            do iAxis=1,3
-                               velocity(iAxis,iTime)=velocity(iAxis,iTime)*expansionFactor**scaleFactorExponentVelocity
-                            end do
-                         end if
-                      end do
+                      ! Read subhalo position trace data.
+                      call defaultImporter%subhaloTrace                                               &
+                           & (                                                                        &
+                           &  thisNode                                                              , &
+                           &  historyTime(  historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode)), &
+                           &  position   (:,historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode)), &
+                           &  velocity   (:,historyCount+1:historyCount+defaultImporter%subhaloTraceCount(thisNode))  &
+                           & )
                       ! Increment the history count for this node.
-                      historyCount=historyCount+thisNode%particleIndexCount
+                      historyCount=historyCount+defaultImporter%subhaloTraceCount(thisNode)
                    end if
                    if (historyCount > 0) then
                       call subhaloHistory%destroy()
@@ -2472,12 +1952,12 @@ contains
   subroutine Validate_Isolated_Halos(nodes)
     !% Ensure that nodes have valid primary progenitors.
     implicit none
-    type   (nodeData          ), dimension(:), intent(inout) :: nodes
-    type   (treeNode          ), pointer                     :: newNode          , thisSatellite
-    class  (nodeComponentBasic), pointer                     :: newBasicComponent
-    integer                                                  :: iNode
-    integer(kind=kind_int8    )                              :: iIsolatedNode
-
+    class  (nodeData          ), dimension(:), intent(inout) :: nodes                            
+    type   (treeNode          ), pointer                     :: newNode          , thisSatellite 
+    class  (nodeComponentBasic), pointer                     :: newBasicComponent                
+    integer                                                  :: iNode                            
+    integer(kind=kind_int8    )                              :: iIsolatedNode                    
+    
     ! Search for cases where a node has no progenitors which do not descend into subhalos.
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
@@ -2516,9 +1996,9 @@ contains
   subroutine Assign_UniqueIDs_To_Clones(nodeList)
     !% Assign new uniqueID values to any cloned nodes inserted into the trees.
     implicit none
-    type   (treeNodeList), dimension(:), intent(inout) :: nodeList
-    integer                                            :: iNode
-
+    type   (treeNodeList), dimension(:), intent(inout) :: nodeList 
+    integer                                            :: iNode    
+    
     do iNode=1,size(nodeList)
        if (associated(nodeList(iNode)%node%firstChild)) then
           if (nodeList(iNode)%node%uniqueID() == nodeList(iNode)%node%firstChild%uniqueID()) &
@@ -2531,14 +2011,11 @@ contains
   logical function Is_Subhalo_Subhalo_Merger(nodes,thisNode)
     !% Returns true if {\tt thisNode} undergoes a subhalo-subhalo merger.
     implicit none
-    type   (nodeData          ), dimension(:), intent(inout) :: nodes
-    type   (nodeData          )              , intent(in   ) :: thisNode
-    type   (nodeData          )              , pointer       :: progenitorNode
-    integer                                                  :: descendentIndex
-    logical                                                  :: progenitorsFound
-    integer(kind=kind_int8    )                              :: progenitorLocation
-    type   (progenitorIterator)                              :: progenitors
-
+    class(nodeData          ), dimension(:), intent(inout) :: nodes          
+    class(nodeData          )              , intent(in   ) :: thisNode       
+    class(nodeData          ), pointer                     :: progenitorNode 
+    type (progenitorIterator)                              :: progenitors    
+    
     Is_Subhalo_Subhalo_Merger=.false.
     ! Return immediately if there is no descendent. (Since there can be no merger if there is no descendent.)
     if (.not.associated(thisNode%descendent          )) return
@@ -2565,14 +2042,14 @@ contains
   subroutine Dump_Tree(nodes,highlightNodes,branchRoot)
     !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\sc dot}.
     implicit none
-    type     (nodeData      ), dimension(:), intent(in   ), target   :: nodes
-    integer  (kind=kind_int8), dimension(:), intent(in   ), optional :: highlightNodes
-    integer  (kind=kind_int8)              , intent(in   ), optional :: branchRoot
-    type     (nodeData      ), pointer                               :: thisNode
-    integer                                                          :: fileUnit      , iNode
-    character(len=20        )                                        :: color         , style
-    logical                                                          :: outputNode
-
+    class    (nodeData      ), dimension(:), intent(in   ), target   :: nodes                 
+    integer  (kind=kind_int8), dimension(:), intent(in   ), optional :: highlightNodes        
+    integer  (kind=kind_int8)              , intent(in   ), optional :: branchRoot            
+    class    (nodeData      ), pointer                               :: thisNode              
+    integer                                                          :: fileUnit      , iNode 
+    character(len=20        )                                        :: color         , style 
+    logical                                                          :: outputNode            
+    
     ! Open an output file and write the GraphViz opening.
     open(newunit=fileUnit,file='mergerTreeConstructReadTree.gv',status='unknown',form='formatted')
     write (fileUnit,*) 'digraph Tree {'
@@ -2638,26 +2115,24 @@ contains
     use String_Handling
     use Galacticus_Display
     implicit none
-    type            (nodeData                       ), intent(in   )                       :: lastSeenNode
-    type            (nodeData                       ), intent(inout), dimension(:), target :: nodes
-    integer                                          , intent(in   )                       :: iNode
-    double precision                                 , intent(inout)                       :: timeSubhaloMerges
-    type            (nodeData                       ), pointer                             :: primaryProgenitor             , thisNode, progenitorNode
-    class           (satelliteMergingTimescalesClass), pointer      , save                 :: thisSatelliteMergingTimescales
-    type            (treeNode                       ), pointer                             :: hostNode                      , satelliteNode
-    class           (nodeComponentBasic             ), pointer                             :: satelliteBasicComponent       , hostBasicComponent
-    double precision                                                , dimension(3)         :: relativePosition              , relativeVelocity
-    logical                                                         , save                 :: functionInitialized=.false.
-    type            (keplerOrbit                    )                                      :: thisOrbit
-    integer                                                                                :: descendentIndex
-    integer         (kind=kind_int8                 )                                      :: descendentLocation 
-    logical                                                                                :: descendentsFound
-    double precision                                                                       :: primaryProgenitorMass         , timeUntilMerging
-    type            (varying_string                 )                                      :: mergerTreeReadSubresolutionMergingMethod
-    type            (progenitorIterator             )                                      :: progenitors
-    character       (len=42                         )                                      :: coordinateLabel
-    type            (varying_string                 )                                      :: message
-
+    class           (nodeData                       )                             , intent(in   ) ::      lastSeenNode                                                                      
+    class           (nodeData                       )               , dimension(:), intent(inout) , target::                                      nodes                                     
+    integer                                                                       , intent(in   ) ::      iNode                                                                             
+    double precision                                                              , intent(inout) ::      timeSubhaloMerges                                                                 
+    class           (nodeData                       ), pointer                                    ::      primaryProgenitor                                    , progenitorNode         , & 
+         &                                                                                                thisNode                                                                          
+    class           (satelliteMergingTimescalesClass), pointer, save                              ::      thisSatelliteMergingTimescales                                                    
+    type            (treeNode                       ), pointer                                    ::      hostNode                                             , satelliteNode              
+    class           (nodeComponentBasic             ), pointer                                    ::      hostBasicComponent                                   , satelliteBasicComponent    
+    double precision                                                , dimension(3)                ::      relativePosition                                     , relativeVelocity           
+    logical                                                   , save                              ::      functionInitialized                          =.false.                             
+    type            (keplerOrbit                    )                                             ::      thisOrbit                                                                         
+    double precision                                                                              ::      primaryProgenitorMass                                , timeUntilMerging           
+    type            (varying_string                 )                                             ::      mergerTreeReadSubresolutionMergingMethod                                          
+    type            (progenitorIterator             )                                             ::      progenitors                                                                       
+    character       (len=42                         )                                             ::      coordinateLabel                                                                   
+    type            (varying_string                 )                                             ::      message                                                                           
+    
     ! Initialize if necessary.
     if (.not.functionInitialized) then
        !$omp critical(Time_Until_Merging_Subresolution_Initialize)
@@ -2774,10 +2249,10 @@ contains
     use Kepler_Orbits
     use Vectors
     implicit none
-    type            (keplerOrbit)                              :: thisOrbit
-    double precision             , intent(in   )               :: mass1    , mass2
-    double precision             , intent(in   ), dimension(3) :: position , velocity
-
+    type            (keplerOrbit)                              :: thisOrbit           
+    double precision                           , intent(in   ) :: mass1    , mass2    
+    double precision             , dimension(3), intent(in   ) :: position , velocity 
+    
     call thisOrbit%reset()
     call thisOrbit%massesSet            (       &
          &                               mass1, &
@@ -2792,18 +2267,21 @@ contains
   subroutine Phase_Space_Position_Realize(time,position,velocity)
     !% Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow.
     use Cosmology_Functions
+    use Numerical_Constants_Boolean
     implicit none
-    double precision                         , intent(in   )               :: time
-    double precision                         , intent(inout), dimension(3) :: position, velocity
-    class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctionsDefault
-
+    double precision                                       , intent(in   ) :: time                                
+    double precision                         , dimension(3), intent(inout) :: position                 , velocity 
+    class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctionsDefault           
+    double precision                                                       :: lengthSimulationBox                 
+    
     ! Account for periodicity.
-    if (simulationIsPeriodic) then
+    if (defaultImporter%positionsArePeriodic() /= booleanFalse) then
+       lengthSimulationBox=defaultImporter%cubeLength(time)
        position=mod(position+0.5d0*lengthSimulationBox,lengthSimulationBox)-0.5d0*lengthSimulationBox
        position=mod(position-0.5d0*lengthSimulationBox,lengthSimulationBox)+0.5d0*lengthSimulationBox
     end if
     ! Account for Hubble flow.
-    if (.not.velocitiesIncludeHubbleFlow) then
+    if (defaultImporter%velocitiesIncludeHubbleFlow() /= booleanTrue) then
        cosmologyFunctionsDefault => cosmologyFunctions()
        velocity=velocity                                                    &
             &  +position                                                    &
@@ -2816,10 +2294,10 @@ contains
     !% Initialize a progenitor iterator object by storing the index of the taget {\tt node} and finding the location of the first
     !% progenitor (if any).
     implicit none
-    class(progenitorIterator), intent(inout)               :: self
-    type (nodeData          ), intent(in   )               :: node
-    type (nodeData          ), intent(in   ), dimension(:) :: nodes
- 
+    class(progenitorIterator)              , intent(inout) :: self  
+    class(nodeData          )              , intent(in   ) :: node  
+    class(nodeData          ), dimension(:), intent(in   ) :: nodes 
+    
     ! Store the index of the target node.
     self%targetIndex     =node%nodeIndex
     ! Assume no progenitors descendants by default.
@@ -2842,9 +2320,9 @@ contains
     !% Move to the next progenitor using a progenitor iterator object, returning true if the next progenitor exists, false if it
     !% does not.
     implicit none
-    class(progenitorIterator), intent(inout)               :: self
-    type (nodeData          ), intent(in   ), dimension(:) :: nodes
-
+    class(progenitorIterator)              , intent(inout) :: self  
+    class(nodeData          ), dimension(:), intent(in   ) :: nodes 
+    
     if (self%progenitorsFound) then
        progenitorIteratorNext=.true.
       do while (self%progenitorIndex > 0)
@@ -2868,10 +2346,10 @@ contains
   function progenitorIteratorIndex(self,nodes)
     !% Return the node index of the current progenitor in a progenitor iterator object.
     implicit none
-    integer(kind=kind_int8    )                              :: progenitorIteratorIndex
-    class  (progenitorIterator), intent(in   )               :: self
-    type   (nodeData          ), intent(in   ), dimension(:) :: nodes
-
+    integer(kind=kind_int8    )                              :: progenitorIteratorIndex 
+    class  (progenitorIterator)              , intent(in   ) :: self                    
+    class  (nodeData          ), dimension(:), intent(in   ) :: nodes                   
+    
     progenitorIteratorIndex=nodes(self%progenitorLocation)%nodeIndex
    return
  end function progenitorIteratorIndex
@@ -2879,9 +2357,9 @@ contains
  function progenitorIteratorCurrent(self,nodes)
    !% Return a pointer to the current progenitor in a progenitor iterator object.
    implicit none
-   type (nodeData          ), pointer                             :: progenitorIteratorCurrent
-   class(progenitorIterator), intent(in   )                       :: self
-   type (nodeData          ), intent(in   ), dimension(:), target :: nodes
+   class(nodeData          ), pointer                             :: progenitorIteratorCurrent 
+   class(progenitorIterator)              , intent(in   )         :: self                      
+   class(nodeData          ), dimension(:), intent(in   ), target :: nodes                     
    
    progenitorIteratorCurrent => nodes(self%progenitorLocation)
    return
@@ -2890,10 +2368,10 @@ contains
  logical function progenitorIteratorExist(self)
    !% Return true if progenitors exist, false otherwise.
    implicit none
-   class(progenitorIterator), intent(in   ) :: self
+   class(progenitorIterator), intent(in   ) :: self 
    
    progenitorIteratorExist=self%progenitorsFound
    return
  end function progenitorIteratorExist
-  
+
 end module Merger_Tree_Read
