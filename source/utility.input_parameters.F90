@@ -132,7 +132,8 @@ contains
          &                                                                 jParameter            , minimumDistance
     type     (varying_string)                                           :: possibleMatch         , thisParameterName       , &
          &                                                                 unknownParameter
-    type     (regEx         )                                           :: thisRegEx
+    type     (regEx         ), save                                     :: thisRegEx
+    !$omp threadprivate(thisRegEx)
 
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
