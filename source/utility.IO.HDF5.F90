@@ -60,14 +60,14 @@ module IO_HDF5
   type hdf5Object
      !% A structure that holds properties of HDF5 objects.
      private
-     logical                          :: isOpenValue
+     logical                          :: isOpenValue   =.false.
      logical                          :: isOverwritable
      integer(kind=HID_T    )          :: objectID
      type   (varying_string)          :: objectLocation
      type   (varying_string)          :: objectName
      integer                          :: hdf5ObjectType
-     integer                          :: chunkSize     , compressionLevel
-     logical                          :: chunkSizeSet  , compressionLevelSet
+     integer                          :: chunkSize             , compressionLevel
+     logical                          :: chunkSizeSet          , compressionLevelSet
      type   (hdf5Object    ), pointer :: parentObject
    contains
      !@ <objectMethods>
