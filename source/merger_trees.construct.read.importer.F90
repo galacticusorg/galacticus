@@ -1,0 +1,199 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which provides an object that implements importing of merger trees from file.
+
+module Merger_Tree_Read_Importers
+  !% Provides an object that implements importing of merger trees from file. 
+  use, intrinsic :: ISO_C_Binding
+  use               ISO_Varying_String
+  use               Kind_Numbers
+  use               Galacticus_Nodes
+  !# <include directive="mergerTreeImporter" type="functionModules" >
+  include 'mergerTreeImporter.functionModules.inc'
+  !# </include>
+  private
+  public :: nodeData
+
+  ! Type used to specify units.
+  type :: importerUnits
+     logical          :: status                              
+     double precision :: unitsInSI                           
+     integer          :: hubbleExponent, scaleFactorExponent 
+   contains
+     procedure :: multiply    =>importerUnitsMultiply     
+     procedure :: exponentiate=>importerUnitsExponentiate 
+     generic   :: operator(* ) => multiply
+     generic   :: operator(**) => exponentiate
+  end type importerUnits
+
+  ! Type used to store raw data.
+  type nodeData
+     !% Structure used to store raw data read from merger tree files.
+     integer         (kind=kind_int8)               :: descendentIndex  , hostIndex               , & 
+          &                                            isolatedNodeIndex, mergesWithIndex         , & 
+          &                                            nodeIndex        , primaryIsolatedNodeIndex    
+     double precision                               :: angularMomentum  , halfMassRadius          , & 
+          &                                            nodeMass         , nodeTime                , & 
+          &                                            scaleRadius                                    
+     double precision                , dimension(3) :: position         , velocity                    
+     logical                                        :: childIsSubhalo   , isSubhalo                   
+     class           (nodeData      ), pointer      :: descendent       , host                    , & 
+          &                                            parent                                         
+     type            (treeNode      ), pointer      :: node                                           
+  end type nodeData
+
+  !# <include directive="mergerTreeImporter" type="function" >
+  !#  <description>Object providing functions for importing merger trees.</description>
+  !#  <default>galacticus</default>
+  !#  <defaultThreadPrivate>no</defaultThreadPrivate>
+  !#  <method name="open" >
+  !#   <description>Opens the file.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(varying_string), intent(in   ) :: fileName</argument>
+  !#  </method>
+  !#  <method name="close" >
+  !#   <description>Closes the file.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="treesHaveSubhalos" >
+  !#   <description>Returns a Boolean integer specifying whether or not the trees have subhalos.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="massesIncludeSubhalos" >
+  !#   <description>Returns a Boolean specifying whether halo masses include the contribution from their subhalos.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="treesAreSelfContained" >
+  !#   <description>Returns a Boolean integer specifying whether trees are self-contained.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="velocitiesIncludeHubbleFlow" >
+  !#   <description>Returns a Boolean integer specifying whether velocities include the Hubble flow.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="positionsArePeriodic" >
+  !#   <description>Returns a Boolean integer specifying whether positions are periodic.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="cubeLength" >
+  !#   <description>Returns the length of the simulation cube.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   )           :: time</argument>
+  !#   <argument>integer         , intent(  out), optional :: status</argument>
+  !#  </method>
+  !#  <method name="treeCount" >
+  !#   <description>Returns a count of the number of trees available.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="treeIndex" >
+  !#   <description>Returns the index of the $i^{\rm th}$ tree.</description>
+  !#   <type>integer(kind=kind_int8)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: i</argument>
+  !#  </method>
+  !#  <method name="nodeCount" >
+  !#   <description>Returns the number of nodes in the $i^{\rm th}$ tree.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: i</argument>
+  !#  </method>
+  !#  <method name="treeWeight" >
+  !#   <description>Returns the weight to assign to the $i^{\rm th}$ tree.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ) :: i</argument>
+  !#  </method>
+  !#  <method name="positionsAvailable" >
+  !#   <description>Return true if positions and/or velocities are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>logical, intent(in   ) :: positions, velocities</argument>
+  !#  </method>
+  !#  <method name="scaleRadiiAvailable" >
+  !#   <description>Return true if scale radii are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="angularMomentaAvailable" >
+  !#   <description>Return true if angular momenta are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="import" >
+  !#   <description>Imports the $i^{\rm th}$ tree.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer          , intent(in   )                            :: i</argument>
+  !#   <argument>class  (nodeData), intent(  out), allocatable, dimension(:) :: nodes</argument>
+  !#   <argument>logical          , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requirePositions</argument>
+  !#  </method>
+  !#  <method name="subhaloTrace" >
+  !#   <description>Supplies epochs, positions, and velocities for traced subhalos.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class           (nodeData), intent(in   )                 :: node</argument>
+  !#   <argument>double precision          , intent(  out), dimension(:  ) :: time</argument>
+  !#   <argument>double precision          , intent(  out), dimension(:,:) :: position, velocity</argument>
+  !#  </method>
+  !#  <method name="subhaloTraceCount" >
+  !#   <description>Returns the length of a node's subhalo trace.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(nodeData), intent(in   ) :: node</argument>
+  !#  </method>
+  include 'mergerTreeImporter.type.inc'
+  !# </include>
+
+  function importerUnitsMultiply(units1,units2)
+    !% Multiply to {\tt importerUnits} objects.
+    implicit none
+    type (importerUnits)                :: importerUnitsMultiply 
+    class(importerUnits), intent(in   ) :: units1                
+    type (importerUnits), intent(in   ) :: units2                
+    
+    importerUnitsMultiply%status             =units1%status             .and.units2%status
+    importerUnitsMultiply%unitsInSI          =units1%unitsInSI            *  units2%unitsInSI
+    importerUnitsMultiply%scaleFactorExponent=units1%scaleFactorExponent  +  units2%scaleFactorExponent
+    importerUnitsMultiply%hubbleExponent     =units1%hubbleExponent       +  units2%hubbleExponent
+    return
+  end function importerUnitsMultiply
+
+  function importerUnitsExponentiate(units1,exponent)
+    !% Exponentiate {\tt importerUnits} objects.
+    implicit none
+    type   (importerUnits)                :: importerUnitsExponentiate 
+    class  (importerUnits), intent(in   ) :: units1                    
+    integer               , intent(in   ) :: exponent                  
+    
+    importerUnitsExponentiate%status             =units1%status
+    importerUnitsExponentiate%unitsInSI          =units1%unitsInSI          **exponent
+    importerUnitsExponentiate%scaleFactorExponent=units1%scaleFactorExponent* exponent
+    importerUnitsExponentiate%hubbleExponent     =units1%hubbleExponent     * exponent
+    return
+  end function importerUnitsExponentiate
+
+end module Merger_Tree_Read_Importers
