@@ -376,7 +376,7 @@ foreach my $object ( sort(keys(%objects)) ) {
 	    if ( $objects{$object}->{'methods'}->{$method}->{'description'} ne "UNDEFINED" ) {
 		print methodHndl "\\item[]{\\tt ";
 		if ( exists($objects{$object}->{'methods'}->{$method}->{'type'}) ) {
-		    print methodHndl $objects{$object}->{'methods'}->{$method}->{'type'}."\\ ";
+		    print methodHndl latex_encode($objects{$object}->{'methods'}->{$method}->{'type'})."\\ ";
 		} else {
 		    print "Warning: missing type for method ".$method." of ".$object." object\n";
 		}
