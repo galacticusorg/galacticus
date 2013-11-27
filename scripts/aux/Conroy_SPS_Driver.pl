@@ -172,7 +172,7 @@ if ( $makeFile == 1 ) {
     for(my $iZ=1;$iZ<=22;++$iZ) {
 	my $outFile = "imf".$imfName.".iZ".$iZ;
 	unless ( -e $galacticusPath."aux/FSPS_v2.4/OUTPUTS/".$outFile.".spec" ) {
-	    open(spsPipe,"|aux/FSPS_v2.4/src/autosps.exe");
+	    open(spsPipe,"|".$galacticusPath."aux/FSPS_v2.4/src/autosps.exe");
 	    print spsPipe "6\n";         # IMF.
 	    print spsPipe "0\n";         # Generate SSP.
 	    print spsPipe $iZ."\n";      # Specify metallicity.
