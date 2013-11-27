@@ -44,7 +44,7 @@ contains
     use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
-    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+    procedure(Power_Spectrum_Nonlinear_CosmicEmu), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
 
     if (powerSpectrumNonlinearMethod == 'CosmicEmu') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_CosmicEmu
     return
@@ -70,6 +70,8 @@ contains
     double precision                , intent(in   ) :: time                    , waveNumber
     double precision                , save          :: timePrevious     =-1.0d0
     double precision                , parameter     :: wavenumberLong   =0.01d0, wavenumberShort  =1.0d0
+    class(cosmologyFunctionsClass), pointer                    :: cosmologyFunctionsDefault
+    class    (cosmologyParametersClass              )               , pointer :: thisCosmologyParameters
     double precision                                :: littleHubbleCMB         , redshift
     type            (varying_string)                :: parameterFile           , powerSpectrumFile
     type            (xmlf_t        )                :: parameterDoc
@@ -79,10 +81,14 @@ contains
 
     ! If the time has changed, recompute the power spectrum.
     if (time /= timePrevious) then
-
+       ! Get the default cosmology.
+       thisCosmologyParameters => cosmologyParameters()
+       ! Get the default cosmology functions object.
+       cosmologyFunctionsDefault => cosmologyFunctions()     
+ 
        ! Store the new time and find the corresponding redshift.
        timePrevious=time
-       redshift=Redshift_from_cosmologyFunctionsDefault%expansionFactor(cosmologyFunctionsDefault%expansionFactor(time))
+       redshift=cosmologyFunctionsDefault%redshiftFromExpansionFactor(cosmologyFunctionsDefault%expansionFactor(time))
 
        ! Check that this is a flat cosmology.
        if (Values_Differ(thisCosmologyParameters%OmegaMatter()+thisCosmologyParameters%OmegaDarkEnergy(),1.0d0,absTol=1.0d-3))                                       &
@@ -103,17 +109,16 @@ contains
             &                              'Power_Spectrum_Nonlinear_CosmicEmu'                                            , &
             &                              'this method is applicable only to models with no running of the spectral index'  &
             &                             )
-
        ! Generate a parameter file.
        powerSpectrumFile="powerSpectrum.txt"
        parameterFile    ="powerSpectrumParameters.xml"
        call xml_OpenFile(char(parameterFile),parameterDoc)
        call xml_NewElement(parameterDoc,"parameters")
-       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter()
+       write (parameterLabel,'(f5.3)') thisCosmologyParameters%OmegaMatter   ()
        call Write_Parameter_XML(parameterDoc,"Omega_Matter"             ,parameterLabel)
-       write (parameterLabel,'(f6.4)') Omega_b     ()
+       write (parameterLabel,'(f6.4)') thisCosmologyParameters%OmegaBaryon   ()
        call Write_Parameter_XML(parameterDoc,"Omega_b"                  ,parameterLabel)
-       write (parameterLabel,'(f7.4)') H_0         ()
+       write (parameterLabel,'(f7.4)') thisCosmologyParameters%HubbleConstant()
        call Write_Parameter_XML(parameterDoc,"H_0"                      ,parameterLabel)
        write (parameterLabel,'(f6.4)') sigma_8     ()
        call Write_Parameter_XML(parameterDoc,"sigma_8"                  ,parameterLabel)
