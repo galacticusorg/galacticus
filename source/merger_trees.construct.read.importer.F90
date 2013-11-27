@@ -35,6 +35,21 @@ module Merger_Tree_Read_Importers
      double precision :: unitsInSI                           
      integer          :: hubbleExponent, scaleFactorExponent 
    contains
+     !@ <objectMethods>
+     !@   <object>importerUnits</object>
+     !@   <objectMethod>
+     !@     <method>multiply</method>
+     !@     <type>\textcolor{red}{\textless type(importerUnits)\textgreater}</type>
+     !@     <arguments>\textcolor{red}{\textless type(importerUnits)\textgreater} units2\argin</arguments>
+     !@     <description>Multiply by another {\tt importerUnits} object.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>exponentiate</method>
+     !@     <type>\textcolor{red}{\textless type(importerUnits)\textgreater}</type>
+     !@     <arguments>\intzero exponent\argin</arguments>
+     !@     <description>Raise to the given integer power.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: multiply    =>importerUnitsMultiply     
      procedure :: exponentiate=>importerUnitsExponentiate 
      generic   :: operator(* ) => multiply
