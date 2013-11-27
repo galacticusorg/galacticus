@@ -52,7 +52,7 @@ if ( $makeFile == 1 ) {
     # Check out the code.
     unless ( -e $galacticusPath."aux/FSPS_v2.4" ) {
  	print "Conroy_SPS_Driver.pl: downloading source code.\n";
- 	system("svn checkout http://fsps.googlecode.com/svn/trunk/ ".$galacticusPath."aux/FSPS_v2.4");
+ 	system("svn checkout -r 92 http://fsps.googlecode.com/svn/trunk/ ".$galacticusPath."aux/FSPS_v2.4");
  	die("Conroy_SPS_Driver.pl: FATAL - failed to check out svn repository.") unless ( -e $galacticusPath."aux/FSPS_v2.4" );
     }
     
@@ -72,7 +72,7 @@ if ( $makeFile == 1 ) {
     if ( $currentRevision < $availableRevision ) {
  	print "Conroy_SPS_Driver.pl: updating source code.\n";
  	system("svn revert -R ".$galacticusPath."aux/FSPS_v2.4"); # Revert the code.
- 	system("svn update ".$galacticusPath."aux/FSPS_v2.4"); # Grab updates
+ 	system("svn update -r 92 ".$galacticusPath."aux/FSPS_v2.4"); # Grab updates
  	unlink($galacticusPath."aux/FSPS_v2.4/src/galacticus_IMF.f90") # Remove this file to trigger re-patching of the code.
     }
     
@@ -172,7 +172,7 @@ if ( $makeFile == 1 ) {
     for(my $iZ=1;$iZ<=22;++$iZ) {
 	my $outFile = "imf".$imfName.".iZ".$iZ;
 	unless ( -e $galacticusPath."aux/FSPS_v2.4/OUTPUTS/".$outFile.".spec" ) {
-	    open(spsPipe,"|aux/FSPS_v2.4/src/autosps.exe");
+	    open(spsPipe,"|".$galacticusPath."aux/FSPS_v2.4/src/autosps.exe");
 	    print spsPipe "6\n";         # IMF.
 	    print spsPipe "0\n";         # Generate SSP.
 	    print spsPipe $iZ."\n";      # Specify metallicity.
