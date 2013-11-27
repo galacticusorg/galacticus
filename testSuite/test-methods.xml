@@ -741,6 +741,12 @@
       <name>luminosityRedshift</name>
       <value>0.0 0.1 0.1 0.1</value>
     </parameter>
+    <parameter>
+      <name>imfSelectionFixed</name>
+      <value>Chabrier</value>
+      <value>Kroupa</value>
+      <value>Salpeter</value>
+    </parameter>
   </parameters>
 
   <!-- Black hole wind efficiencies -->
