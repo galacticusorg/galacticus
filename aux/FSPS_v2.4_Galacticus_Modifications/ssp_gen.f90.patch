@@ -1,19 +1,11 @@
-*** ssp_gen.f90.orig	2011-04-16 09:14:27.988172846 -0700
---- ssp_gen.f90	2011-04-16 09:15:04.978172846 -0700
-***************
-*** 111,117 ****
-    ENDIF
-  
-    IF (imf_type.NE.0.AND.imf_type.NE.1.AND.imf_type.NE.2.&
-!        .AND.imf_type.NE.3.AND.imf_type.NE.4.AND.imf_type.NE.5) THEN
-       WRITE(*,*) 'SSP_GEN ERROR: IMF type outside of range',imf_type
-       STOP
-    ENDIF
---- 111,117 ----
-    ENDIF
-  
-    IF (imf_type.NE.0.AND.imf_type.NE.1.AND.imf_type.NE.2.&
-!        .AND.imf_type.NE.3.AND.imf_type.NE.4.AND.imf_type.NE.5.AND.imf_type.NE.6) THEN
-       WRITE(*,*) 'SSP_GEN ERROR: IMF type outside of range',imf_type
-       STOP
-    ENDIF
+--- ssp_gen.f90.orig	2013-11-28 09:01:50.000000000 -0800
++++ ssp_gen.f90	2013-11-29 10:20:03.000000000 -0800
+@@ -67,7 +67,7 @@
+   ENDIF
+ 
+   IF (imf_type.NE.0.AND.imf_type.NE.1.AND.imf_type.NE.2.&
+-       .AND.imf_type.NE.3.AND.imf_type.NE.4.AND.imf_type.NE.5) THEN
++       .AND.imf_type.NE.3.AND.imf_type.NE.4.AND.imf_type.NE.5.AND.imf_type.NE.6) THEN
+      WRITE(*,*) 'SSP_GEN ERROR: IMF type outside of range',imf_type
+      STOP
+   ENDIF

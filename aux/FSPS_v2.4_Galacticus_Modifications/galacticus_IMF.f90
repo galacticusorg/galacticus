@@ -1,5 +1,5 @@
 module Galacticus_IMF_Module
-  USE nrtype; use nr
+  USE sps_vars
   private
   public :: Get_Galacticus_IMF
 
