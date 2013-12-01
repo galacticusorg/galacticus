@@ -5899,7 +5899,7 @@ sub Generate_GSR_Availability_Functions {
 	    # Bind this function to the relevant type.
 	    push(
 		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName}
+		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName, description => "Return a list of implementations that provide the given list off attributes for the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component", returnType => "\\textcolor{red}{\\textless type(varying\\_string)(:)\\textgreater}", arguments => "\\logicalzero [requireGettable]\\argin, \\logicalzero [requireSettable]\\argin, \\logicalzero [requireEvolvable]\\argin"}
 		);
 	}
     }
