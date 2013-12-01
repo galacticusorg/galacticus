@@ -83,11 +83,17 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('isothermalCoreRadiusOverVirialRadiusMaximum',isothermalCoreRadiusOverVirialRadiusMaximum,defaultValue=10.0d0)
-
        ! Ensure that the dark matter profile supports the scale property.
-       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call Galacticus_Error_Report( &
-            & 'Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize',&
-            &'method requires a dark matter profile component that provides a gettable "scale" property')
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                          &
+            & call Galacticus_Error_Report                                                                                    &
+            &      (                                                                                                          &
+            &       'Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize'                                            , &
+            &       'method requires a dark matter profile component that provides a gettable "scale" property.'//            &
+            &       Galacticus_Component_List(                                                                                &
+            &                                 'darkMatterProfile'                                                           , &
+            &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
+            &                                )                                                                                &
+            &      )
     end if
     return
   end subroutine Hot_Halo_Density_Cored_Isothermal_Core_Radii_GC_Initialize

@@ -21,7 +21,11 @@ module Array_Utilities
   !% Contains routines which implement useful operations on arrays.
   implicit none
   private
-  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Which, Array_Index
+  public :: Array_Reverse, Array_Cumulate, Array_Is_Monotonic, Array_Which, Array_Index, operator(.intersection.)
+
+  interface operator(.intersection.)
+     module procedure Array_Intersection_Varying_String
+  end interface
 
   interface Array_Reverse
      !% Interface to generic routines which reverse the direction of an array.
@@ -359,5 +363,29 @@ contains
     Array_Is_Monotonic_Integer8=.true.
     return
   end function Array_Is_Monotonic_Integer8
+
+  function Array_Intersection_Varying_String(a,b)
+    use ISO_Varying_String
+    implicit none
+    type(varying_string), allocatable  , dimension(:) :: Array_Intersection_Varying_String
+    type(varying_string), intent(in   ), dimension(:) :: a,b
+integer :: i,c
+
+    c=0
+    do i=1,size(a)
+       if (any(b == a(i)) .and. count(a(1:i) == a(i)) == 1) c=c+1
+    end do
+    if (c > 0) then
+       allocate(Array_Intersection_Varying_String(c))
+       c=0
+       do i=1,size(a)
+          if (any(b == a(i)) .and. count(a(1:i) == a(i)) == 1) then
+             c=c+1
+             Array_Intersection_Varying_String(c)=a(i)
+          end if
+       end do
+    end if
+    return
+  end function Array_Intersection_Varying_String
 
 end module Array_Utilities

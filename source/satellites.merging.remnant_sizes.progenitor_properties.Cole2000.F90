@@ -42,6 +42,7 @@ contains
     !% Test if this method is to be used and set procedure pointer appropriately.
     use ISO_Varying_String
     use Galacticus_Error
+    use Array_Utilities
     implicit none
     type     (varying_string                                          ), intent(in   )          :: satelliteMergingRemnantProgenitorPropertiesMethod
     procedure(Satellite_Merging_Remnant_Progenitor_Properties_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Progenitor_Properties_Get
@@ -50,19 +51,46 @@ contains
        Satellite_Merging_Remnant_Progenitor_Properties_Get =>&
          & Satellite_Merging_Remnant_Progenitor_Properties_Cole2000
        ! Ensure that required methods are supported.
-       if     (                                                                &
-            &  .not.                                                           &
-            &       (                                                          &
-            &        defaultDiskComponent    %    massStellarIsGettable().and. &
-            &        defaultDiskComponent    %        massGasIsGettable().and. &
-            &        defaultDiskComponent    % halfMassRadiusIsGettable().and. &
-            &        defaultDiskComponent    %angularMomentumIsGettable().and. &
-            &        defaultSpheroidComponent%    massStellarIsGettable().and. &
-            &        defaultSpheroidComponent%        massGasIsGettable().and. &
-            &        defaultSpheroidComponent% halfMassRadiusIsGettable().and. &
-            &        defaultSpheroidComponent%angularMomentumIsGettable()      &
-            &  )                                                               &
-            & ) call Galacticus_Error_Report('Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init','this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for both disk and spheroid')
+       if     (                                                                                                                                                           &
+            &  .not.                                                                                                                                                      &
+            &       (                                                                                                                                                     &
+            &        defaultDiskComponent    %    massStellarIsGettable().and.                                                                                            &
+            &        defaultDiskComponent    %        massGasIsGettable().and.                                                                                            &
+            &        defaultDiskComponent    % halfMassRadiusIsGettable().and.                                                                                            &
+            &        defaultDiskComponent    %angularMomentumIsGettable()                                                                                                 &
+            &  )                                                                                                                                                          &
+            & ) call Galacticus_Error_Report                                                                                                                              &
+            &        (                                                                                                                                                    &
+            &         'Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init'                                                                                  ,  &
+            &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the disk component.'    // &
+            &         Galacticus_Component_List(                                                                                                                          &
+            &                                   'disk'                                                                                                                 ,  &
+            &                                   defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                            &
+            &                                  )                                                                                                                          &
+            &        )
+       if     (                                                                                                                                                           &
+            &  .not.                                                                                                                                                      &
+            &       (                                                                                                                                                     &
+            &        defaultSpheroidComponent%    massStellarIsGettable().and.                                                                                            &
+            &        defaultSpheroidComponent%        massGasIsGettable().and.                                                                                            &
+            &        defaultSpheroidComponent% halfMassRadiusIsGettable().and.                                                                                            &
+            &        defaultSpheroidComponent%angularMomentumIsGettable()                                                                                                 &
+            &  )                                                                                                                                                          &
+            & ) call Galacticus_Error_Report                                                                                                                              &
+            &        (                                                                                                                                                    &
+            &         'Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init'                                                                                  ,  &
+            &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the spheroid component.'// &
+            &         Galacticus_Component_List(                                                                                                                          &
+            &                                   'spheroid'                                                                                                             ,  &
+            &                                   defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                              &
+            &                                   defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                            &
+            &                                  )                                                                                                                          &
+            &        )
     end if
     return
   end subroutine Satellite_Merging_Remnant_Progenitor_Properties_Cole2000_Init

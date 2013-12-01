@@ -32,14 +32,33 @@ contains
     !% Initialize the halo spins module.
     use Galacticus_Nodes
     use Galacticus_Error
+    use ISO_Varying_String
     implicit none
 
     if (.not.moduleInitialized) then
        !$omp critical(Dark_Matter_Halo_Spins_Initialize)
        if (.not.moduleInitialized) then
           ! Ensure that the spin property is available.
-          if (.not. defaultSpinComponent%spinIsGettable()) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','spin property of spin component must be gettable')
-          if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('Dark_Matter_Halo_Spins_Initialize','mass property of basic component must be gettable')
+          if (.not.defaultSpinComponent%spinIsGettable())                                                          &
+               & call Galacticus_Error_Report                                                                      &
+               &      (                                                                                            &
+               &       'Dark_Matter_Halo_Spins_Initialize'                                                       , &
+               &       'spin property of spin component must be gettable.'//                                       &
+               &       Galacticus_Component_List(                                                                  &
+               &                                 'spin'                                                          , &
+               &                                 defaultSpinComponent%spinAttributeMatch(requireGettable=.true.)   &
+               &                                )                                                                  &
+               &      )
+          if (.not.defaultBasicComponent%massIsGettable())                                                         &
+               & call Galacticus_Error_Report                                                                      &
+               &      (                                                                                            &
+               &       'Dark_Matter_Halo_Spins_Initialize'                                                       , &
+               &       'mass property of basic component must be gettable.'//                                      &
+               &       Galacticus_Component_List(                                                                  &
+               &                                 'basic'                                                         , &
+               &                                 defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
+               &                                )                                                                  &
+               &      )
           ! Record that the module is now initialized.
           moduleInitialized=.true.
        end if

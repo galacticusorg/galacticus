@@ -65,10 +65,12 @@ contains
     !% Initializes the ``simple'' cooling radius module.
     use ISO_Varying_String
     use Galacticus_Error
+    use Array_Utilities
+    use String_Handling
     implicit none
-    type     (varying_string                   ), intent(in   )          :: coolingRadiusMethod
-    procedure(Cooling_Radius_Simple            ), intent(inout), pointer :: Cooling_Radius_Get
-    procedure(Cooling_Radius_Growth_Rate_Simple), intent(inout), pointer :: Cooling_Radius_Growth_Rate_Get
+    type     (varying_string                   ), intent(in   )               :: coolingRadiusMethod
+    procedure(Cooling_Radius_Simple            ), intent(inout), pointer      :: Cooling_Radius_Get
+    procedure(Cooling_Radius_Growth_Rate_Simple), intent(inout), pointer      :: Cooling_Radius_Growth_Rate_Get
 
     if (coolingRadiusMethod == 'simple') then
        Cooling_Radius_Get             => Cooling_Radius_Simple
@@ -77,14 +79,29 @@ contains
        abundancesCount=Abundances_Property_Count()
        chemicalsCount =Chemicals_Property_Count ()
        ! Check that required components are gettable.
-       if     (                                                                                  &
-            &  .not.(                                                                            &
-            &         defaultHotHaloComponent%       massIsGettable() .and.                      &
-            &         defaultHotHaloComponent% abundancesIsGettable() .and.                      &
-            &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                      &
-            &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  chemicalsCount == 0) &
-            &       )                                                                            &
-            & ) call Galacticus_Error_Report('Cooling_Radius_Simple_Initialize','this method requires that the "mass", "abundances", "outerRadius", and "chemicals" (if any chemicals are being used) properties of the hot halo are gettable')
+       if     (                                                                                                                  &
+            &  .not.(                                                                                                            &
+            &         defaultHotHaloComponent%       massIsGettable() .and.                                                      &
+            &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                      &
+            &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                      &
+            &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  chemicalsCount == 0)                                 &
+            &       )                                                                                                            &
+            & ) call Galacticus_Error_Report                                                                                     &
+            & (                                                                                                                  &
+            &  'Cooling_Radius_Simple_Initialize'                                                                              , &
+            &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                           &
+            &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                           &
+            &  Galacticus_Component_List(                                                                                        &
+            &                            'hotHalo'                                                                             , &
+            &                             defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.            )  &
+            &                            .intersection.                                                                          &
+            &                             defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.            )  &
+            &                            .intersection.                                                                          &
+            &                             defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.            )  &
+            &                            .intersection.                                                                          &
+            &                             defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=chemicalsCount > 0)  &
+            &                           )                                                                                        &
+            & )
     end if
     return
   end subroutine Cooling_Radius_Simple_Initialize
