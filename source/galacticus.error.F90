@@ -22,7 +22,7 @@ module Galacticus_Error
   use HDF5
   implicit none
   private
-  public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register
+  public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register, Galacticus_Component_List
 
   interface Galacticus_Error_Report
      module procedure Galacticus_Error_Report_Char
@@ -172,5 +172,23 @@ contains
     call Abort()
     return
   end subroutine Galacticus_GSL_Error_Handler
+
+  function Galacticus_Component_List(className,componentList)
+    !% Construct a message describing which implementations of a component class provide required functionality. 
+    use ISO_Varying_String
+    use String_Handling
+    implicit none
+    type     (varying_string)                                           :: Galacticus_Component_List
+    character(len=*         ), intent(in   )                            :: className
+    type     (varying_string), intent(in   ), dimension(:), allocatable :: componentList
+
+    if (allocated(componentList)) then
+       Galacticus_Component_List=char(10)//'Implementations of the "'   //className//'" class that provide this functionality are:'// &
+            & char(10)//'   '//String_Join(componentList,char(10)//'   ')
+    else
+       Galacticus_Component_List=char(10)//'No implementations of the "'//className//'" class currently provide this functionality.'
+    end if
+    return
+  end function Galacticus_Component_List
 
 end module Galacticus_Error

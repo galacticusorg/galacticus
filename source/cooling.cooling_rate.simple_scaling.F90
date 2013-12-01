@@ -40,9 +40,10 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
+    use Array_Utilities
     implicit none
-    type     (varying_string             ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_Simple_Scaling), intent(inout), pointer :: Cooling_Rate_Get
+    type     (varying_string             ), intent(in   )               :: coolingRateMethod
+    procedure(Cooling_Rate_Simple_Scaling), intent(inout), pointer      :: Cooling_Rate_Get
 
     if (coolingRateMethod == 'simpleScaling') then
        Cooling_Rate_Get => Cooling_Rate_Simple_Scaling
@@ -83,21 +84,31 @@ contains
        call Get_Input_Parameter('coolingRateSimpleScalingTransitionMass',coolingRateSimpleScalingTransitionMass,defaultValue=1.0d12)
 
        ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                             &
-            & call Galacticus_Error_Report(                                           &
-            &                              'Cooling_Rate_Simple_Scaling_Initialize' , &
-            &                              'hotHalo component mass must be gettable'  &
+       if (.not.defaultHotHaloComponent%massIsGettable())                                                                                 &
+            & call Galacticus_Error_Report(                                                                                               &
+            &                              'Cooling_Rate_Simple_Scaling_Initialize'                                                     , &
+            &                              'Hot halo component must have gettable mass.'//                                                &
+            &                              Galacticus_Component_List(                                                                     &
+            &                                                        'hotHalo'                                                          , &
+            &                                                         defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
+            &                                                       )                                                                     &
             &                             )
-       if (.not.defaultBasicComponent%massIsGettable  ())                             &
-            & call Galacticus_Error_Report(                                           &
-            &                              'Cooling_Rate_Simple_Scaling_Initialize' , &
-            &                              'basic component mass must be gettable'    &
-            &                             )
-       if (.not.defaultBasicComponent%timeIsGettable  ())                             &
-            & call Galacticus_Error_Report(                                           &
-            &                              'Cooling_Rate_Simple_Scaling_Initialize' , &
-            &                              'basic component time must be gettable'    &
-            &                             )
+       if     (                                                                                                                           &
+            &  .not.(                                                                                                                     &
+            &         defaultBasicComponent%massIsGettable()                                                                              &
+            &        .and.                                                                                                                &
+            &         defaultBasicComponent%timeIsGettable()                                                                              &
+            &       )                                                                                                                     &
+            & ) call Galacticus_Error_Report(                                                                                             &
+            &                                'Cooling_Rate_Simple_Scaling_Initialize'                                                   , &
+            &                                'Basic component must have gettable mass and time.'//                                        &
+            &                                Galacticus_Component_List(                                                                   &
+            &                                                          'basic'                                                          , &
+            &                                                           defaultBasicComponent%massAttributeMatch(requireGettable=.true.)  &
+            &                                                          .intersection.                                                     &
+            &                                                           defaultBasicComponent%timeAttributeMatch(requireGettable=.true.)  &
+            &                                                         )                                                                   &
+            &                               )
     end if
     return
   end subroutine Cooling_Rate_Simple_Scaling_Initialize

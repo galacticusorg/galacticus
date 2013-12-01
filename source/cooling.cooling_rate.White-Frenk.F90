@@ -37,6 +37,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galacticus_Error
+    use Array_Utilities
     implicit none
     type     (varying_string              ), intent(in   )          :: coolingRateMethod
     procedure(Cooling_Rate_White_Frenk    ), intent(inout), pointer :: Cooling_Rate_Get
@@ -58,16 +59,23 @@ contains
        call Get_Input_Parameter('zeroCoolingRateAboveVelocity',zeroCoolingRateAboveVelocity,defaultValue=1.0d4)
 
        ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                                                  &
-            & call Galacticus_Error_Report(                                                                &
-            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
-            &                              'mass property of hot halo component must be gettable'          &
-            &                             )
-       if (.not.defaultHotHaloComponent%outerRadiusIsGettable())                                           &
-            & call Galacticus_Error_Report(                                                                &
-            &                              'Cooling_Rate_White_Frenk_Initialize'                         , &
-            &                              'outer radius property of hot halo component must be gettable'  &
-            &                             )
+       if     (                                                                                                             &
+            &  .not.(                                                                                                       &
+            &         defaultHotHaloComponent%       massIsGettable()                                                       &
+            &        .and.                                                                                                  &
+            &         defaultHotHaloComponent%outerRadiusIsGettable()                                                       &
+            &       )                                                                                                       &
+            & ) call Galacticus_Error_Report                                                                                &
+            &        (                                                                                                      &
+            &         'Cooling_Rate_White_Frenk_Initialize'                                                               , &
+            &         'mass and outerRadius properties of hot halo component must be gettable.'//                           &
+            &         Galacticus_Component_List(                                                                            &
+            &                                   'hotHalo'                                                                 , &
+            &                                    defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)  &
+            &                                   .intersection.                                                              &
+            &                                    defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)  &
+            &                                  )                                                                            &
+            &        )
     end if
     return
   end subroutine Cooling_Rate_White_Frenk_Initialize

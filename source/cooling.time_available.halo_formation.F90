@@ -45,7 +45,17 @@ contains
        Cooling_Time_Available_Get               => Cooling_Time_Available_Halo_Formation
        Cooling_Time_Available_Increase_Rate_Get => Cooling_Time_Available_Increase_Rate_Halo_Formation
        ! Check that there is a gettable formation time property.
-       if (.not.defaultFormationTimeComponent%formationTimeIsGettable()) call Galacticus_Error_Report('Cooling_Time_Available_Halo_Formation_Initialize',"'haloFormation' method for time available for cooling requires a formationTime component that supports getting of the formationTime property")
+       if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
+            & call Galacticus_Error_Report                                                                                        &
+            &      (                                                                                                              &
+            &       'Cooling_Time_Available_Halo_Formation_Initialize'                                                         ,  &
+            &       "'haloFormation' method for time available for cooling requires a formationTime component that supports "//   &
+            &       "getting of the formationTime property."                                                                 //   &
+            &       Galacticus_Component_List(                                                                                    &
+            &                                 'formationTime'                                                                  ,  &
+            &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
+            &                                )                                                                                    &
+            &      )
     end if
     return
   end subroutine Cooling_Time_Available_Halo_Formation_Initialize

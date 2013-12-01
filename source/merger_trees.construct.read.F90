@@ -463,6 +463,7 @@ contains
     use String_Handling
     use Memory_Management
     use Arrays_Search
+    use Array_Utilities
     use Numerical_Comparison
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
@@ -586,29 +587,79 @@ contains
           ! Check that all required properties exist.
           if (mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits) then
              ! Position and velocity methods are required.
-             if (.not.(defaultPositionComponent%positionIsSettable().and.defaultPositionComponent%velocityIsSettable())) call&
-                  & Galacticus_Error_Report('Merger_Tree_Read_Do','presetting positions or orbits requires a component that supports&
-                  & position and velocity setting (e.g. set [treeNodeMethodPosition]=preset); alternatively setting [mergerTreeReadPresetPositions]=false and [mergerTreeReadPresetOrbits]=false will remove the need to store positions and velocities')
+             if     (                                                                                                                                                                   &
+                  &  .not.(                                                                                                                                                             &
+                  &         defaultPositionComponent%positionIsSettable()                                                                                                               &
+                  &        .and.                                                                                                                                                        &
+                  &         defaultPositionComponent%velocityIsSettable()                                                                                                               &
+                  &       )                                                                                                                                                             &
+                  & )                                                                                                                                                                   &
+                  & call Galacticus_Error_Report                                                                                                                                        &
+                  &      (                                                                                                                                                              &
+                  &       'Merger_Tree_Read_Do'                                                                                                                                       , &
+                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [treeNodeMethodPosition]=preset);'              // &
+                  &       Galacticus_Component_List(                                                                                                                                    &
+                  &                                 'darkMatterProfile'                                                                                                               , &
+                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                                               &
+                  &                                 .intersection.                                                                                                                      &
+                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                                               &
+                  &                                )                                                                                                                                 // &
+                  &       char(10)                                                                                                                                                   // &
+                  &       'alternatively setting [mergerTreeReadPresetPositions]=false and [mergerTreeReadPresetOrbits]=false will remove the need to store positions and velocities'   &
+                  & )
           end if
           if (mergerTreeReadPresetMergerTimes) then
              ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                  & 'presetting merging times requires a component that supports setting of merging times')
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                                        &
+                  & call Galacticus_Error_Report                                                                                                                                        &
+                  &      (                                                                                                                                                              &
+                  &       'Merger_Tree_Read_Do'                                                                                                                                       , &
+                  &       'presetting merging times requires a component that supports setting of merging times.'                                                                    // &
+                  &       Galacticus_Component_List(                                                                                                                                    &
+                  &                                 'satellite'                                                                                                                       , &
+                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                                               &
+                  &                                 )                                                                                                                                   &
+                  &      )
           end if
           if (mergerTreeReadPresetScaleRadii) then
              ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                  & 'presetting scale radii requires a component that supports setting of scale radii')
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                                        &
+                  & call Galacticus_Error_Report                                                                                                                                        &
+                  &      (                                                                                                                                                              &
+                  &       'Merger_Tree_Read_Do'                                                                                                                                       , &
+                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                                        // &
+                  &       Galacticus_Component_List(                                                                                                                                    &
+                  &                                 'darkMatterProfile'                                                                                                               , &
+                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                                               &
+                  &                                )                                                                                                                                    &
+                  &      )
           end if
           if (mergerTreeReadPresetSpins      ) then
              ! Spin property is required.
-             if (.not.defaultSpinComponent             %spinIsSettable       ()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                  & 'presetting spins requires a component that supports setting of spins')
+             if (.not.defaultSpinComponent             %spinIsSettable       ())                                                                                                        &
+                  & call Galacticus_Error_Report                                                                                                                                        &
+                  &      (                                                                                                                                                              &
+                  &       'Merger_Tree_Read_Do'                                                                                                                                       , &
+                  &       'presetting spins requires a component that supports setting of spins.'                                                                                    // &
+                  &       Galacticus_Component_List(                                                                                                                                    &
+                  &                                 'spin'                                                                                                                            , &
+                  &                                 defaultSpinComponent             %         spinAttributeMatch(requireSettable=.true.)                                               &
+                  &                                )                                                                                                                                    &
+                  &      )
           end if
           if (mergerTreeReadPresetOrbits     ) then
              ! Orbit property is required.
-             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable()) call Galacticus_Error_Report('Merger_Tree_Read_Do',&
-                  & 'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset); alternatively, set [mergerTreeReadPresetOrbits]=false to prevent attempts to set orbits)')
+             if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                                        &
+                  & call Galacticus_Error_Report                                                                                                                                        &
+                  &      (                                                                                                                                                              &
+                  &       'Merger_Tree_Read_Do'                                                                                                                                       , &
+                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset);'                                     // &
+                  &       Galacticus_Component_List(                                                                                                                                    &
+                  &                                 'satellite'                                                                                                                       , &
+                  &                                 defaultSatelliteComponent        %  virialOrbitAttributeMatch(requireSettable=.true.)                                               &
+                  &                                )                                                                                                                                 // &
+                  &       char(10)                                                                                                                                                   // &
+                  &       'Alternatively, set [mergerTreeReadPresetOrbits]=false to prevent attempts to set orbits)')
           end if
 
           ! Assign scale radii.
