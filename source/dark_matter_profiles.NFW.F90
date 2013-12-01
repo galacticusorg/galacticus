@@ -106,9 +106,16 @@ contains
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_NFW
         ! Ensure that the dark matter profile component supports a "scale" property. Since we've been called with a treeNode to
        ! process, it should have been initialized by now.
-       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call&
-            & Galacticus_Error_Report('Dark_Matter_Profile_NFW_Initialize','NFW dark matter profile requires a dark matter&
-            & profile component with a gettable "scale" property')
+       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                         &
+            & call Galacticus_Error_Report                                                                                   &
+            &      (                                                                                                         &
+            &       'Dark_Matter_Profile_NFW_Initialize'                                                                   , &
+            &       'NFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'//   &
+            &       Galacticus_Component_List(                                                                               &
+            &                                 'darkMatterProfile'                                                          , &
+            &                                 defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
+            &                                )                                                                               &
+            &      )
        ! Initialize the tabulations.
        call Dark_Matter_Profile_NFW_Tabulate
        call Dark_Matter_Profile_NFW_Inverse_Angular_Momentum

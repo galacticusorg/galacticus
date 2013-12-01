@@ -154,16 +154,20 @@ contains
        ! Define the radiation structure.
        call radiation%define([radiationTypeCMB])
        ! Check that required properties have required attributes.       
-       if     (                                                                                                                  &
-            &   accretionHalosSimpleAccreteNewGrowthOnly                                                                         &
-            &  .and.                                                                                                             &
-            &   .not.defaultBasicComponent%massMaximumIsGettable()                                                               &
-            & ) call Galacticus_Error_Report(                                                                                    &
-            &                                'Accretion_Halos_Simple_Initialize'                                               , &
-            &                                'accretionHalosSimpleAccreteNewGrowthOnly=true requires that the "massMaximum" '//  &
-            &                                'property of the basic component be gettable'                                       &
-            &                               )
-
+       if     (                                                                                                      &
+            &   accretionHalosSimpleAccreteNewGrowthOnly                                                             &
+            &  .and.                                                                                                 &
+            &   .not.defaultBasicComponent%massMaximumIsGettable()                                                   &
+            & ) call Galacticus_Error_Report                                                                         &
+            &   (                                                                                                    &
+            &    'Accretion_Halos_Simple_Initialize'                                                               , &
+            &    'AccretionHalosSimpleAccreteNewGrowthOnly=true requires that the "massMaximum" '//                  &
+            &    'property of the basic component be gettable.'                                  //                  &
+            &    Galacticus_Component_List(                                                                          &
+            &                              'basic'                                                                 , &
+            &                               defaultBasicComponent%massMaximumAttributeMatch(requireGettable=.true.)  &
+            &                             )                                                                          &
+            &   )
     end if
     return
   end subroutine Accretion_Halos_Simple_Initialize

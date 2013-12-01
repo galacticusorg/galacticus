@@ -40,6 +40,7 @@ contains
     !% Initializes the module by determining whether or not descendent data should be output.
     use Input_Parameters
     use Galacticus_Error
+    use ISO_Varying_String
     implicit none
 
     if (.not.outputFInalDescendentsInitialized) then
@@ -57,11 +58,20 @@ contains
           !@   <group>output</group>
           !@ </inputParameter>
           call Get_Input_Parameter('outputFinalDescendentIndices',outputFinalDescendentIndices,defaultValue=.false.)
-          
-          ! Ensure that the Satellite_Time_Of_Merging property is gettable.
-          if (outputFinalDescendentIndices.and..not.defaultSatelliteComponent%timeOfMergingIsGettable()) &
-               & call Galacticus_Error_Report('Galacticus_Output_Tree_Final_Descendents_Initialize','the satellite timeOfMerging property must be gettable to output descendent indices')
-          
+          ! Ensure that the satellite timeOfMerging property is gettable.
+          if     (                                                                                                                &
+               &   outputFinalDescendentIndices                                                                                   &
+               &  .and.                                                                                                           &
+               &   .not.defaultSatelliteComponent%timeOfMergingIsGettable()                                                       &
+               & ) call Galacticus_Error_Report                                                                                   &
+               &        (                                                                                                         &
+               &         'Galacticus_Output_Tree_Final_Descendents_Initialize'                                                  , &
+               &         'the satellite timeOfMerging property must be gettable to output descendent indices.'//                  &
+               &         Galacticus_Component_List(                                                                               &
+               &                                   'satellite'                                                                  , &
+               &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)  &
+               &                                  )                                                                               &
+               &        )
           ! Flag that module is now initialized.
           outputFinalDescendentsInitialized=.true.
        end if

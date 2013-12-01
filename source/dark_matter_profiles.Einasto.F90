@@ -111,6 +111,7 @@ contains
     !% Initializes the ``Einasto'' halo profile module.
     use ISO_Varying_String
     use Galacticus_Error
+    use Array_Utilities
     implicit none
     type     (varying_string                                           ), intent(in   )          :: darkMatterProfileMethod
     procedure(Dark_Matter_Profile_Density_Einasto                      ), intent(inout), pointer :: Dark_Matter_Profile_Density_Get
@@ -139,12 +140,24 @@ contains
        Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Get         => Dark_Matter_Profile_Freefall_Radius_Increase_Rate_Einasto
        ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
        ! a treeNode to process, it should have been initialized by now.
-       if (.not.defaultDarkMatterProfileComponent%scaleIsGettable()) call &
-            & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
-            & profile component that supports the "scale" property')
-       if (.not.defaultDarkMatterProfileComponent%shapeIsGettable()) call &
-            & Galacticus_Error_Report('Dark_Matter_Profile_Einasto_Initialize','Einasto dark matter profile requires a dark matter&
-            & profile component that supports the "shape" property')
+       if     (                                                                                                                 &
+            &  .not.(                                                                                                           &
+            &         defaultDarkMatterProfileComponent%scaleIsGettable()                                                       &
+            &        .and.                                                                                                      &
+            &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                       &
+            &       )                                                                                                           &
+            & ) call Galacticus_Error_Report                                                                                    &
+            &        (                                                                                                          &
+            &         'Dark_Matter_Profile_Einasto_Initialize'                                                                , &
+            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//          &
+            &         '"scale" and "shape" properties.'                                                             //          &
+            &         Galacticus_Component_List(                                                                                &
+            &                                   'darkMatterProfile'                                                           , &
+            &                                    defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)  &
+            &                                   .intersection.                                                                  &
+            &                                    defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)  &
+            &                                  )                                                                                &
+            &        )
     end if
     return
   end subroutine Dark_Matter_Profile_Einasto_Initialize

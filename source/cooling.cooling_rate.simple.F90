@@ -40,8 +40,8 @@ contains
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type     (varying_string     ), intent(in   )          :: coolingRateMethod
-    procedure(Cooling_Rate_Simple), intent(inout), pointer :: Cooling_Rate_Get
+    type     (varying_string     ), intent(in   )               :: coolingRateMethod
+    procedure(Cooling_Rate_Simple), intent(inout), pointer      :: Cooling_Rate_Get
 
     if (coolingRateMethod == 'simple') then
        Cooling_Rate_Get => Cooling_Rate_Simple
@@ -58,12 +58,15 @@ contains
        !@   <cardinality>1</cardinality>
        !@ </inputParameter>
        call Get_Input_Parameter('coolingRateSimpleTimescale',coolingRateSimpleTimescale,defaultValue=1.0d0)
-
        ! Check that the properties we need are gettable.
-       if (.not.defaultHotHaloComponent%massIsGettable())                                 &
-            & call Galacticus_Error_Report(                                               &
-            &                              'Cooling_Rate_Simple_Initialize'             , &
-            &                              'hot halo component must have gettable mass'   &
+       if (.not.defaultHotHaloComponent%massIsGettable())                                                                                &
+            & call Galacticus_Error_Report(                                                                                              &
+            &                              'Cooling_Rate_Simple_Initialize'                                                             ,&
+            &                              'Hot halo component must have gettable mass.'//                                               &
+            &                              Galacticus_Component_List(                                                                    &
+            &                                                        'hotHalo'                                                         , &
+            &                                                        defaultHotHaloComponent%massAttributeMatch(requireGettable=.true.)  &
+            &                                                        )                                                                   &
             &                             )
     end if
     return

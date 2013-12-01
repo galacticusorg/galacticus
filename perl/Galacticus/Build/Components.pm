@@ -192,6 +192,8 @@ sub Components_Generate_Output {
 	    \&Generate_Deferred_GSR_Function                         ,
 	    # Generate functions for getting/setting/rating value directly.
 	    \&Generate_GSR_Functions                                 ,
+	    # Generate functions for returning which components support getting/setting/rating.
+	    \&Generate_GSR_Availability_Functions                    ,
 	    # Insert code for type-definitions.
 	    \&Insert_Type_Definitions                                ,
 	    # Generate module status.
@@ -5816,6 +5818,91 @@ sub Generate_Tree_Node_Builder_Function {
 	@{$buildData->{'code'}->{'functions'}},
 	$functionCode
 	);
+}
+
+sub Generate_GSR_Availability_Functions {
+    # Generate functions to return text described which components support setting/getting/rating of a particular property.
+    my $buildData = shift;
+    # Iterate over classes.
+    foreach my $componentClassName ( @{$buildData->{'componentClassList'}} ) {
+	# Initialize a structure of properties.
+	my $properties;
+	# Iterate over class members.
+	foreach my $componentName ( @{$buildData->{'componentClasses'}->{$componentClassName}->{'members'}} ) {
+	    # Get the component.
+	    my $componentID = ucfirst($componentClassName).ucfirst($componentName);
+	    my $component   = $buildData->{'components'}->{$componentID};
+	    # Iterate over the properties of this implementation.
+	    foreach my $propertyName ( keys(%{$component->{'properties'}->{'property'}}) ) {
+		# Get the property.
+		my $property = $component->{'properties'}->{'property'}->{$propertyName};
+		# Record attributes.
+		$properties->{$propertyName}->{$componentName}->{'set' } = $property->{'attributes'}->{'isSettable' }; 
+		$properties->{$propertyName}->{$componentName}->{'get' } = $property->{'attributes'}->{'isGettable' }; 
+		$properties->{$propertyName}->{$componentName}->{'rate'} = $property->{'attributes'}->{'isEvolvable'}; 
+	    }
+	}
+	# Iterate over properties, creating a function for each.
+	foreach my $propertyName ( keys(%{$properties}) ) {
+	    my $property = $properties->{$propertyName};
+	    my $functionName = $componentClassName.ucfirst($propertyName)."AttributeMatch";
+	    my $functionCode;
+	    $functionCode  = "  function ".$functionName."(requireSettable,requireGettable,requireEvolvable)\n";
+	    $functionCode .= "   !% Return a text list of component implementations in the {\\tt ".$componentClassName."} class that have the desired attributes for the {\\tt ".$propertyName."} property\n";
+	    $functionCode .= "   use ISO_Varying_String\n";
+	    $functionCode .= "   implicit none\n";
+	    $functionCode .= "   type   (varying_string), allocatable  , dimension(:) :: ".$functionName."\n";
+	    $functionCode .= "   logical                , intent(in   ), optional     :: requireSettable      , requireGettable      , requireEvolvable\n";
+	    $functionCode .= "   logical                                              :: requireSettableActual, requireGettableActual, requireEvolvableActual\n";
+	    $functionCode .= "   type   (varying_string), allocatable  , dimension(:) :: temporaryList\n\n";
+	    $functionCode .= "   requireSettableActual =.false.\n";
+	    $functionCode .= "   requireGettableActual =.false.\n";
+	    $functionCode .= "   requireEvolvableActual=.false.\n";
+	    $functionCode .= "   if (present(requireSettable)) requireSettableActual =requireSettable\n";
+	    $functionCode .= "   if (present(requireSettable)) requireGettableActual =requireGettable\n";
+	    $functionCode .= "   if (present(requireSettable)) requireEvolvableActual=requireEvolvable\n";
+	    # Iterate over component implementations.
+	    foreach my $componentName ( sort(keys(%{$property})) ) {
+		my $component = $property->{$componentName};
+		my @logic;
+		push(@logic,".not.requireSettableActual" )
+		    if ( $component->{'set' } eq "false" );
+		push(@logic,".not.requireGettableActual" )
+		    if ( $component->{'get' } eq "false" );
+		push(@logic,".not.requireEvolvableActual")
+		    if ( $component->{'rate'} eq "false" );
+		my $logicCode;
+		if ( @logic ) {
+		    $logicCode .= "   if (".join(".and.",@logic).") then\n";
+		}
+		$functionCode .= $logicCode
+		    if ( defined($logicCode) );
+		$functionCode .= "    if (allocated(".$functionName.")) then\n";
+		$functionCode .= "     call Move_Alloc(".$functionName.",temporaryList)\n";
+		$functionCode .= "     allocate(".$functionName."(size(temporaryList)+1))\n";
+		$functionCode .= "     ".$functionName."(1:size(temporaryList))=temporaryList\n";
+		$functionCode .= "     deallocate(temporaryList)\n";
+		$functionCode .= "    else\n";
+		$functionCode .= "     allocate(".$functionName."(1))\n";
+		$functionCode .= "    end if\n";
+		$functionCode .= "    ".$functionName."(size(".$functionName."))='".$componentName."'\n";
+		$functionCode .= "   end if\n"
+		    if ( defined($logicCode) );
+	    }
+	    $functionCode .= "   return\n";
+	    $functionCode .= "  end function ".$functionName."\n\n";
+	    # Insert into the function list.
+	    push(
+		@{$buildData->{'code'}->{'functions'}},
+		$functionCode
+		);
+	    # Bind this function to the relevant type.
+	    push(
+		@{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentClassName)}->{'boundFunctions'}},
+		{type => "procedure", pass => "nopass", name => $propertyName."AttributeMatch", function => $functionName}
+		);
+	}
+    }
 }
 
 sub Generate_Type_Name_Functions {
