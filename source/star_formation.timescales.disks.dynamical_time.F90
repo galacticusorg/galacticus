@@ -38,6 +38,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Galacticus_Nodes
+    use Array_Utilities
     implicit none
     type     (varying_string                               ), intent(in   )          :: starFormationTimescaleDisksMethod
     procedure(Star_Formation_Timescale_Disk_Dynamical_Time ), intent(inout), pointer :: Star_Formation_Timescale_Disk_Get
@@ -81,10 +82,24 @@ contains
        !@   <group>starFormation</group>
        !@ </inputParameter>
        call Get_Input_Parameter('starFormationDiskMinimumTimescale',starFormationDiskMinimumTimescale,defaultValue=1.0d-3)
-
        ! Check that required properties are gettable.
-       if (.not.defaultDiskComponent%velocityIsGettable()) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Dynamical_Time_Initialize','Tree_Node_Disk_Velocity must be gettable')
-       if (.not.defaultDiskComponent%radiusIsGettable  ()) call Galacticus_Error_Report('Star_Formation_Timescale_Disks_Dynamical_Time_Initialize','Tree_Node_Disk_Radius must be gettable')
+       if     (                                                                                                       &
+            &  .not.(                                                                                                 &
+            &         defaultDiskComponent%velocityIsGettable()                                                       &
+            &        .and.                                                                                            &
+            &         defaultDiskComponent%  radiusIsGettable()                                                       &
+            &       )                                                                                                 &
+            & ) call Galacticus_Error_Report                                                                          &
+            &        (                                                                                                &
+            &         'Star_Formation_Timescale_Disks_Dynamical_Time_Initialize'                                    , &
+            &         'disk component must have gettable radius and velocity properties.'//                           &
+            &         Galacticus_Component_List(                                                                      &
+            &                                   'disk'                                                              , &
+            &                                    defaultDiskComponent%velocityAttributeMatch(requireGettable=.true.)  &
+            &                                   .intersection.                                                        &
+            &                                    defaultDiskComponent%  radiusAttributeMatch(requireGettable=.true.)  &
+            &                                  )                                                                      &
+            &        )
     end if
     return
   end subroutine Star_Formation_Timescale_Disks_Dynamical_Time_Initialize

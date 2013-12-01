@@ -35,6 +35,7 @@ contains
     use Galacticus_Nodes
     use ISO_Varying_String
     use Galacticus_Error
+    use Array_Utilities
     implicit none
     type     (varying_string                        ), intent(in   )          :: coolingSpecificAngularMomentumMethod
     procedure(Cooling_Specific_Angular_Momentum_Mean), intent(inout), pointer :: Cooling_Specific_Angular_Momentum_Get
@@ -42,12 +43,22 @@ contains
     if (coolingSpecificAngularMomentumMethod == 'mean') then
        Cooling_Specific_Angular_Momentum_Get => Cooling_Specific_Angular_Momentum_Mean
        ! Check that the required properties are gettable.
-       if     (                                                               &
-            &  .not.(                                                         &
-            &        defaultHotHaloComponent%           massIsGettable().and. &
-            &        defaultHotHaloComponent%angularMomentumIsGettable()      &
-            &       )                                                         &
-            & ) call Galacticus_Error_Report('Cooling_Specific_AM_Mean_Initialize','this method requires that the "mass" and "angularMomentum" properties of the hot halo be gettable')
+       if     (                                                                                                                 &
+            &  .not.(                                                                                                           &
+            &        defaultHotHaloComponent%           massIsGettable().and.                                                   &
+            &        defaultHotHaloComponent%angularMomentumIsGettable()                                                        &
+            &       )                                                                                                           &
+            & ) call Galacticus_Error_Report                                                                                    &
+            &        (                                                                                                          &
+            &         'Cooling_Specific_AM_Mean_Initialize'                                                                   , &
+            &         'this method requires that the "mass" and "angularMomentum" properties of the hot halo be gettable.'//    &
+            &         Galacticus_Component_List(                                                                                &
+            &                                   'hotHalo'                                                                     , &
+            &                                    defaultHotHaloComponent%           massAttributeMatch(requireGettable=.true.)  &
+            &                                   .intersection.                                                                  &
+            &                                    defaultHotHaloComponent%angularMomentumAttributeMatch(requireGettable=.true.)  &
+            &                                  )                                                                                &
+            &        )
     end if
     return
   end subroutine Cooling_Specific_AM_Mean_Initialize
