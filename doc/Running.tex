@@ -45,6 +45,14 @@ Each {\tt parameter} element contains {\tt name} and {\tt value} elements which 
 
 All parameter values (both those specified in this file and those set to default) used during a \glc\ run are output to the {\tt Parameters} group within the \glc\ output file. The script {\tt scripts/aux/Extract\_Parameter\_File.pl} will, if given a \glc\ output file, extract the parameters from it and output them into an XML file suitable for re-input into \glc. If parameters are present in the parameter file which do not match any known parameter in \glc\ then a warning message, listing all unknown parameters, will be given when \glc\ is run. Note that this will \emph{not} prevent \glc\ from running---sometimes it is convenient to include parameters which are not used by \glc, but which might be used by some other code.
 
+\subsection{Validating Parameter Files}\index{parameters!validating}
+
+A script, {\tt scripts/aux/validateParameters.pl}, is provided to validate parameter files and thereby ensure that they are consistent with \glc's expectations and requirements. To use simply execute:
+\begin{verbatim}
+ scripts/aux/validateParameters.pl myParameters.xml
+\end{verbatim}
+No output (and an exit value of 0) indicates a valid parameter file. Invalid parameter files will result in an exit value other than 0 and will produce error messages that should help to track down the problem with the file.
+
 \subsection{Generating Parameter Files}\index{parameters!generating}
 
 Some scripts are provided which assist in the generation of parameter files. These are located in the {\tt scripts/parameters/} folder and are detailed below:
