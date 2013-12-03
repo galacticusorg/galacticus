@@ -99,7 +99,6 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     $postBlocks{"deallocCode"} .= "  use Galacticus_Display\n";
     $postBlocks{"deallocCode"} .= "  use ISO_Varying_String\n";
     $postBlocks{"deallocCode"} .= "  use String_Handling\n";
-    $postBlocks{"deallocCode"} .= "  use Galacticus_Error\n";
     $postBlocks{"deallocCode"} .= "  implicit none\n";
     my $c1_width = 8;
     if ( length($typeName) > $c1_width ) {$c1_width = length($typeName)};
