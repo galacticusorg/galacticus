@@ -33,7 +33,7 @@ contains
     use ISO_Varying_String
     implicit none
     type     (varying_string  ), intent(in   )          :: powerSpectrumNonlinearMethod
-    procedure(double precision), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
+    procedure(Power_Spectrum_Nonlinear_Linear), intent(inout), pointer :: Power_Spectrum_Nonlinear_Get
 
     if (powerSpectrumNonlinearMethod == 'linear') Power_Spectrum_Nonlinear_Get => Power_Spectrum_Nonlinear_Linear
     return
