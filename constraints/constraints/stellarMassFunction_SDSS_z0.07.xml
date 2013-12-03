@@ -1,0 +1,10 @@
+<!-- Defines a constraint to match to the z=0.07 stellar mass function. -->
+<constraint>
+  <name>SDSS z0.07 stellar mass function</name>
+  <label>sdssStellarMassFunctionZ0.07</label>
+  <outputRedshift>0.07</outputRedshift>
+  <haloMassResolution>1.0e8</haloMassResolution>
+  <haloMassMinimum>2.0e08</haloMassMinimum>
+  <haloMassMaximum>1.0e15</haloMassMaximum>
+  <analysis>constraints/scripts/stellarMassFunction_SDSS_z0.07.pl</analysis>
+</constraint>
