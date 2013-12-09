@@ -2928,7 +2928,7 @@ sub Generate_Implementation_Dump_Functions {
 		},
 		{
 		    intrinsic  => "character",
-		    type       => "len=12",
+		    type       => "len=18",
 		    variables  => [ "label" ]
 		}
 		);
