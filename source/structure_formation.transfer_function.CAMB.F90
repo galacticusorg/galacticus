@@ -15,14 +15,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which generates a tabulated transfer function using {\sc CMBFast}.
+!% Contains a module which generates a tabulated transfer function using \href{http://camb.info}{\sc CAMB}.
 
-module Transfer_Function_CMBFast
-  !% Implements generation of a tabulated transfer function using {\sc CMBFast}.
+module Transfer_Function_CAMB
+  !% Implements generation of a tabulated transfer function using \href{http://camb.info}{\sc CAMB}.
   use ISO_Varying_String
   implicit none
   private
-  public :: Transfer_Function_CMBFast_Initialize
+  public :: Transfer_Function_CAMB_Initialize
 
   ! Flag to indicate if this module has been initialized.
   logical                                     :: transferFunctionInitialized=.false.
@@ -36,21 +36,21 @@ module Transfer_Function_CMBFast
 contains
 
   !# <transferFunctionMethod>
-  !#  <unitName>Transfer_Function_CMBFast_Initialize</unitName>
+  !#  <unitName>Transfer_Function_CAMB_Initialize</unitName>
   !# </transferFunctionMethod>
-  subroutine Transfer_Function_CMBFast_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
-    !% Initializes the ``transfer function from CMBFast'' module.
+  subroutine Transfer_Function_CAMB_Initialize(transferFunctionMethod,Transfer_Function_Tabulate)
+    !% Initializes the ``transfer function from CAMB'' module.
     implicit none
-    type     (varying_string                ), intent(in   )          :: transferFunctionMethod
-    procedure(Transfer_Function_CMBFast_Make), intent(inout), pointer :: Transfer_Function_Tabulate
+    type     (varying_string             ), intent(in   )          :: transferFunctionMethod
+    procedure(Transfer_Function_CAMB_Make), intent(inout), pointer :: Transfer_Function_Tabulate
 
-    if (transferFunctionMethod == 'CMBFast') Transfer_Function_Tabulate => Transfer_Function_CMBFast_Make
+    if (transferFunctionMethod == 'CAMB') Transfer_Function_Tabulate => Transfer_Function_CAMB_Make
     return
-  end subroutine Transfer_Function_CMBFast_Initialize
+  end subroutine Transfer_Function_CAMB_Initialize
 
-  subroutine Transfer_Function_CMBFast_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
+  subroutine Transfer_Function_CAMB_Make(logWavenumber,transferFunctionNumberPoints,transferFunctionLogWavenumber&
        &,transferFunctionLogT)
-    !% Build a transfer function using {\sc CMBFast}.
+    !% Build a transfer function using \href{http://camb.info}{\sc CAMB}.
     use FoX_wxml
     use System_Command
     use Transfer_Functions_File
@@ -72,15 +72,15 @@ contains
 
     ! Generate the name of the data file and an XML input parameter file.
     !# <uniqueLabel>
-    !#  <function>Transfer_Function_CMBFast_Label</function>
+    !#  <function>Transfer_Function_CAMB_Label</function>
     !#  <ignore>transferFunctionFile</ignore>
     !# </uniqueLabel>
-    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CMBFast_'//Transfer_Function_CMBFast_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
+    transferFunctionFile=char(Galacticus_Input_Path())//'data/largeScaleStructure/transfer_function_CAMB_'//Transfer_Function_CAMB_Label(includeSourceDigest=.true.,asHash=.true.,parameters=dependentParameters)//".xml"
     parameterFile=char(Galacticus_Input_Path())//'data/transfer_function_parameters.xml'
     call xml_OpenFile(char(parameterFile),parameterDoc)
     call xml_NewElement(parameterDoc,"parameters")
     call xml_NewElement(parameterDoc,"uniqueLabel")
-    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CMBFast_Label(includeSourceDigest=.true.)))
+    call xml_AddCharacters(parameterDoc,char(Transfer_Function_CAMB_Label(includeSourceDigest=.true.)))
     call xml_EndElement(parameterDoc,"uniqueLabel")
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     call Write_Parameter_XML(parameterDoc,"Y_He",parameterLabel)
@@ -99,9 +99,9 @@ contains
     end if
     ! Read the file if this module has not been initialized or if the wavenumber is out of range.
     if (makeFile) then
-       ! Run CMBFast wrapper script.
+       ! Run CAMB wrapper script.
        write (wavenumberLabel,'(e12.6)') exp(max(logWavenumber+1.0d0,logWavenumberMaximumDefault))
-       command=char(Galacticus_Input_Path())//'scripts/aux/CMBFast_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)//' '//Transfer_Function_Named_File_Format_Version()
+       command=char(Galacticus_Input_Path())//'scripts/aux/CAMB_Driver.pl '//parameterFile//' '//transferFunctionFile//' '//trim(wavenumberLabel)//' '//Transfer_Function_Named_File_Format_Version()
        call System_Command_Do(command)
 
        ! Flag that transfer function is now initialized.
@@ -116,6 +116,6 @@ contains
     command='rm -f '//parameterFile
     call System_Command_Do(command)
     return
-  end subroutine Transfer_Function_CMBFast_Make
+  end subroutine Transfer_Function_CAMB_Make
 
-end module Transfer_Function_CMBFast
+end module Transfer_Function_CAMB
