@@ -20,6 +20,7 @@
 module Galacticus_Error
   !% Implements error reporting for the {\sc Galacticus} package.
   use HDF5
+  use Semaphores
   implicit none
   private
   public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register, Galacticus_Component_List
@@ -71,6 +72,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
+    call Semaphore_Post_On_Error()
     call Abort()
     return
   end subroutine Galacticus_Error_Report_Char
@@ -105,6 +107,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
+    call Semaphore_Post_On_Error()
     call Abort()
     return
   end subroutine Galacticus_Signal_Handler_SIGINT
@@ -124,6 +127,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
+    call Semaphore_Post_On_Error()
     call Abort()
     return
   end subroutine Galacticus_Signal_Handler_SIGSEGV
@@ -143,6 +147,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
+    call Semaphore_Post_On_Error()
     call Abort()
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
@@ -169,6 +174,7 @@ contains
     call Flush(0)
     call H5Close_F(error)
     call H5Close_C()
+    call Semaphore_Post_On_Error()
     call Abort()
     return
   end subroutine Galacticus_GSL_Error_Handler

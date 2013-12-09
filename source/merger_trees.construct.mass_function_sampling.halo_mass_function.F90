@@ -22,6 +22,9 @@ module Merger_Trees_Mass_Function_Sampling_Halo_MF
   private
   public :: Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
+  ! Limits on abundance.
+  double precision :: haloMassFunctionSamplingAbundanceMinimum, haloMassFunctionSamplingAbundanceMaximum
+
 contains
 
   !# <haloMassFunctionSamplingMethod>
@@ -30,11 +33,36 @@ contains
   subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize(haloMassFunctionSamplingMethod,Merger_Tree_Construct_Mass_Function_Sampling_Get)
     !% Initializes the ``haloMassFunction'' halo mass function sampling method.
     use ISO_Varying_String
+    use Input_Parameters
     implicit none
     type     (varying_string  ), intent(in   )          :: haloMassFunctionSamplingMethod
     procedure(Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF), intent(inout), pointer :: Merger_Tree_Construct_Mass_Function_Sampling_Get
 
-    if (haloMassFunctionSamplingMethod == 'haloMassFunction') Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
+    if (haloMassFunctionSamplingMethod == 'haloMassFunction') then
+       Merger_Tree_Construct_Mass_Function_Sampling_Get => Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingAbundanceMinimum</name>
+       !@   <defaultValue>-1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The abundance (in units of Mpc$^{-3}$) below which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMinimum',haloMassFunctionSamplingAbundanceMinimum,defaultValue=-1.0d0)
+       !@ <inputParameter>
+       !@   <name>haloMassFunctionSamplingAbundanceMaximum</name>
+       !@   <defaultValue>-1</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The abundance (in units of Mpc$^{-3}$) above which to truncate the halo mass function when sampling halo masses for tree construction. A negative value indicates no truncation.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('haloMassFunctionSamplingAbundanceMaximum',haloMassFunctionSamplingAbundanceMaximum,defaultValue=-1.0d0)
+    end if
     return
   end subroutine Merger_Trees_Mass_Function_Sampling_Halo_MF_Initialize
 
@@ -45,7 +73,19 @@ contains
     double precision, intent(in   ) :: mass, massMaximum, massMinimum, time
 
     Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF=mass*Halo_Mass_Function_Differential(time,mass)
-    return
+    if (haloMassFunctionSamplingAbundanceMinimum > 0.0d0)             &
+         & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
+         & =max(                                                      &
+         &      Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF, &
+         &      haloMassFunctionSamplingAbundanceMinimum              &
+         &     )
+    if (haloMassFunctionSamplingAbundanceMaximum > 0.0d0)             &
+         & Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF       &
+         & =min(                                                      &
+         &      Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF, &
+         &      haloMassFunctionSamplingAbundanceMaximum              &
+         &     )
+   return
   end function Merger_Tree_Construct_Mass_Function_Sampling_Halo_MF
 
 end module Merger_Trees_Mass_Function_Sampling_Halo_MF
