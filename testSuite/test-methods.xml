@@ -302,15 +302,15 @@
     </parameter>
   </parameters>
   <parameters>
-    <!-- <parameter> -->
-    <!--   <name>transferFunctionFile</name> -->
-    <!--   <value>??????</value> -->
-    <!-- </parameter> -->
+    <parameter>
+      <name>transferFunctionFile</name>
+      <value>data/largeScaleStructure/transferFunctionMillenniumSimulation.xml</value>
+    </parameter>
     <parameter>
       <name>transferFunctionMethod</name>
-      <!-- <value>file</value> -->
+      <value>file</value>
       <value>BBKS</value>
-      <value>CMBFast</value>
+      <value>CAMB</value>
       <value>Eisenstein-Hu1999</value>
     </parameter>
   </parameters>

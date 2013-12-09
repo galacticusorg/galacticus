@@ -61,30 +61,30 @@ The function evaluating $f(x)$ must have a form compatible with that shown for {
 
 \section{Computation Dependencies and Data Files}\index{depdencies, computation}\index{labels, unique}\index{unique labels}
 
-In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\tt CMBFast} transfer function method (see \S\ref{sec:TransferFunction:CMBFast}), which computes a transfer function using {\sc CMBFast} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
+In many situations, some module in \glc\ might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the {\tt CAMB} transfer function method (see \S\ref{sec:TransferFunction:CAMB}), which computes a transfer function using {\sc CAMB} and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of \glc\ it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?). 
 
 To addres this problem, \glc\ provides a mechanism to generate a unique label for a given module. This label encodes the names of modules on which the module depends, and the names and values of any parameters used by those modules. Functions to consruct these labels can be generated automatically, and intelligently determine which specific implementation of any method is active in a given run.
 
-To create a unique labelling function, use the {\tt uniqueLabel} directive. For example, in the {\tt CMBFast} transfer function method the following code is used:
+To create a unique labelling function, use the {\tt uniqueLabel} directive. For example, in the {\tt CAMB} transfer function method the following code is used:
 \begin{verbatim}
  !# <uniqueLabel>
- !#  <function>Transfer_Function_CMBFast_Label</function>
+ !#  <function>Transfer_Function_CAMB_Label</function>
  !#  <ignore>transferFunctionFile</ignore>
  !#  <ignoreRegex>^imf.*</ignoreRegex>
  !#  <hashFile>myExtraFile.txt</hashFile>
  !# </uniqueLabel>
 \end{verbatim}
-This XML block specifies that the labelling function should be called {\tt Transfer\_Function\_CMBFast\_Label}. This function will be generated automatically during \glc\ build and will be available from the {\tt Input\_Parameters} module. The {\tt ignore} element specifies that the function should not encode the value of the {\tt transferFunctionFile} parameter in the label (in this case, the {\tt CMBFast} method sets the file name directly). Similarly, the {\tt ignoreRegex} element specifies that the function should not encode the value of any parameter which matches the regular expression provided (in this case, any parameter that begins with ``{\tt imf}''). Any number of {\tt ignore} and {\tt ignoreRegex} elements may be present. Finally, a {\tt hashFile} element specifies the name of a file on which this calculation depends, but which will not be detected automatically (see below). An MD5 digest of the file will be included in the label if the {\tt includeSourceDigest} argument is set to true.
+This XML block specifies that the labelling function should be called {\tt Transfer\_Function\_CAMB\_Label}. This function will be generated automatically during \glc\ build and will be available from the {\tt Input\_Parameters} module. The {\tt ignore} element specifies that the function should not encode the value of the {\tt transferFunctionFile} parameter in the label (in this case, the {\tt CAMB} method sets the file name directly). Similarly, the {\tt ignoreRegex} element specifies that the function should not encode the value of any parameter which matches the regular expression provided (in this case, any parameter that begins with ``{\tt imf}''). Any number of {\tt ignore} and {\tt ignoreRegex} elements may be present. Finally, a {\tt hashFile} element specifies the name of a file on which this calculation depends, but which will not be detected automatically (see below). An MD5 digest of the file will be included in the label if the {\tt includeSourceDigest} argument is set to true.
 
-The function returns a {\tt type(varying\_string)} object with the encoded label. For the {\tt CMBFast} method this might be:
+The function returns a {\tt type(varying\_string)} object with the encoded label. For the {\tt CAMB} method this might be:
 \begin{verbatim}
- write (0,*) char(Transfer_Function_CMBFast_Label())
+ write (0,*) char(Transfer_Function_CAMB_Label())
  
  ::cosmology.parameters.simple#Omega_b[0.0455]#Omega_Matter[0.2725]#Omega_DE[0.7275]#T_CMB[2.72548]#H_0[70.2]
 \end{verbatim}
 Note that the relevant cosmological parameters have been encoded into the label. If called with {\tt includeVersion=.true.} then the \glc\ version string is appended to the label:
 \begin{verbatim}
- write (0,*) char(Transfer_Function_CMBFast_Label(includeVersion=.true.))
+ write (0,*) char(Transfer_Function_CAMB_Label(includeVersion=.true.))
  
  ::cosmology.parameters.simple#Omega_b[0.0455]#Omega_Matter[0.2725]#Omega_DE[0.7275]#T_CMB[2.72548]#H_0[70.2]_v0.9.3.r2022
 \end{verbatim}
@@ -94,7 +94,7 @@ By setting the optional {\tt includeSourceDigest} argument to {\tt .true.}, an M
 
 Since the returned label can be long and cumbersome, if called with {\tt asHash=.true.} the labelling function will return an \gls{MD5hash} of the label
 \begin{verbatim}
- write (0,*) char(Transfer_Function_CMBFast_Label(includeVersion=.true.,asHash=.true.))
+ write (0,*) char(Transfer_Function_CAMB_Label(includeVersion=.true.,asHash=.true.))
  
  tudE3GawpjAXBzprr5azU0
 \end{verbatim}
