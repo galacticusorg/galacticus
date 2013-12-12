@@ -26,9 +26,9 @@ module Galacticus_Versioning
   ! Define the version.
   integer, parameter :: versionMajor   =0
   integer, parameter :: versionMinor   =9
-  integer, parameter :: versionRevision=2
+  integer, parameter :: versionRevision=3
 
-  ! Include the automatically generated Bazaar revision number.
+  ! Include the automatically generated Mercurial revision number.
   include 'galacticus.output.version.revision.inc'
 
 contains
@@ -41,7 +41,7 @@ contains
     type(varying_string) :: Galacticus_Version
 
     Galacticus_Version="v"
-    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision
+    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision//":"//hgHash
     return
   end function Galacticus_Version
 
@@ -75,6 +75,7 @@ contains
     call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
     call versionGroup%writeAttribute(versionRevision,'versionRevision')
     call versionGroup%writeAttribute(hgRevision     ,'hgRevision'     )
+    call versionGroup%writeAttribute(hgHash         ,'hgHash'         )
     runTime=Formatted_Date_and_Time()
     call versionGroup%writeAttribute(runTime        ,'runTime'        )
 
