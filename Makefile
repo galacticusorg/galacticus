@@ -195,8 +195,8 @@ vpath %.cpp source
 	@touch ./work/build/utility.memory_management.postcontain.inc
 
 # Rules for version routines.
-./work/build/galacticus.output.version.revision.inc: $(wildcard .bzr/branch/*)
-	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1} {if ((NR == 1 && NF == 3 ) || $$1 == "changeset") r=$$2} END {print "integer, parameter :: hgRevision="r}' > ./work/build/galacticus.output.version.revision.inc; else echo "integer, parameter :: hgRevision=-1" > ./work/build/galacticus.output.version.revision.inc; fi
+./work/build/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "changeset") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > ./work/build/galacticus.output.version.revision.inc; else echo 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""' > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:

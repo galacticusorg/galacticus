@@ -95,6 +95,7 @@ outputFile.hdf5
  |    +-> versionMinor                        Attribute {1}
  |    +-> versionRevision                     Attribute {1}
  |    +-> hgRevision                          Attribute {1}
+ |    +-> hgHash                              Attribute {1}
  |    +-> runByName                           Attribute {1}
  |    +-> runByEmail                          Attribute {1}
  |
@@ -147,7 +148,7 @@ The {\tt Parameters} group contains a record of all parameter values (either inp
 
 \subsection{Version}
 
-The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\sc Mercurial} revision (if the code is being maintained using {\sc Mercurial}, otherwise a value of $-1$ is entered). Additionally, the time at which the model was run is stored and, if the {\tt galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
+The {\tt Version} group contains a record of the \glc\ version used for this model, storing the major and minor version numbers, the revision number and the {\sc Mercurial} revision and hash (if the code is being maintained using {\sc Mercurial}, otherwise a value of $-1$ is entered or the revision and the hash attribute is empty). Additionally, the time at which the model was run is stored and, if the {\tt galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) is present and contains contact details, the name and e-mail address of the person who ran the model.
 
 \subsection{globalHistory}\label{sec:globalHistory}\index{history!global}\index{outputs!global history}
 
