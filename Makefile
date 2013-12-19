@@ -196,7 +196,7 @@ vpath %.cpp source
 
 # Rules for version routines.
 ./work/build/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
-	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "changeset") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > ./work/build/galacticus.output.version.revision.inc; else echo 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""' > ./work/build/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "changeset") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > ./work/build/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > ./work/build/galacticus.output.version.revision.inc; fi
 
 # Rules for build information routines.
 ./work/build/galacticus.output.build.environment.inc:
