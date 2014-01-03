@@ -21,7 +21,7 @@ module Vectors
   !% Implements calculations of vectors.
   implicit none
   private
-  public :: Vector_Magnitude, Vector_Product
+  public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product
 
 contains
 
@@ -45,5 +45,16 @@ contains
     vector3(3)=vector1(1)*vector2(2)-vector1(2)*vector2(1)
     return
   end function Vector_Product
+
+  pure function Vector_Outer_Product(vector1,vector2)
+    !% Returns the outer product of two vectors.
+    implicit none
+    double precision, dimension(:                          ), intent(in   ) :: vector1, vector2
+    double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product
+    integer                                                                 :: i
+
+    forall(i=1:size(vector1)) Vector_Outer_Product(i,:)=vector1(i)*vector2(:)
+    return
+  end function Vector_Outer_Product
 
 end module Vectors

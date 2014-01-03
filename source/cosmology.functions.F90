@@ -135,6 +135,18 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
+  !#  <method name="distanceLuminosity" >
+  !#   <description>Return the luminosity distance to the given cosmic {\tt time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#  </method>
+  !#  <method name="distanceAngular" >
+  !#   <description>Return the angular diameter distance to the given cosmic {\tt time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#  </method>
   !#  <method name="timeAtDistanceComoving" >
   !#   <description>Return the cosmic time corresponding to the given {\tt comovingDistance}.</description>
   !#   <type>double precision</type>
