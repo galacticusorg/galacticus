@@ -43,8 +43,6 @@ contains
 
   function laceyCole1993TormenDefaultConstructor()
     !% Default constructor for the \cite{cole_hierarchical_2000} merging timescale class.
-    use Galacticus_Display
-    use Input_Parameters
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993Tormen) :: laceyCole1993TormenDefaultConstructor
 
@@ -52,12 +50,15 @@ contains
     return
   end function laceyCole1993TormenDefaultConstructor
 
-  elemental subroutine laceyCole1993TormenDestructor(self)
-    !% Default constructor for the \cite{cole_hierarchical_2000} merging timescale class.
+  subroutine laceyCole1993TormenDestructor(self)
+    !% Destructor for the \cite{cole_hierarchical_2000} merging timescale class.
+    use Gaussian_Random
     implicit none
     type(satelliteMergingTimescalesLaceyCole1993Tormen), intent(inout) :: self
 
-    ! Nothing to do.
+    ! Destroy the random number object.
+    if (self%resetRandomSequence        ) call Gaussian_Random_Free(self%randomSequenceObject      )
+    if (self%resetRandomSequenceSnapshot) call Gaussian_Random_Free(self%clonedPseudoSequenceObject)
     return
   end subroutine laceyCole1993TormenDestructor
 

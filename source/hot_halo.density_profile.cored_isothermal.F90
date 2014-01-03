@@ -212,6 +212,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
     double precision                      , intent(in   )          :: moment                   , radius
+    double precision                      , parameter              :: radiusSmall=1.0d-3
     double precision                                               :: densityNormalization     , hotGasMass , &
          &                                                            radiusCore               , radiusOuter, &
          &                                                            radiusOuterOverRadiusCore
@@ -238,9 +239,19 @@ contains
 
     ! Compute the moment.
     if      (Values_Agree(moment,2.0d0,absTol=1.0d-3)) then
-       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=(radiusOuterOverRadiusCore-atan(radiusOuterOverRadiusCore))
+       ! Decide whether to use the full solution or a series approximation for small radii.
+       if (radiusOuterOverRadiusCore > radiusSmall) then
+          Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=(radiusOuterOverRadiusCore-atan(radiusOuterOverRadiusCore))
+       else
+          ! Decide whether to use the full solution or a series approximation for small radii.
+          Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=radiusOuterOverRadiusCore**3*(1.0d0/3.0d0-radiusOuterOverRadiusCore**2/5.0d0)
+       end if
     else if (Values_Agree(moment,3.0d0,absTol=1.0d-3)) then
-       Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=0.5d0*(radiusOuterOverRadiusCore**2-log(1.0d0+radiusOuterOverRadiusCore**2))
+       if (radiusOuterOverRadiusCore > radiusSmall) then
+          Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=0.5d0*(radiusOuterOverRadiusCore**2-log(1.0d0+radiusOuterOverRadiusCore**2))
+       else
+          Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get=radiusOuterOverRadiusCore**4*(1.0d0/4.0d0-radiusOuterOverRadiusCore**2/6.0d0)
+       end if
     else
        ! Abort for unsupported moments.
        call Galacticus_Error_Report('Hot_Halo_Profile_Radial_Moment_Cored_Isothermal_Get','only 2nd and 3rd moments are supported')
