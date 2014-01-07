@@ -278,15 +278,15 @@ sub Sample_Models {
     my $config    = shift;
     my %arguments = %{$_[0]};
     # Find the work directory.
-    my $workDirectory = $config->{'workDirectory'};
+    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
     # Get a hash of the parameter values.
     my $compilationFile;
     if ( exists($arguments{'compilationOverride'}) ) {
 	$compilationFile = $arguments{'compilationOverride'};
     } else {
-	$compilationFile = $config->{'compilation'};
+	$compilationFile = $config->{'likelihood'}->{'compilation'};
     }
-    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'baseParameters'});
+    (my $constraintsRef, my $parameters) = &Parameters::Compilation($compilationFile,$config->{'likelihood'}->{'baseParameters'});
     my @constraints = @{$constraintsRef};
     # Parse the statefile to find all parameter values sampled by the chains.
     my @chainParameters;
@@ -303,7 +303,8 @@ sub Sample_Models {
     # Select viable parameter sets.
     my @outlierChains = split(/,/,$arguments{'outliers'});
     my @chainParametersViable;
-    my $chainCount = $config->{'threads'};
+    my $chainCount = 0;
+    die('this code needs reimplementing to figure out the number of chains used');
     for(my $i=0;$i<scalar(@chainParameters);++$i) {
 	my $accept = 1;
 	$accept = 0
@@ -337,7 +338,7 @@ sub Sample_Models {
 	    my $currentConfig = clone($config);
 	    my $newParameters = &Convert_BIE_Parameters_To_Galacticus($currentConfig,@{$chainParametersViable[$j]});    
 	    # Increment the random number seed.
-	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'threadsPerNode'};
+	    $parameters->{'parameter'}->{'randomSeed'}->{'value'} += $config->{'likelihood'}->{'threads'};
 	    # Clone parameters.
 	    my $currentParameters = clone($parameters);
 	    # Apply to parameters.
@@ -358,25 +359,25 @@ sub Sample_Models {
 	    my $batchScriptFileName = $modelDirectory."/launch.pbs";
 	    open(oHndl,">".$batchScriptFileName);
 	    print oHndl "#!/bin/bash\n";
-	    print oHndl "#PBS -N ".$config->{'name'}."_ppc".$i."\n";
-	    print oHndl "#PBS -l walltime=".$config->{'walltimeLimit'}."\n"
-		if ( exists($config->{'walltimeLimit'}) );
-	    print oHndl "#PBS -l mem=".$config->{'memoryLimit'}."\n"
-		if ( exists($config->{'memoryLimit'}) );
-	    my $threadsPerNode = 1;
-	    $threadsPerNode = $config->{'threadsPerNode'}
-	    if ( exists($config->{'threadsPerNode'}) );
-	    print oHndl "#PBS -l nodes=1:ppn=".$threadsPerNode."\n";
+	    print oHndl "#PBS -N ".$config->{'likelihood'}->{'name'}."_ppc".$i."\n";
+	    print oHndl "#PBS -l walltime=".$config->{'likelihood'}->{'walltimeLimit'}."\n"
+		if ( exists($config->{'likelihood'}->{'walltimeLimit'}) );
+	    print oHndl "#PBS -l mem=".$config->{'likelihood'}->{'memoryLimit'}."\n"
+		if ( exists($config->{'likelihood'}->{'memoryLimit'}) );
+	    my $threads = 1;
+	    $threads = $config->{'likelihood'}->{'threads'}
+	    if ( exists($config->{'likelihood'}->{'threads'}) );
+	    print oHndl "#PBS -l nodes=1:ppn=".$threads."\n";
 	    print oHndl "#PBS -j oe\n";
 	    print oHndl "#PBS -o ".$modelDirectory."/launch.log\n";
 	    print oHndl "#PBS -V\n";
 	    print oHndl "cd \$PBS_O_WORKDIR\n";
-	    if ( exists($config->{'environment'}) ) {
+	    if ( exists($config->{'likelihood'}->{'environment'}) ) {
 		my @environment;
-		if ( UNIVERSAL::isa($config->{'environment'},"ARRAY") ) {
-		    push(@environment,@{$config->{'environment'}});
+		if ( UNIVERSAL::isa($config->{'likelihood'}->{'environment'},"ARRAY") ) {
+		    push(@environment,@{$config->{'likelihood'}->{'environment'}});
 		} else {
-		    push(@environment,  $config->{'environment'} );
+		    push(@environment,  $config->{'likelihood'}->{'environment'} );
 		}
 		foreach ( @environment ) {
 		    print oHndl "export ".$_."\n";
@@ -384,7 +385,7 @@ sub Sample_Models {
 	    }
 	    print oHndl "ulimit -t unlimited\n";
 	    print oHndl "ulimit -c unlimited\n";
-	    print oHndl "export OMP_NUM_THREADS=".$config->{'threadsPerNode'}."\n";
+	    print oHndl "export OMP_NUM_THREADS=".$config->{'likelihood'}->{'threads'}."\n";
 	    print oHndl "mpirun --bynode -np 1 Galacticus.exe ".$modelDirectory."parameters.xml\n";
 	    foreach my $constraint ( @constraints ) {
 		# Parse the definition file.

@@ -6,10 +6,10 @@
 PREPROCESSOR ?= cpp
 
 # Fortran compiler:
-FCCOMPILER ?= gfortran
+FCCOMPILER ?= mpif90
 
 # C compiler:
-CCOMPILER ?= gcc
+CCOMPILER ?= mpicc
 
 # C++ compiler:
 CPPCOMPILER ?= g++
@@ -22,7 +22,7 @@ CONDORLINKER =
 MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules
+FCFLAGS += -ffree-line-length-none -frecursive -J./work/build/ -I./work/build/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib
 # Fortran77 compiler flags:
 F77FLAGS = -g
 # Error checking flags

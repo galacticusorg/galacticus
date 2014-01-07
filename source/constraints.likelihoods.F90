@@ -1,0 +1,115 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements likelihoods for use when constraining \glc.
+
+module Constraints_Likelihoods
+  !% Implements likelihoods for use when constraining \glc.
+  use Linear_Algebra
+  use Constraints_State
+  use ISO_Varying_String
+  private
+  public :: likelihoodNew
+  
+  ! A very small log likelihood which is used as an approximation to zero likelihood.
+  double precision, parameter, public :: logImpossible=-1.0d30
+
+  ! Define the basic likelihood class.
+  type, abstract, public :: likelihood
+   contains
+     !@ <objectMethods>
+     !@   <object>likelihood</object>
+     !@   <objectMethod>
+     !@     <method>evaluate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin</arguments>
+     !@     <description>Evaluate the model likelihood at the given {\tt simulationState} and return the log-likelihood.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure(likelihoodEvaluate), deferred :: evaluate
+  end type likelihood
+
+  ! Interface for deferred functions.
+  abstract interface
+     double precision function likelihoodEvaluate(self,simulationState)
+       import :: likelihood, state
+       class(likelihood), intent(in   ) :: self
+       class(state     ), intent(in   ) :: simulationState
+     end function likelihoodEvaluate
+  end interface
+
+  ! Include all likelihood types.
+  include 'constraints.likelihoods.multivariate_normal.type.inc'
+  include 'constraints.likelihoods.Galacticus.type.inc'
+
+contains
+
+  function likelihoodNew(definition,configFileName) result (newLikelihood)
+    !% Create a new likelihood from an XML definition.
+    use FoX_DOM
+    use IO_XML
+    use ISO_Varying_String
+    use Galacticus_Error
+    use String_Handling
+    implicit none
+    class           (likelihood    ), pointer                     :: newLikelihood
+    type            (node          ), pointer    , intent(in   )  :: definition
+    type            (varying_string), optional   , intent(in   )  :: configFileName
+    type            (node          ), pointer                     :: likelihoodMeanDefinition, likelihoodCovarianceDefinition, &
+         &                                                           covarianceRow
+    type            (nodeList      ), pointer                     :: covarianceRows
+    double precision                , allocatable, dimension(:  ) :: likelihoodMean
+    double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
+    integer                                                       :: i, dimensionCount
+
+    select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
+    case ("multivariateNormal")
+       allocate(likelihoodMultivariateNormal :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodMultivariateNormal)
+          likelihoodMeanDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"mean"      )
+          likelihoodCovarianceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"covariance")
+          covarianceRows                 => getElementsByTagName(likelihoodCovarianceDefinition,"row")
+          dimensionCount=String_Count_Words(getTextContent(likelihoodMeanDefinition))
+          allocate(likelihoodMean      (dimensionCount               ))
+          allocate(likelihoodCovariance(dimensionCount,dimensionCount))
+          call extractDataContent(likelihoodMeanDefinition,likelihoodMean) 
+          do i=1,dimensionCount
+             covarianceRow => item(covarianceRows,i-1)
+             call extractDataContent(covarianceRow,likelihoodCovariance(i,:))
+          end do
+          newLikelihood=likelihoodMultivariateNormal(likelihoodMean,likelihoodCovariance)
+          deallocate(likelihoodMean      )
+          deallocate(likelihoodCovariance)
+       end select
+    case ("Galacticus")
+       allocate(likelihoodGalacticus :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodGalacticus)
+          newLikelihood%configFileName=configFileName
+       end select
+    case default
+       call Galacticus_Error_Report('likelihoodNew','likelihood type is unrecognized')
+    end select
+    return
+  end function likelihoodNew
+
+  ! Include all likelihood methods.
+  include 'constraints.likelihoods.multivariate_normal.methods.inc'
+  include 'constraints.likelihoods.Galacticus.methods.inc'
+
+end module Constraints_Likelihoods

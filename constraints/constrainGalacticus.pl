@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath = "./";
@@ -17,17 +17,22 @@ require File::Which;
 require File::NFSLock;
 require System::Redirect;
 require Galacticus::Constraints::Parameters;
+require List::ExtraUtils;
 
 # Finds constraints on Galacticus parameters.
 # Andrew Benson (02-September-2011)
 
 # Get command line arguments.
-die("Usage: constrainGalacticus.pl <workDirectory> <compilationFile> <parameterFile> <projectDirectory> [options]")
-    unless ( scalar(@ARGV) >= 4 );
-my $workDirectory    = $ARGV[0];
-my $compilationFile  = $ARGV[1];
-my $parameterFile    = $ARGV[2];
-my $projectDirectory = $ARGV[3];
+die("Usage: constrainGalacticus.pl <configFile> <workDirectory> <compilationFile> <parameterFile> <projectDirectory> [options]")
+    unless ( scalar(@ARGV) >= 5 );
+my $configFile       = $ARGV[0];
+my $workDirectory    = $ARGV[1];
+my $compilationFile  = $ARGV[2];
+my $parameterFile    = $ARGV[3];
+my $projectDirectory = $ARGV[4];
+
+# Parse the config file.
+my $config     = &Parameters::Parse_Config($configFile);
 
 # Create a hash of named arguments.
 my $iArg = -1;
@@ -36,8 +41,8 @@ my %arguments = (
     timing              => "no",
     output              => "stdout",
     galacticusFile      => "constrainGalacticus.hdf5",
-    galacticusSaveState => "no",
-    galacticusThreads   => 1,
+    saveState           => "no",
+    threads             => 1,
     reuseTrees          => "",
     suffix              => "",
     cleanUp             => "yes",
@@ -71,7 +76,7 @@ $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $workDirec
 
 # Set state file names.
 my $stateFileRoot;
-if ( $arguments{'galacticusSaveState'} eq "yes" ) {
+if ( $arguments{'saveState'} eq "yes" ) {
     $stateFileRoot = $workDirectory."/".$arguments{'galacticusFile'};
     $stateFileRoot =~ s/\.hdf5//;
     $parameters->{'parameter'}->{'stateFileRoot'}->{'value'} = $stateFileRoot;
@@ -164,9 +169,11 @@ if ( $arguments{'make'} eq "yes" ) {
 my $glcCommand;
 $glcCommand .= "ulimit -t ".$arguments{'cpulimit'}."; "
     if ( exists($arguments{'cpulimit'}) );
-$glcCommand .= "export OMP_NUM_THREADS=".$arguments{'galacticusThreads'}."; "
-    if ( exists($arguments{'galacticusThreads'}) );
-$glcCommand .= "ulimit -c unlimited; GFORTRAN_ERROR_DUMPCORE=YES; ./Galacticus.exe ".$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml";
+$glcCommand .= "export OMP_NUM_THREADS=".$arguments{'threads'}."; "
+    if ( exists($arguments{'threads'}) );
+$glcCommand .= "export ".$_."; "
+    foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
+$glcCommand .= "ulimit -c unlimited; ./Galacticus.exe ".$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml";
 my $logFile = $workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".log";
 SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
@@ -309,7 +316,7 @@ sub reportFailure {
 	    }
 	    closedir(dHndl);
 	    $tarCommand .= " ".$stateFileRoot.".*state*"
-		if ( $arguments{'galacticusSaveState'} eq "yes" );
+		if ( $arguments{'saveState'} eq "yes" );
 	    system($tarCommand);
 	}
     }
