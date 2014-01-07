@@ -54,6 +54,7 @@
      procedure :: logging   => simulatorDifferentialEvolutionLogging
      procedure :: posterior => simulatorDifferentialEvolutionPosterior
      procedure :: update    => simulatorDifferentialEvolutionUpdate
+     procedure :: stepSize  => simulatorDifferentialEvolutionStepSize
   end type simulatorDifferentialEvolution
   
   interface simulatorDifferentialEvolution

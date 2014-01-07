@@ -95,14 +95,11 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      stateVector=self%simulationState%get()
      statePair  =mpiSelf%requestData(chainPair,stateVector)
      ! Generate proposal.
-     stateVectorProposed= stateVector                                         &
-          &              +self%proposalSize%gamma(                            &
-          &                                       self%simulationState      , &
-          &                                       self%simulationConvergence  &
-          &                                      )                            &
-          &              *(                                                   &
-          &                +statePair(:,1)                                    &
-          &                -statePair(:,2)                                    &
+     stateVectorProposed= stateVector      &
+          &              +self%stepSize()  &
+          &              *(                &
+          &                +statePair(:,1) &
+          &                -statePair(:,2) &
           &               )
      ! Add random perturbations to the proposal.
      do i=1,self%parameterCount
@@ -208,3 +205,17 @@ double precision function simulatorDifferentialEvolutionPosterior(self,simulatio
        &  +self%modelLikelihood%evaluate(                     simulationState)
   return
 end function simulatorDifferentialEvolutionPosterior
+
+double precision function simulatorDifferentialEvolutionStepSize(self)
+  !% Return the step size parameter, $\gamma$, for a differential evolution step.
+  implicit none
+  class(simulatorDifferentialEvolution), intent(inout) :: self
+  
+  simulatorDifferentialEvolutionStepSize=self%                                               &
+       &                                      proposalSize%                                  &
+       &                                                   gamma(                            &
+       &                                                         self%simulationState      , &
+       &                                                         self%simulationConvergence  &
+       &                                                        )
+       return
+end function simulatorDifferentialEvolutionStepSize

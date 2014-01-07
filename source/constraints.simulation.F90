@@ -77,11 +77,12 @@ contains
     type            (node            ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorStepsPostConvergenceDefinition, &
          &                                                                               simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                               simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
-         &                                                                               simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition
+         &                                                                               simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
+         &                                                                               simulatorExponentDefinition
     integer                                                                           :: simulatorStepsMaximum                    , simulatorStepsPostConvergence          , &
          &                                                                               simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
          &                                                                               simulatorTemperingLevelCount             , simulatorStepsPerLevel
-    double precision                                                                  :: simulatorTemperatureMaximum
+    double precision                                                                  :: simulatorTemperatureMaximum              , simulatorExponent
     type            (varying_string  )                                                :: simulatorLogFile
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -114,21 +115,23 @@ contains
        allocate(simulatorTemperedDifferentialEvolution :: newSimulator)
        select type (newSimulator)
        type is (simulatorTemperedDifferentialEvolution)
-          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
-          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"  )
-          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
-          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
-          simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"    )
-          simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"   )
-          simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"        )
-          simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"         )
-         call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
+          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"            )
+          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"    )
+          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount"  )
+          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"             )
+          simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"      )
+          simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"     )
+          simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"          )
+          simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"           )
+          simulatorExponentDefinition               => XML_Get_First_Element_By_Tag_Name(definition,"gammaTemperatureExponent")
+          call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
           call extractDataContent(simulatorTemperatureMaximumDefinition    ,simulatorTemperatureMaximum    )
           call extractDataContent(simulatorUntemperedStepCountDefinition   ,simulatorUntemperedStepCount   )
           call extractDataContent(simulatorTemperingLevelCountDefinition   ,simulatorTemperingLevelCount   )
           call extractDataContent(simulatorStepsPerLevelDefinition         ,simulatorStepsPerLevel         )
+          call extractDataContent(simulatorExponentDefinition              ,simulatorExponent              )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorTemperedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
@@ -144,7 +147,8 @@ contains
                &                                              simulatorTemperatureMaximum    , &
                &                                              simulatorUntemperedStepCount   , &
                &                                              simulatorTemperingLevelCount   , &
-               &                                              simulatorStepsPerLevel           &
+               &                                              simulatorStepsPerLevel         , &
+               &                                              simulatorExponent                &
                &                                             )
        end select
      case default

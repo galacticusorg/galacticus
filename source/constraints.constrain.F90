@@ -58,8 +58,6 @@ contains
     !! AJB: TODO
     ! Document.
     ! Tempered evolution:
-    !   Tempering should increase the proposal step size as a function of temperature.   
-    !
     !   When tempering can we cheat: Instead of actually dividing the likelihood by the
     !   temperature, what if we just run a smaller number of merger tree realizations? This
     !   would make the model covariance matrix larger, giving the same effect as a higher
