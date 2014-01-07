@@ -21,11 +21,12 @@
      private
      integer          :: untemperedStepCount, temperingLevelCount, stepsPerLevel
      integer          :: temperingStep      , temperingLevel
-     double precision :: temperatureMaximum , temperature
+     double precision :: temperatureMaximum , temperature        , gammaTemperatureExponent
    contains
      procedure :: logging   => simulatorTemperedDifferentialEvolutionLogging
      procedure :: posterior => simulatorTemperedDifferentialEvolutionPosterior
      procedure :: update    => simulatorTemperedDifferentialEvolutionUpdate
+     procedure :: stepSize  => simulatorTemperedDifferentialEvolutionStepSize
   end type simulatorTemperedDifferentialEvolution
   
   interface simulatorTemperedDifferentialEvolution

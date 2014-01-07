@@ -19,7 +19,7 @@
 
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
           &,simulationState,proposalSize,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot,temperatureMaximum&
-          &,untemperedStepCount,temperingLevelCount,stepsPerLevel)
+          &,untemperedStepCount,temperingLevelCount,stepsPerLevel,gammaTemperatureExponent)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
@@ -29,30 +29,31 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
   class           (state                                 ), intent(in   ), target               :: simulationState
   class           (deProposalSize                        ), intent(in   ), target               :: proposalSize
-  double precision                                        , intent(in   )                       :: temperatureMaximum
-  integer                                                 , intent(in   )                       :: stepsMaximum          , stepsPostConvergence, &
-       &                                                                                           acceptanceAverageCount, untemperedStepCount , &
+  double precision                                        , intent(in   )                       :: temperatureMaximum    , gammaTemperatureExponent
+  integer                                                 , intent(in   )                       :: stepsMaximum          , stepsPostConvergence    , &
+       &                                                                                           acceptanceAverageCount, untemperedStepCount     , &
        &                                                                                           temperingLevelCount   , stepsPerLevel
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
 
-  simulatorTemperedDifferentialEvolutionConstructor%parameterCount        =  size(parameterPriors)
-  simulatorTemperedDifferentialEvolutionConstructor%parameterPriors       => parameterPriors
-  simulatorTemperedDifferentialEvolutionConstructor%randomDistributions   => randomDistributions
-  simulatorTemperedDifferentialEvolutionConstructor%modelLikelihood       => modelLikelihood
-  simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence => simulationConvergence
-  simulatorTemperedDifferentialEvolutionConstructor%simulationState       => simulationState
-  simulatorTemperedDifferentialEvolutionConstructor%proposalSize          => proposalSize
-  simulatorTemperedDifferentialEvolutionConstructor%stepsMaximum          =  stepsMaximum
-  simulatorTemperedDifferentialEvolutionConstructor%stepsPostConvergence  =  stepsPostConvergence
-  simulatorTemperedDifferentialEvolutionConstructor%acceptanceAverageCount=  acceptanceAverageCount
-  simulatorTemperedDifferentialEvolutionConstructor%logFileRoot           =  logFileRoot
-  simulatorTemperedDifferentialEvolutionConstructor%temperatureMaximum    =  temperatureMaximum
-  simulatorTemperedDifferentialEvolutionConstructor%untemperedStepCount   =  untemperedStepCount
-  simulatorTemperedDifferentialEvolutionConstructor%temperingLevelCount   =  temperingLevelCount
-  simulatorTemperedDifferentialEvolutionConstructor%stepsPerLevel         =  stepsPerLevel
-  simulatorTemperedDifferentialEvolutionConstructor%temperature           =  1.0d0
-  simulatorTemperedDifferentialEvolutionConstructor%temperingStep         =  0
-  simulatorTemperedDifferentialEvolutionConstructor%temperingLevel        =  0
+  simulatorTemperedDifferentialEvolutionConstructor%parameterCount           =  size(parameterPriors)
+  simulatorTemperedDifferentialEvolutionConstructor%parameterPriors          => parameterPriors
+  simulatorTemperedDifferentialEvolutionConstructor%randomDistributions      => randomDistributions
+  simulatorTemperedDifferentialEvolutionConstructor%modelLikelihood          => modelLikelihood
+  simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence    => simulationConvergence
+  simulatorTemperedDifferentialEvolutionConstructor%simulationState          => simulationState
+  simulatorTemperedDifferentialEvolutionConstructor%proposalSize             => proposalSize
+  simulatorTemperedDifferentialEvolutionConstructor%stepsMaximum             =  stepsMaximum
+  simulatorTemperedDifferentialEvolutionConstructor%stepsPostConvergence     =  stepsPostConvergence
+  simulatorTemperedDifferentialEvolutionConstructor%acceptanceAverageCount   =  acceptanceAverageCount
+  simulatorTemperedDifferentialEvolutionConstructor%logFileRoot              =  logFileRoot
+  simulatorTemperedDifferentialEvolutionConstructor%temperatureMaximum       =  temperatureMaximum
+  simulatorTemperedDifferentialEvolutionConstructor%untemperedStepCount      =  untemperedStepCount
+  simulatorTemperedDifferentialEvolutionConstructor%temperingLevelCount      =  temperingLevelCount
+  simulatorTemperedDifferentialEvolutionConstructor%stepsPerLevel            =  stepsPerLevel
+  simulatorTemperedDifferentialEvolutionConstructor%gammaTemperatureExponent =  gammaTemperatureExponent
+  simulatorTemperedDifferentialEvolutionConstructor%temperature              =  1.0d0
+  simulatorTemperedDifferentialEvolutionConstructor%temperingStep            =  0
+  simulatorTemperedDifferentialEvolutionConstructor%temperingLevel           =  0
   return
 end function simulatorTemperedDifferentialEvolutionConstructor
 
@@ -127,3 +128,14 @@ subroutine simulatorTemperedDifferentialEvolutionUpdate(self,stateVector)
        & write (0,*) 'Tempering state: level=',self%temperingLevel,'; temperature=',self%temperature
   return
 end subroutine simulatorTemperedDifferentialEvolutionUpdate
+
+double precision function simulatorTemperedDifferentialEvolutionStepSize(self)
+  !% Return the step size parameter, $\gamma$, for a differential evolution step.
+  implicit none
+  class           (simulatorTemperedDifferentialEvolution), intent(inout) :: self
+  double precision                                                        :: gammaBoostFactor
+
+  gammaBoostFactor=self%temperature**self%gammaTemperatureExponent
+  simulatorTemperedDifferentialEvolutionStepSize=gammaBoostFactor*self%simulatorDifferentialEvolution%stepSize()
+  return
+end function simulatorTemperedDifferentialEvolutionStepSize

@@ -834,14 +834,15 @@ This option extends the {\tt differentialEvolution} option to include tempering 
 \item[{\tt untemperedStepCount}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
 \item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
 \item[{\tt temperedLevels}] The number of tempered levels to use.
-\item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level.
+\item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level;
+\item[{\tt gammaTemperatureExponent}] The exponent of the boost in $\gamma$ during tempered steps.
 \end{description}
 
 In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\tt temperedLevels}), and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
 \begin{equation}
 \log T_i = {i \over N} \log T_{\rm max},
 \end{equation}
-where $T_{\rm max}=${\tt temperatureMaximum}.
+where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha=${\tt gammaTemperatureExponent}. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
 
 \subsection{Parameters and Priors}
 
