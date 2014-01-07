@@ -83,6 +83,18 @@ module MPI_Utilities
      !@     <arguments>\doubleone array\argin</arguments>
      !@     <description>Return the rank of the process with the maximum value of {\tt array} over all processes.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>minval</method>
+     !@     <type>\doubleone</type>
+     !@     <arguments>(\doublezero|\doubleone) array\argin</arguments>
+     !@     <description>Return the minimum value of {\tt array} over all processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>minloc</method>
+     !@     <type>\intone</type>
+     !@     <arguments>\doubleone array\argin</arguments>
+     !@     <description>Return the rank of the process with the minimum value of {\tt array} over all processes.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isMaster       => mpiIsMaster
      procedure :: rank           => mpiGetRank
@@ -94,6 +106,9 @@ module MPI_Utilities
      procedure :: maxloc         => mpiMaxloc
      procedure ::                   mpiMaxvalScalar, mpiMaxvalArray
      generic   :: maxval         => mpiMaxvalScalar, mpiMaxvalArray
+     procedure :: minloc         => mpiMinloc
+     procedure ::                   mpiMinvalScalar, mpiMinvalArray
+     generic   :: minval         => mpiMinvalScalar, mpiMinvalArray
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -321,5 +336,65 @@ contains
     mpiMaxloc=arrayOut(2,:)
     return
   end function mpiMaxloc
+
+  function mpiMinvalArray(self,array,mask)
+    !% Find the minimum values of an array over all processes, returning it to all processes.
+    use MPI
+    use Galacticus_Error
+    implicit none
+    class           (mpiObject), intent(in   )                                   :: self
+    double precision           , intent(in   ), dimension(:          )           :: array
+    logical                    , intent(in   ), dimension(:          ), optional :: mask
+    double precision                          , dimension(size(array))           :: mpiMinvalArray, maskedArray
+    integer                                                                      :: iError
+
+    ! Find the minimum over all processes.
+    maskedArray=array
+    if (present(mask)) then
+       if (.not.mask(self%rank()+1)) maskedArray=-HUGE(1.0d0)
+    end if
+    call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('mpiMinvalArray','MPI all reduce failed')
+    return
+  end function mpiMinvalArray
+
+  double precision function mpiMinvalScalar(self,scalar,mask)
+    !% Find the minimum values of a scalar over all processes, returning it to all processes.
+    use MPI
+    use Galacticus_Error
+    implicit none
+    class           (mpiObject), intent(in   )                         :: self
+    double precision           , intent(in   )                         :: scalar
+    logical                    , intent(in   ), dimension(:), optional :: mask
+    double precision                          , dimension(1)           :: array
+
+    array=self%minval([scalar],mask)
+    mpiMinvalScalar=array(1)
+    return
+  end function mpiMinvalScalar
+
+  function mpiMinloc(self,array,mask)
+    !% Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
+    use MPI
+    use Galacticus_Error
+    implicit none
+    class           (mpiObject), intent(in   )                                     :: self
+    double precision           , intent(in   ), dimension(:            )           :: array
+    logical                    , intent(in   ), dimension(:            ), optional :: mask
+    integer                                   , dimension(  size(array))           :: mpiMinloc
+    double precision                          , dimension(2,size(array))           :: arrayIn  , arrayOut
+    integer                                                                        :: iError
+
+    ! Find the minimum over all processes.
+    arrayIn(1,:)=array
+    if (present(mask)) then
+       if (.not.mask(self%rank()+1)) arrayIn(1,:)=-HUGE(1.0d0)
+    end if
+    arrayIn(2,:)=self%rank()
+    call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('mpiMin','MPI all reduce failed')
+    mpiMinloc=arrayOut(2,:)
+    return
+  end function mpiMinloc
 
 end module MPI_Utilities
