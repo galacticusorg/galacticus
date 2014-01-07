@@ -24,21 +24,44 @@ module Pseudo_Random
   private
   public :: Pseudo_Random_Get, Pseudo_Random_Free, Pseudo_Random_Store, Pseudo_Random_Retrieve
 
+  type, public :: pseudoRandom
+     !% Wrapper class for pseudo random sequence.
+     private
+     type   (fgsl_rng) :: pseudoSequence
+     logical           :: pseudoSequenceReset=.true.
+  contains
+     final     ::           pseudoRandomDestructor
+     !@ <objectMethods>
+     !@   <object>pseudoRandom</object>
+     !@   <objectMethod>
+     !@     <method>sample</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return a pseudo-random number.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+    procedure :: sample => pseudoRandomSample
+  end type pseudoRandom
+
   logical                 :: Seed_Is_Set=.false.
   integer                 :: randomSeed
   integer(kind=fgsl_long) :: randomSeedC=-1
   !$omp threadprivate(randomSeedC)
+
 contains
 
-  double precision function Pseudo_Random_Get(pseudoSequenceObject,reset,ompThreadOffset,incrementSeed)
+  double precision function Pseudo_Random_Get(pseudoSequenceObject,reset,ompThreadOffset,mpiRankOffset,incrementSeed)
     !% Returns a scalar giving a pseudo-random number.
     use Input_Parameters
+    use MPI
     !$ use OMP_Lib
     implicit none
     type   (fgsl_rng), intent(inout)           :: pseudoSequenceObject
-    logical          , intent(inout), optional :: reset,ompThreadOffset
+    logical          , intent(inout), optional :: reset
+    logical          , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
     integer          , intent(in   ), optional :: incrementSeed
     logical                                    :: resetActual
+    integer                                    :: mpiRank             , iError
 
     ! Determine if we need to reset.
     if (present(reset)) then
@@ -73,6 +96,10 @@ contains
           !$ if (present(ompThreadOffset)) then
           !$    if (ompThreadOffset) randomSeedC=randomSeedC+omp_get_thread_num()
           !$ end if
+          if (present(mpiRankOffset).and.mpiRankOffset) then
+             call MPI_Comm_Rank(MPI_Comm_World,mpiRank,iError)
+             randomSeedC=randomSeedC+mpiRank
+          end if
           if (present(incrementSeed)) randomSeedC=randomSeedC+incrementSeed
        end if
        randomSeedC=randomSeedC+1
@@ -113,5 +140,31 @@ contains
     iError=FGSL_Rng_FRead(fgslFile,pseudoSequenceObject)
     return
   end subroutine Pseudo_Random_Retrieve
+
+  subroutine pseudoRandomDestructor(self)
+    !% Destroy the pseudo-sequence wrapper classs.
+    implicit none
+    type(pseudoRandom), intent(inout) :: self
+    
+    if (.not.self%pseudoSequenceReset) call Pseudo_Random_Free(self%pseudoSequence)
+    return
+  end subroutine pseudoRandomDestructor
+
+  double precision function pseudoRandomSample(self,ompThreadOffset,mpiRankOffset,incrementSeed)
+    !% Sample from a pseudo-random sequence.
+    implicit none
+    class  (pseudoRandom), intent(inout)           :: self
+    logical              , intent(in   ), optional :: ompThreadOffset     , mpiRankOffset
+    integer              , intent(in   ), optional :: incrementSeed
+
+    pseudoRandomSample=Pseudo_Random_Get(                          &
+         &                               self%pseudoSequence     , &
+         &                               self%pseudoSequenceReset, &
+         &                               ompThreadOffset         , &
+         &                               mpiRankOffset           , &
+         &                               incrementSeed             &
+         &                              )
+    return
+  end function pseudoRandomSample
 
 end module Pseudo_Random

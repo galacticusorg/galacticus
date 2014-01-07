@@ -1,0 +1,203 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements linear algebra calculations.
+
+module Linear_Algebra
+  !% Implements linear algebra calculations.
+  use FGSL
+  implicit none
+  private
+  public :: assignment(=), operator(*)
+
+  type, public :: vector
+     !% Vector class.
+     private
+     double precision, dimension(:), allocatable :: elements
+   contains
+     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
+     !# final     :: vectorDestroy
+     !# </workaround>
+     !@ <objectMethods>
+     !@   <object>vector</object>
+     !@   <objectMethod>
+     !@     <method>subtract</method>
+     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
+     !@     <description>Compute {\tt vector1}-{\tt vector2}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: subtract    => vectorSubtract
+     generic   :: operator(-) => subtract
+  end type vector
+  
+  type, public :: matrix
+     !% Matrix class.
+     private
+     double precision, dimension(:,:), allocatable :: elements
+   contains
+     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
+     !# final     :: matrixDestroy
+     !# </workaround>
+     !@ <objectMethods>
+     !@   <object>matrix</object>
+     !@   <objectMethod>
+     !@     <method>invert</method>
+     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute and return the matrix inverse.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: invert        => matrixInvert
+  end type matrix
+  
+  ! Assignment interfaces.
+  interface assignment(=)
+     module procedure arrayToVectorAssign
+     module procedure vectorToArrayAssign
+     module procedure vectorToVectorAssign
+     module procedure arrayToMatrixAssign
+  end interface assignment(=)
+
+  ! Operator interfaces.
+  interface operator(*)
+     module procedure vectorVectorMultiply
+     module procedure matrixVectorMultiply
+  end interface operator(*)
+
+contains
+
+  subroutine arrayToVectorAssign(self,array)
+    !% Assign an array to a vector.
+    implicit none
+    type            (vector), intent(  out)               :: self
+    double precision        , intent(in   ), dimension(:) :: array
+
+    self%elements=array
+    return
+  end subroutine arrayToVectorAssign
+  
+  subroutine vectorToArrayAssign(array,vector1)
+    !% Assign a vector to an array.
+    implicit none
+    type            (vector), intent(in   )               :: vector1
+    double precision        , intent(  out), dimension(:) :: array
+
+    array=vector1%elements
+    return
+  end subroutine vectorToArrayAssign
+  
+  subroutine vectorToVectorAssign(vector1,vector2)
+    !% Assign a vector to an array.
+    implicit none
+    type            (vector), intent(  out)                 :: vector1
+    type            (vector), intent(in   )                 :: vector2
+  
+    vector1%elements=vector2%elements
+    return
+  end subroutine vectorToVectorAssign
+  
+  subroutine vectorDestroy(self)
+    !% Destroy a vector object.
+    implicit none   
+    type(vector), intent(inout) :: self
+
+    if (allocated(self%elements)) deallocate(self%elements)
+    return
+  end subroutine vectorDestroy
+
+  function vectorSubtract(vector1,vector2)
+    !% Subtract one vector from another.
+    implicit none   
+    type (vector)                :: vectorSubtract
+    class(vector), intent(in   ) :: vector1        , vector2
+
+    vectorSubtract%elements=vector1%elements-vector2%elements
+    return
+  end function vectorSubtract
+
+  subroutine arrayToMatrixAssign(self,array)
+    !% Assign an array to a matrix.
+    implicit none
+    type            (matrix), intent(  out)                 :: self
+    double precision        , intent(in   ), dimension(:,:) :: array
+
+    self%elements=array
+    return
+  end subroutine arrayToMatrixAssign
+  
+  subroutine matrixDestroy(self)
+    !% Destroy a matrix object.
+    implicit none   
+    type(matrix), intent(inout) :: self
+
+    if (allocated(self%elements)) deallocate(self%elements)
+    return
+  end subroutine matrixDestroy
+  
+  function matrixInvert(self)
+    !% Invert a matrix.
+    implicit none
+    type            (matrix          )                                                                         :: matrixInvert
+    class           (matrix          ), intent(in   )                                                          :: self
+    type            (fgsl_matrix     )                                                                         :: selfMatrix       , selfInverse
+    type            (fgsl_permutation)                                                                         :: permutations
+    integer         (kind=fgsl_int   )                                                                         :: decompositionSign, status
+    integer         (kind=fgsl_size_t)                                                                         :: selfMatrixSize
+    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: inverse
+    
+    selfMatrixSize       =size(self%elements,dim=1)
+    selfMatrix           =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    selfInverse          =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    permutations         =FGSL_Permutation_Alloc(selfMatrixSize)
+    status               =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
+    status               =FGSL_Matrix_Align(inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
+    status               =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
+    status               =FGSL_LinAlg_LU_Invert(selfMatrix,permutations,selfInverse      )
+    matrixInvert%elements=inverse
+    call FGSL_Permutation_Free(permutations)
+    call FGSL_Matrix_Free     (selfMatrix)
+    call FGSL_Matrix_Free     (selfInverse)
+    return
+  end function matrixInvert
+  
+  function vectorVectorMultiply(vector1,vector2)
+    !% Multiply a vector by a vector, returning a scalar.
+    implicit none   
+    double precision                        :: vectorVectorMultiply
+    class           (vector), intent(in   ) :: vector1             , vector2
+
+    vectorVectorMultiply=sum(vector1%elements*vector2%elements)
+    return
+  end function vectorVectorMultiply
+
+  function matrixVectorMultiply(matrix1,vector2)
+    !% Multiply a matrix by a vector, returning a vector.
+    implicit none   
+    type   (vector     )                :: matrixVectorMultiply
+    class  (matrix     ), intent(in   ) :: matrix1
+    class  (vector     ), intent(in   ) :: vector2
+    integer                             :: i
+
+    allocate(matrixVectorMultiply%elements(size(vector2%elements)))
+    forall(i=1:size(vector2%elements))
+       matrixVectorMultiply%elements(i)=sum(matrix1%elements(i,:)*vector2%elements)
+    end forall
+    return
+  end function matrixVectorMultiply
+
+end module Linear_Algebra
