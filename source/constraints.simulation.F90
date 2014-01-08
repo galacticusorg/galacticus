@@ -80,10 +80,11 @@ contains
          &                                                                               simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                               simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
          &                                                                               simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                               simulatorExponentDefinition
+         &                                                                               simulatorExponentDefinition              , simulatorStateSwapCountDefinition
     integer                                                                           :: simulatorStepsMaximum                    , simulatorStepsPostConvergence          , &
          &                                                                               simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
-         &                                                                               simulatorTemperingLevelCount             , simulatorStepsPerLevel
+         &                                                                               simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
+         &                                                                               simulatorStateSwapCount
     double precision                                                                  :: simulatorTemperatureMaximum              , simulatorExponent
     type            (varying_string  )                                                :: simulatorLogFile
 
@@ -95,10 +96,12 @@ contains
           simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
           simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"  )
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
+          simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
+          call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorDifferentialEvolution(                                 &
                &                                      parameterPriors                , &
@@ -111,6 +114,7 @@ contains
                &                                      simulatorStepsMaximum          , &
                &                                      simulatorStepsPostConvergence  , &
                &                                      simulatorAcceptanceAverageCount, &
+               &                                      simulatorStateSwapCount        , &
                &                                      char(simulatorLogFile)           &
                &                                     )
        end select
@@ -121,6 +125,7 @@ contains
           simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"            )
           simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"    )
           simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount"  )
+          simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
           simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"             )
           simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"      )
           simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"     )
@@ -130,6 +135,7 @@ contains
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
+          call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
           call extractDataContent(simulatorTemperatureMaximumDefinition    ,simulatorTemperatureMaximum    )
           call extractDataContent(simulatorUntemperedStepCountDefinition   ,simulatorUntemperedStepCount   )
           call extractDataContent(simulatorTemperingLevelCountDefinition   ,simulatorTemperingLevelCount   )
@@ -147,6 +153,7 @@ contains
                &                                              simulatorStepsMaximum          , &
                &                                              simulatorStepsPostConvergence  , &
                &                                              simulatorAcceptanceAverageCount, &
+               &                                              simulatorStateSwapCount        , &
                &                                              char(simulatorLogFile)         , &
                &                                              simulatorTemperatureMaximum    , &
                &                                              simulatorUntemperedStepCount   , &

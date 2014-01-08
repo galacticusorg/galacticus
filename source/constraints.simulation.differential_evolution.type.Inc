@@ -20,7 +20,8 @@
      !% Defines a simulator class implementing the differential evolution algorithm.
      private
      integer                                          :: parameterCount       , stepsMaximum          , &
-          &                                              stepsPostConvergence , acceptanceAverageCount
+          &                                              stepsPostConvergence , acceptanceAverageCount, &
+          &                                              stateSwapCount
      type   (prior           ), pointer, dimension(:) :: parameterPriors
      type   (distributionList), pointer, dimension(:) :: randomDistributions
      class  (likelihood      ), pointer               :: modelLikelihood
