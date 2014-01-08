@@ -656,6 +656,10 @@ The configuration file specifies the details of the constraint simulation to be 
     <updateCount>10</updateCount>
   </proposalSize>
   
+  <randomJump>
+    <type>adaptive</type>
+  </randomJump>
+  
   <simulation>
     <type>temperedDifferentialEvolution</type>
     <stepsMaximum>1000000</stepsMaximum>
@@ -813,6 +817,18 @@ This option adaptively changes $\gamma$ in an attempt to maintain the acceptance
 \item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate.
 \end{description}
 
+\subsection{{\tt randomJump}}
+
+The {\tt randomJump} section specifies the method to use when adding a random jump component to proposals in differential evolution simulations. The random jump algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt simple}}
+
+The random jumps are drawn directly from the distributions specified in the {\tt random} element of each parameter (see \S\ref{sec:ParametersPriors}).
+
+\subsubsection{{\tt adaptive}}
+
+The random jumps are drawn from the distributions specified in the {\tt random} element of each parameter (see \S\ref{sec:ParametersPriors}) and then multiplied by the currently occupied range of each parameter (i.e. the maximum value of the parameter over all current chain states minus the minimum value of each parameter over all current chain states).
+
 \subsection{{\tt simulation}}
 
 The {\tt simulation} section specifies the algorithm to use to perform the simulation. The simulation algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
@@ -844,7 +860,7 @@ In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (
 \end{equation}
 where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha=${\tt gammaTemperatureExponent}. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
 
-\subsection{Parameters and Priors}
+\subsection{Parameters and Priors}\label{sec:ParametersPriors}
 
 The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, a {\tt prior} element that contains a {\tt distribution} element defining the distribution for this prior, and (for differential evolution simulations) a {\tt random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.
 

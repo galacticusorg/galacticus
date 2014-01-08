@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence&
-     &,simulationState,proposalSize,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot)
+     &,simulationState,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -28,6 +28,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (convergence                   ), intent(in   ), target               :: simulationConvergence
   class    (state                         ), intent(in   ), target               :: simulationState
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
+  class    (deRandomJump                  ), intent(in   ), target               :: randomJump
   integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
 
@@ -38,6 +39,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%simulationConvergence => simulationConvergence
   simulatorDifferentialEvolutionConstructor%simulationState       => simulationState
   simulatorDifferentialEvolutionConstructor%proposalSize          => proposalSize
+  simulatorDifferentialEvolutionConstructor%randomJump            => randomJump
   simulatorDifferentialEvolutionConstructor%stepsMaximum          =  stepsMaximum
   simulatorDifferentialEvolutionConstructor%stepsPostConvergence  =  stepsPostConvergence
   simulatorDifferentialEvolutionConstructor%acceptanceAverageCount=  acceptanceAverageCount
@@ -102,12 +104,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
           &                -statePair(:,2) &
           &               )
      ! Add random perturbations to the proposal.
-     do i=1,self%parameterCount
-        select type (d => self%randomDistributions(i)%thisDistribution)
-        class is (distribution1D)
-           stateVectorProposed(i)=stateVectorProposed(i)+d%sample()
-        end select
-     end do
+     stateVectorProposed=stateVectorProposed+self%randomJump%sample(self%randomDistributions,self%simulationState)
      ! Store the proposed state vector.
      call stateProposed%update(stateVectorProposed,.false.)
      ! Evaluate likelihood.
