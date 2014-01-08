@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence&
-     &,simulationState,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot)
+     &,simulationState,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -29,7 +29,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (state                         ), intent(in   ), target               :: simulationState
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
-  integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount
+  integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
 
   simulatorDifferentialEvolutionConstructor%parameterCount        =  size(parameterPriors)
@@ -43,6 +43,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%stepsMaximum          =  stepsMaximum
   simulatorDifferentialEvolutionConstructor%stepsPostConvergence  =  stepsPostConvergence
   simulatorDifferentialEvolutionConstructor%acceptanceAverageCount=  acceptanceAverageCount
+  simulatorDifferentialEvolutionConstructor%stateSwapCount        =  stateSwapCount
   simulatorDifferentialEvolutionConstructor%logFileRoot           =  logFileRoot
   return
 end function simulatorDifferentialEvolutionConstructor
@@ -208,11 +209,17 @@ double precision function simulatorDifferentialEvolutionStepSize(self)
   implicit none
   class(simulatorDifferentialEvolution), intent(inout) :: self
   
-  simulatorDifferentialEvolutionStepSize=self%                                               &
-       &                                      proposalSize%                                  &
-       &                                                   gamma(                            &
-       &                                                         self%simulationState      , &
-       &                                                         self%simulationConvergence  &
-       &                                                        )
-       return
+  if (mod(self%simulationState%count(),self%stateSwapCount) == 0) then
+     ! Every self%stateSwapCount steps, set gamma=1 to allow interchange of chains.
+     simulatorDifferentialEvolutionStepSize=1.0d0
+  else
+     ! Otherwise, use the step-size algorithm.
+     simulatorDifferentialEvolutionStepSize=self%                                               &
+          &                                      proposalSize%                                  &
+          &                                                   gamma(                            &
+          &                                                         self%simulationState      , &
+          &                                                         self%simulationConvergence  &
+          &                                                        )
+  end if
+  return
 end function simulatorDifferentialEvolutionStepSize
