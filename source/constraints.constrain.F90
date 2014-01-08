@@ -58,18 +58,6 @@ contains
     integer                                                :: parameterCount       , ioError               , &
          &                                                    i
 
-    !! AJB: TODO
-    ! Tempered evolution:
-    !   When tempering can we cheat: Instead of actually dividing the likelihood by the
-    !   temperature, what if we just run a smaller number of merger tree realizations? This
-    !   would make the model covariance matrix larger, giving the same effect as a higher
-    !   temperature. We'd have to artificially increase the data covariance matrix by the same
-    !   factor. Probably we would then multiply the resulting likelihood by the temperature so
-    !   that once it was passed back to the simulation object it would get re-divided by
-    !   temperature there. Could save a lot of run time when tempering.
-    ! Adaptive random perturbers - e.g. Cauchy with width equal to some fraction of the current min/max range between chains in the parameters.
-    ! Add likelihood emulator.
-
     ! Parse the simulation config file.
     configDoc => parseFile(char(configFile),iostat=ioError)
     if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file')
