@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
-          &,simulationState,proposalSize,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot,temperatureMaximum&
+          &,simulationState,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,logFileRoot,temperatureMaximum&
           &,untemperedStepCount,temperingLevelCount,stepsPerLevel,gammaTemperatureExponent)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
@@ -29,6 +29,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
   class           (state                                 ), intent(in   ), target               :: simulationState
   class           (deProposalSize                        ), intent(in   ), target               :: proposalSize
+  class           (deRandomJump                          ), intent(in   ), target               :: randomJump
   double precision                                        , intent(in   )                       :: temperatureMaximum    , gammaTemperatureExponent
   integer                                                 , intent(in   )                       :: stepsMaximum          , stepsPostConvergence    , &
        &                                                                                           acceptanceAverageCount, untemperedStepCount     , &
@@ -42,6 +43,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence    => simulationConvergence
   simulatorTemperedDifferentialEvolutionConstructor%simulationState          => simulationState
   simulatorTemperedDifferentialEvolutionConstructor%proposalSize             => proposalSize
+  simulatorTemperedDifferentialEvolutionConstructor%randomJump               => randomJump
   simulatorTemperedDifferentialEvolutionConstructor%stepsMaximum             =  stepsMaximum
   simulatorTemperedDifferentialEvolutionConstructor%stepsPostConvergence     =  stepsPostConvergence
   simulatorTemperedDifferentialEvolutionConstructor%acceptanceAverageCount   =  acceptanceAverageCount

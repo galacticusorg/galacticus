@@ -25,6 +25,7 @@ module Constraints_Simulation
   use Constraints_Convergence
   use Constraints_State
   use Constraints_Differential_Proposal_Size
+  use Constraints_Differential_Random_Jump
   use ISO_Varying_String
   private
   public :: simulatorNew
@@ -58,8 +59,8 @@ module Constraints_Simulation
 
 contains
 
-  function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence ,simulationState&
-       &,proposalSize) result (newSimulator)
+  function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence,simulationState&
+       &,proposalSize,randomJump) result (newSimulator)
     !% Create a new differential evolution proposal size from an XML definition.
     use FoX_DOM
     use IO_XML
@@ -74,6 +75,7 @@ contains
     class           (convergence     ), intent(in   ), optional, target               :: simulationConvergence
     class           (state           ), intent(in   ), optional, target               :: simulationState
     class           (deProposalSize  ), intent(in   ), optional, target               :: proposalSize
+    class           (deRandomJump    ), intent(in   ), optional, target               :: randomJump
     type            (node            ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorStepsPostConvergenceDefinition, &
          &                                                                               simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
          &                                                                               simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
@@ -105,6 +107,7 @@ contains
                &                                      simulationConvergence          , &
                &                                      simulationState                , &
                &                                      proposalSize                   , &
+               &                                      randomJump                     , &
                &                                      simulatorStepsMaximum          , &
                &                                      simulatorStepsPostConvergence  , &
                &                                      simulatorAcceptanceAverageCount, &
@@ -140,6 +143,7 @@ contains
                &                                              simulationConvergence          , &
                &                                              simulationState                , &
                &                                              proposalSize                   , &
+               &                                              randomJump                     , &
                &                                              simulatorStepsMaximum          , &
                &                                              simulatorStepsPostConvergence  , &
                &                                              simulatorAcceptanceAverageCount, &

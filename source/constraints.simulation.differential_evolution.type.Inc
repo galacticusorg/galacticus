@@ -27,6 +27,7 @@
      class  (convergence     ), pointer               :: simulationConvergence
      class  (state           ), pointer               :: simulationState
      class  (deProposalSize  ), pointer               :: proposalSize
+     class  (deRandomJump    ), pointer               :: randomJump
      type   (varying_string  )                        :: logFileRoot
    contains
      !@ <objectMethods>

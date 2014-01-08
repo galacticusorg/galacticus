@@ -37,6 +37,7 @@ contains
     use Constraints_State
     use Constraints_Simulation
     use Constraints_Differential_Proposal_Size
+    use Constraints_Differential_Random_Jump
     implicit none
     type   (varying_string  ), intent(in   )               :: configFile
     type   (prior           ), allocatable  , dimension(:) :: parameterPriors
@@ -45,18 +46,19 @@ contains
     class  (convergence     ), pointer                     :: simulationConvergence
     class  (state           ), pointer                     :: simulationState
     class  (deProposalSize  ), pointer                     :: proposalSize
+    class  (deRandomJump    ), pointer                     :: randomJump
     class  (simulator       ), pointer                     :: simulation
     type   (node            ), pointer                     :: configDoc            , priorDefinition       , &
          &                                                    parameterDefinition  , randomDefinition      , &
          &                                                    likelihoodDefinition , convergenceDefinition , &
          &                                                    stateDefinition      , proposalSizeDefinition, &
-         &                                                    simulationDefinition , parametersElement
+         &                                                    simulationDefinition , parametersElement     , &
+         &                                                    randomJumpDefinition
     type   (nodeList        ), pointer                     :: parameterDefinitions
     integer                                                :: parameterCount       , ioError               , &
          &                                                    i
 
     !! AJB: TODO
-    ! Document.
     ! Tempered evolution:
     !   When tempering can we cheat: Instead of actually dividing the likelihood by the
     !   temperature, what if we just run a smaller number of merger tree realizations? This
@@ -102,6 +104,9 @@ contains
     ! Initialize proposal size.
     proposalSizeDefinition => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSize")
     proposalSize           => deProposalSizeNew(proposalSizeDefinition               )
+    ! Initialize random jump.
+    randomJumpDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"randomJump"  )
+    randomJump             => deRandomJumpNew  (randomJumpDefinition                 )
     ! Initialize simulation.
     simulationDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"simulation"  )
     simulation             =>      simulatorNew(                       &
@@ -111,7 +116,8 @@ contains
          &                                      modelLikelihood      , &
          &                                      simulationConvergence, &
          &                                      simulationState      , &
-         &                                      proposalSize           &
+         &                                      proposalSize         , &
+         &                                      randomJump             &
          &                                     )
     ! Destroy the simulation config document.
     call destroy(configDoc)
@@ -123,6 +129,7 @@ contains
     deallocate(simulationConvergence)
     deallocate(simulationState      )
     deallocate(proposalSize         )
+    deallocate(randomJump           )
     deallocate(simulation           )
     do i=1,parameterCount
        deallocate(randomDistributions(i)%thisDistribution)
