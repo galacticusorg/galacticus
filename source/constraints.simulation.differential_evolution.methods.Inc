@@ -72,7 +72,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   allocate(stateSimple :: stateProposed)
   select type (stateProposed)
   type is (stateSimple)
-     stateProposed=stateSimple(self%parameterCount,self%acceptanceAverageCount)
+     stateProposed=stateSimple(self%parameterCount,1)
   end select
   ! Initialize chain to some state vector.
   call priorsSample(self%parameterPriors,self%simulationState)

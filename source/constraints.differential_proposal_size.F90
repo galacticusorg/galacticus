@@ -66,9 +66,11 @@ contains
     type   (node          ), pointer, intent(in   ) :: definition
     type   (node          ), pointer                :: deProposalSizeGammaInitialDefinition         , deProposalSizeGammaFactorDefinition          , &
          &                                             deProposalSizeAccpetanceRateMinimumDefinition, deProposalSizeAccpetanceRateMaximumDefinition, &
-         &                                             deProposalSizeUpdateCountDefinition
+         &                                             deProposalSizeUpdateCountDefinition          , deProposalSizeGammaMinimumDefinition         , &
+         &                                             deProposalSizeGammaMaximumDefinition
     double precision                                :: deProposalSizeGammaInitial                   , deProposalSizeGammaFactor                    , &
-         &                                             deProposalSizeAccpetanceRateMinimum          , deProposalSizeAccpetanceRateMaximum
+         &                                             deProposalSizeAccpetanceRateMinimum          , deProposalSizeAccpetanceRateMaximum          , &
+         &                                             deProposalSizeGammaMinimum                   , deProposalSizeGammaMaximum
     integer                                         :: deProposalSizeUpdateCount
    
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
@@ -85,17 +87,23 @@ contains
        select type (newDeProposalSize)
        type is (deProposalSizeAdaptive)
           deProposalSizeGammaInitialDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"gammaInitial"         )
+          deProposalSizeGammaMinimumDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"gammaMinimum"         )
+          deProposalSizeGammaMaximumDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"gammaMaximum"         )
           deProposalSizeGammaFactorDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"gammaFactor"          )
           deProposalSizeAccpetanceRateMinimumDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceRateMinimum")
           deProposalSizeAccpetanceRateMaximumDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceRateMaximum")
           deProposalSizeUpdateCountDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"updateCount"          )
           call extractDataContent(deProposalSizeGammaInitialDefinition         ,deProposalSizeGammaInitial         )
+          call extractDataContent(deProposalSizeGammaMinimumDefinition         ,deProposalSizeGammaMinimum         )
+          call extractDataContent(deProposalSizeGammaMaximumDefinition         ,deProposalSizeGammaMaximum         )
           call extractDataContent(deProposalSizeGammaFactorDefinition          ,deProposalSizeGammaFactor          )
           call extractDataContent(deProposalSizeAccpetanceRateMinimumDefinition,deProposalSizeAccpetanceRateMinimum)
           call extractDataContent(deProposalSizeAccpetanceRateMaximumDefinition,deProposalSizeAccpetanceRateMaximum)
           call extractDataContent(deProposalSizeUpdateCountDefinition          ,deProposalSizeUpdateCount          )
           newDeProposalSize=deProposalSizeAdaptive(                                     &
                &                                   deProposalSizeGammaInitial         , &
+               &                                   deProposalSizeGammaMinimum         , &
+               &                                   deProposalSizeGammaMaximum         , &
                &                                   deProposalSizeGammaFactor          , &
                &                                   deProposalSizeAccpetanceRateMinimum, &
                &                                   deProposalSizeAccpetanceRateMaximum, &

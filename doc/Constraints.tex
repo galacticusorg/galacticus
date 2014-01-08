@@ -812,6 +812,8 @@ This option adaptively changes $\gamma$ in an attempt to maintain the acceptance
 \begin{description}
 \item[{\tt gammaInitial}] The initial value for $\gamma$.
 \item[{\tt gammaFactor}] The multiplicative factor by which $\gamma$ should be increased or decreased if the acceptance rate is out of range.
+\item[{\tt gammaMinimum}] The smallest value allowed for $\gamma$.
+\item[{\tt gammaMaximum}] The largest value allowed for $\gamma$.
 \item[{\tt acceptanceRateMinimum}] The minimum acceptance rate to accept before reducing $\gamma$.
 \item[{\tt acceptanceRateMaximum}] The maximum acceptance rate to accept before reducing $\gamma$.
 \item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate.
