@@ -60,7 +60,7 @@ contains
     type   (varying_string  )                              :: filterCommand        , filteredFile
     integer                                                :: parameterCount       , ioError               , &
          &                                                    i                    , j                     , &
-         &                                                    iParameter
+         &                                                    iParameter           , inactiveParameterCount
 
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
@@ -71,13 +71,23 @@ contains
     if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file')
     call System_Command_Do("rm -f "//filteredFile)
     ! Determine the number of parameters.
-    parameterCount =  0
-    parametersList => getElementsByTagName(configDoc,"parameters")
+    parameterCount         =  0
+    inactiveParameterCount =  0
+    parametersList         => getElementsByTagName(configDoc,"parameters")
     do i=0,getLength(parametersList)-1
-       parametersElement => item(parametersList,i)
-       parameterCount    =  parameterCount+XML_Array_Length(parametersElement,"parameter" )
+       parametersElement    => item(parametersList,i)
+       parameterDefinitions => getElementsByTagName(parametersElement,"parameter")
+       do j=1,getLength(parameterDefinitions)
+          parameterDefinition => item(parameterDefinitions,j-1)
+          if (XML_Path_Exists(parameterDefinition,"prior")) then
+             parameterCount        =parameterCount        +1
+          else
+             inactiveParameterCount=inactiveParameterCount+1
+          end if
+      end do
     end do
     if (parameterCount <= 0) call Galacticus_Error_Report('Constrain','at least one parameter must be specified in config file')
+    if (mpiSelf%isMaster()) write (0,*) 'Found ',parameterCount,' active parameters (and ',inactiveParameterCount,' inactive parameters)'
     ! Initialize priors and random perturbers.
     allocate(parameterPriors    (parameterCount))
     allocate(randomDistributions(parameterCount))
@@ -87,12 +97,14 @@ contains
        parametersElement    => item(parametersList,i)
        parameterDefinitions => getElementsByTagName(parametersElement,"parameter")
        do j=1,getLength(parameterDefinitions)
-          iParameter=iParameter+1
-          parameterDefinition                              => item                             (parameterDefinitions,j-1       )
-          priorDefinition                                  => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"prior"   )
-          parameterPriors    (iParameter)                  =  prior                            (priorDefinition     ,iParameter)
-          randomDefinition                                 => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"random"  )
-          randomDistributions(iParameter)%thisDistribution => distributionNew                  (randomDefinition               )
+          parameterDefinition => item(parameterDefinitions,j-1)
+          if (XML_Path_Exists(parameterDefinition,"prior")) then
+             iParameter=iParameter+1
+             priorDefinition                                  => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"prior"   )
+             parameterPriors    (iParameter)                  =  prior                            (priorDefinition     ,iParameter)
+             randomDefinition                                 => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"random"  )
+             randomDistributions(iParameter)%thisDistribution => distributionNew                  (randomDefinition               )
+          end if
        end do
     end do
     ! Initialize likelihood.
