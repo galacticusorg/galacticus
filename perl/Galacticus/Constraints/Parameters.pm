@@ -4,6 +4,14 @@
 package Parameters;
 use strict;
 use warnings;
+my $galacticusPath;
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath = $ENV{"GALACTICUS_ROOT_V093"};
+ $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
+} else {
+ $galacticusPath = "./";
+}
+unshift(@INC,$galacticusPath."perl"); 
 use XML::Simple;
 use XML::SAX;
 use XML::SAX::Writer;
@@ -14,6 +22,7 @@ use PDL::NiceSlice;
 use Data::Dumper;
 use Clone qw(clone);
 use List::Util;
+require List::ExtraUtils;
 
 sub Parse_Config {
     # Get the config file name.
@@ -33,8 +42,8 @@ sub Parse_Config {
     my $config = $xml->XMLin($contentCommentless, KeyAttr => 0);
     if ( UNIVERSAL::isa($config->{'parameters'},"ARRAY") ) {
 	my @parameters;
-	push(@parameters,@{$_->{'parameter'}})
-	    foreach ( @{$config->{'parameters'}} );
+	push(@parameters,&ExtraUtils::as_array($_->{'parameter'}))
+	    foreach (  &ExtraUtils::as_array($config->{'parameters'}) );
 	delete($config->{'parameters'});
 	@{$config->{'parameters'}->{'parameter'}} = @parameters;
     }

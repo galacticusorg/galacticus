@@ -38,6 +38,8 @@ contains
     use Constraints_Simulation
     use Constraints_Differential_Proposal_Size
     use Constraints_Differential_Random_Jump
+    use System_Command
+    use MPI_Utilities
     implicit none
     type   (varying_string  ), intent(in   )               :: configFile
     type   (prior           ), allocatable  , dimension(:) :: parameterPriors
@@ -54,31 +56,44 @@ contains
          &                                                    stateDefinition      , proposalSizeDefinition, &
          &                                                    simulationDefinition , parametersElement     , &
          &                                                    randomJumpDefinition
-    type   (nodeList        ), pointer                     :: parameterDefinitions
+    type   (nodeList        ), pointer                     :: parameterDefinitions , parametersList
+    type   (varying_string  )                              :: filterCommand        , filteredFile
     integer                                                :: parameterCount       , ioError               , &
-         &                                                    i
+         &                                                    i                    , j                     , &
+         &                                                    iParameter
 
+    ! Run the config file through an external XInclude filter to include any Xinclude'd files.
+    filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
+    filterCommand="scripts/aux/xmlInclude.pl "//trim(configFile)//" "//filteredFile
+    call System_Command_Do(filterCommand)
     ! Parse the simulation config file.
-    configDoc => parseFile(char(configFile),iostat=ioError)
+    configDoc => parseFile(char(filteredFile),iostat=ioError)
     if (ioError /= 0) call Galacticus_Error_Report('Constrain','Unable to find or parse config file')
+    call System_Command_Do("rm -f "//filteredFile)
     ! Determine the number of parameters.
-    parametersElement => XML_Get_First_Element_By_Tag_Name(configDoc        ,"parameters")
-    parameterCount    =  XML_Array_Length                 (parametersElement,"parameter" )
-    if (parameterCount <= 0) call Galacticus_Error_Report('Constrain','at least one parameter must be specified in config file')
-    ! Initialize priors.
-    allocate(parameterPriors(parameterCount))
-    parameterDefinitions => getElementsByTagName(parametersElement,"parameter")
-    do i=1,parameterCount
-       parameterDefinition => item                             (parameterDefinitions,i-1    )
-       priorDefinition     => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"prior")
-       parameterPriors(i)  =  prior                            (priorDefinition     ,i      )
+    parameterCount =  0
+    parametersList => getElementsByTagName(configDoc,"parameters")
+    do i=0,getLength(parametersList)-1
+       parametersElement => item(parametersList,i)
+       parameterCount    =  parameterCount+XML_Array_Length(parametersElement,"parameter" )
     end do
-    ! Initialize random perturbers.
+    if (parameterCount <= 0) call Galacticus_Error_Report('Constrain','at least one parameter must be specified in config file')
+    ! Initialize priors and random perturbers.
+    allocate(parameterPriors    (parameterCount))
     allocate(randomDistributions(parameterCount))
-    do i=1,parameterCount
-       parameterDefinition => item(parameterDefinitions   ,i-1    )
-       randomDefinition    => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"random")
-       randomDistributions(i)%thisDistribution => distributionNew(randomDefinition)
+    parametersList => getElementsByTagName(configDoc,"parameters")
+    iParameter=0
+    do i=0,getLength(parametersList)-1
+       parametersElement    => item(parametersList,i)
+       parameterDefinitions => getElementsByTagName(parametersElement,"parameter")
+       do j=1,getLength(parameterDefinitions)
+          iParameter=iParameter+1
+          parameterDefinition                              => item                             (parameterDefinitions,j-1       )
+          priorDefinition                                  => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"prior"   )
+          parameterPriors    (iParameter)                  =  prior                            (priorDefinition     ,iParameter)
+          randomDefinition                                 => XML_Get_First_Element_By_Tag_Name(parameterDefinition ,"random"  )
+          randomDistributions(iParameter)%thisDistribution => distributionNew                  (randomDefinition               )
+       end do
     end do
     ! Initialize likelihood.
     likelihoodDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"likelihood"  )
