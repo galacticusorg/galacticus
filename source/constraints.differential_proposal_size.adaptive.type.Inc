@@ -20,6 +20,7 @@
      !% Defines an adaptive differential evolution proposal size class.
      private
      double precision :: gammaCurrent         , gammaAdjustFactor
+     double precision :: gammaMinimum         , gammaMaximum
      double precision :: acceptanceRateMinimum, acceptanceRateMaximum
      integer          :: updateCount
    contains

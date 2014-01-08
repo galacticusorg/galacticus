@@ -17,16 +17,19 @@
 
 !% Defines methods for the ``adaptive'' differential evolution proposal size class.
 
-function deProposalSizeAdaptiveConstructor(gamma,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount)
+function deProposalSizeAdaptiveConstructor(gamma,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount)
   !% Constructor for the ``adaptive'' differential evolution proposal size class.
   implicit none
   type            (deProposalSizeAdaptive)                :: deProposalSizeAdaptiveConstructor
   double precision                        , intent(in   ) :: gamma                , gammaAdjustFactor    , &
+       &                                                     gammaMinimum         , gammaMaximum         , &
        &                                                     acceptanceRateMinimum, acceptanceRateMaximum
   integer                                 , intent(in   ) :: updateCount
 
   deProposalSizeAdaptiveConstructor%gammaCurrent         =gamma
   deProposalSizeAdaptiveConstructor%gammaAdjustFactor    =gammaAdjustFactor
+  deProposalSizeAdaptiveConstructor%gammaMinimum         =gammaMinimum
+  deProposalSizeAdaptiveConstructor%gammaMaximum         =gammaMaximum
   deProposalSizeAdaptiveConstructor%acceptanceRateMinimum=acceptanceRateMinimum
   deProposalSizeAdaptiveConstructor%acceptanceRateMaximum=acceptanceRateMaximum
   deProposalSizeAdaptiveConstructor%updateCount          =updateCount
@@ -54,11 +57,11 @@ double precision function deProposalSizeAdaptiveGamma(self,simulationState,simul
      acceptanceRate=mpiSelf%average([simulationState%acceptanceRate()])
      if (mpiSelf%rank() == 0) write (0,*) 'After ',simulationState%count(),' steps, acceptance rate is ',acceptanceRate(1)
      ! If the acceptance rate is out of range, adjust gamma.
-     if      (acceptanceRate(1) > self%acceptanceRateMaximum) then
-        self%gammaCurrent=self%gammaCurrent*self%gammaAdjustFactor
+     if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent > self%gammaMaximum) then
+        self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
         if (mpiSelf%rank() == 0) write (0,*) 'Adjusting gamma up to ',self%gammaCurrent
-     else if (acceptanceRate(1) < self%acceptanceRateMinimum) then
-        self%gammaCurrent=self%gammaCurrent/self%gammaAdjustFactor
+     else if (acceptanceRate(1) < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
+        self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
         if (mpiSelf%rank() == 0) write (0,*) 'Adjusting gamma down to ',self%gammaCurrent
      end if
   end if
