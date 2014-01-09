@@ -102,13 +102,14 @@ module MPI_Utilities
      procedure :: count          => mpiGetCount
      procedure :: requestData    => mpiRequestData
      procedure :: messageWaiting => mpiMessageWaiting
-     procedure :: average        => mpiAverage
+     procedure ::                   mpiAverageScalar, mpiAverageArray
+     generic   :: average        => mpiAverageScalar, mpiAverageArray
      procedure :: maxloc         => mpiMaxloc
-     procedure ::                   mpiMaxvalScalar, mpiMaxvalArray
-     generic   :: maxval         => mpiMaxvalScalar, mpiMaxvalArray
+     procedure ::                   mpiMaxvalScalar , mpiMaxvalArray
+     generic   :: maxval         => mpiMaxvalScalar , mpiMaxvalArray
      procedure :: minloc         => mpiMinloc
-     procedure ::                   mpiMinvalScalar, mpiMinvalArray
-     generic   :: minval         => mpiMinvalScalar, mpiMinvalArray
+     procedure ::                   mpiMinvalScalar , mpiMinvalArray
+     generic   :: minval         => mpiMinvalScalar , mpiMinvalArray
   end type mpiObject
 
   ! Declare an object for interaction with MPI.
@@ -252,7 +253,7 @@ contains
     return
   end function mpiRequestData
 
-  function mpiAverage(self,array,mask)
+  function mpiAverageArray(self,array,mask)
     !% Average an array over all processes, returning it to all processes.
     use MPI
     use Galacticus_Error
@@ -260,22 +261,37 @@ contains
     class           (mpiObject), intent(in   )                                   :: self
     double precision           , intent(in   ), dimension(:          )           :: array
     logical                    , intent(in   ), dimension(:          ), optional :: mask
-    double precision                          , dimension(size(array))           :: mpiAverage, maskedArray
-    integer                                                                      :: iError    , activeCount
+    double precision                          , dimension(size(array))           :: mpiAverageArray, maskedArray
+    integer                                                                      :: iError         , activeCount
 
     ! Sum the array over all processes.
-    maskedArray=     array
-    activeCount=size(array)
+    maskedArray=array
+    activeCount=self%count()
     if (present(mask)) then
        if (.not.mask(self%rank()+1)) maskedArray=0.0d0
        activeCount=count(mask)
     end if
-    call MPI_AllReduce(maskedArray,mpiAverage,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiAverage','MPI all reduce failed')
+    call MPI_AllReduce(maskedArray,mpiAverageArray,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('mpiAverageArray','MPI all reduce failed')
     ! Convert the sum into an average.
-    mpiAverage=mpiAverage/dble(activeCount)
+    mpiAverageArray=mpiAverageArray/dble(activeCount)
     return
-  end function mpiAverage
+  end function mpiAverageArray
+
+  double precision function mpiAverageScalar(self,scalar,mask)
+    !% Find the maximum values of a scalar over all processes, returning it to all processes.
+    use MPI
+    use Galacticus_Error
+    implicit none
+    class           (mpiObject), intent(in   )                         :: self
+    double precision           , intent(in   )                         :: scalar
+    logical                    , intent(in   ), dimension(:), optional :: mask
+    double precision                          , dimension(1)           :: array
+
+    array=self%average([scalar],mask)
+    mpiAverageScalar=array(1)
+    return
+  end function mpiAverageScalar
 
   function mpiMaxvalArray(self,array,mask)
     !% Find the maximum values of an array over all processes, returning it to all processes.
