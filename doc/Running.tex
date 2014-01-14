@@ -68,6 +68,10 @@ Some scripts are provided which assist in the generation of parameter files. The
 \end{verbatim}
 where {\tt parameterFile} is the name of the file containing a list of parameter values for \glc. \glc\ will display messages indicating its progress as it runs (the verbosity can be controlled with the {\tt verbosityLevel} parameter). Usually, the \glc\ executable should be invoked from the directory in which it was built. However, you can choose to set the environment variable {\tt GALACTICUS\_ROOT\_V091} to the full path to the build directory\index{path!galacticus root@{\glc\ root}}, in which case the \glc\ executable can be invoked from anywhere and will access all required files and scripts relative to this path. This can allow multiple users to all make use of the same \glc\ install.
 
+\subsection{Writing Data To a Temporary File}\index{output!temporary}
+
+When running \glc\ on a compute cluster it is often advantageous to have output written to a local scratch disk during run time and only moved to networked storage after the run is complete. (Otherwise, \glc\ will perform many small writes to networked storage which can result in extremely slow run times.) To do this, simply set the parameter {\tt [galacticusOutputScratchFileName]} to the full path of a file to write to on local scratch space. During the run, data will be written to this file. After the run is finished, \glc\ will move this file to its permanent location as specified by the parameter {\tt [galacticusOutputFileName]}.
+
 \subsection{Restarting A Crashed Run}\label{sec:Restarting}
 
 If \glc\ crashes, it can be useful to restart the calculation from just prior to the crash to speed the debugging process. \glc\ has functionality to store and retrieve the internal state of any modules and to recover this to permit such restarting. Currently, this is implemented with the {\tt build} and {\tt read} methods of merger tree construction, such that the internal state is stored prior to commencing the building or reading of each tree, thereby allowing a calculation to be restarted with the tree that crashed. More general store/retrieve behavior is planned for future releases.
