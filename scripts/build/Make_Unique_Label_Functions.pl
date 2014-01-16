@@ -71,6 +71,24 @@ my %defaultValues;
 my $methodStructure;
 my $methodFiles;
 
+# Extract C-include directories from the Makefile.
+my $cFlags = $ENV{'GALACTICUS_CFLAGS'};
+open(my $make,$galacticusPath."Makefile");
+while ( my $line = <$make> ) {
+    if ( $line =~ m/CFLAGS\s*\+??=\s*(.*)$/ ) {
+	$cFlags .= " ".$1;
+    }
+}
+close($make);
+# Extract include directories from flags.
+my @includeDirectories;
+while ( $cFlags =~ m/\-I(\S+)/ ) {
+    my $path = $1;
+    $path =~ s/^\.\//$galacticusPath/;
+    push(@includeDirectories,$path);
+    $cFlags =~ s/\-I(\S+)//;
+}
+
 # Iterate over all files containing unique label directives.
 foreach my $fileName ( @{$codeDirectiveLocations->{'uniqueLabel'}->{'file'}} ) {
     # Get the equivalent object file.
@@ -302,7 +320,8 @@ CODE
 		    my $sourceHandle;
 		    if ( $suffix eq ".c" || $suffix eq ".cpp" ) {
 			# For C and C++ files, run them through the preprocessor to have any include files included.
-			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$galacticusDirectory."/work/build/ ".$sourceFile."|");
+			my $includeOptions = join(" ",map {"-I".$_} @includeDirectories);
+			open($sourceHandle,"cpp -I".$galacticusDirectory."/source/ -I".$galacticusDirectory."/work/build/ ".$includeOptions." ".$sourceFile."|");
 		    } else {
 			# For other files, simply read the file directly.
 			open($sourceHandle,       $sourceFile    );
