@@ -547,7 +547,7 @@ contains
        lengthSimulationBox=self%cubeLength(timePresent,statusActual)
        if (statusActual == booleanTrue) then
           ! Simulation cube length found, compute the inverse volume.
-          galacticusTreeWeight=galacticusUnitConvert(1.0d0/lengthSimulationBox**3,timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
+          galacticusTreeWeight=1.0d0/lengthSimulationBox**3
        else
           ! No method exists to determine the weight. Return unity.
           galacticusTreeWeight=1.0d0
