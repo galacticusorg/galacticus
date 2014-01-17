@@ -19,7 +19,9 @@
 
   !% Implements calculations of satellite merging times using the \cite{wetzel_what_2010} method.
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesWetzelWhite2010">
+  !#  <description>Computes the merging timescale using the method of \cite{wetzel_what_2010}.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.

@@ -17,7 +17,9 @@
 
   !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
  
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
+  !#  <description>Computes the merging timescale using the method of \cite{boylan-kolchin_dynamical_2008}.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
      !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.

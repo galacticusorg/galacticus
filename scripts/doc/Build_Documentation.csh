@@ -41,6 +41,9 @@ if ( $? != 0 ) then
  exit 1
 endif
 
+# Order method descriptions.
+ls methods/*.tex | sort | awk '{print "\\input{"substr($1,1,length($1)-4)"}"}' > autoMethods.tex
+
 # Compile the manual.
 @ iPass = 1
 while( $iPass <= 6 )

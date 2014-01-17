@@ -21,15 +21,15 @@ By default, gas is accreted whenever the halo is growing in total mass. However,
 
 Selected using {\tt accretionHalosMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
 
-\section{Background Cosmology}\index{cosmology}
+\section{Cosmology Functions}\index{cosmology}
 
-The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\tt cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail in \S\ref{sec:CosmologyMethods}. Currently implemented cosmological models are as follows.
+The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\tt cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail in \S\ref{sec:methodsCosmologyFunctions}. Currently implemented cosmological models are as follows.
 
-\subsection{Matter + Lambda}
+\subsection{Matter + Lambda}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterLambda}
 
 Selected with {\tt cosmologyMethod}$=${\tt matter-lambda}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological constant.
 
-\subsection{Matter + Dark Energy}\index{dark energy}
+\subsection{Matter + Dark Energy}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterDarkEnergy}\index{dark energy}
 
 Selected with {\tt cosmologyMethod}$=${\tt matter-darkEnergy}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\tt [darkEnergyEquationOfStateW0]}, and $w_1=${\tt [darkEnergyEquationOfStateW1]}.
 
@@ -1970,11 +1970,11 @@ Substructures and merging of nodes/substructures is controlled by several algori
 
 The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingTimescalesMethod} parameter.
 
-\subsubsection{Lacey \& Cole (1993)}
+\subsubsection{Lacey \& Cole (1993)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
 
-\subsubsection{Lacey \& Cole (1993) $+$ Tormen}
+\subsubsection{Lacey \& Cole (1993) $+$ Tormen}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993Tormen}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
 \begin{equation}
@@ -1982,19 +1982,19 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}
 \end{equation}
 where $f_\tau=${\tt mergingTimescaleMultiplier}, $\tau_{\rm dynamical}$ is the dynamical time of the host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78} (R_{\rm c}/R_{\rm virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion $0.26$ as found by \cite{cole_hierarchical_2000}.
 
-\subsubsection{Jiang (2008)}
+\subsubsection{Jiang (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesJiang2008}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}.
 
-\subsubsection{Boylan-Kolchin (2008)}
+\subsubsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
-\subsubsection{Wetzel \& White (2010)}
+\subsubsection{Wetzel \& White (2010)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesWetzelWhite2010}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
 
-\subsubsection{Villalobos et al. (2013)}
+\subsubsection{Villalobos et al. (2013)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesVillalobos2013}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt villalobos2013}, this method computes merging timescales using the modifier of \cite{villalobos_improved_2013} as
 \begin{equation}
@@ -2002,11 +2002,11 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt villalobos2013}, thi
 \end{equation}
 where $\alpha=${\tt [satelliteMergingTimescaleVillalobos2013Exponent]} and $\tau^\prime_{\rm merge}$ is the merging timescale computed by another satellite merging timescale method as specified via {\tt [satelliteMergingTimescaleVillalobos2013BaseMethod]}.
 
-\subsubsection{Preset}
+\subsubsection{Preset}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesPreset}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt preset}, this method returns a precomputed merging timescale stored by the satellite component.
 
-\subsubsection{Null}
+\subsubsection{Null}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesNull}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt null}, this method returns zero merging timescale.
 
