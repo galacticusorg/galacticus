@@ -1608,43 +1608,50 @@ contains
                 call Phase_Space_Position_Realize(satelliteBasicComponent%time(),relativePosition,relativeVelocity)
                 ! Catch zero separation halos.
                 if (Vector_Magnitude(relativePosition) == 0.0d0) then
-                   message='merging halos ['
-                   message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
-                   call Galacticus_Error_Report('Scan_For_Mergers',message)
-                end if
-                ! Create the orbit.
-                thisOrbit=Orbit_Construct(satelliteBasicComponent%mass(),orbitalPartnerBasicComponent%mass(),relativePosition,relativeVelocity)
-                ! Propagate to the virial radius.
-                radiusPericenter=thisOrbit%radiusPericenter()
-                radiusApocenter =thisOrbit%radiusApocenter ()
-                radiusVirial    =Dark_Matter_Halo_Virial_Radius(orbitalPartner)
-                ! Check if the orbit intersects the virial radius.
-                if     (                                                                          &
-                     &    radiusVirial >= radiusPericenter                                        &
-                     &  .and.                                                                     &
-                     &   (radiusVirial <= radiusApocenter          .or. .not.thisOrbit%isBound()) &
-                     &  .and.                                                                     &
-                     &   (.not.mergerTreeReadPresetOrbitsBoundOnly .or.      thisOrbit%isBound()) &
-                     & ) then
-                   call thisOrbit%propagate(radiusVirial,infalling=.true.)
-                   ! Set the orbit.
-                   call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
-                else if (mergerTreeReadPresetOrbitsSetAll) then
-                   ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
-                   thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
-                   call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
-                else if (mergerTreeReadPresetOrbitsAssertAllSet) then
-                   message='virial orbit could not be set for node '
-                   message=message//satelliteNode%index()//char(10)
-                   message=message//' -> set [mergerTreeReadPresetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
-                   message=message//'    (this may lead to other problems)'
-                   call Galacticus_Error_Report('Scan_For_Mergers',message)
+                   if (mergerTreeReadPresetOrbitsSetAll) then
+                      ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
+                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
+                   else 
+                      message='merging halos ['
+                      message=message//satelliteNode%index()//' & '//hostNode%index()//'] have zero separation'
+                      call Galacticus_Error_Report('Scan_For_Mergers',message)
+                   end if
+                else
+                   ! Create the orbit.
+                   thisOrbit=Orbit_Construct(satelliteBasicComponent%mass(),orbitalPartnerBasicComponent%mass(),relativePosition,relativeVelocity)
+                   ! Propagate to the virial radius.
+                   radiusPericenter=thisOrbit%radiusPericenter()
+                   radiusApocenter =thisOrbit%radiusApocenter ()
+                   radiusVirial    =Dark_Matter_Halo_Virial_Radius(orbitalPartner)
+                   ! Check if the orbit intersects the virial radius.
+                   if     (                                                                          &
+                        &    radiusVirial >= radiusPericenter                                        &
+                        &  .and.                                                                     &
+                        &   (radiusVirial <= radiusApocenter          .or. .not.thisOrbit%isBound()) &
+                        &  .and.                                                                     &
+                        &   (.not.mergerTreeReadPresetOrbitsBoundOnly .or.      thisOrbit%isBound()) &
+                        & ) then
+                      call thisOrbit%propagate(radiusVirial,infalling=.true.)
+                      ! Set the orbit.
+                      call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
+                   else if (mergerTreeReadPresetOrbitsSetAll) then
+                      ! The given orbit does not cross the virial radius. Since all orbits must be set, choose an orbit at random.
+                      thisOrbit=Virial_Orbital_Parameters(satelliteNode,hostNode,acceptUnboundOrbits)
+                      call satelliteSatelliteComponent%virialOrbitSet(thisOrbit)
+                   else if (mergerTreeReadPresetOrbitsAssertAllSet) then
+                      message='virial orbit could not be set for node '
+                      message=message//satelliteNode%index()//char(10)
+                      message=message//' -> set [mergerTreeReadPresetOrbitsAssertAllSet]=false to ignore this problem'//char(10)
+                      message=message//'    (this may lead to other problems)'
+                      call Galacticus_Error_Report('Scan_For_Mergers',message)
+                   end if
                 end if
              end if
           end if
        end do
     end if
-
+    
     return
   end subroutine Scan_For_Mergers
 
@@ -2248,29 +2255,24 @@ contains
           else
              ! Create the orbit.
              thisOrbit=Orbit_Construct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
-             ! Check if the orbit is bound.
-             if (thisOrbit%energy() < 0.0d0) then
-                ! Construct temporary nodes.
-                satelliteNode                => treeNode           (                 )
-                hostNode                     => treeNode           (                 )
-                satelliteNode%parent         => hostNode
-                hostNode     %firstSatellite => satelliteNode
-                satelliteBasicComponent      => satelliteNode%basic(autoCreate=.true.)
-                hostBasicComponent           => hostNode     %basic(autoCreate=.true.)
-                call satelliteBasicComponent%timeSet(lastSeenNode     %nodeTime)
-                call      hostBasicComponent%timeSet(primaryProgenitor%nodeTime)
-                call satelliteBasicComponent%massSet(lastSeenNode     %nodeMass)
-                call      hostBasicComponent%massSet(primaryProgenitor%nodeMass)
-                ! Determine the time until merging.
-                timeUntilMerging=thisSatelliteMergingTimescales%timeUntilMerging(satelliteNode,thisOrbit)
-                ! Clean up.
-                call satelliteNode%destroy()
-                call hostNode     %destroy()
-                deallocate(satelliteNode)
-                deallocate(hostNode     )
-             else
-                timeUntilMerging=timeUntilMergingInfinite
-             end if
+             ! Construct temporary nodes.
+             satelliteNode                => treeNode           (                 )
+             hostNode                     => treeNode           (                 )
+             satelliteNode%parent         => hostNode
+             hostNode     %firstSatellite => satelliteNode
+             satelliteBasicComponent      => satelliteNode%basic(autoCreate=.true.)
+             hostBasicComponent           => hostNode     %basic(autoCreate=.true.)
+             call satelliteBasicComponent%timeSet(lastSeenNode     %nodeTime)
+             call      hostBasicComponent%timeSet(primaryProgenitor%nodeTime)
+             call satelliteBasicComponent%massSet(lastSeenNode     %nodeMass)
+             call      hostBasicComponent%massSet(primaryProgenitor%nodeMass)
+             ! Determine the time until merging.
+             timeUntilMerging=thisSatelliteMergingTimescales%timeUntilMerging(satelliteNode,thisOrbit)
+             ! Clean up.
+             call satelliteNode%destroy()
+             call hostNode     %destroy()
+             deallocate(satelliteNode)
+             deallocate(hostNode     )
           end if
        end if
        ! Find the new merging time, and the node with which the merging will occur.

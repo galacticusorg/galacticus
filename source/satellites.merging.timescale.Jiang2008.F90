@@ -59,6 +59,7 @@ contains
     use Dark_Matter_Profiles
     use Dynamical_Friction_Timescale_Utilities
     use Satellite_Orbits
+    use Galacticus_Error
     implicit none
     class           (satelliteMergingTimescalesJiang2008)           , intent(inout)          :: self
     type            (treeNode                           )           , intent(inout), pointer :: thisNode
@@ -66,8 +67,11 @@ contains
     type            (treeNode                           )                          , pointer :: hostNode
     class           (nodeComponentBasic                 )                          , pointer :: hostBasic                            , thisBasic
     logical                                              , parameter                         :: acceptUnboundOrbits          =.false.
+    double precision                                     , parameter                         :: timeInfinite                 =1.0d30
+
     double precision                                     , parameter                         :: C                            =0.43d0 , a                 =0.94d0, &  !   Fitting parameters from Jiang's paper.
          &                                                                                      b                            =0.60d0 , d                 =0.60d0
+    integer                                                                                  :: errorCode
     double precision                                                                         :: equivalentCircularOrbitRadius        , massRatio                , &
          &                                                                                      orbitalCircularity                   , radialScale              , &
          &                                                                                      velocityScale
@@ -75,7 +79,20 @@ contains
     ! Find the host node.
     hostNode => thisNode%parent
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(hostNode,thisOrbit,errorCode)
+    ! Check error codes.
+    select case (errorCode)
+    case (errorCodeOrbitUnbound     )
+       jiang2008TimeUntilMerging=timeInfinite
+       return
+    case (errorCodeNoEquivalentOrbit)
+       ! Circularity is not defined. Assume instantaneous merging.
+       jiang2008TimeUntilMerging=0.0d0
+       return
+    case (errorCodeSuccess          )
+    case default
+       call Galacticus_Error_Report('jiang2008TimeUntilMerging','unrecognized error code')
+    end select
     ! Get velocity scale.
     velocityScale=Dark_Matter_Halo_Virial_Velocity(hostNode)
     radialScale  =Dark_Matter_Halo_Virial_Radius  (hostNode)
