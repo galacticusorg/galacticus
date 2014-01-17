@@ -44,7 +44,7 @@ sub Functions_Parse_Directive {
     my $directive = $buildData->{'directive'};
     my $className = $buildData->{'currentDocument'}->{'name'};
     my $fileName  = $buildData->{'currentFileName'};
-    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName});
+    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}});
 
 }
 
@@ -243,7 +243,6 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "    module procedure ".$directive."ConstructorDefault\n";
     $buildData->{'content'} .= "    module procedure ".$directive."ConstructorNamed\n";
     $buildData->{'content'} .= "   end interface\n";
-
 
     # Scan implementation code to determine dependencies.
     my %dependencies;
@@ -457,20 +456,6 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "      return\n";
 	$buildData->{'content'} .= "   end ".$category." ".$method->{'name'}.$extension."\n\n";
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Generate C-bindings if required.
     if ( @methodsCBound ) {
 	# C-bound default constructor. Here, we use a wrapper object which contains a pointer to the default polymorphic Fortran
@@ -679,6 +664,97 @@ sub Functions_Generate_Output {
 	print cHndl $cBindings;
 	close(cHndl);
     }
+    # Generate documentation.
+    my $documentation = "\\subsubsection{".$buildData->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive)."}\n\n";
+    $documentation   .= "Additional implementations for ".lc($buildData->{'descriptiveName'})." are added using the {\\tt ".$directive."} class.\n";
+    $documentation   .= "The implementation should be placed in a file containing the directive:\n";
+    $documentation   .= "\\begin{verbatim}\n";
+    $documentation   .= "!# <".$directive." name=\"".$directive."MyImplementation\">\n";
+    $documentation   .= "!# <description>A short description of the implementation.</description>\n";
+    $documentation   .= "!# </".$directive.">\n";
+    $documentation   .= "\\end{verbatim}\n";
+    $documentation   .= "where {\\tt MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\tt module} and final {\\tt end module} lines. That is, it may contain {\\tt use} statements and variable declarations prior to the {\\tt contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\tt ".$directive."MyImplementation}. The file \\emph{must} define a type that extends the {\\tt ".$directive."Class} class (or extends another type which is itself an extension of the {\\tt ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
+    $documentation   .= "\\begin{description}\n";
+    # Create functions.
+    foreach my $method ( @methods ) {
+	$documentation   .= "\\item[{\\tt ".$method->{'name'}."}] ".$method->{'description'}." Must have the following interface:\n";
+	$documentation   .= "\\begin{verbatim}\n";
+	# Insert arguments.
+	my @arguments;
+	if ( exists($method->{'argument'}) ) {
+	    if ( UNIVERSAL::isa($method->{'argument'},"ARRAY") ) {
+		push(@arguments,@{$method->{'argument'}});
+	    } else {
+		push(@arguments,  $method->{'argument'} );
+	    }
+	}
+	unshift(@arguments,"class(".$directive."Class), intent(inout) :: self");
+	my $argumentList = "";
+	my $separator    = "";
+	my @argumentDefinitions;
+	foreach my $argument ( @arguments ) {
+	    if ( $argument =~ $Fortran_Utils::variableDeclarationRegEx ) {
+		my $intrinsic     = $1;
+		my $type          = $2;
+		my $attributeList = $3;
+		my $variableList  = $4;
+		my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1);
+		my $declaration =
+		{
+		    intrinsic  => $intrinsic,
+		    attributes => $attributeList,
+		    variables  => \@variables
+		}; 
+		if ( defined($type) ) {
+		    $type =~ s/\((.*)\)/$1/;
+		    $declaration->{'type'} = $type;
+		}
+		if ( defined($attributeList) ) {
+		    $attributeList =~ s/^\s*,\s*//;
+		    my @attributes = &Fortran_Utils::Extract_Variables($attributeList,keepQualifiers => 1);
+		    $declaration->{'attributes'} = \@attributes;
+		}
+		push(@argumentDefinitions,$declaration);
+	    } else {
+		print "Argument does not match expected pattern:\n\t".$argument."\n";
+		die("Functions_Generate_Output: argument parse error");
+	    }
+	    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
+	    $argumentList .= $separator.$variables;
+	    $separator     = ",";
+	}
+	my $type;
+	my $category;
+	if ( $method->{'type'} eq "void" ) {
+	    $category = "subroutine";
+	    $type     = "";
+	} else {
+	    $category = "function";
+	    $type     = $method->{'type'}." ";
+	}
+	$documentation .= "   ".$type.$category." myImplementation".ucfirst($method->{'name'})."(self";
+	$documentation .= ",".$argumentList
+	    unless ( $argumentList eq "" );
+	$documentation .= ")\n";
+	$documentation .= &Fortran_Utils::Format_Variable_Defintions(\@argumentDefinitions);
+	$documentation .= "   end ".$type.$category." myImplementation".ucfirst($method->{'name'})."\n";
+	$documentation .= "\\end{verbatim}\n\n";
+    }
+    $documentation   .= "\\end{description}\n\n";
+
+
+    $documentation   .= "Existing implementations are:\n";
+    $documentation   .= "\\begin{description}\n";
+    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+	$documentation   .= "\\item[{\\tt ".$class->{'name'}."}] ".$class->{'description'};
+	$documentation   .= " \\iflabelexists{phys:".$directive.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive.":".$class->{'name'}."}.}{}\n";
+    }
+    $documentation   .= "\\end{description}\n\n";
+	
+    system("mkdir -p doc/methods");
+    open(my $docHndl,">doc/methods/".$directive.".tex");
+    print $docHndl $documentation;
+    close($docHndl);
 }
 
 sub Functions_Modules_Generate_Output {

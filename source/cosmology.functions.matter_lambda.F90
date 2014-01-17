@@ -18,7 +18,9 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda" />
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
+  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and a cosmological constant.</description>
+  !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
 

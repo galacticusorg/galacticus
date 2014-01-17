@@ -34,6 +34,7 @@ module Cosmology_Parameters
   integer, parameter, public :: unitsLittleH =2
 
   !# <include directive="cosmologyParameters" type="function" >
+  !#  <descriptiveName>Cosmological Parameters</descriptiveName>
   !#  <description>Object providing various cosmological parameters.</description>
   !#  <default>simple</default>
   !#  <method name="OmegaMatter" >

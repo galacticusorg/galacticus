@@ -20,6 +20,7 @@ use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
+our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class)(?-i)\s*(\(\s*[a-zA-Z0-9_=]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
@@ -339,6 +340,9 @@ sub Format_Variable_Defintions {
     foreach my $datum ( @{$variables} ) {
 	if ( exists($datum->{'attributes'}) ) {
 	    foreach ( @{$datum->{'attributes'}} ) {
+		$_ =~ s/intent\(\s*in\s*\)/intent(in   )/;
+		$_ =~ s/intent\(\s*out\s*\)/intent(  out)/;
+		$_ =~ s/intent\(\s*inout\s*\)/intent(inout)/;
 		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
 		++$attributes{$attributeName}->{'count'};
 		$attributes{$attributeName}->{'column'} = -1;

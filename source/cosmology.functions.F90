@@ -28,6 +28,7 @@ module Cosmology_Functions
   public :: Cosmology_Functions_State_Store, Cosmology_Functions_State_Retrieve
 
   !# <include directive="cosmologyFunctions" type="function" >
+  !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>

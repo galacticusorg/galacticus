@@ -17,7 +17,9 @@
 
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
+  !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.

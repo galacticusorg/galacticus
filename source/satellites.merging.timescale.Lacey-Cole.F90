@@ -17,7 +17,9 @@
 
   !% Implements calculations of satellite merging times using the \cite{lacey_merger_1993} method.
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993">
+  !#  <description>Computes the merging timescale using the method of \cite{lacey_merger_1993}.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
