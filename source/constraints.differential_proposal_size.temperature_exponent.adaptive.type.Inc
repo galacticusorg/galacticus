@@ -16,18 +16,18 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 
-  type, public, extends(deProposalSize) :: deProposalSizeAdaptive
-     !% Defines an adaptive differential evolution proposal size class.
+  type, public, extends(dePropSizeTempExp) :: dePropSizeTempExpAdaptive
+     !% Defines a adaptive differential evolution proposal size temperature exponent class.
      private
-     double precision :: gammaCurrent         , gammaAdjustFactor
-     double precision :: gammaMinimum         , gammaMaximum
-     double precision :: acceptanceRateMinimum, acceptanceRateMaximum
-     integer          :: updateCount          , lastUpdateCount
-   contains
-     procedure :: gamma => deProposalSizeAdaptiveGamma
-  end type deProposalSizeAdaptive
+     double precision :: exponentCurrent, exponentAdjustFactor
+     double precision :: exponentMinimum, exponentMaximum
+     double precision :: gradientMinimum, gradientMaximum
+     integer          :: updateCount    , lastUpdateCount
+    contains
+     procedure :: exponent => dePropSizeTempExpAdaptiveExponent
+  end type dePropSizeTempExpAdaptive
   
-  interface deProposalSizeAdaptive
-     !% Constructors for the ``adaptive'' differential evolution proposal size class.
-     module procedure deProposalSizeAdaptiveConstructor
-  end interface deProposalSizeAdaptive
+  interface dePropSizeTempExpAdaptive
+     !% Constructors for the ``adaptive'' differential evolution proposal size temperature exponent class.
+     module procedure dePropSizeTempExpAdaptiveConstructor
+  end interface dePropSizeTempExpAdaptive

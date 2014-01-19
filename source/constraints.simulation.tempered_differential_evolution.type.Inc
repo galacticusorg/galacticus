@@ -19,14 +19,34 @@
   type, public, extends(simulatorDifferentialEvolution) :: simulatorTemperedDifferentialEvolution
      !% Defines a simulator class implementing the tempered differential evolution algorithm.
      private
-     integer          :: untemperedStepCount, temperingLevelCount, stepsPerLevel
-     integer          :: temperingStep      , temperingLevel
-     double precision :: temperatureMaximum , temperature        , gammaTemperatureExponent
+     integer                                                        :: untemperedStepCount            , temperingLevelCount     , stepsPerLevel
+     integer                                                        :: temperingStep                  , temperingLevelMonotonic
+     double precision                                               :: temperatureMaximum
+     class           (dePropSizeTempExp), pointer                   :: proposalSizeTemperatureExponent
+     double precision                   , allocatable, dimension(:) :: temperatures
+     class           (state            ), allocatable, dimension(:) :: temperedStates
    contains
-     procedure :: logging   => simulatorTemperedDifferentialEvolutionLogging
-     procedure :: posterior => simulatorTemperedDifferentialEvolutionPosterior
-     procedure :: update    => simulatorTemperedDifferentialEvolutionUpdate
-     procedure :: stepSize  => simulatorTemperedDifferentialEvolutionStepSize
+     !@ <objectMethods>
+     !@   <object>simulatorTemperedDifferentialEvolution</object>
+     !@   <objectMethod>
+     !@     <method>level</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current tempering level.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>temperature</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current temperature.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: logging        => simulatorTemperedDifferentialEvolutionLogging
+     procedure :: acceptProposal => simulatorTemperedDifferentialEvolutionAcceptProposal
+     procedure :: update         => simulatorTemperedDifferentialEvolutionUpdate
+     procedure :: stepSize       => simulatorTemperedDifferentialEvolutionStepSize
+     procedure :: level          => simulatorTemperedDifferentialEvolutionLevel
+     procedure :: temperature    => simulatorTemperedDifferentialEvolutionTemperature
   end type simulatorTemperedDifferentialEvolution
   
   interface simulatorTemperedDifferentialEvolution

@@ -30,6 +30,8 @@ contains
     use FoX_DOM
     use IO_XML
     use Galacticus_Error
+    use Galacticus_Display
+    use String_Handling
     use Statistics_Distributions
     use Constraints_Priors
     use Constraints_Likelihoods
@@ -37,30 +39,33 @@ contains
     use Constraints_State
     use Constraints_Simulation
     use Constraints_Differential_Proposal_Size
+    use Constraints_Differential_Prop_Size_Temp_Exp
     use Constraints_Differential_Random_Jump
     use System_Command
     use MPI_Utilities
     implicit none
-    type   (varying_string  ), intent(in   )               :: configFile
-    type   (prior           ), allocatable  , dimension(:) :: parameterPriors
-    type   (distributionList), allocatable  , dimension(:) :: randomDistributions
-    class  (likelihood      ), pointer                     :: modelLikelihood
-    class  (convergence     ), pointer                     :: simulationConvergence
-    class  (state           ), pointer                     :: simulationState
-    class  (deProposalSize  ), pointer                     :: proposalSize
-    class  (deRandomJump    ), pointer                     :: randomJump
-    class  (simulator       ), pointer                     :: simulation
-    type   (node            ), pointer                     :: configDoc            , priorDefinition       , &
-         &                                                    parameterDefinition  , randomDefinition      , &
-         &                                                    likelihoodDefinition , convergenceDefinition , &
-         &                                                    stateDefinition      , proposalSizeDefinition, &
-         &                                                    simulationDefinition , parametersElement     , &
-         &                                                    randomJumpDefinition
-    type   (nodeList        ), pointer                     :: parameterDefinitions , parametersList
-    type   (varying_string  )                              :: filterCommand        , filteredFile
-    integer                                                :: parameterCount       , ioError               , &
-         &                                                    i                    , j                     , &
-         &                                                    iParameter           , inactiveParameterCount
+    type   (varying_string   ), intent(in   )               :: configFile
+    type   (prior            ), allocatable  , dimension(:) :: parameterPriors
+    type   (distributionList ), allocatable  , dimension(:) :: randomDistributions
+    class  (likelihood       ), pointer                     :: modelLikelihood
+    class  (convergence      ), pointer                     :: simulationConvergence
+    class  (state            ), pointer                     :: simulationState
+    class  (deProposalSize   ), pointer                     :: proposalSize
+    class  (dePropSizeTempExp), pointer                     :: proposalSizeTemperatureExponent
+    class  (deRandomJump     ), pointer                     :: randomJump
+    class  (simulator        ), pointer                     :: simulation
+    type   (node             ), pointer                     :: configDoc            , priorDefinition                          , &
+         &                                                     parameterDefinition  , randomDefinition                         , &
+         &                                                     likelihoodDefinition , convergenceDefinition                    , &
+         &                                                     stateDefinition      , proposalSizeDefinition                   , &
+         &                                                     simulationDefinition , parametersElement                        , &
+         &                                                     randomJumpDefinition , proposalSizeTemperatureExponentDefinition
+    type   (nodeList         ), pointer                     :: parameterDefinitions , parametersList
+    type   (varying_string   )                              :: filterCommand        , filteredFile                             , &
+         &                                                     message
+    integer                                                 :: parameterCount       , ioError                                  , &
+         &                                                     i                    , j                                        , &
+         &                                                     iParameter           , inactiveParameterCount
 
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
@@ -87,7 +92,11 @@ contains
       end do
     end do
     if (parameterCount <= 0) call Galacticus_Error_Report('Constrain','at least one parameter must be specified in config file')
-    if (mpiSelf%isMaster()) write (0,*) 'Found ',parameterCount,' active parameters (and ',inactiveParameterCount,' inactive parameters)'
+    if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+       message='Found '
+       message=message//parameterCount//' active parameters (and '//inactiveParameterCount//' inactive parameters)'
+       call Galacticus_Display_Message(message)
+    end if
     ! Initialize priors and random perturbers.
     allocate(parameterPriors    (parameterCount))
     allocate(randomDistributions(parameterCount))
@@ -108,36 +117,42 @@ contains
        end do
     end do
     ! Initialize likelihood.
-    likelihoodDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"likelihood"  )
-    modelLikelihood        =>     likelihoodNew(  likelihoodDefinition,configFile    )
+    likelihoodDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"likelihood"                     )
+    modelLikelihood                           =>        likelihoodNew(  likelihoodDefinition,configFile        )
     ! Initialize convergence.
-    convergenceDefinition => XML_Get_First_Element_By_Tag_Name(configDoc,"convergence"  )
-    simulationConvergence =>     convergenceNew( convergenceDefinition               )
+    convergenceDefinition                     => XML_Get_First_Element_By_Tag_Name(configDoc,"convergence"                    )
+    simulationConvergence                     =>        convergenceNew( convergenceDefinition                  )
     ! Initialize state.
-    stateDefinition        => XML_Get_First_Element_By_Tag_Name(configDoc,"state"       )
-    simulationState        =>          stateNew(       stateDefinition,parameterCount)
+    stateDefinition                           => XML_Get_First_Element_By_Tag_Name(configDoc,"state"                          )
+    simulationState                           =>             stateNew(       stateDefinition,parameterCount    )
     ! Initialize proposal size.
-    proposalSizeDefinition => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSize")
-    proposalSize           => deProposalSizeNew(proposalSizeDefinition               )
+    proposalSizeDefinition                    => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSize"                   )
+    proposalSize                              =>    deProposalSizeNew(proposalSizeDefinition                   )
+    ! Initialize proposal size temperature exponent.
+    proposalSizeTemperatureExponentDefinition => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSizeTemperatureExponent")
+    proposalSizeTemperatureExponent           => dePropSizeTempExpNew(proposalSizeTemperatureExponentDefinition)
     ! Initialize random jump.
-    randomJumpDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"randomJump"  )
-    randomJump             => deRandomJumpNew  (randomJumpDefinition                 )
+    randomJumpDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"randomJump"                     )
+    randomJump                                =>    deRandomJumpNew  (randomJumpDefinition                     )
     ! Initialize simulation.
-    simulationDefinition   => XML_Get_First_Element_By_Tag_Name(configDoc,"simulation"  )
-    simulation             =>      simulatorNew(                       &
-         &                                      simulationDefinition , &
-         &                                      parameterPriors      , &
-         &                                      randomDistributions  , &
-         &                                      modelLikelihood      , &
-         &                                      simulationConvergence, &
-         &                                      simulationState      , &
-         &                                      proposalSize         , &
-         &                                      randomJump             &
-         &                                     )
+    simulationDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"simulation"                     )
+    simulation                                =>         simulatorNew(                                 &
+         &                                                            simulationDefinition           , &
+         &                                                            parameterPriors                , &
+         &                                                            randomDistributions            , &
+         &                                                            modelLikelihood                , &
+         &                                                            simulationConvergence          , &
+         &                                                            simulationState                , &
+         &                                                            proposalSize                   , &
+         &                                                            proposalSizeTemperatureExponent, &
+         &                                                            randomJump                       &
+         &                                                        )
     ! Destroy the simulation config document.
     call destroy(configDoc)
     ! Perform the simulation.
+    if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('Begin simulation')
     call simulation%simulate()
+    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('Simulation done' )
     ! Clean up.
     deallocate(parameterPriors      )
     deallocate(modelLikelihood      )

@@ -25,6 +25,7 @@ module Constraints_Simulation
   use Constraints_Convergence
   use Constraints_State
   use Constraints_Differential_Proposal_Size
+  use Constraints_Differential_Prop_Size_Temp_Exp
   use Constraints_Differential_Random_Jump
   use ISO_Varying_String
   private
@@ -60,33 +61,34 @@ module Constraints_Simulation
 contains
 
   function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence,simulationState&
-       &,proposalSize,randomJump) result (newSimulator)
+       &,proposalSize,proposalSizeTemperatureExponent,randomJump) result (newSimulator)
     !% Create a new differential evolution proposal size from an XML definition.
     use FoX_DOM
     use IO_XML
     use ISO_Varying_String
     use Galacticus_Error
     implicit none
-    class           (simulator       )               , pointer                        :: newSimulator
-    type            (node            ), intent(in   ), pointer                        :: definition
-    type            (prior           ), intent(in   ), optional, target, dimension(:) :: parameterPriors
-    type            (distributionList), intent(in   ), optional, target, dimension(:) :: randomDistributions
-    class           (likelihood      ), intent(in   ), optional, target               :: modelLikelihood
-    class           (convergence     ), intent(in   ), optional, target               :: simulationConvergence
-    class           (state           ), intent(in   ), optional, target               :: simulationState
-    class           (deProposalSize  ), intent(in   ), optional, target               :: proposalSize
-    class           (deRandomJump    ), intent(in   ), optional, target               :: randomJump
-    type            (node            ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorStepsPostConvergenceDefinition, &
-         &                                                                               simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
-         &                                                                               simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
-         &                                                                               simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
-         &                                                                               simulatorExponentDefinition              , simulatorStateSwapCountDefinition
-    integer                                                                           :: simulatorStepsMaximum                    , simulatorStepsPostConvergence          , &
-         &                                                                               simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
-         &                                                                               simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
-         &                                                                               simulatorStateSwapCount
-    double precision                                                                  :: simulatorTemperatureMaximum              , simulatorExponent
-    type            (varying_string  )                                                :: simulatorLogFile
+    class           (simulator        )               , pointer                        :: newSimulator
+    type            (node             ), intent(in   ), pointer                        :: definition
+    type            (prior            ), intent(in   ), optional, target, dimension(:) :: parameterPriors
+    type            (distributionList ), intent(in   ), optional, target, dimension(:) :: randomDistributions
+    class           (likelihood       ), intent(in   ), optional, target               :: modelLikelihood
+    class           (convergence      ), intent(in   ), optional, target               :: simulationConvergence
+    class           (state            ), intent(in   ), optional, target               :: simulationState
+    class           (deProposalSize   ), intent(in   ), optional, target               :: proposalSize
+    class           (dePropSizeTempExp), intent(in   ), optional, target               :: proposalSizeTemperatureExponent
+    class           (deRandomJump     ), intent(in   ), optional, target               :: randomJump
+    type            (node             ), pointer                                       :: simulatorStepsMaximumDefinition          , simulatorStepsPostConvergenceDefinition, &
+         &                                                                                simulatorAcceptanceAverageCountDefinition, simulatorLogFileDefinition             , &
+         &                                                                                simulatorTemperatureMaximumDefinition    , simulatorUntemperedStepCountDefinition , &
+         &                                                                                simulatorTemperingLevelCountDefinition   , simulatorStepsPerLevelDefinition       , &
+         &                                                                                simulatorStateSwapCountDefinition
+    integer                                                                            :: simulatorStepsMaximum                    , simulatorStepsPostConvergence          , &
+         &                                                                                simulatorAcceptanceAverageCount          , simulatorUntemperedStepCount           , &
+         &                                                                                simulatorTemperingLevelCount             , simulatorStepsPerLevel                 , &
+         &                                                                                simulatorStateSwapCount
+    double precision                                                                   :: simulatorTemperatureMaximum
+    type            (varying_string  )                                                 :: simulatorLogFile
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("differentialEvolution")
@@ -131,7 +133,6 @@ contains
           simulatorUntemperedStepCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"untemperedStepCount"     )
           simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperedLevels"          )
           simulatorStepsPerLevelDefinition          => XML_Get_First_Element_By_Tag_Name(definition,"stepsPerLevel"           )
-          simulatorExponentDefinition               => XML_Get_First_Element_By_Tag_Name(definition,"gammaTemperatureExponent")
           call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
           call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
           call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
@@ -140,7 +141,6 @@ contains
           call extractDataContent(simulatorUntemperedStepCountDefinition   ,simulatorUntemperedStepCount   )
           call extractDataContent(simulatorTemperingLevelCountDefinition   ,simulatorTemperingLevelCount   )
           call extractDataContent(simulatorStepsPerLevelDefinition         ,simulatorStepsPerLevel         )
-          call extractDataContent(simulatorExponentDefinition              ,simulatorExponent              )
           simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
           newSimulator=simulatorTemperedDifferentialEvolution(                                 &
                &                                              parameterPriors                , &
@@ -149,6 +149,7 @@ contains
                &                                              simulationConvergence          , &
                &                                              simulationState                , &
                &                                              proposalSize                   , &
+               &                                              proposalSizeTemperatureExponent, &
                &                                              randomJump                     , &
                &                                              simulatorStepsMaximum          , &
                &                                              simulatorStepsPostConvergence  , &
@@ -158,8 +159,7 @@ contains
                &                                              simulatorTemperatureMaximum    , &
                &                                              simulatorUntemperedStepCount   , &
                &                                              simulatorTemperingLevelCount   , &
-               &                                              simulatorStepsPerLevel         , &
-               &                                              simulatorExponent                &
+               &                                              simulatorStepsPerLevel           &
                &                                             )
        end select
      case default
