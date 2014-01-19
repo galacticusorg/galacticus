@@ -52,11 +52,12 @@
      !@     <description>Update the simulator to the new {\tt stateVector} after a step.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: simulate  => simulatorDifferentialEvolutionSimulate
-     procedure :: logging   => simulatorDifferentialEvolutionLogging
-     procedure :: posterior => simulatorDifferentialEvolutionPosterior
-     procedure :: update    => simulatorDifferentialEvolutionUpdate
-     procedure :: stepSize  => simulatorDifferentialEvolutionStepSize
+     procedure :: simulate       => simulatorDifferentialEvolutionSimulate
+     procedure :: logging        => simulatorDifferentialEvolutionLogging
+     procedure :: posterior      => simulatorDifferentialEvolutionPosterior
+     procedure :: update         => simulatorDifferentialEvolutionUpdate
+     procedure :: stepSize       => simulatorDifferentialEvolutionStepSize
+     procedure :: acceptProposal => simulatorDifferentialEvolutionAcceptProposal
   end type simulatorDifferentialEvolution
   
   interface simulatorDifferentialEvolution

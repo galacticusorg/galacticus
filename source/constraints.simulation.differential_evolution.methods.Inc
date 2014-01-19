@@ -57,13 +57,14 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   class           (simulatorDifferentialEvolution), intent(inout)                    :: self
   integer                                         , dimension(                    2) :: chainPair
   double precision                                , dimension(self%parameterCount,2) :: statePair
-  double precision                                , dimension(self%parameterCount  ) :: stateVector,stateVectorProposed
+  double precision                                , dimension(self%parameterCount  ) :: stateVector          , stateVectorProposed
   class           (state                         ), allocatable                      :: stateProposed
-  real                                                                               :: timePreEvaluate, timePostEvaluate, timeEvaluate
-  double precision                                                                   :: logPosterior,logPosteriorProposed,x,logLikelihood
+  real                                                                               :: timePreEvaluate      , timePostEvaluate   , &
+       &                                                                                timeEvaluate
+  double precision                                                                   :: logPosterior         , logPosteriorProposed
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName
-  integer                                                                            :: i,logFileUnit,convergedAtStep
+  integer                                                                            :: logFileUnit          , convergedAtStep
   logical                                                                            :: isConverged
   
   ! Check that we have sufficient chains for differential evolution.
@@ -114,12 +115,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      call CPU_Time(timePostEvaluate)
      timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
-     x=randomNumberGenerator%sample(mpiRankOffset=.true.)
-     if     (                                                                &
-          &   logPosteriorProposed >      logPosterior                       &
-          &  .or.                                                            &
-          &   x                    < exp(-logPosterior+logPosteriorProposed) &
-          & ) then
+     if (self%acceptProposal(logPosterior,logPosteriorProposed,randomNumberGenerator)) then
         logPosterior=logPosteriorProposed
         stateVector =stateVectorProposed
      end if
@@ -146,6 +142,7 @@ end subroutine simulatorDifferentialEvolutionSimulate
 
 subroutine simulatorDifferentialEvolutionUpdate(self,stateVector)
   !% Update the differential evolution simulator state.
+use mpi_utilities
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                                 :: self
   double precision                                , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -223,3 +220,22 @@ double precision function simulatorDifferentialEvolutionStepSize(self)
   end if
   return
 end function simulatorDifferentialEvolutionStepSize
+
+logical function simulatorDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,randomNumberGenerator)
+  !% Return whether or not to accept a proposal.
+  use Pseudo_Random
+  use MPI_Utilities
+  implicit none
+  class           (simulatorDifferentialEvolution), intent(inout) :: self
+  double precision                                , intent(in   ) :: logPosterior         , logPosteriorProposed
+  type            (pseudoRandom                  ), intent(inout) :: randomNumberGenerator
+  double precision                                                :: x
+
+  ! Decide whether to take step.
+  x=randomNumberGenerator%sample(mpiRankOffset=.true.)
+  simulatorDifferentialEvolutionAcceptProposal=                           &
+       &   logPosteriorProposed >      logPosterior                       &
+       &  .or.                                                            &
+       &   x                    < exp(-logPosterior+logPosteriorProposed)
+  return
+end function simulatorDifferentialEvolutionAcceptProposal

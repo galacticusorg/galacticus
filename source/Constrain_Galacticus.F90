@@ -25,10 +25,12 @@ program Galacticus_Constrain
   use Galacticus_Error
   use MPI_Utilities
   use Constraints_Constrain
+  use Galacticus_Display
   implicit none
   integer                             , parameter :: fileNameLengthMaximum =1024
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter     , configFileCharacter
   type     (varying_string           )            :: parameterFile              , configFile
+  integer                                         :: verbosityLevel
 
   ! Initialize MPI.
   call mpiInitialize()
@@ -43,6 +45,19 @@ program Galacticus_Constrain
   configFile=configFileCharacter
   ! Open the parameter file.
   call Input_Parameters_File_Open(parameterFile,allowedParametersFile='Constrain_Galacticus.parameters.xml')
+  ! Set the verbosity level.
+  !@ <inputParameter>
+  !@   <name>verbosityLevel</name>
+  !@   <defaultValue>1</defaultValue>
+  !@   <attachedTo>module</attachedTo>
+  !@   <description>
+  !@     The level of verbosity for the {\tt Constrain\_Galacticus} code (higher values give more verbosity).
+  !@   </description>
+  !@   <type>integer</type>
+  !@   <cardinality>1</cardinality>
+  !@ </inputParameter>
+  call Get_Input_Parameter('verbosityLevel',verbosityLevel,1)
+  call Galacticus_Verbosity_Level_Set(verbosityLevel)
   ! Run the simulation
   call Constrain(configFile)
   ! Close the parameter file.

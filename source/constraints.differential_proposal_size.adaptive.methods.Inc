@@ -33,36 +33,53 @@ function deProposalSizeAdaptiveConstructor(gamma,gammaMinimum,gammaMaximum,gamma
   deProposalSizeAdaptiveConstructor%acceptanceRateMinimum=acceptanceRateMinimum
   deProposalSizeAdaptiveConstructor%acceptanceRateMaximum=acceptanceRateMaximum
   deProposalSizeAdaptiveConstructor%updateCount          =updateCount
+  deProposalSizeAdaptiveConstructor%lastUpdateCount      =0
   return
 end function deProposalSizeAdaptiveConstructor
 
 double precision function deProposalSizeAdaptiveGamma(self,simulationState,simulationConvergence)
   !% Return the current state.
   use MPI_Utilities
+  use ISO_Varying_String
+  use String_Handling
+  use Galacticus_Display
   implicit none
   class           (deProposalSizeAdaptive), intent(inout) :: self
   class           (state                 ), intent(in   ) :: simulationState
   class           (convergence           ), intent(inout) :: simulationConvergence
   double precision                        , dimension(1)  :: acceptanceRate
+  character       (len=8                 )                :: label
+  type            (varying_string        )                :: message
  
   ! Should we consider updating gamma?
-  if     (                                                    &
-       &       simulationState%count()                    > 0 &
-       &  .and.                                               &
-       &   mod(simulationState%count(),self%updateCount) == 0 &
-       &  .and.                                               &
-       &   .not.simulationConvergence%isConverged()           &
+  if     (                                                                                   &
+       &        simulationState      %count      () >= self%lastUpdateCount+self%updateCount &
+       &  .and.                                                                              &
+       &   .not.simulationConvergence%isConverged()                                          &
        & ) then
+     ! Reset the number of steps remaining.
+     self%lastUpdateCount=simulationState%count()
      ! Find the mean acceptance rate across all chains.
      acceptanceRate=mpiSelf%average([simulationState%acceptanceRate()])
-     if (mpiSelf%rank() == 0) write (0,*) 'After ',simulationState%count(),' steps, acceptance rate is ',acceptanceRate(1)
+     if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+        write (label,'(f5.3)') acceptanceRate(1)
+        message='After '
+        message=message//simulationState%count()//' steps, acceptance rate is '//trim(label)
+        call Galacticus_Display_Message(message)
+     end if
      ! If the acceptance rate is out of range, adjust gamma.
-     if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent > self%gammaMaximum) then
+     if      (acceptanceRate(1) > self%acceptanceRateMaximum .and. self%gammaCurrent < self%gammaMaximum) then
         self%gammaCurrent=min(self%gammaCurrent*self%gammaAdjustFactor,self%gammaMaximum)
-        if (mpiSelf%rank() == 0) write (0,*) 'Adjusting gamma up to ',self%gammaCurrent
+        if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+           write (label,'(f8.5)') self%gammaCurrent
+           call Galacticus_Display_Message('Adjusting gamma up to '//label)
+        end if
      else if (acceptanceRate(1) < self%acceptanceRateMinimum .and. self%gammaCurrent > self%gammaMinimum) then
         self%gammaCurrent=max(self%gammaCurrent/self%gammaAdjustFactor,self%gammaMinimum)
-        if (mpiSelf%rank() == 0) write (0,*) 'Adjusting gamma down to ',self%gammaCurrent
+        if (mpiSelf%rank() == 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
+           write (label,'(f8.5)') self%gammaCurrent
+           call Galacticus_Display_Message('Adjusting gamma down to '//label)
+        end if
      end if
   end if
   ! Return the current adaptive size. 

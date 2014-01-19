@@ -819,6 +819,28 @@ This option adaptively changes $\gamma$ in an attempt to maintain the acceptance
 \item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate.
 \end{description}
 
+\subsection{{\tt proposalSizeTemperatureExponent}}
+
+The {\tt proposalSizeTemperatureExponent} section specifies the method to use when selecting the exponent, $\alpha$, for the temperature scaling of the proposal size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in tempered differential evolution simulations. The proposal size temperature exponent algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt fixed}}
+
+This option uses a fixed $\alpha$ specified by the {\tt alpha} element.
+
+\subsubsection{{\tt adaptive}}
+
+This option adaptively changes $\alpha$ in an attempt to maintain the gradient of the acceptance rate with the logarithm of temperature, ${\rm d} R/{\rm d}\ln T$, at an acceptable level. The algorithm is controlled by the following parameters (to be specified as elements within the {\tt proposalSizeTemperatureExponent} element):
+\begin{description}
+\item[{\tt exponentInitial}] The initial value for $\alpha$;
+\item[{\tt exponentFactor}] The additive factor by which $\alpha$ should be increased or decreased if the acceptance rate gradient is out of range;
+\item[{\tt exponentMinimum}] The smallest value allowed for $\alpha$;
+\item[{\tt exponentMaximum}] The largest value allowed for $\alpha$;
+\item[{\tt acceptanceRateMinimum}] The minimum acceptance rate gradient to accept before reducing $\alpha$;
+\item[{\tt acceptanceRateMaximum}] The maximum acceptance rate gradient to accept before reducing $\alpha$;
+\item[{\tt updateCount}] The number of steps between successive checks of the acceptance rate gradient.
+\end{description}
+
+
 \subsection{{\tt randomJump}}
 
 The {\tt randomJump} section specifies the method to use when adding a random jump component to proposals in differential evolution simulations. The random jump algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
@@ -853,15 +875,14 @@ This option extends the {\tt differentialEvolution} option to include tempering 
 \item[{\tt untemperedStepCount}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
 \item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
 \item[{\tt temperedLevels}] The number of tempered levels to use.
-\item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level;
-\item[{\tt gammaTemperatureExponent}] The exponent of the boost in $\gamma$ during tempered steps.
+\item[{\tt stepsPerLevel}] The number of differential evolution steps to take at each tempering level.
 \end{description}
 
 In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\tt temperedLevels}), and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
 \begin{equation}
 \log T_i = {i \over N} \log T_{\rm max},
 \end{equation}
-where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha=${\tt gammaTemperatureExponent}. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\tt proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
 
 \subsection{Parameters and Priors}\label{sec:ParametersPriors}
 
