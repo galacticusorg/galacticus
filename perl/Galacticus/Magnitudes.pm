@@ -42,7 +42,7 @@ sub Get_Magnitude {
 	my $dustExtension = $5;
 	$dustExtension = ""
 	    unless ( defined($dustExtension) );
-	if ( $6 eq ":vega" ) {
+	if ( defined($6) && $6 eq ":vega" ) {
 	    $vegaMagnitude = 1;
 	} else {
 	    $vegaMagnitude = 0;
