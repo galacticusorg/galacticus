@@ -1442,20 +1442,26 @@ sub Generate_Deferred_Procedure_Pointers {
 	    unless ( $property->{'attributes' }->{'isDeferred'} eq "" ) {
 		my $selfType = "generic";
 		$selfType = $component->{'class'}
-		unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
+		   unless ( $property->{'attributes'}->{'bindsTo'} eq "top" );
 		(my $dataObject, my $label) = &Data_Object_Definition($property);
 		my $dataType = $label.$property->{'rank'};
+		# Determine where to attach.
+		my $attachTo = $componentID;
+		$attachTo = $componentClassName
+		    if ( $property->{'attributes'}->{'bindsTo'} eq "top" );
 		# Iterate over attributes.
-		foreach ( "get", "set", "rate" ) {
+		foreach ( "get", "set", "rate" ) {		    
+		    # Determine function name.
+		    my $functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($_);
 		    # Determine if this attribute is deferred and has not yet had a procedure pointer created.
 		    if (
 			$property->{'attributes' }->{'isDeferred'} =~ m/$_/ 
 			&& $property->{'attributes' }->{'is'.ucfirst($_).'table'} eq "true"
-			&& ! exists($createdPointers{$componentClassName.ucfirst($propertyName).$_})
+			&& ! exists($createdPointers{$functionLabel})
 			) {
 			# Construct the template function.
 			my $template = $selfType."NullBinding".ucfirst($_).$dataType."InOut";
-			$template = $componentID.ucfirst($propertyName).ucfirst($_)
+			$template = lcfirst($componentID).ucfirst($propertyName).ucfirst($_)
 			    if ( $_ eq "get" );
 			# Generate the procedure pointer and a boolean to indicate if is has been attached.
 			push(
@@ -1464,11 +1470,11 @@ sub Generate_Deferred_Procedure_Pointers {
 				intrinsic  => "procedure",
 				type       => $template,
 				attributes => [ "pointer" ],
-				variables  => [ $componentClassName.ucfirst($propertyName).ucfirst($_)."Deferred" ]
+				variables  => [ $functionLabel."Deferred" ]
 			    },
 			    {
 				intrinsic  => "logical",
-				variables  => [ $componentClassName.ucfirst($propertyName).ucfirst($_)."IsAttachedValue=.false." ]
+				variables  => [ $functionLabel."IsAttachedValue=.false." ]
 			    },
 			    );
 			# Add the required null property to the list.
@@ -1479,7 +1485,7 @@ sub Generate_Deferred_Procedure_Pointers {
 			    intent => "inout"
 			};
 			# Record that this procedure pointer has been created.
-			$createdPointers{$componentClassName.ucfirst($propertyName).$_} = 1;
+			$createdPointers{$functionLabel} = 1;
 		    }		    
 		}
 	    }
@@ -4893,11 +4899,15 @@ sub Generate_Deferred_Function_Attacher {
     my $componentClassName = $component->{'class'             };
     my $componentName      = $component->{'fullyQualifiedName'};
     my $propertyName       = $property->{'name'};
+    # Determine where to attach.
+    my $attachTo = $componentName;
+    $attachTo = $componentClassName
+	if ( $property->{'attributes'}->{'bindsTo'} eq "top" );
+    # Define the function name.
+    my $functionLabel = lcfirst($attachTo).ucfirst($propertyName).ucfirst($gsr);
+    my $functionName = $functionLabel."Function";
     # Skip if this function was already created.
-    my $recordName = $componentClassName.$propertyName.$gsr;
-    unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$recordName}) ) {
-	# Define the function name.
-	my $functionName = $componentClassName.ucfirst($propertyName).ucfirst($gsr)."Function";
+    unless ( exists($buildData->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel}) ) {
 	# Define the data content.
 	my $selfType = "generic";
 	$selfType = $component->{'class'}
@@ -4918,11 +4928,11 @@ sub Generate_Deferred_Function_Attacher {
 	# Construct the function code.
 	my $functionCode;
 	$functionCode  = "  subroutine ".$functionName."(deferredFunction)\n";
-	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class.\n";
+	$functionCode .= "    !% Set the function to be used for ".$gsr." of the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component class.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."Deferred       => deferredFunction\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttachedValue=  .true.\n";
+	$functionCode .= "    ".$functionLabel."Deferred       => deferredFunction\n";
+	$functionCode .= "    ".$functionLabel."IsAttachedValue=  .true.\n";
 	$functionCode .= "    return\n";
 	$functionCode .= "  end subroutine ".$functionName."\n";
 	# Insert into the function list.
@@ -4939,17 +4949,17 @@ sub Generate_Deferred_Function_Attacher {
 	    $functionType = &dataObjectDocName($property)
 		if ( $gsr eq "get" );
 	    push(
-		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\tt ".$gsr."} method of the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
+		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."Function", function => $functionName, description => "Set the function to be used for the {\\tt ".$gsr."} method of the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component.", returnType => "\\void", arguments => "\\textcolor{red}{\\textless function()\\textgreater} deferredFunction"}
 		);
 	}
 	# Also create a function to return whether or not the deferred function has been attached.
-	$functionCode  = "  logical function ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached()\n";
-	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\tt ".$propertyName."} property of the {\\tt ".$componentClassName."} component class has been attached.\n";
+	$functionCode  = "  logical function ".$functionLabel."IsAttached()\n";
+	$functionCode .= "    !% Return true if the deferred function used to ".$gsr." the {\\tt ".$propertyName."} property of the {\\tt ".$attachTo."} component class has been attached.\n";
 	$functionCode .= "    implicit none\n";
-	$functionCode .= "    ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached=".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttachedValue\n";
+	$functionCode .= "    ".$functionLabel."IsAttached=".$functionLabel."IsAttachedValue\n";
 	$functionCode .= "    return\n";
-	$functionCode .= "  end function ".$componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached\n";
+	$functionCode .= "  end function ".$functionLabel."IsAttached\n";
 	# Insert into the function list.
 	push(
 	    @{$buildData->{'code'}->{'functions'}},
@@ -4958,15 +4968,15 @@ sub Generate_Deferred_Function_Attacher {
 	# Bind this function to the relevant type.
 	if ( 
 	    ( $property->{'attributes'}->{'bindsTo'} ne "top" && ( $gsr eq "get" || $gsr eq "set" ) ) ||
-	    (                                                    $gsr eq "rate"                   )
+	    (                                                      $gsr eq "rate"                   )
 	    ) {
 	    push(
-		@{$buildData->{'types'}->{"nodeComponent".ucfirst($componentClassName)}->{'boundFunctions'}},
-		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $componentClassName.ucfirst($propertyName).ucfirst($gsr)."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the ".$componentClassName." component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
+		@{$buildData->{'types'}->{"nodeComponent".ucfirst($attachTo)}->{'boundFunctions'}},
+		{type => "procedure", pass => "nopass", name => $propertyName.$gsrSuffix."IsAttached", function => $functionLabel."IsAttached", description => "Return whether the ".$gsr." method of the ".$propertyName." property of the {\\tt ".$attachTo."} component has been attached to a function.", returnType => "\\logicalzero", arguments => ""}
 		);
 	}
 	# Record that these functions have now been created.
-	$buildData->{'deferredFunctionComponentClassMethodsMade'}->{$recordName} = 1;
+	$buildData->{'deferredFunctionComponentClassMethodsMade'}->{$functionLabel} = 1;
     }
 }
 
@@ -5018,7 +5028,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "    !% Get the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentClassName.ucfirst($propertyName)."GetDeferred(self)\n";
+		    $functionCode .= "    ".$componentName.ucfirst($propertyName)."Get=".$componentName.ucfirst($propertyName)."GetDeferred(self)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end function ".$componentName.ucfirst($propertyName)."Get\n";
 		    # Insert into the function list.
@@ -5058,7 +5068,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "    !% Set the value of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
+		    $functionCode .= "    call ".$componentName.ucfirst($propertyName)."SetDeferred(self,setValue)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Set\n\n";
 		    # Insert into the function list.
@@ -5085,6 +5095,9 @@ sub Generate_Deferred_GSR_Function {
 		    my $type = "nodeComponent";
 		    $type .= ucfirst($componentName)
 			unless ( $property->{'attributes' }->{'bindsTo'} eq "top" );
+		    my $attachTo = $componentName;
+		    $attachTo = $componentClassName
+			if ( $property->{'attributes' }->{'bindsTo'} eq "top" );
 		    my @dataContent =
 			(
 			 $dataDefinition,
@@ -5110,7 +5123,7 @@ sub Generate_Deferred_GSR_Function {
 		    $functionCode .= "    !% Set the rate of the {\\tt ".$propertyName."} property of the {\\tt ".$componentName."} component using a deferred function.\n";
 		    $functionCode .= "    implicit none\n";
 		    $functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
-		    $functionCode .= "    call ".$componentClassName.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
+		    $functionCode .= "    call ".$attachTo.ucfirst($propertyName)."RateDeferred(self,setValue,interrupt,interruptProcedure)\n";
 		    $functionCode .= "    return\n";
 		    $functionCode .= "  end subroutine ".$componentName.ucfirst($propertyName)."Rate\n\n";
 		    # Insert into the function list.
