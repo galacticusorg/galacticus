@@ -234,8 +234,8 @@ contains
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
        ! distribution (assuming a flat rotation curve).
-       spheroidMassDistributionDensityMomentum2=spheroidMassDistribution%densityRadialMoment(2.0d0,densityMoment2IsInfinite)
-       spheroidMassDistributionDensityMomentum3=spheroidMassDistribution%densityRadialMoment(3.0d0,densityMoment3IsInfinite)
+       spheroidMassDistributionDensityMomentum2=spheroidMassDistribution%densityRadialMoment(2.0d0,isInfinite=densityMoment2IsInfinite)
+       spheroidMassDistributionDensityMomentum3=spheroidMassDistribution%densityRadialMoment(3.0d0,isInfinite=densityMoment3IsInfinite)
        if (densityMoment2IsInfinite.or.densityMoment3IsInfinite) then
           ! One of the moments is infinte, so we can not compute the appropriate ratio. Simply assume a value
           ! of 0.5 as a default.

@@ -28,6 +28,10 @@ type, public, extends(massDistributionSpherical) :: massDistributionBetaProfile
    !@     <arguments>\doublezero beta\argin, \doublezero coreRadius\argin, \doublezero densityNormalization\argin, \doublezero mass\argin, \doublezero outerRadius\argin, \logicalzero\ isDimensionless\argin</arguments>
    !@   </objectMethod>
    !@ </objectMethods>
-   procedure :: initialize=>Mass_Distribution_Beta_Profile_Initialize
-   procedure :: density   =>Mass_Distribution_Beta_Profile_Density
+   procedure :: initialize            => Mass_Distribution_Beta_Profile_Initialize
+   procedure :: density               => Mass_Distribution_Beta_Profile_Density
+   procedure :: densityGradientRadial => Mass_Distribution_Beta_Profile_Density_Gradient_Radial
+   procedure :: densityRadialMoment   => Mass_Distribution_Beta_Profile_Density_Radial_Moment
+   procedure :: massEnclosedBySphere  => Mass_Distribution_Beta_Profile_Mass_Enc_By_Sphere
+   procedure :: potential             => Mass_Distribution_Beta_Profile_Potential
 end type massDistributionBetaProfile

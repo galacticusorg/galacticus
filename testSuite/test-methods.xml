@@ -624,12 +624,12 @@
   <!-- Hot halo density profile -->
   <parameters>
     <parameter>
-      <name>hotHaloDensityMethod</name>
+      <name>hotHaloMassDistributionMethod</name>
       <value>coredIsothermal
       <parameter>
-	<name>hotHaloCoredIsothermalCoreRadiiMethod</name>
-	<value>virialRadiusFraction</value>
-	<value>growingCore</value>
+	<name>hotHaloMassDistributionCoreRadiusMethod</name>
+	<value>virialFraction</value>
+	<value>growing</value>
       </parameter>
       </value>
     </parameter>

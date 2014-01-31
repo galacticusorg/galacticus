@@ -85,12 +85,13 @@ contains
     use Dark_Matter_Halo_Scales
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentHotHalo)               , pointer :: thisHotHaloComponent
-    double precision                                               :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
-         &                                                            outerRadius         , virialVelocity
+    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    class           (nodeComponentHotHalo        )               , pointer :: thisHotHaloComponent
+    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    double precision                                                       :: coolingDensity      , infallRadius  , infallRadiusGrowthRate, &
+         &                                                                    outerRadius         , virialVelocity
 
     ! Get the virial velocity.
     virialVelocity=Dark_Matter_Halo_Virial_Velocity(thisNode)
@@ -112,8 +113,10 @@ contains
        ! Cooling radius exceeds the outer radius. Limit infall to the dynamical timescale.
        Cooling_Rate_White_Frenk=thisHotHaloComponent%mass()/Dark_Matter_Halo_Dynamical_Timescale(thisNode)
     else
-       ! Find the density at the cooling radius.
-       coolingDensity=Hot_Halo_Density(thisNode,infallRadius)
+       ! Get the hot halo mass distribution.
+       defaultHotHaloMassDistribution => hotHaloMassDistribution()
+        ! Find the density at the cooling radius.
+       coolingDensity=defaultHotHaloMassDistribution%density(thisNode,infallRadius)
        ! Find cooling radius growth rate.
        infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode)
        ! Compute the cooling rate.

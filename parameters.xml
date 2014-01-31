@@ -209,7 +209,7 @@
 
   <!-- Hot halo gas cooling model options -->
   <parameter>
-    <name>hotHaloDensityMethod</name>
+    <name>hotHaloMassDistributionMethod</name>
     <value>coredIsothermal</value>
   </parameter>
   <parameter>
@@ -217,7 +217,7 @@
     <value>virial</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.3</value>
   </parameter>
   <parameter>

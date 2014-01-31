@@ -164,7 +164,7 @@
     <value>Bett2007</value>
   </parameter>
   <parameter>
-    <name>hotHaloDensityMethod</name>
+    <name>hotHaloMassDistributionMethod</name>
     <value>cored isothermal</value>
   </parameter>
   <parameter>

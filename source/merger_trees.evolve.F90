@@ -164,6 +164,7 @@ contains
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
+
     ! Return if none of these trees exist at the output time.
     if (.not.anyTreeExistsAtOutputTime) return
 
