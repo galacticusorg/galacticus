@@ -64,7 +64,6 @@ contains
           !@ <inputParameter>
           !@   <name>hotHaloCoreRadiusOverScaleRadius</name>
           !@   <defaultValue>0.1</defaultValue>
-          !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The core radius in the hot halo density profile in units of the dark matter profile scale radius.
           !@   </description>
@@ -73,9 +72,8 @@ contains
           !@ </inputParameter>
           call Get_Input_Parameter('hotHaloCoreRadiusOverScaleRadius',growingCoreRadiusOverScaleRadius,defaultValue=0.1d0)
           !@ <inputParameter>
-          !@   <name>isothermalCoreRadiusOverVirialRadiusMaximum</name>
+          !@   <name>hotHaloCoreRadiusOverVirialRadiusMaximum</name>
           !@   <defaultValue>10</defaultValue>
-          !@   <attachedTo>module</attachedTo>
           !@   <description>
           !@     The maximum core radius in the ``cored isothermal'' hot halo density profile in units of the virial radius.
           !@   </description>
