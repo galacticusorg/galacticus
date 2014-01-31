@@ -222,7 +222,7 @@
 
   <!-- Hot halo gas cooling model options -->
   <parameter>
-    <name>hotHaloDensityMethod</name>
+    <name>hotHaloMassDistributionMethod</name>
     <value>coredIsothermal</value>
   </parameter>
   <parameter>

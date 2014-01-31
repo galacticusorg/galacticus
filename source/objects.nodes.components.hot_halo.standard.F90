@@ -717,18 +717,20 @@ contains
   double precision function Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction(thisNode,thisHotHaloComponent)
     !% Compute the fraction of material outflowing into the hot halo of {\tt thisNode} which is susceptible to being stripped
     !% away.
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: thisNode
     class           (nodeComponentHotHaloStandard)                         :: thisHotHaloComponent
-    double precision                                                       :: massOuter           , massVirial, radiusOuter, &
-         &                                                                    radiusVirial
+    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    double precision                                                       :: massOuter                     , massVirial  , &
+         &                                                                    radiusOuter                   , radiusVirial
 
+    defaultHotHaloMassDistribution => hotHaloMassDistribution()
     radiusOuter =thisHotHaloComponent%outerRadius()
-    radiusVirial=Dark_Matter_Halo_Virial_Radius (thisNode             )
-    massOuter   =Hot_Halo_Enclosed_Mass         (thisNode,radiusOuter )
-    massVirial  =Hot_Halo_Enclosed_Mass         (thisNode,radiusVirial)
+    radiusVirial=Dark_Matter_Halo_Virial_Radius             (thisNode             )
+    massOuter   =defaultHotHaloMassDistribution%enclosedMass(thisNode,radiusOuter )
+    massVirial  =defaultHotHaloMassDistribution%enclosedMass(thisNode,radiusVirial)
     if (massVirial > 0.0d0) then
        Node_Component_Hot_Halo_Standard_Outflow_Stripped_Fraction=hotHaloOutflowStrippingEfficiency*(1.0d0-massOuter/massVirial)
     else
@@ -828,7 +830,7 @@ contains
     use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     use Hot_Halo_Ram_Pressure_Stripping_Timescales
     use Cosmology_Parameters
     implicit none
@@ -837,7 +839,8 @@ contains
     procedure       (Interrupt_Procedure_Template)           , intent(inout), pointer :: interruptProcedure
     class           (nodeComponentHotHalo        )                          , pointer :: thisHotHaloComponent
     class           (nodeComponentBasic          )                          , pointer :: thisBasicComponent
-    class           (cosmologyParametersClass)               , pointer :: thisCosmologyParameters
+    class           (cosmologyParametersClass)                              , pointer :: thisCosmologyParameters
+    class           (hotHaloMassDistributionClass)                          , pointer :: defaultHotHaloMassDistribution
     double precision                              , parameter                         :: outerRadiusOverVirialRadiusMinimum=1.0d-3
     type            (abundances                  ), save                              :: abundancesReturnRate                     , accretionRateAbundances  , &
          &                                                                               outflowedAbundances
@@ -876,6 +879,8 @@ contains
           ! A standard hot halo component exists.
           ! Get the basic component.
           thisBasicComponent => thisNode%basic()
+          ! Get the mass distribution.
+          defaultHotHaloMassDistribution => hotHaloMassDistribution()
           ! Apply accretion rates.
           if (      massAccretionRate > 0.0d0 .or. thisHotHaloComponent%mass() > 0.0d0) &
                & call thisHotHaloComponent%          massRate(      massAccretionRate)
@@ -947,7 +952,7 @@ contains
              outerRadius =thisHotHaloComponent%outerRadius()
              radiusVirial=Dark_Matter_Halo_Virial_Radius(thisNode)
              if (outerRadius < radiusVirial) then 
-                densityAtOuterRadius=Hot_Halo_Density(thisNode,outerRadius)
+                densityAtOuterRadius=defaultHotHaloMassDistribution%density(thisNode,outerRadius)
                 ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
                 ! density profile.
                 if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
@@ -1009,7 +1014,7 @@ contains
                   & ) then
                 ! Cause the outer radius to shrink to the ram pressure stripping radius.
                 outerRadiusGrowthRate=(ramPressureRadius-outerRadius)/Hot_Halo_Ram_Pressure_Stripping_Timescale(thisNode)
-                densityAtOuterRadius =Hot_Halo_Density(thisNode,outerRadius)
+                densityAtOuterRadius =defaultHotHaloMassDistribution%density(thisNode,outerRadius)
                 massLossRate         =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
                 call thisHotHaloComponent%outerRadiusRate(+outerRadiusGrowthRate)
                 call thisHotHaloComponent%    massSinkSet(+         massLossRate)

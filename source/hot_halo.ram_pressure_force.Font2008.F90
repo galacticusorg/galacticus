@@ -52,15 +52,15 @@ contains
 
   double precision function Hot_Halo_Ram_Pressure_Force_Font2008_Get(thisNode)
     !% Computes the hot halo ram pressure force
-
     use Kepler_Orbits
     use Satellite_Orbits
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    class           (nodeComponentSatellite)               , pointer :: thisSatelliteComponent
-    type            (keplerOrbit           )                         :: thisOrbit
-    double precision                                                 :: densityHotHaloHost    , orbitalRadius, orbitalVelocity
+    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    class           (nodeComponentSatellite      )               , pointer :: thisSatelliteComponent
+    type            (keplerOrbit                 )                         :: thisOrbit
+    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    double precision                                                       :: densityHotHaloHost            , orbitalRadius, orbitalVelocity
 
     ! Find the host node.
     hostNode      => thisNode%parent
@@ -72,11 +72,12 @@ contains
     thisOrbit=thisSatelliteComponent%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
     call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,thisOrbit,extremumPericenter,orbitalRadius,orbitalVelocity)
+    ! Get the hot halo mass distribution.
+    defaultHotHaloMassDistribution => hotHaloMassDistribution()
     ! Find the density of the host node hot halo at the pericentric radius.
-    densityHotHaloHost=Hot_Halo_Density(hostNode,orbitalRadius)
+    densityHotHaloHost=defaultHotHaloMassDistribution%density(hostNode,orbitalRadius)
     ! Find the ram pressure force at pericenter.
     ramPressureForce=densityHotHaloHost*orbitalVelocity**2
-
     return
   end function Hot_Halo_Ram_Pressure_Force_Font2008_Get
 

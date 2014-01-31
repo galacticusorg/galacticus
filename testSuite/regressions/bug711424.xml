@@ -244,7 +244,7 @@
     <value>0.38</value>
   </parameter>
   <parameter>
-    <name>hotHaloDensityMethod</name>
+    <name>hotHaloMassDistributionMethod</name>
     <value>coredIsothermal</value>
   </parameter>
   <parameter>

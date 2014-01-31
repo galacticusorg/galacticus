@@ -131,17 +131,20 @@ contains
 
   double precision function Hot_Halo_Ram_Pressure_Stripping_Radius_Solver(radius)
     !% Root function used in finding the ram pressure stripping radius.
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    double precision, intent(in   ) :: radius
-    double precision                :: enclosedMass  , gravitationalBindingForce, &
-         &                             hotHaloDensity
+    double precision                              , intent(in   ) :: radius
+    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
+    double precision                                              :: enclosedMass            , gravitationalBindingForce, &
+         &                                                           hotHaloDensity
 
+    ! Get the hot halo mass distribution.
+    hotHaloMassDistribution_ => hotHaloMassDistribution()
     enclosedMass             =Galactic_Structure_Enclosed_Mass(satelliteNode,radius,massType=massTypeAll,componentType=componentTypeAll)
-    hotHaloDensity           =Hot_Halo_Density(satelliteNode,radius)
+    hotHaloDensity           =hotHaloMassDistribution_%density(satelliteNode,radius)
     gravitationalBindingForce=ramPressureStrippingFormFactor*gravitationalConstantGalacticus*enclosedMass*hotHaloDensity/radius
     if (gravitationalBindingForce >= 0.0d0) then
        Hot_Halo_Ram_Pressure_Stripping_Radius_Solver=gravitationalBindingForce-ramPressureForce
