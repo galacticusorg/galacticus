@@ -25,13 +25,13 @@ module Cosmology_Functions
   include 'cosmologyFunctions.functionModules.inc'
   !# </include>
   private
-  public :: Cosmology_Functions_State_Store, Cosmology_Functions_State_Retrieve
 
   !# <include directive="cosmologyFunctions" type="function" >
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>yes</stateful>
   !#  <method name="expansionFactorIsValid" >
   !#   <description>Returns true if the given expansion factor is valid one for this cosmology.</description>
   !#   <type>logical</type>
@@ -179,55 +179,7 @@ module Cosmology_Functions
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#   <code>comovingVolumeElementTime=self%distanceComoving(time)**2*(gigaYear*speedLight/megaParsec)/self%expansionfactor(time)</code>
   !#  </method>
-  !#  <method name="stateStore" >
-  !#   <description>Store the state of the cosmology functions object to file.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <modules>FGSL</modules>
-  !#   <argument>integer           , intent(in   ) :: stateFile    </argument>
-  !#   <argument>type   (fgsl_file), intent(in   ) :: fgslStateFile</argument>
-  !#  </method>
-  !#  <method name="stateRestore" >
-  !#   <description>Restore the state of the cosmology functions object from file.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <modules>FGSL</modules>
-  !#   <argument>integer           , intent(in   ) :: stateFile    </argument>
-  !#   <argument>type   (fgsl_file), intent(in   ) :: fgslStateFile</argument>
-  !#  </method>
   include 'cosmologyFunctions.type.inc'
   !# </include>
-
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Cosmology_Functions_State_Store</unitName>
-  !# </galacticusStateStoreTask>
-  subroutine Cosmology_Functions_State_Store(stateFile,fgslStateFile)
-    !% Store the state to file.
-    use Memory_Management
-    implicit none
-    integer                         , intent(in   ) :: stateFile
-    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
-    class  (cosmologyFunctionsClass), pointer       :: thisCosmologyFunctions
-
-    thisCosmologyFunctions => cosmologyFunctions()
-    call thisCosmologyFunctions%stateStore(stateFile,fgslStateFile)
-    return
-  end subroutine Cosmology_Functions_State_Store
-
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Cosmology_Functions_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
-  subroutine Cosmology_Functions_State_Retrieve(stateFile,fgslStateFile)
-    !% Retrieve the state from file.
-    use Memory_Management
-    implicit none
-    integer                         , intent(in   ) :: stateFile
-    type   (fgsl_file              ), intent(in   ) :: fgslStateFile
-    class  (cosmologyFunctionsClass), pointer       :: thisCosmologyFunctions
-
-    thisCosmologyFunctions => cosmologyFunctions()
-    call thisCosmologyFunctions%stateRestore(stateFile,fgslStateFile)
-    return
-  end subroutine Cosmology_Functions_State_Retrieve
 
 end module Cosmology_Functions
