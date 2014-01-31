@@ -624,6 +624,18 @@ sub Construct_Class_Membership {
 
     # Construct a list of component classes.
     @{$buildData->{'componentClassList'}} = keys(%{$buildData->{'componentClasses'}});
+
+    # Order class members such that parent classes come before child classes.
+    foreach my $className ( @{$buildData->{'componentClassList'}} ) {
+	my %dependencies;
+	foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$className}->{'members'}} ) {
+	    my $implementationID = ucfirst($className).ucfirst($implementationName);
+ 	    my $implementation   = $buildData->{'components'}->{$implementationID};
+	    push(@{$dependencies{$implementation->{'extends'}->{'name'}}},$implementationName)
+	       if ( exists($implementation->{'extends'}) );
+	}
+	@{$buildData->{'componentClasses'}->{$className}->{'members'}} = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@{$buildData->{'componentClasses'}->{$className}->{'members'}});
+    }
 }
 
 sub Distribute_Class_Defaults {
