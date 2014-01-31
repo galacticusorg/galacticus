@@ -131,6 +131,31 @@ sub Functions_Generate_Output {
 	}
     }
 
+    # If the function is stateful, add methods to store and retrieve state.
+    if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
+	push(
+	    @methods,
+	    {
+		name        => "stateStore",
+		description => "Store the state of the object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "FGSL",
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		code        => ""
+	    },
+	    {
+		name        => "stateRestore",
+		description => "Restore the state of the object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "FGSL",
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		code        => ""
+	    }
+	    )
+    }
+
     # Determine if any methods request that C-bindings be produced.
     my @methodsCBound;
     foreach ( @methods ) {
@@ -147,6 +172,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
 	foreach ( @{$buildData->{$directive}->{'classes'}});
+    $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRestore"
+	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
     $buildData->{'content'} .= "\n\n";
 
     # Add variable tracking module initialization status.
@@ -398,6 +425,36 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      end select\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Initialize\n\n";
+
+    # Create global state store/restore functions.
+    if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
+	$buildData->{'content'} .= "  !# <galacticusStateStoreTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateStore</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateStoreTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."StateStore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    !% Store the state to file.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
+	$buildData->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateStore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."StateStore\n\n";
+	$buildData->{'content'} .= "  !# <galacticusStateRetrieveTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateRetrieve</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."StateRetrieve(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    !% Retrieve the state from file.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
+	$buildData->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateRestore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."StateRetrieve\n\n";
+    }
 
     # Create functions.
     foreach my $method ( @methods ) {
@@ -795,6 +852,8 @@ sub Functions_Modules_Generate_Output {
 	}
 	close($classFile);
     }
+
+    # Generate the code.
     $buildData->{'content'} .= "use ".$_
 	foreach ( sort(keys(%modules)) );
 }
