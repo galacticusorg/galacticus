@@ -625,7 +625,7 @@
   <parameters>
     <parameter>
       <name>hotHaloMassDistributionMethod</name>
-      <value>coredIsothermal
+      <value>betaProfile
       <parameter>
 	<name>hotHaloMassDistributionCoreRadiusMethod</name>
 	<value>virialFraction</value>

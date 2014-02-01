@@ -1164,46 +1164,41 @@ Finally, the angular momentum factor is set to
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
 
-\section{Hot Halo Density Profile}\index{hot halo!density profile}\index{density profile!hot halo}
+\section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
-The algorithm to be used when determining the hot halo density profile is selected via the {\tt hotHaloDensityMethod} parameter.
+The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
 
-\subsection{Cored Isothermal}
+\subsection{$\beta$-profile}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionBetaProfile}
 
-Selected with {\tt hotHaloDensityMethod}$=${\tt coredIsothermal} this method adopts a spherically symmetric cored-isothermal density profile for the hot halo. Specifically,
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt betaProfile} this method adopts a spherically symmetric $\beta$-profile density profile for the hot halo. Specifically,
 \begin{equation}
- \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^2,
+ \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^{3\beta/2},
 \end{equation}
-where the core radius, $r_{\rm core}$, is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$. The rotation normalization, i.e. the constant $A$ in the relation $A = V_{\rm rotation}/\langle j \rangle$ where $V_{\rm rotation}$ is an assumed constant with radius rotation speed and $\langle j \rangle$ is the mean specific angular momentum of the gas, is given by
+where the core radius, $r_{\rm core}$, is set using the selected cored profile core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The value of $\beta$ is specified by the {\tt [hotHaloMassDistributionBeta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$.
+
+\subsection{Ricotti (2000)}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionRicotti2000}
+
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt ricotti2000} this method adopts a spherically symmetric $\beta$-profile density profile for the hot halo with parameters selected using the fitting function of \cite{ricotti_feedback_2000} who found these by solving for hydrostatic equilibrium in an \gls{nfw} density profile. Specifically, $\beta = 0.9 b$ where
 \begin{equation}
-A = r_{\rm hot, outer}^{-1} {(1-x_{\rm core}\arctan(x_{\rm core}^{-1}) \over 1/2 + x_{\rm core}^2 \ln(x_{\rm core}/[1+x_{\rm core}^2]^{1/2})},
+ b = {2 c \over 9 \Gamma} \left[ \log(1+c) - {c\over 1+c}\right]^{-1},
 \end{equation}
-where $x_{\rm core}=r_{\rm core}/r_{\rm hot, outer}$.
+$c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the ratio of virial and gas temperatures, which is assumed to be unity. The core radius is $r_{\rm core} = 0.22 r_{\rm s}$ where $r_{\rm s}$ is the scale radius of the dark matter profile. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$.
 
-Finally, only the second and third radial moments, $I_2$ and $I_3$ respectively, are supported, for which
-\begin{equation}
-I_2 = x_{\rm core}-tan^{-1}(x_{\rm core}),
-\end{equation}
-and
-\begin{equation}
-I_3 = {1 \over 2} [x_{\rm core}^2-\log(1+x_{\rm core}^2)].
-\end{equation}
+\subsection{Null}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionNull}
 
-\subsection{Null}
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt null} this method assumes no hot halo mass distribution. It is useful, for example, when performing dark matter-only calculations.
 
-Selected with {\tt hotHaloDensityMethod}$=${\tt null} this method assumes no hot halo density profile. It is useful, for example, when performing dark matter-only calculations.
+\section{Hot Halo Mass Distribution Profile: Cored Profile Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
 
-\section{Hot Halo Density Profile: Cored Isothermal Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
+The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\tt hotHaloMassDistributionCoreRadiusMethod} parameter.
 
-The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\tt hotHaloCoredIsothermalCoreRadiiMethod} parameter.
+\subsection{Growing Core}\label{phys:hotHaloMassDistributionCoreRadius:hotHaloMassDistributionCoreRadiusGrowing}
 
-\subsection{Growing Core}
+Selected with {\tt hotHaloMassDistributionCoreRadiusMethod}$=${\tt growingCore}, this method implements a core radius equal to a fraction {\tt [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
 
-Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt growingCore}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+\subsection{Virial Fraction}\label{phys:hotHaloMassDistributionCoreRadius:hotHaloMassDistributionCoreRadiusVirialFraction}
 
-\subsection{Virial Radius Fraction}
-
-Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
+Selected with {\tt hotHaloMassDistributionCoreRadiusMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [coreRadiusOverVirialRadius]} of the node's virial radius.
 
 \section{Hot Halo Ram Pressure Force}\label{sec:HotHaloRamPressureForce}\index{hot halo!ram pressure force}\index{ram pressure force!hot halo}
 

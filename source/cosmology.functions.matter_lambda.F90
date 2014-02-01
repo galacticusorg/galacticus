@@ -64,7 +64,7 @@
      !@ <objectMethods>
      !@   <object>cosmologyFunctionsMatterLambda</object>
      !@   <objectMethod>
-     !@     <method>distancetabulate</method>
+     !@     <method>distanceTabulate</method>
      !@     <type>void</type>
      !@     <arguments>\doublezero\ time\argin</arguments>
      !@     <description>Tabulate comoving distance as a function of cosmic time.</description>

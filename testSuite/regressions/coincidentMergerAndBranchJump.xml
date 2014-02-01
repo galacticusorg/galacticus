@@ -257,7 +257,7 @@
   <!-- Hot halo gas cooling model options -->
   <parameter>
     <name>hotHaloMassDistributionMethod</name>
-    <value>coredIsothermal</value>
+    <value>betaProfile</value>
   </parameter>
   <parameter>
     <name>hotHaloTemperatureMethod</name>

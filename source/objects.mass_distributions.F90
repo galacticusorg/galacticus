@@ -49,6 +49,12 @@ module Mass_Distributions
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>densityGradientRadial</method>
+     !@     <description>Returns the gradient with respect to radius of the density of the mass distribution at the supplied {\tt coordinates}. If the optional {\tt logarithmic} argument is set to true, return the logarithmic gradient.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin, \logicalzero\ [logarithmic]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>densityRadialMoment</method>
      !@     <description>Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$.</description>
      !@     <type>\doublezero</type>

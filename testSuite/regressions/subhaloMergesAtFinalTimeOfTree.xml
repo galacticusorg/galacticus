@@ -241,7 +241,7 @@
   </parameter>
   <parameter>
     <name>hotHaloMassDistributionMethod</name>
-    <value>coredIsothermal</value>
+    <value>betaProfile</value>
   </parameter>
   <parameter>
     <name>allTreesExistAtFinalTime</name>
