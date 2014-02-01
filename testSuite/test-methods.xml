@@ -625,6 +625,7 @@
   <parameters>
     <parameter>
       <name>hotHaloMassDistributionMethod</name>
+      <value>ricotti2000</value>
       <value>betaProfile
       <parameter>
 	<name>hotHaloMassDistributionCoreRadiusMethod</name>
