@@ -29,7 +29,7 @@ module Hot_Halo_Mass_Distributions
   !# <include directive="hotHaloMassDistribution" type="function" >
   !#  <descriptiveName>Hot Halo Mass Distributions</descriptiveName>
   !#  <description>Object implementing hot halo mass distributions.</description>
-  !#  <default>coredIsothermal</default>
+  !#  <default>betaProfile</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="density" >
   !#   <description>Return the density of the hot halo at the given {\tt radius}.</description>
