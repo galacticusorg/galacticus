@@ -13,8 +13,10 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use Data::Dumper;
 use Sys::CPU;
+use Switch;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
+require Galacticus::Launch::PBS;
 require System::Redirect;
 
 # Insert hooks for our functions.
@@ -35,12 +37,29 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiRun         => "mpirun"             ,
-	 nodes          => 1                    ,
-	 threadsPerNode => Sys::CPU::cpu_count(),
-	 ompThreads     => Sys::CPU::cpu_count(),
-	 analyze        => "yes"
+	 mpiRun               => "mpirun"             ,
+	 nodes                => 1                    ,
+	 threadsPerNode       => Sys::CPU::cpu_count(),
+	 ompThreads           => Sys::CPU::cpu_count(),
+	 analyze              => "yes"                ,
+	 jobWaitSleepDuration => 60
 	);
+    # Attempt to detect MPI implementation.
+    my $mpiIs;
+    if ( exists($launchScript->{'monolithicPBS'}->{'mpiImplementation'}) ) {
+	$mpiIs = $launchScript->{'monolithicPBS'}->{'mpiImplementation'};
+    } else {
+	$mpiIs = &PBS::mpiDetect();
+    }
+    switch ( $mpiIs ) {
+	case ( "OpenMPI" ) {
+	    $defaults{'mpiRun'} = "mpirun --bynode";
+	}
+	case ( "SGI MPT" ) {
+	    $defaults{'mpiRun'} = "mpiexec omplace";
+	}
+    }    
+    # Apply defaults.
     foreach ( keys(%defaults) ) {
 	$launchScript->{'monolithicPBS'}->{$_} = $defaults{$_}
 	unless ( exists($launchScript->{'monolithicPBS'}->{$_}) );
@@ -53,9 +72,29 @@ sub Validate {
 	$launchScript->{'monolithicPBS'}->{'nodes'         }
        *$launchScript->{'monolithicPBS'}->{'threadsPerNode'}
        /$launchScript->{'monolithicPBS'}->{'ompThreads'    };
-    # Forbid splitting models if analysis is requested on node.
-    die("MonolithicPBS::Validate: can not analyze models on PBS if models are being split")
-	if ( $launchScript->{'monolithicPBS'}->{'analyze'} eq "yes" && $launchScript->{'splitModels'} > 1 );
+    # Attempt to compile a simple code which will return MPI rank.
+    system("mkdir -p ".$launchScript->{'modelRootDirectory'});
+    open(my $rankCode,">".$launchScript->{'modelRootDirectory'}."/mpiRank.c");
+    print $rankCode <<CODE;
+#include <stdio.h>
+#include <mpi.h>
+int main (argc, argv)
+     int argc;
+     char *argv[];
+{
+  int rank;
+
+  MPI_Init (&argc, &argv);
+  MPI_Comm_rank (MPI_COMM_WORLD, &rank);
+  printf("%d\\n",rank);
+  MPI_Finalize();
+  return 0;
+}
+CODE
+    close($rankCode);
+    system("mpicc ".$launchScript->{'modelRootDirectory'}."/mpiRank.c -o ".$launchScript->{'modelRootDirectory'}."/mpiRank");
+    die("MonolithicPBS::Validate: failed to compile MPI rank code")
+        unless ( $? == 0 );
 }
 
 sub Output_File_Name {
@@ -96,7 +135,7 @@ sub Launch {
     $singleJobScript .= "#PBS -V\n";
     $singleJobScript .= "cd \$PBS_O_WORKDIR\n";
     $singleJobScript .= "chmod u=wrx ".$launchScript->{'modelRootDirectory'}."/launchGalacticus.sh\n";
-    $singleJobScript .= $launchScript->{'monolithicPBS'}->{'mpiRun'}." -np ".$launchScript->{'monolithicPBS'}->{'mpiThreads'}." --bynode ".$launchScript->{'modelRootDirectory'}."/launchGalacticus.sh\n";
+    $singleJobScript .= $launchScript->{'monolithicPBS'}->{'mpiRun'}." -np ".$launchScript->{'monolithicPBS'}->{'mpiThreads'}." ".$launchScript->{'modelRootDirectory'}."/launchGalacticus.sh\n";
     my $pbsScriptFile = $launchScript->{'modelRootDirectory'}."/pbsLaunch.sh";
     open(my $pbsHndl,">".$pbsScriptFile);
     print $pbsHndl $singleJobScript;
@@ -104,10 +143,11 @@ sub Launch {
     # Iterate over jobs.
     my $singleJobRank      = -1;
     my $singleLaunchScript = "#!/usr/bin/env sh\n";
+    $singleLaunchScript   .= "MPI_RANK=`".$launchScript->{'modelRootDirectory'}."/mpiRank`\n";
     foreach my $job ( @jobs ) {
 	# Create the PBS submission script.
-	my $launchScript = $job->{'directory'}."/launch.sh";
-	open(my $launchFile,">".$launchScript);
+	my $launchFileName = $job->{'directory'}."/launch.sh";
+	open(my $launchFile,">".$launchFileName);
 	print $launchFile "#!/bin/bash\n";
 	if ( exists($launchScript->{'monolithicPBS'}->{'environment'}) ) {
 	    foreach my $environment ( @{$launchScript->{'monolithicPBS'}->{'environment'}} ) {
@@ -124,17 +164,10 @@ sub Launch {
 	}
 	print $launchFile $galacticusPath."/Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
 	if ( exists($launchScript->{'monolithicPBS'}->{'scratchPath'}) ) {
-	    print $launchFile "mv ";
-	    print $launchFile $launchScript->{'monolithicPBS'}->{'scratchPath'};
+	    print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
 	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
-		print $launchFile "mv ";
-		print $launchFile $launchScript->{'monolithicPBS'}->{'scratchPath'}
-		if ( exists($launchScript->{'monolithicPBS'}->{'scratchPath'}) );
-		print $launchFile "galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
-		print $launchFile "mv ";
-		print $launchFile $launchScript->{'monolithicPBS'}->{'scratchPath'}
-		if ( exists($launchScript->{'monolithicPBS'}->{'scratchPath'}) );
-		print $launchFile "galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
+		print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
+		print $launchFile "mv ".$launchScript->{'monolithicPBS'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	    }
 	}
 	print $launchFile "mv core* ".$job->{'directory'}."/\n";
@@ -142,9 +175,9 @@ sub Launch {
 	    if ( $launchScript->{'monolithicPBS'}->{'analyze'} eq "yes" );
 	close($launchFile);
 	# Enter the model in the queue to be run.
-	$singleJobRank       = ($singleJobRank+1) % $launchScript->{'monolithicPBS'}->{'mpiThreads'}$jobCount;
-	$singleLaunchScript .= "if [ \$OMPI_COMM_WORLD_RANK -eq ".$singleJobRank." ]; then\n";
-	$singleLaunchScript .= " source ".$launchScript."\n";
+	$singleJobRank       = ($singleJobRank+1) % $launchScript->{'monolithicPBS'}->{'mpiThreads'};
+	$singleLaunchScript .= "if [ \$MPI_RANK -eq ".$singleJobRank." ]; then\n";
+	$singleLaunchScript .= " source ".$launchFileName."\n";
 	$singleLaunchScript .= "fi\n";
     }
     $singleLaunchScript .= "exit\n";
@@ -160,7 +193,7 @@ sub Launch {
     }
     close($pHndl);
     die ("MonolithicPBS: failed to capture job ID")
-	if ( defined($jobID) );
+	unless ( defined($jobID) );
     print " -> waiting for PBS jobs to finish...\n"
 	if ( $launchScript->{'verbosity'} > 0 );
     my $jobFinished = 0;
@@ -172,7 +205,7 @@ sub Launch {
 	    if ( $line =~ m/^Job\sId:\s+(\S+)/ ) {
 		my $runningJobID = $1;
 		$jobFinished = 0
-		    if ( $runningJobID == $jobID );
+		    if ( $runningJobID eq $jobID );
 	    };
 	}
 	close(pHndl);

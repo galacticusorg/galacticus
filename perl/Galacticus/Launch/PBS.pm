@@ -5,6 +5,8 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Sys::CPU;
+use File::Which;
+use Switch;
 require Galacticus::Launch::Hooks;
 require Galacticus::Launch::PostProcess;
 require System::Redirect;
@@ -27,16 +29,29 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes",
-	 maxJobsInQueue          => -1   ,
-	 postSubmitSleepDuration => 10   ,
-	 jobWaitSleepDuration    => 60   ,
+	 mpiLaunch               => "yes"            ,
+	 mpiRun                  => "mpirun --bynode",
+	 maxJobsInQueue          => -1               ,
+	 postSubmitSleepDuration => 10               ,
+	 jobWaitSleepDuration    => 60               ,
 	 analyze                 => "yes"
 	);
+    # Attempt to detect MPI implementation.
+    my $mpiIs = &mpiDetect();
+    switch ( $mpiIs ) {
+	case ( "OpenMPI" ) {
+	    $defaults{'mpiLaunch'} = "yes"            ;
+	    $defaults{'mpiRun'   } = "mpirun --bynode";
+	}
+    }    
+    # Apply defaults.
     foreach ( keys(%defaults) ) {
 	$launchScript->{'pbs'}->{$_} = $defaults{$_}
 	unless ( exists($launchScript->{'pbs'}->{$_}) );
     }
+    # Forbid splitting models if analysis is requested on node.
+    die("PBS::Validate: can not analyze models on PBS if models are being split")
+	if ( $launchScript->{'pbs'}->{'analyze'} eq "yes" && $launchScript->{'splitModels'} > 1 );
 }
 
 sub Output_File_Name {
@@ -103,33 +118,19 @@ sub Launch {
 	    my $scratchPath = $launchScript->{'pbs'}->{'scratchPath'}."/model_".$launchScript->{'modelCounter'}."_".$$."/";
 	    print $pbsFile "mkdir -p ".$scratchPath."\n";
 	}
-	if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" ) {
-	    if ( exists($launchScript->{'pbs'}->{'mpiRun'}) ) {
-		print $pbsFile $launchScript->{'pbs'}->{'mpiRun'};
-	    } else {
-		print $pbsFile "mpirun";
+	print $pbsFile $launchScript->{'pbs'}->{'mpiRun'}." -np 1 "
+	    if ( $launchScript->{'pbs'}->{'mpiLaunch'} eq "yes" );
+	print $pbsFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
+	if ( exists($launchScript->{'pbs'}->{'scratchPath'}) ) {
+	    print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
+	    if ( $launchScript->{'useStateFile'} eq "yes" ) {
+		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
+		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	    }
-	    print $pbsFile " --bynode -np 1 ./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
-	} else {
-	    print $pbsFile "./Galacticus.exe ".$job->{'directory'}."/parameters.xml\n";
-	}
-	print $pbsFile "mv ";
-	print $pbsFile $launchScript->{'pbs'}->{'scratchPath'}
-	    if ( exists($launchScript->{'pbs'}->{'scratchPath'}) );
-	print $pbsFile "galacticus.hdf5 ".$job->{'directory'}."/galacticus.hdf5\n";
-	if ( $launchScript->{'useStateFile'} eq "yes" ) {
-	    print $pbsFile "mv ";
-	    print $pbsFile $launchScript->{'pbs'}->{'scratchPath'}
-		if ( exists($launchScript->{'pbs'}->{'scratchPath'}) );
-	    print $pbsFile "galacticus_".$launchScript->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
-	    print $pbsFile "mv ";
-	    print $pbsFile $launchScript->{'pbs'}->{'scratchPath'}
-		if ( exists($launchScript->{'pbs'}->{'scratchPath'}) );
-	    print $pbsFile "galacticus_".$launchScript->{'modelCounter'}."_".$$.".fgsl.state* ".$job->{'directory'}."/\n";
 	}
 	print $pbsFile "mv core* ".$job->{'directory'}."/\n";
 	print $pbsFile $job->{'analysis'}
-	    if ( $launchScript->{'pbs'}->{'analyze'} eq "yes" );
+	    if ( defined($job->{'analysis'}) && $launchScript->{'pbs'}->{'analyze'} eq "yes" );
 	close($pbsFile);
 	# Enter the model in the queue to be run.
 	push(
@@ -191,3 +192,15 @@ sub Launch {
 	}
     }
 }
+
+sub mpiDetect {
+    # Attempt to detect MPI implementation.
+    my $haveMpiRun = which("mpirun");
+    if ( defined($haveMpiRun) ) {
+	my $mpiVersion = `$haveMpiRun -V 2>&1`;
+	return "OpenMPI"
+	    if ( $mpiVersion =~ m/Open MPI/ );
+    }
+}
+
+1;
