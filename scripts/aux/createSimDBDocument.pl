@@ -164,6 +164,12 @@ foreach my $fileName ( @filesToProcess ) {
 			}
 		    }
 		}
+		$inputParameter->{'name'} = $inputParameter->{'regEx'}
+		    if ( exists($inputParameter->{'regEx'}) );
+		unless ( exists($inputParameter->{'name'}) ) {
+		    print Dumper($inputParameter);
+		    die("createSimDBDocument.pl: inputParameter has no name");
+		}
 		unless ( exists($parametersListed{$inputParameter->{'name'}}) ) {
 		    $parametersListed{$inputParameter->{'name'}} = 1;
 		    $writer->startTag("parameter");
@@ -429,21 +435,21 @@ $writer->end();
 # Close the output file.
 $output->close();
 
-# Valiate.
-system("curl --form doc=@`pwd`/galacticus.xml --form action=validate -o validate.html http://galformod.mpa-garching.mpg.de/dev/SimDM-browser/Validate.do");
-my $isOK = 0;
-open(vHndl,"validate.html");
-while ( my $line = <vHndl> ) {
-    $isOK = 1 if ( $line =~ m/Your uploaded document was valid/ );
-}
-close(vHndl);
-print "\n\n\n";
-if ( $isOK == 1 ) {
-    print "SUCCESS: The generated document is valid.\n";
-} else {
-    print "FAIL: The generated document is NOT valid.\n";
-}
-system("firefox file://`pwd`/validate.html") 
-    unless ( $isOK == 1 || ! which('firefox') || ! -t STDIN || ! -t STDOUT );
+# Valiate. DISABLED AS THE WEB SERVICE IS NO LONGER AVAILABLE.
+# system("curl --form doc=@`pwd`/galacticus.xml --form action=validate -o validate.html http://galformod.mpa-garching.mpg.de/dev/SimDM-browser/Validate.do");
+# my $isOK = 0;
+# open(vHndl,"validate.html");
+# while ( my $line = <vHndl> ) {
+#     $isOK = 1 if ( $line =~ m/Your uploaded document was valid/ );
+# }
+# close(vHndl);
+# print "\n\n\n";
+# if ( $isOK == 1 ) {
+#     print "SUCCESS: The generated document is valid.\n";
+# } else {
+#     print "FAIL: The generated document is NOT valid.\n";
+# }
+# system("firefox file://`pwd`/validate.html") 
+#     unless ( $isOK == 1 || ! which('firefox') || ! -t STDIN || ! -t STDOUT );
 
 exit;
