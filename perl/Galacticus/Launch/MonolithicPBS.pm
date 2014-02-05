@@ -35,12 +35,11 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 mpiLaunch               => "yes"                ,
-	 mpiRun                  => "mpirun"             ,
-	 nodes                   => 1                    ,
-	 threadsPerNode          => Sys::CPU::cpu_count(),
-	 ompThreads              => Sys::CPU::cpu_count(),
-	 analyze                 => "yes"
+	 mpiRun         => "mpirun"             ,
+	 nodes          => 1                    ,
+	 threadsPerNode => Sys::CPU::cpu_count(),
+	 ompThreads     => Sys::CPU::cpu_count(),
+	 analyze        => "yes"
 	);
     foreach ( keys(%defaults) ) {
 	$launchScript->{'monolithicPBS'}->{$_} = $defaults{$_}
