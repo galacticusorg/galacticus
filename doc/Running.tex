@@ -102,40 +102,57 @@ When running a model in parallel using OpenMP, a separate state file will be wri
 
 \subsection{Running Grids of Models}\label{sec:RunningGrids}
 
-You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/Run\_Galacticus.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster. To run the script simply enter:
+You can easily write your own scripts to generate parameter files and run \glc\ on these files. An example of such a script is {\tt scripts/aux/launch.pl}. This script will loop over a sequence of parameter values, generate appropriate parameter files, run \glc\ using those parameters and analyze the results. This script currently supports running of \glc\ on a local machine, via a PBS queue (as multiple jobs or a single job), or on a \href{http://www.cs.wisc.edu/condor/}{{\sc Condor}}\index{Condor} cluster. To run the script simply enter:
 \begin{verbatim}
- ./scripts/aux/Run_Galacticus.pl <runFile>
+ ./scripts/aux/launch.pl <runFile>
 \end{verbatim}
-This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\tt Run\_Galacticus.pl} can be used to ensure that they do not duplicate work. Adding {\tt --instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\tt Run\_Galacticus.pl} scripts on four different machines with {\tt --instance 1:4}, {\tt --instance 2:4}, {\tt --instance 3:4} and {\tt --instance 4:4} will then divide the models between those machines.
+This will launch a single instance of the script. Multiple instances can be launched and will share the work load (i.e. they will not attempt to run a model which another instance is already running or has finished). If multiple instances are to be launched on multiple machines a command line option to {\tt launch.pl} can be used to ensure that they do not duplicate work. Adding {\tt --instance 2:4} for example will tell the script to run only the second model from each block of four models it finds. Launching for {\tt launch.pl} scripts on four different machines with {\tt --instance 1:4}, {\tt --instance 2:4}, {\tt --instance 3:4} and {\tt --instance 4:4} will then divide the models between those machines.
 
 The {\tt runFile} is an XML file with the following structure:
 \begin{verbatim}
 <parameterGrid>
  <modelRootDirectory>models.new</modelRootDirectory>
  <baseParameters>newBestParametersQuick.xml</baseParameters>
- <threadCount>maximum</threadCount>
  <compressModels>no</compressModels>
+ <splitModels>4</splitModels>
+
+ <launchMethod>pbs</launchMethod>
+
+  <local>
+   <threadCount>3</threadCount>
+   <ompThreads>4</ompThreads>
+  </local>
+
  <condor>
-   <useCondor>true</useCondor>
-   <galacticusDirectory>/home/condor/Galacticus/v0.9.1</galacticusDirectory>
-   <universe>vanilla</universe>
-   <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
-   <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
-   <transferFile>{PWD}/myFile.data</transferFile>
-   <wholeMachine>true</wholeMachine>
+  <galacticusDirectory>/home/condor/Galacticus/v0.9.3</galacticusDirectory>
+  <universe>vanilla</universe>
+  <environment>LD_LIBRARY_PATH=/usr/lib:/usr/lib64:/usr/local/lib</environment>
+  <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
+  <transferFile>{PWD}/myFile.data</transferFile>
+  <wholeMachine>true</wholeMachine>
  </condor>
+
  <pbs>
-   <usePBS>true</usePBS>
-   <scratchPath>/scratch/me</scratchPath>
-   <wallTime>48:00:00</wallTime>
-   <memory>3gb</memory>
-   <ompThreads>8</ompThreads>
-   <queue>standard</queue>
-   <maxJobsInQueue>10</maxJobsInQueue>
-   <mpiLaunch>yes</mpiLaunch>
-   <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
-   <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
- </pbs>                                                                                                             
+  <scratchPath>/scratch/me</scratchPath>
+  <wallTime>48:00:00</wallTime>
+  <memory>3gb</memory>
+  <ompThreads>8</ompThreads>
+  <queue>standard</queue>
+  <maxJobsInQueue>10</maxJobsInQueue>
+  <mpiLaunch>yes</mpiLaunch>
+  <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+ </pbs>                                                                                           
+ <monolithicPBS>
+  <mpiLaunch>yes</mpiLaunch>
+  <nodes>1</nodes>
+  <threadsPerNode>12</threadsPerNode>
+  <ompThreads>6</ompThreads>
+  <jobWaitSleepDuration>60</jobWaitSleepDuration>
+  <analyze>no</analyze>
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
+ </monolithicPBS>
+                  
  <parameters>
   <label>modelLabel</label>
   <parameter>
@@ -177,12 +194,12 @@ The {\tt runFile} is an XML file with the following structure:
      </value>
     </parameter>
    </value>
-   <value>dynamical time</value>
+   <value>dynamicalTime</value>
   </parameter>
  </parameters>
 </parameterGrid>
 \end{verbatim}
-Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamical time}.
+Each {\tt parameters} block contains a list of parameters following the format used in standard \glc\ parameter files, with the difference that each parameter can have multiple {\tt values}. A model will be run for all possible combinations of these values. Additionally, any {\tt value} element may contain further {\tt parameter} elements. All possible values of these parameters will be looped over when, and only when, the appropriate value of the containing parameter is being used. For example, in the above example, models will be run with {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt true} and {\tt false} only when {\tt [starFormationTimescaleDisksMethod]}$=${\tt Kennicutt-Schmidt} and not when {\tt [starFormationTimescaleDisksMethod]}$=${\tt dynamicalTime}.
 
 It is also possible to set the value of a parameter by modifying the current value using a Perl regular expression. This is done by given a {\tt modify} element instead of a {\tt value} element in the parameter definition. The {\tt modify} element must contain {\tt find} and {\tt replace} elements, the first of which must be a valid Perl regular expression, and the second of which must specify the replacement text. In the above example, the {\tt parameters} block specifies that models are two be run for {\tt [imfSelectionFixed]}$=${\tt Salpeter} and {\tt Chabrier}. However, for the case of {\tt [starFormationKennicuttSchmidtTruncate]}$=${\tt false} these parameters will be modified by suffixing them with ``{\tt Truncated}''.
 
@@ -195,21 +212,20 @@ By default, each model is output into a sequentially numbered directory within t
 \begin{description}
 \item[{\tt doAnalysis}]If set to ``no'' then no analysis scripts will be run on completed models, otherwise, they will be. Optionally, the analysis script to run can be specified via the {\tt analysisScript} element (see \S\ref{sec:AnalysisScripts});
 \item[{\tt emailReport}] If set to ``yes'' a report will be e-mailed to the address specified in {\tt galacticusOptions.xml} when a model fails. Otherwise, the report will be written to standard output instead.
-\item[{\tt threadCount}] Specifies the number of threads that should be launched (each running a separate \glc\ model) when running on the local machine. If set to ``maximum'' then the number of threads will be set to the available number of cores on the local machine. If not present, a single thread is used.
 \item[{\tt compressModels}] If ``no'' then models are not compressed after being run. Otherwise, the contents of the model output directory will be compressed using {\tt bzip2}.
-\item[{\tt condor}] This section, if present, specifies if and how jobs should be submitted to a {\tt Condor} cluster. The following options are available:
-\begin{description}
-\item[{\tt useCondor}] If set to ``true'' then jobs will be submitted to a {\sc Condor} cluster, otherwise they will be run on the local machine;
-\item[{\tt galacticusDirectory}] When a \glc\ job is submitted to a {\sc Condor} cluster the \glc\ executable and the input parameter file are transferred to the machine where the job runs. Other files, such as data files, are not transferred. Therefore, they must be already present on any remote machine on which the job can run. This option specifies where a complete \glc\ installation can be found on the remote machine. If not present, it defaults to {\tt /home/condor/Galacticus/v0.9.0};
-\item[{\tt universe}] Specifies to which {\sc Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\tt condor\_compile}---the {\tt Makefile} allows this if the relevant lines are uncommented;
-\item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
-\item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
-\item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
-\item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\item[{\tt splitModels}] If set to an integer larger than $1$, each \glc\ model will be split into that number of jobs, and those jobs will be launched (using the selected method) independently. Once finished, the outputs from these split models will be merged back into a single model. This allows, for example, effectively distributing a single \glc\ model over multiple nodes of a PBS cluster.
 \end{description}
-\item[{\tt pbs}] This section, if present, specifies if and how jobs should be submitted to a {\tt PBS} batch queue system. The following options are available:
+
+The method by which to launch jobs must be specified in the {\tt launchMethod} element. Currently available options are:
 \begin{description}
-\item[{\tt usePBS}] If set to ``true'' then jobs will be submitted to a {\sc PBS} batch queue system, otherwise they will be run on the local machine;
+\item[{\tt local}] The models will be run on the local machine. Two additional options can be specified within a {\tt local} XML block:
+\begin{description}
+\item[{\tt threadCount}] The number of individual model threads to be launched.
+\item[{\tt ompThreads}] The number of OpenMP threads to be used by each model.
+\end{description}
+
+\item[{\tt pbs}] Jobs will be submitted to a {\tt PBS} batch queue system. The following options are available and can be specified within a {\tt pbs} XML block:
+\begin{description}
 \item[{\tt scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
 \item[{\tt wallTime}] A limit on the wall time allowed for each model (optional);
 \item[{\tt memory}] A limit on the memory allowed for each model (optional);
@@ -219,7 +235,33 @@ By default, each model is output into a sequentially numbered directory within t
 \item[{\tt mpiLaunch}] If set to ``{\tt yes}'' then the {\tt mpirun} command will be used to launch a single copy of \glc\ (which may then spawn multiple OpenMP threads). If instead set to ``{\tt no}'' then \glc\ is launch without the use of the {\tt mpirun} command. Some systems will limit a code launched with {\tt mpirun} to using just a single CPU (even if multiple OpenMP threads are spawned). In such cases, setting this option to ``{\tt no}'' should permit multiple CPUs to be utilized.
 \item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
 \item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\tt analyze}] If set to ``{\tt yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
 \end{description}
+
+\item[{\tt monolithicPBS}] A single job will be submitted to a {\tt PBS} batch queue system. This job will internally run multiple copies of \glc\ each with a different set of parameters. The following options are available and can be specified within a {\tt monolithicPBS} XML block:
+\begin{description}
+\item[{\tt nodes}] The total number of nodes to use for the PBS job.
+\item[{\tt threadsPerNode}] The number of threads per node to use for the PBS job.
+\item[{\tt ompThreads}] The number of OpenMP threads to use for each model (optional). This is used to request an appropriate number of processors per node, and must be an factor of {\tt threadsPerNode};
+\item[{\tt scratchPath}] An optional path to which the model output will be written at run time. At the completion of each run, the data will be transferred to the usual output location. This is useful to avoid network I/O during run time;
+\item[{\tt wallTime}] A limit on the wall time allowed for each model (optional);
+\item[{\tt memory}] A limit on the memory allowed for each model (optional);
+\item[{\tt queue}] The name of the queue to submit the jobs to (optional);
+\item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
+\item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\tt analyze}] If set to ``{\tt yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
+\end{description}
+
+\item[{\tt condor}] Jobs will be submitted to a {\tt Condor} cluster. The following options are available and can be specified within a {\tt condor} XML block:
+\begin{description}
+\item[{\tt galacticusDirectory}] When a \glc\ job is submitted to a {\sc Condor} cluster the \glc\ executable and the input parameter file are transferred to the machine where the job runs. Other files, such as data files, are not transferred. Therefore, they must be already present on any remote machine on which the job can run. This option specifies where a complete \glc\ installation can be found on the remote machine. If not present, it defaults to {\tt /home/condor/Galacticus/v0.9.0};
+\item[{\tt universe}] Specifies to which {\sc Condor} universe jobs should be submitted. Allowed options are ``vanilla'' and ``standard''. If the standard universe is to be used then \glc\ must have been linked with {\tt condor\_compile}---the {\tt Makefile} allows this if the relevant lines are uncommented;
+\item[{\tt environment}] Any settings here are passed to {\sc Condor}'s {\tt environment} option in order to set appropriate environment variables on the machine where a job is executed;
+\item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
+\item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
+\item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\end{description}
+
 \end{description}
 
 In addition to the {\tt galacticus.hdf5} output file, each model directory will contain a file {\tt newParameters.xml} which contains the parameters used to run the model and {\tt galacticus.log} which contains any output from \glc\ during the run.
