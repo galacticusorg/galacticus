@@ -23,7 +23,7 @@ sub Failed {
     # Move any core file to the output directory.
     opendir(gDir,".");
     while ( my $file = readdir(gDir) ) {
-	move($file,$galacticusOutputDirectory."/core")
+	move($file,$job->{'directory'}."/core")
 	    if ( $file =~ m/core\.\d+/ );
     }
     closedir(gDir);
@@ -32,7 +32,7 @@ sub Failed {
     my $message = "FAILED: A Galacticus model failed to finish:\n\n";
     $message   .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
     $message   .= "  User:\t".$ENV{"USER"}."\n\n";
-    $message   .= "Model output is in: ".$jobs->{'directory'}."\n\n";
+    $message   .= "Model output is in: ".$job->{'directory'}."\n\n";
     if (
 	exists($launchScript->{'config'}->{'contact'}->{'email'}) 
 	&&
