@@ -762,6 +762,36 @@ with $\dot{M}_{\rm node,bound}$ set to the rate given by the {\tt darkMatterHalo
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
+\section{N-body Halo Properties}
+
+This component is intended for tracking of miscellaneous properties derived from N-body simulation merger trees.
+
+\subsection{``Standard'' Implementation}
+
+\subsubsection{Properties}
+
+The standard N-body component implementation defines the following properties:
+\begin{description}
+ \item [{\tt particleCount}] The number of particles in the N-body halo [{\tt nbodyParticleCount}].
+ \item [{\tt velocityMaximum}] The maximum of the N-body halo's rotation curve (in units of km/s) [{\tt nbodyVelocityMaximum}].
+ \item [{\tt velocityDispersion}] The velocity dispersion of the N-body halo (in units of km/s) [{\tt nbodyVelocityDispersion}].
+\end{description}
+
+\subsubsection{Initialization}
+
+The N-body properties of each \gls{node} are assumed to have been preset prior to merger tree initialization. They are assumed to remain constant along each branch of the tree.
+
+\subsubsection{Differential Evolution}
+
+None.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The properties are updated to equal those of the parent node.\\
 
 \section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}
 
@@ -815,6 +845,34 @@ The spin parameter evolves linearly with time between \gls{node} and parent node
 \noindent\emph{Satellite merging:} None.\\
 
 \noindent\emph{Node promotion:} The spin and growth rate are updated to equal those of the parent node.\\
+
+\subsection{``Preset3D'' Implementation}
+
+The type extends the {\tt preset} spin component implementation, and so provides all properties of that implementation plus those described below.
+
+\subsubsection{Properties}
+
+The preset dark matter halo spin implementation defines the following properties:
+\begin{description}
+ \item [{\tt spinVector}] The spin vector of the halo: $\lambda$ [{\tt spinSpinVector}].
+ \item [{\tt spinVectorGrowthRate}] The growth rate of the spin vector of the halo (in units of Gyr$^{-1}$).
+\end{description}
+
+\subsubsection{Initialization}
+
+The spin vector of each \gls{node} is assumed to have been preset prior to merger tree initialization. The growth rate is comptued assuming linear growth with time along each branch.
+
+\subsubsection{Differential Evolution}
+
+The spin parameter evolves linearly with time between \gls{node} and parent node.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} The spin vector and growth rate are updated to equal those of the parent node.\\
 
 \section{Dark Matter Profile}\label{sec:DarkMatterProfileComponent}
 
