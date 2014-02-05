@@ -6,7 +6,7 @@ use warnings;
 # Andrew Benson (10-Oct-2012)
 
 # First run the models.
-system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/parameters/test-plotting-scripts.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-plotting-scripts.xml");
 system("cd ..; bunzip2 testSuite/outputs/test-plotting-scripts/galacticus_*/galacticus.hdf5.bz2");
 
 # Run plotting commands.
