@@ -29,17 +29,18 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     type   (hdf5Object     )                            :: file              , haloTrees
-     type   (statefulInteger)                            :: hasSubhalos       , areSelfContained , &
-          &                                                 includesHubbleFlow, periodicPositions, &
+     type   (hdf5Object     )                            :: file                  , haloTrees
+     type   (statefulInteger)                            :: hasSubhalos           , areSelfContained      , &
+          &                                                 includesHubbleFlow    , periodicPositions     , &
           &                                                 lengthStatus
      type   (statefulLogical)                            :: massesAreInclusive
      type   (statefulDouble )                            :: length
-     type   (importerUnits  )                            :: massUnit          , lengthUnit       , &
-          &                                                 timeUnit          , velocityUnit
-     logical                                             :: fatalMismatches   , treeIndicesRead
+     type   (importerUnits  )                            :: massUnit              , lengthUnit            , &
+          &                                                 timeUnit              , velocityUnit
+     logical                                             :: fatalMismatches       , treeIndicesRead       , &
+          &                                                 angularMomentaIsScalar, angularMomentaIsVector
      integer                                             :: treesCount
-     integer                 , allocatable, dimension(:) :: firstNodes        , nodeCounts
+     integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
      integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
      double precision        , allocatable, dimension(:) :: weights
      type   (hdf5Object     )                            :: particles
@@ -63,7 +64,11 @@
      procedure :: nodeCount                   => galacticusNodeCount
      procedure :: positionsAvailable          => galacticusPositionsAvailable
      procedure :: scaleRadiiAvailable         => galacticusScaleRadiiAvailable
+     procedure :: particleCountAvailable      => galacticusParticleCountAvailable
+     procedure :: velocityMaximumAvailable    => galacticusVelocityMaximumAvailable
+     procedure :: velocityDispersionAvailable => galacticusVelocityDispersionAvailable
      procedure :: angularMomentaAvailable     => galacticusAngularMomentaAvailable
+     procedure :: angularMomenta3DAvailable   => galacticusAngularMomenta3DAvailable
      procedure :: import                      => galacticusImport
      procedure :: subhaloTrace                => galacticusSubhaloTrace
      procedure :: subhaloTraceCount           => galacticusSubhaloTraceCount
@@ -150,7 +155,7 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     type            (varying_string              ), intent(in   ) :: fileName
     class           (cosmologyParametersClass    ), pointer       :: thisCosmologyParameters
-    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup
+    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset
     type            (varying_string              )                :: message
     character       (len=14                      )                :: valueString
     double precision                                              :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
@@ -303,6 +308,22 @@ contains
        else
           call Galacticus_Error_Report("galacticusOpen","particles group must have one of time, redshift or expansionFactor datasets")
        end if
+    end if
+    ! Check for type of angular momenta data available.
+    self%angularMomentaIsScalar=.false.
+    self%angularMomentaIsVector=.false.
+    if (self%haloTrees%hasDataset("angularMomentum")) then     
+       angularMomentumDataset=self%haloTrees%openDataset("angularMomentum")
+       select case (angularMomentumDataset%rank())
+       case (1)
+          self%angularMomentaIsScalar=.true.
+       case (2)
+          if (angularMomentumDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 angularMomentum dataset must be 3')
+          self%angularMomentaIsVector=.true.
+       case default
+          call Galacticus_Error_Report('galacticusOpen','angularMomentum dataset must be rank 1 or 2')
+       end select
+       call angularMomentumDataset%close()
     end if
     !$omp end critical(HDF5_Access)
     return
@@ -584,16 +605,56 @@ contains
     return
   end function galacticusScaleRadiiAvailable
 
+  logical function galacticusParticleCountAvailable(self)
+    !% Return true if particle counts are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusParticleCountAvailable=self%haloTrees%hasDataset("particleCount")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusParticleCountAvailable
+
+  logical function galacticusVelocityMaximumAvailable(self)
+    !% Return true if halo rotation curve velocity maxima are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusVelocityMaximumAvailable=self%haloTrees%hasDataset("velocityMaximum")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusVelocityMaximumAvailable
+
+  logical function galacticusVelocityDispersionAvailable(self)
+    !% Return true if halo velocity dispersions are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    !$omp critical(HDF5_Access)
+    galacticusVelocityDispersionAvailable=self%haloTrees%hasDataset("velocityDispersion")
+    !$omp end critical(HDF5_Access)
+    return
+  end function galacticusVelocityDispersionAvailable
+
   logical function galacticusAngularMomentaAvailable(self)
     !% Return true if angular momenta are available.
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
     
-    !$omp critical(HDF5_Access)
-    galacticusAngularMomentaAvailable=self%haloTrees%hasDataset("angularMomentum")
-    !$omp end critical(HDF5_Access)
+    galacticusAngularMomentaAvailable=self%angularMomentaIsScalar.or.self%angularMomentaIsVector
     return
   end function galacticusAngularMomentaAvailable
+
+  logical function galacticusAngularMomenta3DAvailable(self)
+    !% Return true if angular momenta vectors are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    galacticusAngularMomenta3DAvailable=self%angularMomentaIsVector
+    return
+  end function galacticusAngularMomenta3DAvailable
 
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
@@ -655,7 +716,7 @@ contains
     return
   end function galacticusSubhaloTraceCount
 
-  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requirePositions)
+  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
     !% Import the $i^{\rm th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
@@ -669,11 +730,14 @@ contains
     integer                                       , intent(in   )                              :: i
     class           (nodeData                    ), intent(  out), allocatable, dimension(:  ) :: nodes
     logical                                       , intent(in   ), optional                    :: requireScaleRadii        , requireAngularMomenta, &
-         &                                                                                        requirePositions
+         &                                                                                        requireAngularMomenta3D  , requirePositions     , &
+         &                                                                                        requireParticleCounts    , requireVelocityMaxima, &
+         &                                                                                        requireVelocityDispersions
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
     integer         (kind=kind_int8              )                                             :: iNode
-    double precision                                             , allocatable, dimension(:,:) :: angularMomentum          , position             , &
+    double precision                                             , allocatable, dimension(  :) :: angularMomentum
+    double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
          &                                                                                        velocity
     logical                                                                                    :: timesAreInternal
 
@@ -728,14 +792,38 @@ contains
           call self%haloTrees%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
        end if
     end if
+    ! Particle count.
+    if (present(requireParticleCounts     ).and.requireParticleCounts     )                                              &
+         & call self%haloTrees%readDatasetStatic("particleCount"     ,nodes%particleCount     ,firstNodeIndex,nodeCount)
+    ! Velocity maximum.
+    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                              &
+         & call self%haloTrees%readDatasetStatic("velocityMaximum"   ,nodes%velocityMaximum   ,firstNodeIndex,nodeCount)
+    ! Velocity dispersion.
+    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
+         & call self%haloTrees%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
     ! Halo spin.
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
-       call self%haloTrees%readDataset("angularMomentum",angularMomentum,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
-       ! Transfer to nodes.
-       forall(iNode=1:nodeCount(1))
-          nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(:,iNode))
-       end forall
-       call Dealloc_Array(angularMomentum)
+       if (self%angularMomentaIsVector) then
+          call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum3D(:,iNode))
+          end forall
+          call Dealloc_Array(angularMomentum3D)
+       else if (self%angularMomentaIsScalar) then
+          call self%haloTrees%readDataset("angularMomentum",angularMomentum,[firstNodeIndex(1)],[nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%angularMomentum=Vector_Magnitude(angularMomentum(iNode))
+          end forall
+          call Dealloc_Array(angularMomentum)
+       else
+          call Galacticus_Error_Report("galacticusImport","scalar angular momentum is not available")
+       end if
+    end if
+    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+       if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
+       call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
     end if
     ! Positions (and velocities).
     if (present(requirePositions).and.requirePositions) then
@@ -791,8 +879,20 @@ contains
        nodes    %scaleRadius    =galacticusUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
        nodes    %halfMassRadius =galacticusUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
     end if
-    if (present(requireAngularMomenta).and.requireAngularMomenta)                                                                                                      &
-         & nodes%angularMomentum=galacticusUnitConvert(nodes%angularMomentum,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+    if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
+         &  nodes%velocityMaximum  =galacticusUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+    if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
+         & nodes%velocityDispersion=galacticusUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+    if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
+         & nodes%angularMomentum   =galacticusUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+    if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
+       angularmomentum3d=galacticusUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+       ! Transfer to nodes.
+       forall(iNode=1:nodeCount(1))
+          nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
+       end forall
+       call Dealloc_Array(angularMomentum3D)
+    end if
     if (present(requirePositions).and.requirePositions) then
        position=galacticusUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
        velocity=galacticusUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )

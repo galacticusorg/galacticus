@@ -130,6 +130,8 @@ The {\tt runFile} is an XML file with the following structure:
   <requirement>Memory &gt;= 1000 &amp;&amp; Memory &lt; 2000</requirement>
   <transferFile>{PWD}/myFile.data</transferFile>
   <wholeMachine>true</wholeMachine>
+  <postSubmitSleepDuration>5</postSubmitSleepDuration>
+  <jobWaitSleepDuration>10</jobWaitSleepDuration>
  </condor>
 
  <pbs>
@@ -141,8 +143,11 @@ The {\tt runFile} is an XML file with the following structure:
   <maxJobsInQueue>10</maxJobsInQueue>
   <mpiLaunch>yes</mpiLaunch>
   <mpiRun>/opt/openmpi/bin/mpirun</mpiRun>
-  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>                                                                   
- </pbs>                                                                                           
+  <environment>LD_LIBRARY_PATH=/home/me/software/Galacticus/Tools/lib64:$LD_LIBRARY_PATH</environment>
+  <postSubmitSleepDuration>10</postSubmitSleepDuration>
+  <jobWaitSleepDuration>60</jobWaitSleepDuration>
+ </pbs>
+
  <monolithicPBS>
   <mpiLaunch>yes</mpiLaunch>
   <nodes>1</nodes>
@@ -236,6 +241,8 @@ The method by which to launch jobs must be specified in the {\tt launchMethod} e
 \item[{\tt mpiRun}] The path to the {\tt mpirun} executable (optional---if not present, {\tt mpirun} must be in {\tt PATH});
 \item[{\tt environment}] Any settings here are set in each {\sc PBS} job in order to set appropriate environment variables on the machine where a job is executed;
 \item[{\tt analyze}] If set to ``{\tt yes}'' then analysis (if any) will be performed as part of the PBS job. Otherwise, analysis is performed by the submitting machine.
+\item[{\tt postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the PBS queue manager with a large number of jobs in rapid succession.
+\item[{\tt jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the PBS queue to see if any of the submitted jobs have finished.
 \end{description}
 
 \item[{\tt monolithicPBS}] A single job will be submitted to a {\tt PBS} batch queue system. This job will internally run multiple copies of \glc\ each with a different set of parameters. The following options are available and can be specified within a {\tt monolithicPBS} XML block:
@@ -260,6 +267,8 @@ The method by which to launch jobs must be specified in the {\tt launchMethod} e
 \item[{\tt requirement}] Any setting here is passed to {\sc Condor}'s {\tt requirements} option to specify requirements for each job. Multiple {\tt requirement} entries will be combined (using logical and).
 \item[{\tt transferFile}] Any files listed here will be transferred the Condor worker (and so will be accessible from the path in which \glc\ is running). The macro {\tt \{PWD\}} will be automatically expanded to the present working directory. Multiple {\tt transferFile} entries can be given.
 \item [{\tt wholeFile}] Setting this option to {\tt true} will add {\tt +RequiresWholeMachine = True} to the Condor submit file. If Condor has been configured to allow jobs to take over a whole machine\footnote{As described \protect\href{https://www-auth.cs.wisc.edu/lists/condor-users/2009-January/msg00086.shtml}{here} for example.}, this will cause jobs to do so. This is useful if you want to run OpenMP \glc\ on a Condor cluster.
+\item[{\tt postSubmitSleepDuration}] The time (in seconds) to wait after submitting each job. This prevents flooding the Condor queue manager with a large number of jobs in rapid succession.
+\item[{\tt jobWaitSleepDuration}] The time (in seconds) to sleep between successive checks of the Condor queue to see if any of the submitted jobs have finished.
 \end{description}
 
 \end{description}

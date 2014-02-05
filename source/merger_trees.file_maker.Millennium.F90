@@ -44,78 +44,6 @@ contains
     double precision                                :: particleMass
 
     ! Process the nodes file.
-    ! Determine if particles are being traced.
-    traceParticles=(trim(particlesFile) /= "none")
-
-    ! Retrieve the SQL query used to generate this file.
-    open(newunit=fileUnit,file=nodesFile,status='old',form='formatted')
-    read (fileUnit,'(a)') sqlQuery
-    read (fileUnit,'(a)') sqlQuery
-    close(fileUnit)
-
-    ! Find number of lines in file, with and without comments.
-    lineCountTotal=Count_Lines_in_File(nodesFile    )
-    lineCountData =Count_Lines_in_File(nodesFile,"#")-1
-
-    ! Find lines number ranges with data.
-    lineNumberStart=lineCountTotal-lineCountData
-    lineNumberStop =lineCountTotal-1
-
-    ! Set columns to read.
-    call                     mergerTrees%setPropertyColumn(propertyTypeTreeIndex             , 1)
-    call                     mergerTrees%setPropertyColumn(propertyTypeNodeIndex             , 2)
-    call                     mergerTrees%setPropertyColumn(propertyTypeDescendentIndex       , 3)
-    call                     mergerTrees%setPropertyColumn(propertyTypeHostIndex             , 4)
-    call                     mergerTrees%setPropertyColumn(propertyTypeSnapshot              , 5)
-    call                     mergerTrees%setPropertyColumn(propertyTypeRedshift              , 6)
-    call                     mergerTrees%setPropertyColumn(propertyTypeNodeMass              , 7)
-    call                     mergerTrees%setPropertyColumn(propertyTypeParticleCount         , 8)
-    call                     mergerTrees%setPropertyColumn(propertyTypePositionX             , 9)
-    call                     mergerTrees%setPropertyColumn(propertyTypePositionY             ,10)
-    call                     mergerTrees%setPropertyColumn(propertyTypePositionZ             ,11)
-    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityX             ,12)
-    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityY             ,13)
-    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityZ             ,14)
-    call                     mergerTrees%setPropertyColumn(propertyTypeAngularMomentumX      ,15)
-    call                     mergerTrees%setPropertyColumn(propertyTypeAngularMomentumY      ,16)
-    call                     mergerTrees%setPropertyColumn(propertyTypeAngularMomentumZ      ,17)
-    call                     mergerTrees%setPropertyColumn(propertyTypeHalfMassRadius        ,18)
-    if (traceParticles) call mergerTrees%setPropertyColumn(propertyTypeMostBoundParticleIndex,19)
-
-    ! Read in the data.
-    call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
-
-
-    ! Process the particles file if one is specified.
-    if (traceParticles) then
-
-       ! Find number of lines in file, with and without comments.
-       lineCountTotal=Count_Lines_in_File(particlesFile    )
-       lineCountData =Count_Lines_in_File(particlesFile,"#")-1
-
-       ! Find lines number ranges with data.
-       lineNumberStart=lineCountTotal-lineCountData+1
-       lineNumberStop =lineCountTotal
-
-       ! Set columns to read.
-       call mergerTrees%setParticlePropertyColumn(propertyTypeParticleIndex,1)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeRedshift     ,2)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeSnapshot     ,3)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionX    ,4)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionY    ,5)
-       call mergerTrees%setParticlePropertyColumn(propertyTypePositionZ    ,6)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityX    ,7)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityY    ,8)
-       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityZ    ,9)
-
-       ! Read in the data.
-       call mergerTrees%readParticlesASCII(particlesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
-
-    end if
-
-    ! Specify that we do not want to create individual merger tree reference datasets.
-    call mergerTrees%makeReferences          (.false.)
-
     ! Specify particle mass (in whatever mass units the trees use - in this case 1e10 Msun/h).
     select case (generation)
     case (1)
@@ -126,6 +54,9 @@ contains
        call Galacticus_Error_Report('Merger_Trees_Millennium_Process','unknown Millennium Simulation generation')
     end select
     call mergerTrees%setParticleMass         (particleMass)
+
+    ! Specify that we do not want to create individual merger tree reference datasets.
+    call mergerTrees%makeReferences          (.false.)
 
     ! Specify that trees are self-contained (i.e. nodes never move from one tree to another).
     call mergerTrees%setSelfContained        (.true. )
@@ -174,6 +105,76 @@ contains
     call mergerTrees%addMetadata(metaDataProvenance ,'fileTimestamp'             ,char(Formatted_Date_and_Time())    )
     call mergerTrees%addMetadata(metaDataProvenance ,'source'                    ,'http://www.g-vo.org/MyMillennium3')
     call mergerTrees%addMetadata(metaDataProvenance ,'sqlQuery'                  ,sqlQuery(7:len_trim(sqlQuery))     )
+
+    ! Determine if particles are being traced.
+    traceParticles=(trim(particlesFile) /= "none")
+
+    ! Retrieve the SQL query used to generate this file.
+    open(newunit=fileUnit,file=nodesFile,status='old',form='formatted')
+    read (fileUnit,'(a)') sqlQuery
+    read (fileUnit,'(a)') sqlQuery
+    close(fileUnit)
+
+    ! Find number of lines in file, with and without comments.
+    lineCountTotal=Count_Lines_in_File(nodesFile    )
+    lineCountData =Count_Lines_in_File(nodesFile,"#")-1
+
+    ! Find lines number ranges with data.
+    lineNumberStart=lineCountTotal-lineCountData
+    lineNumberStop =lineCountTotal-1
+
+    ! Set columns to read.
+    call                     mergerTrees%setPropertyColumn(propertyTypeTreeIndex               , 1)
+    call                     mergerTrees%setPropertyColumn(propertyTypeNodeIndex               , 2)
+    call                     mergerTrees%setPropertyColumn(propertyTypeDescendentIndex         , 3)
+    call                     mergerTrees%setPropertyColumn(propertyTypeHostIndex               , 4)
+    call                     mergerTrees%setPropertyColumn(propertyTypeSnapshot                , 5)
+    call                     mergerTrees%setPropertyColumn(propertyTypeRedshift                , 6)
+    call                     mergerTrees%setPropertyColumn(propertyTypeNodeMass                , 7)
+    call                     mergerTrees%setPropertyColumn(propertyTypeParticleCount           , 8)
+    call                     mergerTrees%setPropertyColumn(propertyTypePositionX               , 9)
+    call                     mergerTrees%setPropertyColumn(propertyTypePositionY               ,10)
+    call                     mergerTrees%setPropertyColumn(propertyTypePositionZ               ,11)
+    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityX               ,12)
+    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityY               ,13)
+    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityZ               ,14)
+    call                     mergerTrees%setPropertyColumn(propertyTypeSpecificAngularMomentumX,15)
+    call                     mergerTrees%setPropertyColumn(propertyTypeSpecificAngularMomentumY,16)
+    call                     mergerTrees%setPropertyColumn(propertyTypeSpecificAngularMomentumZ,17)
+    call                     mergerTrees%setPropertyColumn(propertyTypeHalfMassRadius          ,18)
+    if (traceParticles) call mergerTrees%setPropertyColumn(propertyTypeMostBoundParticleIndex  ,19)
+    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityMaximum         ,20)
+    call                     mergerTrees%setPropertyColumn(propertyTypeVelocityDispersion      ,21)
+
+    ! Read in the data.
+    call mergerTrees%readASCII(nodesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
+
+    ! Process the particles file if one is specified.
+    if (traceParticles) then
+
+       ! Find number of lines in file, with and without comments.
+       lineCountTotal=Count_Lines_in_File(particlesFile    )
+       lineCountData =Count_Lines_in_File(particlesFile,"#")-1
+
+       ! Find lines number ranges with data.
+       lineNumberStart=lineCountTotal-lineCountData+1
+       lineNumberStop =lineCountTotal
+
+       ! Set columns to read.
+       call mergerTrees%setParticlePropertyColumn(propertyTypeParticleIndex,1)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeRedshift     ,2)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeSnapshot     ,3)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionX    ,4)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionY    ,5)
+       call mergerTrees%setParticlePropertyColumn(propertyTypePositionZ    ,6)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityX    ,7)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityY    ,8)
+       call mergerTrees%setParticlePropertyColumn(propertyTypeVelocityZ    ,9)
+
+       ! Read in the data.
+       call mergerTrees%readParticlesASCII(particlesFile,lineNumberStart=lineNumberStart,lineNumberStop=lineNumberStop,separator=",")
+
+    end if
 
     return
   end subroutine Merger_Trees_Millennium_Process

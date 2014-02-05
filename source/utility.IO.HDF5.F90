@@ -145,6 +145,12 @@ module IO_HDF5
      !@     <arguments>\textcolor{red}{\textless integer(kind=HID\_T)(:)\textgreater} datasetAssertedType\argin, \intzero\ datasetAssertedRank\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>rank</method>
+     !@     <description>Return the rank of a dataset.</description>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>isReference</method>
      !@     <description>Return true if a dataset is a reference.</description>
      !@     <type>\logicalzero</type>
@@ -341,6 +347,7 @@ module IO_HDF5
           &                              IO_HDF5_Read_Dataset_Character_1D_Array_Static       , &
           &                              IO_HDF5_Read_Dataset_VarString_1D_Array_Static
      procedure :: size               =>IO_HDF5_Dataset_Size
+     procedure :: rank               =>IO_HDF5_Dataset_Rank
      procedure :: hasAttribute       =>IO_HDF5_Has_Attribute
      procedure :: hasGroup           =>IO_HDF5_Has_Group
      procedure :: hasDataset         =>IO_HDF5_Has_Dataset
@@ -3482,6 +3489,47 @@ contains
 
     return
   end function IO_HDF5_Dataset_Size
+
+  integer function IO_HDF5_Dataset_Rank(datasetObject)
+    !% Return the rank of dataset {\tt datasetObject}.
+    use Galacticus_Error
+    implicit none
+    class  (hdf5Object    ), intent(in   )               :: datasetObject
+    integer                                              :: datasetRank         , errorCode
+    integer(kind=HID_T    )                              :: datasetDataspaceID
+    type   (varying_string)                              :: message
+
+    ! Check that this module is initialized.
+    call IO_HDF_Assert_Is_Initialized
+
+    ! Ensure that the object is a dataset.
+    if (datasetObject%hdf5ObjectType /= hdf5ObjectTypeDataset) then
+       message="object is not a dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Ensure that the dataset is open.
+    if (.not.datasetObject%isOpenValue) then
+       message="attempt to get size of unopen dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+
+    ! Get the rank of the dataset
+    call h5dget_space_f(datasetObject%objectID,datasetDataspaceID,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get dataspace of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+    call h5sget_simple_extent_ndims_f(datasetDataspaceID,datasetRank,errorCode)
+    if (errorCode /= 0) then
+       message="unable to get rank of dataset '"//datasetObject%objectName//"'"
+       call Galacticus_Error_Report('IO_HDF5_Dataset_Size',message)
+    end if
+  
+    ! Return the rank.
+    IO_HDF5_Dataset_Rank=datasetRank
+    return
+  end function IO_HDF5_Dataset_Rank
 
   function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo&
        &,useDataType,chunkSize,compressionLevel) result(datasetObject)
