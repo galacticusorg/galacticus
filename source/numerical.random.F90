@@ -29,8 +29,10 @@ module Pseudo_Random
      private
      type   (fgsl_rng) :: pseudoSequence
      logical           :: pseudoSequenceReset=.true.
-  contains
-     final     ::           pseudoRandomDestructor
+   contains
+     !# <workaround type="gfortran" PR="58471 58470" url="http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58471 http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58470">
+     !# final     ::           pseudoRandomDestructor
+     !# </workaround>
      !@ <objectMethods>
      !@   <object>pseudoRandom</object>
      !@   <objectMethod>
@@ -40,9 +42,9 @@ module Pseudo_Random
      !@     <description>Return a pseudo-random number.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-    procedure :: sample => pseudoRandomSample
+     procedure :: sample => pseudoRandomSample
   end type pseudoRandom
-
+  
   logical                 :: Seed_Is_Set=.false.
   integer                 :: randomSeed
   integer(kind=fgsl_long) :: randomSeedC=-1
