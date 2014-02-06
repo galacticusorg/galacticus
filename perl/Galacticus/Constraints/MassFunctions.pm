@@ -14,6 +14,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
+use PDL::Constants qw(PI);
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
@@ -41,6 +42,14 @@ sub Construct {
     $galacticus->{'file' } = $config->{'galacticusFile'};
     $galacticus->{'store'} = 0;
     &HDF5::Get_Parameters($galacticus);
+
+    # Define an effective temperature if one does not already exist. All non-model covariances
+    # (i.e. data covariance and any model discrepancy covariance) will be inflated by this
+    # factor under the assumption that the model covariance has also been inflated by this
+    # factor by virtue of running proportionally fewer merger trees. The final likelihood is
+    # then corrected back to unit temperature.
+    $arguments{'temperature'} = 1.0
+	unless ( exists($arguments{'temperature'}) );
 
     # Make the label LaTeX compliant.
     $config->{'observationLabel'} = latex_encode($config->{'observationLabel'});
@@ -187,29 +196,28 @@ sub Construct {
 		my @datasets = $discrepancyFile->datasets();
 		foreach my $dataset ( @datasets ) {
 		    if ( $dataset eq "multiplicative" ) {
-			# Read the multiplicative discrepancy
-			my $multiplier = $discrepancyFile->dataset('multiplicative')->get();
-			# Adjust the model accordingly.
-			my $covarianceMultiplier = pdl zeroes(nelem($multiplier),nelem($multiplier));
-			$covarianceMultiplier .= $discrepancyFile->dataset('multiplicativeCovariance')->get()
-			    if ( grep {$_ eq "multiplicativeCovariance"} @datasets );
-			$covarianceGalacticus .=
-			      $covarianceGalacticus*outer($multiplier  ,$multiplier)
-			     +$covarianceMultiplier*outer($yGalacticus,$yGalacticus);
-			$yGalacticus          *= $multiplier;
-			$errorGalacticus      *= $multiplier;
-		    }
+		    	# Read the multiplicative discrepancy
+		    	my $multiplier = $discrepancyFile->dataset('multiplicative')->get();
+		    	$yGalacticus          *= $multiplier;
+		    	$errorGalacticus      *= $multiplier;
+		    	$covarianceGalacticus .= $covarianceGalacticus*outer($multiplier,$multiplier);
+		    }		    
+		    if ( $dataset eq "multiplicativeCovariance" ) {
+		    	# Adjust the model accordingly.
+		    	my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
+		    	$covarianceGalacticus   += $arguments{'temperature'}*$covarianceMultiplier*outer($yGalacticus,$yGalacticus);
+		    }		    
 		    if ( $dataset eq "additive" ) {
-			# Read the additive discrepancy
-			my $addition = $discrepancyFile->dataset('additive')->get();
-			# Adjust the model accordingly.
-			$yGalacticus     += $addition;
+		    	# Read the additive discrepancy
+		    	my $addition = $discrepancyFile->dataset('additive')->get();
+		    	# Adjust the model accordingly.
+		    	$yGalacticus     += $addition;
 		    }
 		    if ( $dataset eq "additiveCovariance" ) {
-			# Read the covariance of the discrepancy.
-			my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
-			# Adjust the model discrepancy covariance accordingly.
-			$covarianceGalacticus += $covariance;
+		    	# Read the covariance of the discrepancy.
+		    	my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
+		    	# Adjust the model discrepancy covariance accordingly.
+		    	$covarianceGalacticus += $arguments{'temperature'}*$covariance;
 		    }
 		}
 	    }
@@ -249,7 +257,7 @@ sub Construct {
 
     # Compute the likelihood:
     if ( exists($arguments{'outputFile'}) ) {
-	# For any bins in whichthe model mass function is zero, we extrapolate from adjacent bins. This is necessary in order to
+	# For any bins in which the model mass function is zero, we extrapolate from adjacent bins. This is necessary in order to
 	# permit a finite likelihood to be computed. Such models will always have a very low likelihood, so the details of the
 	# extrapolation should not matter.
 	my $yDefined                 = pdl zeroes(nelem($yGalacticus));
@@ -273,11 +281,30 @@ sub Construct {
 
 	# Construct the full covariance matrix, which is the covariance matrix of the observations
 	# plus that of the model.
-	my $fullCovariance        = $config->{'covariance'}+$covarianceGalacticus;
+	my $fullCovariance        = $config->{'covariance'}*$arguments{'temperature'}+$covarianceGalacticus;
 	# Compute the likelihood.
 	my $constraint;
-	$constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance);
+	my $logDeterminant;
+	my $logLikelihood = &Covariances::ComputeLikelihood($yGalacticus,$config->{'y'},$fullCovariance, determinant => $logDeterminant);
 
+	# Correct the likelihood to unit temperature.
+	$constraint->{'logLikelihood'} = 
+	     $arguments{'temperature'}
+            *$logLikelihood
+	    +(
+		$arguments{'temperature'}
+		-1.0
+	    )
+	    *(
+		0.5
+		*nelem($yGalacticus)
+		*log(
+		    2.0
+		    *PI
+		)
+		+0.5
+		*$logDeterminant
+	    );
 	# Output the constraint.
 	my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
 	open(oHndl,">".$arguments{'outputFile'});

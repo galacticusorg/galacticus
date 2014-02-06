@@ -64,6 +64,9 @@ unlink("/dev/shm/sem.galacticus")
 # Bad log likelihood (highly improbable) which we will return in failure conditions.
 my $badLogLikelihood = -1.0e30;
 
+# Initialize a list of temporary files to remove after we're finished.
+my @temporaryFiles;
+
 # Get a hash of the parameter values.
 my $baseParametersFile = "constraints/baseParameters.xml";
 $baseParametersFile    = $arguments{'baseParameters'}
@@ -73,6 +76,7 @@ my @constraints = @{$constraintsRef};
 
 # Set an output file name.
 $parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'} = $workDirectory."/".$arguments{'galacticusFile'};
+push(@temporaryFiles,$parameters->{'parameter'}->{'galacticusOutputFileName'}->{'value'});
 
 # Set state file names.
 my $stateFileRoot;
@@ -80,6 +84,7 @@ if ( $arguments{'saveState'} eq "yes" ) {
     $stateFileRoot = $workDirectory."/".$arguments{'galacticusFile'};
     $stateFileRoot =~ s/\.hdf5//;
     $parameters->{'parameter'}->{'stateFileRoot'}->{'value'} = $stateFileRoot;
+    push(@temporaryFiles,$stateFileRoot."*");
 }
 
 # Set a random number seed.
@@ -103,6 +108,25 @@ if ( defined($newParameterData->{'parameter'}) ) {
     for my $newParameter ( @newParameters ) {
 	$parameters->{'parameter'}->{$newParameter->{'name'}}->{'value'} = $newParameter->{'value'};
     }
+}
+
+# If running at a high temperature, modify the number of merger trees per decade.
+my $temperatureEffective = 1.0;
+if ( 
+    exists($parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}) 
+    &&
+    $parameters->{'parameter'}->{'mergerTreeConstructMethod'}->{'value'} eq "build" 
+    ) {
+    my $treesPerDecadeEffective =
+	max(
+	    int(
+		$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'}
+		/$arguments{'temperature'}
+	    )
+	    ,$config->{'likelihood'}->{'treesPerDecadeMinimum'}
+	);
+    $temperatureEffective = $treesPerDecadeEffective/$parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'};
+    $parameters->{'parameter'}->{'mergerTreeBuildTreesPerDecade'}->{'value'} = $treesPerDecadeEffective;
 }
 
 # If trees are to be reused, create them, and store to a file.
@@ -160,6 +184,7 @@ unless ( $arguments{'reuseTrees'} eq "" ) {
 
 # Write the modified parameters to file.
 &Parameters::Output($parameters,$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml");
+push(@temporaryFiles,$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml");
 
 # Run the Galacticus model.
 if ( $arguments{'make'} eq "yes" ) {
@@ -175,6 +200,7 @@ $glcCommand .= "export ".$_."; "
     foreach ( &ExtraUtils::as_array($config->{'likelihood'}->{'environment'}) );
 $glcCommand .= "ulimit -c unlimited; ./Galacticus.exe ".$workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".xml";
 my $logFile = $workDirectory."/constrainGalacticusParameters".$arguments{'suffix'}.".log";
+push(@temporaryFiles,$logFile);
 SystemRedirect::tofile($glcCommand,$logFile);
 unless ( $? == 0 ) {
     # Issue a failure.
@@ -186,6 +212,8 @@ unless ( $? == 0 ) {
 	# Display the final likelihood.
 	&outputLikelihood(\%arguments,$badLogLikelihood);
 	print "constrainGalacticus.pl: Galacticus model failed";
+	system("rm ".join(" ",@temporaryFiles))
+	    if ( $arguments{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
 }
@@ -198,6 +226,7 @@ foreach my $constraint ( @constraints ) {
     # Run the analysis code.
     my $analysisCommand = $constraintDefinition->{'analysis'};
     $analysisCommand   .= " ".$workDirectory."/".$arguments{'galacticusFile'}." --outputFile ".$workDirectory."/likelihood".$arguments{'suffix'}.".xml";
+    $analysisCommand .= " --temperature ".$temperatureEffective;
     $analysisCommand .= " --modelDiscrepancies ".$projectDirectory."/modelDiscrepancy"
 	if ( -e $projectDirectory."/modelDiscrepancy" );
     $analysisCommand .= " --resultFile ".$workDirectory."/results".$arguments{'suffix'}.".xml"
@@ -210,6 +239,8 @@ foreach my $constraint ( @constraints ) {
 	# Display the final likelihood.
 	&outputLikelihood(\%arguments,$badLogLikelihood);
 	print "constrainGalacticus.pl: analysis code failed";
+	system("rm ".join(" ",@temporaryFiles))
+	    if ( $arguments{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
     # Store the results.
@@ -234,6 +265,8 @@ foreach my $constraint ( @constraints ) {
 	# Display the final likelihood.
 	&outputLikelihood(\%arguments,$badLogLikelihood);
 	print "constrainGalacticus.pl: likelihood calculation failed";
+	system("rm ".join(" ",@temporaryFiles))
+	    if ( $arguments{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 	exit;
     }
     # Extract the likelihood and weight it.
@@ -249,14 +282,11 @@ foreach my $constraint ( @constraints ) {
 
 # Extract tree timing information.
 system("scripts/analysis/treeTiming.pl ".$workDirectory."/".$arguments{'galacticusFile'}." --maxPoints 10000 --outputFile ".$workDirectory."/constrainGalacticusTiming.xml --accumulate")
-    if ( $arguments{'timing'} eq "yes" );
+    if ( $arguments{'cleanUp'} eq "yes" && $arguments{'timing'} eq "yes" );
 
 # Remove the model.
-unlink($workDirectory."/".$arguments{'galacticusFile'})
-    if ( $arguments{'cleanUp'} eq "yes" );
-
-# Adjust likelihood for temperature.
-$logLikelihood /= $arguments{'temperature'};
+system("rm ".join(" ",@temporaryFiles))
+    if ( $arguments{'cleanUp'} eq "yes" && scalar(@temporaryFiles) > 0 );
 
 # Display the final likelihood.
 &outputLikelihood(\%arguments,$logLikelihood);

@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 my $galacticusPath;
-if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
- $galacticusPath  = $ENV{"GALACTICUS_ROOT_V092"};
+if ( exists($ENV{"GALACTICUS_ROOT_V093"}) ) {
+ $galacticusPath  = $ENV{"GALACTICUS_ROOT_V093"};
  $galacticusPath .= "/" unless ( $galacticusPath =~ m/\/$/ );
 } else {
  $galacticusPath  = "./";
@@ -11,6 +11,7 @@ if ( exists($ENV{"GALACTICUS_ROOT_V092"}) ) {
 unshift(@INC,$galacticusPath."perl"); 
 use PDL;
 use PDL::NiceSlice;
+use PDL::Constants qw(PI);
 use PDL::IO::HDF5;
 use Astro::Cosmology;
 use XML::Simple;
@@ -32,7 +33,15 @@ die("diskGalaxySizes_SDSS_z0.07.pl <galacticusFile> [options]")
 my $galacticusFile = $ARGV[0];
 # Create a hash of named arguments.
 my $iArg = -1;
-my %arguments;
+# Define an effective temperature if one does not already exist. All non-model covariances
+# (i.e. data covariance and any model discrepancy covariance) will be inflated by this
+# factor under the assumption that the model covariance has also been inflated by this
+# factor by virtue of running proportionally fewer merger trees. The final likelihood is
+# then corrected back to unit temperature.
+my %arguments = 
+    (
+     temperature => 1.0
+    );
 &Options::Parse_Options(\@ARGV,\%arguments);
 
 # Define constants.
@@ -260,12 +269,14 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		    my $covarianceMultiplier = pdl zeroes(nelem($multiplier),nelem($multiplier));
 		    $covarianceMultiplier .= $discrepancyFile->dataset('multiplicativeCovariance')->get()
 			if ( grep {$_ eq "multiplicativeCovariance"} @datasets );
-		    $model->{'covariance'} .=
-		 	 $model->{'covariance'}                      *outer($multiplier  ,$multiplier  )
-			+                       $covarianceMultiplier*outer($model->{'y'},$model->{'y'})
-			+$model->{'covariance'}*$covarianceMultiplier;
-		    $model->{'radiusFunction'     } *= $multiplier;
+		    $model->{'covariance'    } *= outer($multiplier,$multiplier);
+		    $model->{'radiusFunction'} *=       $multiplier             ;
 		}
+		if ( $dataset eq "multiplicativeCovariance" ) {
+		    # Adjust the model accordingly.
+		    my $covarianceMultiplier = $discrepancyFile->dataset('multiplicativeCovariance')->get();
+		    $model->{'covariance'    } += $arguments{'temperature'}*$covarianceMultiplier*outer($model->{'radiusFunction'},$model->{'radiusFunction'});
+		}		    
 		if ( $dataset eq "additive" ) {
 		    # Read the additive discrepancy
 		    my $addition = $discrepancyFile->dataset('additive')->get();
@@ -276,7 +287,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 		    # Read the covariance of the discrepancy.
 		    my $covariance = $discrepancyFile->dataset('additiveCovariance')->get();
 		    # Adjust the model discrepancy covariance accordingly.
-		    $model->{'covariance'} += $covariance;
+		    $model->{'covariance'} += $arguments{'temperature'}*$covariance;
 		}
 	    }
 	}
@@ -287,7 +298,7 @@ if ( exists($arguments{'modelDiscrepancies'}) ) {
 if ( exists($arguments{'outputFile'}) ) {
     # Construct the full covariance matrix, which is the covariance matrix of the observations
     # plus that of the model.
-    my $fullCovariance                   = $dataCompilation->{'covariance'}+$model->{'covariance'};
+    my $fullCovariance                   = $dataCompilation->{'covariance'}*$arguments{'temperature'}+$model->{'covariance'};
     # Identify upper limits.
     my $upperLimits                      = which($dataCompilation->{'radiusFunction'} < 0.0);
     my $dataRadiusFunction               =       $dataCompilation->{'radiusFunction'}->flat()->copy();
@@ -299,7 +310,26 @@ if ( exists($arguments{'outputFile'}) ) {
     $modelRadiusFunction->($modelZero)  .= 1.0e-3*$dataRadiusFunction->($modelZero);
     # Compute the likelihood.
     my $constraint;
-    $constraint->{'logLikelihood'} = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, upperLimits => $upperLimits);
+    my $logDeterminant;
+    my $logLikelihood = &Covariances::ComputeLikelihood($dataRadiusFunction,$modelRadiusFunction,$fullCovariance, determinant => $logDeterminant, upperLimits => $upperLimits);
+    # Correct the likelihood to unit temperature.
+    $constraint->{'logLikelihood'} = 
+	$arguments{'temperature'}
+       *$logLikelihood
+	+(
+	    $arguments{'temperature'}
+	    -1.0
+	)
+	*(
+	    0.5
+	    *nelem($modelRadiusFunction)
+	    *log(
+		2.0
+		*PI
+	    )
+	    +0.5
+	    *$logDeterminant
+	);
     # Output the constraint.
     my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"constraint");
     open(oHndl,">".$arguments{'outputFile'});
