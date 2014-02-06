@@ -518,11 +518,16 @@ contains
        if     (                                                                                                        &
             &   mergerTreeReadPresetSpins                                                                              &
             &  .and.                                                                                                   &
-            &   .not.defaultImporter%angularMomentaAvailable()                                                         &
+            &   .not.                                                                                                  &
+            &        (                                                                                                 &
+            &          defaultImporter%          spinAvailable()                                                       &
+            &         .or.                                                                                             &
+            &          defaultImporter%angularMomentaAvailable()                                                       &
+            &        )                                                                                                 &
             & )                                                                                                        &
             & call Galacticus_Error_Report(                                                                            &
             &                              "Merger_Tree_Read_Initialize"                                            ,  &
-            &                              "presetting spins requires that the angularMomentum dataset                 &
+            &                              "presetting spins requires that the spin or angularMomentum datasets        &
             &                               be present in merger tree file; try setting"                            // &
             &                              char(10)                                                                 // &
             &                              " [mergerTreeReadPresetSpins]=false"                                        &
@@ -530,12 +535,17 @@ contains
        if     (                                                                                                        &
             &   mergerTreeReadPresetSpins3D                                                                            &
             &  .and.                                                                                                   &
-            &   .not.defaultImporter%angularMomenta3DAvailable()                                                       &
+            &   .not.                                                                                                  &
+            &        (                                                                                                 &
+            &          defaultImporter%          spin3DAvailable()                                                     &
+            &         .or.                                                                                             &
+            &          defaultImporter%angularMomenta3DAvailable()                                                     &
+            &        )                                                                                                 &
             & )                                                                                                        &
             & call Galacticus_Error_Report(                                                                            &
             &                              "Merger_Tree_Read_Initialize"                                            ,  &
-            &                              "presetting spin vectors requires that the angularMomentum vector dataset   &
-            &                               be present in merger tree file; try setting"                            // &
+            &                              "presetting spin vectors requires that the spin or angularMomentum vector   &
+            &                               datasets be present in merger tree file; try setting"                   // &
             &                              char(10)                                                                 // &
             &                              " [mergerTreeReadPresetSpins3D]=false"                                      &
             &                             )
@@ -622,16 +632,18 @@ contains
           treeVolumeWeightCurrent=defaultImporter%treeWeight(nextTreeToRead)
           thisTree%volumeWeight=treeVolumeWeightCurrent
           ! Read data from the file.
-          call defaultImporter%import(                                                                                          &
-               &                      nextTreeToRead                                                                          , &
-               &                      nodes                                                                                   , &
-               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                              , &
-               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                          , &
-               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                          , &
-               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                     , &
-               &                      requireAngularMomenta     = mergerTreeReadPresetSpins                                   , &
-               &                      requireAngularMomenta3D   = mergerTreeReadPresetSpins3D                                 , &
-               &                      requirePositions          =(mergerTreeReadPresetPositions.or.mergerTreeReadPresetOrbits)  &
+          call defaultImporter%import(                                                                                                                      &
+               &                      nextTreeToRead                                                                                                      , &
+               &                      nodes                                                                                                               , &
+               &                      requireScaleRadii         = mergerTreeReadPresetScaleRadii                                                          , &
+               &                      requireParticleCounts     = mergerTreeReadPresetParticleCounts                                                      , &
+               &                      requireVelocityMaxima     = mergerTreeReadPresetVelocityMaxima                                                      , &
+               &                      requireVelocityDispersions= mergerTreeReadPresetVelocityDispersions                                                 , &
+               &                      requireAngularMomenta     =(mergerTreeReadPresetSpins              .and.defaultImporter%angularMomentaAvailable  ()), &
+               &                      requireAngularMomenta3D   =(mergerTreeReadPresetSpins3D            .and.defaultImporter%angularMomenta3DAvailable()), &
+               &                      requireSpin               =(mergerTreeReadPresetSpins              .and.defaultImporter%spinAvailable            ()), &
+               &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ()), &
+               &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )  &
                &                     )
           ! Snap node times to output times if a tolerance has been specified.
           if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
@@ -1454,6 +1466,7 @@ contains
     !% Assign spin parameters to nodes.
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
+    use Galacticus_Error
     implicit none
     class           (nodeData          )         , dimension(:), intent(inout) :: nodes              
     type            (treeNodeList      )         , dimension(:), intent(inout) :: nodeList           
@@ -1471,19 +1484,34 @@ contains
           ! Get basic and spin components.
           thisBasicComponent => nodeList(iIsolatedNode)%node%basic(                 )
           thisSpinComponent  => nodeList(iIsolatedNode)%node%spin (autoCreate=.true.)
-          ! Compute the spin parameter normalization to convert from angular momentum.
-          spinNormalization= sqrt(abs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node))) &
-               &            /gravitationalConstantGalacticus                                     &
-               &            /thisBasicComponent%mass()**2.5d0
           if (mergerTreeReadPresetSpins  ) then
-             spin  = spinNormalization              &
-                  & *nodes(iNode)%angularMomentum
-             call thisSpinComponent%spinSet(spin)
+             if      (defaultImporter%          spinAvailable()) then
+                ! If spins are available directly, use them.
+                call thisSpinComponent%spinSet(nodes(iNode)%spin)
+             else if (defaultImporter%angularMomentaAvailable()) then
+                ! Compute the spin parameter normalization to convert from angular momentum.
+                spinNormalization= sqrt(abs(Dark_Matter_Profile_Energy(nodeList(iIsolatedNode)%node))) &
+                     &            /gravitationalConstantGalacticus                                     &
+                     &            /thisBasicComponent%mass()**2.5d0
+                spin  = spinNormalization              &
+                     & *nodes(iNode)%angularMomentum
+                call thisSpinComponent%spinSet(spin)
+             else
+                call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set spins')
+             end if
           end if
           if (mergerTreeReadPresetSpins3D) then
-             spin3D= spinNormalization              &
-                  & *nodes(iNode)%angularMomentum3D
-            call thisSpinComponent%spinVectorSet(spin3D)
+             if      (defaultImporter%          spin3DAvailable()) then
+                ! If spins are available directly, use them.
+                call thisSpinComponent%spinVectorSet(nodes(iNode)%spin3D)
+             else if (defaultImporter%angularMomenta3DAvailable()) then
+                ! Compute the spin parameter normalization to convert from angular momentum.
+                spin3D= spinNormalization              &
+                     & *nodes(iNode)%angularMomentum3D
+                call thisSpinComponent%spinVectorSet(spin3D)
+             end if
+          else
+             call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set vector spins')
           end if
        end if
     end do

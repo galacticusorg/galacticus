@@ -38,7 +38,8 @@
      type   (importerUnits  )                            :: massUnit              , lengthUnit            , &
           &                                                 timeUnit              , velocityUnit
      logical                                             :: fatalMismatches       , treeIndicesRead       , &
-          &                                                 angularMomentaIsScalar, angularMomentaIsVector
+          &                                                 angularMomentaIsScalar, angularMomentaIsVector, &
+          &                                                 spinIsScalar          , spinIsVector
      integer                                             :: treesCount
      integer                 , allocatable, dimension(:) :: firstNodes            , nodeCounts
      integer(kind=kind_int8 ), allocatable, dimension(:) :: treeIndices
@@ -69,6 +70,8 @@
      procedure :: velocityDispersionAvailable => galacticusVelocityDispersionAvailable
      procedure :: angularMomentaAvailable     => galacticusAngularMomentaAvailable
      procedure :: angularMomenta3DAvailable   => galacticusAngularMomenta3DAvailable
+     procedure :: spinAvailable               => galacticusSpinAvailable
+     procedure :: spin3DAvailable             => galacticusSpin3DAvailable
      procedure :: import                      => galacticusImport
      procedure :: subhaloTrace                => galacticusSubhaloTrace
      procedure :: subhaloTraceCount           => galacticusSubhaloTraceCount
@@ -155,7 +158,7 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout) :: self
     type            (varying_string              ), intent(in   ) :: fileName
     class           (cosmologyParametersClass    ), pointer       :: thisCosmologyParameters
-    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset
+    type            (hdf5Object                  )                :: cosmologicalParametersGroup, unitsGroup, angularMomentumDataset, spinDataset
     type            (varying_string              )                :: message
     character       (len=14                      )                :: valueString
     double precision                                              :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
@@ -324,6 +327,22 @@ contains
           call Galacticus_Error_Report('galacticusOpen','angularMomentum dataset must be rank 1 or 2')
        end select
        call angularMomentumDataset%close()
+    end if
+    ! Check for type of spin data available.
+    self%spinIsScalar=.false.
+    self%spinIsVector=.false.
+    if (self%haloTrees%hasDataset("spin")) then     
+       spinDataset=self%haloTrees%openDataset("spin")
+       select case (spinDataset%rank())
+       case (1)
+          self%spinIsScalar=.true.
+       case (2)
+          if (spinDataset%size(1) /= 3) call Galacticus_Error_Report('galacticusOpen','2nd dimension of rank-2 spin dataset must be 3')
+          self%spinIsVector=.true.
+       case default
+          call Galacticus_Error_Report('galacticusOpen','spin dataset must be rank 1 or 2')
+       end select
+       call spinDataset%close()
     end if
     !$omp end critical(HDF5_Access)
     return
@@ -656,6 +675,24 @@ contains
     return
   end function galacticusAngularMomenta3DAvailable
 
+  logical function galacticusSpinAvailable(self)
+    !% Return true if spins are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+    
+    galacticusSpinAvailable=self%spinIsScalar.or.self%spinIsVector
+    return
+  end function galacticusSpinAvailable
+
+  logical function galacticusSpin3DAvailable(self)
+    !% Return true if spins vectors are available.
+    implicit none
+    class(mergerTreeImporterGalacticus), intent(inout) :: self
+
+    galacticusSpin3DAvailable=self%spinIsVector
+    return
+  end function galacticusSpin3DAvailable
+
   subroutine galacticusSubhaloTrace(self,node,time,position,velocity)
     !% Returns a trace of subhalo position/velocity.
     use Galacticus_Error
@@ -716,7 +753,7 @@ contains
     return
   end function galacticusSubhaloTraceCount
 
-  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
+  subroutine galacticusImport(self,i,nodes,requireScaleRadii,requireAngularMomenta,requireAngularMomenta3D,requireSpin,requireSpin3D,requirePositions,requireParticleCounts,requireVelocityMaxima,requireVelocityDispersions)
     !% Import the $i^{\rm th}$ merger tree.
     use Memory_Management
     use Cosmology_Functions
@@ -732,13 +769,14 @@ contains
     logical                                       , intent(in   ), optional                    :: requireScaleRadii        , requireAngularMomenta, &
          &                                                                                        requireAngularMomenta3D  , requirePositions     , &
          &                                                                                        requireParticleCounts    , requireVelocityMaxima, &
-         &                                                                                        requireVelocityDispersions
+         &                                                                                        requireVelocityDispersions, requireSpin         , &
+         &                                                                                        requireSpin3D
     class           (cosmologyFunctionsClass     ), pointer                                    :: cosmologyFunctionsDefault
     integer         (kind=HSIZE_T                )                            , dimension(1  ) :: firstNodeIndex           , nodeCount
     integer         (kind=kind_int8              )                                             :: iNode
-    double precision                                             , allocatable, dimension(  :) :: angularMomentum
+    double precision                                             , allocatable, dimension(  :) :: angularMomentum          , spin
     double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D        , position             , &
-         &                                                                                        velocity
+         &                                                                                        velocity                 , spin3D
     logical                                                                                    :: timesAreInternal
 
     ! Get the default cosmology functions object.
@@ -801,7 +839,7 @@ contains
     ! Velocity dispersion.
     if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                              &
          & call self%haloTrees%readDatasetStatic("velocityDispersion",nodes%velocityDispersion,firstNodeIndex,nodeCount)
-    ! Halo spin.
+    ! Halo angular momenta.
     if (present(requireAngularMomenta).and.requireAngularMomenta) then
        if (self%angularMomentaIsVector) then
           call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
@@ -824,6 +862,30 @@ contains
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
        if (.not.self%angularMomentaIsVector) call Galacticus_Error_Report("galacticusImport","vector angular momentum is not available")
        call self%haloTrees%readDataset("angularMomentum",angularMomentum3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+    end if
+    ! Halo spins.
+    if (present(requireSpin).and.requireSpin) then
+       if (self%spinIsVector) then
+          call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%spin=Vector_Magnitude(spin3D(:,iNode))
+          end forall
+          call Dealloc_Array(spin3D)
+       else if (self%spinIsScalar) then
+          call self%haloTrees%readDataset("spin",spin,[firstNodeIndex(1)],[nodeCount(1)])
+          ! Transfer to nodes.
+          forall(iNode=1:nodeCount(1))
+             nodes(iNode)%spin=Vector_Magnitude(spin(iNode))
+          end forall
+          call Dealloc_Array(spin)
+       else
+          call Galacticus_Error_Report("galacticusImport","scalar spin is not available")
+       end if
+    end if
+    if (present(requireSpin3D).and.requireSpin3D) then
+       if (.not.self%spinIsVector) call Galacticus_Error_Report("galacticusImport","vector spin is not available")
+       call self%haloTrees%readDataset("spin",spin3D,[int(1,kind=kind_int8),firstNodeIndex(1)],[int(3,kind=kind_int8),nodeCount(1)])
     end if
     ! Positions (and velocities).
     if (present(requirePositions).and.requirePositions) then
