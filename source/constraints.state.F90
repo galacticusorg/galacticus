@@ -35,6 +35,12 @@ module Constraints_State
      !@     <description>Return a count of the number of logged state steps.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>dimension</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the dimension of the state.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>get</method>
      !@     <type>\doubleone</type>
      !@     <arguments></arguments>
@@ -65,7 +71,8 @@ module Constraints_State
      !@     <description>Return the acceptance rate of the state over logged steps.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure                                :: count    => stateCount
+     procedure                                :: count          => stateCount
+     procedure                                :: dimension      => stateDimension
      procedure(stateGet           ), deferred :: get
      procedure(stateUpdate        ), deferred :: update
      procedure(stateMean          ), deferred :: mean
@@ -163,6 +170,15 @@ contains
     stateCount=self%stepCount
     return
   end function stateCount
+
+  integer function stateDimension(self)
+    !% Returns the dimension of the state.
+    implicit none
+    class(state), intent(in   ) :: self
+
+    stateDimension=self%parameterCount
+    return
+  end function stateDimension
 
   ! Include all state methods.
   include 'constraints.state.simple.methods.inc'
