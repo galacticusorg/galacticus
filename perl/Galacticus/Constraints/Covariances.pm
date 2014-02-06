@@ -9,6 +9,7 @@ use PDL::NiceSlice;
 use PDL::MatrixOps;
 use PDL::Matrix;
 use PDL::LinearAlgebra;
+use Data::Dumper;
 
 sub LogNormalCovariance {
     # Given a vector, y, and its covariance matrix, C, compute the covariance in log(y). C_ln = ln(1+C/y*y) where "*" indicates
@@ -109,6 +110,10 @@ sub ComputeLikelihood {
     die("ComputeLikelihood: inverse covariance matrix is not semi-positive definite")
 	unless ( $vCv->((0),(0)) >= 0.0 );
     my $logLikelihoodLog              = -0.5*$vCv->((0),(0))-0.5*nelem($y1)*log(2.0*3.1415927)-0.5*$logDeterminant;
+    # Optionally return the logarithm of the determinant.
+    ${$options{'determinant'}} = $logDeterminant
+	if ( exists($options{'determinant'}) );
+    # Return the likelihood.
     return $logLikelihoodLog->sclr();
 }
 

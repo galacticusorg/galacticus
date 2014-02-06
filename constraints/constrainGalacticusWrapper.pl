@@ -21,8 +21,8 @@ require Galacticus::Constraints::Parameters;
 # Andrew Benson (04-October-2011)
 
 # Parse the constraint config file for parameters.
-die("Usage: constrainGalacticusWrapper.pl <configFile> <mpiRank> <likelihoodFile> <param1> [<param2>......]") 
-    unless ( scalar(@ARGV) > 3 );
+die("Usage: constrainGalacticusWrapper.pl <configFile> <mpiRank> <likelihoodFile> <temperature> <param1> [<param2>......]") 
+    unless ( scalar(@ARGV) > 4 );
 my $configFile = $ARGV[0];
 my $config     = &Parameters::Parse_Config($configFile);
 my @parameters;
@@ -43,6 +43,9 @@ my $mpiRank        = $ARGV[1];
 
 # Get the name for the likelihood file.
 my $likelihoodFile = $ARGV[2];
+
+# Get the temperature.
+my $likelihoodFile = $ARGV[3];
 
 # Convert command line arguments to a parameter structure.
 die("constrainGalacticusWrapper.pl: number of supplied arguments does not match number of parameters") 
@@ -91,9 +94,6 @@ for(my $i=0;$i<scalar(@parameters);++$i) {
 	 }
 	 );
 }
-
-# Find the temperature.
-my $temperature = 1.0;
 
 # Find the scratch directory.
 my $scratchDirectory = $config->{'likelihood'}->{'workDirectory'}."/mcmc";
