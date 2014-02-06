@@ -28,7 +28,7 @@ function likelihoodGalacticusConstructor(configFileName)
   return
 end function likelihoodGalacticusConstructor
 
-double precision function likelihoodGalacticusEvaluate(self,simulationState)
+double precision function likelihoodGalacticusEvaluate(self,simulationState,temperature)
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
   !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\tt tmpfs} for
   !% this likelihood file so that no disk I/O is required.
@@ -37,8 +37,9 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState)
   use String_Handling
   use MPI_Utilities
   implicit none
-  class           (likelihoodGalacticus), intent(in   )               :: self
+  class           (likelihoodGalacticus), intent(inout)               :: self
   class           (state               ), intent(in   )               :: simulationState
+  double precision                      , intent(in   )               :: temperature
   double precision                      , allocatable  , dimension(:) :: stateVector
   type            (varying_string      )                              :: wrapperCommand , likelihoodFileName
   character       (len=23              )                              :: label
@@ -46,8 +47,10 @@ double precision function likelihoodGalacticusEvaluate(self,simulationState)
 
   ! Generate the file name for the likelihood file.
   likelihoodFileName='/dev/shm/galacticusLikelihood_'//mpiSelf%rankLabel()//'.dat'
+  ! Generate temperature label.
+  write (label,'(e12.6)') temperature 
   ! Generate the command to run the Galacticus model.
-  wrapperCommand='./constraints/constrainGalacticusWrapper.pl '//self%configFileName//' '//mpiSelf%rankLabel()//' '//likelihoodFileName
+  wrapperCommand='./constraints/constrainGalacticusWrapper.pl '//self%configFileName//' '//mpiSelf%rankLabel()//' '//likelihoodFileName//' '//trim(label)
   ! Append the current state.
   stateVector=simulationState%get()
   do i=1,size(stateVector)

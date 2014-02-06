@@ -22,6 +22,7 @@ module Constraints_Likelihoods
   use Linear_Algebra
   use Constraints_State
   use ISO_Varying_String
+  use Pseudo_Random
   private
   public :: likelihoodNew
   
@@ -36,7 +37,7 @@ module Constraints_Likelihoods
      !@   <objectMethod>
      !@     <method>evaluate</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin</arguments>
      !@     <description>Evaluate the model likelihood at the given {\tt simulationState} and return the log-likelihood.</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -45,15 +46,17 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState)
+     double precision function likelihoodEvaluate(self,simulationState,temperature)
        import :: likelihood, state
-       class(likelihood), intent(in   ) :: self
-       class(state     ), intent(in   ) :: simulationState
+       class           (likelihood), intent(inout) :: self
+       class           (state     ), intent(in   ) :: simulationState
+       double precision            , intent(in   ) :: temperature
      end function likelihoodEvaluate
   end interface
 
   ! Include all likelihood types.
   include 'constraints.likelihoods.multivariate_normal.type.inc'
+  include 'constraints.likelihoods.multivariate_normal.stochastic.type.inc'
   include 'constraints.likelihoods.Galacticus.type.inc'
 
 contains
@@ -69,12 +72,14 @@ contains
     class           (likelihood    ), pointer                     :: newLikelihood
     type            (node          ), pointer    , intent(in   )  :: definition
     type            (varying_string), optional   , intent(in   )  :: configFileName
-    type            (node          ), pointer                     :: likelihoodMeanDefinition, likelihoodCovarianceDefinition, &
-         &                                                           covarianceRow
+    type            (node          ), pointer                     :: likelihoodMeanDefinition       , likelihoodCovarianceDefinition      , &
+         &                                                           covarianceRow                  , likelihoodRealizationCountDefinition, &
+         &                                                           likelihoodRealizationCountMinimumDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
-    integer                                                       :: i, dimensionCount
+    integer                                                       :: i                              , dimensionCount                      , &
+         &                                                           likelihoodRealizationCount     , likelihoodRealizationCountMinimum
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -96,6 +101,28 @@ contains
           deallocate(likelihoodMean      )
           deallocate(likelihoodCovariance)
        end select
+    case ("multivariateNormalStochastic")
+       allocate(likelihoodMultivariateNormalStochastic :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodMultivariateNormalStochastic)
+          likelihoodMeanDefinition                    => XML_Get_First_Element_By_Tag_Name(definition,"mean"                   )
+          likelihoodCovarianceDefinition              => XML_Get_First_Element_By_Tag_Name(definition,"covariance"             )
+          likelihoodRealizationCountDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"realizationCount"       )
+          likelihoodRealizationCountMinimumDefinition => XML_Get_First_Element_By_Tag_Name(definition,"realizationCountMinimum")
+          covarianceRows                              => getElementsByTagName(likelihoodCovarianceDefinition,"row")
+          call extractDataContent(likelihoodRealizationCountDefinition,likelihoodRealizationCount)
+          dimensionCount=String_Count_Words(getTextContent(likelihoodMeanDefinition))
+          allocate(likelihoodMean      (dimensionCount               ))
+          allocate(likelihoodCovariance(dimensionCount,dimensionCount))
+          call extractDataContent(likelihoodMeanDefinition,likelihoodMean) 
+          do i=1,dimensionCount
+             covarianceRow => item(covarianceRows,i-1)
+             call extractDataContent(covarianceRow,likelihoodCovariance(i,:))
+          end do
+          newLikelihood=likelihoodMultivariateNormalStochastic(likelihoodMean,likelihoodCovariance,likelihoodRealizationCount,likelihoodRealizationCountMinimum)
+          deallocate(likelihoodMean      )
+          deallocate(likelihoodCovariance)
+       end select
     case ("Galacticus")
        allocate(likelihoodGalacticus :: newLikelihood)
        select type (newLikelihood)
@@ -110,6 +137,7 @@ contains
 
   ! Include all likelihood methods.
   include 'constraints.likelihoods.multivariate_normal.methods.inc'
+  include 'constraints.likelihoods.multivariate_normal.stochastic.methods.inc'
   include 'constraints.likelihoods.Galacticus.methods.inc'
 
 end module Constraints_Likelihoods
