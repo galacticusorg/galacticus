@@ -196,7 +196,7 @@ If information on the angular momenta of nodes is available in the merger tree f
   </parameter>
 \end{verbatim}
 
-The spin parameter is set using the angular momentum of each node stored in the merger tree file using:
+The spin parameter is set using the spin of each node if available, or otherwise using the angular momentum of each node stored in the merger tree file using:
 \begin{equation}
  \lambda = {|{\bf J}| |E|^{1/2} \over {\rm G} M^{5/2}}
 \end{equation}
@@ -208,7 +208,7 @@ where $|{\bf J}|$ is the magnitude of the node's angular momentum, $M$ is the no
     <value>true</value>
   </parameter>
 \end{verbatim}
-the spin vector of each node will be set (assuming that the vector angular momenta of nodes are available in the merger tree file) using:
+the spin vector of each node will be set (assuming that the vector spin or angular momenta of nodes are available in the merger tree file) using:
 \begin{equation}
  {\boldmath \lambda} = {{\bf J} |E|^{1/2} \over {\rm G} M^{5/2}}.
 \end{equation}
