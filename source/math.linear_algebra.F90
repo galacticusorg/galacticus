@@ -40,9 +40,17 @@ module Linear_Algebra
      !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
      !@     <description>Compute {\tt vector1}-{\tt vector2}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>add</method>
+     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <arguments>\textcolor{red}{\textless class(vector)\textgreater} vector1\argin, \textcolor{red}{\textless class(vector)\textgreater} vector2\argin</arguments>
+     !@     <description>Compute {\tt vector1}+{\tt vector2}.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: subtract    => vectorSubtract
+     procedure :: add         => vectorAdd
      generic   :: operator(-) => subtract
+     generic   :: operator(+) => add
   end type vector
   
   type, public :: matrix
@@ -61,8 +69,15 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Compute and return the matrix inverse.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>logarithmicDeterminant</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: invert        => matrixInvert
+     procedure :: invert                 => matrixInvert
+     procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
   end type matrix
   
   ! Assignment interfaces.
@@ -71,6 +86,7 @@ module Linear_Algebra
      module procedure vectorToArrayAssign
      module procedure vectorToVectorAssign
      module procedure arrayToMatrixAssign
+     module procedure matrixToArrayAssign
   end interface assignment(=)
 
   ! Operator interfaces.
@@ -130,6 +146,16 @@ contains
     return
   end function vectorSubtract
 
+  function vectorAdd(vector1,vector2)
+    !% Add one vector to another.
+    implicit none   
+    type (vector)                :: vectorAdd
+    class(vector), intent(in   ) :: vector1  , vector2
+
+    vectorAdd%elements=vector1%elements+vector2%elements
+    return
+  end function vectorAdd
+
   subroutine arrayToMatrixAssign(self,array)
     !% Assign an array to a matrix.
     implicit none
@@ -139,7 +165,17 @@ contains
     self%elements=array
     return
   end subroutine arrayToMatrixAssign
-  
+ 
+  subroutine matrixToArrayAssign(array,matrix1)
+    !% Assign a matrix to an array.
+    implicit none
+    type            (matrix), intent(in   )                 :: matrix1
+    double precision        , intent(  out), dimension(:,:) :: array
+
+    array=matrix1%elements
+    return
+  end subroutine matrixToArrayAssign
+ 
   subroutine matrixDestroy(self)
     !% Destroy a matrix object.
     implicit none   
@@ -153,17 +189,19 @@ contains
     !% Invert a matrix.
     implicit none
     type            (matrix          )                                                                         :: matrixInvert
-    class           (matrix          ), intent(in   )                                                          :: self
+    class           (matrix          ), intent(inout)                                                          :: self
     type            (fgsl_matrix     )                                                                         :: selfMatrix       , selfInverse
     type            (fgsl_permutation)                                                                         :: permutations
     integer         (kind=fgsl_int   )                                                                         :: decompositionSign, status
     integer         (kind=fgsl_size_t)                                                                         :: selfMatrixSize
     double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)), target :: inverse
-    
+    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2))         :: selfArray
+
     selfMatrixSize       =size(self%elements,dim=1)
     selfMatrix           =FGSL_Matrix_Init(type=1.0_fgsl_double)
     selfInverse          =FGSL_Matrix_Init(type=1.0_fgsl_double)
     permutations         =FGSL_Permutation_Alloc(selfMatrixSize)
+    selfArray            =self%elements
     status               =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
     status               =FGSL_Matrix_Align(inverse      ,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfInverse)
     status               =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
@@ -172,8 +210,34 @@ contains
     call FGSL_Permutation_Free(permutations)
     call FGSL_Matrix_Free     (selfMatrix)
     call FGSL_Matrix_Free     (selfInverse)
+    ! Restore the original matrix.
+    self%elements        =selfArray
     return
   end function matrixInvert
+
+  double precision function matrixLogarithmicDeterminant(self)
+    !% Return the logarithm of the determinant of a matrix.
+    implicit none
+    class           (matrix          ), intent(inout)                                                  :: self
+    type            (fgsl_matrix     )                                                                 :: selfMatrix
+    type            (fgsl_permutation)                                                                 :: permutations
+    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
+    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
+
+    selfMatrixSize              =size(self%elements,dim=1)
+    selfMatrix                  =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
+    selfArray                   =self%elements
+    status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix )
+    status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
+    matrixLogarithmicDeterminant=FGSL_LinAlg_LU_lnDet(selfMatrix)    
+    call FGSL_Permutation_Free(permutations)
+    call FGSL_Matrix_Free     (selfMatrix  )
+    ! Restore the original matrix.
+    self%elements               =selfArray
+    return
+  end function matrixLogarithmicDeterminant
   
   function vectorVectorMultiply(vector1,vector2)
     !% Multiply a vector by a vector, returning a scalar.
