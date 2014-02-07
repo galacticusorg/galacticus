@@ -27,6 +27,7 @@
      class  (likelihood      ), pointer               :: modelLikelihood
      class  (convergence     ), pointer               :: simulationConvergence
      class  (state           ), pointer               :: simulationState
+     class  (stateInitializor), pointer               :: simulationStateInitializor
      class  (deProposalSize  ), pointer               :: proposalSize
      class  (deRandomJump    ), pointer               :: randomJump
      type   (varying_string  )                        :: logFileRoot
@@ -51,6 +52,12 @@
      !@     <arguments>\doubleone\ stateVector\argin</arguments>
      !@     <description>Update the simulator to the new {\tt stateVector} after a step.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>temperature</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the current temperature.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: simulate       => simulatorDifferentialEvolutionSimulate
      procedure :: logging        => simulatorDifferentialEvolutionLogging
@@ -58,6 +65,7 @@
      procedure :: update         => simulatorDifferentialEvolutionUpdate
      procedure :: stepSize       => simulatorDifferentialEvolutionStepSize
      procedure :: acceptProposal => simulatorDifferentialEvolutionAcceptProposal
+     procedure :: temperature    => simulatorDifferentialEvolutionTemperature
   end type simulatorDifferentialEvolution
   
   interface simulatorDifferentialEvolution

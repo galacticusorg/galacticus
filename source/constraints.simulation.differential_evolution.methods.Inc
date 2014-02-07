@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence&
-     &,simulationState,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot)
+     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -27,24 +27,26 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (likelihood                    ), intent(in   ), target               :: modelLikelihood
   class    (convergence                   ), intent(in   ), target               :: simulationConvergence
   class    (state                         ), intent(in   ), target               :: simulationState
+  class    (stateInitializor              ), intent(in   ), target               :: simulationStateInitializor
   class    (deProposalSize                ), intent(in   ), target               :: proposalSize
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
   integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
 
-  simulatorDifferentialEvolutionConstructor%parameterCount        =  size(parameterPriors)
-  simulatorDifferentialEvolutionConstructor%parameterPriors       => parameterPriors
-  simulatorDifferentialEvolutionConstructor%randomDistributions   => randomDistributions
-  simulatorDifferentialEvolutionConstructor%modelLikelihood       => modelLikelihood
-  simulatorDifferentialEvolutionConstructor%simulationConvergence => simulationConvergence
-  simulatorDifferentialEvolutionConstructor%simulationState       => simulationState
-  simulatorDifferentialEvolutionConstructor%proposalSize          => proposalSize
-  simulatorDifferentialEvolutionConstructor%randomJump            => randomJump
-  simulatorDifferentialEvolutionConstructor%stepsMaximum          =  stepsMaximum
-  simulatorDifferentialEvolutionConstructor%stepsPostConvergence  =  stepsPostConvergence
-  simulatorDifferentialEvolutionConstructor%acceptanceAverageCount=  acceptanceAverageCount
-  simulatorDifferentialEvolutionConstructor%stateSwapCount        =  stateSwapCount
-  simulatorDifferentialEvolutionConstructor%logFileRoot           =  logFileRoot
+  simulatorDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
+  simulatorDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
+  simulatorDifferentialEvolutionConstructor%randomDistributions        => randomDistributions
+  simulatorDifferentialEvolutionConstructor%modelLikelihood            => modelLikelihood
+  simulatorDifferentialEvolutionConstructor%simulationConvergence      => simulationConvergence
+  simulatorDifferentialEvolutionConstructor%simulationState            => simulationState
+  simulatorDifferentialEvolutionConstructor%simulationStateInitializor => simulationStateInitializor
+  simulatorDifferentialEvolutionConstructor%proposalSize               => proposalSize
+  simulatorDifferentialEvolutionConstructor%randomJump                 => randomJump
+  simulatorDifferentialEvolutionConstructor%stepsMaximum               =  stepsMaximum
+  simulatorDifferentialEvolutionConstructor%stepsPostConvergence       =  stepsPostConvergence
+  simulatorDifferentialEvolutionConstructor%acceptanceAverageCount     =  acceptanceAverageCount
+  simulatorDifferentialEvolutionConstructor%stateSwapCount             =  stateSwapCount
+  simulatorDifferentialEvolutionConstructor%logFileRoot                =  logFileRoot
   return
 end function simulatorDifferentialEvolutionConstructor
 
@@ -76,7 +78,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      stateProposed=stateSimple(self%parameterCount,1)
   end select
   ! Initialize chain to some state vector.
-  call priorsSample(self%parameterPriors,self%simulationState)
+  call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors)
   ! Evaluate the posterior in the initial state.
   logPosterior=self%posterior(self%simulationState)
   ! Begin stepping.
@@ -195,9 +197,9 @@ double precision function simulatorDifferentialEvolutionPosterior(self,simulatio
   class(simulatorDifferentialEvolution), intent(inout) :: self
   class(state                         ), intent(in   ) :: simulationState
 
-  simulatorDifferentialEvolutionPosterior=                                     &
-       &  +priorsEvaluateLog            (self%parameterPriors,simulationState) &
-       &  +self%modelLikelihood%evaluate(                     simulationState)
+  simulatorDifferentialEvolutionPosterior=                                                        &
+       &  +priorsEvaluateLog            (self%parameterPriors,simulationState                   ) &
+       &  +self%modelLikelihood%evaluate(                     simulationState,self%temperature())
   return
 end function simulatorDifferentialEvolutionPosterior
 
@@ -239,3 +241,12 @@ logical function simulatorDifferentialEvolutionAcceptProposal(self,logPosterior,
        &   x                    < exp(-logPosterior+logPosteriorProposed)
   return
 end function simulatorDifferentialEvolutionAcceptProposal
+
+double precision function simulatorDifferentialEvolutionTemperature(self)
+  !% Return the temperature.
+  implicit none
+  class(simulatorDifferentialEvolution), intent(inout) :: self
+
+  simulatorDifferentialEvolutionTemperature=1.0d0
+  return
+end function simulatorDifferentialEvolutionTemperature

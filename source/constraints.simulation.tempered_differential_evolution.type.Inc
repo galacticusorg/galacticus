@@ -34,12 +34,6 @@
      !@     <arguments></arguments>
      !@     <description>Return the current tempering level.</description>
      !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>temperature</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments></arguments>
-     !@     <description>Return the current temperature.</description>
-     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: logging        => simulatorTemperedDifferentialEvolutionLogging
      procedure :: acceptProposal => simulatorTemperedDifferentialEvolutionAcceptProposal

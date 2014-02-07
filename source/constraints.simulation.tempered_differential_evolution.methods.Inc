@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
-          &,simulationState,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum,stepsPostConvergence&
+          &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum,stepsPostConvergence&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
           &,stepsPerLevel)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
@@ -29,6 +29,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   class           (likelihood                            ), intent(in   ), target               :: modelLikelihood
   class           (convergence                           ), intent(in   ), target               :: simulationConvergence
   class           (state                                 ), intent(in   ), target               :: simulationState
+  class           (stateInitializor                      ), intent(in   ), target               :: simulationStateInitializor
   class           (deProposalSize                        ), intent(in   ), target               :: proposalSize
   class           (dePropSizeTempExp                     ), intent(in   ), target               :: proposalSizeTemperatureExponent
   class           (deRandomJump                          ), intent(in   ), target               :: randomJump
@@ -46,6 +47,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%modelLikelihood                 => modelLikelihood
   simulatorTemperedDifferentialEvolutionConstructor%simulationConvergence           => simulationConvergence
   simulatorTemperedDifferentialEvolutionConstructor%simulationState                 => simulationState
+  simulatorTemperedDifferentialEvolutionConstructor%simulationStateInitializor      => simulationStateInitializor
   simulatorTemperedDifferentialEvolutionConstructor%proposalSize                    => proposalSize
   simulatorTemperedDifferentialEvolutionConstructor%proposalSizeTemperatureExponent => proposalSizeTemperatureExponent
   simulatorTemperedDifferentialEvolutionConstructor%randomJump                      => randomJump

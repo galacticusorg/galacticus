@@ -812,6 +812,18 @@ This type stores the current state but makes no attempt to record a history of t
 
 An extension of the {\tt simple} state, this type also records the mean and variance of each parameter over the history of the simulation.
 
+\subsection{{\tt stateInitializor}}
+
+The {\tt stateInitializor} section specifies the type of object used to initialize the state of chains at the beginning of the simulation. The type of state initializor object to use is specified by the {\tt type} element. The available choices are described in the following subsections.
+
+\subsubsection{{\tt priorRandom}}
+
+This type simply draws a random state vector from the prior distributions of the parameters.
+
+\subsubsection{{\tt resume}}
+
+This type resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The {\tt logFileRoot} element is used to specify the log-file root name used in the previous simulation.
+
 \subsection{{\tt proposalSize}}
 
 The {\tt proposalSize} section specifies the method to use when selecting the proposal size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in differential evolution simulations. The proposal size algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
