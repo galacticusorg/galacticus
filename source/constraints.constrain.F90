@@ -37,6 +37,7 @@ contains
     use Constraints_Likelihoods
     use Constraints_Convergence
     use Constraints_State
+    use Constraints_State_Initialize
     use Constraints_Simulation
     use Constraints_Differential_Proposal_Size
     use Constraints_Differential_Prop_Size_Temp_Exp
@@ -50,22 +51,24 @@ contains
     class  (likelihood       ), pointer                     :: modelLikelihood
     class  (convergence      ), pointer                     :: simulationConvergence
     class  (state            ), pointer                     :: simulationState
+    class  (stateInitializor ), pointer                     :: simulationStateInitializor
     class  (deProposalSize   ), pointer                     :: proposalSize
     class  (dePropSizeTempExp), pointer                     :: proposalSizeTemperatureExponent
     class  (deRandomJump     ), pointer                     :: randomJump
     class  (simulator        ), pointer                     :: simulation
-    type   (node             ), pointer                     :: configDoc            , priorDefinition                          , &
-         &                                                     parameterDefinition  , randomDefinition                         , &
-         &                                                     likelihoodDefinition , convergenceDefinition                    , &
-         &                                                     stateDefinition      , proposalSizeDefinition                   , &
-         &                                                     simulationDefinition , parametersElement                        , &
-         &                                                     randomJumpDefinition , proposalSizeTemperatureExponentDefinition
-    type   (nodeList         ), pointer                     :: parameterDefinitions , parametersList
-    type   (varying_string   )                              :: filterCommand        , filteredFile                             , &
+    type   (node             ), pointer                     :: configDoc                      , priorDefinition                          , &
+         &                                                     parameterDefinition            , randomDefinition                         , &
+         &                                                     likelihoodDefinition           , convergenceDefinition                    , &
+         &                                                     stateDefinition                , proposalSizeDefinition                   , &
+         &                                                     simulationDefinition           , parametersElement                        , &
+         &                                                     randomJumpDefinition           , proposalSizeTemperatureExponentDefinition, &
+         &                                                     stateInitializorDefinition
+    type   (nodeList         ), pointer                     :: parameterDefinitions           , parametersList
+    type   (varying_string   )                              :: filterCommand                  , filteredFile                             , &
          &                                                     message
-    integer                                                 :: parameterCount       , ioError                                  , &
-         &                                                     i                    , j                                        , &
-         &                                                     iParameter           , inactiveParameterCount
+    integer                                                 :: parameterCount                 , ioError                                  , &
+         &                                                     i                              , j                                        , &
+         &                                                     iParameter                     , inactiveParameterCount
 
     ! Run the config file through an external XInclude filter to include any Xinclude'd files.
     filteredFile="/dev/shm/"//trim(configFile)//"_"//mpiSelf%rankLabel()
@@ -118,22 +121,25 @@ contains
     end do
     ! Initialize likelihood.
     likelihoodDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"likelihood"                     )
-    modelLikelihood                           =>        likelihoodNew(  likelihoodDefinition,configFile        )
+    modelLikelihood                           =>        likelihoodNew(                     likelihoodDefinition,configFile    )
     ! Initialize convergence.
     convergenceDefinition                     => XML_Get_First_Element_By_Tag_Name(configDoc,"convergence"                    )
-    simulationConvergence                     =>        convergenceNew( convergenceDefinition                  )
+    simulationConvergence                     =>        convergenceNew(                   convergenceDefinition               )
     ! Initialize state.
     stateDefinition                           => XML_Get_First_Element_By_Tag_Name(configDoc,"state"                          )
-    simulationState                           =>             stateNew(       stateDefinition,parameterCount    )
+    simulationState                           =>             stateNew(                          stateDefinition,parameterCount)
+    ! Initialize state initializor.
+    stateInitializorDefinition                => XML_Get_First_Element_By_Tag_Name(configDoc,"stateInitializor"               )
+    simulationStateInitializor                =>  stateInitializorNew(               stateInitializorDefinition               )
     ! Initialize proposal size.
     proposalSizeDefinition                    => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSize"                   )
-    proposalSize                              =>    deProposalSizeNew(proposalSizeDefinition                   )
+    proposalSize                              =>    deProposalSizeNew(                   proposalSizeDefinition               )
     ! Initialize proposal size temperature exponent.
     proposalSizeTemperatureExponentDefinition => XML_Get_First_Element_By_Tag_Name(configDoc,"proposalSizeTemperatureExponent")
-    proposalSizeTemperatureExponent           => dePropSizeTempExpNew(proposalSizeTemperatureExponentDefinition)
+    proposalSizeTemperatureExponent           => dePropSizeTempExpNew(proposalSizeTemperatureExponentDefinition               )
     ! Initialize random jump.
     randomJumpDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"randomJump"                     )
-    randomJump                                =>    deRandomJumpNew  (randomJumpDefinition                     )
+    randomJump                                =>    deRandomJumpNew  (                     randomJumpDefinition               )
     ! Initialize simulation.
     simulationDefinition                      => XML_Get_First_Element_By_Tag_Name(configDoc,"simulation"                     )
     simulation                                =>         simulatorNew(                                 &
@@ -143,6 +149,7 @@ contains
          &                                                            modelLikelihood                , &
          &                                                            simulationConvergence          , &
          &                                                            simulationState                , &
+         &                                                            simulationStateInitializor     , &
          &                                                            proposalSize                   , &
          &                                                            proposalSizeTemperatureExponent, &
          &                                                            randomJump                       &

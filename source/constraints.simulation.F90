@@ -24,6 +24,7 @@ module Constraints_Simulation
   use Constraints_Likelihoods
   use Constraints_Convergence
   use Constraints_State
+  use Constraints_State_Initialize
   use Constraints_Differential_Proposal_Size
   use Constraints_Differential_Prop_Size_Temp_Exp
   use Constraints_Differential_Random_Jump
@@ -60,7 +61,7 @@ module Constraints_Simulation
 
 contains
 
-  function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence,simulationState&
+  function simulatorNew(definition,parameterPriors,randomDistributions,modelLikelihood,simulationConvergence,simulationState,simulationStateInitializor&
        &,proposalSize,proposalSizeTemperatureExponent,randomJump) result (newSimulator)
     !% Create a new differential evolution proposal size from an XML definition.
     use FoX_DOM
@@ -75,6 +76,7 @@ contains
     class           (likelihood       ), intent(in   ), optional, target               :: modelLikelihood
     class           (convergence      ), intent(in   ), optional, target               :: simulationConvergence
     class           (state            ), intent(in   ), optional, target               :: simulationState
+    class           (stateInitializor ), intent(in   ), optional, target               :: simulationStateInitializor
     class           (deProposalSize   ), intent(in   ), optional, target               :: proposalSize
     class           (dePropSizeTempExp), intent(in   ), optional, target               :: proposalSizeTemperatureExponent
     class           (deRandomJump     ), intent(in   ), optional, target               :: randomJump
@@ -111,6 +113,7 @@ contains
                &                                      modelLikelihood                , &
                &                                      simulationConvergence          , &
                &                                      simulationState                , &
+               &                                      simulationStateInitializor     , &
                &                                      proposalSize                   , &
                &                                      randomJump                     , &
                &                                      simulatorStepsMaximum          , &
@@ -148,6 +151,7 @@ contains
                &                                              modelLikelihood                , &
                &                                              simulationConvergence          , &
                &                                              simulationState                , &
+               &                                              simulationStateInitializor     , &
                &                                              proposalSize                   , &
                &                                              proposalSizeTemperatureExponent, &
                &                                              randomJump                     , &
