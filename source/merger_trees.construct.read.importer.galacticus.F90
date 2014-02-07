@@ -759,6 +759,7 @@ contains
     use Cosmology_Functions
     use HDF5
     use Galacticus_Error
+    use Galacticus_Display
     use Vectors
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
@@ -807,6 +808,9 @@ contains
     else if (self%haloTrees%hasDataset("expansionFactor")) then
        ! Expansion factor is present, read it instead.
        call self%haloTrees%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount)
+       ! Validate expansion factors.
+       if (any(nodes%nodeTime <= 0.0d0)) call Galacticus_Error_Report("galacticusImport","expansionFactor dataset values must be >0")
+       if (any(nodes%nodeTime >  1.0d0)) call Galacticus_Display_Message("WARNING: some expansion factors are in the future when importing merger tree",verbosityWarn)
        ! Convert expansion factors to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(nodes(iNode)%nodeTime)
@@ -814,6 +818,9 @@ contains
     else if (self%haloTrees%hasDataset("redshift"       )) then
        ! Redshift is present, read it instead.
        call self%haloTrees%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount)
+      ! Validate redshifts.
+       if (any(nodes%nodeTime <= -1.0d0)) call Galacticus_Error_Report("galacticusImport","redshift dataset values must be >-1")
+       if (any(nodes%nodeTime <   0.0d0)) call Galacticus_Display_Message("WARNING: some redshifts are in the future when importing merger tree",verbosityWarn)
        ! Convert redshifts to times.
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=cosmologyFunctionsDefault%cosmicTime(cosmologyFunctionsDefault%expansionFactorFromRedshift(nodes(iNode)%nodeTime))
