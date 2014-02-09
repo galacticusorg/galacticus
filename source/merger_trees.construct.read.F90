@@ -1509,9 +1509,9 @@ contains
                 spin3D= spinNormalization              &
                      & *nodes(iNode)%angularMomentum3D
                 call thisSpinComponent%spinVectorSet(spin3D)
+             else
+                call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set vector spins')
              end if
-          else
-             call Galacticus_Error_Report('Assign_Spin_Parameters','no method exists to set vector spins')
           end if
        end if
     end do
