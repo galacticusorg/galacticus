@@ -230,7 +230,7 @@
     <value>virial</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.3</value>
   </parameter>
   <parameter>
