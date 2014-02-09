@@ -207,7 +207,7 @@
     <value>0.01</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.4123</value>
   </parameter>
   <parameter>

@@ -167,7 +167,7 @@
     <value>White-Frenk1991</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.1</value>
   </parameter>
   <parameter>
