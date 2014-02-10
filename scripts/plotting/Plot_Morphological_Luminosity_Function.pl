@@ -14,6 +14,7 @@ use PDL::NiceSlice;
 use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
+use File::Which;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
 require Stats::Histograms;
@@ -256,6 +257,8 @@ foreach my $morphology ( @{$data->{'morphology'}} ) {
 	push(@plotFiles,$thisPlot);
     }
 }
+die("Plot_Morphological_Luminosity_Function.pl: 'pdfmerge' tool is required")
+    unless ( which("pdfmerge") );
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 &MetaData::Write($outputFile,$galacticusFile,$self);
 unlink(@plotFiles);
