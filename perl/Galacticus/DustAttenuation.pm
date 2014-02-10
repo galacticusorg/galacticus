@@ -129,7 +129,7 @@ sub Get_Dust_Attenuated_Luminosity {
 
     # Ensure we have an effective wavelength and a wavelength index for this filter.
     unless ( exists($effectiveWavelength{$filterLabel}) ) {
-	my $filterPath = "./data/filters/".$filter.".xml";
+	my $filterPath = $galacticusPath."data/filters/".$filter.".xml";
 	die("Get_Dust_Attenuated_Luminosity(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 	my $xml = new XML::Simple;
 	my $filterData = $xml->XMLin($filterPath);
@@ -271,7 +271,7 @@ sub Load_Dust_Atlas {
 	if ( exists($dataSet->{'dustAtlasFile'}) ) {
 	    $dustFile = $dataSet->{'dustAtlasFile'};
 	} else {
-	    $dustFile = "data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
+	    $dustFile = $galacticusPath."data/dust/atlasFerrara2000/attenuations_MilkyWay_dustHeightRatio1.0.xml";
 	}
 	
         # Read the dust file.

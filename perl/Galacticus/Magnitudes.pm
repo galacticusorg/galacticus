@@ -53,7 +53,7 @@ sub Get_Magnitude {
 	# If a Vega magnitude was requested, add the appropriate offset.
 	if ( $vegaMagnitude == 1 ) {
 	    unless ( exists($vegaOffsets{$filter}) ) {
-		my $filterPath = "./data/filters/".$filter.".xml";
+		my $filterPath = $galacticusPath."data/filters/".$filter.".xml";
 		die("Get_Magnitudes(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 		my $xml = new XML::Simple;
 		my $filterData = $xml->XMLin($filterPath);
@@ -84,7 +84,7 @@ sub Get_Generic_Magnitude {
     # If a Vega magnitude was requested, add the appropriate offset.
     if ( $vegaMagnitude == 1 ) {
 	unless ( exists($vegaOffsets{$filter}) ) {
-	    my $filterPath = "./data/filters/".$filter.".xml";
+	    my $filterPath = $galacticusPath."data/filters/".$filter.".xml";
 	    die("Get_Magnitudes(): can not find filter file for: ".$filter) unless ( -e $filterPath );
 	    my $xml = new XML::Simple;
 	    my $filterData = $xml->XMLin($filterPath);
