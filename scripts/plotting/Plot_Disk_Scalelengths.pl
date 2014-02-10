@@ -14,6 +14,7 @@ use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
+use File::Which;
 require Stats::Histograms;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
@@ -179,6 +180,8 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     push(@leafFiles,$leafName);
     push(@plotFiles,$plotFile);
 }
+die("Plot_Disk_Scalelengths.pl: 'pdfmerge' tool is required")
+    unless ( which("pdfmerge") );
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 unlink(@plotFiles);
 &MetaData::Write($outputFile,$galacticusFile,$self);
