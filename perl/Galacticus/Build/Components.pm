@@ -2894,7 +2894,7 @@ sub Generate_Node_ODE_Initialization_Functions {
 	    $functionCode .= "        select type (component => self%component".padComponentClass(ucfirst($_),[0,0])."(i))\n";
 	    foreach my $implementationName ( @{$buildData->{'componentClasses'}->{$_}->{'members'}} ) {
 		$functionCode .= "      type is (nodeComponent".ucfirst($_).ucfirst($implementationName).")\n";
-		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_ODE_Step_Scales_Init(component)\n";
+		$functionCode .= "        call Node_Component_".ucfirst($_).ucfirst($implementationName)."_odeStepScalesInit(component)\n";
 	    }
 	    $functionCode .= "    end select\n";
 	} else {
@@ -6999,7 +6999,7 @@ sub Generate_ODE_Initialization_Functions {
 	    {type => "procedure", name => "odeStepRatesInitialize" , function => "Node_Component_".ucfirst($componentID)."_ODE_Step_Rates_Init"}
 	    );    
 	# Generate scale initialization code.
-  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Scales_Init(self)\n";
+  	$functionCode  = "  subroutine Node_Component_".ucfirst($componentID)."_odeStepScalesInit(self)\n";
 	$functionCode .= "    !% Initialize scales in a ".$component->{'name'}." implementation of the ".$component->{'class'}." component for an ODE solver step.\n";
 	$functionCode .= "    implicit none\n";
 	$functionCode .= &Fortran_Utils::Format_Variable_Defintions(\@dataContent)."\n";
@@ -7038,7 +7038,7 @@ sub Generate_ODE_Initialization_Functions {
 		}
 	    }
 	}
-	$functionCode .= "    end subroutine Node_Component_".ucfirst($componentID)."_ODE_Step_Scales_Init\n\n";
+	$functionCode .= "    end subroutine Node_Component_".ucfirst($componentID)."_odeStepScalesInit\n\n";
 	# Insert into the function list.
 	push(
 	    @{$buildData->{'code'}->{'functions'}},
@@ -7047,7 +7047,7 @@ sub Generate_ODE_Initialization_Functions {
 	# Bind this function to the implementation type.
 	push(
 	    @{$buildData->{'types'}->{'nodeComponent'.ucfirst($componentID)}->{'boundFunctions'}},
-	    {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_".ucfirst($componentID)."_ODE_Step_Scales_Init"}
+	    {type => "procedure", name => "odeStepScalesInitialize", function => "Node_Component_".ucfirst($componentID)."_odeStepScalesInit"}
 	    );    
     }
 }
