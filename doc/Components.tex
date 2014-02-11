@@ -894,7 +894,33 @@ The scale length of each node, if not already assigned, is assigned using the co
 
 \subsubsection{Differential Evolution}
 
-The scale radius does not evolve.
+The scale radius grows linearly with time to interpolate between the scale radii of child and parent halos.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} None.\\
+
+\noindent\emph{Satellite merging:} None.\\
+
+\noindent\emph{Node promotion:} None.\\
+
+\subsection{``Scale Preset'' Implementation}\label{sec:DarkMatterProfileScalePreset}
+
+\subsubsection{Properties}
+
+The ``scale preset'' dark matter profile implementation defines the following properties:
+\begin{description}
+ \item [{\tt scale}] The scale length of the density profile [{\tt darkMatterProfileScale}];
+ \item [{\tt scaleGrowthRate}] The growth rate of the scale length of the density profile.
+\end{description}
+
+\subsubsection{Initialization}
+
+The scale length of each node is assumed to be assigned udirng tree construction.
+
+\subsubsection{Differential Evolution}
+
+The scale radius grows linearly with time to interpolate between the scale radii of child and parent halos.
 
 \subsubsection{Event Evolution}
 
@@ -922,7 +948,7 @@ The scale length of each node, if not already assigned, is assigned using the co
 
 \subsubsection{Differential Evolution}
 
-The scale radius and shape parameters do not evolve.
+The scale radius and shape parameter of each node grow linearly with time to interpolate between the scale radii and shape parameters of child and parent halos.
 
 \subsubsection{Event Evolution}
 
