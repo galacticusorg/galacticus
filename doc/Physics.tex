@@ -578,13 +578,13 @@ Selected with {\tt darkMatterProfileMethod}$=${\tt Einasto}, under this method t
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\rm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
 
-\subsection{Density Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
+\subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
-The method uses to compute the concentrations of dark matter profiles is selected via the {\tt darkMatterConcentrationMethod} parameter.
+The method uses to compute the concentrations of dark matter profiles is selected via the {\tt darkMatterProfileConcentrationMethod} parameter.
 
-\subsubsection{Navarro, Frenk \& White (1996)}
+\subsubsection{Navarro, Frenk \& White (1996)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationNFW1996}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt NFW1996}, under this method the concentration is computed using the algorithm from \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have a mass greater than $fM$, where $f=${\tt [nfw96ConcentrationF]} is a parameter of the algorithm. This implies formation when the critical overdensity for collapse is
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt NFW1996}, under this method the concentration is computed using the algorithm from \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have a mass greater than $fM$, where $f=${\tt [nfw96ConcentrationF]} is a parameter of the algorithm. This implies formation when the critical overdensity for collapse is
 \begin{equation}
  \delta_{\rm crit}(t_{\rm form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\} \right]^{1/2}+\delta_{\rm crit}(t_0),
 \end{equation}
@@ -597,9 +597,9 @@ where $C=${\tt [nfw96ConcentrationC]} is a parameter of the algorithm. The conce
  {\Delta(t_{\rm form}) \over \Delta_{\rm virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
 \end{equation}
 
-\subsubsection{Gao (2008)}
+\subsubsection{Gao (2008)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationGao2008}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Gao2008}, under this method the concentration is computed using a fitting function from \cite{gao_redshift_2008}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt gao2008}, under this method the concentration is computed using a fitting function from \cite{gao_redshift_2008}:
 \begin{equation}
 \log_{10} c = A \log_{10} M_{\rm halo} + B.
 \end{equation}
@@ -609,17 +609,17 @@ A &=& -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right
 B &=&  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
 \end{eqnarray}
 
-\subsubsection{Zhao (2009)}
+\subsubsection{Zhao (2009)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationZhao2009}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Zhao2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt zhao2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
 \begin{equation}
  c = 4 \left(1 + \left[ {t  \over 3.75 t_{\rm form}}\right]^{8.4}\right)^{1/8},
 \end{equation}
 where $t$ is the time for the halo and $t_{\rm form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}).
 
-\subsubsection{Mu\~noz-Cuartas (2011)}
+\subsubsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Munoz-Cuartas2011}, under this method the concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt munozCuartas2011}, under this method the concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011}:
 \begin{equation}
 \log_{10} c = a \log_{10} \left( {M_{\rm halo} \over h^{-1}M_\odot} \right) + b.
 \end{equation}
@@ -630,9 +630,9 @@ b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
 \end{eqnarray}
 where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
 
-\subsubsection{Prada et al. (2011)}
+\subsubsection{Prada et al. (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationPrada2011}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
 \begin{equation}
 c(M,t) = B_0(x) \mathcal{C}(\sigma^\prime),
 \end{equation}
