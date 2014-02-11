@@ -15,54 +15,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
+  !% An implementation of dark matter halo profile concentrations using the \cite{zhao_accurate_2009} algorithm.
 
-module Dark_Matter_Profiles_Concentrations_Zhao2009
-  !% Implements the \cite{zhao_accurate_2009} NFW halo concentration algorithm.
-  implicit none
-  private
-  public :: Dark_Matter_Concentrations_Zhao2009_Initialize
+  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
+  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
+  !# </darkMatterProfileConcentration>
+
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationZhao2009
+     !% A dark matter halo profile concentration class implementing the algorithm of \cite{zhao_accurate_2009}.
+     private
+   contains
+     procedure :: concentration => zhao2009Concentration
+  end type darkMatterProfileConcentrationZhao2009
+
+  interface darkMatterProfileConcentrationZhao2009
+     !% Constructors for the {\tt zhao2009} dark matter halo profile concentration class.
+     module procedure zhao2009DefaultConstructor
+  end interface darkMatterProfileConcentrationZhao2009
 
 contains
 
-  !# <darkMatterConcentrationMethod>
-  !#  <unitName>Dark_Matter_Concentrations_Zhao2009_Initialize</unitName>
-  !# </darkMatterConcentrationMethod>
-  subroutine Dark_Matter_Concentrations_Zhao2009_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Zhao2009'' halo concentration module.
-    use ISO_Varying_String
+  function zhao2009DefaultConstructor()
+    !% Default constructor for the {\tt zhao2009} dark matter halo profile concentration class.
+    use Input_Parameters
     implicit none
-    type     (varying_string                            ), intent(in   )          :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_Zhao2009), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
-
-    if (darkMatterConcentrationMethod == 'Zhao2009')                                          &
-         & Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Zhao2009
-
+    type(darkMatterProfileConcentrationZhao2009), target  :: zhao2009DefaultConstructor
     return
-  end subroutine Dark_Matter_Concentrations_Zhao2009_Initialize
+  end function zhao2009DefaultConstructor
 
-  double precision function Dark_Matter_Profile_Concentration_Zhao2009(thisNode)
-    !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{zhao_accurate_2009}.
-    use Galacticus_Nodes
+  double precision function zhao2009Concentration(self,node)
+    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    double precision                    , parameter              :: concentrationMinimum =4.00d0
-    double precision                    , parameter              :: formationMassFraction=0.04d0
-    class           (nodeComponentBasic)               , pointer :: thisBasicComponent
-    double precision                                             :: timeFormation               , timeNode
+    class           (darkMatterProfileConcentrationZhao2009), intent(inout)          :: self
+    type            (treeNode                              ), intent(inout), pointer :: node
+    class           (nodeComponentBasic                    )               , pointer :: basic
+    double precision                                        , parameter              :: concentrationMinimum =4.00d0
+    double precision                                        , parameter              :: formationMassFraction=0.04d0
+    double precision                                                                 :: timeFormation               , timeNode
 
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
-
+    basic => node%basic()
     ! Compute the concentration.
-    timeNode     =thisBasicComponent%time()
-    timeFormation=Dark_Matter_Halo_Formation_Time(thisNode,formationMassFraction)
-
+    timeNode     =basic%time()
+    timeFormation=Dark_Matter_Halo_Formation_Time(node,formationMassFraction)
     ! Compute the concentration from the formation time using the Zhao et al. (2009) fitting formula.
-    Dark_Matter_Profile_Concentration_Zhao2009=concentrationMinimum*(1.0d0+(timeNode/3.75d0/timeFormation)**8.4d0)**0.125d0
-
-    return
-  end function Dark_Matter_Profile_Concentration_Zhao2009
-
-end module Dark_Matter_Profiles_Concentrations_Zhao2009
+    zhao2009Concentration=concentrationMinimum*(1.0d0+(timeNode/3.75d0/timeFormation)**8.4d0)**0.125d0
+   return
+  end function zhao2009Concentration

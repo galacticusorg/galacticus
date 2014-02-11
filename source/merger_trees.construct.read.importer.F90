@@ -77,6 +77,7 @@ module Merger_Tree_Read_Importers
 
   !# <include directive="mergerTreeImporter" type="function" >
   !#  <description>Object providing functions for importing merger trees.</description>
+  !#  <descriptiveName>Merger Tree Importer</descriptiveName>
   !#  <default>galacticus</default>
   !#  <defaultThreadPrivate>no</defaultThreadPrivate>
   !#  <method name="open" >
