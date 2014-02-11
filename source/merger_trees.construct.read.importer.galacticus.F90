@@ -17,7 +17,7 @@
 
   !% An implementation of the merger tree importer class for \glc\ format merger tree files.
 
-  !# <mergerTreeImporter name="mergerTreeImporterGalacticus" />
+  !# <mergerTreeImporter name="mergerTreeImporterGalacticus" description="Importer for \glc\ format merger tree files." />
   use IO_HDF5
   use Stateful_Types
 

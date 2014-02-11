@@ -15,102 +15,129 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{navarro_structure_1996} NFW halo concentration algorithm.
+  !% An implementation of dark matter halo profile concentrations using the \cite{navarro_structure_1996} algorithm.
 
-module Dark_Matter_Profiles_Concentrations_NFW1996
-  !% Implements the \cite{navarro_structure_1996} NFW halo concentration algorithm.
-  implicit none
-  private
-  public :: Dark_Matter_Concentrations_NFW1996_Initialize
+  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
+  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
+  !# </darkMatterProfileConcentration>
 
   ! Module global variable used in root finding.
-  double precision :: targetValue
-  !$omp threadprivate(targetValue)
+  double precision :: nfw1996TargetValue
+  !$omp threadprivate(nfw1996TargetValue)
   ! Parameters of the fit.
-  double precision :: nfw96ConcentrationC, nfw96ConcentrationF
+  logical          :: nfw1996Initialized=.false.
+  double precision :: nfw1996ConcentrationC     , nfw1996ConcentrationF
+
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationNFW1996
+     !% A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.
+     private
+     double precision :: F, C
+   contains
+     procedure :: concentration => nfw1996Concentration
+  end type darkMatterProfileConcentrationNFW1996
+
+  interface darkMatterProfileConcentrationNFW1996
+     !% Constructors for the {\tt nfw1996} dark matter halo profile concentration class.
+     module procedure nfw1996DefaultConstructor
+     module procedure nfw1996Constructor
+  end interface darkMatterProfileConcentrationNFW1996
 
 contains
 
-  !# <darkMatterConcentrationMethod>
-  !#  <unitName>Dark_Matter_Concentrations_NFW1996_Initialize</unitName>
-  !# </darkMatterConcentrationMethod>
-  subroutine Dark_Matter_Concentrations_NFW1996_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``NFW1996'' halo concentration module.
-    use ISO_Varying_String
+  function nfw1996DefaultConstructor()
+    !% Default constructor for the {\tt nfw1996} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
-    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_NFW1996), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
+    type(darkMatterProfileConcentrationNFW1996), target :: nfw1996DefaultConstructor
 
-    if (darkMatterConcentrationMethod == 'NFW1996') then
-       ! Return a pointer to our implementation.
-       Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_NFW1996
-       ! Get parameters of the model.
-       !@ <inputParameter>
-       !@   <name>nfw96ConcentrationF</name>
-       !@   <defaultValue>0.01 \cite{navarro_structure_1996}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("nfw96ConcentrationF",nfw96ConcentrationF,defaultValue=   0.01d0)
-       !@ <inputParameter>
-       !@   <name>nfw96ConcentrationC</name>
-       !@   <defaultValue>2000 \cite{navarro_structure_1996}</defaultValue>
-       !@   <attachedTo>module</attachedTo>
-       !@   <description>
-       !@     The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
-       !@   </description>
-       !@   <type>real</type>
-       !@   <cardinality>1</cardinality>
-       !@ </inputParameter>
-       call Get_Input_Parameter("nfw96ConcentrationC",nfw96ConcentrationC,defaultValue=2000.0d0)
+    if (.not.nfw1996Initialized) then
+       !$omp critical(nfw1996DefaultInitialize)
+       if (.not.nfw1996Initialized) then
+          ! Get parameters of the model.
+          !@ <inputParameter>
+          !@   <name>nfw1996ConcentrationF</name>
+          !@   <defaultValue>0.01 \cite{navarro_structure_1996}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The parameter $C$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("nfw1996ConcentrationF",nfw1996ConcentrationF,defaultValue=   0.01d0)
+          !@ <inputParameter>
+          !@   <name>nfw1996ConcentrationC</name>
+          !@   <defaultValue>2000 \cite{navarro_structure_1996}</defaultValue>
+          !@   <attachedTo>module</attachedTo>
+          !@   <description>
+          !@     The parameter $f$ appearing in the halo concentration algorithm of \cite{navarro_structure_1996}.
+          !@   </description>
+          !@   <type>real</type>
+          !@   <cardinality>1</cardinality>
+          !@ </inputParameter>
+          call Get_Input_Parameter("nfw1996ConcentrationC",nfw1996ConcentrationC,defaultValue=2000.0d0)
+          ! Record that method is now initialized.
+          nfw1996Initialized=.true.
+       end if
+       !$omp end critical(nfw1996DefaultInitialize)
     end if
+    ! Construct the object.
+    nfw1996DefaultConstructor=nfw1996Constructor(nfw1996ConcentrationF,nfw1996ConcentrationC)
     return
-  end subroutine Dark_Matter_Concentrations_NFW1996_Initialize
+  end function nfw1996DefaultConstructor
 
-  double precision function Dark_Matter_Profile_Concentration_NFW1996(thisNode)
-    !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{navarro_structure_1996}.
-    use Galacticus_Nodes
-    use Power_Spectra
+  function nfw1996Constructor(F,C)
+    !% Constructor for the {\tt nfw1996} dark matter halo profile concentration class.
+    implicit none
+    type            (darkMatterProfileConcentrationNFW1996)                :: nfw1996Constructor
+    double precision                                       , intent(in   ) :: F                 , C
+
+    nfw1996Constructor%F=F
+    nfw1996Constructor%C=C
+    return
+  end function nfw1996Constructor
+
+  double precision function nfw1996Concentration(self,node)
+    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{navarro_structure_1996} algorithm.
     use Cosmology_Functions
+    use Power_Spectra
     use Critical_Overdensity
     use Root_Finder
     use Virial_Density_Contrast
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: fitParameterNuHalf         =0.47693628d0
-    double precision                         , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    type            (rootFinder             ), save                   :: finder
+    class           (darkMatterProfileConcentrationNFW1996), intent(inout)          :: self
+    type            (treeNode                             ), intent(inout), pointer :: node
+    double precision                                       , parameter              :: fitParameterNuHalf         =0.47693628d0
+    double precision                                       , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
+    class           (nodeComponentBasic                   )               , pointer :: basic
+    class           (cosmologyFunctionsClass              )               , pointer :: cosmologyFunctions_
+    type            (rootFinder                           ), save                   :: finder
     !$omp threadprivate(finder)
-    double precision                                                  :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
-         &                                                               collapseMass                            , collapseOverdensity           , &
-         &                                                               collapseTime                            , expansionFactor               , &
-         &                                                               nodeMass                                , nodeTime
+    double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
+         &                                                                             collapseMass                            , collapseOverdensity           , &
+         &                                                                             collapseTime                            , expansionFactor               , &
+         &                                                                             nodeMass                                , nodeTime
+
+
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Get the basic component.
-    thisBasicComponent         => thisNode%basic()
+    basic               => node%basic()
     ! Get the properties of the node.
-    nodeMass                   =thisBasicComponent%mass()
-    nodeTime                   =thisBasicComponent%time()
-    expansionFactor            =cosmologyFunctionsDefault%expansionFactor(nodeTime)
+    nodeMass                   =basic%mass()
+    nodeTime                   =basic%time()
+    expansionFactor            =cosmologyFunctions_%expansionFactor(nodeTime)
     ! Compute the mass of a progenitor as defined by NFW.
-    collapseMass               =nfw96ConcentrationF*nodeMass
+    collapseMass               =self%F*nodeMass
     ! Find the time of collapse for this progenitor.
     collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(Cosmological_Mass_Root_Variance(collapseMass)**2-Cosmological_Mass_Root_Variance(nodeMass)**2))+Critical_Overdensity_for_Collapse(nodeTime)
     collapseTime               =Time_of_Collapse(collapseCriticalOverdensity)
-    collapseExpansionFactor    =cosmologyFunctionsDefault%expansionFactor(collapseTime               )
+    collapseExpansionFactor    =cosmologyFunctions_%expansionFactor(collapseTime               )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.
-    collapseOverdensity        =nfw96ConcentrationC*(expansionFactor/collapseExpansionFactor)**3
+    collapseOverdensity        =self%C*(expansionFactor/collapseExpansionFactor)**3
     ! Find the ratio of this overdensity to that at for the present node.
-    targetValue                =collapseOverdensity/Halo_Virial_Density_Contrast(nodeTime)
+    nfw1996TargetValue         =collapseOverdensity/Halo_Virial_Density_Contrast(nodeTime)
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rangeExpand (                                               &
@@ -118,21 +145,19 @@ contains
             &                   rangeExpandUpward  =2.0d0                    , &
             &                   rangeExpandType    =rangeExpandMultiplicative  &
             &                  )
-       call finder%rootFunction(NFW_Concentration_Function_Root    )
+       call finder%rootFunction(nfw1996RootFunction                )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
     end if
     ! Find the concentration.
-    Dark_Matter_Profile_Concentration_NFW1996=finder%find(rootRange=[1.0d0,20.0d0])
+    nfw1996Concentration=finder%find(rootRange=[1.0d0,20.0d0])
     return
-  end function Dark_Matter_Profile_Concentration_NFW1996
+  end function nfw1996Concentration
 
-  double precision function NFW_Concentration_Function_Root(concentration)
+  double precision function nfw1996RootFunction(concentration)
     !% Root function used in finding concentrations in the \cite{navarro_structure_1996} method.
     implicit none
     double precision, intent(in   ) :: concentration
 
-    NFW_Concentration_Function_Root=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-targetValue
+    nfw1996RootFunction=concentration**3/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/3.0d0-nfw1996TargetValue
     return
-  end function NFW_Concentration_Function_Root
-
-end module Dark_Matter_Profiles_Concentrations_NFW1996
+  end function nfw1996RootFunction

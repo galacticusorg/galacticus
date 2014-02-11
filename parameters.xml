@@ -169,8 +169,8 @@
     <value>NFW</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
-    <value>Gao2008</value>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>gao2008</value>
   </parameter>
   <parameter>
     <name>darkMatterProfileMinimumConcentration</name>

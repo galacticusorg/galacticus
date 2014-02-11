@@ -15,14 +15,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements reading of merger trees from an HDF5 file.
+!% Contains a module which implements reading of merger trees from a file.
 
 module Merger_Tree_Read
-  !% Implements reading of merger trees from an HDF5 file.
+  !% Implements reading of merger trees from a file.
   use Galacticus_Nodes
   use ISO_Varying_String
-  use IO_HDF5
-  use HDF5
   use Kind_Numbers
   use Merger_Tree_Read_Importers
   implicit none
@@ -1386,27 +1384,60 @@ contains
     !% Assign scale radii to nodes.
     use Root_Finder
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles_Concentration
     use Galacticus_Display
     use Galacticus_Error
+    use Input_Parameters
     implicit none
-    class           (nodeData                      )                 , dimension(:), intent(inout) :: nodes                                                                 
-    type            (treeNodeList                  )                 , dimension(:), intent(inout) :: nodeList                                                              
-    double precision                                , parameter                                    :: scaleRadiusMaximumAllowed     =100.0d0, toleranceAbsolute  =1.0d-9, & 
-         &                                                                                            toleranceRelative             =1.0d-9                                 
-    logical                                                    , save                              :: excessiveScaleRadiiReported   =.false.                                
-    class           (nodeComponentBasic            ), pointer                                      :: thisBasicComponent                                                    
-    class           (nodeComponentDarkMatterProfile), pointer                                      :: thisDarkMatterProfileComponent                                        
-    integer                                                                                        :: iNode                                                                 
-    integer         (kind=kind_int8                )                                               :: iIsolatedNode                                                         
-    double precision                                                                               :: radiusScale                                                           
-    logical                                                                                        :: excessiveHalfMassRadii                , excessiveScaleRadii           
-    type            (rootFinder                    )           , save                              :: finder                                                                
+    class           (nodeData                           )                 , dimension(:), intent(inout) :: nodes                                                                 
+    type            (treeNodeList                       )                 , dimension(:), intent(inout) :: nodeList                                                              
+    double precision                                     , parameter                                    :: scaleRadiusMaximumAllowed                =100.0d0, toleranceAbsolute  =1.0d-9, & 
+         &                                                                                                 toleranceRelative                        =1.0d-9                                 
+    logical                                                         , save                              :: excessiveScaleRadiiReported              =.false.                                
+    class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                                    
+    class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                                        
+    integer                                                                                             :: iNode                                                                 
+    integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
+    double precision                                                                                    :: radiusScale                                                           
+    logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii           
+    type            (rootFinder                         )           , save                              :: finder                                                                
     !$omp threadprivate(finder)
+    class           (darkMatterProfileConcentrationClass), pointer  , save                              :: fallbackConcentration
+    logical                                                         , save                              :: functionInitialized                      =.false.                             
+    type            (varying_string                     )                                               :: mergerTreeReadConcentrationFallbackMethod                                 
+
+    ! Initialize if necessary.
+    if (.not.functionInitialized) then
+       !$omp critical(Assign_Scale_Radii_Initialize)
+       if (.not.functionInitialized) then
+          ! Construct the fallback concentration method.
+          if (Input_Parameter_Is_Present('mergerTreeReadConcentrationFallbackMethod')) then
+             !@ <inputParameter>
+             !@   <name>mergerTreeReadConcentrationFallbackMethod</name>
+             !@   <defaultValue>{\tt [darkMatterProfileConcentrationMethod]}</defaultValue>
+             !@   <attachedTo>module</attachedTo>
+             !@   <description>
+             !@     The method to be used for setting node scale radii when reading merger trees from file and the node mass falls below the reliability threshold.
+             !@   </description>
+             !@   <type>string</type>
+             !@   <cardinality>1</cardinality>
+             !@ </inputParameter>
+             call Get_Input_Parameter('mergerTreeReadConcentrationFallbackMethod',mergerTreeReadConcentrationFallbackMethod)
+             fallbackConcentration => darkMatterProfileConcentration(char(mergerTreeReadConcentrationFallbackMethod))
+          else
+             fallbackConcentration => darkMatterProfileConcentration()
+          end if
+          ! Record that we are now initialized.
+          functionInitialized=.true.
+       end if
+       !$omp end critical(Assign_Scale_Radii_Initialize)
+    end if
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(Half_Mass_Radius_Root              )
        call finder%tolerance   (toleranceAbsolute,toleranceRelative)
     end if
+    ! Find the scale radius.
     excessiveScaleRadii   =.false.
     excessiveHalfMassRadii=.false.
     do iNode=1,size(nodes)
@@ -1414,10 +1445,9 @@ contains
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
           ! Check if the node is sufficiently massive.
-          thisBasicComponent => nodeList(iIsolatedNode)%node%basic()
+          thisBasicComponent             => nodeList(iIsolatedNode)%node%basic            (                 )
+          thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
-             ! Get the dark matter profile component.
-             thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
              ! Check if we have scale radii read directly from file.
              if (nodes(iNode)%scaleRadius > 0.0d0) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
@@ -1429,6 +1459,8 @@ contains
                 activeDarkMatterProfileComponent => activeNode%darkMatterProfile()
                 activeBasicComponent             => activeNode%basic            ()
                 halfMassRadius                   =  nodes(iNode)%halfMassRadius
+                ! Validate the half mass radius.
+                if (halfMassRadius <= 0.0d0) call Galacticus_Error_Report('Assign_Scale_Radii','half mass radius must be positive')
                 ! Solve for the scale radius.
                 call finder%rangeExpand    (                                                                           &
                      &                      rangeExpandDownward          =0.5d0                                      , &
@@ -1446,6 +1478,13 @@ contains
                 ! Check for half-mass radii exceeding the virial radius.
                 if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
              end if
+          else
+             ! The node mass is below the reliability threshold. Set the scale radius using the fallback
+             ! concentration method.
+             radiusScale=                                                              &
+                  &  Dark_Matter_Halo_Virial_Radius     (nodeList(iIsolatedNode)%node) &
+                  & /fallBackConcentration%concentration(nodeList(iIsolatedNode)%node)
+             call thisDarkMatterProfileComponent%scaleSet(radiusScale)
           end if
        end if
     end do

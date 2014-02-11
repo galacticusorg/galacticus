@@ -26,7 +26,7 @@ program Test_Zhao2009_Flat
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
-  use Dark_Matter_Profiles_Concentrations
+  use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
   use Galacticus_Nodes
@@ -35,20 +35,21 @@ program Test_Zhao2009_Flat
   use Galacticus_Input_Paths
   use File_Utilities
   implicit none
-  type            (treeNode               )                         , pointer :: thisNode
-  class           (nodeComponentBasic     )                         , pointer :: thisBasicComponent
-  integer                                  , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
-  double precision                         , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.3d-2], timeDifferenceTolerance=[3.4d-2]
-  class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctionsDefault
-  type            (varying_string         )                                   :: fileName                                 , message                         , &
-       &                                                                         parameterFile
-  integer                                                                     :: dataLinesInFile                          , fUnit                           , &
-       &                                                                         iLine                                    , iMass                           , &
-       &                                                                         totalLinesInFile
-  double precision                                                            :: concentrationDifferenceMaximum           , haloMass                        , &
-       &                                                                         ourConcentration                         , ourTime                         , &
-       &                                                                         redshift                                 , theirConcentration              , &
-       &                                                                         theirTime                                , timeDifferenceMaximum
+  type            (treeNode                           )                         , pointer :: thisNode
+  class           (nodeComponentBasic                 )                         , pointer :: thisBasicComponent
+  integer                                              , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
+  double precision                                     , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.3d-2], timeDifferenceTolerance=[3.4d-2]
+  class           (cosmologyFunctionsClass            )                         , pointer :: cosmologyFunctionsDefault
+  class           (darkMatterProfileConcentrationClass)                         , pointer :: darkMatterProfileConcentration_
+  type            (varying_string                     )                                   :: fileName                                 , message                         , &
+       &                                                                                     parameterFile
+  integer                                                                                 :: dataLinesInFile                          , fUnit                           , &
+       &                                                                                     iLine                                    , iMass                           , &
+       &                                                                                     totalLinesInFile
+  double precision                                                                        :: concentrationDifferenceMaximum           , haloMass                        , &
+       &                                                                                     ourConcentration                         , ourTime                         , &
+       &                                                                                     redshift                                 , theirConcentration              , &
+       &                                                                                     theirTime                                , timeDifferenceMaximum
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.Zhao2009_algorithms.EdS.size')
@@ -86,7 +87,9 @@ program Test_Zhao2009_Flat
      timeDifferenceMaximum         =0.0d0
      concentrationDifferenceMaximum=0.0d0
      ! Get the default cosmology functions object.
-     cosmologyFunctionsDefault => cosmologyFunctions()
+     cosmologyFunctionsDefault       => cosmologyFunctions            ()
+     ! Get the default concentrations object.
+     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
      ! Read all data lines from the comparison file.
      do iLine=1,dataLinesInFile
         read (fUnit,*) redshift,haloMass,theirConcentration
@@ -106,7 +109,7 @@ program Test_Zhao2009_Flat
         call thisBasicComponent%timeSet(theirTime)
 
         ! Get the corresponding halo concentration.
-        ourConcentration=Dark_Matter_Profile_Concentration(thisNode)
+        ourConcentration=darkMatterProfileConcentration_%concentration(thisNode)
 
         ! Compute the difference between our values and the comparison values.
         timeDifferenceMaximum         =max(                                                             &

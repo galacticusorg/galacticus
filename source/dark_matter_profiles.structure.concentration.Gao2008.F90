@@ -15,57 +15,55 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{gao_redshift_2008} NFW halo concentration algorithm.
+  !% An implementation of dark matter halo profile concentrations using the \cite{gao_redshift_2008} algorithm.
 
-module Dark_Matter_Profiles_Concentrations_Gao2008
-  !% Implements the \cite{gao_redshift_2008} NFW halo concentration algorithm.
-  implicit none
-  private
-  public :: Dark_Matter_Concentrations_Gao2008_Initialize
+  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
+  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
+  !# </darkMatterProfileConcentration>
+
+  type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
+     !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.
+     private
+   contains
+     procedure :: concentration => gao2008Concentration
+  end type darkMatterProfileConcentrationGao2008
+
+  interface darkMatterProfileConcentrationGao2008
+     !% Constructors for the {\tt gao2008} dark matter halo profile concentration class.
+     module procedure gao2008DefaultConstructor
+  end interface darkMatterProfileConcentrationGao2008
 
 contains
 
-  !# <darkMatterConcentrationMethod>
-  !#  <unitName>Dark_Matter_Concentrations_Gao2008_Initialize</unitName>
-  !# </darkMatterConcentrationMethod>
-  subroutine Dark_Matter_Concentrations_Gao2008_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    !% Initializes the ``Gao2008'' halo concentration module.
-    use ISO_Varying_String
+  function gao2008DefaultConstructor()
+    !% Default constructor for the {\tt gao2008} dark matter halo profile concentration class.
     implicit none
-    type     (varying_string                           ), intent(in   )          :: darkMatterConcentrationMethod
-    procedure(Dark_Matter_Profile_Concentration_Gao2008), intent(inout), pointer :: Dark_Matter_Profile_Concentration_Get
+    type(darkMatterProfileConcentrationGao2008), target  :: gao2008DefaultConstructor
 
-    if (darkMatterConcentrationMethod == 'Gao2008') Dark_Matter_Profile_Concentration_Get => Dark_Matter_Profile_Concentration_Gao2008
     return
-  end subroutine Dark_Matter_Concentrations_Gao2008_Initialize
+  end function gao2008DefaultConstructor
 
-  double precision function Dark_Matter_Profile_Concentration_Gao2008(thisNode)
-    !% Returns the concentration of the dark matter profile of {\tt thisNode} using the method of \cite{gao_redshift_2008}. More
-    !% specifically, we fit the redshift dependence of the parameters $A$ and $B$ in the fitting formula of
-    !% \cite{gao_redshift_2008} and use these fits to find $A$ and $B$ at any given redshift, from which we then compute the
-    !% concentration. Note that the fits of \cite{gao_redshift_2008} were computed using Einasto profile fits and utilizing
-    !% $M_{200}$ and $c_{200}$.
-    use Galacticus_Nodes
+  double precision function gao2008Concentration(self,node)
+    !% Return the concentration of the dark matter halo profile of {\tt node} using the \cite{gao_redshift_2008} algorithm.
     use Cosmology_Functions
     implicit none
-    type            (treeNode               ), intent(inout), pointer :: thisNode
-    double precision                         , parameter              :: littleHubbleConstantGao2008=0.73d0
-    class           (nodeComponentBasic     )               , pointer :: thisBasicComponent
-    class           (cosmologyFunctionsClass)               , pointer :: cosmologyFunctionsDefault
-    double precision                                                  :: logarithmExpansionFactor          , logarithmHaloMass, &
-         &                                                               parameterA                        , parameterB
+    class           (darkMatterProfileConcentrationGao2008), intent(inout)          :: self
+    type            (treeNode                             ), intent(inout), pointer :: node
+    class           (nodeComponentBasic                   )               , pointer :: basic
+    class           (cosmologyFunctionsClass              )               , pointer :: cosmologyFunctions_
+    double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
+    double precision                                                                :: logarithmExpansionFactor, logarithmHaloMass, &
+         &                                                                             parameterA              , parameterB
 
     ! Get the default cosmology functions object.
-    cosmologyFunctionsDefault => cosmologyFunctions()
+    cosmologyFunctions_ => cosmologyFunctions()
     ! Get the basic component.
-    thisBasicComponent => thisNode%basic()
+    basic               => node%basic()
     ! Compute the concentration.
-    logarithmHaloMass                        =log10(littleHubbleConstantGao2008*thisBasicComponent%mass() )
-    logarithmExpansionFactor                 =log10(cosmologyFunctionsDefault%expansionFactor(           thisBasicComponent%time()))
-    parameterA                               =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
-    parameterB                               = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
-    Dark_Matter_Profile_Concentration_Gao2008=10.0d0**(parameterA*logarithmHaloMass+parameterB)
+    logarithmHaloMass       =log10(littleHubbleConstantGao2008        *basic%mass())
+    logarithmExpansionFactor=log10(cosmologyFunctions_%expansionFactor(basic%time()))
+    parameterA              =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
+    parameterB              = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
+    gao2008Concentration    =10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
-  end function Dark_Matter_Profile_Concentration_Gao2008
-
-end module Dark_Matter_Profiles_Concentrations_Gao2008
+  end function gao2008Concentration
