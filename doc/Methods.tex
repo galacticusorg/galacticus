@@ -1777,54 +1777,6 @@ Currently defined mass accretion history methods are:
  \item [{\tt Zhao2009}] Uses the algorithm of \cite{zhao_accurate_2009} to compute the mass accretion history.
 \end{description}
 
-\subsubsection{Dark Matter Density Profile Concentration}
-
-Additional methods for the dark matter density profile concentration can be added using the {\tt darkMatterConcentrationMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
-\begin{verbatim}
- !# <darkMatterConcentrationMethod>
- !#  <unitName>Dark_Matter_Concentrations_Gao20008_Initialize</unitName>
- !# </darkMatterConcentrationMethod>
-\end{verbatim}
-Here, {\tt Dark\_Matter\_Concentrations\_Gao20008\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(darkMatterConcentrationMethod,Dark_Matter_Profile_Concentration_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: darkMatterConcentrationMethod
-    procedure(),          pointer, intent(inout) :: Dark_Matter_Profile_Concentration_Get
-    
-    if (darkMatterConcentrationMethod == 'myMethod') then
-       Dark_Matter_Profile_Concentration_Get => My_Concentration_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt darkMatterConcentrationMethod} input parameter. The procedure pointer {\tt Dark\_Matter\_Profile\_Concentration\_Get} must be set to point to a function which returns the concentration of a node. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The concentration function must have the form:
-\begin{verbatim}
-  double precision function My_Dark_Matter_Profile_Concentration(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
-  end function My_Dark_Matter_Profile_Concentration
-\end{verbatim}
-The function should compute and return the concentration for {\tt thisNode}.
-
-Currently defined darl matter profile concentration methods are:
-\begin{description}
- \item [{\tt NFW1996}] The concentration is computed using the algorithm given by \cite{navarro_structure_1996};
- \item [{\tt Gao2008}] The concentration is computed using a fitting function from \cite{gao_redshift_2008};
- \item [{\tt Zhao2009}] The concentration is computed using a fitting function from \cite{zhao_accurate_2009}. Halo formation times (as defined by \citealt{zhao_accurate_2009}) are computed directly from the merger tree branch associated with each node. Where the tree does not exist or has insufficient resolution to contain the merging time the merging time will be found by extrapolation of the earliest resolved progenitor halo using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory});
- \item [{\tt Munoz-Cuartas2011}] The concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011};
- \item [{\tt Prada2011}] The concentration is computed using a fitting function from \cite{prada_halo_2011};
-\end{description}
-
 \subsubsection{Dark Matter Density Profile Shape}\label{sec:darkMatterProfileShape}
 
 Additional methods for the dark matter density profile shape paramter can be added using the {\tt darkMatterShapeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Gao2008} method is described by a directive:
