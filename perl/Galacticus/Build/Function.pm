@@ -356,7 +356,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      select case (trim(typeName))\n";
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
-	$name = lcfirst($name);
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "     case ('".$name."')\n";
 	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."ConstructorNamed)\n";
 	$buildData->{'content'} .= "        select type (".$directive."ConstructorNamed)\n";
@@ -371,7 +372,9 @@ sub Functions_Generate_Output {
 	foreach ( @{$buildData->{$directive}->{'classes'}} );
     foreach ( sort(@classNames) ) {
 	(my $name = $_) =~ s/^$directive//;
-	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."ConstructorNamed',message)\n";
     $buildData->{'content'} .= "      end select\n";
@@ -407,7 +410,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      select case (char(".$directive."Method))\n";
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
-	$name = lcfirst($name);
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "     case ('".$name."')\n";
 	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."Default)\n";
 	$buildData->{'content'} .= "        select type (".$directive."Default)\n";
@@ -419,7 +423,9 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "         message='Unrecognized option for [".$directive."Method](='//".$directive."Method//'). Available options are:'\n";
     foreach ( sort(@classNames) ) {
 	(my $name = $_) =~ s/^$directive//;
-	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
