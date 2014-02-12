@@ -148,7 +148,7 @@ contains
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
-          call treeGroup%writeDataset(nodeIndex,'childNodeIndex','Index of the child node.')
+          call treeGroup%writeDataset(nodeIndex,'childIndex','Index of the child node.')
           !$omp end critical(HDF5_Access)
 
           ! Extract parent node indices and output to file.
@@ -160,7 +160,7 @@ contains
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
-          call treeGroup%writeDataset(nodeIndex,'parentNodeIndex','Index of the parent node.')
+          call treeGroup%writeDataset(nodeIndex,'parentIndex','Index of the parent node.')
           !$omp end critical(HDF5_Access)
 
           ! Extract sibling node indices and output to file.
@@ -172,7 +172,7 @@ contains
              call thisNode%walkTree(thisNode)
           end do
           !$omp critical(HDF5_Access)
-          call treeGroup%writeDataset(nodeIndex,'siblingNodeIndex','Index of the sibling node.')
+          call treeGroup%writeDataset(nodeIndex,'siblingIndex','Index of the sibling node.')
           !$omp end critical(HDF5_Access)
 
           ! Extract node masses and output to file.

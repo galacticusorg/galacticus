@@ -58,38 +58,38 @@ contains
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     !@ <outputProperty>
-    !@   <name>parentNode</name>
+    !@   <name>parentIndex</name>
     !@   <datatype>integer</datatype>
     !@   <cardinality>0..1</cardinality>
     !@   <description>ID of parent node.</description>
     !@   <label>???</label>
     !@   <outputType>nodeData</outputType>
     !@ </outputProperty>
-    integerPropertyNames   (integerProperty)='parentNode'
+    integerPropertyNames   (integerProperty)='parentIndex'
     integerPropertyComments(integerProperty)='ID of parent node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     !@ <outputProperty>
-    !@   <name>childNode</name>
+    !@   <name>childIndex</name>
     !@   <datatype>integer</datatype>
     !@   <cardinality>0..1</cardinality>
     !@   <description>ID of primary child node.</description>
     !@   <label>???</label>
     !@   <outputType>nodeData</outputType>
     !@ </outputProperty>
-    integerPropertyNames   (integerProperty)='childNode'
+    integerPropertyNames   (integerProperty)='childIndex'
     integerPropertyComments(integerProperty)='ID of primary child node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
     !@ <outputProperty>
-    !@   <name>siblingNode</name>
+    !@   <name>siblingIndex</name>
     !@   <datatype>integer</datatype>
     !@   <cardinality>0..1</cardinality>
     !@   <description>ID of sibling node.</description>
     !@   <label>???</label>
     !@   <outputType>nodeData</outputType>
     !@ </outputProperty>
-    integerPropertyNames   (integerProperty)='siblingNode'
+    integerPropertyNames   (integerProperty)='siblingIndex'
     integerPropertyComments(integerProperty)='ID of sibling node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
