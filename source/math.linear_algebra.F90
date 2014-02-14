@@ -65,7 +65,7 @@ module Linear_Algebra
      !@   <object>matrix</object>
      !@   <objectMethod>
      !@     <method>invert</method>
-     !@     <type>\textcolor{red}{\textless type(matrix)</type>
+     !@     <type>\textcolor{red}{\textless type(matrix) \textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Compute and return the matrix inverse.</description>
      !@   </objectMethod>
@@ -75,9 +75,16 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Compute and return the logarithm of the determinant of the matrix.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>linearSystemSolve</method>
+     !@     <type>\textcolor{red}{\textless type(vector)</type>
+     !@     <arguments>\textcolor{red}{\textless type(vector) y\argin \textgreater}</arguments>
+     !@     <description>Solve the linear system $y = A \cdot x$ where $A$ is ourself and $y$ is the specified vector.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: invert                 => matrixInvert
      procedure :: logarithmicDeterminant => matrixLogarithmicDeterminant
+     procedure :: linearSystemSolve      => matrixLinearSystemSolve
   end type matrix
   
   ! Assignment interfaces.
@@ -264,4 +271,38 @@ contains
     return
   end function matrixVectorMultiply
 
+  function matrixLinearSystemSolve(self,y)
+    !% Solve the linear system $y = A \cdot x$.
+    implicit none
+    type            (vector          )                                                                 :: matrixLinearSystemSolve
+    class           (matrix          ), intent(inout)                                                  :: self
+    type            (vector          ), intent(in   )                                                  :: y
+    type            (fgsl_matrix     )                                                                 :: selfMatrix
+    type            (fgsl_vector     )                                                                 :: xVector          , yVector
+    type            (fgsl_permutation)                                                                 :: permutations
+    integer         (kind=fgsl_int   )                                                                 :: decompositionSign, status
+    integer         (kind=fgsl_size_t)                                                                 :: selfMatrixSize
+    double precision                  , dimension(size(self%elements,dim=1),size(self%elements,dim=2)) :: selfArray
+
+    selfMatrixSize              =size(self%elements,dim=1)
+    selfMatrix                  =FGSL_Matrix_Init(type=1.0_fgsl_double)
+    xVector                     =FGSL_Vector_Init(type=1.0_fgsl_double)
+    yVector                     =FGSL_Vector_Init(type=1.0_fgsl_double)
+    permutations                =FGSL_Permutation_Alloc(selfMatrixSize)
+    selfArray                   =self%elements
+    matrixLinearSystemSolve     =y
+    status                      =FGSL_Vector_Align(matrixLinearSystemSolve%elements,selfMatrixSize,xVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+    status                      =FGSL_Vector_Align(                      y%elements,selfMatrixSize,yVector,selfMatrixSize,0_FGSL_Size_T,1_FGSL_Size_T)
+    status                      =FGSL_Matrix_Align(self%elements,selfMatrixSize,selfMatrixSize,selfMatrixSize,selfMatrix)
+    status                      =FGSL_LinAlg_LU_Decomp(selfMatrix,permutations,decompositionSign)
+    status                      =FGSL_LinAlg_LU_Solve(selfMatrix,permutations,yVector,xVector)  
+    call FGSL_Permutation_Free(permutations)
+    call FGSL_Matrix_Free     (selfMatrix  )
+    call FGSL_Vector_Free     (yVector     )
+    call FGSL_Vector_Free     (xVector     )
+    ! Restore the original matrix.
+    self%elements               =selfArray
+    return
+  end function matrixLinearSystemSolve
+  
 end module Linear_Algebra
