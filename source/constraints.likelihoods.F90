@@ -23,6 +23,7 @@ module Constraints_Likelihoods
   use Constraints_State
   use ISO_Varying_String
   use Pseudo_Random
+  use FGSL
   private
   public :: likelihoodNew
   
@@ -36,8 +37,8 @@ module Constraints_Likelihoods
      !@   <object>likelihood</object>
      !@   <objectMethod>
      !@     <method>evaluate</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin</arguments>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin, \doublezero\ temperature\argin, \doublezero\ logLikelihoodCurrent\argin</arguments>
      !@     <description>Evaluate the model likelihood at the given {\tt simulationState} and return the log-likelihood.</description>
      !@   </objectMethod>
      !@ </objectMethods>
@@ -46,11 +47,11 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,temperature)
+     double precision function likelihoodEvaluate(self,simulationState,temperature,logLikelihoodCurrent)
        import :: likelihood, state
        class           (likelihood), intent(inout) :: self
        class           (state     ), intent(in   ) :: simulationState
-       double precision            , intent(in   ) :: temperature
+       double precision            , intent(in   ) :: temperature    , logLikelihoodCurrent
      end function likelihoodEvaluate
   end interface
 
@@ -58,6 +59,7 @@ module Constraints_Likelihoods
   include 'constraints.likelihoods.multivariate_normal.type.inc'
   include 'constraints.likelihoods.multivariate_normal.stochastic.type.inc'
   include 'constraints.likelihoods.Galacticus.type.inc'
+  include 'constraints.likelihoods.gaussian_regression.type.inc'
 
 contains
 
@@ -72,14 +74,21 @@ contains
     class           (likelihood    ), pointer                     :: newLikelihood
     type            (node          ), pointer    , intent(in   )  :: definition
     type            (varying_string), optional   , intent(in   )  :: configFileName
-    type            (node          ), pointer                     :: likelihoodMeanDefinition       , likelihoodCovarianceDefinition      , &
-         &                                                           covarianceRow                  , likelihoodRealizationCountDefinition, &
-         &                                                           likelihoodRealizationCountMinimumDefinition
+    type            (node          ), pointer                     :: likelihoodMeanDefinition                       , likelihoodCovarianceDefinition         , &
+         &                                                           covarianceRow                                  , likelihoodRealizationCountDefinition   , &
+         &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                   , &
+         &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition    , &
+         &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition, &
+         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
-    integer                                                       :: i                              , dimensionCount                      , &
-         &                                                           likelihoodRealizationCount     , likelihoodRealizationCountMinimum
+    integer                                                       :: i                                              , dimensionCount                         , &
+         &                                                           likelihoodRealizationCount                     , likelihoodRealizationCountMinimum      , &
+         &                                                           likelihoodEmulatorRebuildCount                 , likelihoodPolynomialOrder              , &
+         &                                                           likelihoodReportCount
+    double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer          , &
+         &                                                           likelihoodLogLikelihoodErrorTolerance
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -127,7 +136,35 @@ contains
        allocate(likelihoodGalacticus :: newLikelihood)
        select type (newLikelihood)
        type is (likelihoodGalacticus)
-          newLikelihood%configFileName=configFileName
+          newLikelihood=likelihoodGalacticus(configFileName)
+       end select
+    case ("gaussianRegression")
+       allocate(likelihoodGaussianRegression :: newLikelihood)
+       select type (newLikelihood)
+       type is (likelihoodGaussianRegression)
+          likelihoodDefinition                            => XML_Get_First_Element_By_Tag_Name(definition,"simulatorLikelihood"        )
+          likelihoodEmulatorRebuildCountDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"emulatorRebuildCount"       )
+          likelihoodPolynomialOrderDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"polynomialOrder"            )
+          likelihoodSigmaBufferDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"sigmaBuffer"                )
+          likelihoodLogLikelihoodBufferDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"logLikelihoodBuffer"        )
+          likelihoodLogLikelihoodErrorToleranceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"logLikelihoodErrorTolerance")
+          likelihoodReportCountDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                )
+          call extractDataContent(likelihoodEmulatorRebuildCountDefinition       ,likelihoodEmulatorRebuildCount       )
+          call extractDataContent(likelihoodPolynomialOrderDefinition            ,likelihoodPolynomialOrder            )
+          call extractDataContent(likelihoodSigmaBufferDefinition                ,likelihoodSigmaBuffer                )
+          call extractDataContent(likelihoodLogLikelihoodBufferDefinition        ,likelihoodLogLikelihoodBuffer        )
+          call extractDataContent(likelihoodLogLikelihoodErrorToleranceDefinition,likelihoodLogLikelihoodErrorTolerance)
+          call extractDataContent(likelihoodReportCountDefinition                ,likelihoodReportCount                )
+          newLikelihood=likelihoodGaussianRegression(                                       &
+               &                                     likelihoodDefinition                 , &
+               &                                     likelihoodEmulatorRebuildCount       , &
+               &                                     likelihoodPolynomialOrder            , &
+               &                                     likelihoodSigmaBuffer                , &
+               &                                     likelihoodLogLikelihoodBuffer        , &
+               &                                     likelihoodLogLikelihoodErrorTolerance, &
+               &                                     likelihoodReportCount                , &
+               &                                     configFileName                         &
+               &                                    )
        end select
     case default
        call Galacticus_Error_Report('likelihoodNew','likelihood type is unrecognized')
@@ -139,5 +176,6 @@ contains
   include 'constraints.likelihoods.multivariate_normal.methods.inc'
   include 'constraints.likelihoods.multivariate_normal.stochastic.methods.inc'
   include 'constraints.likelihoods.Galacticus.methods.inc'
+  include 'constraints.likelihoods.gaussian_regression.methods.inc'
 
 end module Constraints_Likelihoods

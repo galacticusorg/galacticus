@@ -61,9 +61,10 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   double precision                                , dimension(self%parameterCount,2) :: statePair
   double precision                                , dimension(self%parameterCount  ) :: stateVector          , stateVectorProposed
   class           (state                         ), allocatable                      :: stateProposed
-  real                                                                               :: timePreEvaluate      , timePostEvaluate   , &
+  real                                                                               :: timePreEvaluate      , timePostEvaluate     , &
        &                                                                                timeEvaluate
-  double precision                                                                   :: logPosterior         , logPosteriorProposed
+  double precision                                                                   :: logPosterior         , logPosteriorProposed , &
+                                                                                        logLikelihood        , logLikelihoodProposed
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName
   integer                                                                            :: logFileUnit          , convergedAtStep
@@ -80,7 +81,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   ! Initialize chain to some state vector.
   call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors)
   ! Evaluate the posterior in the initial state.
-  logPosterior=self%posterior(self%simulationState)
+  call self%posterior(self%simulationState,logImpossible,logPosterior,logLikelihood)
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
@@ -113,13 +114,14 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      call stateProposed%update(stateVectorProposed,.false.)
      ! Evaluate likelihood.
      call CPU_Time(timePreEvaluate )
-     logPosteriorProposed=self%posterior(stateProposed)
+     call self%posterior(stateProposed,logLikelihood,logPosteriorProposed,logLikelihoodProposed)
      call CPU_Time(timePostEvaluate)
      timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
      if (self%acceptProposal(logPosterior,logPosteriorProposed,randomNumberGenerator)) then
-        logPosterior=logPosteriorProposed
-        stateVector =stateVectorProposed
+        logPosterior =logPosteriorProposed
+        logLikelihood=logLikelihoodProposed
+        stateVector  =stateVectorProposed
      end if
      call self%update(stateVector)
      if (self%logging()) write (logFileUnit,*) self   %simulationState%count(), &
@@ -191,17 +193,19 @@ logical function simulatorDifferentialEvolutionLogging(self)
   return
 end function simulatorDifferentialEvolutionLogging
 
-double precision function simulatorDifferentialEvolutionPosterior(self,simulationState)
+subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPosterior,logLikelihood)
   !% Return the log of the posterior for the current state.
   implicit none
-  class(simulatorDifferentialEvolution), intent(inout) :: self
-  class(state                         ), intent(in   ) :: simulationState
+  class           (simulatorDifferentialEvolution), intent(inout) :: self
+  class           (state                         ), intent(in   ) :: simulationState
+  double precision                                , intent(in   ) :: logLikelihoodCurrent
+  double precision                                , intent(  out) :: logLikelihood       , logPosterior
 
-  simulatorDifferentialEvolutionPosterior=                                                        &
-       &  +priorsEvaluateLog            (self%parameterPriors,simulationState                   ) &
-       &  +self%modelLikelihood%evaluate(                     simulationState,self%temperature())
+  logLikelihood=+self%modelLikelihood%evaluate(                     simulationState,self%temperature(),logLikelihoodCurrent)
+  logPosterior =+priorsEvaluateLog            (self%parameterPriors,simulationState                                        ) &
+       &        +logLikelihood
   return
-end function simulatorDifferentialEvolutionPosterior
+end subroutine simulatorDifferentialEvolutionPosterior
 
 double precision function simulatorDifferentialEvolutionStepSize(self)
   !% Return the step size parameter, $\gamma$, for a differential evolution step.
