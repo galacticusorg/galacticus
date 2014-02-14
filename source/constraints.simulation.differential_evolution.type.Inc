@@ -43,7 +43,7 @@
      !@   <objectMethod>
      !@     <method>posterior</method>
      !@     <type>\doublezero</type>
-     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState/argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin</arguments>
      !@     <description>Return the log of posterior probability for the given {\tt simulationState}.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -57,6 +57,18 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@     <description>Return the current temperature.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>acceptProposal</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\doublezero\ logPosterior\argin, \doublezero\ logPosteriorProposed\argin, \textcolor{red}{\textless type(pseudoRandom)\textgreater} randomNumberGenerator\arginout</arguments>
+     !@     <description>Return true if the proposed state should be accepted.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>stepSize</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the step size parameter, $\gamma$, for the differential evolution proposal vector.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: simulate       => simulatorDifferentialEvolutionSimulate
