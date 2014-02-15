@@ -58,6 +58,7 @@ module Constraints_Simulation
   ! Include all simualtion types.
   include 'constraints.simulation.differential_evolution.type.inc'
   include 'constraints.simulation.tempered_differential_evolution.type.inc'
+  include 'constraints.simulation.annealed_differential_evolution.type.inc'
 
 contains
 
@@ -166,7 +167,43 @@ contains
                &                                              simulatorStepsPerLevel           &
                &                                             )
        end select
-     case default
+   case ("annealedDifferentialEvolution")
+       allocate(simulatorAnnealedDifferentialEvolution :: newSimulator)
+       select type (newSimulator)
+       type is (simulatorAnnealedDifferentialEvolution)
+          simulatorStepsMaximumDefinition           => XML_Get_First_Element_By_Tag_Name(definition,"stepsMaximum"          )
+          simulatorStepsPostConvergenceDefinition   => XML_Get_First_Element_By_Tag_Name(definition,"stepsPostConvergence"  )
+          simulatorAcceptanceAverageCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"acceptanceAverageCount")
+          simulatorStateSwapCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"stateSwapCount"        )
+          simulatorLogFileDefinition                => XML_Get_First_Element_By_Tag_Name(definition,"logFileRoot"           )
+          simulatorTemperatureMaximumDefinition     => XML_Get_First_Element_By_Tag_Name(definition,"temperatureMaximum"    )
+          simulatorTemperingLevelCountDefinition    => XML_Get_First_Element_By_Tag_Name(definition,"temperatureLevels"     )
+          call extractDataContent(simulatorStepsMaximumDefinition          ,simulatorStepsMaximum          )
+          call extractDataContent(simulatorStepsPostConvergenceDefinition  ,simulatorStepsPostConvergence  )
+          call extractDataContent(simulatorAcceptanceAverageCountDefinition,simulatorAcceptanceAverageCount)
+          call extractDataContent(simulatorStateSwapCountDefinition        ,simulatorStateSwapCount        )
+          call extractDataContent(simulatorTemperatureMaximumDefinition    ,simulatorTemperatureMaximum    )
+          call extractDataContent(simulatorTemperingLevelCountDefinition   ,simulatorTemperingLevelCount   )
+          simulatorLogFile=XML_Extract_Text(simulatorLogFileDefinition)
+          newSimulator=simulatorAnnealedDifferentialEvolution(                                 &
+               &                                              parameterPriors                , &
+               &                                              randomDistributions            , &
+               &                                              modelLikelihood                , &
+               &                                              simulationConvergence          , &
+               &                                              simulationState                , &
+               &                                              simulationStateInitializor     , &
+               &                                              proposalSize                   , &
+               &                                              randomJump                     , &
+               &                                              simulatorStepsMaximum          , &
+               &                                              simulatorStepsPostConvergence  , &
+               &                                              simulatorAcceptanceAverageCount, &
+               &                                              simulatorStateSwapCount        , &
+               &                                              char(simulatorLogFile)         , &
+               &                                              simulatorTemperatureMaximum    , &
+               &                                              simulatorTemperingLevelCount     &
+               &                                             )
+       end select
+    case default
        call Galacticus_Error_Report('simulatorNew','simulator type is unrecognized')
     end select
     return
@@ -175,5 +212,6 @@ contains
   ! Include all simulation methods.
   include 'constraints.simulation.differential_evolution.methods.inc'
   include 'constraints.simulation.tempered_differential_evolution.methods.inc'
+  include 'constraints.simulation.annealed_differential_evolution.methods.inc'
 
 end module Constraints_Simulation

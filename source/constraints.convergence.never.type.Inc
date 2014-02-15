@@ -21,6 +21,7 @@
      private
    contains
      procedure :: isConverged => convergenceNeverIsConverged
+     procedure :: reset       => convergenceNeverReset
   end type convergenceNever
   
   interface convergenceNever

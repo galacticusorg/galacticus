@@ -63,12 +63,11 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   class           (state                         ), allocatable                      :: stateProposed
   real                                                                               :: timePreEvaluate      , timePostEvaluate     , &
        &                                                                                timeEvaluate
-  double precision                                                                   :: logPosterior         , logPosteriorProposed , &
-                                                                                        logLikelihood        , logLikelihoodProposed
+  double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed , &
+                                                                                        logLikelihood 
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName
   integer                                                                            :: logFileUnit          , convergedAtStep
-  logical                                                                            :: isConverged
   
   ! Check that we have sufficient chains for differential evolution.
   if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
@@ -81,16 +80,16 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   ! Initialize chain to some state vector.
   call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors)
   ! Evaluate the posterior in the initial state.
-  call self%posterior(self%simulationState,logImpossible,logPosterior,logLikelihood)
+  call self%posterior(self%simulationState,logImpossible,self%logPosterior,logLikelihood)
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
-  isConverged    =.false. 
+  self%isConverged=.false. 
   do while (                                                                            &
        &       self%simulationState%count()                 < self%stepsMaximum         &
        &    .and.                                                                       &
        &     (                                                                          &
-       &       .not.isConverged                                                         &
+       &       .not.self%isConverged                                                    &
        &      .or.                                                                      &
        &       self%simulationState%count()-convergedAtStep < self%stepsPostConvergence &
        &     )                                                                          &
@@ -118,23 +117,23 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      call CPU_Time(timePostEvaluate)
      timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
-     if (self%acceptProposal(logPosterior,logPosteriorProposed,randomNumberGenerator)) then
-        logPosterior =logPosteriorProposed
-        logLikelihood=logLikelihoodProposed
-        stateVector  =stateVectorProposed
+     if (self%acceptProposal(self%logPosterior,logPosteriorProposed,randomNumberGenerator)) then
+        self%logPosterior =logPosteriorProposed
+        logLikelihood     =logLikelihoodProposed
+        stateVector       =stateVectorProposed
      end if
      call self%update(stateVector)
      if (self%logging()) write (logFileUnit,*) self   %simulationState%count(), &
           &                                    mpiSelf%rank                 (), &
           &                                    timeEvaluate                   , &
-          &                                    logPosterior                   , &
+          &                                    self%logPosterior              , &
           &                                    stateVector
      ! Repeat.
      call mpiBarrier()
      ! Test for convergence.
-     if (.not.isConverged) then
-        isConverged=self%simulationConvergence%isConverged(self%simulationState,logPosterior)
-        if (isConverged) then
+     if (.not.self%isConverged) then
+        self%isConverged=self%simulationConvergence%isConverged(self%simulationState,self%logPosterior)
+        if (self%isConverged) then
            convergedAtStep=self%simulationState%count()
            if (mpiSelf%rank() == 0) write (0,*) 'Converged after ',convergedAtStep,' steps'
         end if

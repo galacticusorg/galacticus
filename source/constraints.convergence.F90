@@ -34,8 +34,15 @@ module Constraints_Convergence
      !@     <arguments></arguments>
      !@     <description>Return true if the simulation is converged.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset the convergence object.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(convergenceIsConverged), deferred :: isConverged
+     procedure(convergenceReset      ), deferred :: reset
   end type convergence
 
   ! Interface for deferred functions.
@@ -46,6 +53,12 @@ module Constraints_Convergence
        class           (state      ), intent(in   ), optional :: simulationState
        double precision             , intent(in   ), optional :: logLikelihood
      end function convergenceIsConverged
+  end interface
+  abstract interface
+     subroutine convergenceReset(self)
+       import :: convergence
+       class(convergence), intent(inout) :: self
+     end subroutine convergenceReset
   end interface
 
   ! Include all convergence types.

@@ -952,6 +952,20 @@ In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (
 \end{equation}
 where $T_{\rm max}=${\tt temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\tt proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
 
+\subsubsection{{\tt annealedDifferentialEvolution}}
+
+This option extends the {\tt differentialEvolution} option to include an annealing schedule---the simulation begins at high temperature, waits for convergence, lowers the temperature and repeats until convergence at $T=1$ is reached. In addition to the options for the {\tt differentialEvolution} algorithm, the details of the algorithm are controlled by the following elements whichy should be embedded within the {\tt simulation} element:
+\begin{description}
+\item[{\tt temperatureMaximum}] The maximum temperature to use when tempering.
+\item[{\tt temperatureLevels}] The number of temperature levels to use.
+\end{description}
+
+The temperature at level $i$ is given by:
+\begin{equation}
+\log T_i = {i-1 \over N-1} \log T_{\rm max},
+\end{equation}
+where $T_{\rm max}=${\tt temperatureMaximum} and $N=${\tt temperatureLevels}.
+
 \subsection{Parameters and Priors}\label{sec:ParametersPriors}
 
 The {\tt parameters} section contains a list of all parameters to be varied in the analysis. Each parameter is described by one {\tt parameter} element. That element must contain a {\tt name} element, which gives the name of the parameter, a {\tt prior} element that contains a {\tt distribution} element defining the distribution for this prior, and (for differential evolution simulations) a {\tt random} element that defines the distribution to be used for the random perturbation to be added to this parameter in proposals.

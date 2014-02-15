@@ -36,3 +36,11 @@ logical function convergenceNeverIsConverged(self,simulationState,logLikelihood)
   convergenceNeverIsConverged=.false.
   return
 end function convergenceNeverIsConverged
+
+subroutine convergenceNeverReset(self)
+  !% Reset the convergence object.
+  implicit none
+  class(convergenceNever), intent(inout) :: self
+
+  return
+end subroutine convergenceNeverReset
