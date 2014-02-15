@@ -47,11 +47,12 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,temperature,logLikelihoodCurrent)
+     double precision function likelihoodEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
        import :: likelihood, state
        class           (likelihood), intent(inout) :: self
        class           (state     ), intent(in   ) :: simulationState
-       double precision            , intent(in   ) :: temperature    , logLikelihoodCurrent
+       double precision            , intent(in   ) :: temperature    , logLikelihoodCurrent, &
+            &                                         logPriorCurrent, logPriorProposed
      end function likelihoodEvaluate
   end interface
 
