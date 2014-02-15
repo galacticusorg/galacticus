@@ -70,9 +70,16 @@ module Constraints_State
      !@     <arguments></arguments>
      !@     <description>Return the acceptance rate of the state over logged steps.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset the state.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure                                :: count          => stateCount
      procedure                                :: dimension      => stateDimension
+     procedure                                :: reset          => stateReset
      procedure(stateGet           ), deferred :: get
      procedure(stateUpdate        ), deferred :: update
      procedure(stateMean          ), deferred :: mean
@@ -179,6 +186,15 @@ contains
     stateDimension=self%parameterCount
     return
   end function stateDimension
+
+  subroutine stateReset(self)
+    !% Reset the state object.
+    implicit none
+    class(state), intent(inout) :: self
+
+    self%stepCount=0
+    return
+  end subroutine stateReset
 
   ! Include all state methods.
   include 'constraints.state.simple.methods.inc'

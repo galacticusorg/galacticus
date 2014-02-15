@@ -27,6 +27,7 @@
      logical          :: converged
    contains
      procedure :: isConverged => convergenceGelmanRubinIsConverged
+     procedure :: reset       => convergenceGelmanRubinReset
   end type convergenceGelmanRubin
   
   interface convergenceGelmanRubin

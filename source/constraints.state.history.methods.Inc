@@ -82,3 +82,14 @@ function stateHistoryVariance(self)
   stateHistoryVariance=(self%stateSquaredSum/dble(self%stepCount)-self%mean()**2)*dble(self%stepCount)/dble(self%stepCount-1)
   return
 end function stateHistoryVariance
+
+subroutine stateHistoryReset(self)
+  !% Reset the state object.
+  implicit none
+  class(stateHistory), intent(inout) :: self
+  
+  call self%stateSimple%reset()
+  self%stateSum       =0.0d0
+  self%stateSquaredSum=0.0d0
+  return
+end subroutine stateHistoryReset

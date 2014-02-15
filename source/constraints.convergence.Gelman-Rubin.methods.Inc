@@ -256,3 +256,12 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   convergenceGelmanRubinIsConverged=self%converged
   return
 end function convergenceGelmanRubinIsConverged
+
+subroutine convergenceGelmanRubinReset(self)
+  !% Reset the convergence object.
+  implicit none
+  class(convergenceGelmanRubin), intent(inout) :: self
+
+  self%converged=.false.
+  return
+end subroutine convergenceGelmanRubinReset

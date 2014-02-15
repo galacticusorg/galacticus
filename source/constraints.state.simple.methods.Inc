@@ -23,7 +23,7 @@ function stateSimpleConstructor(parameterCount,acceptedStateCount)
   type   (stateSimple)                :: stateSimpleConstructor
   integer             , intent(in   ) :: parameterCount        , acceptedStateCount
 
-  allocate(stateSimpleConstructor%current (   parameterCount))
+  allocate(stateSimpleConstructor%current (    parameterCount))
   allocate(stateSimpleConstructor%accepted(acceptedStateCount))
   stateSimpleConstructor%parameterCount    =parameterCount
   stateSimpleConstructor%stepCount         =0
@@ -107,3 +107,13 @@ double precision function stateSimpleAcceptanceRate(self)
   end if
   return
 end function stateSimpleAcceptanceRate
+
+subroutine stateSimpleReset(self)
+  !% Reset the state object.
+  implicit none
+  class(stateSimple), intent(inout) :: self
+  
+  self%stepCount=0
+  self%accepted =0
+  return
+end subroutine stateSimpleReset

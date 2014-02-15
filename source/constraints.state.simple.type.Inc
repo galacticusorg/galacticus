@@ -30,6 +30,7 @@
      procedure :: mean           => stateSimpleMean
      procedure :: variance       => stateSimpleVariance
      procedure :: acceptanceRate => stateSimpleAcceptanceRate
+     procedure :: reset          => stateSimpleReset
   end type stateSimple
   
   interface stateSimple
