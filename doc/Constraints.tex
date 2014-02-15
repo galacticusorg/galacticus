@@ -812,9 +812,9 @@ In detail, this likelihood function first collects {\tt emulatorRebuildCount} li
 
 Once an emulator has been built, on each successive likelihood evaluation the emulated log-likelihood $\log\mathcal{L}_{\rm e}$ and its error estimate $\sigma_{\log\mathcal{L}_{\rm e}}$ are computed. The emulated likelihood is then returned if:
 \begin{equation}
-\log\mathcal{L}_{\rm e} + N \sigma_{\log\mathcal{L}_{\rm e}} < \log\mathcal{L} - T \Delta\log\mathcal{L},
+\log\mathcal{P}^\prime + \log\mathcal{L}_{\rm e} + N \sigma_{\log\mathcal{L}_{\rm e}} < \log\mathcal{P} + \log\mathcal{L} - T \Delta\log\mathcal{L},
 \end{equation}
-where $N=${\tt sigmaBuffer}, $\Delta\log\mathcal{L}=${\tt logLikelihoodBuffer}, $T$ is the temperature, and $\log\mathcal{L}$ is the current log-likelhood, or if
+where $N=${\tt sigmaBuffer}, $\Delta\log\mathcal{L}=${\tt logLikelihoodBuffer}, $T$ is the temperature, $\log\mathcal{L}$ is the current log-likelhood, $\log\mathcal{P}$ is the current log-prior probability, and $\log\mathcal{P}^\prime$ is the proposed log-prior probability, or if
 \begin{equation}
 \sigma_{\log\mathcal{L}_{\rm e}} < T \sigma_{\log\mathcal{L}},
 \end{equation}

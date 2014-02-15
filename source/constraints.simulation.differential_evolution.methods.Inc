@@ -64,7 +64,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   real                                                                               :: timePreEvaluate      , timePostEvaluate     , &
        &                                                                                timeEvaluate
   double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed , &
-                                                                                        logLikelihood 
+                                                                                        logLikelihood
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
   type            (varying_string                )                                   :: logFileName
   integer                                                                            :: logFileUnit          , convergedAtStep
@@ -80,7 +80,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   ! Initialize chain to some state vector.
   call self%simulationStateInitializor%initialize(self%simulationState,self%parameterPriors)
   ! Evaluate the posterior in the initial state.
-  call self%posterior(self%simulationState,logImpossible,self%logPosterior,logLikelihood)
+  call self%posterior(self%simulationState,logImpossible,logImpossible,self%logPosterior,logLikelihood)
   ! Begin stepping.
   logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
   open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
@@ -113,7 +113,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      call stateProposed%update(stateVectorProposed,.false.)
      ! Evaluate likelihood.
      call CPU_Time(timePreEvaluate )
-     call self%posterior(stateProposed,logLikelihood,logPosteriorProposed,logLikelihoodProposed)
+     call self%posterior(stateProposed,logLikelihood,self%logPosterior-logLikelihood,logPosteriorProposed,logLikelihoodProposed)
      call CPU_Time(timePostEvaluate)
      timeEvaluate=timePostEvaluate-timePreEvaluate
      ! Decide whether to take step.
@@ -192,17 +192,18 @@ logical function simulatorDifferentialEvolutionLogging(self)
   return
 end function simulatorDifferentialEvolutionLogging
 
-subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPosterior,logLikelihood)
+subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikelihoodCurrent,logPriorCurrent,logPosterior,logLikelihood)
   !% Return the log of the posterior for the current state.
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout) :: self
   class           (state                         ), intent(in   ) :: simulationState
-  double precision                                , intent(in   ) :: logLikelihoodCurrent
+  double precision                                , intent(in   ) :: logLikelihoodCurrent, logPriorCurrent
   double precision                                , intent(  out) :: logLikelihood       , logPosterior
+  double precision                                                :: logPrior
 
-  logLikelihood=+self%modelLikelihood%evaluate(                     simulationState,self%temperature(),logLikelihoodCurrent)
-  logPosterior =+priorsEvaluateLog            (self%parameterPriors,simulationState                                        ) &
-       &        +logLikelihood
+  logPrior     =priorsEvaluateLog            (self%parameterPriors,simulationState                                                                 )
+  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
+  logPosterior =logPrior+logLikelihood
   return
 end subroutine simulatorDifferentialEvolutionPosterior
 

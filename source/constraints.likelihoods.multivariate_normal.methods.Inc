@@ -32,13 +32,14 @@ function likelihoodMultivariateNormalConstructor(means,covariance)
   return
 end function likelihoodMultivariateNormalConstructor
 
-double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,temperature,logLikelihoodCurrent)
+double precision function likelihoodMultivariateNormalEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
   implicit none
   class           (likelihoodMultivariateNormal), intent(inout) :: self
   class           (state                       ), intent(in   ) :: simulationState
-  double precision                              , intent(in   ) :: temperature    , logLikelihoodCurrent
+  double precision                              , intent(in   ) :: temperature    , logLikelihoodCurrent, &
+       &                                                           logPriorCurrent, logPriorProposed
   type            (vector                      )                :: stateVector    , difference
 
   stateVector                         =simulationState%get()
