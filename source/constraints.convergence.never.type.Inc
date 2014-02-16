@@ -22,6 +22,7 @@
    contains
      procedure :: isConverged => convergenceNeverIsConverged
      procedure :: reset       => convergenceNeverReset
+     procedure :: logReport   => convergenceNeverLogReport
   end type convergenceNever
   
   interface convergenceNever
