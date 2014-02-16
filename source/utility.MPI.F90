@@ -153,7 +153,7 @@ contains
     call MPI_Comm_Rank(MPI_Comm_World,mpiSelf% rankValue,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','failed to determine MPI rank' )
     ! Construct an array containing all ranks.
-    call Alloc_Array(mpiSelf%allRanks,[mpiSelf%countValue])
+    call Alloc_Array(mpiSelf%allRanks,[mpiSelf%countValue],[0])
     forall(i=0:mpiSelf%countValue-1)
        mpiSelf%allRanks(i)=i
     end forall
@@ -316,17 +316,17 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class  (mpiObject), intent(in   )                                   :: self
-    integer           , intent(in   ), dimension(:          )           :: array
-    logical           , intent(in   ), dimension(:          ), optional :: mask
-    integer                          , dimension(size(array))           :: mpiSumArrayInt, maskedArray
-    integer                                                             :: iError        , activeCount
+    class  (mpiObject), intent(in   )                                    :: self
+    integer           , intent(in   ), dimension( :          )           :: array
+    logical           , intent(in   ), dimension(0:          ), optional :: mask
+    integer                          , dimension(size(array))            :: mpiSumArrayInt, maskedArray
+    integer                                                              :: iError        , activeCount
 
     ! Sum the array over all processes.
     maskedArray=array
     activeCount=self%count()
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) maskedArray=0
+       if (.not.mask(self%rank())) maskedArray=0
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiSumArrayInt,size(array),MPI_Integer,MPI_Sum,MPI_Comm_World,iError)
@@ -354,17 +354,17 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class           (mpiObject), intent(in   )                                   :: self
-    double precision           , intent(in   ), dimension(:          )           :: array
-    logical                    , intent(in   ), dimension(:          ), optional :: mask
-    double precision                          , dimension(size(array))           :: mpiAverageArray, maskedArray
-    integer                                                                      :: iError         , activeCount
+    class           (mpiObject), intent(in   )                                    :: self
+    double precision           , intent(in   ), dimension( :          )           :: array
+    logical                    , intent(in   ), dimension(0:          ), optional :: mask
+    double precision                          , dimension(size(array) )           :: mpiAverageArray, maskedArray
+    integer                                                                       :: iError         , activeCount
 
     ! Sum the array over all processes.
     maskedArray=array
     activeCount=self%count()
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) maskedArray=0.0d0
+       if (.not.mask(self%rank())) maskedArray=0.0d0
        activeCount=count(mask)
     end if
     call MPI_AllReduce(maskedArray,mpiAverageArray,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
@@ -394,16 +394,16 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class           (mpiObject), intent(in   )                                   :: self
-    double precision           , intent(in   ), dimension(:          )           :: array
-    logical                    , intent(in   ), dimension(:          ), optional :: mask
-    double precision                          , dimension(size(array))           :: mpiMaxvalArray, maskedArray
-    integer                                                                      :: iError
+    class           (mpiObject), intent(in   )                                    :: self
+    double precision           , intent(in   ), dimension( :          )           :: array
+    logical                    , intent(in   ), dimension(0:          ), optional :: mask
+    double precision                          , dimension(size(array) )           :: mpiMaxvalArray, maskedArray
+    integer                                                                       :: iError
 
     ! Find the maximum over all processes.
     maskedArray=array
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) maskedArray=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
     call MPI_AllReduce(maskedArray,mpiMaxvalArray,size(array),MPI_Double_Precision,MPI_Max,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMaxvalArray','MPI all reduce failed')
@@ -430,17 +430,17 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class           (mpiObject), intent(in   )                                     :: self
-    double precision           , intent(in   ), dimension(:            )           :: array
-    logical                    , intent(in   ), dimension(:            ), optional :: mask
-    integer                                   , dimension(  size(array))           :: mpiMaxloc
-    double precision                          , dimension(2,size(array))           :: arrayIn  , arrayOut
-    integer                                                                        :: iError
+    class           (mpiObject), intent(in   )                                      :: self
+    double precision           , intent(in   ), dimension( :            )           :: array
+    logical                    , intent(in   ), dimension(0:            ), optional :: mask
+    integer                                   , dimension(   size(array))           :: mpiMaxloc
+    double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
+    integer                                                                         :: iError
 
     ! Find the maximum over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) arrayIn(1,:)=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
     end if
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MaxLoc,MPI_Comm_World,iError)
@@ -454,16 +454,16 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class           (mpiObject), intent(in   )                                   :: self
-    double precision           , intent(in   ), dimension(:          )           :: array
-    logical                    , intent(in   ), dimension(:          ), optional :: mask
-    double precision                          , dimension(size(array))           :: mpiMinvalArray, maskedArray
-    integer                                                                      :: iError
+    class           (mpiObject), intent(in   )                                    :: self
+    double precision           , intent(in   ), dimension( :          )           :: array
+    logical                    , intent(in   ), dimension(0:          ), optional :: mask
+    double precision                          , dimension(size(array) )           :: mpiMinvalArray, maskedArray
+    integer                                                                       :: iError
 
     ! Find the minimum over all processes.
     maskedArray=array
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) maskedArray=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) maskedArray=-HUGE(1.0d0)
     end if
     call MPI_AllReduce(maskedArray,mpiMinvalArray,size(array),MPI_Double_Precision,MPI_Min,MPI_Comm_World,iError)
     if (iError /= 0) call Galacticus_Error_Report('mpiMinvalArray','MPI all reduce failed')
@@ -490,17 +490,17 @@ contains
     use MPI
     use Galacticus_Error
     implicit none
-    class           (mpiObject), intent(in   )                                     :: self
-    double precision           , intent(in   ), dimension(:            )           :: array
-    logical                    , intent(in   ), dimension(:            ), optional :: mask
-    integer                                   , dimension(  size(array))           :: mpiMinloc
-    double precision                          , dimension(2,size(array))           :: arrayIn  , arrayOut
-    integer                                                                        :: iError
+    class           (mpiObject), intent(in   )                                      :: self
+    double precision           , intent(in   ), dimension( :            )           :: array
+    logical                    , intent(in   ), dimension(0:            ), optional :: mask
+    integer                                   , dimension(   size(array))           :: mpiMinloc
+    double precision                          , dimension(2 ,size(array))           :: arrayIn  , arrayOut
+    integer                                                                         :: iError
 
     ! Find the minimum over all processes.
     arrayIn(1,:)=array
     if (present(mask)) then
-       if (.not.mask(self%rank()+1)) arrayIn(1,:)=-HUGE(1.0d0)
+       if (.not.mask(self%rank())) arrayIn(1,:)=-HUGE(1.0d0)
     end if
     arrayIn(2,:)=self%rank()
     call MPI_AllReduce(arrayIn,arrayOut,size(array),MPI_2Double_Precision,MPI_MinLoc,MPI_Comm_World,iError)
