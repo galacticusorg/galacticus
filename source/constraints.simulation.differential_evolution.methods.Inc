@@ -55,6 +55,8 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   use MPI_Utilities
   use Pseudo_Random
   use Galacticus_Error
+  use Galacticus_Display
+  use String_Handling
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                    :: self
   integer                                         , dimension(                    2) :: chainPair
@@ -66,8 +68,9 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
   double precision                                                                   :: logLikelihoodProposed, logPosteriorProposed , &
                                                                                         logLikelihood
   type            (pseudoRandom                  )                                   :: randomNumberGenerator
-  type            (varying_string                )                                   :: logFileName
-  integer                                                                            :: logFileUnit          , convergedAtStep
+  type            (varying_string                )                                   :: logFileName          , message
+  integer                                                                            :: logFileUnit          , convergedAtStep      , &
+       &                                                                                convergenceFileUnit
   
   ! Check that we have sufficient chains for differential evolution.
   if (mpiSelf%count() < 3) call Galacticus_Error_Report('simulatorDifferentialEvolutionSimulate','at least 3 chains are required for differential evolution')
@@ -126,6 +129,7 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
      if (self%logging()) write (logFileUnit,*) self   %simulationState%count(), &
           &                                    mpiSelf%rank                 (), &
           &                                    timeEvaluate                   , &
+          &                                    self%isConverged               , &
           &                                    self%logPosterior              , &
           &                                    stateVector
      ! Repeat.
@@ -135,7 +139,16 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
         self%isConverged=self%simulationConvergence%isConverged(self%simulationState,self%logPosterior)
         if (self%isConverged) then
            convergedAtStep=self%simulationState%count()
-           if (mpiSelf%rank() == 0) write (0,*) 'Converged after ',convergedAtStep,' steps'
+           if (mpiSelf%rank() == 0) then
+              message='Converged after '
+              message=message//convergedAtStep//' steps'
+              call Galacticus_Display_Message(message)
+              logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.convergence.log'
+              open(newunit=convergenceFileUnit,file=char(logFileName),status='unknown',form='formatted',access='append')
+              write (convergenceFileUnit,'(a,i8)') 'Converged at step: ',convergedAtStep
+              call self%simulationConvergence%logReport(convergenceFileUnit)
+              close(convergenceFileUnit)
+           end if
         end if
      end if
   end do

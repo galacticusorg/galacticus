@@ -20,14 +20,18 @@
   type, public, extends(convergence) :: convergenceGelmanRubin
      !% Defines a convergence class using the Gelman-Rubin statistic.
      private
-     double precision :: thresholdHatR             , outlierSignificance, &
-          &              outlierLogLikelihoodOffset
-     integer          :: burnCount                 , testCount          , &
-          &              stepCount                 , outlierCountMaximum
-     logical          :: converged
+     double precision                            :: thresholdHatR             , outlierSignificance, &
+          &                                         outlierLogLikelihoodOffset
+     integer                                     :: burnCount                 , testCount          , &
+          &                                         stepCount                 , outlierCountMaximum, &
+          &                                         reportCount               , estimateCount
+     logical                                     :: converged
+     double precision, allocatable, dimension(:) :: correctedHatR
+     logical         , allocatable, dimension(:) :: chainMask
    contains
      procedure :: isConverged => convergenceGelmanRubinIsConverged
      procedure :: reset       => convergenceGelmanRubinReset
+     procedure :: logReport   => convergenceGelmanRubinLogReport
   end type convergenceGelmanRubin
   
   interface convergenceGelmanRubin

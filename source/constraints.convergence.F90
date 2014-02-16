@@ -40,9 +40,16 @@ module Constraints_Convergence
      !@     <arguments></arguments>
      !@     <description>Reset the convergence object.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>logReport</method>
+     !@     <type>\void</type>
+     !@     <arguments>\intzero\ fileUnit\argin</arguments>
+     !@     <description>Log a report on convergence to the given file unit.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure(convergenceIsConverged), deferred :: isConverged
      procedure(convergenceReset      ), deferred :: reset
+     procedure(convergenceLogReport  ), deferred :: logReport
   end type convergence
 
   ! Interface for deferred functions.
@@ -59,6 +66,13 @@ module Constraints_Convergence
        import :: convergence
        class(convergence), intent(inout) :: self
      end subroutine convergenceReset
+  end interface
+  abstract interface
+     subroutine convergenceLogReport(self,fileUnit)
+       import :: convergence
+       class  (convergence), intent(inout) :: self
+       integer             , intent(in   ) :: fileUnit
+     end subroutine convergenceLogReport
   end interface
 
   ! Include all convergence types.
@@ -78,9 +92,10 @@ contains
     type            (node       ), pointer, intent(in   ) :: definition
     type            (node       ), pointer                :: convergenceRhatDefinition               , convergenceBurnCountDefinition    , &
          &                                                   convergenceTestCountDefinition          , convergenceOutlierCountDefinition , &
-         &                                                   convergenceOutlierSignificanceDefinition, convergenceOutlierOffsetDefinition
+         &                                                   convergenceOutlierSignificanceDefinition, convergenceOutlierOffsetDefinition, &
+         &                                                   convergenceReportCountDefinition
     integer                                               :: convergenceBurnCount                    , convergenceTestCount              , &
-         &                                                   convergenceOutlierCount
+         &                                                   convergenceOutlierCount                 , convergenceReportCount
     double precision                                      :: convergenceRhat                         , convergenceOutlierSignificance    , &
          &                                                   convergenceOutlierOffset
 
@@ -95,13 +110,15 @@ contains
           convergenceOutlierCountDefinition        => XML_Get_First_Element_By_Tag_Name(definition,"outlierCountMaximum"       )
           convergenceOutlierSignificanceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"outlierSignificance"       )
           convergenceOutlierOffsetDefinition       => XML_Get_First_Element_By_Tag_Name(definition,"outlierLogLikelihoodOffset")
+          convergenceReportCountDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"               )
           call extractDataContent(convergenceRhatDefinition               ,convergenceRhat               )
           call extractDataContent(convergenceBurnCountDefinition          ,convergenceBurnCount          )
           call extractDataContent(convergenceTestCountDefinition          ,convergenceTestCount          )
           call extractDataContent(convergenceOutlierCountDefinition       ,convergenceOutlierCount       )
           call extractDataContent(convergenceOutlierSignificanceDefinition,convergenceOutlierSignificance)
-          call extractDataContent(convergenceOutlierOffsetDefinition      ,convergenceOutlierOffset)
-          newConvergence=convergenceGelmanRubin(convergenceRhat,convergenceBurnCount,convergenceTestCount,convergenceOutlierCount,convergenceOutlierSignificance,convergenceOutlierOffset)
+          call extractDataContent(convergenceOutlierOffsetDefinition      ,convergenceOutlierOffset      )
+          call extractDataContent(convergenceReportCountDefinition        ,convergenceReportCount        )
+          newConvergence=convergenceGelmanRubin(convergenceRhat,convergenceBurnCount,convergenceTestCount,convergenceOutlierCount,convergenceOutlierSignificance,convergenceOutlierOffset,convergenceReportCount)
        end select
     case ("never")
        allocate(convergenceNever :: newConvergence)

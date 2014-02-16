@@ -44,3 +44,13 @@ subroutine convergenceNeverReset(self)
 
   return
 end subroutine convergenceNeverReset
+
+subroutine convergenceNeverLogReport(self,fileUnit)
+  !% Write a convergence report to the given {\tt fileUnit}.
+  implicit none
+  class  (convergenceNever), intent(inout) :: self
+  integer                  , intent(in   ) :: fileUnit
+
+  write (fileUnit,*) 'Convergence: unconverged'
+  return
+end subroutine convergenceNeverLogReport

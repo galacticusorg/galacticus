@@ -17,14 +17,14 @@
 
 !% Defines methods for the ``GelmanRubin'' convergence class.
 
-function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset)
+function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount)
   !% Constructor for ``GelmanRubin'' convergence class.
-  implicit none
+  use MPI_Utilities
   type            (convergenceGelmanRubin)                :: convergenceGelmanRubinConstructor
   double precision                        , intent(in   ) :: thresholdHatR             , outlierSignificance, &
        &                                                     outlierLogLikelihoodOffset
   integer                                 , intent(in   ) :: burnCount                 , testCount          , &
-       &                                                     outlierCountMaximum
+       &                                                     outlierCountMaximum       , reportCount
 
   convergenceGelmanRubinConstructor%thresholdHatR             =thresholdHatR
   convergenceGelmanRubinConstructor%burnCount                 =burnCount
@@ -33,6 +33,8 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%outlierCountMaximum       =outlierCountMaximum
   convergenceGelmanRubinConstructor%outlierSignificance       =outlierSignificance
   convergenceGelmanRubinConstructor%outlierLogLikelihoodOffset=outlierLogLikelihoodOffset
+  convergenceGelmanRubinConstructor%reportCount               =reportCount
+  convergenceGelmanRubinConstructor%estimateCount             =0
   convergenceGelmanRubinConstructor%converged                 =.false.
   return
 end function convergenceGelmanRubinConstructor
@@ -40,8 +42,12 @@ end function convergenceGelmanRubinConstructor
 logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikelihood)
   !% Return whether the simulation is converged.
   use Constraints_State
+  use Memory_Management
   use MPI_Utilities
   use FGSL
+  use ISO_Varying_String
+  use Galacticus_Display
+  use String_Handling
   implicit none
   class           (convergenceGelmanRubin), intent(inout)               :: self
   class           (state                 ), intent(in   ), optional     :: simulationState
@@ -53,16 +59,18 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
        &                                                                   covarianceVarianceMeanSquared, interchainMeanSquared  , &
        &                                                                   hatV                         , varianceHatV           , &
        &                                                                   degreesOfFreedom             , hatR                   , &
-       &                                                                   correctedHatR                , chainDeviation         , &
+       &                                                                   currentStateVariance         , chainDeviation         , &
        &                                                                   chainDeviationMaximum        , currentStateMean       , &
-       &                                                                   currentStateMeanSquared      , currentStateVariance
+       &                                                                   currentStateMeanSquared
   integer                                 , allocatable  , dimension(:) :: chainDeviationIndex
-  logical                                 , allocatable  , dimension(:) :: chainMask                    , hasOutlier
+  logical                                 , allocatable  , dimension(:) :: hasOutlier
   logical                                                               :: newOutliersFound
   integer                                                               :: outlierCount                 , activeChainCount       , &
        &                                                                   i
   double precision                                                      :: grubbsCriticalValue          , tStatisticCriticalValue, &
        &                                                                   logLikelihoodMaximum
+  type            (varying_string        )                              :: message
+  character       (len=7                 )                              :: label
 
   ! If no aguments were provided, return current convergence status without updating.
   if (.not.(present(simulationState).and.present(logLikelihood))) then
@@ -81,10 +89,14 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
      return
   end if
   self%stepCount=0
+  ! Allocate chain mask and Rhat arrays.
+  if (.not.allocated(self%correctedHatR)) then
+     call Alloc_Array(self%correctedHatR,[simulationState%dimension()])
+     call Alloc_Array(self%chainMask    ,[simulationState%dimension()])
+  end if
   ! Find outlier chains using a Grubb's outlier test.
   ! Initialize chain mask to all chains accepted.
-  allocate(chainMask(mpiSelf%count()))
-  chainMask=.true.
+  self%chainMask=.true.
   ! Find the maximum likelihood over current states.
   logLikelihoodMaximum=mpiSelf%maxval(logLikelihood)
   ! Begin iterative removal of outliers.
@@ -93,8 +105,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   newOutliersFound=.true.
   do while (outlierCount < self%outlierCountMaximum .and. newOutliersFound)
      ! Find interchain mean and variance of current states.
-     currentStateMean       =mpiSelf%average(simulationState%get()   ,chainMask)
-     currentStateMeanSquared=mpiSelf%average(simulationState%get()**2,chainMask)
+     currentStateMean       =mpiSelf%average(simulationState%get()   ,self%chainMask)
+     currentStateMeanSquared=mpiSelf%average(simulationState%get()**2,self%chainMask)
      currentStateVariance   = (currentStateMeanSquared-currentStateMean**2) &
           &                  *dble(activeChainCount  )                      &
           &                  /dble(activeChainCount-1)
@@ -104,8 +116,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
           &                      )                                             &
           &                  /sqrt(currentStateVariance)
      ! Find the maximum value of the deviation and which chain has this deviation.
-     chainDeviationMaximum=mpiSelf%maxval(chainDeviation,chainMask)
-     chainDeviationIndex  =mpiSelf%maxloc(chainDeviation,chainMask)+1
+     chainDeviationMaximum=mpiSelf%maxval(chainDeviation,self%chainMask)
+     chainDeviationIndex  =mpiSelf%maxloc(chainDeviation,self%chainMask)+1
      ! Evaluate the critical value for outlier rejection.
      tStatisticCriticalValue=                                 &
           &   FGSL_CDF_tDist_Qinv(                            &
@@ -145,8 +157,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
      ! Mask chains with outliers.
      newOutliersFound=.false.
      do i=1,mpiSelf%count()
-        if (hasOutlier(i).and.chainMask(chainDeviationIndex(i))) then
-           chainMask(chainDeviationIndex(i))=.false.
+        if (hasOutlier(i).and.self%chainMask(chainDeviationIndex(i))) then
+           self%chainMask(chainDeviationIndex(i))=.false.
            newOutliersFound                 =.true.
            outlierCount                     =outlierCount    +1
            activeChainCount                 =activeChainCount-1
@@ -159,9 +171,9 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   chainMean    =simulationState%mean    ()
   chainVariance=simulationState%variance()
   ! Get the interchain mean.
-  interchainMean       =mpiSelf%average(chainMean   ,chainMask)
+  interchainMean       =mpiSelf%average(chainMean   ,self%chainMask)
   ! Get the interchain mean squared.
-  interchainMeanSquared=mpiSelf%average(chainMean**2,chainMask)
+  interchainMeanSquared=mpiSelf%average(chainMean**2,self%chainMask)
   ! Get the interchain variance.
   interchainMeanVariance=(                          &
        &                  +interchainMeanSquared    &
@@ -172,19 +184,19 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   ! Compute B from Brooks & Gelman (section 1.2).
   B                     =dble(simulationState%count())*interchainMeanVariance
   ! Compute W from Brooks & Gelman (section 1.2).
-  W                     = mpiSelf%average(chainVariance   ,chainMask)
+  W                     = mpiSelf%average(chainVariance   ,self%chainMask)
   ! Compute variance of chain variances.
-  varianceW             =(                                             &
-       &                  +mpiSelf%average(chainVariance**2,chainMask) &
-       &                  -                            W**2            &
-       &                 )                                             &
-       &                 *dble(activeChainCount  )                     &
+  varianceW             =(                                                  &
+       &                  +mpiSelf%average(chainVariance**2,self%chainMask) &
+       &                  -                            W**2                 &
+       &                 )                                                  &
+       &                 *dble(activeChainCount  )                          &
        &                 /dble(activeChainCount-1)
   ! Find the covariance of chain variances and means.
-  covarianceVarianceMean       = (mpiSelf%average(chainVariance*chainMean   ,chainMask)-W*interchainMean       ) &
+  covarianceVarianceMean       = (mpiSelf%average(chainVariance*chainMean   ,self%chainMask)-W*interchainMean       ) &
        &                        *dble(activeChainCount  )                                                        &
        &                        /dble(activeChainCount-2)
-  covarianceVarianceMeanSquared= (mpiSelf%average(chainVariance*chainMean**2,chainMask)-W*interchainMeanSquared) &
+  covarianceVarianceMeanSquared= (mpiSelf%average(chainVariance*chainMean**2,self%chainMask)-W*interchainMeanSquared) &
        &                        *dble(activeChainCount  )                                                        &
        &                        /dble(activeChainCount-2)
   ! Estimate Vhat and variance in Vhat from Gelman & Rubin (eqn. 4).
@@ -250,10 +262,32 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
        &         )                                    &
        &     )
   ! Compute corrected R-hat statistic.
-  correctedHatR=(degreesOfFreedom+3.0d0)*hatR/(degreesOfFreedom+1.0d0)
+  self%correctedHatR=(degreesOfFreedom+3.0d0)*hatR/(degreesOfFreedom+1.0d0)
   ! Check for convergence.
-  self%converged=all(correctedHatR < self%thresholdHatR)
+  self%converged=all(self%correctedHatR < self%thresholdHatR)
   convergenceGelmanRubinIsConverged=self%converged
+  ! Report.
+  self%estimateCount=self%estimateCount+1
+  if (mpiSelf%isMaster() .and. mod(self%estimateCount,self%reportCount) == 0 .and. .not.self%converged) then
+     write (label,'(f6.2)') minval(self%correctedHatR)
+     message="Gelman-Rubin ̂R min/max="//trim(adjustl(label))//"/"
+     write (label,'(f6.2)') maxval(self%correctedHatR)
+     message=message//trim(adjustl(label))//")"
+     call Galacticus_Display_Message(message)
+     if (activeChainCount < mpiSelf%count()) then
+        message='outlier chains:'
+        label=''
+        do i=1,mpiSelf%count()
+           if (.not.self%chainMask(i)) then
+              message=message//trim(label)//' '//i
+              label=","
+           end if
+        end do
+        call Galacticus_Display_Message(message)
+     else
+        call Galacticus_Display_Message('no outlier chains')
+     end if
+  end if
   return
 end function convergenceGelmanRubinIsConverged
 
@@ -265,3 +299,18 @@ subroutine convergenceGelmanRubinReset(self)
   self%converged=.false.
   return
 end subroutine convergenceGelmanRubinReset
+
+subroutine convergenceGelmanRubinLogReport(self,fileUnit)
+  !% Write a convergence report to the given {\tt fileUnit}.
+  use MPI_Utilities
+  implicit none
+  class    (convergenceGelmanRubin), intent(inout) :: self
+  integer                          , intent(in   ) :: fileUnit
+  character(len=25                )                :: label
+  
+  write (label,'(a,i4.4,a)') '(a,f5.2,',size(self%correctedHatR)-1,'(", ",f5.2))'
+  write (fileUnit,label) 'Gelman-Rubin covergence ̂R: ',self%correctedHatR
+  write (label,'(a,i4.4,a)') '(a,l1,',size(self%correctedHatR)-1,'(", ",l1))'
+  write (fileUnit,label) 'Gelman-Rubin chain mask  : ',self%chainMask
+  return
+end subroutine convergenceGelmanRubinLogReport
