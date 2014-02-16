@@ -90,8 +90,8 @@ contains
     priorConstructorXML%autoDistribution  =  .true.
     return
   end function priorConstructorXML
-
-  subroutine priorDestructor(self)
+  
+  elemental subroutine priorDestructor(self)
     !% Destroy a prior object.
     implicit none
     type(prior), intent(inout) :: self
@@ -119,8 +119,8 @@ contains
     implicit none
     type            (prior), intent(inout), dimension(:) :: priors
     class           (state), intent(inout)               :: priorState
-    integer                                              :: i
     double precision       , allocatable  , dimension(:) :: stateVector
+    integer                                              :: i
 
     stateVector=priorState%get()
     do i=1,size(priors)

@@ -180,7 +180,7 @@ contains
     integer :: iError
     
     call MPI_Barrier(MPI_Comm_World,iError)
-    if (iError /= 0) call Galacticus_Error_Report('mpiInitialize','MPI barrier failed')
+    if (iError /= 0) call Galacticus_Error_Report('mpiBarrier','MPI barrier failed')
     return
   end subroutine mpiBarrier
   
