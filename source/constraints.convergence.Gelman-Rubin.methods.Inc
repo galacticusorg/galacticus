@@ -92,7 +92,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   ! Allocate chain mask and Rhat arrays.
   if (.not.allocated(self%correctedHatR)) then
      call Alloc_Array(self%correctedHatR,[simulationState%dimension()])
-     call Alloc_Array(self%chainMask    ,[simulationState%dimension()])
+     call Alloc_Array(self%chainMask    ,[mpiSelf        %count    ()])
   end if
   ! Find outlier chains using a Grubb's outlier test.
   ! Initialize chain mask to all chains accepted.

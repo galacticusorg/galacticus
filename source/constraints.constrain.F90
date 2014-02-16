@@ -161,13 +161,15 @@ contains
     call simulation%simulate()
     if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('Simulation done' )
     ! Clean up.
-    deallocate(parameterPriors      )
-    deallocate(modelLikelihood      )
-    deallocate(simulationConvergence)
-    deallocate(simulationState      )
-    deallocate(proposalSize         )
-    deallocate(randomJump           )
-    deallocate(simulation           )
+    deallocate(parameterPriors                )
+    deallocate(modelLikelihood                )
+    deallocate(simulationConvergence          )
+    deallocate(simulationState                )
+    deallocate(simulationStateInitializor     )
+    deallocate(proposalSize                   )
+    deallocate(proposalSizeTemperatureExponent)
+    deallocate(randomJump                     )
+    deallocate(simulation                     )
     do i=1,parameterCount
        deallocate(randomDistributions(i)%thisDistribution)
     end do

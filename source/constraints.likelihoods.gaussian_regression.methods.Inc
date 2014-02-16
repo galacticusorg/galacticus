@@ -52,7 +52,9 @@ subroutine likelihoodGaussianRegressionDestructor(self)
   implicit none
   type(likelihoodGaussianRegression), intent(inout) :: self
     
-  deallocate(self%simulatorLikelihood)
+  deallocate(self%simulatorLikelihoodFunction)
+  call FGSL_Matrix_Free     (self%regressionMatrixLU)
+  call FGSL_Permutation_Free(self%permutations      )
   return
 end subroutine likelihoodGaussianRegressionDestructor
 
@@ -239,6 +241,8 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      self%regressionMatrix(1:self%emulatorRebuildCount  ,  self%emulatorRebuildCount+1)=1.0d0
      self%regressionMatrix(  self%emulatorRebuildCount+1,1:self%emulatorRebuildCount  )=1.0d0
      self%regressionMatrix(  self%emulatorRebuildCount+1,  self%emulatorRebuildCount+1)=0.0d0
+     if (FGSL_Well_Defined(self%regressionMatrixLU)) call FGSL_Matrix_Free     (self%regressionMatrixLU)
+     if (FGSL_Well_Defined(self%permutations      )) call FGSL_Permutation_Free(self%permutations      )
      self%regressionMatrixLU=FGSL_Matrix_Init      (type=1.0_FGSL_Double)
      self%permutations      =FGSL_Permutation_Alloc(self%regressionMatrixSize)
      status                 =FGSL_Matrix_Align     (self%regressionMatrix,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixSize,self%regressionMatrixLU)
@@ -430,6 +434,8 @@ subroutine likelihoodGaussianRegressionFitVariogram(self,separations,semiVarianc
      currentMinimum=FGSL_MultiMin_FDFMinimizer_Minimum(minimizer)
   end do
   ! Extract the best fit parameters.
+  call FGSL_Vector_Free(cVector)
+  cVector=FGSL_Vector_Init(type=1.0_FGSL_Double)
   cVector=FGSL_Multimin_FDFMinimizer_x(minimizer   )
   status =FGSL_Vector_Align           (cPtr,cVector)
   self%C0=cPtr(1)*semiVarianceNormalization
