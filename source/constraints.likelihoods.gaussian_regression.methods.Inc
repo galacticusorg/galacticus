@@ -265,6 +265,11 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   end if
   ! Count evaluations.
   self%evaluationCount=self%evaluationCount+1
+  ! If prior probability is impossible, then don't even try to emulate/simulate.
+  if (logPriorProposed <= logImpossible) then
+     likelihoodGaussianRegressionEvaluate=logImpossible
+     return
+  end if
   ! Ensure arrays are allocated.
   if (.not.allocated(self%simulatorLikelihood)) then
      call Alloc_Array(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
