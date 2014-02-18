@@ -58,7 +58,7 @@ sub Failed {
     } else {
 	print $message;
 	print "Log follows:\n";
-	print slurp($job->{'directory'}."/galacticus.log");
+	print read_file($job->{'directory'}."/galacticus.log");
     }
 }
 
