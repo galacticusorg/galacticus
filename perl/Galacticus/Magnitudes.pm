@@ -39,7 +39,9 @@ sub Get_Magnitude {
 	$filter        = $2;
 	my $frame         = $3;
 	my $redshift      = $4;
-	my $dustExtension = $5;
+	my $dustExtension = "";
+	$dustExtension = $5
+	    if ( defined($5) );
 	if ( $6 eq ":vega" ) {
 	    $vegaMagnitude = 1;
 	} else {
