@@ -89,7 +89,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yUpperError = +$y*(10.0**$yUpperError)-$y;
     $yLowerError = -$y/(10.0**$yLowerError)+$y;
 
-    my $zeroPoints = which($y <= 0.0);
+    my $zeroPoints = &PDL::which($y <= 0.0);
     my $yP           = $y          ->copy();
     my $yUpperErrorP = $yUpperError->copy();
     my $yLowerErrorP = $yLowerError->copy();
