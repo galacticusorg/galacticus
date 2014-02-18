@@ -349,7 +349,7 @@ contains
     logical                                                           :: nodeExistsInOutput
     integer                                                           :: iWavenumber
     double precision                                                  :: expansionFactor
-    type            (varying_string    )                              :: groupName
+    type            (varying_string    )                              :: groupName         , dataSetName
     type            (hdf5Object        )                              :: outputGroup       , profilesGroup, treeGroup
 
     ! For any node that passes the filter, we want to ensure that the host halo profile is output.
@@ -370,10 +370,9 @@ contains
     groupName=groupName//treeIndex
     treeGroup=outputGroup%openGroup(char(groupName),"Fourier space density profiles of halos for each tree.")
     ! Check if this halo has already been output.
-    groupName="fourierProfile"
-    groupname=groupName//hostNode%index()
-    nodeExistsInOutput=treeGroup%hasGroup(char(groupName))
-    !$omp end critical (HDF5_Access)
+    dataSetName="fourierProfile"
+    dataSetName=groupName//hostNode%index()
+    nodeExistsInOutput=treeGroup%hasDataset(char(dataSetName))
     if (.not.nodeExistsInOutput) then
        ! Allocate array to store profile.
        call Alloc_Array(fourierProfile,[wavenumberCount])
@@ -387,14 +386,11 @@ contains
           fourierProfile(iWavenumber)=Dark_Matter_Profile_kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
        end do
        ! Write dataset to the group.
-       !$omp critical (HDF5_Access)
-       call treeGroup%writeDataset(fourierProfile,char(groupName),"The Fourier-space density profile.")
-       !$omp end critical (HDF5_Access)
+       call treeGroup%writeDataset(fourierProfile,char(dataSetName),"The Fourier-space density profile.")
        ! Deallocate profile array.
        call Dealloc_Array(fourierProfile)
     end if
     ! Close the profile group.
-    !$omp critical (HDF5_Access)
     call treeGroup    %close()
     call outputGroup  %close()
     call profilesGroup%close()
