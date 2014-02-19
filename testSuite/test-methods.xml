@@ -115,7 +115,7 @@
         <parameter>
 	  <name>darkMatterAccretionHistoryMethod</name>
 	  <value>Wechsler2002</value>
-	  <value>zhao2009</value>
+	  <value>Zhao2009</value>
         </parameter>
       </value>
       <value>build
@@ -369,7 +369,7 @@
       <name>darkMatterProfileConcentrationMethod</name>
       <value>gao2008</value>
       <value>zhao2009</value>
-      <value>Munoz-Cuartas2011</value>
+      <value>munozCuartas2011</value>
       <value>NFW1996</value>
     </parameter>
   </parameters>
