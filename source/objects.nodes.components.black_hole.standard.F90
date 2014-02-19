@@ -1111,7 +1111,7 @@ contains
     thisBasicComponent => thisNode%basic()
 
     ! Open the group to which black hole mergers should be written.
-    !$omp critical (Node_Component_Black_Hole_Standard_Output_Merger)
+    !$omp critical (HDF5_Access)
     mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
     call mergersGroup%writeDataset([massBlackHole1                ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
@@ -1120,7 +1120,7 @@ contains
     call mergersGroup%writeDataset([thisNode%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
     ! Close the group.
     call mergersGroup%close()
-    !$omp end critical (Node_Component_Black_Hole_Standard_Output_Merger)
+    !$omp end critical (HDF5_Access)
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
