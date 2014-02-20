@@ -427,3 +427,37 @@ You can add additional luminosities by simply adding more entries in these param
  </parameter>
 \end{verbatim}
 would result in datasets {\tt diskLuminositiesStellar:SDSS\_r:observed:z0.1000} and {\tt diskLuminositiesStellar:SDSS\_g:rest:z0.3000}. 
+
+\subsection{Postprocessing of Stellar Spectra}
+
+Stellar luminosities are computed by convolving a library of simple stellar populations with the star formation history of each galaxy. \glc\ allows the spectra of those simple stellar populations to be postprocessed (after being read from file or internally generated for example) before they are utilized in the convolution integral. This postprocessing can modify the spectra in arbitrary ways that depend on wavelength, redshift, and age of stellar population. Furthermore, \glc\ allows you to chain together stellar spectra postprocessors into a set to allow multiple postprocessings to be applied. Furthermore again, you can define an arbitrary number of sets and apply different sets to different luminosities.
+
+Typical uses of stellar spectra postprocessors include accounting for absorption of galaxy light by the intervening \gls{igm}, or capturing only the light from recent star formation\footnote{Perhaps so that additional dust extinction can be applied to the light of recently formed stars.}. A full list of the available postprocessors can be found in \S\ref{sec:StellarSpectraPostprocessing}.
+
+If you don't specify a postprocessing set, the ``default'' set (consisting of the {\tt inoue2014} postprocessor; see \S\ref{phys:spectraPostprocessor:spectraPostprocessorInoue2014}) is applied to each luminosity calculation. To specify other postprocessing sets add the following to your parameter file:
+\begin{verbatim}
+ <parameter>
+   <name>luminosityFilter</name>
+   <value>default recent unabsorbded recentUnabsorbed</value>
+ </parameter>
+\end{verbatim}
+where one set must be specified for each luminosity specified in the {\tt luminosityFilter} parameter. Note that set names can be reused in order to apply the same postprocessor set to multiple luminosities.
+
+The chain of postprocessors to apply for each set is then specified as follows:
+\begin{verbatim}
+ <parameter>
+   <name>stellarPopulationSpectraPostprocessRecentMethods</name>
+   <value>inoue2014 recent</value>
+ </parameter>
+ <parameter>
+   <name>stellarPopulationSpectraPostprocessUnabsorbedMethods</name>
+   <value>identity</value>
+ </parameter>
+ <parameter>
+   <name>stellarPopulationSpectraPostprocessRecentUnabsorbedMethods</name>
+   <value>recent</value>
+ </parameter>
+\end{verbatim}
+In this case we've constructed three new sets, in addition to the default set (which applies just the {\tt inoue2014} postprocessor). The {\tt recent} set applies both the {\tt inoue2014} \gls{igm} absorption postprocessor, followed by the {\tt recent} postprocessor to retain only recently emitted light. The {\tt unabsorbed} set ignores \gls{igm} absorption entirely---it does this by using the {\tt identity} postprocessor which leaves the spectrum unaffected. Finally, the {\tt recentUnabsorbed} set applies only the {\tt recent} filter while ignoring \gls{igm} absorption.
+
+In this way it is relatively easy to extract multiple different measures of luminosity from a \glc\ model. For example, you could construct four postprocessor sets, each corresponding to one of the four different \gls{igm} absorption models ({\tt lycSuppress}, {\tt madau1995}, {\tt meiksin2006}, and {\tt inoue2014}) and apply these to the same luminosity filter to assess how luminosity depends on the \gls{igm} model used.

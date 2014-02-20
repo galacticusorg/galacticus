@@ -15,61 +15,73 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements postprocessing of stellar spectra to keep only recent populations.
+  !% An implementation of a spectrum postprocessor that keeps only recent populations.
 
-module Stellar_Population_Spectra_Postprocessing_Recent
-  !% Implements postprocessing of stellar spectra to keep only recent populations.
-  use ISO_Varying_String
-  public :: Stellar_Population_Spectra_Postprocess_Recent_Init
+  !# <spectraPostprocessor name="spectraPostprocessorRecent">
+  !#  <description>Retains only recent stellar populations.</description>
+  !# </spectraPostprocessor>
 
-  ! Record of whether the module is initialized.
-  logical          :: moduleInitialized         =.false.
+  type, extends(spectraPostprocessorClass) :: spectraPostprocessorRecent
+     !% An recent spectrum postprocessor.
+     private
+     double precision :: timeLimit
+   contains
+     procedure :: apply => recentApply
+  end type spectraPostprocessorRecent
 
-  ! Parameters of the model.
-  double precision :: recentPopulationsTimeLimit
+  interface spectraPostprocessorRecent
+     !% Constructors for the recent spectrum postprocessor class.
+     module procedure recentDefaultConstructor
+     module procedure recentGenericConstructor
+  end interface spectraPostprocessorRecent
+
+  logical          :: recentInitialized=.false.
+  double precision :: recentTimeLimit
 
 contains
 
-  !# <stellarPopulationSpectraPostprocessInitialize>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Recent_Init</unitName>
-  !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Recent_Init(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
-    !% Initializes the ``recent'' stellar spectrum postprocessing module.
+  function recentDefaultConstructor()
+    !% Default constructor for the recent spectrum postprocessor class.
     use Input_Parameters
     implicit none
-    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), intent(inout), pointer :: postprocessingFunction
-
-    if (stellarPopulationSpectraPostprocessMethod == 'recent') then
-       postprocessingFunction => Stellar_Population_Spectra_Postprocess_Recent
-
-       if (.not.moduleInitialized) then
-          ! Get parameters of the model.
-          !@ <inputParameter>
-          !@   <name>recentPopulationsTimeLimit</name>
-          !@   <defaultValue>$10^7$ years</defaultValue>
-          !@   <attachedTo>module</attachedTo>
-          !@   <description>
-          !@     The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.
-          !@   </description>
-          !@   <type>real</type>
-          !@   <cardinality>1</cardinality>
-          !@ </inputParameter>
-          call Get_Input_Parameter('recentPopulationsTimeLimit',recentPopulationsTimeLimit,defaultValue=1.0d-2)
-          moduleInitialized=.true.
-       end if
+    type(spectraPostprocessorRecent), target :: recentDefaultConstructor
+    
+    if (.not.recentInitialized) then
+       ! Get parameters of the model.
+       !@ <inputParameter>
+       !@   <name>recentPopulationsTimeLimit</name>
+       !@   <defaultValue>$10^7$ years</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.
+       !@   </description>
+       !@   <type>real</type>
+       !@   <cardinality>1</cardinality>
+       !@ </inputParameter>
+       call Get_Input_Parameter('stellarPopulationSpectraRecentTimeLimit',recentTimeLimit,defaultValue=1.0d-2)
+       recentInitialized=.true.
     end if
+    recentDefaultConstructor=recentGenericConstructor(recentTimeLimit)
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Recent_Init
+  end function recentDefaultConstructor
 
-  subroutine Stellar_Population_Spectra_Postprocess_Recent(wavelength,age,redshift,modifier)
-    !% Apply dust attenuation to galaxy spectra
+  function recentGenericConstructor(timeLimit)
+    !% Generic constructor for the recent spectrum postprocessor class.
     implicit none
-    double precision, intent(in   ) :: age     , redshift, wavelength
-    double precision, intent(inout) :: modifier
+    type            (spectraPostprocessorRecent)                :: recentGenericConstructor
+    double precision                            , intent(in   ) :: timeLimit
 
-    if (age > recentPopulationsTimeLimit) modifier=0.0d0
+    recentGenericConstructor%timeLimit=timeLimit
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Recent
+  end function recentGenericConstructor
 
-end module Stellar_Population_Spectra_Postprocessing_Recent
+  subroutine recentApply(self,wavelength,age,redshift,modifier)
+    !% Perform an recent postprocessing on a spectrum.
+    implicit none
+    class           (spectraPostprocessorRecent), intent(inout) :: self
+    double precision                            , intent(in   ) :: age     , redshift, wavelength
+    double precision                            , intent(inout) :: modifier
+
+    if (age > self%timeLimit) modifier=0.0d0
+    return
+  end subroutine recentApply
