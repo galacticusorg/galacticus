@@ -15,41 +15,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements suppression of the Lyman continuum in galaxy spectra.
+  !% An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
 
-module Stellar_Population_Spectra_Postprocessing_Lyc_Suppress
-  !% Implements suppression of the Lyman continuum in galaxy spectra.
-  use ISO_Varying_String
-  public :: Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize,Stellar_Population_Spectra_Postprocess_Lyc_Suppress
+  !# <spectraPostprocessor name="spectraPostprocessorLycSuppress">
+  !#  <description>Suppress the Lyman continuum in stellar populations.</description>
+  !# </spectraPostprocessor>
 
-  ! Record of whether this method is active.
-  logical :: methodIsActive
+  type, extends(spectraPostprocessorClass) :: spectraPostprocessorLycSuppress
+     !% An lycSuppress spectrum postprocessor.
+     private
+   contains
+     procedure :: apply => lycSuppressApply
+  end type spectraPostprocessorLycSuppress
+
+  interface spectraPostprocessorLycSuppress
+     !% Constructors for the {\tt lycSuppress} spectrum postprocessor class.
+     module procedure lycSuppressDefaultConstructor
+  end interface spectraPostprocessorLycSuppress
 
 contains
 
-  !# <stellarPopulationSpectraPostprocessInitialize>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize</unitName>
-  !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
-    !% Initializes the ``Lyman-continuum suppression'' stellar spectrum postprocessing module.
+  function lycSuppressDefaultConstructor()
+    !% Default constructor for the {\tt lycSuppress} spectrum postprocessor class.
     implicit none
-    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), intent(inout), pointer :: postprocessingFunction
-
-    if (stellarPopulationSpectraPostprocessMethod == 'lymanContinuumSuppress') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Lyc_Suppress
+    type(spectraPostprocessorLycSuppress), target :: lycSuppressDefaultConstructor
+    
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress_Initialize
+  end function lycSuppressDefaultConstructor
 
-  subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress(wavelength,age,redshift,modifier)
-    !% Suppresses all starlight in the Lyman continuum.
+  subroutine lycSuppressApply(self,wavelength,age,redshift,modifier)
+    !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
     implicit none
-    double precision, intent(in   ) :: age     , redshift, wavelength
-    double precision, intent(inout) :: modifier
+    class           (spectraPostprocessorLycSuppress), intent(inout) :: self
+    double precision                                 , intent(in   ) :: age     , redshift, wavelength
+    double precision                                 , intent(inout) :: modifier
 
-    ! Suppress all emission in the Lyman continuum.
-    if (methodIsActive .and. wavelength < ionizationWavelengthHydrogen) modifier=0.0d0
+    if (wavelength < lymanSeriesLimitWavelengthHydrogen) modifier=0.0d0
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Lyc_Suppress
-
-end module Stellar_Population_Spectra_Postprocessing_Lyc_Suppress
+  end subroutine lycSuppressApply

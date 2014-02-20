@@ -4347,46 +4347,6 @@ Currently, the following pre-computed stellar spectra files are available as a s
 \end{description}
 Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\tt [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\tt scripts/ssps} folder. Spectra for other initial mass functions will be computed automatically when using the \cite{conroy_propagation_2009} population synthesis models.
 
-\subsubsection{Stellar Population Spectra Postprocessing}
-
-Additional methods for postprocessing specta of stellar populations can be added using the {\tt stellarPopulationSpectraPostprocessMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt Meiksin2006} method is described by a directive:
-\begin{verbatim}
- !# <stellarPopulationSpectraPostprocessInitialize>
- !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
- !# </stellarPopulationSpectraPostprocessInitialize>
-\end{verbatim}
-Here, {\tt Stellar\_Population\_Spectra\_Postprocess\_Meiksin2006\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
-    implicit none
-    type     (varying_string),          intent(in   ) :: stellarPopulationSpectraPostprocessMethods
-    procedure(              ), pointer, intent(inout) :: postprocessingFunction
-
-    if (stellarPopulationSpectraPostprocessMethod == 'myMethod') postprocessingFunction => myPostprocessor
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\tt myMethod} is the name of this method as will be specified by the {\tt stellarPopulationSpectraPostprocessMethod} input parameter. The procedure pointer {\tt postprocessingFunction} should be set to point to function with the following form:
-\begin{verbatim}
-  subroutine Method_Compute(wavelength,age,redshift,modifier)
-    implicit none
-    double precision, intent(in   ) :: wavelength,age,redshift
-    double precision, intent(inout) :: modifier
-
-    return
-  end subroutine Method_Compute
-\end{verbatim}
-This function must multiply {\tt modifier} by the factor by which stellar spectra will be scaled. The function is given the rest-frame {\tt wavelength} (in \AA), {\tt age} of the population (in Gyr), and the {\tt redshift} of the radiation and should return a multiplicative factor by which the spectrum will be scaled.
-
-Currently defined stellar population postprocessing methods are:
-\begin{description}
-\item [\hyperlink{stellar_populations.spectra.postprocess.Meiksin2006.F90:stellar_population_spectra_postprocessing_meiksin2006}{{\tt Meiksin2006}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
-\item [\hyperlink{stellar_populations.spectra.postprocess.Madau1995.F90:stellar_population_spectra_postprocessing_madau1995}{{\tt Madau1995}}] Postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
-\item [\hyperlink{stellar_populations.spectra.postprocess.Lyman_continuum_suppress.F90:stellar_population_spectra_postprocessing_lyc_suppress}{{\tt lymanContinuumSuppress}}] Suppresses all luminosity in the Lyman continuum.
-\item [\hyperlink{stellar_populations.spectra.postprocess.recent.F90:stellar_population_spectra_postprocessing_recent}{{\tt recent}}] Suppresses all from populations with ages in excess of {\tt [recentPopulationsTimeLimit]}.
-\item [\hyperlink{stellar_populations.spectra.postprocess.identity.F90:stellar_population_spectra_postprocessing_identity}{{\tt identity}}] This is an identity operator, i.e. it leaves the spectrum unchanged.
-\end{description}
-
 \subsubsection{Stellar Feedback}
 
 Additional methods for stellar feedback can be added using the {\tt stellarFeedbackMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\tt standard} method is described by a directive:

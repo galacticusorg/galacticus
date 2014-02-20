@@ -295,10 +295,25 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>stellarPopulationSpectraPostprocessMethod</name>
-      <value>Meiksin2006</value>
-      <value>Madau1995</value>
-      <value>null</value>
+      <name>luminosityFilter</name>
+      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
+    </parameter>
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.1 0.1 0.1</value>
+    </parameter>
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest observed observed observed</value>
+    </parameter>
+    <parameter>
+      <name>stellarPopulationSpectraPostprocessDefaultMethods</name>
+      <value>meiksin2006</value>
+      <value>madau1995</value>
+      <value>inoue2014</value>
+      <value>lycSuppress</value>
+      <value>recent</value>
+      <value>identity</value>
     </parameter>
   </parameters>
   <parameters>
