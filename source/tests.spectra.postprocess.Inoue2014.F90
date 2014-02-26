@@ -20,7 +20,7 @@
 program Test_Inoue2014
   !% Tests the \cite{inoue_updated_2014} algorithm for IGM absorption.
   use Unit_Tests
-  use Stellar_Population_Spectra_Postprocess_NEW
+  use Stellar_Population_Spectra_Postprocess
   use Numerical_Constants_Atomic
   implicit none
   type            (spectraPostprocessorInoue2014)               :: postprocessor
