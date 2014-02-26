@@ -61,7 +61,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
        &                                                                   degreesOfFreedom             , hatR                   , &
        &                                                                   currentStateVariance         , chainDeviation         , &
        &                                                                   chainDeviationMaximum        , currentStateMean       , &
-       &                                                                   currentStateMeanSquared
+       &                                                                   currentStateMeanSquared      , logLikelihoods
   integer                                 , allocatable  , dimension(:) :: chainDeviationIndex
   logical                                 , allocatable  , dimension(:) :: hasOutlier
   logical                                                               :: newOutliersFound
@@ -97,6 +97,8 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   ! Find outlier chains using a Grubb's outlier test.
   ! Initialize chain mask to all chains accepted.
   self%chainMask=.true.
+  ! Find the log likelihoods of all states.
+  logLikelihoods=mpiSelf%gather(logLikelihood)
   ! Find the maximum likelihood over current states.
   logLikelihoodMaximum=mpiSelf%maxval(logLikelihood)
   ! Begin iterative removal of outliers.
@@ -141,22 +143,22 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
           &                     )                            &
           &                   )
      ! Test for outliers using the Grubb's statistic.
-     hasOutlier=                                   &
-          &       chainDeviationMaximum            &
-          &      >                                 &
-          &       grubbsCriticalValue              &
-          &     .and.                              &
-          &       logLikelihood                    &
-          &      <                                 &
-          &        logLikelihoodMaximum            &
-          &       -                                &
+     hasOutlier=                                         &
+          &        chainDeviationMaximum                 &
+          &      >                                       &
+          &        grubbsCriticalValue                   &
+          &     .and.                                    &
+          &        logLikelihoods(chainDeviationIndex+1) &
+          &      <                                       &
+          &        logLikelihoodMaximum                  &
+          &       -                                      &
           &        self%outlierLogLikelihoodOffset
      ! Mask chains with outliers.
      newOutliersFound=any(hasOutlier)
      if (newOutliersFound) then
         deviationMaximum     =0.0d0
         deviationMaximumChain=-1
-        do i=1,mpiSelf%count()
+        do i=1,size(hasOutlier)
            if (hasOutlier(i).and.self%chainMask(chainDeviationIndex(i)).and.chainDeviationMaximum(i) > deviationMaximum) then
               deviationMaximum     =chainDeviationMaximum(i)
               deviationMaximumChain=chainDeviationIndex  (i)
@@ -165,7 +167,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
         self%chainMask(deviationMaximumChain)=.false.
         outlierCount                         =outlierCount    +1
         activeChainCount                     =activeChainCount-1
-      end if
+     end if
      ! Proceed to next iteration.
      call mpiBarrier()
   end do
