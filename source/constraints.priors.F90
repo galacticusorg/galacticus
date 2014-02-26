@@ -46,9 +46,16 @@ module Constraints_Priors
      !@     <arguments>\textcolor{red}{\textless class(state)\textgreater} simulationState\argin</arguments>
      !@     <description>Return the log of the probability density of the prior at the given {\tt simulationState}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>invert</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero p\argin</arguments>
+     !@     <description>Return the value of the random variable corresponding to the given cumulative probability.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
     procedure :: sample     => priorSample
     procedure :: logDensity => priorLogDensity
+    procedure :: invert     => priorInvert
   end type prior
   
   interface prior
@@ -176,5 +183,21 @@ contains
     end do
     return
   end function priorsEvaluateLog
+
+  double precision function priorInvert(self,p)
+    !% Return the value of the prior given the cumulative probability, {\tt p}.
+    use Galacticus_Error
+    implicit none
+    class           (prior), intent(in   )             :: self
+    double precision       , intent(in   ) :: p
+
+    select type (priorDistribution => self%priorDistribution)
+    class is (distribution1D)
+       priorInvert=priorDistribution%inverse(p)
+    class default
+       call Galacticus_Error_Report('priorInvert','unable to invert prior')
+    end select
+    return
+  end function priorInvert
 
 end module Constraints_Priors
