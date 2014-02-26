@@ -54,6 +54,7 @@ module Constraints_State_Initialize
   ! Include all stateInitializor types.
   include 'constraints.state.initialize.prior_random.type.inc'
   include 'constraints.state.initialize.resume.type.inc'
+  include 'constraints.state.initialize.latin_hypercube.type.inc'
 
 contains
 
@@ -65,20 +66,29 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    class(stateInitializor), pointer                    :: newStateInitializor
-    type (node            ), pointer    , intent(in   ) :: definition
-    type (varying_string  ), optional   , intent(in   ) :: configFileName
-    type (node            ), pointer                    :: stateInitializorFileDefinition
-    type (varying_string  )                             :: logFileRoot
+    class (stateInitializor), pointer                    :: newStateInitializor
+    type  (node            ), pointer    , intent(in   ) :: definition
+    type  (varying_string  ), optional   , intent(in   ) :: configFileName
+    type  (node            ), pointer                    :: stateInitializorFileDefinition, stateInitializorTrialCountDefinition
+    type  (varying_string  )                             :: logFileRoot
+    integer                                              :: stateInitializorTrialCount
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
-    case ("priorRandom")
+    case ("priorRandom"  )
        allocate(stateInitializorPriorRandom :: newStateInitializor)
        select type (newStateInitializor)
        type is (stateInitializorPriorRandom)
           newStateInitializor=stateInitializorPriorRandom()
        end select
-    case ("resume"     )
+   case ("latinHypercube")
+       allocate(stateInitializorLatinHypercube :: newStateInitializor)
+       select type (newStateInitializor)
+       type is (stateInitializorLatinHypercube)
+          stateInitializorTrialCountDefinition => XML_Get_First_Element_By_Tag_Name(definition,"maximinTrialCount")
+          call extractDataContent(stateInitializorTrialCountDefinition,stateInitializorTrialCount)
+          newStateInitializor=stateInitializorLatinHypercube(stateInitializorTrialCount)
+       end select
+    case ("resume"       )
        allocate(stateInitializorResume :: newStateInitializor)
        select type (newStateInitializor)
        type is (stateInitializorResume)
@@ -95,5 +105,6 @@ contains
   ! Include all stateInitializor methods.
   include 'constraints.state.initialize.prior_random.methods.inc'
   include 'constraints.state.initialize.resume.methods.inc'
+  include 'constraints.state.initialize.latin_hypercube.methods.inc'
 
 end module Constraints_State_Initialize

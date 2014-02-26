@@ -866,6 +866,10 @@ This type simply draws a random state vector from the prior distributions of the
 
 This type resumes from a previous simulation by setting the chain states to the states at the end of that simulation. The {\tt logFileRoot} element is used to specify the log-file root name used in the previous simulation.
 
+\subsubsection{{\tt latinHypercube}}
+
+This type uses a \gls{latinhypercube} design (in the cumulative probability distribution of each parameter) to assign initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\tt maximinTrialCount} element is used to specify the number of trial hypercubes to construct.
+
 \subsection{{\tt proposalSize}}
 
 The {\tt proposalSize} section specifies the method to use when selecting the proposal size parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain), for use in differential evolution simulations. The proposal size algorithm to use is specified by the {\tt type} element. The available choices are described in the following subsections.
