@@ -762,6 +762,7 @@ The likelihood is computed by running and analyzing a \glc\ model. The details o
   <environment>LD_LIBRARY_PATH=/opt/gcc-trunk/lib:/opt/gcc-trunk/lib64:/usr/local/upstream/lib:$LD_LIBRARY_PATH</environment>
   <environment>PATH=/opt/gcc-trunk/bin:$PATH</environment>
   <environment>GFORTRAN_ERROR_DUMPCORE=NO</environment>
+  <treesPerDecadeMinimum></treesPerDecadeMinimum>
 \end{verbatim}
 
 The entries have the following meanings:
@@ -779,6 +780,14 @@ The entries have the following meanings:
 \item[{\tt environment}] One of more such element can appear. Each specifies the value of an environment variable to be set prior to launching the \glc\ model.
 \item[{\tt storeResults}] If {\tt yes} then the full results (e.g. the quantities computed to compare with observational data) from each model evalulation will be stored. Otherwise, they are discarded after each evalulation. Use {\tt yes} with caution---a typical run might include millions of model evaluations which can quickly lead to huge amounts of data being written to disk.
 \end{description}
+
+When evaluating model likelihood at temperatures above unity, \glc\ will attempt to speed computation by reducing the number of trees simulated. Specifically, it makes use of the facts that the model covariance, $\mathcal{C} \propto N_{\rm tree}^{-1}$, and that the model log-likelihood, $\mathcal{L} \propto \mathcal{C}^{-1}/T$. Therefore, increasing the temperature is equivalent to decreasing the number of trees simulated by the same proportion. \glc\ therefore runs a simulation with a number of trees per decade of halo mass equal to {\tt int([mergerTreeBuildTreesPerDecade]}$/T${\tt )} or the value of the {\tt treesPerDecadeMinimum} element, whichever is smaller. This defines an effective temperature $T^\prime=N_{\rm trees}^\prime/N_{\rm trees}$ where $N_{\rm trees}$ is the original number of trees per decade, and $N_{\rm trees}^\prime$ is the reduced number.
+
+The model likelihood, $\mathcal{L}^\prime$ is then evaluated using this reduced number of trees. The covariance matrix of the data is increased by a factor $T^\prime$ when evaluating the likelihood, as are any additions to the covariance due to model discrepancy. Finally, the likelihood at $T=1$ is computed using:
+\begin{equation}
+\log \mathcal{L} = T^\prime \log \mathcal{L}^\prime + (T^\prime-1)\left[ {N \over 2} \log 2 \pi + {1 \over 2} \log |\mathcal{C}^\prime| \right],
+\end{equation}
+where $N$ is the dimension of the covariance matrix and $\mathcal{C}^\prime$ is the full covariance matrix.
 
 \subsubsection{gaussianRegression}
 
