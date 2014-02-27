@@ -46,10 +46,17 @@ module Constraints_Convergence
      !@     <arguments>\intzero\ fileUnit\argin</arguments>
      !@     <description>Log a report on convergence to the given file unit.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>chainIsOutlier</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\intzero\ chainIndex\argin</arguments>
+     !@     <description>Return true if the specified chain is deemed to be an outlier.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure(convergenceIsConverged), deferred :: isConverged
-     procedure(convergenceReset      ), deferred :: reset
-     procedure(convergenceLogReport  ), deferred :: logReport
+     procedure(convergenceIsConverged   ), deferred :: isConverged
+     procedure(convergenceReset         ), deferred :: reset
+     procedure(convergenceLogReport     ), deferred :: logReport
+     procedure(convergenceChainIsOutlier), deferred :: chainIsOutlier
   end type convergence
 
   ! Interface for deferred functions.
@@ -73,6 +80,13 @@ module Constraints_Convergence
        class  (convergence), intent(inout) :: self
        integer             , intent(in   ) :: fileUnit
      end subroutine convergenceLogReport
+  end interface
+  abstract interface
+     logical function convergenceChainIsOutlier(self,chainIndex)
+       import :: convergence
+       class  (convergence), intent(inout) :: self
+       integer             , intent(in   ) :: chainIndex
+     end function convergenceChainIsOutlier
   end interface
 
   ! Include all convergence types.

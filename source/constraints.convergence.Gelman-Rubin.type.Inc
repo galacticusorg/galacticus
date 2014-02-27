@@ -29,10 +29,11 @@
      double precision, allocatable, dimension(:) :: correctedHatR
      logical         , allocatable, dimension(:) :: chainMask
    contains
-     procedure :: isConverged => convergenceGelmanRubinIsConverged
-     procedure :: reset       => convergenceGelmanRubinReset
-     procedure :: logReport   => convergenceGelmanRubinLogReport
-  end type convergenceGelmanRubin
+     procedure :: isConverged    => convergenceGelmanRubinIsConverged
+     procedure :: reset          => convergenceGelmanRubinReset
+     procedure :: logReport      => convergenceGelmanRubinLogReport
+     procedure :: chainIsOutlier => convergenceGelmanRubinChainIsOutlier
+ end type convergenceGelmanRubin
   
   interface convergenceGelmanRubin
      !% Constructors for the ``GelmanRubin'' convergence class.
