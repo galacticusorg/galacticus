@@ -245,7 +245,7 @@ all: deps $(all_exes)
 	@mkdir -p work/build
 	./scripts/build/Find_Module_Dependencies.pl `pwd`
 
-./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
+./work/build/Makefile_Use_Deps: ./scripts/build/Find_Use_Dependencies.pl ./work/build/Code_Directive_Locations.xml ./work/build/Makefile_Directives ./work/build/Makefile_Include_Deps source/*.[fF]90 source/*.h source/*.c source/*.cpp $(wildcard source/*.Inc)
 	@mkdir -p work/build
 	./scripts/build/Find_Use_Dependencies.pl `pwd` $(MAKE)
 
