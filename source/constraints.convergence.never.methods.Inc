@@ -54,3 +54,13 @@ subroutine convergenceNeverLogReport(self,fileUnit)
   write (fileUnit,*) 'Convergence: unconverged'
   return
 end subroutine convergenceNeverLogReport
+
+logical function convergenceNeverChainIsOutlier(self,chainIndex)
+  !% Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
+  implicit none
+  class  (convergenceNever), intent(inout) :: self
+  integer                  , intent(in   ) :: chainIndex
+
+  convergenceNeverChainIsOutlier=.false.
+  return
+end function convergenceNeverChainIsOutlier

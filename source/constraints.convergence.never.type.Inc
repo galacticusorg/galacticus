@@ -20,9 +20,10 @@
      !% Defines a convergence class that never converges (for testing purposes).
      private
    contains
-     procedure :: isConverged => convergenceNeverIsConverged
-     procedure :: reset       => convergenceNeverReset
-     procedure :: logReport   => convergenceNeverLogReport
+     procedure :: isConverged    => convergenceNeverIsConverged
+     procedure :: reset          => convergenceNeverReset
+     procedure :: logReport      => convergenceNeverLogReport
+     procedure :: chainIsOutlier => convergenceNeverChainIsOutlier
   end type convergenceNever
   
   interface convergenceNever

@@ -19,6 +19,7 @@
 
 function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount)
   !% Constructor for ``GelmanRubin'' convergence class.
+  use Memory_Management
   use MPI_Utilities
   type            (convergenceGelmanRubin)                :: convergenceGelmanRubinConstructor
   double precision                        , intent(in   ) :: thresholdHatR             , outlierSignificance, &
@@ -26,6 +27,7 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   integer                                 , intent(in   ) :: burnCount                 , testCount          , &
        &                                                     outlierCountMaximum       , reportCount
 
+  call Alloc_Array(convergenceGelmanRubinConstructor%chainMask,[mpiSelf%count()])
   convergenceGelmanRubinConstructor%thresholdHatR             =thresholdHatR
   convergenceGelmanRubinConstructor%burnCount                 =burnCount
   convergenceGelmanRubinConstructor%testCount                 =testCount
@@ -36,7 +38,8 @@ function convergenceGelmanRubinConstructor(thresholdHatR,burnCount,testCount,out
   convergenceGelmanRubinConstructor%reportCount               =reportCount
   convergenceGelmanRubinConstructor%estimateCount             =0
   convergenceGelmanRubinConstructor%converged                 =.false.
-  return
+  convergenceGelmanRubinConstructor%chainMask                 =.true.
+ return
 end function convergenceGelmanRubinConstructor
 
 logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikelihood)
@@ -90,10 +93,7 @@ logical function convergenceGelmanRubinIsConverged(self,simulationState,logLikel
   end if
   self%stepCount=0
   ! Allocate chain mask and Rhat arrays.
-  if (.not.allocated(self%correctedHatR)) then
-     call Alloc_Array(self%correctedHatR,[simulationState%dimension()])
-     call Alloc_Array(self%chainMask    ,[mpiSelf        %count    ()])
-  end if
+  if (.not.allocated(self%correctedHatR)) call Alloc_Array(self%correctedHatR,[simulationState%dimension()])
   ! Find outlier chains using a Grubb's outlier test.
   ! Initialize chain mask to all chains accepted.
   self%chainMask=.true.
@@ -318,3 +318,13 @@ subroutine convergenceGelmanRubinLogReport(self,fileUnit)
   write (fileUnit,label) 'Gelman-Rubin chain mask  : ',self%chainMask
   return
 end subroutine convergenceGelmanRubinLogReport
+
+logical function convergenceGelmanRubinChainIsOutlier(self,chainIndex)
+  !% Return true if the specified chain is deemed to be an outlier.
+  implicit none
+  class  (convergenceGelmanRubin), intent(inout) :: self
+  integer                        , intent(in   ) :: chainIndex
+
+  convergenceGelmanRubinChainIsOutlier=.not.self%chainMask(chainIndex+1)
+  return
+end function convergenceGelmanRubinChainIsOutlier
