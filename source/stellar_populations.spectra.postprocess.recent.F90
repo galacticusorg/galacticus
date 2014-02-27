@@ -49,7 +49,7 @@ contains
     if (.not.recentInitialized) then
        ! Get parameters of the model.
        !@ <inputParameter>
-       !@   <name>recentPopulationsTimeLimit</name>
+       !@   <name>stellarPopulationSpectraRecentTimeLimit</name>
        !@   <defaultValue>$10^7$ years</defaultValue>
        !@   <attachedTo>module</attachedTo>
        !@   <description>
