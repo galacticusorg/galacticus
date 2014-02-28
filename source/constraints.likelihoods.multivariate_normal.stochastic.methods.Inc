@@ -35,13 +35,15 @@ function likelihoodMultivariateNormalStochasticConstructor(means,covariance,real
   return
 end function likelihoodMultivariateNormalStochasticConstructor
 
-double precision function likelihoodMultivariateNormalStochasticEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodMultivariateNormalStochasticEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for a multivariate-normal likelihood function.
   use Constraints_State
+  use Constraints_Convergence
   use Numerical_Constants_Math
   implicit none
   class           (likelihoodMultivariateNormalStochastic), intent(inout)               :: self
   class           (state                                 ), intent(in   )               :: simulationState
+  class           (convergence                           ), intent(inout)               :: simulationConvergence
   double precision                                        , intent(in   )               :: temperature          , logLikelihoodCurrent, &
        &                                                                                   logPriorCurrent      , logPriorProposed
   type            (vector                                )                              :: stateVector          , difference             , &

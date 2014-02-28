@@ -219,7 +219,7 @@ subroutine simulatorDifferentialEvolutionPosterior(self,simulationState,logLikel
   double precision                                                :: logPrior
 
   logPrior     =priorsEvaluateLog            (self%parameterPriors,simulationState                                                                 )
-  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
+  logLikelihood=self%modelLikelihood%evaluate(                     simulationState,self%simulationConvergence,self%temperature(),logLikelihoodCurrent,logPriorCurrent,logPrior)
   logPosterior =logPrior+logLikelihood
   return
 end subroutine simulatorDifferentialEvolutionPosterior

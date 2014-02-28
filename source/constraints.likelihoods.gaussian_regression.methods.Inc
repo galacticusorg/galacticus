@@ -17,7 +17,7 @@
 
 !% Defines methods for a Gaussian regression likelihood function.
 
-function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,configFileName)
+function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,configFileName)
   !% Constructor for Gaussian regression likelihood class.
   use FoX_DOM
   implicit none
@@ -27,6 +27,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
        &                                                                     reportCount
   double precision                              , intent(in   )           :: sigmaBuffer                            , logLikelihoodBuffer, &
        &                                                                     logLikelihoodErrorTolerance
+  logical                                       , intent(in   )           :: emulateOutliers
   type            (varying_string              ), intent(in   ), optional :: configFileName
   
   ! Set emulator properties.
@@ -37,6 +38,7 @@ function likelihoodGaussianRegressionConstructor(simulatorLikelihoodDefinition,e
   likelihoodGaussianRegressionConstructor%logLikelihoodBuffer         =  logLikelihoodBuffer
   likelihoodGaussianRegressionConstructor%logLikelihoodErrorTolerance =  logLikelihoodErrorTolerance
   likelihoodGaussianRegressionConstructor%reportCount                 =  reportCount
+  likelihoodGaussianRegressionConstructor%emulateOutliers             =  emulateOutliers
   ! Initialize state and counters.
   likelihoodGaussianRegressionConstructor%initialized                 =  .false.
   likelihoodGaussianRegressionConstructor%accumulatedStateCount       =  0
@@ -58,10 +60,11 @@ subroutine likelihoodGaussianRegressionDestructor(self)
   return
 end subroutine likelihoodGaussianRegressionDestructor
 
-double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodGaussianRegressionEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for a Gaussian regression likelihood function.
   use, intrinsic :: ISO_C_Binding
   use Constraints_State
+  use Constraints_Convergence
   use Memory_Management
   use MPI_Utilities
   use Galacticus_Display
@@ -69,6 +72,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   implicit none
   class           (likelihoodGaussianRegression  ), intent(inout)                   :: self
   class           (state                         ), intent(in   )                   :: simulationState
+  class           (convergence                   ), intent(inout)                   :: simulationConvergence
   double precision                                , intent(in   )                   :: temperature                      , logLikelihoodCurrent, &
        &                                                                               logPriorCurrent                  ,&
        & logPriorProposed
@@ -275,6 +279,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
      call Alloc_Array(self%simulatorLikelihood,[                            self%emulatorRebuildCount])
      call Alloc_Array(self%simulationState    ,[simulationState%dimension(),self%emulatorRebuildCount])
   end if
+  likelihoodIsSimulated=.false.
   if (self%initialized.and..not.self%regressionMatrixIsSingular) then     
      ! Compute vector D.
      stateCurrent=simulationState%get()
@@ -303,11 +308,10 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
         likelihoodGaussianRegressionEvaluate=likelihoodGaussianRegressionEvaluate+likelihoodFit        
      end do
      ! Test likelihood emulation.
-     likelihoodIsSimulated=.false.
      if (mod(self%evaluationCount,self%reportCount) == 0 .and. self%evaluationCount > 0 .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
         ! Every so many steps we evaluate the simulated likelihood and check that our emulator is reliable.
         likelihoodEmulated                  =likelihoodGaussianRegressionEvaluate
-        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+        likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
         likelihoodIsSimulated               =.true.
         ! Count number of emulator checks and the failure rate.
         self%emulatorCheckCount=self%emulatorCheckCount+1
@@ -326,6 +330,8 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
            call Galacticus_Display_Message(message)
         end if
      else
+        ! If simulation is converged, this is an outlier chain, and we're told to emulate such outliers, then return.
+        if (simulationConvergence%isConverged().and.simulationConvergence%chainIsOutlier(mpiSelf%rank()).and.self%emulateOutliers) return
         ! If likelihood is well below current likelihood (and this should be sufficient that changes in priors won't affect the
         ! conclusion), then use the emulated likelihood. We scale the likelihood buffer by the current temperature to reflect the
         ! fact that transitions between states are easier when the temperature is high.
@@ -337,7 +343,7 @@ double precision function likelihoodGaussianRegressionEvaluate(self,simulationSt
   end if
   ! Evaluate the likelihood using the simulator, unless we have already done so.
   self%simulationCount=self%simulationCount+1
-  if (.not.likelihoodIsSimulated) likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+  if (.not.likelihoodIsSimulated) likelihoodGaussianRegressionEvaluate=self%simulatorLikelihoodFunction%evaluate(simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   ! Store the likelihood and state.
   self%accumulatedStateCount                            =self%accumulatedStateCount+1
   self%simulatorLikelihood(  self%accumulatedStateCount)=likelihoodGaussianRegressionEvaluate

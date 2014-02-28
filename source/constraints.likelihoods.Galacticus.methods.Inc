@@ -28,17 +28,19 @@ function likelihoodGalacticusConstructor(configFileName)
   return
 end function likelihoodGalacticusConstructor
 
-double precision function likelihoodGalacticusEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+double precision function likelihoodGalacticusEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
   !% Return the log-likelihood for the \glc\ likelihood function. This function runs an external script that drives \glc\ and
   !% writes the resulting likelihood to file. This function then reads that likelihood from file. We make use of {\tt tmpfs} for
   !% this likelihood file so that no disk I/O is required.
   use Constraints_State
+  use Constraints_Convergence
   use System_Command
   use String_Handling
   use MPI_Utilities
   implicit none
   class           (likelihoodGalacticus), intent(inout)               :: self
   class           (state               ), intent(in   )               :: simulationState
+  class           (convergence         ), intent(inout)               :: simulationConvergence
   double precision                      , intent(in   )               :: temperature    , logLikelihoodCurrent, &
        &                                                                 logPriorCurrent, logPriorProposed
   double precision                      , allocatable  , dimension(:) :: stateVector
