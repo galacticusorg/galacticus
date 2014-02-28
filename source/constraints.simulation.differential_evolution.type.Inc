@@ -23,7 +23,7 @@
           &                                                       stepsPostConvergence , acceptanceAverageCount, &
           &                                                       stateSwapCount
      double precision                                          :: logPosterior
-     logical                                                   :: isConverged
+     logical                                                   :: isConverged          , sampleOutliers
      type            (prior           ), pointer, dimension(:) :: parameterPriors
      type            (distributionList), pointer, dimension(:) :: randomDistributions
      class           (likelihood      ), pointer               :: modelLikelihood

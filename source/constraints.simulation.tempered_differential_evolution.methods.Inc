@@ -20,7 +20,7 @@
 function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
           &,simulationState,simulationStateInitializor,proposalSize,proposalSizeTemperatureExponent,randomJump,stepsMaximum,stepsPostConvergence&
           &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum ,untemperedStepCount,temperingLevelCount&
-          &,stepsPerLevel)
+          &,stepsPerLevel,sampleOutliers)
   !% Constructor for ``temperedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorTemperedDifferentialEvolution)                                      :: simulatorTemperedDifferentialEvolutionConstructor
@@ -39,6 +39,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
        &                                                                                           temperingLevelCount            , stepsPerLevel           , &
        &                                                                                           stateSwapCount
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
+  logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
 
   simulatorTemperedDifferentialEvolutionConstructor%parameterCount                  =  size(parameterPriors)
@@ -60,6 +61,7 @@ function simulatorTemperedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorTemperedDifferentialEvolutionConstructor%untemperedStepCount             =  untemperedStepCount
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelCount             =  temperingLevelCount
   simulatorTemperedDifferentialEvolutionConstructor%stepsPerLevel                   =  stepsPerLevel
+  simulatorTemperedDifferentialEvolutionConstructor%sampleOutliers                  =  sampleOutliers
   simulatorTemperedDifferentialEvolutionConstructor%temperingStep                   =  0
   simulatorTemperedDifferentialEvolutionConstructor%temperingLevelMonotonic         =  0
   allocate(simulatorTemperedDifferentialEvolutionConstructor%temperatures(temperingLevelCount))
