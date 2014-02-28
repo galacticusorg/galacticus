@@ -18,7 +18,7 @@
 !% Defines methods for the ``differentialEvolution'' simulator class.
 
 function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence&
-     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot)
+     &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers)
   !% Constructor for ``differentialEvolution'' simulator class.
   implicit none
   type     (simulatorDifferentialEvolution)                                      :: simulatorDifferentialEvolutionConstructor
@@ -32,6 +32,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   class    (deRandomJump                  ), intent(in   ), target               :: randomJump
   integer                                  , intent(in   )                       :: stepsMaximum,stepsPostConvergence,acceptanceAverageCount,stateSwapCount
   character(len=*                         ), intent(in   )                       :: logFileRoot
+  logical                                  , intent(in   )                       :: sampleOutliers
 
   simulatorDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
   simulatorDifferentialEvolutionConstructor%parameterPriors            => parameterPriors
@@ -47,6 +48,7 @@ function simulatorDifferentialEvolutionConstructor(parameterPriors,randomDistrib
   simulatorDifferentialEvolutionConstructor%acceptanceAverageCount     =  acceptanceAverageCount
   simulatorDifferentialEvolutionConstructor%stateSwapCount             =  stateSwapCount
   simulatorDifferentialEvolutionConstructor%logFileRoot                =  logFileRoot
+  simulatorDifferentialEvolutionConstructor%sampleOutliers             =  sampleOutliers
   return
 end function simulatorDifferentialEvolutionConstructor
 
@@ -98,8 +100,8 @@ subroutine simulatorDifferentialEvolutionSimulate(self)
        &     )                                                                          &
        &   )
      ! Pick two random processes to use for proposal.
-     chainPair(1)=simulatorDifferentialChainSelect(randomNumberGenerator               )
-     chainPair(2)=simulatorDifferentialChainSelect(randomNumberGenerator,[chainPair(1)])
+     chainPair(1)=simulatorDifferentialChainSelect(self,randomNumberGenerator               )
+     chainPair(2)=simulatorDifferentialChainSelect(self,randomNumberGenerator,[chainPair(1)])
      ! Receive states from selected chains.
      stateVector=self%simulationState%get()
      statePair  =mpiSelf%requestData(chainPair,stateVector)
@@ -158,7 +160,6 @@ end subroutine simulatorDifferentialEvolutionSimulate
 
 subroutine simulatorDifferentialEvolutionUpdate(self,stateVector)
   !% Update the differential evolution simulator state.
-use mpi_utilities
   implicit none
   class           (simulatorDifferentialEvolution), intent(inout)                                 :: self
   double precision                                , intent(in   ), dimension(self%parameterCount) :: stateVector
@@ -167,14 +168,15 @@ use mpi_utilities
   return
 end subroutine simulatorDifferentialEvolutionUpdate
 
-integer function simulatorDifferentialChainSelect(randomNumberGenerator,blockedChains)
+integer function simulatorDifferentialChainSelect(self,randomNumberGenerator,blockedChains)
   !% Select a chain at random, optionally excluding blocked chains.
   use Pseudo_Random
   use MPI_Utilities
   implicit none
-  type   (pseudoRandom), intent(inout)                         :: randomNumberGenerator
-  integer              , intent(in   ), dimension(:), optional :: blockedChains
-  logical                                                      :: accept
+  class  (simulatorDifferentialEvolution), intent(inout)                         :: self
+  type   (pseudoRandom                  ), intent(inout)                         :: randomNumberGenerator
+  integer                                , intent(in   ), dimension(:), optional :: blockedChains
+  logical                                                                        :: accept
   
   accept=.false.
   do while (.not.accept)
@@ -187,11 +189,13 @@ integer function simulatorDifferentialChainSelect(randomNumberGenerator,blockedC
           &                    mpiSelf%count()                                &
           &          -1                                                       &
           &         )
-     if (present(blockedChains)) then
-        accept=all(simulatorDifferentialChainSelect /= blockedChains)
-     else
-        accept=.true.
-     end if
+     accept=.true.
+     if (.not.self%sampleOutliers.and.self%isConverged)                                              &
+          & accept=                                                                                  &
+          &              self%simulationConvergence%chainIsOutlier(                  mpiSelf%rank()) &
+          &        .or.                                                                              &
+          &         .not.self%simulationConvergence%chainIsOutlier(simulatorDifferentialChainSelect)
+     if (present(blockedChains)) accept=accept.and.all(simulatorDifferentialChainSelect /= blockedChains)
   end do
   return
 end function simulatorDifferentialChainSelect

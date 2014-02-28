@@ -19,7 +19,7 @@
 
 function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,randomDistributions,modelLikelihood,simulationConvergence &
           &,simulationState,simulationStateInitializor,proposalSize,randomJump,stepsMaximum,stepsPostConvergence&
-          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount)
+          &,acceptanceAverageCount,stateSwapCount,logFileRoot,temperatureMaximum,temperatureLevelCount,sampleOutliers)
   !% Constructor for ``annealedDifferentialEvolution'' simulator class.
   implicit none
   type            (simulatorAnnealedDifferentialEvolution)                                      :: simulatorAnnealedDifferentialEvolutionConstructor
@@ -36,6 +36,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
        &                                                                                           acceptanceAverageCount         , stateSwapCount      , &
        &                                                                                           temperatureLevelCount
   character       (len=*                                 ), intent(in   )                       :: logFileRoot
+  logical                                                 , intent(in   )                       :: sampleOutliers
   integer                                                                                       :: i
 
   simulatorAnnealedDifferentialEvolutionConstructor%parameterCount             =  size(parameterPriors)
@@ -55,6 +56,7 @@ function simulatorAnnealedDifferentialEvolutionConstructor(parameterPriors,rando
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureMaximum         =  temperatureMaximum
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCount      =  temperatureLevelCount
   simulatorAnnealedDifferentialEvolutionConstructor%temperatureLevelCurrent    =  temperatureLevelCount
+  simulatorAnnealedDifferentialEvolutionConstructor%sampleOutliers             =  sampleOutliers
   allocate(simulatorAnnealedDifferentialEvolutionConstructor%temperatures(temperatureLevelCount))
   if (temperatureLevelCount == 1) then
      simulatorAnnealedDifferentialEvolutionConstructor%temperatures(1)=1.0d0
