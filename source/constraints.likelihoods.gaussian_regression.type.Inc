@@ -38,6 +38,7 @@
      double precision                                                :: C0                         , C1                         , &
           &                                                             CR                         , sigmaBuffer                , &
           &                                                             logLikelihoodBuffer        , logLikelihoodErrorTolerance
+     logical                                                         :: emulateOutliers
    contains
      final     ::             likelihoodGaussianRegressionDestructor
      procedure :: evaluate => likelihoodGaussianRegressionEvaluate

@@ -21,6 +21,7 @@ module Constraints_Likelihoods
   !% Implements likelihoods for use when constraining \glc.
   use Linear_Algebra
   use Constraints_State
+  use Constraints_Convergence
   use ISO_Varying_String
   use Pseudo_Random
   use FGSL
@@ -47,12 +48,13 @@ module Constraints_Likelihoods
 
   ! Interface for deferred functions.
   abstract interface
-     double precision function likelihoodEvaluate(self,simulationState,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-       import :: likelihood, state
-       class           (likelihood), intent(inout) :: self
-       class           (state     ), intent(in   ) :: simulationState
-       double precision            , intent(in   ) :: temperature    , logLikelihoodCurrent, &
-            &                                         logPriorCurrent, logPriorProposed
+     double precision function likelihoodEvaluate(self,simulationState,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
+       import :: likelihood, state, convergence
+       class           (likelihood ), intent(inout) :: self
+       class           (state      ), intent(in   ) :: simulationState
+       class           (convergence), intent(inout) :: simulationConvergence
+       double precision             , intent(in   ) :: temperature          , logLikelihoodCurrent, &
+            &                                          logPriorCurrent      , logPriorProposed
      end function likelihoodEvaluate
   end interface
 
@@ -80,7 +82,8 @@ contains
          &                                                           likelihoodRealizationCountMinimumDefinition    , likelihoodDefinition                   , &
          &                                                           likelihoodEmulatorRebuildCountDefinition       , likelihoodPolynomialOrderDefinition    , &
          &                                                           likelihoodSigmaBufferDefinition                , likelihoodLogLikelihoodBufferDefinition, &
-         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition
+         &                                                           likelihoodLogLikelihoodErrorToleranceDefinition, likelihoodReportCountDefinition        , &
+         &                                                           likelihoodEmulateOutliersDefinition
     type            (nodeList      ), pointer                     :: covarianceRows
     double precision                , allocatable, dimension(:  ) :: likelihoodMean
     double precision                , allocatable, dimension(:,:) :: likelihoodCovariance
@@ -90,6 +93,7 @@ contains
          &                                                           likelihoodReportCount
     double precision                                              :: likelihoodSigmaBuffer                          , likelihoodLogLikelihoodBuffer          , &
          &                                                           likelihoodLogLikelihoodErrorTolerance
+    logical                                                       :: likelihoodEmulateOutliers
 
     select case (char(XML_Extract_Text(XML_Get_First_Element_By_Tag_Name(definition,"type"))))
     case ("multivariateNormal")
@@ -150,12 +154,14 @@ contains
           likelihoodLogLikelihoodBufferDefinition         => XML_Get_First_Element_By_Tag_Name(definition,"logLikelihoodBuffer"        )
           likelihoodLogLikelihoodErrorToleranceDefinition => XML_Get_First_Element_By_Tag_Name(definition,"logLikelihoodErrorTolerance")
           likelihoodReportCountDefinition                 => XML_Get_First_Element_By_Tag_Name(definition,"reportCount"                )
+          likelihoodEmulateOutliersDefinition             => XML_Get_First_Element_By_Tag_Name(definition,"emulateOutliers"            )
           call extractDataContent(likelihoodEmulatorRebuildCountDefinition       ,likelihoodEmulatorRebuildCount       )
           call extractDataContent(likelihoodPolynomialOrderDefinition            ,likelihoodPolynomialOrder            )
           call extractDataContent(likelihoodSigmaBufferDefinition                ,likelihoodSigmaBuffer                )
           call extractDataContent(likelihoodLogLikelihoodBufferDefinition        ,likelihoodLogLikelihoodBuffer        )
           call extractDataContent(likelihoodLogLikelihoodErrorToleranceDefinition,likelihoodLogLikelihoodErrorTolerance)
           call extractDataContent(likelihoodReportCountDefinition                ,likelihoodReportCount                )
+          call extractDataContent(likelihoodEmulateOutliersDefinition            ,likelihoodEmulateOutliers            )
           newLikelihood=likelihoodGaussianRegression(                                       &
                &                                     likelihoodDefinition                 , &
                &                                     likelihoodEmulatorRebuildCount       , &
@@ -164,6 +170,7 @@ contains
                &                                     likelihoodLogLikelihoodBuffer        , &
                &                                     likelihoodLogLikelihoodErrorTolerance, &
                &                                     likelihoodReportCount                , &
+               &                                     likelihoodEmulateOutliers            , &
                &                                     configFileName                         &
                &                                    )
        end select
