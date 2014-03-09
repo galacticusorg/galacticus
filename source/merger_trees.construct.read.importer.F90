@@ -75,6 +75,13 @@ module Merger_Tree_Read_Importers
      type            (treeNode      ), pointer      :: node                                           
   end type nodeData
 
+  interface importerUnitConvert
+     !% Unit convertors for \glc\ format tree importer.
+     module procedure importerUnitConvertScalar
+     module procedure importerUnitConvert1D
+     module procedure importerUnitConvert2D
+  end interface importerUnitConvert
+
   !# <include directive="mergerTreeImporter" type="function" >
   !#  <description>Object providing functions for importing merger trees.</description>
   !#  <descriptiveName>Merger Tree Importer</descriptiveName>
@@ -245,4 +252,80 @@ module Merger_Tree_Read_Importers
     return
   end function importerUnitsExponentiate
 
+  function importerUnitConvertScalar(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ) :: values                    , times
+    type            (importerUnits           ), intent(in   ) :: units
+    double precision                          , intent(in   ) :: requiredUnits
+    double precision                                          :: importerUnitConvertScalar
+    class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvertScalar','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
+    end if
+    return
+  end function importerUnitConvertScalar
+  
+  function importerUnitConvert1D(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ), dimension(           :) :: values                    , times
+    type            (importerUnits           ), intent(in   )                          :: units
+    double precision                          , intent(in   )                          :: requiredUnits
+    double precision                                         , dimension(size(values)) :: importerUnitConvert1D
+    class           (cosmologyParametersClass), pointer                                :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
+    integer                                                                            :: i
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert1D','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       do i=1,size(values)
+          importerUnitConvert1D(i)=importerUnitConvert1D(i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+       end do
+    end if
+    return
+  end function importerUnitConvert1D
+  
+  function importerUnitConvert2D(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ), dimension(                 :,                 :) :: values
+    double precision                          , intent(in   ), dimension(                                    :) :: times
+    type            (importerUnits           ), intent(in   )                                                   :: units
+    double precision                          , intent(in   )                                                   :: requiredUnits
+    double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: importerUnitConvert2D
+    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
+    integer                                                                                                     :: i
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert2D','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       do i=1,size(values,dim=2)
+          importerUnitConvert2D(:,i)=importerUnitConvert2D(:,i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+       end do
+    end if
+    return
+  end function importerUnitConvert2D
+  
 end module Merger_Tree_Read_Importers

@@ -82,13 +82,6 @@
      module procedure galacticusDefaultConstructor
   end interface mergerTreeImporterGalacticus
 
-  interface galacticusUnitConvert
-     !% Unit convertors for \glc\ format tree importer.
-     module procedure galacticusUnitConvertScalar
-     module procedure galacticusUnitConvert1D
-     module procedure galacticusUnitConvert2D
-  end interface galacticusUnitConvert
-
   ! Record of implementation initialization state.
   logical            :: galacticusInitialized                     =.false.
 
@@ -494,7 +487,7 @@ contains
        self%length      %isSet=.true.
        self%lengthStatus%isSet=.true.
     end if
-    if (self%lengthStatus%value == booleanTrue) galacticusCubeLength=galacticusUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
+    if (self%lengthStatus%value == booleanTrue) galacticusCubeLength=importerUnitConvert(self%length%value,time,self%lengthUnit,megaParsec)
     if (present(status)) then
        status=self%lengthStatus%value
     else
@@ -581,7 +574,7 @@ contains
     ! Do we have an array of weights for trees?
     if (allocated(self%weights)) then
        ! We do, so simply return the appropriate weight.
-       galacticusTreeWeight=galacticusUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
+       galacticusTreeWeight=importerUnitConvert(self%weights(i),timePresent,self%lengthUnit**(-3),1.0d0/megaParsec**3)
     else
        ! We do not, so attempt to find the volume of the simulation cube.
        lengthSimulationBox=self%cubeLength(timePresent,statusActual)
@@ -718,7 +711,7 @@ contains
        cosmologyFunctionsDefault => cosmologyFunctions()
        select case (self%particleEpochType)
        case (galacticusParticleEpochTypeTime           )
-          time=galacticusUnitConvert(time,time,self%timeUnit,gigaYear)
+          time=importerUnitConvert(time,time,self%timeUnit,gigaYear)
        case (galacticusParticleEpochTypeExpansionFactor)
           do i=1,size(time)
              time(i)=cosmologyFunctionsDefault%cosmicTime(                                                      time(i) )
@@ -729,8 +722,8 @@ contains
           end do
        end select
        ! Convert units of position and velocity into Galacticus internal units.
-       position=galacticusUnitConvert(position,time,self%lengthUnit  ,megaParsec)
-       velocity=galacticusUnitConvert(velocity,time,self%velocityUnit,kilo      )
+       position=importerUnitConvert(position,time,self%lengthUnit  ,megaParsec)
+       velocity=importerUnitConvert(velocity,time,self%velocityUnit,kilo      )
     class default
        call Galacticus_Error_Report('galacticusSubhaloTrace','node should be of type nodeDataGalacticus')
     end select
@@ -831,9 +824,10 @@ contains
     ! Scale or half-mass radius.
     if (present(requireScaleRadii).and.requireScaleRadii) then
        if (self%haloTrees%hasDataset("scaleRadius")) then
+          nodes%halfMassRadius=-1.0d0
           call self%haloTrees%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount)
        else
-          nodes%scaleRadius=-1.0d0
+          nodes%scaleRadius   =-1.0d0
           call self%haloTrees%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount)
        end if
     end if
@@ -942,20 +936,20 @@ contains
     if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for velocity')
     if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Galacticus_Error_Report('galacticusImport','non-positive units for time'    )
     if (.not.timesAreInternal)                                                                                                                                         &
-         & nodes%nodeTime       =galacticusUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
-    nodes       %nodeMass       =galacticusUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
+         & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 )
+    nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar)
     if (present(requireScaleRadii).and.requireScaleRadii) then
-       nodes    %scaleRadius    =galacticusUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
-       nodes    %halfMassRadius =galacticusUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+       nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
+       nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               )
     end if
     if (present(requireVelocityMaxima     ).and.requireVelocityMaxima     )                                                                                                  &
-         &  nodes%velocityMaximum  =galacticusUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+         &  nodes%velocityMaximum  =importerUnitConvert(nodes%velocityMaximum   ,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
     if (present(requireVelocityDispersions).and.requireVelocityDispersions)                                                                                                  &
-         & nodes%velocityDispersion=galacticusUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
+         & nodes%velocityDispersion=importerUnitConvert(nodes%velocityDispersion,nodes%nodeTime,                self%velocityUnit              ,           kilo          )
     if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
-         & nodes%angularMomentum   =galacticusUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+         & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
     if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-       angularmomentum3d=galacticusUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
+       angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar)
        ! Transfer to nodes.
        forall(iNode=1:nodeCount(1))
           nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)
@@ -963,8 +957,8 @@ contains
        call Dealloc_Array(angularMomentum3D)
     end if
     if (present(requirePositions).and.requirePositions) then
-       position=galacticusUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
-       velocity=galacticusUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
+       position=importerUnitConvert(position,nodes%nodeTime,self%  lengthUnit,megaParsec)
+       velocity=importerUnitConvert(velocity,nodes%nodeTime,self%velocityUnit,kilo      )
        ! Transfer to the nodes.  
        forall(iNode=1:self%nodeCounts(i))
           nodes(iNode)%position=position(:,iNode)
@@ -975,81 +969,3 @@ contains
     end if
     return
   end subroutine galacticusImport
-
-  function galacticusUnitConvertScalar(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ) :: values                    , times
-    type            (importerUnits           ), intent(in   ) :: units
-    double precision                          , intent(in   ) :: requiredUnits
-    double precision                                          :: galacticusUnitConvertScalar
-    class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvertScalar','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       galacticusUnitConvertScalar=galacticusUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
-    end if
-    return
-  end function galacticusUnitConvertScalar
-  
-  function galacticusUnitConvert1D(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ), dimension(           :) :: values                    , times
-    type            (importerUnits           ), intent(in   )                          :: units
-    double precision                          , intent(in   )                          :: requiredUnits
-    double precision                                         , dimension(size(values)) :: galacticusUnitConvert1D
-    class           (cosmologyParametersClass), pointer                                :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
-    integer                                                                            :: i
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvert1D','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       do i=1,size(values)
-          galacticusUnitConvert1D(i)=galacticusUnitConvert1D(i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
-       end do
-    end if
-    return
-  end function galacticusUnitConvert1D
-  
-  function galacticusUnitConvert2D(values,times,units,requiredUnits)
-    !% Convert a set of values for \glc\ internal units.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
-    implicit none
-    double precision                          , intent(in   ), dimension(                 :,                 :) :: values
-    double precision                          , intent(in   ), dimension(                                    :) :: times
-    type            (importerUnits           ), intent(in   )                                                   :: units
-    double precision                          , intent(in   )                                                   :: requiredUnits
-    double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: galacticusUnitConvert2D
-    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParametersDefault
-    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
-    integer                                                                                                     :: i
-
-    if (.not.units%status) call Galacticus_Error_Report('galacticusUnitConvert2D','units are not defined')
-    cosmologyParametersDefault => cosmologyParameters()
-    galacticusUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
-    if (units%scaleFactorExponent /= 0) then
-       cosmologyFunctionsDefault => cosmologyFunctions()
-       do i=1,size(values,dim=2)
-          galacticusUnitConvert2D(:,i)=galacticusUnitConvert2D(:,i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
-       end do
-    end if
-    return
-  end function galacticusUnitConvert2D
-  
-  
