@@ -561,6 +561,7 @@ contains
     use Arrays_Search
     use Array_Utilities
     use Numerical_Comparison
+use omp_lib
     implicit none
     type            (mergerTree                    )                             , intent(inout), target :: thisTree                               
     logical                                                                      , intent(in   )         :: skipTree                               
@@ -643,6 +644,7 @@ contains
                &                      requireSpin3D             =(mergerTreeReadPresetSpins3D            .and.defaultImporter%spin3DAvailable          ()), &
                &                      requirePositions          =(mergerTreeReadPresetPositions          .or. mergerTreeReadPresetOrbits                 )  &
                &                     )
+
           ! Snap node times to output times if a tolerance has been specified.
           if (mergerTreeReadOutputTimeSnapTolerance > 0.0d0) then
              ! Loop over all nodes.
@@ -1399,7 +1401,8 @@ contains
     integer                                                                                             :: iNode                                                                 
     integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
     double precision                                                                                    :: radiusScale                                                           
-    logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii           
+    logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii        , &
+         &                                                                                                 useFallbackScaleMethod
     type            (rootFinder                         )           , save                              :: finder                                                                
     !$omp threadprivate(finder)
     class           (darkMatterProfileConcentrationClass), pointer  , save                              :: fallbackConcentration
@@ -1444,15 +1447,18 @@ contains
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= nodeIsUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
+          ! Assume that we need to use a fallback method to set halo scale radius.
+          useFallbackScaleMethod=.true.
           ! Check if the node is sufficiently massive.
           thisBasicComponent             => nodeList(iIsolatedNode)%node%basic            (                 )
-          thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)
+          thisDarkMatterProfileComponent => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)          
           if (thisBasicComponent%mass() >= mergerTreeReadPresetScaleRadiiMinimumMass) then
              ! Check if we have scale radii read directly from file.
-             if (nodes(iNode)%scaleRadius > 0.0d0) then
+             if (nodes(iNode)%scaleRadius         > 0.0d0) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call thisDarkMatterProfileComponent%scaleSet(nodes(iNode)%scaleRadius)
-             else
+                useFallbackScaleMethod=.true.
+             else if (nodes(iNode)%halfMassRadius > 0.0d0) then
                 ! We do not have scale radii read directly. Instead, compute them from half-mass radii.
                 ! Set the active node and target half mass radius.
                 activeNode                       => nodeList(iIsolatedNode)%node
@@ -1477,10 +1483,12 @@ contains
                 if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
                 ! Check for half-mass radii exceeding the virial radius.
                 if (halfMassRadius > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveHalfMassRadii=.true.
+                useFallbackScaleMethod=.true.
              end if
-          else
-             ! The node mass is below the reliability threshold. Set the scale radius using the fallback
-             ! concentration method.
+          end if
+          if (useFallbackScaleMethod) then
+             ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
+             ! the fallback concentration method.
              radiusScale=                                                              &
                   &  Dark_Matter_Halo_Virial_Radius     (nodeList(iIsolatedNode)%node) &
                   & /fallBackConcentration%concentration(nodeList(iIsolatedNode)%node)
