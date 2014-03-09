@@ -5886,9 +5886,9 @@ sub Generate_GSR_Availability_Functions {
 	    $functionCode .= "   requireSettableActual =.false.\n";
 	    $functionCode .= "   requireGettableActual =.false.\n";
 	    $functionCode .= "   requireEvolvableActual=.false.\n";
-	    $functionCode .= "   if (present(requireSettable)) requireSettableActual =requireSettable\n";
-	    $functionCode .= "   if (present(requireSettable)) requireGettableActual =requireGettable\n";
-	    $functionCode .= "   if (present(requireSettable)) requireEvolvableActual=requireEvolvable\n";
+	    $functionCode .= "   if (present(requireSettable )) requireSettableActual =requireSettable\n";
+	    $functionCode .= "   if (present(requireGettable )) requireGettableActual =requireGettable\n";
+	    $functionCode .= "   if (present(requireEvolvable)) requireEvolvableActual=requireEvolvable\n";
 	    # Iterate over component implementations.
 	    foreach my $componentName ( sort(keys(%{$property})) ) {
 		my $component = $property->{$componentName};
