@@ -1399,7 +1399,7 @@ Merger trees are ``constructed\footnote{By ``construct'' we mean any process of 
 
 \subsection{Read From File}
 
-Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads merger tree structures from an HDF5 file specified by the {\tt mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads merger tree structures from file by the designated importer (see \S\ref{sec:MergerTreeImporters}).
 
 \subsection{Build}
 
@@ -1590,6 +1590,66 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
  \item [{\tt mergerTreeBuildCole2000MassResolution}] The minimum halo mass (in $M_\odot$) that the algorithm will follow. Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
  \item [{\tt mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
 \end{description}
+
+\section{Merger Tree Importing}\label{sec:MergerTreeImporters}\index{merger trees!importing}
+
+When merger trees are to be read from file, a number of different file formats are supported. An ``importer'' class is used to read these files and place the contents into internal data structures that \glc\ can then manipulate. The importer class to use is specifide by the {\tt [mergerTreeImporterMethod]} parameter.
+
+\subsection{Galacticus}\label{phys:mergerTreeImporter:mergerTreeImporterGalacticus}
+
+Selected with {\tt mergerTreeImporterMethod}$=${\tt galacticus}, this method reads merger tree structures from an HDF5 file specified by the {\tt mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+
+\subsection{Sussing Merger Trees}\label{phys:mergerTreeImporter:mergerTreeImporterSussing}
+
+Selected with {\tt mergerTreeImporterMethod}$=${\tt sussing}, this method reads merger tree structures from files following the format designed for the ``Sussing Merger Trees'' workshop \citep{srisawat_sussing_2013}, along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the {\tt [mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
+\begin{verbatim}
+simulation.txt
+MergerTree+AHF.txt
+snapidzred.txt
+AHF/62.5_dm_000.z50.000.AHF_halos
+AHF/62.5_dm_001.z30.000.AHF_halos
+AHF/62.5_dm_002.z19.916.AHF_halos
+.
+.
+.
+AHF/62.5_dm_061.z0.000.AHF_halos
+\end{verbatim}
+in which each line specifies a file to be read (by default path names are relative to the location of the descriptor file---fully-qualified path names can also be given).
+
+The first line identifies a file which specifies properties of the simulation. This file should look like:
+\begin{verbatim}
+WMAP7 cosmology:
+----------------
+Omega0          =       0.272
+OmegaLambda0    =       0.728
+h               =       0.704
+
+simulation:
+-----------
+B               =       62.5 Mpc/h
+N               =       270^3 particles
+\end{verbatim}
+Currently only the cosmological parameter and box length are read from this file.
+
+The second line identifies the merger tree file which must be in the format specified by \cite{srisawat_sussing_2013}.
+
+The third line of the descriptor file specifies a snapshot file which should have the following format:
+\begin{verbatim}
+#    snapnum       a             z           t(t0)      t(year)
+           0    0.0196080      49.9996   0.00354284  4.87485e+07
+           1    0.0322580      30.0001   0.00747572  1.02864e+08
+           2    0.0478110      19.9157    0.0134888  1.85602e+08
+           3    0.0519650      18.2437    0.0152842  2.10306e+08
+           4    0.0564190      16.7245    0.0172905  2.37912e+08
+           5    0.0611880      15.3431    0.0195280  2.68700e+08
+           6    0.0662870      14.0859    0.0220186  3.02969e+08
+             .
+             .
+             .
+\end{verbatim}
+This file must contain one line for each snapshot of the simulation, giving the snapshot number, expansion factor, redshift, fractional time (relative to present day), and age of the universe (in years).
+
+Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can be listed in any order).
 
 \section{Merger Tree Pre-evolution Processing}
 
