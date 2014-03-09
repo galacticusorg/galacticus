@@ -44,8 +44,9 @@ module Numerical_Constants_Astronomical
   double precision, parameter :: metallicityPrimordial   =5.36d-10
   double precision, parameter :: meanAtomicMassPrimordial=1.0d0/(2.0d0*hydrogenByMassPrimordial/atomicMassHydrogen+3.0d0*heliumByMassPrimordial/atomicMassHelium)
 
-  ! Megaparsec (in m).
+  ! Parsec and related quantities (in m).
   double precision, parameter :: parsec                  =FGSL_CONST_MKSA_PARSEC
+  double precision, parameter :: kiloParsec              =kilo*parsec
   double precision, parameter :: megaParsec              =mega*parsec
 
   ! Years and related quantities (in s).
