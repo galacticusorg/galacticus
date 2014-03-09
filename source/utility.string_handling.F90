@@ -24,7 +24,7 @@ module String_Handling
   private
   public :: operator(//), String_Split_Words, String_Count_Words, String_Upper_Case, String_Lower_Case, String_Upper_Case_First,&
        & Convert_VarString_To_Char, String_C_to_Fortran, String_Subscript, String_Superscript, String_Levenshtein_Distance,&
-       & String_Join
+       & String_Join, String_Strip
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -37,7 +37,7 @@ module String_Handling
   end interface
 
   ! Maximum length of string needed to hold integer values.
-  integer, parameter :: maxIntegerSize=20
+  integer         , parameter :: maxIntegerSize=20
   character(len=5), parameter :: maxIntegerFormat='(i20)'
 
   ! Character strings used in converting upper to lower case and vice-versa.
@@ -372,5 +372,33 @@ contains
     end do
     return
   end function String_Join
+
+  function String_Strip(string)
+    !% Strips a string of leading and trailing whitespace, including tabs.
+    implicit none
+    type     (varying_string)                :: String_Strip
+    character(len=*         ), intent(in   ) :: string
+    integer                                  :: iBegin      , iEnd
+
+    ! Remove leading whitespace.
+    String_Strip=""
+    iBegin=1
+    do while (index(charactersWhiteSpace,string(iBegin:iBegin)) /= 0)
+       iBegin=iBegin+1
+       if (iBegin > len(string)) return
+    end do
+    if (iBegin == len(string)) then
+       String_Strip=string(iBegin:iBegin)
+       return
+    end if
+    ! Remove trailing whitespace.
+    iEnd=len(string)
+    do while (index(charactersWhiteSpace,string(iEnd:iEnd)) /= 0)
+       iEnd=iEnd-1
+       if (iEnd == iBegin) exit
+    end do
+    String_Strip=string(iBegin:iEnd)
+    return
+  end function String_Strip
 
 end module String_Handling
