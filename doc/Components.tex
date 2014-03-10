@@ -1016,6 +1016,44 @@ The number of recent mergers do not evolve.
 
 \noindent\emph{Node promotion:} N/A.\\
 
+\section{Age Statistics}
+
+This \gls{component} records statistics associated with galaxy or halo age.
+
+\subsection{``Standard'' Implementation}
+
+\subsubsection{Properties}
+
+The standard age statistics implementation defines the following properties:
+\begin{description}
+ \item [{\tt (disk|spheroid)TimeWeightedIntegratedSFR}] A time-weighted integral over the star formation rate of the specified component [{\tt ageStatistics(Disk|Spheroid)TimeWeightedIntegratedSFR}];
+ \item [{\tt (disk|spheroid)IntegratedSFR}] A unweighted integral over the star formation rate of the specified component [{\tt ageStatistics(Disk|Spheroid)IntegratedSFR}];
+\end{description}
+
+\subsubsection{Initialization}
+
+The integrals are all initialized to zero.
+
+\subsubsection{Differential Evolution}
+
+The time-weighted integrals evolve as:
+\begin{equation}
+{{\rm d}({M\tau})_\star\over{\rm d}t} = t \phi(t),
+\end{equation}
+where $t$ is cosmic time and $\phi(t)$ is the star formation rate in the component. The unweighted integrals evolve as:
+\begin{equation}
+{{\rm d}{M}_\star\over{\rm d}t} = \phi(t).
+\end{equation}
+The mean cosmic time of formation for the stars in either component can be found by taking the ratio of time-weighted to unweighted integrals. The mean age can then be found by subtracting the mean cosmic time of formation from the present time.
+
+\subsubsection{Event Evolution}
+
+\noindent\emph{Node mergers:} N/A.\\
+
+\noindent\emph{Satellite merging:} The values of the integrals are removed from the merging galaxy and transferred to the appropriate component of the target galaxy. Additionally, in a major merger, the values of the integral are transferred between components in the target galaxy as dictated by the merging rules.\\
+
+\noindent\emph{Node promotion:} N/A.\\
+
 \section{Formation Times}\label{sec:ComponentFormationTimes}
 
 This \gls{component} implements ``formation times'' of dark matter halos.
