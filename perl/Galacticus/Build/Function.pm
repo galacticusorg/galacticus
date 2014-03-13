@@ -21,6 +21,7 @@ use Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Dependencies;
 require Fortran::Utils;
+require List::ExtraUtils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -182,6 +183,16 @@ sub Functions_Generate_Output {
     # Generate the function object.
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
+    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+	if ( reftype($_) ) {
+	    $_->{'scope'} = "self"
+		unless ( exists($_->{'scope'}) );
+	    $buildData->{'content'} .= $_->{'content'}."\n"
+	        if (  $_->{'scope'} eq "self" );
+	} else {
+	    $buildData->{'content'} .= $_."\n";
+	}
+    }
     $buildData->{'content'} .= "    contains\n";
     $buildData->{'content'} .= "    !@ <objectMethods>\n";
     $buildData->{'content'} .= "    !@   <object>".$directive."Class</object>\n";
@@ -329,6 +340,18 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "   type :: ".$directive."Wrapper\n";
 	$buildData->{'content'} .= "     class(".$directive."Class), pointer :: wrappedObject\n";
 	$buildData->{'content'} .= "   end type ".$directive."Wrapper\n\n";
+    }
+
+    # Insert any module-scope class content.
+    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+	if ( reftype($_) ) {
+	    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
+		$buildData->{'content'} .= $_->{'content'}."\n";
+		if ( exists($_->{'threadprivate'}) && $_->{'threadprivate'} eq "yes" && $_->{'content'} =~ m/::\s*(.*)$/ ) {
+		    $buildData->{'content'} .= "   !\$omp threadprivate(".$1.")\n";
+		}
+	    }
+	}
     }
 
     # Insert "contains" separator.
@@ -736,12 +759,17 @@ sub Functions_Generate_Output {
     $documentation   .= "!# <description>A short description of the implementation.</description>\n";
     $documentation   .= "!# </".$directive.">\n";
     $documentation   .= "\\end{verbatim}\n";
-    $documentation   .= "where {\\tt MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\tt module} and final {\\tt end module} lines. That is, it may contain {\\tt use} statements and variable declarations prior to the {\\tt contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\tt ".$directive."MyImplementation}. The file \\emph{must} define a type that extends the {\\tt ".$directive."Class} class (or extends another type which is itself an extension of the {\\tt ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
+    $documentation   .= "where {\\tt MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\tt module} and final {\\tt end module} lines. That is, it may contain {\\tt use} statements and variable declarations prior to the {\\tt contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\tt ".&LaTeX_Breakable($directive."MyImplementation")."}. The file \\emph{must} define a type that extends the {\\tt ".$directive."Class} class (or extends another type which is itself an extension of the {\\tt ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
     $documentation   .= "\\begin{description}\n";
     # Create functions.
     foreach my $method ( @methods ) {
-	$documentation   .= "\\item[{\\tt ".$method->{'name'}."}] ".$method->{'description'}." Must have the following interface:\n";
-	$documentation   .= "\\begin{verbatim}\n";
+	$documentation   .= "\\item[{\\tt ".$method->{'name'}."}] ".$method->{'description'};
+	if ( exists($method->{'code'}) ) {
+	    $documentation .= " A default implementation exists. If overridden the following interface must be used:\n";
+	} else {
+	    $documentation .= " Must have the following interface:\n";
+	}
+	$documentation   .= "\\begin{lstlisting}[language=Fortran,basicstyle=\\small\\ttfamily,escapechar=@,breaklines,prebreak=\\&,postbreak=\\&\\space\\space,columns=flexible,keepspaces=true,breakautoindent=true,breakindent=10pt]\n";
 	# Insert arguments.
 	my @arguments;
 	if ( exists($method->{'argument'}) ) {
@@ -761,7 +789,7 @@ sub Functions_Generate_Output {
 		my $type          = $2;
 		my $attributeList = $3;
 		my $variableList  = $4;
-		my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1);
+		my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
 		my $declaration =
 		{
 		    intrinsic  => $intrinsic,
@@ -795,16 +823,15 @@ sub Functions_Generate_Output {
 	    $category = "function";
 	    $type     = $method->{'type'}." ";
 	}
-	$documentation .= "   ".$type.$category." myImplementation".ucfirst($method->{'name'})."(self";
-	$documentation .= ",".$argumentList
+	$documentation .= "   ".$type.$category." myImplementation".ucfirst($method->{'name'})."(";
+	$documentation .= $argumentList
 	    unless ( $argumentList eq "" );
 	$documentation .= ")\n";
 	$documentation .= &Fortran_Utils::Format_Variable_Defintions(\@argumentDefinitions);
 	$documentation .= "   end ".$type.$category." myImplementation".ucfirst($method->{'name'})."\n";
-	$documentation .= "\\end{verbatim}\n\n";
+	$documentation .= "\\end{lstlisting}\n\n";
     }
     $documentation   .= "\\end{description}\n\n";
-
 
     $documentation   .= "Existing implementations are:\n";
     $documentation   .= "\\begin{description}\n";
@@ -862,6 +889,12 @@ sub Functions_Modules_Generate_Output {
     # Generate the code.
     $buildData->{'content'} .= "use ".$_
 	foreach ( sort(keys(%modules)) );
+}
+
+sub LaTeX_Breakable {
+    my $text = shift;
+    $text =~ s/([a-z])([A-Z])/$1\\-$2/g;
+    return $text;
 }
 
 1;

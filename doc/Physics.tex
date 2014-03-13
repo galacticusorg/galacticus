@@ -1363,23 +1363,61 @@ The {\tt Scalo} \gls{imf} is defined by \citep{scalo_stellar_1986}:
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-
-
-
-
-
-
 \section{Intergalactic Medium State}\label{sec:IntergalacticMediumStateMethod}\index{intergalactic medium}
 
 The thermal and ionization state of the intergalactic medium is implemented by the algorithm selected using the {\tt intergalaticMediumStateMethod} parameter.
 
-\subsection{{\sc RecFast}}
+\subsection{Simple}\label{phys:intergalacticMediumState:intergalacticMediumStateSimple}
+
+Selected using {\tt intergalaticMediumStateMethod}$=${\tt simple}, this method provides a simple model of reionization in which the universe is assumed to be fully neutral prior to the redshift given by {\tt [igmStateSimpleReionizationRedshift]} and fully ionized thereafter. The temperature is given by {\tt [igmStateSimplePreReionizationTemperature]} before reionization, and {\tt [igmStateSimpleReionizationTemperature]} thereafter.
+
+\subsection{{\sc RecFast}}\label{phys:intergalacticMediumState:intergalacticMediumStateRecFast}
 
 Selected using {\tt intergalaticMediumStateMethod}$=${\tt RecFast}, this method computes the state of the intergalactic medium using the \href{http://www.astro.ubc.ca/people/scott/recfast.html}{{\sc RecFast}} code \cite{seager_how_2000,wong_how_2008}. The {\sc RecFast} code will be downloaded and run to compute the intergalactic medium state as needed, which will then be stored for future use.
 
-\subsection{File}
+\subsection{File}\label{phys:intergalacticMediumState:intergalacticMediumStateFile}
 
-Selected using {\tt intergalaticMediumStateMethod}$=${\tt file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The format of the file is specified in \S\ref{sec:IntergalacticMediumStateMethods}.
+Selected using {\tt intergalaticMediumStateMethod}$=${\tt file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The XML file containing the table should have the following form:
+ \begin{verbatim}
+<igm>
+  <electronFraction>
+    <datum>1.1590278</datum>
+    <datum>1.1590278</datum>
+    .
+    .
+    .
+  </electronFraction>
+  <hIonizedFraction>
+    <datum>1.0000000</datum>
+    <datum>1.0000000</datum>
+    .
+    .
+    .
+  </hIonizedFraction>
+  <heIonizedFraction>
+    <datum>1.0000000</datum>
+    <datum>1.0000000</datum>
+    .
+    .
+    .
+  </heIonizedFraction>
+  <matterTemperature>
+    <datum>27230.271</datum>
+    <datum>27203.016</datum>
+    .
+    .
+    .
+  </matterTemperature>
+  <redshift>
+    <datum>9990.00</datum>
+    <datum>9980.00</datum>
+    .
+    .
+    .
+  </redshift>
+</igm>
+ \end{verbatim}
+ The {\tt electronFraction}, {\tt hIonizedFraction}, {\tt heIonizedFraction}, and {\tt matterTemperature} elements should contain {\tt datum} elements listing the relevaqnt quantity for each redshift listed in the {\tt redshift} element.
 
 \section{Chemical State}\label{sec:ChemicalStateMethod}\index{chemical state}
 
