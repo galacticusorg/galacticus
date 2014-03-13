@@ -185,7 +185,7 @@ contains
     if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
        if (present(status)) then
           metallicity=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
-          status=errorStatusOutOfRange
+          status=errorStatusInputDomain
        else
           write (metallicityLabel,'(f12.6)') metallicity
           message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['

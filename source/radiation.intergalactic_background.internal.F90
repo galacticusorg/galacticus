@@ -459,7 +459,7 @@ contains
     if     (                                                                             &
          &   status /= errorStatusSuccess                                                &
          &  .and.                                                                        &
-         &   status /= errorStatusOutOfRange                                             &
+         &   status /= errorStatusInputDomain                                            &
          & ) call Galacticus_Error_Report(                                               &
          &                                'stellarSpectraConvolution'                  , &
          &                                'stellar population spectrum function failed'  &
