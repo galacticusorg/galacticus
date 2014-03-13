@@ -1398,7 +1398,7 @@ use omp_lib
     logical                                                         , save                              :: excessiveScaleRadiiReported              =.false.                                
     class           (nodeComponentBasic                 ), pointer                                      :: thisBasicComponent                                                    
     class           (nodeComponentDarkMatterProfile     ), pointer                                      :: thisDarkMatterProfileComponent                                        
-    integer                                                                                             :: iNode                                                                 
+    integer                                                                                             :: iNode                                            , status
     integer         (kind=kind_int8                     )                                               :: iIsolatedNode                                                         
     double precision                                                                                    :: radiusScale                                                           
     logical                                                                                             :: excessiveHalfMassRadii                           , excessiveScaleRadii        , &
@@ -1407,7 +1407,8 @@ use omp_lib
     !$omp threadprivate(finder)
     class           (darkMatterProfileConcentrationClass), pointer  , save                              :: fallbackConcentration
     logical                                                         , save                              :: functionInitialized                      =.false.                             
-    type            (varying_string                     )                                               :: mergerTreeReadConcentrationFallbackMethod                                 
+    type            (varying_string                     )                                               :: mergerTreeReadConcentrationFallbackMethod        , message
+    character       (len=16                             )                                               :: label
 
     ! Initialize if necessary.
     if (.not.functionInitialized) then
@@ -1465,8 +1466,6 @@ use omp_lib
                 activeDarkMatterProfileComponent => activeNode%darkMatterProfile()
                 activeBasicComponent             => activeNode%basic            ()
                 halfMassRadius                   =  nodes(iNode)%halfMassRadius
-                ! Validate the half mass radius.
-                if (halfMassRadius <= 0.0d0) call Galacticus_Error_Report('Assign_Scale_Radii','half mass radius must be positive')
                 ! Solve for the scale radius.
                 call finder%rangeExpand    (                                                                           &
                      &                      rangeExpandDownward          =0.5d0                                      , &
@@ -1477,7 +1476,24 @@ use omp_lib
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative              , &
                      &                      rangeExpandType              =rangeExpandMultiplicative                    &
                      &                     )
-                radiusScale=finder%find(rootGuess=halfMassRadius)
+                radiusScale=finder%find(rootGuess=halfMassRadius,status=status)
+                if (status /= errorStatusSuccess) then
+                   call Galacticus_Display_Indent  ("failed to find scale radius consistent with specified half-mass radius")
+                   write (label,'(i16)') activeNode%hostTree%index
+                   message="      tree index: "//trim(label)
+                   call Galacticus_Display_Message(message)
+                    write (label,'(i16)') activeNode%index()
+                   message="      node index: "//trim(label)
+                   call Galacticus_Display_Message(message)
+                   write (label,'(e12.6)') Dark_Matter_Halo_Virial_Radius(activeNode)
+                   message="   virial radius: "//trim(label)
+                   call Galacticus_Display_Message(message)
+                   write (label,'(e12.6)') halfMassRadius
+                   message="half-mass radius: "//trim(label)
+                   call Galacticus_Display_Message(message)
+                   call Galacticus_Display_Unindent("")
+                   call Galacticus_Error_Report('Assign_Scale_Radii','aborting')
+                end if
                 call thisDarkMatterProfileComponent%scaleSet(radiusScale)
                 ! Check for scale radii exceeding the virial radius.
                 if (radiusScale    > Dark_Matter_Halo_Virial_Radius(activeNode)) excessiveScaleRadii   =.true.
