@@ -349,6 +349,11 @@ contains
              ! Move to the next tree.
              currentTree => currentTree%nextTree
           end do treesLoop
+
+          ! Perform any tree events.
+          call Perform_Tree_Events(thisTree,deadlockStatus)
+          
+          ! Check deadlocking.
           if (didEvolve .and. deadlockStatus /= isNotDeadlocked) then
              if (deadlockStatus == isReporting) then
                 call Galacticus_Display_Unindent("report done")
@@ -394,6 +399,7 @@ contains
          &                                                                               siblingBasicComponent        , thisBasicComponent
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatelliteComponent
     type            (nodeEvent                    )                         , pointer :: thisEvent
+    type            (treeEvent                    )                         , pointer :: thisTreeEvent
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctionsDefault
     double precision                                                                  :: expansionFactor              , expansionTimescale     , &
          &                                                                               hostTimeLimit                , time
@@ -536,7 +542,7 @@ contains
     End_Of_Timestep_Task => End_Of_Timestep_Task_Internal
     if (report) call Galacticus_Display_Unindent("done")
 
-    ! Also ensure that the timestep doesn't exceed any event attached to the node
+    ! Also ensure that the timestep doesn't exceed any event attached to the node.
     thisEvent => thisNode%event
     do while (associated(thisEvent))
        if (max(thisEvent%time,time) <= Evolve_To_Time) then
@@ -554,6 +560,25 @@ contains
           call Evolve_To_Time_Report(char(message),Evolve_To_Time,thisEvent%node%index())
        end if
        thisEvent => thisEvent%next
+    end do
+
+    ! Also ensure that the timestep doesn't exceed any event attached to the tree.
+    thisTreeEvent => thisNode%hostTree%event
+    do while (associated(thisTreeEvent))
+       if (max(thisTreeEvent%time,time) <= Evolve_To_Time) then
+          if (present(lockNode)) lockNode => thisNode%hostTree%baseNode
+          if (present(lockType)) then
+             lockType =  "tree event ("
+             lockType=lockType//thisTreeEvent%ID//")"
+          end if
+          Evolve_To_Time=max(thisTreeEvent%time,time)
+       end if
+       if (report) then
+          message="tree event ("
+          message=message//thisTreeEvent%ID//"): "
+          call Evolve_To_Time_Report(char(message),Evolve_To_Time,thisNode%hostTree%baseNode%index())
+       end if
+       thisTreeEvent => thisTreeEvent%next
     end do
 
     ! Check that end time exceeds current time.
@@ -751,5 +776,48 @@ contains
     end do
     return
   end subroutine Perform_Node_Events
+
+  subroutine Perform_Tree_Events(thisTree,deadlockStatus)
+    !% Perform any events associated with {\tt thisNode}.
+    implicit none
+    type            (mergerTree        ), intent(inout), target  :: thisTree
+    integer                             , intent(inout)          :: deadlockStatus
+    type            (treeEvent         )               , pointer :: lastEvent              , nextEvent, thisEvent
+    double precision                                             :: treeTimeEarliest
+    logical                                                      :: taskDone
+
+    ! Find the earliest time in the tree.
+    treeTimeEarliest=thisTree%earliestTime()
+    ! Get the first event.
+    thisEvent => thisTree%event
+    lastEvent => thisTree%event
+    ! Iterate over all events.
+    do while (associated(thisEvent))
+       ! Process the event if it occurs at the present time.
+       if (thisEvent%time <= treeTimeEarliest .and. associated(thisEvent%task)) then
+          taskDone=thisEvent%task(thisTree,deadlockStatus)
+          ! Move to the next event.
+          if (taskDone) then
+             ! The task was performed successfully, so remove it and move to the next event.
+             if (associated(thisEvent,thisTree%event)) then
+                thisTree%event => thisEvent%next
+                lastEvent      => thisTree %event
+             else
+                lastEvent%next => thisEvent%next
+             end if
+             nextEvent => thisEvent%next
+             if (taskDone) deallocate(thisEvent)
+             thisEvent => nextEvent
+          else
+             ! The task was not performed, so simply move to the next event.
+             thisEvent => thisEvent%next
+          end if
+       else
+          lastEvent => thisEvent
+          thisEvent => thisEvent%next
+       end if
+    end do
+    return
+  end subroutine Perform_Tree_Events
 
 end module Merger_Trees_Evolve
