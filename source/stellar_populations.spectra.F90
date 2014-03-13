@@ -37,11 +37,12 @@ module Stellar_Population_Spectra
   ! Pointer to the function that actually does the calculation.
   procedure(Stellar_Population_Spectrum_Get_Template), pointer :: Stellar_Population_Spectrum_Get    =>null()
   abstract interface
-     double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex)
+     double precision function Stellar_Population_Spectrum_Get_Template(abundancesStellar,age,wavelength,imfIndex,status)
        import abundances
-       type            (abundances), intent(in   ) :: abundancesStellar
-       double precision            , intent(in   ) :: age              , wavelength
-       integer                     , intent(in   ) :: imfIndex
+       type            (abundances), intent(in   )           :: abundancesStellar
+       double precision            , intent(in   )           :: age              , wavelength
+       integer                     , intent(in   )           :: imfIndex
+       integer                     , intent(  out), optional :: status
      end function Stellar_Population_Spectrum_Get_Template
   end interface
   procedure(Stellar_Population_Tabulation_Get_Template), pointer :: Stellar_Population_Spectrum_Tabulation_Get=>null()
@@ -92,19 +93,20 @@ contains
     return
   end subroutine Stellar_Population_Spectrum_Initialize
 
-  double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectrum(abundancesStellar,age,wavelength,imfIndex,status)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms).
     implicit none
-    type            (abundances), intent(in   ) :: abundancesStellar
-    double precision            , intent(in   ) :: age              , wavelength
-    integer                     , intent(in   ) :: imfIndex
+    type            (abundances), intent(in   )           :: abundancesStellar
+    double precision            , intent(in   )           :: age              , wavelength
+    integer                     , intent(in   )           :: imfIndex
+    integer                     , intent(  out), optional :: status
 
     ! Initialize the module.
     call Stellar_Population_Spectrum_Initialize
 
     ! Get the spectrum using the selected method.
-    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundancesStellar,age,wavelength,imfIndex)
+    Stellar_Population_Spectrum=Stellar_Population_Spectrum_Get(abundancesStellar,age,wavelength,imfIndex,status)
 
     return
   end function Stellar_Population_Spectrum
