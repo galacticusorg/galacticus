@@ -20,6 +20,7 @@
 module Galacticus_Error
   !% Implements error reporting for the {\sc Galacticus} package.
   use HDF5
+  use FGSL
   implicit none
   private
   public :: Galacticus_Error_Report, Galacticus_Error_Handler_Register, Galacticus_Component_List
@@ -36,10 +37,12 @@ module Galacticus_Error
      end subroutine H5Close_C
   end interface
 
-  ! Public error codes.
-  integer, parameter, public :: errorStatusSuccess   =0
-  integer, parameter, public :: errorStatusFail      =1
-  integer, parameter, public :: errorStatusOutOfRange=2
+  ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024 are used so as not to conflict with
+  ! GSL error codes.
+  integer, parameter, public :: errorStatusSuccess    =FGSL_Success ! Success.
+  integer, parameter, public :: errorStatusFail       =FGSL_Failure ! Generic failure.
+  integer, parameter, public :: errorStatusInputDomain=FGSL_eDom    ! Input domain error.
+  integer, parameter, public :: errorStatusOutOfRange =FGSL_eRange  ! Output range error.
 
 contains
 
