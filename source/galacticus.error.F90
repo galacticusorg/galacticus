@@ -37,8 +37,9 @@ module Galacticus_Error
   end interface
 
   ! Public error codes.
-  integer, parameter, public :: errorStatusSuccess=0
-  integer, parameter, public :: errorStatusFail   =1
+  integer, parameter, public :: errorStatusSuccess   =0
+  integer, parameter, public :: errorStatusFail      =1
+  integer, parameter, public :: errorStatusOutOfRange=2
 
 contains
 

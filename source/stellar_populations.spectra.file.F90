@@ -80,21 +80,22 @@ contains
     return
   end subroutine Stellar_Population_Spectra_File_Initialize
 
-  double precision function Stellar_Population_Spectra_File_Get(abundancesStellar,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_File_Get(abundancesStellar,age,wavelength,imfIndex,status)
     !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\tt abundances}, of the
     !% given {\tt age} (in Gyr) and the specified {\tt wavelength} (in Angstroms). This is found by interpolating in tabulated
     !% spectra.
     use Abundances_Structure
     implicit none
-    type            (abundances), intent(in   ) :: abundancesStellar
-    double precision            , intent(in   ) :: age              , wavelength
-    integer                     , intent(in   ) :: imfIndex
+    type            (abundances), intent(in   )            :: abundancesStellar
+    double precision            , intent(in   )            :: age              , wavelength
+    integer                     , intent(in   )            :: imfIndex
+    integer                     , intent(  out) , optional :: status
 
     ! Ensure that this IMF is initialized.
     call Stellar_Population_Spectra_File_Initialize_IMF(imfIndex)
 
     ! Call routine to interpolate in the tabulated function.
-    Stellar_Population_Spectra_File_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
+    Stellar_Population_Spectra_File_Get=Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex,status)
 
     return
   end function Stellar_Population_Spectra_File_Get
@@ -152,39 +153,46 @@ contains
     return
   end subroutine Stellar_Population_Spectra_File_Initialize_IMF
 
-  double precision function Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex)
+  double precision function Stellar_Population_Spectra_File_Interpolate(abundancesStellar,age,wavelength,imfIndex,status)
     !% Compute the stellar spectrum by interpolation in the tabulated data.
     use Abundances_Structure
     use Numerical_Interpolation
     use Galacticus_Error
     implicit none
-    type            (abundances    ), intent(in   )  :: abundancesStellar
-    double precision                , intent(in   )  :: age                        , wavelength
-    integer                         , intent(in   )  :: imfIndex
-    double precision                , dimension(0:1) :: hAge                       , hMetallicity  , &
-         &                                              hWavelength
-    double precision                , parameter      :: metallicityTolerance=0.01d0
-    integer                                          :: iAge                       , iMetallicity  , &
-         &                                              iWavelength                , imfLookupIndex, &
-         &                                              jAge                       , jMetallicity  , &
-         &                                              jWavelength
-    double precision                                 :: metallicity
-    type            (varying_string)                 :: message
-    character       (len=12        )                 :: metallicityLabel
+    type            (abundances    ), intent(in   )            :: abundancesStellar
+    double precision                , intent(in   )            :: age                        , wavelength
+    integer                         , intent(in   )            :: imfIndex
+    integer                         , intent(  out) , optional :: status
+    double precision                , dimension(0:1)           :: hAge                       , hMetallicity  , &
+         &                                                        hWavelength
+    double precision                , parameter                :: metallicityTolerance=0.01d0
+    integer                                                    :: iAge                       , iMetallicity  , &
+         &                                                        iWavelength                , imfLookupIndex, &
+         &                                                        jAge                       , jMetallicity  , &
+         &                                                        jWavelength
+    double precision                                           :: metallicity
+    type            (varying_string)                           :: message
+    character       (len=12        )                           :: metallicityLabel
 
+    ! Set status code if present.
+    if (present(status)) status=errorStatusSuccess
     ! Find the internal lookup index for this IMF.
     imfLookupIndex=imfLookup(imfIndex)
-
     ! Check for out of range conditions.
     if (age > spectra(imfLookupIndex)%stellarPopulationSpectraAges(spectra(imfLookupIndex)%stellarPopulationSpectraAgesNumberPoints))&
          & call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate','age exceeds the maximum tabulated')
     metallicity=Abundances_Get_Metallicity(abundancesStellar,metallicityType=logarithmicByMassSolar)
     if (metallicity > spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)+metallicityTolerance) then
-       write (metallicityLabel,'(f12.6)') metallicity
-       message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
-       write (metallicityLabel,'(f12.6)') spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
-       message=message//trim(adjustl(metallicityLabel))//']'
-       call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
+       if (present(status)) then
+          metallicity=spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
+          status=errorStatusOutOfRange
+       else
+          write (metallicityLabel,'(f12.6)') metallicity
+          message='metallicity ['//trim(adjustl(metallicityLabel))//'] exceeds the maximum tabulated ['
+          write (metallicityLabel,'(f12.6)') spectra(imfLookupIndex)%stellarPopulationSpectraMetallicities(spectra(imfLookupIndex)%stellarPopulationSpectraMetallicityNumberPoints)
+          message=message//trim(adjustl(metallicityLabel))//']'
+          call Galacticus_Error_Report('Stellar_Population_Spectra_File_Interpolate',message)
+       end if
     end if
 
     ! Assume zero flux outside of the tabulated wavelength range.

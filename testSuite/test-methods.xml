@@ -856,4 +856,23 @@
     </parameter>
   </parameters>
 
+  <!-- Intergalactic medium state and internal background calculation -->
+  <parameters>
+    <parameter>
+      <name>backgroundRadiationCompute</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>intergalacticMediumStateMethod</name>
+      <value>recFast</value>
+      <value>file
+      <parameter>
+	<name>intergalaticMediumStateFileName</name>
+	<value>data/intergalacticMedium/recFast_OmegaM0.273_OmegaDE0.728_Omegab0.0455_H070.2_TCMB2.725_YHe0.22.xml</value>
+      </parameter>
+      </value>
+      <value>simple</value>
+    </parameter>
+  </parameters>
+
 </parameterGrid>
