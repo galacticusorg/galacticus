@@ -8,6 +8,8 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
   <parameter>
@@ -16,6 +18,8 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
   <parameter>
@@ -24,6 +28,8 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
   <parameter>
@@ -32,6 +38,8 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
   <parameter>
@@ -40,6 +48,8 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
   <parameter>
@@ -48,9 +58,11 @@
       <distribution>normal</distribution>
       <mean>0.0</mean>
       <variance>1.0</variance>
+      <lowerLimit>-5</lowerLimit>
+      <upperLimit>+5</upperLimit>
     </prior>
   </parameter>
-
+  
   <!-- Derived cosmological parameters -->
   <parameter>
     <name>powerSpectrumIndex</name>
