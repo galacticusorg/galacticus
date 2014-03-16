@@ -63,7 +63,9 @@ die("Millennium_Trees_Grab.pl: SQL database access username and password must be
     unless ( defined($sqlUser) && defined($sqlPassword) );
 
 # Specify any selection.
-my $selection   = $arguments{"select"};
+my $selection   = "";
+$selection = $arguments{"select"}
+   if ( exists($arguments{"select"}) );
 if ( exists($arguments{"selectFile"}) ) {
     open(iHndl,$arguments{"selectFile"});
     $selection = <iHndl>;
@@ -76,7 +78,7 @@ my $treeId;
 if ( exists($arguments{"treeId"}) ) {
     $treeId = $arguments{"treeId"};
 } else {
-    $treeId = "treeRootId";
+    $treeId = "treeId";
 }
 
 # Specify the haloId property.
@@ -93,6 +95,14 @@ if ( exists($arguments{"descendantId"}) ) {
     $descendantId = $arguments{"descendantId"};
 } else {
     $descendantId = "descendantId";
+}
+
+# Specify the velocity dispersion property.
+my $velocityDispersion;
+if ( exists($arguments{"velocityDispersion"}) ) {
+    $velocityDispersion = $arguments{"velocityDispersion"};
+} else {
+    $velocityDispersion = "vDisp";
 }
 
 # Specify the output file.
@@ -158,7 +168,7 @@ if ( exists($arguments{"mass"}) ) {
 }
 
 # Determine half-mass radius to use.
-$halfMassRadius = "halfmassRadius";
+my $halfMassRadius = "halfmassRadius";
 $halfMassRadius = $arguments{"halfMassRadius"}
     if ( exists($arguments{"halfMassRadius"}) );
 
@@ -171,8 +181,8 @@ $getCommandBase   .= " --no-proxy --retry-connrefused";
 $getCommandBase   .= " --http-user="  .$sqlUser     unless ( $sqlUser     eq "" );
 $getCommandBase   .= " --http-passwd=".$sqlPassword unless ( $sqlPassword eq "" );
 
-# Build the SQL query to retrieve basic node data.
-my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX, node.spinY, node.spinZ, node.".$halfmassRadius.", node.mostBoundID from ".$table." node";
+# Build the SQL query to retrieve basic node data. We convert quantities containing a physical length into comoving units.
+my $sqlQuery = $databaseURL."select ".$indexNode.".".$treeId.", ".$indexNode.".".$haloId.", ".$indexNode.".".$descendantId.", node.firstHaloInFOFgroupId, node.snapNum, node.redshift, node.".$mass.", node.np, node.x, node.y, node.z, node.velX, node.velY, node.velZ, node.spinX*(1.0+node.redshift), node.spinY*(1.0+node.redshift), node.spin*(1.0+node.redshift)Z, node.".$halfMassRadius."*(1.0+node.redshift), node.mostBoundID, node.vMax, node.".$velocityDispersion." from ".$table." node";
 # Add the root node if it is used in the selection.
 $sqlQuery .= ", ".$table." root"
     if ( $selection =~ m/root\./ );
@@ -228,7 +238,7 @@ if ( $traceParticles eq "yes" ) {
     my $getCommand = $getCommandBase." \"".$sqlQuery."\" -O particles.tmp";
     system($getCommand);
     # Sort the output to get ordering by particle number and then by (decreasing) redshift.
-    my $outputFile =~ s/\.csv/_Particles.csv/;
+    $outputFile =~ s/\.csv/_Particles.csv/;
     system("sort -g -k1,1 -k2,2r -t, -u particles.tmp > ".$outputFile);
     unlink("particles.tmp");
 }

@@ -96,6 +96,17 @@ sub Compute_Power_Spectrum {
     &HDF5::Get_Dataset($dataBlock,\@properties);
     my $dataSets = $dataBlock->{'dataSets'};
 
+    # Check for the existance of halo profiles.
+    unless ( grep {$_ eq "haloModel"} $dataBlock->{'hdf5File'}->groups() ) {
+	print "'haloModel' group is not present in the output file.\n";
+	print "HELP: You can generate this group by including the following in your parameter file:\n";
+	print "  <parameter>\n";
+	print "  <name>outputHaloModelData</name>\n";
+	print "  <value>true</value>\n";
+	print "  </parameter>\n";
+	die("Galacticus::HaloModel: haloModel data unavailable");
+    }
+
     # Acquire data on profiles and occupancy.
     my $occupancy;
     my $profiles;

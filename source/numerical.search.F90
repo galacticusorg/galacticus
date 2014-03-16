@@ -21,7 +21,7 @@ module Arrays_Search
   !% Implements searching of ordered arrays.
   implicit none
   private
-  public :: Search_Array, Search_Array_For_Closest
+  public :: Search_Array, Search_Array_For_Closest, Search_Indexed
 
   interface Search_Array
      !% Generic interface for array searching routines.
@@ -29,6 +29,11 @@ module Arrays_Search
      module procedure Search_Array_VarString
      module procedure Search_Array_Integer8
   end interface Search_Array
+
+  interface Search_Indexed
+     !% Generic interface for array searching routines using indexing.
+     module procedure Search_Indexed_Integer8
+  end interface Search_Indexed
 
 contains
 
@@ -170,6 +175,53 @@ contains
     end if
     return
   end function Search_Array_For_Closest
+
+  integer function Search_Indexed_Integer8(arrayToSearch,arrayIndex,valueToFind)
+    !% Searches a long integer array, $x=(${\tt arrayToSearch}$)$, which is rank ordered when indexed by {\tt arrayIndex}, for value, $v(=${\tt valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    use Kind_Numbers
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    integer(kind=kind_int8), dimension(:), intent(in   ) :: arrayToSearch
+    integer(kind=c_size_t ), dimension(:), intent(in   ) :: arrayIndex
+    integer(kind=kind_int8)              , intent(in   ) :: valueToFind
+    integer                                              :: jLower       , jMidpoint, jUpper
+    logical                                              :: isInside
+
+    isInside=.true.
+    ! Check whether valueToFind is outside range of arrayToSearch().
+    if (arrayToSearch(arrayIndex(size(arrayToSearch))) >= arrayToSearch(arrayIndex(1))) then ! arrayToSearch() is in ascending order.
+       if      (valueToFind < arrayToSearch(arrayIndex(1                  ))) then
+          isInside=.false.
+          Search_Indexed_Integer8=0
+       else if (valueToFind > arrayToSearch(arrayIndex(size(arrayToSearch)))) then
+          isInside=.false.
+          Search_Indexed_Integer8=size(arrayToSearch)+1
+       end if
+    else ! arrayToSearch() is in descending order.
+       if      (valueToFind > arrayToSearch(arrayIndex(1                  ))) then
+          isInside=.false.
+          Search_Indexed_Integer8=0
+       else if (valueToFind < arrayToSearch(arrayIndex(size(arrayToSearch)))) then
+          isInside=.false.
+          Search_Indexed_Integer8=size(arrayToSearch)+1
+       end if
+    end if
+    ! Binary search in array if valueToFind lies within array range.
+    if (isInside) then
+       jLower=0
+       jUpper=size(arrayToSearch)+1
+       do while (jUpper-jLower > 1)
+          jMidpoint=(jUpper+jLower)/2
+          if ((arrayToSearch(arrayIndex(size(arrayToSearch))) >= arrayToSearch(arrayIndex(1))) .eqv. (valueToFind >= arrayToSearch(arrayIndex(jMidpoint)))) then
+             jLower=jMidpoint
+          else
+             jUpper=jMidpoint
+          endif
+       end do
+       Search_Indexed_Integer8=jLower
+    end if
+    return
+  end function Search_Indexed_Integer8
 
 end module Arrays_Search
 

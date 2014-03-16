@@ -19,6 +19,6 @@ system("find data/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
 system("find data/largeScaleStructure -name 'transfer_function_CMBFast_*.xml' -ctime +14 -exec rm {} \\;");
 
 # Simply run the models.
-system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/test-methods.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/test-methods.xml");
 
 exit;

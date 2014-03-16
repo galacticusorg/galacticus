@@ -82,7 +82,7 @@ double precision function Mass_Distribution_Hernquist_Density(self,coordinates)
   return
 end function Mass_Distribution_Hernquist_Density
 
-double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self,moment,isInfinite)
+double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
   !% Returns a radial density moment for the Hernquist mass distribution.
   use Numerical_Constants_Math
   use Numerical_Comparison
@@ -90,8 +90,11 @@ double precision function Mass_Distribution_Hernquist_Density_Radial_Moment(self
   implicit none
   class           (massDistributionHernquist), intent(in   )           :: self
   double precision                           , intent(in   )           :: moment
+  double precision                           , intent(in   ), optional :: radiusMinimum, radiusMaximum
   logical                                    , intent(  out), optional :: isInfinite
 
+  ! Abort on limited ranges.
+  if (present(radiusMinimum).or.present(radiusMaximum)) call Galacticus_Error_Report('Mass_Distribution_Hernquist_Density_Radial_Moment','ranges are not supported')
   if (moment <= 0.0d0 .or. moment >= 3.0d0) then
      ! Handle cases where the moment is infinite.
      if (present(isInfinite)) then

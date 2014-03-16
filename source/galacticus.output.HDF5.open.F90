@@ -26,7 +26,7 @@ module Galacticus_Output_Open
   public :: Galacticus_Output_Open_File, Galacticus_Output_Close_File
 
   ! Output file name.
-  type(varying_string) :: galacticusOutputFileName
+  type(varying_string) :: galacticusOutputFileName, galacticusOutputScratchFileName
 
 contains
 
@@ -53,12 +53,26 @@ contains
        !@   <group>output</group>
        !@ </inputParameter>
        call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5',writeOutput=.false.)
+       ! Get file name parameter.
+       !@ <inputParameter>
+       !@   <name>galacticusOutputScratchFileName</name>
+       !@   <defaultValue>{\tt [galacticusOutputFileName]}</defaultValue>
+       !@   <attachedTo>module</attachedTo>
+       !@   <description>
+       !@     The name of the file to which \glc\ results will be written temporarily during runs.
+       !@   </description>
+       !@   <type>string</type>
+       !@   <cardinality>1</cardinality>
+       !@   <group>output</group>
+       !@ </inputParameter>
+       call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName),writeOutput=.false.)
        ! Open the file.
        !$omp critical(HDF5_Access)
-       call galacticusOutputFile%openFile(char(galacticusOutputFileName),overWrite=.true.,objectsOverwritable=.false.)
+       call galacticusOutputFile%openFile(char(galacticusOutputScratchFileName),overWrite=.true.,objectsOverwritable=.false.)
        !$omp end critical(HDF5_Access)
        ! Get file name parameter again and write it to the output file.
-       call Get_Input_Parameter('galacticusOutputFileName',galacticusOutputFileName,defaultValue='galacticus.hdf5')
+       call Get_Input_Parameter('galacticusOutputFileName'       ,galacticusOutputFileName       ,defaultValue='galacticus.hdf5'             )
+       call Get_Input_Parameter('galacticusOutputScratchFileName',galacticusOutputScratchFileName,defaultValue=char(galacticusOutputFileName))
        ! Read parameters.
        !@ <inputParameter>
        !@   <name>hdf5ChunkSize</name>
@@ -102,20 +116,33 @@ contains
 
   subroutine Galacticus_Output_Close_File
     !% Close the \glc\ output file.
+    use System_Command
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
     !# </include>
     implicit none
-
+    
     ! Perform any final tasks prior to shutdown.
-    !# <include directive="hdfPreCloseTask" type="functionCall" functionType="void">
-    include 'galacticus.output.HDF5.pre_close_tasks.inc'
-    !# </include>
-
-    ! Close the file.
-    !$omp critical(HDF5_Access)
-    call galacticusOutputFile%close()
-    !$omp end critical(HDF5_Access)
+    if (galacticusOutputFileIsOpen) then
+       !$omp critical (Galacticus_Output_Close_File)
+       if (galacticusOutputFileIsOpen) then
+          !# <include directive="hdfPreCloseTask" type="functionCall" functionType="void">
+          include 'galacticus.output.HDF5.pre_close_tasks.inc'
+          !# </include>
+          
+          ! Close the file.
+          !$omp critical(HDF5_Access)
+          call galacticusOutputFile%close()
+          !$omp end critical(HDF5_Access)
+          
+          ! Move the scratch file to the final file if necessary.
+          if (galacticusOutputFileName /= galacticusOutputScratchFileName) call System_Command_Do("mv "//galacticusOutputScratchFileName//" "//galacticusOutputFileName)
+          
+          ! Record that the file is now closed.
+          galacticusOutputFileIsOpen=.false.
+       end if
+       !$omp end critical (Galacticus_Output_Close_File)
+    end if
     return
   end subroutine Galacticus_Output_Close_File
 

@@ -346,31 +346,43 @@ contains
     integer                                  , intent(in   )               :: iOutput
     integer         (kind=kind_int8         ), intent(in   )               :: treeIndex
     logical                                  , intent(in   )               :: nodePassesFilter
+    type            (treeNode          )                    , pointer      :: hostNode
     class           (nodeComponentBasic     )               , pointer      :: thisBasicComponent
     class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctionsDefault
     double precision                         , allocatable  , dimension(:) :: fourierProfile
+    logical                                                                :: nodeExistsInOutput
     integer                                                                :: iWavenumber
     double precision                                                       :: expansionFactor
-    type            (varying_string         )                              :: groupName
+    type            (varying_string         )                              :: groupName                , dataSetName
     type            (hdf5Object             )                              :: outputGroup              , profilesGroup, &
          &                                                                    treeGroup
 
-    ! If halo model output was requested, output the Fourier-space halo profiles.
-    if (nodePassesFilter.and.outputHaloModelData.and..not.thisNode%isSatellite()) then
-       ! Create a group for the profile datasets.
-       !$omp critical (HDF5_Access)
-       profilesGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
-       groupName="Output"
-       groupName=groupName//iOutput
-       outputGroup=profilesGroup%openGroup(char(groupName),"Fourier space density profiles of halos for all trees at each output.")
-       groupName="mergerTree"
-       groupName=groupName//treeIndex
-       treeGroup=outputGroup%openGroup(char(groupName),"Fourier space density profiles of halos for each tree.")
-       !$omp end critical (HDF5_Access)
+    ! For any node that passes the filter, we want to ensure that the host halo profile is output.
+    ! Return immediately if halo model is not to be output or this node is filtered out.
+    if (.not.(outputHaloModelData.and.nodePassesFilter)) return
+    ! Find the host halo.
+    hostNode => thisNode
+    do while (hostNode%isSatellite())
+       hostNode => hostNode%parent
+    end do
+    ! Create a group for the profile datasets.
+    !$omp critical (HDF5_Access)
+    profilesGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
+    groupName="Output"
+    groupName=groupName//iOutput
+    outputGroup=profilesGroup%openGroup(char(groupName),"Fourier space density profiles of halos for all trees at each output.")
+    groupName="mergerTree"
+    groupName=groupName//treeIndex
+    treeGroup=outputGroup%openGroup(char(groupName),"Fourier space density profiles of halos for each tree.")
+    ! Check if this halo has already been output.
+    dataSetName="fourierProfile"
+    dataSetName=groupName//hostNode%index()
+    nodeExistsInOutput=treeGroup%hasDataset(char(dataSetName))
+    if (.not.nodeExistsInOutput) then
        ! Allocate array to store profile.
        call Alloc_Array(fourierProfile,[wavenumberCount])
        ! Get the basic component.
-       thisBasicComponent => thisNode%basic()
+       thisBasicComponent => hostNode%basic()
        ! Get the default cosmology functions object.
        cosmologyFunctionsDefault => cosmologyFunctions()
        ! Get the expansion factor.
@@ -378,23 +390,18 @@ contains
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount
-          fourierProfile(iWavenumber)=Dark_Matter_Profile_kSpace(thisNode,waveNumber(iWavenumber)/expansionFactor)
+          fourierProfile(iWavenumber)=Dark_Matter_Profile_kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
        end do
        ! Write dataset to the group.
-       groupName="fourierProfile"
-       groupname=groupName//thisNode%index()
-       !$omp critical (HDF5_Access)
-       call treeGroup%writeDataset(fourierProfile,char(groupName),"The Fourier-space density profile.")
-       !$omp end critical (HDF5_Access)
+       call treeGroup%writeDataset(fourierProfile,char(dataSetName),"The Fourier-space density profile.")
        ! Deallocate profile array.
        call Dealloc_Array(fourierProfile)
-       ! Close the profile group.
-       !$omp critical (HDF5_Access)
-       call treeGroup    %close()
-       call outputGroup  %close()
-       call profilesGroup%close()
-       !$omp end critical (HDF5_Access)
     end if
+    ! Close the profile group.
+    call treeGroup    %close()
+    call outputGroup  %close()
+    call profilesGroup%close()
+    !$omp end critical (HDF5_Access)
     return
   end subroutine Galacticus_Extra_Output_Halo_Fourier_Profile
 

@@ -167,7 +167,7 @@
     <value>White-Frenk1991</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.1</value>
   </parameter>
   <parameter>
@@ -243,8 +243,8 @@
     <value>1.0</value>
   </parameter>
   <parameter>
-    <name>hotHaloDensityMethod</name>
-    <value>coredIsothermal</value>
+    <name>hotHaloMassDistributionMethod</name>
+    <value>betaProfile</value>
   </parameter>
   <parameter>
     <name>allTreesExistAtFinalTime</name>

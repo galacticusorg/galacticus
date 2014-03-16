@@ -18,7 +18,9 @@
   !% Implements calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to another
   !% selected satellite merging time method.
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013" />
+  !# <satelliteMergingTimescales name="satelliteMergingTimescalesVillalobos2013">
+  !#  <description>Computes the merging timescale using the method of \cite{villalobos_improved_2013} to modify another merging timescale method.</description>
+  !# </satelliteMergingTimescales>
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesVillalobos2013
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to

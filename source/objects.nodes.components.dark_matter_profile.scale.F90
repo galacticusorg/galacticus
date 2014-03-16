@@ -170,12 +170,13 @@ contains
 
   subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize_Scale(thisNode)
     !% Initialize the scale radius of {\tt thisNode}.
-    use Dark_Matter_Profiles_Concentrations
+    use Dark_Matter_Profiles_Concentration
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: thisNode
-    class           (nodeComponentDarkMatterProfile)               , pointer :: newDarkMatterProfileComponent, thisDarkMatterProfileComponent
-    double precision                                                         :: concentration
+    type            (treeNode                           ), intent(inout), pointer :: thisNode
+    class           (nodeComponentDarkMatterProfile     )               , pointer :: newDarkMatterProfileComponent  , thisDarkMatterProfileComponent
+    class           (darkMatterProfileConcentrationClass)               , pointer :: darkMatterProfileConcentration_
+    double precision                                                              :: concentration
 
     ! Ensure that the module is initialized.
     call Node_Component_Dark_Matter_Profile_Scale_Initialize()
@@ -185,7 +186,8 @@ contains
     type is (nodeComponentDarkMatterProfile)
        newDarkMatterProfileComponent => thisNode%darkMatterProfile(autoCreate=.true.)
        ! Set the scale radius of the halo.
-       concentration=max(Dark_Matter_Profile_Concentration(thisNode),darkMatterProfileMinimumConcentration)
+       darkMatterProfileConcentration_ => darkMatterProfileConcentration()
+       concentration=max(darkMatterProfileConcentration_%concentration(thisNode),darkMatterProfileMinimumConcentration)
        call newDarkMatterProfileComponent%scaleSet(Dark_Matter_Halo_Virial_Radius(thisNode)/concentration)
     end select
     return

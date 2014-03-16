@@ -176,7 +176,7 @@
     <value>0.01</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.1</value>
   </parameter>
   <parameter>
@@ -220,8 +220,8 @@
     <value>0.961</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
-    <value>Gao2008</value>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>gao2008</value>
   </parameter>
   <parameter>
     <name>spinDistributionBett2007Alpha</name>
@@ -244,8 +244,8 @@
     <value>0.38</value>
   </parameter>
   <parameter>
-    <name>hotHaloDensityMethod</name>
-    <value>coredIsothermal</value>
+    <name>hotHaloMassDistributionMethod</name>
+    <value>betaProfile</value>
   </parameter>
   <parameter>
     <name>spheroidMassToleranceAbsolute</name>

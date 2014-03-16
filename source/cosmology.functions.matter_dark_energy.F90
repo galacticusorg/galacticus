@@ -18,7 +18,9 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy" />
+  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
+  !#  <description>Cosmological relations are computed assuming a universe that contains only matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$.</description>
+  !# </cosmologyFunctions>
   use FGSL
   use Cosmology_Parameters
 

@@ -19,12 +19,13 @@
 
   type, public :: mergerTree
      !% The merger tree object type.
-     integer         (kind=kind_int8)          :: index
-     type            (hdf5Object    )          :: hdf5Group
-     double precision                          :: volumeWeight
-     logical                                   :: initialized
-     type            (treeNode      ), pointer :: baseNode    =>null()
-     type            (mergerTree    ), pointer :: nextTree    =>null()
+     integer         (kind=kind_int8)                  :: index
+     type            (hdf5Object    )                  :: hdf5Group
+     double precision                                  :: volumeWeight
+     logical                                           :: initialized
+     type            (treeNode      ), pointer         :: baseNode    =>null()
+     type            (mergerTree    ), pointer         :: nextTree    =>null()
+     type            (treeEvent     ), pointer, public :: event
    contains
      ! Tree creation/destruction.
      !@ <objectMethods>
@@ -49,11 +50,53 @@
      !@     <type>\textcolor{red}{\textless *type(treeNode)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless integer(kind\_int8)\textgreater} nodeIndex\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@    <method>createEvent</method>
+     !@    <description>Create a {\tt treeEvent} object in this tree.</description>
+     !@     <type>\textcolor{red}{\textless *type(treeEvent)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@    <method>removeEvent</method>
+     !@    <description>Remove a {\tt treeEvent} from this tree.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeEvent)\textgreater} event\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@    <method>earliestTime</method>
+     !@    <description>Return the earliest time in a merger tree.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: destroy      =>Merger_Tree_Destroy
-     procedure :: destroyBranch=>Merger_Tree_Destroy_Branch
-     procedure :: getNode      =>Merger_Tree_Node_Get
+     procedure :: destroy       => Merger_Tree_Destroy
+     procedure :: destroyBranch => Merger_Tree_Destroy_Branch
+     procedure :: getNode       => Merger_Tree_Node_Get
+     procedure :: createEvent   => Merger_Tree_Create_Event                      
+     procedure :: removeEvent   => Merger_Tree_Remove_Event               
+     procedure :: earliestTime  => Merger_Tree_Earliest_Time               
   end type mergerTree
 
-  ! Flag to indicate if the tree node create routines have been initialized.
-  logical :: treeNodeCreateInitialized=.false.
+  type, public :: treeEvent
+     !% Type for events attached to trees.
+    private
+    integer         (kind=kind_int8)         , public :: ID   
+    type            (mergerTree    ), pointer, public :: tree 
+    double precision                         , public :: time 
+    type            (treeEvent     ), pointer, public :: next 
+    procedure       (treeEventTask ), pointer, public :: task 
+ end type treeEvent
+
+ ! Interface for tree event tasks.
+ abstract interface
+    logical function treeEventTask(thisEvent,thisTree,deadlockStatus)
+      import treeEvent, mergerTree
+      class  (treeEvent ), intent(in   ) :: thisEvent      
+      type   (mergerTree), intent(inout) :: thisTree       
+      integer            , intent(inout) :: deadlockStatus 
+    end function treeEventTask
+ end interface
+ 
+ ! Flag to indicate if the tree node create routines have been initialized.
+ logical :: treeNodeCreateInitialized=.false.
+ 

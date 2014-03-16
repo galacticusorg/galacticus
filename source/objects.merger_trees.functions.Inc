@@ -21,6 +21,7 @@ subroutine Merger_Tree_Destroy(thisTree)
   !% Destroys the entire merger tree.
   implicit none
   class(mergerTree), intent(inout) :: thisTree
+  type (treeEvent ), pointer       :: thisEvent, lastEvent, nextEvent 
 
   select type (thisTree)
   type is (mergerTree)
@@ -28,6 +29,13 @@ subroutine Merger_Tree_Destroy(thisTree)
      if (associated(thisTree%baseNode)) call thisTree%destroyBranch(thisTree%baseNode)
      ! Destroy the HDF5 group associated with this tree.
      call thisTree%hdf5Group%destroy()
+     ! Destroy any events attached to this tree.
+     thisEvent => thisTree%event
+     do while (associated(thisEvent))
+        nextEvent => thisEvent%next
+        deallocate(thisEvent)
+        thisEvent => nextEvent
+     end do
   end select
   return
 end subroutine Merger_Tree_Destroy
@@ -105,3 +113,80 @@ function Merger_Tree_Node_Get(thisTree,nodeIndex)
   end do
   return
 end function Merger_Tree_Node_Get
+
+function Merger_Tree_Create_Event(self) result (newEvent)
+  !% Create a new event in a merger tree.
+  implicit none
+  class(mergerTree), intent(inout) :: self
+  type (treeEvent ), pointer       :: newEvent, thisEvent
+  
+  allocate(newEvent)
+  nullify(newEvent%next)
+  !$omp atomic
+  eventID=eventID+1
+  newEvent%ID=eventID
+  if (associated(self%event)) then
+     thisEvent => self%event
+     do while (associated(thisEvent%next))
+        thisEvent => thisEvent%next
+     end do
+     thisEvent%next => newEvent
+  else
+     self%event => newEvent
+  end if
+  return
+end function Merger_Tree_Create_Event
+
+subroutine Merger_Tree_Remove_Event(self,event)
+  !% Removed an event from {\tt self}.
+  implicit none
+  class  (mergerTree), intent(inout) :: self
+  type   (treeEvent ), intent(in   ) :: event
+  type   (treeEvent ), pointer       :: lastEvent, nextEvent, thisEvent
+  
+  ! Destroy the event.
+  thisEvent => self%event
+  do while (associated(thisEvent))
+     ! Match the event.
+     if (thisEvent%ID == event%ID) then
+        if (associated(thisEvent,self%event)) then
+           self     %event => thisEvent%next
+           lastEvent       => self     %event
+        else
+           lastEvent%next  => thisEvent%next
+        end if
+        nextEvent => thisEvent%next
+        deallocate(thisEvent)
+        thisEvent => nextEvent
+     else
+        lastEvent => thisEvent
+        thisEvent => thisEvent%next
+     end if
+  end do
+  return
+end subroutine Merger_Tree_Remove_Event
+
+double precision function Merger_Tree_Earliest_Time(self)
+  !% Return the earliest time in a merger tree.
+  implicit none
+  class           (mergerTree        ), intent(inout), target :: self
+  double precision                    , parameter             :: timeInfinity=1.0d30
+  type            (mergerTree        ), pointer               :: currentTree
+  type            (treeNode          ), pointer               :: thisNode
+  class           (nodeComponentBasic), pointer               :: thisBasic
+  
+  Merger_Tree_Earliest_Time =  timeInfinity
+  currentTree               => self
+  do while (associated(currentTree))
+     thisNode => currentTree%baseNode
+     do while (associated(thisNode))
+        if (.not.associated(thisNode%firstChild)) then
+           thisBasic                 =>                               thisNode %basic()
+           Merger_Tree_Earliest_Time =  min(Merger_Tree_Earliest_Time,thisBasic%time ())
+        end if
+        call thisNode%walkTreeWithSatellites(thisNode)
+     end do
+     currentTree => currentTree%nextTree
+  end do
+  return
+end function Merger_Tree_Earliest_Time

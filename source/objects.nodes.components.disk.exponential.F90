@@ -1072,6 +1072,7 @@ contains
   subroutine Node_Component_Disk_Exponential_Radius_Solver(thisNode,componentActive,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Tables
     use Node_Component_Disk_Exponential_Data
     use Numerical_Constants_Physical
     implicit none

@@ -46,13 +46,14 @@ contains
     use Galacticus_Nodes
     use Cooling_Infall_Radii
     use Numerical_Constants_Math
-    use Hot_Halo_Density_Profile
+    use Hot_Halo_Mass_Distributions
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: thisNode
-    class           (nodeComponentBasic  )               , pointer :: formationBasicComponent
-    class           (nodeComponentHotHalo)               , pointer :: formationHotHaloComponent
-    double precision                                               :: infallDensity            , infallRadius, &
-         &                                                            infallRadiusGrowthRate   , outerRadius
+    type            (treeNode                    ), intent(inout), pointer :: thisNode
+    class           (nodeComponentBasic          )               , pointer :: formationBasicComponent
+    class           (nodeComponentHotHalo        )               , pointer :: formationHotHaloComponent
+    class           (hotHaloMassDistributionClass)               , pointer :: defaultHotHaloMassDistribution
+    double precision                                                       :: infallDensity            , infallRadius, &
+         &                                                                    infallRadiusGrowthRate   , outerRadius
 
     ! Get node components.
     formationBasicComponent   => thisNode%formationNode%basic  ()
@@ -74,10 +75,12 @@ contains
        ! Cooling radius exceeds the outer radius - zero infall rate.
        Cooling_Rate_Cole2000=0.0d0
     else
+       ! Get the hot halo mass distribution.
+       defaultHotHaloMassDistribution => hotHaloMassDistribution()
        ! Find the density at the infall radius.
-       infallDensity=Hot_Halo_Density                  (thisNode%formationNode,infallRadius)
+       infallDensity=defaultHotHaloMassDistribution%density(thisNode%formationNode,infallRadius)
        ! Find infall radius growth rate.
-       infallRadiusGrowthRate=Infall_Radius_Growth_Rate(thisNode%formationNode             )
+       infallRadiusGrowthRate=Infall_Radius_Growth_Rate    (thisNode%formationNode             )
        ! Compute the infall rate.
        Cooling_Rate_Cole2000=4.0d0*Pi*(infallRadius**2)*infallDensity*infallRadiusGrowthRate
     end if

@@ -232,9 +232,9 @@ Finally, the progenitor mass functoin conditioned on recent formation is compute
 \glc\ can output the full structure of merger trees prior to any evolution. Merger tree structure can be requested by setting {\tt mergerTreeStructureOutput}$=${\tt true}. Structures are written to a new group, {\tt mergerTreeStructures}, in the \glc\ output file. This group will contain groups called {\tt mergerTreeN} where {\tt N} is the merger tree index. Each such group will contain the following datasets:
 \begin{description}
  \item [{\tt nodeIndex}] The index of the node in the tree;
- \item [{\tt childNodeIndex}] The index of this node's first child node;
- \item [{\tt parentNodeIndex}] The index of this node's parent node;
- \item [{\tt siblingNodeIndex}] The index of this node's sibling node;
+ \item [{\tt childIndex}] The index of this node's first child node;
+ \item [{\tt parentIndex}] The index of this node's parent node;
+ \item [{\tt siblingIndex}] The index of this node's sibling node;
  \item [{\tt nodeTime}] The time at this point in the tree (in Gyr);
  \item [{\tt nodeMass}] The mass of the node at this point in the tree (in $M_\odot$). The {\tt nodeMass} property is defined to be the total mass of each node in a merger tree. Therefore, it includes both dark and baryonic mass. Additionally, the mass of a node includes the mass of any satellite nodes that it may contain. The mean density of the node depends on the method selected by the {\tt virialDensityContrastMethod} parameter.
 \end{description}

@@ -21,6 +21,7 @@ use Fortran::Utils;
 require Galacticus::Build::Hooks;
 require Galacticus::Build::Dependencies;
 require Fortran::Utils;
+require List::ExtraUtils;
 
 # Insert hooks for our functions.
 %Hooks::moduleHooks = 
@@ -44,7 +45,7 @@ sub Functions_Parse_Directive {
     my $directive = $buildData->{'directive'};
     my $className = $buildData->{'currentDocument'}->{'name'};
     my $fileName  = $buildData->{'currentFileName'};
-    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName});
+    push(@{$buildData->{$directive}->{'classes'}},{name => $className, file => $fileName, description => $buildData->{'currentDocument'}->{'description'}});
 
 }
 
@@ -131,6 +132,31 @@ sub Functions_Generate_Output {
 	}
     }
 
+    # If the function is stateful, add methods to store and retrieve state.
+    if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
+	push(
+	    @methods,
+	    {
+		name        => "stateStore",
+		description => "Store the state of the object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "FGSL",
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		code        => ""
+	    },
+	    {
+		name        => "stateRestore",
+		description => "Restore the state of the object to file.",
+		type        => "void",
+		pass        => "yes",
+		modules     => "FGSL",
+		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
+		code        => ""
+	    }
+	    )
+    }
+
     # Determine if any methods request that C-bindings be produced.
     my @methodsCBound;
     foreach ( @methods ) {
@@ -147,6 +173,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "   public :: ".$directive.",".$directive."Class";
     $buildData->{'content'} .= ", ".$_->{'name'}
 	foreach ( @{$buildData->{$directive}->{'classes'}});
+    $buildData->{'content'} .= ", ".$directive."StateStore, ".$directive."StateRestore"
+	if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" );
     $buildData->{'content'} .= "\n\n";
 
     # Add variable tracking module initialization status.
@@ -155,6 +183,16 @@ sub Functions_Generate_Output {
     # Generate the function object.
     $buildData->{'content'} .= "   type :: ".$directive."Class\n";
     $buildData->{'content'} .= "    private\n";
+    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+	if ( reftype($_) ) {
+	    $_->{'scope'} = "self"
+		unless ( exists($_->{'scope'}) );
+	    $buildData->{'content'} .= $_->{'content'}."\n"
+	        if (  $_->{'scope'} eq "self" );
+	} else {
+	    $buildData->{'content'} .= $_."\n";
+	}
+    }
     $buildData->{'content'} .= "    contains\n";
     $buildData->{'content'} .= "    !@ <objectMethods>\n";
     $buildData->{'content'} .= "    !@   <object>".$directive."Class</object>\n";
@@ -244,7 +282,6 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "    module procedure ".$directive."ConstructorNamed\n";
     $buildData->{'content'} .= "   end interface\n";
 
-
     # Scan implementation code to determine dependencies.
     my %dependencies;
     my %classes;
@@ -305,6 +342,18 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "   end type ".$directive."Wrapper\n\n";
     }
 
+    # Insert any module-scope class content.
+    foreach ( &ExtraUtils::as_array($buildData->{'data'}) ) {
+	if ( reftype($_) ) {
+	    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
+		$buildData->{'content'} .= $_->{'content'}."\n";
+		if ( exists($_->{'threadprivate'}) && $_->{'threadprivate'} eq "yes" && $_->{'content'} =~ m/::\s*(.*)$/ ) {
+		    $buildData->{'content'} .= "   !\$omp threadprivate(".$1.")\n";
+		}
+	    }
+	}
+    }
+
     # Insert "contains" separator.
     $buildData->{'content'} .= "contains\n\n";
 
@@ -330,7 +379,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      select case (trim(typeName))\n";
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
-	$name = lcfirst($name);
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "     case ('".$name."')\n";
 	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."ConstructorNamed)\n";
 	$buildData->{'content'} .= "        select type (".$directive."ConstructorNamed)\n";
@@ -345,7 +395,9 @@ sub Functions_Generate_Output {
 	foreach ( @{$buildData->{$directive}->{'classes'}} );
     foreach ( sort(@classNames) ) {
 	(my $name = $_) =~ s/^$directive//;
-	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."ConstructorNamed',message)\n";
     $buildData->{'content'} .= "      end select\n";
@@ -381,7 +433,8 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "      select case (char(".$directive."Method))\n";
     foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
 	(my $name = $class->{'name'}) =~ s/^$directive//;
-	$name = lcfirst($name);
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
 	$buildData->{'content'} .= "     case ('".$name."')\n";
 	$buildData->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive."Default)\n";
 	$buildData->{'content'} .= "        select type (".$directive."Default)\n";
@@ -393,12 +446,44 @@ sub Functions_Generate_Output {
     $buildData->{'content'} .= "         message='Unrecognized option for [".$directive."Method](='//".$directive."Method//'). Available options are:'\n";
     foreach ( sort(@classNames) ) {
 	(my $name = $_) =~ s/^$directive//;
-	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".lcfirst($name)."'\n";
+	$name = lcfirst($name)
+	    unless ( $name =~ m/^[A-Z]{2,}/ );
+	$buildData->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
     }
     $buildData->{'content'} .= "         call Galacticus_Error_Report('".$directive."Initialize',message)\n";
     $buildData->{'content'} .= "      end select\n";
     $buildData->{'content'} .= "      return\n";
     $buildData->{'content'} .= "   end subroutine ".$directive."Initialize\n\n";
+
+    # Create global state store/restore functions.
+    if ( exists($buildData->{'stateful'}) && $buildData->{'stateful'} eq "yes" ) {
+	$buildData->{'content'} .= "  !# <galacticusStateStoreTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateStore</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateStoreTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."StateStore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    !% Store the state to file.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
+	$buildData->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateStore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."StateStore\n\n";
+	$buildData->{'content'} .= "  !# <galacticusStateRetrieveTask>\n";
+	$buildData->{'content'} .= "  !#  <unitName>".$directive."StateRetrieve</unitName>\n";
+	$buildData->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
+	$buildData->{'content'} .= "  subroutine ".$directive."StateRetrieve(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    !% Retrieve the state from file.\n";
+	$buildData->{'content'} .= "    implicit none\n";
+	$buildData->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
+	$buildData->{'content'} .= "    type   (fgsl_file), intent(in   ) :: fgslStateFile\n";
+	$buildData->{'content'} .= "    class  (".$directive."Class), pointer :: default\n\n";
+	$buildData->{'content'} .= "    default => ".$directive."()\n";
+	$buildData->{'content'} .= "    call default%stateRestore(stateFile,fgslStateFile)\n";
+	$buildData->{'content'} .= "    return\n";
+	$buildData->{'content'} .= "  end subroutine ".$directive."StateRetrieve\n\n";
+    }
 
     # Create functions.
     foreach my $method ( @methods ) {
@@ -457,20 +542,6 @@ sub Functions_Generate_Output {
 	$buildData->{'content'} .= "      return\n";
 	$buildData->{'content'} .= "   end ".$category." ".$method->{'name'}.$extension."\n\n";
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     # Generate C-bindings if required.
     if ( @methodsCBound ) {
 	# C-bound default constructor. Here, we use a wrapper object which contains a pointer to the default polymorphic Fortran
@@ -679,6 +750,101 @@ sub Functions_Generate_Output {
 	print cHndl $cBindings;
 	close(cHndl);
     }
+    # Generate documentation.
+    my $documentation = "\\subsubsection{".$buildData->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive)."}\n\n";
+    $documentation   .= "Additional implementations for ".lc($buildData->{'descriptiveName'})." are added using the {\\tt ".$directive."} class.\n";
+    $documentation   .= "The implementation should be placed in a file containing the directive:\n";
+    $documentation   .= "\\begin{verbatim}\n";
+    $documentation   .= "!# <".$directive." name=\"".$directive."MyImplementation\">\n";
+    $documentation   .= "!# <description>A short description of the implementation.</description>\n";
+    $documentation   .= "!# </".$directive.">\n";
+    $documentation   .= "\\end{verbatim}\n";
+    $documentation   .= "where {\\tt MyImplementation} is an appropriate name for the implemention. This file should be treated as a regular Fortran module, but without the initial {\\tt module} and final {\\tt end module} lines. That is, it may contain {\\tt use} statements and variable declarations prior to the {\\tt contains} line, and should contain all functions required by the implementation after that line. Function names should begin with {\\tt ".&LaTeX_Breakable($directive."MyImplementation")."}. The file \\emph{must} define a type that extends the {\\tt ".$directive."Class} class (or extends another type which is itself an extension of the {\\tt ".$directive."Class} class), containing any data needed by the implementation along with type-bound functions required by the implementation. The following type-bound functions are required (unless inherited from the parent type):\n";
+    $documentation   .= "\\begin{description}\n";
+    # Create functions.
+    foreach my $method ( @methods ) {
+	$documentation   .= "\\item[{\\tt ".$method->{'name'}."}] ".$method->{'description'};
+	if ( exists($method->{'code'}) ) {
+	    $documentation .= " A default implementation exists. If overridden the following interface must be used:\n";
+	} else {
+	    $documentation .= " Must have the following interface:\n";
+	}
+	$documentation   .= "\\begin{lstlisting}[language=Fortran,basicstyle=\\small\\ttfamily,escapechar=@,breaklines,prebreak=\\&,postbreak=\\&\\space\\space,columns=flexible,keepspaces=true,breakautoindent=true,breakindent=10pt]\n";
+	# Insert arguments.
+	my @arguments;
+	if ( exists($method->{'argument'}) ) {
+	    if ( UNIVERSAL::isa($method->{'argument'},"ARRAY") ) {
+		push(@arguments,@{$method->{'argument'}});
+	    } else {
+		push(@arguments,  $method->{'argument'} );
+	    }
+	}
+	unshift(@arguments,"class(".$directive."Class), intent(inout) :: self");
+	my $argumentList = "";
+	my $separator    = "";
+	my @argumentDefinitions;
+	foreach my $argument ( @arguments ) {
+	    if ( $argument =~ $Fortran_Utils::variableDeclarationRegEx ) {
+		my $intrinsic     = $1;
+		my $type          = $2;
+		my $attributeList = $3;
+		my $variableList  = $4;
+		my @variables  = &Fortran_Utils::Extract_Variables($variableList,keepQualifiers => 1,lowerCase => 0);
+		my $declaration =
+		{
+		    intrinsic  => $intrinsic,
+		    attributes => $attributeList,
+		    variables  => \@variables
+		}; 
+		if ( defined($type) ) {
+		    $type =~ s/\((.*)\)/$1/;
+		    $declaration->{'type'} = $type;
+		}
+		if ( defined($attributeList) ) {
+		    $attributeList =~ s/^\s*,\s*//;
+		    my @attributes = &Fortran_Utils::Extract_Variables($attributeList,keepQualifiers => 1);
+		    $declaration->{'attributes'} = \@attributes;
+		}
+		push(@argumentDefinitions,$declaration);
+	    } else {
+		print "Argument does not match expected pattern:\n\t".$argument."\n";
+		die("Functions_Generate_Output: argument parse error");
+	    }
+	    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
+	    $argumentList .= $separator.$variables;
+	    $separator     = ",";
+	}
+	my $type;
+	my $category;
+	if ( $method->{'type'} eq "void" ) {
+	    $category = "subroutine";
+	    $type     = "";
+	} else {
+	    $category = "function";
+	    $type     = $method->{'type'}." ";
+	}
+	$documentation .= "   ".$type.$category." myImplementation".ucfirst($method->{'name'})."(";
+	$documentation .= $argumentList
+	    unless ( $argumentList eq "" );
+	$documentation .= ")\n";
+	$documentation .= &Fortran_Utils::Format_Variable_Defintions(\@argumentDefinitions);
+	$documentation .= "   end ".$type.$category." myImplementation".ucfirst($method->{'name'})."\n";
+	$documentation .= "\\end{lstlisting}\n\n";
+    }
+    $documentation   .= "\\end{description}\n\n";
+
+    $documentation   .= "Existing implementations are:\n";
+    $documentation   .= "\\begin{description}\n";
+    foreach my $class ( @{$buildData->{$directive}->{'classes'}} ) {
+	$documentation   .= "\\item[{\\tt ".$class->{'name'}."}] ".$class->{'description'};
+	$documentation   .= " \\iflabelexists{phys:".$directive.":".$class->{'name'}."}{See \\S\\ref{phys:".$directive.":".$class->{'name'}."}.}{}\n";
+    }
+    $documentation   .= "\\end{description}\n\n";
+	
+    system("mkdir -p doc/methods");
+    open(my $docHndl,">doc/methods/".$directive.".tex");
+    print $docHndl $documentation;
+    close($docHndl);
 }
 
 sub Functions_Modules_Generate_Output {
@@ -719,8 +885,16 @@ sub Functions_Modules_Generate_Output {
 	}
 	close($classFile);
     }
+
+    # Generate the code.
     $buildData->{'content'} .= "use ".$_
 	foreach ( sort(keys(%modules)) );
+}
+
+sub LaTeX_Breakable {
+    my $text = shift;
+    $text =~ s/([a-z])([A-Z])/$1\\-$2/g;
+    return $text;
 }
 
 1;

@@ -124,8 +124,8 @@
     <value>sphericalTopHat</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
-    <value>Gao2008</value>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>gao2008</value>
   </parameter>
   <parameter>
     <name>darkMatterProfileMethod</name>
@@ -164,7 +164,7 @@
     <value>Bett2007</value>
   </parameter>
   <parameter>
-    <name>hotHaloDensityMethod</name>
+    <name>hotHaloMassDistributionMethod</name>
     <value>cored isothermal</value>
   </parameter>
   <parameter>
@@ -192,7 +192,7 @@
     <value>fixed</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.1</value>
   </parameter>
   <parameter>

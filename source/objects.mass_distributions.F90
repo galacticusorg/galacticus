@@ -49,10 +49,16 @@ module Mass_Distributions
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>densityGradientRadial</method>
+     !@     <description>Returns the gradient with respect to radius of the density of the mass distribution at the supplied {\tt coordinates}. If the optional {\tt logarithmic} argument is set to true, return the logarithmic gradient.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin, \logicalzero\ [logarithmic]\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>densityRadialMoment</method>
      !@     <description>Returns the $n^{\rm th}$ moment of the integral of the density over radius, $\int_0^\infty \rho({\bf x}) |x|^n {\rm d} {\bf x}$.</description>
      !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ moment\argin, \logicalzero\ [isInfinite]\argout</arguments>
+     !@     <arguments>\doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin, \logicalzero\ [isInfinite]\argout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>massEnclosedBySphere</method>
@@ -67,12 +73,13 @@ module Mass_Distributions
      !@     <arguments>\textcolor{red}{\textless class(coordinate)\textgreater} coordinates\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
-     procedure, nopass :: symmetry            =>Mass_Distribution_Symmetry_None
-     procedure         :: isDimensionless     =>Mass_Distribution_Is_Dimensionless
-     procedure         :: density             =>Mass_Distribution_Density_Null
-     procedure         :: densityRadialMoment =>Mass_Distribution_Density_Radial_Moment_Null
-     procedure         :: massEnclosedBySphere=>Mass_Distribution_Mass_Enc_By_Sphere_Null
-     procedure         :: potential           =>Mass_Distribution_Potential_Null
+     procedure, nopass :: symmetry             =>Mass_Distribution_Symmetry_None
+     procedure         :: isDimensionless      =>Mass_Distribution_Is_Dimensionless
+     procedure         :: density              =>Mass_Distribution_Density_Null
+     procedure         :: densityGradientRadial=>Mass_Distribution_Density_Gradient_Radial_Null
+     procedure         :: densityRadialMoment  =>Mass_Distribution_Density_Radial_Moment_Null
+     procedure         :: massEnclosedBySphere =>Mass_Distribution_Mass_Enc_By_Sphere_Null
+     procedure         :: potential            =>Mass_Distribution_Potential_Null
   end type massDistribution
 
   type, public, extends(massDistribution) :: massDistributionSpherical
@@ -191,12 +198,26 @@ contains
     return
   end function Mass_Distribution_Density_Null
 
-  double precision function Mass_Distribution_Density_Radial_Moment_Null(self,moment,isInfinite)
+  double precision function Mass_Distribution_Density_Gradient_Radial_Null(self,coordinates,logarithmic)
+    !% Aborts on attempts to get density of mass distributions with no density defined.
+    use Coordinates
+    use Galacticus_Error
+    implicit none
+    class  (massDistribution), intent(in   )           :: self
+    class  (coordinate      ), intent(in   )           :: coordinates
+    logical                  , intent(in   ), optional :: logarithmic
+
+    call Galacticus_Error_Report('Mass_Distribution_Density_Gradient_Radial_Null','this mass distribution has no densityGradientRadial method defined')
+    return
+  end function Mass_Distribution_Density_Gradient_Radial_Null
+
+  double precision function Mass_Distribution_Density_Radial_Moment_Null(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !% Aborts on attempts to get radial density moment of mass distributions with no density defined.
     use Galacticus_Error
     implicit none
     class           (massDistribution), intent(in   )           :: self
-    double precision                  , intent(in   )           :: moment
+    double precision                  , intent(in   )           :: moment 
+    double precision                  , intent(in   ), optional :: radiusMinimum, radiusMaximum
     logical                           , intent(  out), optional :: isInfinite
 
     call Galacticus_Error_Report('Mass_Distribution_Density_Radial_Moment_Null','this mass distribution has no radial density moment method defined')

@@ -295,10 +295,25 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>stellarPopulationSpectraPostprocessMethod</name>
-      <value>Meiksin2006</value>
-      <value>Madau1995</value>
-      <value>null</value>
+      <name>luminosityFilter</name>
+      <value>RGO_I SDSS_g SDSS_r SDSS_i</value>
+    </parameter>
+    <parameter>
+      <name>luminosityRedshift</name>
+      <value>0.0 0.1 0.1 0.1</value>
+    </parameter>
+    <parameter>
+      <name>luminosityType</name>
+      <value>rest observed observed observed</value>
+    </parameter>
+    <parameter>
+      <name>stellarPopulationSpectraPostprocessDefaultMethods</name>
+      <value>meiksin2006</value>
+      <value>madau1995</value>
+      <value>inoue2014</value>
+      <value>lycSuppress</value>
+      <value>recent</value>
+      <value>identity</value>
     </parameter>
   </parameters>
   <parameters>
@@ -366,10 +381,10 @@
   </parameters>
   <parameters>
     <parameter>
-      <name>darkMatterConcentrationMethod</name>
-      <value>Gao2008</value>
-      <value>Zhao2009</value>
-      <value>Munoz-Cuartas2011</value>
+      <name>darkMatterProfileConcentrationMethod</name>
+      <value>gao2008</value>
+      <value>zhao2009</value>
+      <value>munozCuartas2011</value>
       <value>NFW1996</value>
     </parameter>
   </parameters>
@@ -624,12 +639,13 @@
   <!-- Hot halo density profile -->
   <parameters>
     <parameter>
-      <name>hotHaloDensityMethod</name>
-      <value>coredIsothermal
+      <name>hotHaloMassDistributionMethod</name>
+      <value>ricotti2000</value>
+      <value>betaProfile
       <parameter>
-	<name>hotHaloCoredIsothermalCoreRadiiMethod</name>
-	<value>virialRadiusFraction</value>
-	<value>growingCore</value>
+	<name>hotHaloMassDistributionCoreRadiusMethod</name>
+	<value>virialFraction</value>
+	<value>growing</value>
       </parameter>
       </value>
     </parameter>
@@ -837,6 +853,25 @@
     <parameter>
       <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
       <value>turnaround</value>
+    </parameter>
+  </parameters>
+
+  <!-- Intergalactic medium state and internal background calculation -->
+  <parameters>
+    <parameter>
+      <name>backgroundRadiationCompute</name>
+      <value>true</value>
+    </parameter>
+    <parameter>
+      <name>intergalacticMediumStateMethod</name>
+      <value>recFast</value>
+      <value>file
+      <parameter>
+	<name>intergalaticMediumStateFileName</name>
+	<value>data/intergalacticMedium/recFast_OmegaM0.273_OmegaDE0.728_Omegab0.0455_H070.2_TCMB2.725_YHe0.22.xml</value>
+      </parameter>
+      </value>
+      <value>simple</value>
     </parameter>
   </parameters>
 

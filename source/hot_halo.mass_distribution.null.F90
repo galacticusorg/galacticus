@@ -1,0 +1,111 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% A null implementation of the hot halo mass distribution class.
+
+  !# <hotHaloMassDistribution name="hotHaloMassDistributionNull">
+  !#  <description>Provides a null implementation of the hot halo mass dsitribution class.</description>
+  !# </hotHaloMassDistribution>
+  type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionNull
+     !% A null implementation of the hot halo mass distribution class.
+     private
+   contains
+     final     ::                          nullDestructor
+     procedure :: density               => nullDensity
+     procedure :: densityLogSlope       => nullDensityLogSlope
+     procedure :: enclosedMass          => nullEnclosedMass
+     procedure :: radialMoment          => nullRadialMoment
+     procedure :: rotationNormalization => nullRotationNormalization
+  end type hotHaloMassDistributionNull
+
+  interface hotHaloMassDistributionNull
+     !% Constructors for the null hot halo mass distribution class.
+     module procedure nullDefaultConstructor
+  end interface hotHaloMassDistributionNull
+
+contains
+
+  function nullDefaultConstructor()
+    !% Default constructor for the null hot halo mass distribution class.
+    implicit none
+    type(hotHaloMassDistributionNull) :: nullDefaultConstructor
+    return
+  end function nullDefaultConstructor
+
+  elemental subroutine nullDestructor(self)
+    !% Destructor for the null hot halo mass distribution class.
+    implicit none
+    type(hotHaloMassDistributionNull), intent(inout) :: self
+
+    ! Nothing to do.
+    return
+  end subroutine nullDestructor
+
+  double precision function nullDensity(self,node,radius)
+    !% Return the density in a null hot halo mass distribution.
+    implicit none
+    class           (hotHaloMassDistributionNull), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+
+    nullDensity=0.0d0
+    return
+  end function nullDensity
+
+  double precision function nullDensityLogSlope(self,node,radius)
+    !% Return the logarithmic slope of the density of the hot halo at the given {\tt radius}.
+    implicit none
+    class           (hotHaloMassDistributionNull), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+    
+    nullDensityLogSlope=0.0d0
+    return
+  end function nullDensityLogSlope
+  
+  double precision function nullEnclosedMass(self,node,radius)
+    !% Return the mass enclosed in the hot halo at the given {\tt radius}.
+    implicit none
+    class           (hotHaloMassDistributionNull), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: radius
+
+    nullEnclosedMass=0.0d0
+    return
+  end function nullEnclosedMass
+  
+  double precision function nullRadialMoment(self,node,moment,radius)
+    !% Return the density of the hot halo at the given {\tt radius}.
+    implicit none
+    class           (hotHaloMassDistributionNull), intent(inout)          :: self
+    type            (treeNode                   ), intent(inout), pointer :: node
+    double precision                             , intent(in   )          :: moment, radius
+
+    nullRadialMoment=0.0d0
+    return
+  end function nullRadialMoment
+
+  double precision function nullRotationNormalization(self,node)
+    !% Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for {\tt node}. Specifically, the normalization, $A$, returned is such that $V_{\rm rot} = A J/M$.
+    implicit none
+    class(hotHaloMassDistributionNull), intent(inout)          :: self
+    type (treeNode                   ), intent(inout), pointer :: node
+
+    nullRotationNormalization=0.0d0
+  return
+  end function nullRotationNormalization
+  

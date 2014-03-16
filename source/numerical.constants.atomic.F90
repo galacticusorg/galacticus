@@ -19,21 +19,32 @@
 
 module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
+  use Numerical_Constants_Physical
+  use Numerical_Constants_Units
   use FGSL
   implicit none
   public
 
   ! Atomic mass unit (in kg).
-  double precision, parameter :: atomicMassUnit              =FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS
+  double precision, parameter :: atomicMassUnit                    =FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS
 
   ! Atomic masses.
-  double precision, parameter :: atomicMassHydrogen          =1.007825d0
-  double precision, parameter :: atomicMassHelium            =4.002602d0
+  double precision, parameter :: atomicMassHydrogen                =1.007825d0
+  double precision, parameter :: atomicMassHelium                  =4.002602d0
 
   ! Mass of hydrogen atom (in kg).
-  double precision, parameter :: massHydrogenAtom            =atomicMassHydrogen*atomicMassUnit
+  double precision, parameter :: massHydrogenAtom                  =atomicMassHydrogen*atomicMassUnit
 
   ! Ionization energies/wavelengths (in eV/Angstroms).
-  double precision, parameter :: ionizationWavelengthHydrogen=911.862d0                           !  (Allen's Astrophysical Quantities, p. 36).
-
+  ! Hydrogen Lyman series limit wavelength including correction for finite mass of the atom.
+  double precision, parameter :: lymanSeriesLimitWavelengthHydrogen=                          &
+       &                                                              plancksConstant         &
+       &                                                             *speedLight              &
+       &                                                             /FGSL_CONST_MKSA_RYDBERG &
+       &                                                             *angstromsPerMeter       &
+       &                                                             /(                       &
+       &                                                                1.0d0                 &
+       &                                                               -electronMass          &
+       &                                                               /massHydrogenAtom      &
+       &                                                              )
 end module Numerical_Constants_Atomic

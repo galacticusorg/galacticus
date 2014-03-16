@@ -24,7 +24,7 @@ require Galacticus::Survey;
 
 # First run the models.
 system("rm -rf ../aux/Grasil");
-system("cd ..; scripts/aux/Run_Galacticus.pl testSuite/parameters/test-Grasil.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-Grasil.xml");
 system("cd ..; bunzip2 testSuite/outputs/test-Grasil/galacticus_*/galacticus.hdf5.bz2");
 
 # Open the model output.

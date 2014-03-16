@@ -72,6 +72,7 @@ contains
     procedure       (Halo_Baryonic_Accretion_Rate_Chemicals_Simple_Get ), intent(inout), pointer :: Halo_Baryonic_Accretion_Rate_Chemicals_Get
     procedure       (Halo_Baryonic_Accreted_Chemicals_Simple_Get       ), intent(inout), pointer :: Halo_Baryonic_Accreted_Chemicals_Get
     class           (cosmologyFunctionsClass                           )               , pointer :: cosmologyFunctionsDefault
+    class           (intergalacticMediumStateClass                     )               , pointer :: intergalacticMediumState_ 
     double precision                                                                             :: reionizationSuppressionOpticalDepth
 
     if (accretionHalosMethod == 'simple') then
@@ -101,7 +102,8 @@ contains
           !@   <cardinality>1</cardinality>
           !@ </inputParameter>
           call Get_Input_Parameter("reionizationSuppressionOpticalDepth",reionizationSuppressionOpticalDepth)
-          reionizationSuppressionTime=Intergalactic_Medium_Electron_Scattering_Time(reionizationSuppressionOpticalDepth&
+          intergalacticMediumState_ => intergalacticMediumState()
+          reionizationSuppressionTime=intergalacticMediumState_%electronScatteringTime(reionizationSuppressionOpticalDepth&
                &,assumeFullyIonized=.true.)
        else
           !@ <inputParameter>

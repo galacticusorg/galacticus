@@ -114,6 +114,9 @@ module Galacticus_Nodes
   ! Include merger tree object.
   include "objects.merger_trees.type.inc"
 
+  ! Include universe class.
+  include "objects.universe.type.inc"
+
   ! Zero dimension arrays to be returned as defaults.
   integer                                            , dimension(0) :: nullInteger1d
   double precision                                   , dimension(0) :: nullDouble1d
@@ -1060,5 +1063,8 @@ module Galacticus_Nodes
 
   ! Include functions for the merger tree class.
   include "objects.merger_trees.functions.inc"
+
+  ! Include functions for the universe class.
+  include "objects.universe.functions.inc"
 
 end module Galacticus_Nodes

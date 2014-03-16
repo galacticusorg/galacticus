@@ -30,6 +30,7 @@ module Satellite_Merging_Timescales
        &    Satellite_Merging_Timescale_State_Snapshot
 
   !# <include directive="satelliteMergingTimescales" type="function" >
+  !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
   !#  <description>Object providing merging timescales for satellites.</description>
   !#  <default>jiang2008</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>

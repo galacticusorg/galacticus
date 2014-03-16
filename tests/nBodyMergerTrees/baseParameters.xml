@@ -124,7 +124,7 @@
     <value>spherical top hat</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
+    <name>darkMatterProfileConcentrationMethod</name>
     <value>Gao 2008</value>
   </parameter>
   <parameter>
@@ -192,7 +192,7 @@
     <value>fixed</value>
   </parameter>
   <parameter>
-    <name>isothermalCoreRadiusOverVirialRadius</name>
+    <name>hotHaloCoreRadiusOverVirialRadius</name>
     <value>0.1</value>
   </parameter>
   <parameter>

@@ -21,15 +21,15 @@ By default, gas is accreted whenever the halo is growing in total mass. However,
 
 Selected using {\tt accretionHalosMethod}$=${\tt null}, this method sets the accretion rate of baryons into a halo to be zero always.
 
-\section{Background Cosmology}\index{cosmology}
+\section{Cosmology Functions}\index{cosmology}
 
-The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\tt cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail in \S\ref{sec:CosmologyMethods}. Currently implemented cosmological models are as follows.
+The background cosmology describes the evolution of an isotropic, homoegeneous Universe within which our calculations are carried out. For the purposes of \glc, the background cosmology is used to relate expansion factor/redshift to cosmic time and to compute the density of various components (e.g. dark matter, dark energy, etc.) at different epochs. Background cosmological models are specified via the {\tt cosmologyMethod}, and the physics that must be implemented for each cosmological model is describe in more detail in \S\ref{sec:methodsCosmologyFunctions}. Currently implemented cosmological models are as follows.
 
-\subsection{Matter + Lambda}
+\subsection{Matter + Lambda}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterLambda}
 
 Selected with {\tt cosmologyMethod}$=${\tt matter-lambda}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological constant.
 
-\subsection{Matter + Dark Energy}\index{dark energy}
+\subsection{Matter + Dark Energy}\label{phys:cosmologyFunctions:cosmologyFunctionsMatterDarkEnergy}\index{dark energy}
 
 Selected with {\tt cosmologyMethod}$=${\tt matter-darkEnergy}, in this implementation cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\tt [darkEnergyEquationOfStateW0]}, and $w_1=${\tt [darkEnergyEquationOfStateW1]}.
 
@@ -630,13 +630,13 @@ Selected with {\tt darkMatterProfileMethod}$=${\tt Einasto}, under this method t
 \end{equation}
 normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length $r_{-2} = r_{\rm virial}/c$ where $c$ is the halo concentration (see \S\ref{sec:DarkMatterProfileConcentration}). The shape parameter, $\alpha$, is set using the density profile shape method (see \S\ref{sec:DarkMatterProfileShape}).
 
-\subsection{Density Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
+\subsection{Dark Matter Halo Profile Concentration}\label{sec:DarkMatterProfileConcentration}\index{dark matter profile!concentration}
 
-The method uses to compute the concentrations of dark matter profiles is selected via the {\tt darkMatterConcentrationMethod} parameter.
+The method uses to compute the concentrations of dark matter profiles is selected via the {\tt darkMatterProfileConcentrationMethod} parameter.
 
-\subsubsection{Navarro, Frenk \& White (1996)}
+\subsubsection{Navarro, Frenk \& White (1996)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationNFW1996}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt NFW1996}, under this method the concentration is computed using the algorithm from \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have a mass greater than $fM$, where $f=${\tt [nfw96ConcentrationF]} is a parameter of the algorithm. This implies formation when the critical overdensity for collapse is
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt NFW1996}, under this method the concentration is computed using the algorithm from \cite{navarro_structure_1996}. In this algoritm, for a given halo of mass $M$ at time $t_0$, a formation time is defined as the epoch at which there is a 50\% probability (according to extended Press-Schechter theory) for a progenitor halo to have a mass greater than $fM$, where $f=${\tt [nfw96ConcentrationF]} is a parameter of the algorithm. This implies formation when the critical overdensity for collapse is
 \begin{equation}
  \delta_{\rm crit}(t_{\rm form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\} \right]^{1/2}+\delta_{\rm crit}(t_0),
 \end{equation}
@@ -649,9 +649,9 @@ where $C=${\tt [nfw96ConcentrationC]} is a parameter of the algorithm. The conce
  {\Delta(t_{\rm form}) \over \Delta_{\rm virial}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]}.
 \end{equation}
 
-\subsubsection{Gao (2008)}
+\subsubsection{Gao (2008)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationGao2008}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Gao2008}, under this method the concentration is computed using a fitting function from \cite{gao_redshift_2008}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt gao2008}, under this method the concentration is computed using a fitting function from \cite{gao_redshift_2008}:
 \begin{equation}
 \log_{10} c = A \log_{10} M_{\rm halo} + B.
 \end{equation}
@@ -661,17 +661,17 @@ A &=& -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right
 B &=&  2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
 \end{eqnarray}
 
-\subsubsection{Zhao (2009)}
+\subsubsection{Zhao (2009)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationZhao2009}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Zhao2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt zhao2009}, under this method the concentration is computed using a fitting function from \cite{zhao_accurate_2009}:
 \begin{equation}
  c = 4 \left(1 + \left[ {t  \over 3.75 t_{\rm form}}\right]^{8.4}\right)^{1/8},
 \end{equation}
 where $t$ is the time for the halo and $t_{\rm form}$ is a formation time defined by \cite{zhao_accurate_2009} as the time at which the main branch progenitor of the halo had a mass equal to $0.04$ of the current halo mass. This formation time is computed directly from the merger tree branch associated with each halo. If the no branch exists or does not extend to the formation time then the formation time is computed by extrapolating the mass of the earliest resolved main branch progenitor to earlier times using the selected mass accretion history method (see \S\ref{sec:HaloMassAccretionHistory}).
 
-\subsubsection{Mu\~noz-Cuartas (2011)}
+\subsubsection{Mu\~noz-Cuartas (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationMunozCuartas2011}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Munoz-Cuartas2011}, under this method the concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt munozCuartas2011}, under this method the concentration is computed using a fitting function from \cite{munoz-cuartas_redshift_2011}:
 \begin{equation}
 \log_{10} c = a \log_{10} \left( {M_{\rm halo} \over h^{-1}M_\odot} \right) + b.
 \end{equation}
@@ -682,9 +682,9 @@ b &=& {\alpha \over (z+\gamma)} + {\beta \over (z+\gamma)^2},
 \end{eqnarray}
 where $w=0.029$, $m=0.097$, $\alpha=-110.001$, $\beta=2469.720$, $\gamma=16.885$.
 
-\subsubsection{Prada et al. (2011)}
+\subsubsection{Prada et al. (2011)}\label{phys:darkMatterProfileConcentration:darkMatterProfileConcentrationPrada2011}
 
-Selected with {\tt darkMatterConcentrationMethod}$=${\tt Prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
+Selected with {\tt darkMatterProfileConcentrationMethod}$=${\tt prada2011}, under this method the concentration is computed using a fitting function from \cite{prada_halo_2011}:
 \begin{equation}
 c(M,t) = B_0(x) \mathcal{C}(\sigma^\prime),
 \end{equation}
@@ -1220,46 +1220,41 @@ Finally, the angular momentum factor is set to
 \end{equation}
 where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$.
 
-\section{Hot Halo Density Profile}\index{hot halo!density profile}\index{density profile!hot halo}
+\section{Hot Halo Mass Distribution}\index{hot halo!mass distribution}\index{mass distribution profile!hot halo}
 
-The algorithm to be used when determining the hot halo density profile is selected via the {\tt hotHaloDensityMethod} parameter.
+The algorithm to be used when determining the hot halo mass distribution is selected via the {\tt hotHaloMassDistributionMethod} parameter.
 
-\subsection{Cored Isothermal}
+\subsection{$\beta$-profile}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionBetaProfile}
 
-Selected with {\tt hotHaloDensityMethod}$=${\tt coredIsothermal} this method adopts a spherically symmetric cored-isothermal density profile for the hot halo. Specifically,
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt betaProfile} this method adopts a spherically symmetric $\beta$-profile density profile for the hot halo. Specifically,
 \begin{equation}
- \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^2,
+ \rho_{\rm hot halo}(r) \propto \left[ r^2 + r_{\rm core}^2 \right]^{3\beta/2},
 \end{equation}
-where the core radius, $r_{\rm core}$, is set using the selected cored isothermal core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$. The rotation normalization, i.e. the constant $A$ in the relation $A = V_{\rm rotation}/\langle j \rangle$ where $V_{\rm rotation}$ is an assumed constant with radius rotation speed and $\langle j \rangle$ is the mean specific angular momentum of the gas, is given by
+where the core radius, $r_{\rm core}$, is set using the selected cored profile core radius method (see \S\ref{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}). The value of $\beta$ is specified by the {\tt [hotHaloMassDistributionBeta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$.
+
+\subsection{Ricotti (2000)}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionRicotti2000}
+
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt ricotti2000} this method adopts a spherically symmetric $\beta$-profile density profile for the hot halo with parameters selected using the fitting function of \cite{ricotti_feedback_2000} who found these by solving for hydrostatic equilibrium in an \gls{nfw} density profile. Specifically, $\beta = 0.9 b$ where
 \begin{equation}
-A = r_{\rm hot, outer}^{-1} {(1-x_{\rm core}\arctan(x_{\rm core}^{-1}) \over 1/2 + x_{\rm core}^2 \ln(x_{\rm core}/[1+x_{\rm core}^2]^{1/2})},
+ b = {2 c \over 9 \Gamma} \left[ \log(1+c) - {c\over 1+c}\right]^{-1},
 \end{equation}
-where $x_{\rm core}=r_{\rm core}/r_{\rm hot, outer}$.
+$c$ is the concentration parameter of the dark matter halo, and $\Gamma$ is the ratio of virial and gas temperatures, which is assumed to be unity. The core radius is $r_{\rm core} = 0.22 r_{\rm s}$ where $r_{\rm s}$ is the scale radius of the dark matter profile. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, $r_{\rm hot, outer}$.
 
-Finally, only the second and third radial moments, $I_2$ and $I_3$ respectively, are supported, for which
-\begin{equation}
-I_2 = x_{\rm core}-tan^{-1}(x_{\rm core}),
-\end{equation}
-and
-\begin{equation}
-I_3 = {1 \over 2} [x_{\rm core}^2-\log(1+x_{\rm core}^2)].
-\end{equation}
+\subsection{Null}\label{phys:hotHaloMassDistribution:hotHaloMassDistributionNull}
 
-\subsection{Null}
+Selected with {\tt hotHaloMassDistributionMethod}$=${\tt null} this method assumes no hot halo mass distribution. It is useful, for example, when performing dark matter-only calculations.
 
-Selected with {\tt hotHaloDensityMethod}$=${\tt null} this method assumes no hot halo density profile. It is useful, for example, when performing dark matter-only calculations.
+\section{Hot Halo Mass Distribution Profile: Cored Profile Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
 
-\section{Hot Halo Density Profile: Cored Isothermal Core Radius}\label{sec:hotHaloDensityProfileCoredIsothermalCoreRadius}\index{hot halo!density profile!core radius}\index{density profile!hot halo!core radius}
+The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\tt hotHaloMassDistributionCoreRadiusMethod} parameter.
 
-The algorithm to be used when determining the core radius of cored isothermal hot halo density profiles is selected via the {\tt hotHaloCoredIsothermalCoreRadiiMethod} parameter.
+\subsection{Growing Core}\label{phys:hotHaloMassDistributionCoreRadius:hotHaloMassDistributionCoreRadiusGrowing}
 
-\subsection{Growing Core}
+Selected with {\tt hotHaloMassDistributionCoreRadiusMethod}$=${\tt growingCore}, this method implements a core radius equal to a fraction {\tt [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
 
-Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt growingCore}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded to maintain the same gas density at the virial radius, with a maximum core radius of {\tt [isothermalCoreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+\subsection{Virial Fraction}\label{phys:hotHaloMassDistributionCoreRadius:hotHaloMassDistributionCoreRadiusVirialFraction}
 
-\subsection{Virial Radius Fraction}
-
-Selected with {\tt hotHaloCoredIsothermalCoreRadiiMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [isothermalCoreRadiusOverVirialRadius]} of the node's virial radius.
+Selected with {\tt hotHaloMassDistributionCoreRadiusMethod}$=${\tt virialRadiusFraction}, this method implements a core radius equal to a fraction {\tt [coreRadiusOverVirialRadius]} of the node's virial radius.
 
 \section{Hot Halo Ram Pressure Force}\label{sec:HotHaloRamPressureForce}\index{hot halo!ram pressure force}\index{ram pressure force!hot halo}
 
@@ -1424,23 +1419,61 @@ The {\tt Scalo} \gls{imf} is defined by \citep{scalo_stellar_1986}:
  0 & \hbox {otherwise.} \end{array} \right.
 \end{equation}
 
-
-
-
-
-
-
 \section{Intergalactic Medium State}\label{sec:IntergalacticMediumStateMethod}\index{intergalactic medium}
 
 The thermal and ionization state of the intergalactic medium is implemented by the algorithm selected using the {\tt intergalaticMediumStateMethod} parameter.
 
-\subsection{{\sc RecFast}}
+\subsection{Simple}\label{phys:intergalacticMediumState:intergalacticMediumStateSimple}
+
+Selected using {\tt intergalaticMediumStateMethod}$=${\tt simple}, this method provides a simple model of reionization in which the universe is assumed to be fully neutral prior to the redshift given by {\tt [igmStateSimpleReionizationRedshift]} and fully ionized thereafter. The temperature is given by {\tt [igmStateSimplePreReionizationTemperature]} before reionization, and {\tt [igmStateSimpleReionizationTemperature]} thereafter.
+
+\subsection{{\sc RecFast}}\label{phys:intergalacticMediumState:intergalacticMediumStateRecFast}
 
 Selected using {\tt intergalaticMediumStateMethod}$=${\tt RecFast}, this method computes the state of the intergalactic medium using the \href{http://www.astro.ubc.ca/people/scott/recfast.html}{{\sc RecFast}} code \cite{seager_how_2000,wong_how_2008}. The {\sc RecFast} code will be downloaded and run to compute the intergalactic medium state as needed, which will then be stored for future use.
 
-\subsection{File}
+\subsection{File}\label{phys:intergalacticMediumState:intergalacticMediumStateFile}
 
-Selected using {\tt intergalaticMediumStateMethod}$=${\tt file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The format of the file is specified in \S\ref{sec:IntergalacticMediumStateMethods}.
+Selected using {\tt intergalaticMediumStateMethod}$=${\tt file}, this method reads the state of the intergalactic medium from a file and interpolates in the tabulated results. The XML file containing the table should have the following form:
+ \begin{verbatim}
+<igm>
+  <electronFraction>
+    <datum>1.1590278</datum>
+    <datum>1.1590278</datum>
+    .
+    .
+    .
+  </electronFraction>
+  <hIonizedFraction>
+    <datum>1.0000000</datum>
+    <datum>1.0000000</datum>
+    .
+    .
+    .
+  </hIonizedFraction>
+  <heIonizedFraction>
+    <datum>1.0000000</datum>
+    <datum>1.0000000</datum>
+    .
+    .
+    .
+  </heIonizedFraction>
+  <matterTemperature>
+    <datum>27230.271</datum>
+    <datum>27203.016</datum>
+    .
+    .
+    .
+  </matterTemperature>
+  <redshift>
+    <datum>9990.00</datum>
+    <datum>9980.00</datum>
+    .
+    .
+    .
+  </redshift>
+</igm>
+ \end{verbatim}
+ The {\tt electronFraction}, {\tt hIonizedFraction}, {\tt heIonizedFraction}, and {\tt matterTemperature} elements should contain {\tt datum} elements listing the relevaqnt quantity for each redshift listed in the {\tt redshift} element.
 
 \section{Chemical State}\label{sec:ChemicalStateMethod}\index{chemical state}
 
@@ -1460,7 +1493,7 @@ Merger trees are ``constructed\footnote{By ``construct'' we mean any process of 
 
 \subsection{Read From File}
 
-Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads merger tree structures from an HDF5 file specified by the {\tt mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+Selected with {\tt mergerTreeConstructMethod}$=${\tt read}, this method reads merger tree structures from file by the designated importer (see \S\ref{sec:MergerTreeImporters}).
 
 \subsection{Build}
 
@@ -1666,6 +1699,66 @@ Selected with {\tt mergerTreeBuildMethod}$=${\tt Cole2000}, this method uses the
  \item [{\tt mergerTreeBuildCole2000HighestRedshift}] The highest redshift to which the tree should be built. Any branch reaching this redshift will be terminated. Typically this should be set to a high value such that branches terminate when the resolution limit it reached, but specifying a maximum redshift can be useful in some situations.
 \end{description}
 The minimum halo mass that the algorithm will follow is determined by the selection merger tree building mass resolution method (see \S\ref{sec:MergerTreeBuildingMassResolution}). Mass accretion below this scale is treated as smooth accretion and branches are truncated once they fall below this mass.
+
+\section{Merger Tree Importing}\label{sec:MergerTreeImporters}\index{merger trees!importing}
+
+When merger trees are to be read from file, a number of different file formats are supported. An ``importer'' class is used to read these files and place the contents into internal data structures that \glc\ can then manipulate. The importer class to use is specifide by the {\tt [mergerTreeImporterMethod]} parameter.
+
+\subsection{Galacticus}\label{phys:mergerTreeImporter:mergerTreeImporterGalacticus}
+
+Selected with {\tt mergerTreeImporterMethod}$=${\tt galacticus}, this method reads merger tree structures from an HDF5 file specified by the {\tt mergerTreeReadFileName} parameter. The structure of these HDF5 files is described in \S\ref{sec:MergerTreeFiles}.
+
+\subsection{Sussing Merger Trees}\label{phys:mergerTreeImporter:mergerTreeImporterSussing}
+
+Selected with {\tt mergerTreeImporterMethod}$=${\tt sussing}, this method reads merger tree structures from files following the format designed for the ``Sussing Merger Trees'' workshop \citep{srisawat_sussing_2013}, along with \gls{ahf} format halo catalogs. A descriptor file must be specified via the {\tt [mergerTreeReadFileName]} parameter. This descriptor file should have the following format:
+\begin{verbatim}
+simulation.txt
+MergerTree+AHF.txt
+snapidzred.txt
+AHF/62.5_dm_000.z50.000.AHF_halos
+AHF/62.5_dm_001.z30.000.AHF_halos
+AHF/62.5_dm_002.z19.916.AHF_halos
+.
+.
+.
+AHF/62.5_dm_061.z0.000.AHF_halos
+\end{verbatim}
+in which each line specifies a file to be read (by default path names are relative to the location of the descriptor file---fully-qualified path names can also be given).
+
+The first line identifies a file which specifies properties of the simulation. This file should look like:
+\begin{verbatim}
+WMAP7 cosmology:
+----------------
+Omega0          =       0.272
+OmegaLambda0    =       0.728
+h               =       0.704
+
+simulation:
+-----------
+B               =       62.5 Mpc/h
+N               =       270^3 particles
+\end{verbatim}
+Currently only the cosmological parameter and box length are read from this file.
+
+The second line identifies the merger tree file which must be in the format specified by \cite{srisawat_sussing_2013}.
+
+The third line of the descriptor file specifies a snapshot file which should have the following format:
+\begin{verbatim}
+#    snapnum       a             z           t(t0)      t(year)
+           0    0.0196080      49.9996   0.00354284  4.87485e+07
+           1    0.0322580      30.0001   0.00747572  1.02864e+08
+           2    0.0478110      19.9157    0.0134888  1.85602e+08
+           3    0.0519650      18.2437    0.0152842  2.10306e+08
+           4    0.0564190      16.7245    0.0172905  2.37912e+08
+           5    0.0611880      15.3431    0.0195280  2.68700e+08
+           6    0.0662870      14.0859    0.0220186  3.02969e+08
+             .
+             .
+             .
+\end{verbatim}
+This file must contain one line for each snapshot of the simulation, giving the snapshot number, expansion factor, redshift, fractional time (relative to present day), and age of the universe (in years).
+
+Subsequent lines identify the \gls{ahf} halo files for each snapshot (files can be listed in any order).
 
 \section{Merger Tree Pre-evolution Processing}
 
@@ -1910,29 +2003,33 @@ Selected with {\tt stellarPopulationSpectraMethod}$=${\tt Conroy-White-Gunn2009}
 
 Selected with {\tt stellarPopulationSpectraMethod}$=${\tt file} this method reads stellar population spectra from an HDF5 file, with format described in \S\ref{sec:StellarPopulationSpectra}.
 
-\section{Stellar Population Spectra Postprocessing}
+\section{Stellar Population Spectra Postprocessing}\label{sec:StellarSpectraPostprocessing}
 
 Stellar population spectra are postprocessed (to handle, for example, absorption by the \gls{igm}).
 
 Different chains of postprocessing methods can be applied to different filters. The {\tt [luminosityPostprocessSet]} parameter specifies, for each filter, which chain of postprocessing filters to use. (If this parameter is not present then ``{\tt default}'' is assumed for all filters.) The filters used in each chain are specified by the input parameter {\tt [stellarPopulationSpectraPostprocess\textless setName\textgreater Method]} where {\tt \textless setName\textgreater} is the name specified in {\tt [luminosityPostprocessSet]}.
 
-\subsection{Meiksin (2006) IGM Attenuation}
+\subsection{Inoue, Shimizu \& Iwata (2014) IGM Attenuation}\label{phys:spectraPostprocessor:spectraPostprocessorInoue2014}
 
-Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt Meiksin2006} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt inoue2014} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{inoue_updated_2014}.
 
-\subsection{Madau (1995) IGM Attenuation}
+\subsection{Meiksin (2006) IGM Attenuation}\label{phys:spectraPostprocessor:spectraPostprocessorMeiksin2006}
 
-Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt Madau1995} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt meiksin2006} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{meiksin_colour_2006}.
 
-\subsection{Lyman-continuum Suppression}
+\subsection{Madau (1995) IGM Attenuation}\label{phys:spectraPostprocessor:spectraPostprocessorMadau1995}
 
-Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt lymanContinuumSuppression} this method suppresses all emission in the Lyman continuum.
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt madau1995} this method postprocesses spectra through absorption by the \gls{igm} using the results of \cite{madau_radiative_1995}.
 
-\subsection{Recent Star Formation}
+\subsection{Lyman-continuum Suppression}\label{phys:spectraPostprocessor:spectraPostprocessorLycSuppress}
+
+Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt lycSuppress} this method suppresses all emission in the Lyman continuum.
+
+\subsection{Recent Star Formation}\label{phys:spectraPostprocessor:spectraPostprocessorRecent}
 
 Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt recent} this method suppresses all emission from populations older than {\tt [recentPopulationsTimeLimit]}.
 
-\subsection{Identity}
+\subsection{Identity}\label{phys:spectraPostprocessor:spectraPostprocessorIdentity}
 
 Selected with {\tt stellarPopulationSpectraPostprocess\textless setName\textgreater Method}$=${\tt identity} this method leaves the spectrum unchanged.
 
@@ -2041,11 +2138,11 @@ Substructures and merging of nodes/substructures is controlled by several algori
 
 The method used to compute merging timescales of substructures is specified by the {\tt satelliteMergingTimescalesMethod} parameter.
 
-\subsubsection{Lacey \& Cole (1993)}
+\subsubsection{Lacey \& Cole (1993)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter.
 
-\subsubsection{Lacey \& Cole (1993) $+$ Tormen}
+\subsubsection{Lacey \& Cole (1993) $+$ Tormen}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesLaceyCole1993Tormen}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}, this method computes merging timescales using the dynamical friction calculation of \cite{lacey_merger_1993} with a parameterization of orbital parameters designed to fit the results of \cite{tormen_rise_1997} as described by \cite{cole_hierarchical_2000}. Timescales are multiplied by the value of the {\tt mergingTimescaleMultiplier} input parameter. Specifically, the merging time is taken to be:
 \begin{equation}
@@ -2053,20 +2150,20 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt laceyCole1993Tormen}
 \end{equation}
 where $f_\tau=${\tt mergingTimescaleMultiplier}, $\tau_{\rm dynamical}$ is the dynamical time of the host halo and $B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}$. The orbital factor $\Phi \equiv \epsilon^{0.78} (R_{\rm c}/R_{\rm virial})^2$ is drawn at random from a log-normal distribution with median $-0.14$ and dispersion $0.26$ as found by \cite{cole_hierarchical_2000}.
 
-\subsubsection{Jiang (2008)}\label{sec:DynamicalFrictionJiang2008}
+\subsubsection{Jiang (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesJiang2008}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt jiang2008}, this method computes merging timescales using the dynamical friction calibration of \cite{jiang_fitting_2008}. \cite{jiang_fitting_2008} find that their fitting formula does not perfectly capture the results of N-body simulations, instead showing a scatter in the ratio $T_{\rm fit}/T_{\rm sim}$ where $T_{\rm fit}$ is the merging time from their fitting formula and $T_{\rm sim}$ is that measured from their N-body simulation. Furthermore, they show that the distribution of $T_{\rm fit}/T_{\rm sim}$ is well described by a log-normal with dispersion (in $\log[T_{\rm fit}/T_{\rm sim}]$) of $\sigma=0.4$. Random perturbations can be applied to the merger times returned by this implementation by setting $\sigma=${\tt [satelliteMergingJiang2008Scatter]}$>0$ which will cause the merger time to be drawn from a log-normal distribution of width $\sigma$ with median equal to $T_{\rm fit}$.
 
 
-\subsubsection{Boylan-Kolchin (2008)}
+\subsubsection{Boylan-Kolchin (2008)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesBoylanKolchin2008}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt boylanKolchin2008}, this method computes merging timescales using the dynamical friction calibration of \cite{boylan-kolchin_dynamical_2008}.
 
-\subsubsection{Wetzel \& White (2010)}
+\subsubsection{Wetzel \& White (2010)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesWetzelWhite2010}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt wetzelWhite2010}, this method computes merging timescales using the dynamical friction calibration of \cite{wetzel_what_2010}.
 
-\subsubsection{Villalobos et al. (2013)}
+\subsubsection{Villalobos et al. (2013)}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesVillalobos2013}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt villalobos2013}, this method computes merging timescales using the modifier of \cite{villalobos_improved_2013} as
 \begin{equation}
@@ -2074,13 +2171,17 @@ Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt villalobos2013}, thi
 \end{equation}
 where $\alpha=${\tt [satelliteMergingTimescaleVillalobos2013Exponent]} and $\tau^\prime_{\rm merge}$ is the merging timescale computed by another satellite merging timescale method as specified via {\tt [satelliteMergingTimescaleVillalobos2013BaseMethod]}.
 
-\subsubsection{Preset}
+\subsubsection{Preset}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesPreset}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt preset}, this method returns a precomputed merging timescale stored by the satellite component.
 
-\subsubsection{Null}
+\subsubsection{Null}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesNull}
 
 Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt null}, this method returns zero merging timescale.
+
+\subsubsection{Infinite}\label{phys:satelliteMergingTimescales:satelliteMergingTimescalesInfinite}
+
+Selected with {\tt satelliteMergingTimescalesMethod}$=${\tt infinite}, this method returns an infinite merging timescale (technically, it returns $10^{30}$~Gyr which should be sufficiently close to infinity for practical purposes).
 
 \subsection{Virial Orbits}
 

@@ -15,64 +15,65 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+  !% An implementation of a spectrum postprocessor that applies the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
-module Stellar_Population_Spectra_Postprocessing_Meiksin2006
-  !% Implements the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
-  use ISO_Varying_String
-  public :: Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize,Stellar_Population_Spectra_Postprocess_Meiksin2006
+  !# <spectraPostprocessor name="spectraPostprocessorMeiksin2006">
+  !#  <description>Apply the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !# </spectraPostprocessor>
 
-  ! Record of whether this method is active.
-  logical :: methodIsActive
+  type, extends(spectraPostprocessorClass) :: spectraPostprocessorMeiksin2006
+     !% An spectrum postprocessor applying the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+     private
+   contains
+     procedure :: apply => meiksin2006Apply
+  end type spectraPostprocessorMeiksin2006
+
+  interface spectraPostprocessorMeiksin2006
+     !% Constructors for the {\tt meiksin2006} spectrum postprocessor class.
+     module procedure meiksin2006DefaultConstructor
+  end interface spectraPostprocessorMeiksin2006
 
 contains
 
-  !# <stellarPopulationSpectraPostprocessInitialize>
-  !#  <unitName>Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize</unitName>
-  !# </stellarPopulationSpectraPostprocessInitialize>
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize(stellarPopulationSpectraPostprocessMethod,postprocessingFunction)
-    !% Initializes the ``Meiksin2006'' stellar spectrum postprocessing module.
+  function meiksin2006DefaultConstructor()
+    !% Default constructor for the {\tt meiksin2006} spectrum postprocessor class.
     implicit none
-    type     (varying_string), intent(in   )          :: stellarPopulationSpectraPostprocessMethod
-    procedure(              ), intent(inout), pointer :: postprocessingFunction
-
-    if (stellarPopulationSpectraPostprocessMethod == 'Meiksin2006') postprocessingFunction => Stellar_Population_Spectra_Postprocess_Meiksin2006
+    type(spectraPostprocessorMeiksin2006), target :: meiksin2006DefaultConstructor
+    
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006_Initialize
+  end function meiksin2006DefaultConstructor
 
-  subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006(wavelength,age,redshift,modifier)
-    !% Computes the factor by which the spectrum of a galaxy at given {\tt redshift} is attenuated at the given {\tt wavelength}
-    !% by the intervening intergalactic medium according to \cite{meiksin_colour_2006}.
+  subroutine meiksin2006Apply(self,wavelength,age,redshift,modifier)
+    !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
     use Factorials
     use Gamma_Functions
     implicit none
-    double precision               , intent(in   ) :: age                                    , redshift           , &
-         &                                            wavelength
-    double precision               , intent(inout) :: modifier
+    class           (spectraPostprocessorMeiksin2006), intent(inout) :: self
+    double precision                                 , intent(in   ) :: age                                    , redshift           , &
+         &                                                              wavelength
+    double precision                                 , intent(inout) :: modifier
     ! Parameters of the Lyman-limit system distribution.
-    double precision, parameter                    :: N0                              =0.25d0
-    double precision, parameter                    :: beta                            =1.50d0
-    double precision, parameter                    :: gamma                           =1.50d0
-    double precision, dimension(31)                :: opticalDepthLymanLines                 , redshiftLymanLines
-    integer                                        :: iLine
-    double precision                               :: nFactorial                             , opticalDepth       , &
-         &                                            seriesSolutionTermA                    , seriesSolutionTermB, &
-         &                                            wavelengthObservedLymanContinuum
+    double precision                                 , parameter     :: N0                              =0.25d0
+    double precision                                 , parameter     :: beta                            =1.50d0
+    double precision                                 , parameter     :: gamma                           =1.50d0
+    double precision                                 , dimension(31) :: opticalDepthLymanLines                 , redshiftLymanLines
+    integer                                                          :: iLine
+    double precision                                                 :: nFactorial                             , opticalDepth       , &
+         &                                                              seriesSolutionTermA                    , seriesSolutionTermB, &
+         &                                                              wavelengthObservedLymanContinuum
 
     ! Check if this is a zero redshift case.
-    if (.not.methodIsActive .or. redshift <= 0.0d0) then
+    if (redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.
        return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
-       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/ionizationWavelengthHydrogen
-
+       wavelengthObservedLymanContinuum=wavelength*(1.0d0+redshift)/lymanSeriesLimitWavelengthHydrogen
        ! Evaluate redshifts of various Lyman-series lines.
        forall (iLine=3:9)
           redshiftLymanLines(iLine)=wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2))-1.0d0
        end forall
-
        ! Evaluate optical depths relative to Lyman-alpha.
        opticalDepthLymanLines(2)=1.0d0 ! By definition.
        if (redshiftLymanLines(3) < 3.0d0) then
@@ -97,7 +98,6 @@ contains
        forall (iLine=10:31)
           opticalDepthLymanLines(iLine)=opticalDepthLymanLines(9)*720.0d0/dble(iLine)/dble(iLine**2-1)
        end forall
-
        ! Scale optical depths by Lyman-alpha optical depth.
        if (redshift <= 4.0d0) then
           forall (iLine=2:31)
@@ -108,13 +108,11 @@ contains
              opticalDepthLymanLines(iLine)=opticalDepthLymanLines(iLine)*0.00058d0*(wavelengthObservedLymanContinuum*(1.0d0-1.0d0/dble(iLine**2)))**4.50d0
           end forall
        end if
-
        ! Accumulate optical depths if line falls within the required redshift range.
        opticalDepth=0.0d0
        do iLine=2,31
           if (wavelengthObservedLymanContinuum < (1.0d0+redshift)/(1.0d0-1.0d0/(dble(iLine)**2))) opticalDepth=opticalDepth+opticalDepthLymanLines(iLine)
        end do
-
        if (wavelengthObservedLymanContinuum < (1.0d0+redshift)) then
           ! Add in photoelectric absorption contributions.
           seriesSolutionTermA=0.0d0
@@ -134,11 +132,9 @@ contains
           opticalDepth=opticalDepth+0.805d0*(wavelengthObservedLymanContinuum**3)*(1.0d0/wavelengthObservedLymanContinuum-1.0d0 &
                &/(1.0d0+redshift))
        end if
-
        ! Compute attenuation from optical depth.
        modifier=modifier*exp(-opticalDepth)
     end if
     return
-  end subroutine Stellar_Population_Spectra_Postprocess_Meiksin2006
-
-end module Stellar_Population_Spectra_Postprocessing_Meiksin2006
+  end subroutine meiksin2006Apply
+  

@@ -33,11 +33,11 @@
     <value>1.0</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
+    <name>darkMatterProfileConcentrationMethod</name>
     <value>NFW1996</value>
   </parameter>
   <parameter>
-    <name>nfw96ConcentrationC</name>
+    <name>nfw1996ConcentrationC</name>
     <value>3000.0</value>
   </parameter>
   <parameter>

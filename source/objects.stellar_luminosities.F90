@@ -795,7 +795,7 @@ contains
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (Stellar_Luminosities_Is_Output(i,time)) then
-             doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+luminosityCount)=self%luminosityValue(i)
+             doubleBuffer(doubleBufferCount,doubleProperty+1:doubleProperty+1)=self%luminosityValue(i)
              doubleProperty=doubleProperty+1
           end if
        end do

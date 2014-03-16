@@ -1,0 +1,45 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014 Andrew Benson <abenson@obs.carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which provides an object that implements core radii for cored hot halo mass distributions.
+
+module Hot_Halo_Mass_Distributions_Core_Radii
+  !% Provides an object that implements core radii for hot halo mass distributions.
+  use ISO_Varying_String
+  use Galacticus_Nodes
+  use FGSL
+  !# <include directive="hotHaloMassDistributionCoreRadius" type="functionModules" >
+  include 'hotHaloMassDistributionCoreRadius.functionModules.inc'
+  !# </include>
+  private
+
+  !# <include directive="hotHaloMassDistributionCoreRadius" type="function" >
+  !#  <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
+  !#  <description>Object implementing core radii for hot halo mass distributions.</description>
+  !#  <default>virialFraction</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <stateful>yes</stateful>
+  !#  <method name="radius" >
+  !#   <description>Return the core radius of the hot halo mass distribution.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#  </method>
+  include 'hotHaloMassDistributionCoreRadius.type.inc'
+  !# </include>
+
+end module Hot_Halo_Mass_Distributions_Core_Radii

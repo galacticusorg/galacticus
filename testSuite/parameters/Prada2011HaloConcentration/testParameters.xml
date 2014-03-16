@@ -1,4 +1,4 @@
-<!-- Parameter file used for testing the Prada2011 halo concentration algorithm. -->
+<!-- Parameter file used for testing the prada2011 halo concentration algorithm. -->
 <parameters>
   <parameter>
     <name>cosmologyFunctionsMethod</name>
@@ -33,8 +33,8 @@
     <value>0.95</value>
   </parameter>
   <parameter>
-    <name>darkMatterConcentrationMethod</name>
-    <value>Prada2011</value>
+    <name>darkMatterProfileConcentrationMethod</name>
+    <value>prada2011</value>
   </parameter>
   <parameter>
     <name>prada2011ConcentrationA</name>

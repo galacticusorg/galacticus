@@ -14,6 +14,7 @@ use XML::Simple;
 use Math::SigFigs;
 use Data::Dumper;
 use LaTeX::Encode;
+use File::Which;
 require Stats::Histograms;
 require Galacticus::HDF5;
 require Galacticus::Magnitudes;
@@ -88,7 +89,7 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     $yUpperError = +$y*(10.0**$yUpperError)-$y;
     $yLowerError = -$y/(10.0**$yLowerError)+$y;
 
-    my $zeroPoints = which($y <= 0.0);
+    my $zeroPoints = &PDL::which($y <= 0.0);
     my $yP           = $y          ->copy();
     my $yUpperErrorP = $yUpperError->copy();
     my $yLowerErrorP = $yLowerError->copy();
@@ -179,6 +180,8 @@ foreach my $dataSet ( @{$data->{'sizeDistribution'}} ) {
     push(@leafFiles,$leafName);
     push(@plotFiles,$plotFile);
 }
+die("Plot_Disk_Scalelengths.pl: 'pdfmerge' tool is required")
+    unless ( which("pdfmerge") );
 &SystemRedirect::tofile("rm -f ".$outputFile."; cd ".$outputDir."; pdfmerge ".join(" ",@leafFiles)." tmp.pdf; cd -; mv ".$outputDir."/tmp.pdf ".$outputFile,"/dev/null");
 unlink(@plotFiles);
 &MetaData::Write($outputFile,$galacticusFile,$self);

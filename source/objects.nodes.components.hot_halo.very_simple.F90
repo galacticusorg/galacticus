@@ -53,6 +53,13 @@ module Node_Component_Hot_Halo_Very_Simple
   !#     <rank>0</rank>
   !#     <isVirtual>true</isVirtual>
   !#   </property>
+  !#   <property>
+  !#     <name>outerRadius</name>
+  !#     <type>real</type>
+  !#     <rank>0</rank>
+  !#     <isVirtual>true</isVirtual>
+  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+  !#   </property>
   !#  </properties>
   !# </component>
 
@@ -76,6 +83,9 @@ contains
 
        ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
        call hotHaloComponent%outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate)
+
+       ! Bind outer radius function.
+       call hotHaloComponent%       outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius        )
 
        ! Record that the module is now initialized.
        moduleInitialized=.true.
@@ -136,6 +146,16 @@ contains
     call self%massRate(rate)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate
+  
+  double precision function Node_Component_Hot_Halo_Very_Simple_Outer_Radius(self)
+    !% Return the outer radius of the hot halo. Assumes a simple model in which this always equals the virial radius.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(nodeComponentHotHaloVerySimple), intent(inout) :: self
+
+    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=Dark_Matter_Halo_Virial_Radius(self%hostNode)
+    return
+  end function Node_Component_Hot_Halo_Very_Simple_Outer_Radius
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Rate_Compute</unitName>

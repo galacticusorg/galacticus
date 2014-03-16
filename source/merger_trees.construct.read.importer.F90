@@ -59,21 +59,32 @@ module Merger_Tree_Read_Importers
   ! Type used to store raw data.
   type nodeData
      !% Structure used to store raw data read from merger tree files.
-     integer         (kind=kind_int8)               :: descendentIndex  , hostIndex               , & 
-          &                                            isolatedNodeIndex, mergesWithIndex         , & 
-          &                                            nodeIndex        , primaryIsolatedNodeIndex    
-     double precision                               :: angularMomentum  , halfMassRadius          , & 
-          &                                            nodeMass         , nodeTime                , & 
-          &                                            scaleRadius                                    
-     double precision                , dimension(3) :: position         , velocity                    
-     logical                                        :: childIsSubhalo   , isSubhalo                   
-     class           (nodeData      ), pointer      :: descendent       , host                    , & 
+     integer         (kind=kind_int8)               :: descendentIndex   , hostIndex               , & 
+          &                                            isolatedNodeIndex , mergesWithIndex         , & 
+          &                                            nodeIndex         , primaryIsolatedNodeIndex, &
+          &                                            particleCount
+     double precision                               :: angularMomentum   , halfMassRadius          , & 
+          &                                            nodeMass          , nodeTime                , & 
+          &                                            scaleRadius       , velocityMaximum         , &
+          &                                            velocityDispersion, spin
+     double precision                , dimension(3) :: position          , velocity                , &
+          &                                            angularMomentum3D , spin3D
+     logical                                        :: childIsSubhalo    , isSubhalo                   
+     class           (nodeData      ), pointer      :: descendent        , host                    , & 
           &                                            parent                                         
      type            (treeNode      ), pointer      :: node                                           
   end type nodeData
 
+  interface importerUnitConvert
+     !% Unit convertors for \glc\ format tree importer.
+     module procedure importerUnitConvertScalar
+     module procedure importerUnitConvert1D
+     module procedure importerUnitConvert2D
+  end interface importerUnitConvert
+
   !# <include directive="mergerTreeImporter" type="function" >
   !#  <description>Object providing functions for importing merger trees.</description>
+  !#  <descriptiveName>Merger Tree Importer</descriptiveName>
   !#  <default>galacticus</default>
   !#  <defaultThreadPrivate>no</defaultThreadPrivate>
   !#  <method name="open" >
@@ -153,8 +164,38 @@ module Merger_Tree_Read_Importers
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="particleCountAvailable" >
+  !#   <description>Return true if particle counts are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="velocityMaximumAvailable" >
+  !#   <description>Return true if rotation curve velocity maxima are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="velocityDispersionAvailable" >
+  !#   <description>Return true if halo velocity dispersions are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !#  <method name="angularMomentaAvailable" >
-  !#   <description>Return true if angular momenta are available.</description>
+  !#   <description>Return true if angular momenta (magnitudes) are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="angularMomenta3DAvailable" >
+  !#   <description>Return true if angular momenta (vectors) are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="spinAvailable" >
+  !#   <description>Return true if spin (magnitudes) are available.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="spin3DAvailable" >
+  !#   <description>Return true if spin (vectors) are available.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
@@ -164,7 +205,7 @@ module Merger_Tree_Read_Importers
   !#   <pass>yes</pass>
   !#   <argument>integer          , intent(in   )                            :: i</argument>
   !#   <argument>class  (nodeData), intent(  out), allocatable, dimension(:) :: nodes</argument>
-  !#   <argument>logical          , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requirePositions</argument>
+  !#   <argument>logical          , intent(in   ), optional                  :: requireScaleRadii, requireAngularMomenta, requireAngularMomenta3D, requireSpin, requireSpin3D, requirePositions, requireParticleCounts, requireVelocityMaxima, requireVelocityDispersions</argument>
   !#  </method>
   !#  <method name="subhaloTrace" >
   !#   <description>Supplies epochs, positions, and velocities for traced subhalos.</description>
@@ -211,4 +252,80 @@ module Merger_Tree_Read_Importers
     return
   end function importerUnitsExponentiate
 
+  function importerUnitConvertScalar(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ) :: values                    , times
+    type            (importerUnits           ), intent(in   ) :: units
+    double precision                          , intent(in   ) :: requiredUnits
+    double precision                                          :: importerUnitConvertScalar
+    class           (cosmologyParametersClass), pointer       :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctionsDefault
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvertScalar','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvertScalar=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       importerUnitConvertScalar=importerUnitConvertScalar*cosmologyFunctionsDefault%expansionFactor(times)**units%scaleFactorExponent
+    end if
+    return
+  end function importerUnitConvertScalar
+  
+  function importerUnitConvert1D(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ), dimension(           :) :: values                    , times
+    type            (importerUnits           ), intent(in   )                          :: units
+    double precision                          , intent(in   )                          :: requiredUnits
+    double precision                                         , dimension(size(values)) :: importerUnitConvert1D
+    class           (cosmologyParametersClass), pointer                                :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer                                :: cosmologyFunctionsDefault
+    integer                                                                            :: i
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert1D','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvert1D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       do i=1,size(values)
+          importerUnitConvert1D(i)=importerUnitConvert1D(i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+       end do
+    end if
+    return
+  end function importerUnitConvert1D
+  
+  function importerUnitConvert2D(values,times,units,requiredUnits)
+    !% Convert a set of values for \glc\ internal units.
+    use Cosmology_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
+    implicit none
+    double precision                          , intent(in   ), dimension(                 :,                 :) :: values
+    double precision                          , intent(in   ), dimension(                                    :) :: times
+    type            (importerUnits           ), intent(in   )                                                   :: units
+    double precision                          , intent(in   )                                                   :: requiredUnits
+    double precision                                         , dimension(size(values,dim=1),size(values,dim=2)) :: importerUnitConvert2D
+    class           (cosmologyParametersClass), pointer                                                         :: cosmologyParametersDefault
+    class           (cosmologyFunctionsClass ), pointer                                                         :: cosmologyFunctionsDefault
+    integer                                                                                                     :: i
+
+    if (.not.units%status) call Galacticus_Error_Report('importerUnitConvert2D','units are not defined')
+    cosmologyParametersDefault => cosmologyParameters()
+    importerUnitConvert2D=values*(units%unitsInSI/requiredUnits)*cosmologyParametersDefault%HubbleConstant(unitsLittleH)**units%hubbleExponent
+    if (units%scaleFactorExponent /= 0) then
+       cosmologyFunctionsDefault => cosmologyFunctions()
+       do i=1,size(values,dim=2)
+          importerUnitConvert2D(:,i)=importerUnitConvert2D(:,i)*cosmologyFunctionsDefault%expansionFactor(times(i))**units%scaleFactorExponent
+       end do
+    end if
+    return
+  end function importerUnitConvert2D
+  
 end module Merger_Tree_Read_Importers
